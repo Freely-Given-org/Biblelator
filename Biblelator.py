@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-09-25 (also update ProgVersion below)
+#   Last modified: 2014-09-27 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
 ProgName = "Biblelator"
-ProgVersion = "0.11"
+ProgVersion = "0.12"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -100,62 +100,11 @@ class Application( Frame ):
         self.BCVHistory = []
         self.BCVHistoryIndex = None
 
-        # Read and apply the saved settings
-        #self.readSettingsFile()
-        try: self.minimumXSize, self.minimumYSize = settings.data[ProgName]['minimumXSize'], settings.data[ProgName]['minimumYSize']
-        except KeyError: self.minimumXSize, self.minimumYSize = MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE
-        #print( self.minimumXSize, self.minimumYSize )
-        self.ApplicationParent.minsize( self.minimumXSize, self.minimumYSize )
-        try: self.ApplicationParent.geometry( settings.data[ProgName]['windowGeometry'] )
-        except KeyError: pass # we had no geometry set
-        except TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
         self.appWins = ResourceWindows()
         self.projWins = ResourceFrames()
-        for j in range( 1, MAX_WINDOWS ):
-            tryName = "Window{}".format( j )
-            if tryName in settings.data.sections():
-                thisOne = settings.data[tryName]
-                windowGeometry = thisOne['windowGeometry'] if 'windowGeometry' in thisOne else None
-                winType = thisOne['windowType']
-                if winType == 'SwordResourceWindow':
-                    self.openSwordResourceFrame( thisOne['moduleAbbreviation'], windowGeometry )
-                    #except: logging.error( "Unable to read SwordResourceFrame {} settings".format( j ) )
-                elif winType == 'FCBHResourceWindow':
-                    self.openFCBHResourceFrame( thisOne['moduleAbbreviation'], windowGeometry )
-                    #except: logging.error( "Unable to read FCBHResourceFrame {} settings".format( j ) )
-                elif winType == 'USFMResourceWindow':
-                    self.openUSFMResourceFrame( thisOne['USFMFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
 
-                elif winType == 'HebrewLexiconResourceWindow':
-                    self.openHebrewLexiconResourceFrame( thisOne['HebrewLexiconFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
-                elif winType == 'GreekLexiconResourceWindow':
-                    self.openGreekLexiconResourceFrame( thisOne['GreekLexiconFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
-                elif winType == 'BibleLexiconResourceWindow':
-                    self.openBibleLexiconResourceFrame( thisOne['BibleLexiconFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
-
-                elif winType == 'USFMEditWindow':
-                    self.openUSFMEditWindow( thisOne['USFMFolder'], thisOne['editMode'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMEditWindow {} settings".format( j ) )
-
-                else:
-                    logging.critical( t("Application.__init__: Unknown {} window type").format( repr(winType) ) )
-                    if Globals.debugFlag: halt
-        try: self.currentBCVGroup = settings.data['BCVGroups']['currentGroup']
-        except KeyError: self.currentBCVGroup = 'A'
-        try: self.BCVGroupA = (settings.data['BCVGroups']['A-Book'],settings.data['BCVGroups']['A-Chapter'],settings.data['BCVGroups']['A-Verse'])
-        except KeyError: self.BCVGroupA = (self.genericBOS.getFirstBookCode(), '1', '1')
-        try: self.BCVGroupB = (settings.data['BCVGroups']['B-Book'],settings.data['BCVGroups']['B-Chapter'],settings.data['BCVGroups']['B-Verse'])
-        except KeyError: self.BCVGroupB = (None, None, None)
-        try: self.BCVGroupC = (settings.data['BCVGroups']['C-Book'],settings.data['BCVGroups']['C-Chapter'],settings.data['BCVGroups']['C-Verse'])
-        except KeyError: self.BCVGroupC = (None, None, None)
-        try: self.BCVGroupD = (settings.data['BCVGroups']['D-Book'],settings.data['BCVGroups']['D-Chapter'],settings.data['BCVGroups']['D-Verse'])
-        except KeyError: self.BCVGroupD = (None, None, None)
-        self.updateBCVGroup( self.currentBCVGroup )
-        self.updateBCVButtons()
+        # Read and apply the saved settings
+        self.parseAndApplySettings()
 
         if 0: # Play with ttk styles
             import random
@@ -214,6 +163,87 @@ class Application( Frame ):
             else:
                 self.ApplicationParent.title(content)
         # end of Application.change_style
+
+
+
+    def parseAndApplySettings( self ):
+        try: self.minimumXSize, self.minimumYSize = self.settings.data[ProgName]['minimumXSize'], self.settings.data[ProgName]['minimumYSize']
+        except KeyError: self.minimumXSize, self.minimumYSize = MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE
+        self.ApplicationParent.minsize( self.minimumXSize, self.minimumYSize )
+        try: self.ApplicationParent.geometry( self.settings.data[ProgName]['windowGeometry'] )
+        except KeyError: pass # we had no geometry set
+        except TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
+
+        self.windowsSettingsNames = self.getWindowsSettingsNames()
+        print( t("Available windows settings are: {}").format( self.windowsSettingsNames ) )
+        if 'Current' in self.windowsSettingsNames: self.applyWindowsSettings( 'Current', self.settings.data['WindowSettingCurrent'] )
+        else: logging.critical( t("Application.parseAndApplySettings: No current window settings available") )
+
+        try: self.currentBCVGroup = self.settings.data['BCVGroups']['currentGroup']
+        except KeyError: self.currentBCVGroup = 'A'
+        try: self.BCVGroupA = (self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
+        except KeyError: self.BCVGroupA = (self.genericBOS.getFirstBookCode(), '1', '1')
+        try: self.BCVGroupB = (self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
+        except KeyError: self.BCVGroupB = (None, None, None)
+        try: self.BCVGroupC = (self.settings.data['BCVGroups']['C-Book'],self.settings.data['BCVGroups']['C-Chapter'],self.settings.data['BCVGroups']['C-Verse'])
+        except KeyError: self.BCVGroupC = (None, None, None)
+        try: self.BCVGroupD = (self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
+        except KeyError: self.BCVGroupD = (None, None, None)
+        self.updateBCVGroup( self.currentBCVGroup )
+        self.updateBCVButtons()
+    # end of Application.parseAndApplySettings
+
+
+    def getWindowsSettingsNames( self ):
+        """
+        """
+        nameList = []
+        for name in self.settings.data:
+            if name.startswith( 'WindowSetting' ): nameList.append( name[13:] )
+        return nameList
+    #end of Application.getWindowsSettingsNames
+
+
+    def applyWindowsSettings( self, windowsSettingsName, windowsSettingsFields ):
+        """
+        """
+        print( t("applyWindowsSettings( {} )").format( repr(windowsSettingsName) ) )
+        for j in range( 1, MAX_WINDOWS ):
+            winNumber = "window{}".format( j )
+            #if tryName in self.settings.data:
+                #thisOne = self.settings.data[tryName]
+            if winNumber+'Type' in windowsSettingsFields:
+                winType = windowsSettingsFields[winNumber+'Type']
+                windowGeometry = windowsSettingsFields[winNumber+'Geometry'] if winNumber+'Geometry' in windowsSettingsFields else None
+                #print( winType, windowGeometry )
+                if winType == 'SwordResourceWindow':
+                    self.openSwordResourceFrame( windowsSettingsFields[winNumber+'ModuleAbbreviation'], windowGeometry )
+                    #except: logging.error( "Unable to read SwordResourceFrame {} settings".format( j ) )
+                elif winType == 'FCBHResourceWindow':
+                    self.openFCBHResourceFrame( windowsSettingsFields[winNumber+'ModuleAbbreviation'], windowGeometry )
+                    #except: logging.error( "Unable to read FCBHResourceFrame {} settings".format( j ) )
+                elif winType == 'USFMResourceWindow':
+                    self.openUSFMResourceFrame( windowsSettingsFields[winNumber+'USFMFolder'], windowGeometry )
+                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
+
+                elif winType == 'HebrewLexiconResourceWindow':
+                    self.openHebrewLexiconResourceFrame( windowsSettingsFields[winNumber+'HebrewLexiconFolder'], windowGeometry )
+                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
+                elif winType == 'GreekLexiconResourceWindow':
+                    self.openGreekLexiconResourceFrame( windowsSettingsFields[winNumber+'GreekLexiconFolder'], windowGeometry )
+                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
+                elif winType == 'BibleLexiconResourceWindow':
+                    self.openBibleLexiconResourceFrame( windowsSettingsFields[winNumber+'BibleLexiconFolder'], windowGeometry )
+                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
+
+                elif winType == 'USFMEditWindow':
+                    self.openUSFMEditWindow( windowsSettingsFields[winNumber+'USFMFolder'], windowsSettingsFields[winNumber+'EditMode'], windowGeometry )
+                    #except: logging.error( "Unable to read USFMEditWindow {} settings".format( j ) )
+
+                else:
+                    logging.critical( t("Application.__init__: Unknown {} window type").format( repr(winType) ) )
+                    if Globals.debugFlag: halt
+    # end of self.applyWindowsSettings
 
 
     def notWrittenYet( self ):
@@ -684,30 +714,32 @@ class Application( Frame ):
                     groups['D-Verse'] = self.BCVGroupD[2]
 
         # Save the child windows
+        self.settings.data['WindowSettingCurrent'] = {}
+        winSettings = self.settings.data['WindowSettingCurrent']
         for j, appWin in enumerate( self.appWins ):
-            winSetupName = "Window{}".format( j+1 )
-            self.settings.data[winSetupName] = {}
-            winSettings = self.settings.data[winSetupName]
-            winSettings['windowType'] = appWin.winType.replace( 'Frame', 'Window' )
-            winSettings['windowGeometry'] = appWin.geometry()
+            winNumber = "window{}".format( j+1 )
+            #self.settings.data[winSetupName] = {}
+            #winSettings = self.settings.data[winSetupName]
+            winSettings[winNumber+'Type'] = appWin.winType.replace( 'Frame', 'Window' )
+            winSettings[winNumber+'Geometry'] = appWin.geometry()
             if appWin.winType == 'SwordResourceFrame':
-                winSettings['moduleAbbreviation'] = appWin.moduleAbbreviation
+                winSettings[winNumber+'ModuleAbbreviation'] = appWin.moduleAbbreviation
             elif appWin.winType == 'FCBHResourceFrame':
-                winSettings['moduleAbbreviation'] = appWin.moduleAbbreviation
+                winSettings[winNumber+'ModuleAbbreviation'] = appWin.moduleAbbreviation
             elif appWin.winType == 'USFMResourceFrame':
-                winSettings['USFMFolder'] = appWin.USFMFolder
+                winSettings[winNumber+'USFMFolder'] = appWin.USFMFolder
 
             elif appWin.winType == 'HebrewLexiconResourceFrame':
-                winSettings['HebrewLexiconFolder'] = appWin.lexiconFolder
+                winSettings[winNumber+'HebrewLexiconFolder'] = appWin.lexiconFolder
             elif appWin.winType == 'GreekLexiconResourceFrame':
-                winSettings['GreekLexiconFolder'] = appWin.lexiconFolder
+                winSettings[winNumber+'GreekLexiconFolder'] = appWin.lexiconFolder
             elif appWin.winType == 'BibleLexiconResourceFrame':
-                winSettings['BibleLexiconFolder'] = appWin.lexiconFolder
-                
+                winSettings[winNumber+'BibleLexiconFolder'] = appWin.lexiconFolder
+
             elif appWin.winType == 'USFMEditWindow':
-                winSettings['USFMFolder'] = appWin.USFMFolder
-                winSettings['editMode'] = appWin.editMode
-                
+                winSettings[winNumber+'USFMFolder'] = appWin.USFMFolder
+                winSettings[winNumber+'EditMode'] = appWin.editMode
+
             else:
                 logging.critical( t("writeSettingsFile: Unknown {} window type").format( repr(appWin.winType) ) )
                 if Globals.deubgFlag: halt
