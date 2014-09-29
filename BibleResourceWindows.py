@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-09-25 (also update ProgVersion below)
+#   Last modified: 2014-09-28 (also update ProgVersion below)
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
@@ -28,6 +28,7 @@ Windows and frames to allow display and manipulation of
     Bible resource windows.
 """
 
+ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = "0.11"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
@@ -74,7 +75,7 @@ def t( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if Globals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ProgName, '.' if nameBit else '', nameBit )
+        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
@@ -311,7 +312,7 @@ class FCBHResourceFrame( ResourceFrame ):
         if not self.FCBHModule:
             print( "RETURN1" )
             return
-        
+
         lastParagraphNumber = None
 
         previousVerseData = None
@@ -614,7 +615,7 @@ def demo():
 
 if __name__ == '__main__':
     import multiprocessing
-    
+
     # Configure basic set-up
     parser = Globals.setup( ProgName, ProgVersion )
     Globals.addStandardOptionsAndProcess( parser )

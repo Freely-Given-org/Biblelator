@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-09-25 (also update ProgVersion below)
+#   Last modified: 2014-09-28 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -27,6 +27,7 @@
 Global variables for program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
+ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = "0.11"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
@@ -61,7 +62,7 @@ def t( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if Globals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ProgName, '.' if nameBit else '', nameBit )
+        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
@@ -128,7 +129,7 @@ def demo():
     print( "assembleGeometryFromList( {} ) = {}".format( p1, assembleGeometryFromList( p1 ) ) )
     print( "parseGeometry( {} ) = {}".format( g2, p2 ) )
     print( "assembleGeometryFromList( {} ) = {}".format( p2, assembleGeometryFromList( p2 ) ) )
-           
+
     #tkRootWindow = Tk()
     #settings = ApplicationSettings( DATA_FOLDER, SETTINGS_FOLDER, ProgName )
     #settings.load()
@@ -145,7 +146,7 @@ def demo():
 
 if __name__ == '__main__':
     import multiprocessing
-    
+
     # Configure basic set-up
     parser = Globals.setup( ProgName, ProgVersion )
     Globals.addStandardOptionsAndProcess( parser )

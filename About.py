@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-09-18 (also update ProgVersion below)
+#   Last modified: 2014-09-28 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -27,53 +27,55 @@
 Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
-ProgName = "About"
+ShortProgName = "About"
+ProgName = "About Box"
 ProgVersion = "0.10"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
 
 
-import sys, os.path, configparser, logging
-from gettext import gettext as _
-import multiprocessing
+import sys #, os.path, configparser, logging
+#from gettext import gettext as _
 
-# Importing this way means that we have to manually choose which
-#       widgets that we use (if there's one in each set)
-import tkinter as tk
-from tkinter import messagebox
-from tkinter import ttk
-from tkinter import tix
-#from tkinter.ttk import * # Overrides any of the above widgets
+from tkinter import Toplevel, Text
+from tkinter import YES
+from tkinter.ttk import Button
+#from tkinter import tix
 
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
-from BibleOrganizationalSystems import BibleOrganizationalSystem
-import Hebrew
-from HebrewLexicon import HebrewLexicon
-from HebrewWLC import HebrewWLC
-import Greek
-from GreekNT import GreekNT
-import VerseReferences
-import USFMBible, USFMStylesheets
-import SwordResources, DigitalBiblePlatform
 
-from ApplicationSettings import ApplicationSettings
+#from ApplicationSettings import ApplicationSettings
 
 
-class AboutBox( tk.Toplevel ):
+def t( messageString ):
+    """
+    Prepends the module name to a error or warning message string
+        if we are in debug mode.
+    Returns the new string.
+    """
+    try: nameBit, errorBit = messageString.split( ': ', 1 )
+    except ValueError: nameBit, errorBit = '', messageString
+    if Globals.debugFlag or debuggingThisModule:
+        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit, _(errorBit) )
+
+
+
+class AboutBox( Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
         if Globals.debugFlag: print( "ApplicationWindow.__init__( {} )".format( parent ) )
-        tk.Toplevel.__init__( self, parent )
+        Toplevel.__init__( self, parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
         self.title( 'About '+progName )
-        self.textBox = tk.Text( self ) #, state=tk.DISABLED )
+        self.textBox = Text( self ) #, state=DISABLED )
         self.textBox['wrap'] = 'word'
-        self.textBox.pack( expand=tk.YES )
+        self.textBox.pack( expand=YES )
         self.textBox.insert( 'end', text )
 
-        self.okButton = tk.Button( self, text='Ok', command=self.destroy )
+        self.okButton = Button( self, text='Ok', command=self.destroy )
         self.okButton.pack()
 
         self.focus_set() # take over input focus,
@@ -86,15 +88,15 @@ class AboutBox( tk.Toplevel ):
 class AboutBox2():
     def __init__( self, parent=None, progName=None, text=None ):
         if Globals.debugFlag: print( "ApplicationWindow.__init__( {} )".format( parent ) )
-        ab = tk.Toplevel( parent )
+        ab = Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
         ab.title( 'About '+progName )
-        textBox = tk.Text( ab ) #, state=tk.DISABLED )
+        textBox = Text( ab ) #, state=DISABLED )
         textBox['wrap'] = 'word'
-        textBox.pack( expand=tk.YES )
+        textBox.pack( expand=YES )
         textBox.insert( 'end', text )
 
-        okButton = tk.Button( ab, text='Ok', command=ab.destroy )
+        okButton = Button( ab, text='Ok', command=ab.destroy )
         okButton.pack()
 
         ab.focus_set() # take over input focus,
@@ -108,13 +110,15 @@ def demo():
     """
     Main program to handle command line parameters and then run what they want.
     """
+    from tkinter import Tk
+
     if Globals.verbosityLevel > 0: print( ProgNameVersion )
     #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( "Running demo..." )
     #Globals.debugFlag = True
 
-    tkRootWindow = tk.Tk()
+    tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
     ab = AboutBox( tkRootWindow, ProgName, ProgNameVersion )
     ab = AboutBox2( tkRootWindow, ProgName, ProgNameVersion )
@@ -127,6 +131,8 @@ def demo():
 
 
 if __name__ == '__main__':
+    import multiprocessing
+
     # Configure basic set-up
     parser = Globals.setup( ProgName, ProgVersion )
     Globals.addStandardOptionsAndProcess( parser )

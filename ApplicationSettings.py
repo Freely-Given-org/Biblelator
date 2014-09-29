@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ApplicationSettings.py
-#   Last modified: 2014-09-27 (also update ProgVersion below)
+#   Last modified: 2014-09-28 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -27,7 +27,8 @@
 Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
-ProgName = "ApplicationSettings"
+ShortProgName = "ApplicationSettings"
+ProgName = "Application Settings"
 ProgVersion = "0.12"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
@@ -56,7 +57,7 @@ def t( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if Globals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ProgName, '.' if nameBit else '', nameBit )
+        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
