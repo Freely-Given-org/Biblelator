@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-09-28 (also update ProgVersion below)
+#   Last modified: 2014-10-03 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = "0.11"
+ProgVersion = "0.13"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = False
@@ -69,7 +69,7 @@ def t( messageString ):
 
 # Programmed settings
 DATA_FOLDER = 'BiblelatorData/'
-SETTINGS_FOLDER = 'BiblelatorSettings/'
+SETTINGS_SUBFOLDER = 'BiblelatorSettings/'
 
 
 MAX_WINDOWS = 20
@@ -131,7 +131,8 @@ def demo():
     print( "assembleGeometryFromList( {} ) = {}".format( p2, assembleGeometryFromList( p2 ) ) )
 
     #tkRootWindow = Tk()
-    #settings = ApplicationSettings( DATA_FOLDER, SETTINGS_FOLDER, ProgName )
+    #tkRootWindow.title( ProgNameVersion )
+    #settings = ApplicationSettings( DATA_FOLDER, SETTINGS_SUBFOLDER, ProgName )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )

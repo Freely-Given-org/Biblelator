@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-09-29 (also update ProgVersion below)
+#   Last modified: 2014-10-03 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows and frames to allow display and manipulation of
 
 ShortProgName = "ResourceWindows"
 ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.12"
+ProgVersion = "0.13"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -42,7 +42,7 @@ from gettext import gettext as _
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
 from tkinter import Toplevel, TclError, Menu, Text, StringVar, messagebox
-from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES
+from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES, END
 from tkinter.ttk import Style, Frame#, Button, Combobox
 #from tkinter.tix import Spinbox
 
@@ -71,13 +71,20 @@ def t( messageString ):
 
 
 class ResourceWindow( Toplevel ):
-    def __init__( self, parent, genericWindowType ):
+    """
+    """
+    def __init__( self, parentApp, genericWindowType ):
+        """
+        The genericWindowType is set here,
+            but the more accurate winType is set later by the subclass.
+        """
         if Globals.debugFlag:
-            print( t("ResourceWindow.__init__( {} {} )").format( parent, repr(genericWindowType) ) )
-            assert( parent )
+            print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+            assert( parentApp )
             assert( genericWindowType in ('BibleResource','LexiconResource','Editor') )
-        self.ResourceWindowParent, self.genericWindowType = parent, genericWindowType
-        Toplevel.__init__( self, self.ResourceWindowParent )
+        self.parentApp, self.genericWindowType = parentApp, genericWindowType
+        Toplevel.__init__( self, self.parentApp )
+        self.protocol( "WM_DELETE_WINDOW", self.closeResourceWindow )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
         if self.genericWindowType != 'Editor': # the editor creates its own
             self.createMenuBar()
@@ -91,9 +98,19 @@ class ResourceWindow( Toplevel ):
     # end of ResourceWindow.notWrittenYet
 
 
+    def doHelp( self ):
+        from Help import HelpBox
+        helpInfo = ProgNameVersion
+        helpInfo += "\nHelp for {}".format( self.winType )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+    # end of Application.doHelp
+
+
     def doAbout( self ):
         from About import AboutBox
-        ab = AboutBox( self, ProgName, ProgNameVersion )
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.winType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of Application.doAbout
 
 
@@ -105,18 +122,18 @@ class ResourceWindow( Toplevel ):
 
         menuFile = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuFile, label='File', underline=0 )
-        menuFile.add_command( label='New...', command=self.notWrittenYet, underline=0 )
-        menuFile.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
-        menuFile.add_separator()
-        submenuFileImport = Menu( menuFile )
-        submenuFileImport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        menuFile.add_cascade( label='Import', menu=submenuFileImport, underline=0 )
-        submenuFileExport = Menu( menuFile )
-        submenuFileExport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        submenuFileExport.add_command( label='HTML', command=self.notWrittenYet, underline=0 )
-        menuFile.add_cascade( label='Export', menu=submenuFileExport, underline=0 )
-        menuFile.add_separator()
-        menuFile.add_command( label='Close', command=self.quit, underline=0 ) # quit app
+        #menuFile.add_command( label='New...', command=self.notWrittenYet, underline=0 )
+        #menuFile.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        #menuFile.add_separator()
+        #submenuFileImport = Menu( menuFile )
+        #submenuFileImport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
+        #menuFile.add_cascade( label='Import', menu=submenuFileImport, underline=0 )
+        #submenuFileExport = Menu( menuFile )
+        #submenuFileExport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
+        #submenuFileExport.add_command( label='HTML', command=self.notWrittenYet, underline=0 )
+        #menuFile.add_cascade( label='Export', menu=submenuFileExport, underline=0 )
+        #menuFile.add_separator()
+        menuFile.add_command( label='Close', command=self.closeResourceWindow, underline=0 ) # close this window
 
         menuEdit = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuEdit, label='Edit', underline=0 )
@@ -126,13 +143,25 @@ class ResourceWindow( Toplevel ):
 
         menuGoto = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuGoto, label='Goto', underline=0 )
-        menuGoto.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous book', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next book', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous chapter', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next chapter', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous verse', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next verse', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Forward', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Backward', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Previous list item', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next list item', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Book', command=self.notWrittenYet, underline=0 )
 
         menuView = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuView, label='View', underline=0 )
-        menuView.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
-        menuView.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
+        #menuView.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
+        #menuView.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
 
         menuTools = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuTools, label='Tools', underline=0 )
@@ -144,6 +173,8 @@ class ResourceWindow( Toplevel ):
 
         menuHelp = Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=menuHelp, label='Help', underline=0 )
+        menuHelp.add_command( label='Help...', command=self.doHelp, underline=0 )
+        menuHelp.add_separator()
         menuHelp.add_command( label='About...', command=self.doAbout, underline=0 )
 
         #filename = filedialog.askopenfilename()
@@ -156,6 +187,7 @@ class ResourceWindow( Toplevel ):
 
 
     def createToolBar( self ):
+        if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindow.createToolBar()") )
         toolbar = Frame( self, cursor='hand2', relief=SUNKEN ) # bd=2
         toolbar.pack( side=BOTTOM, fill=X )
         Button( toolbar, text='Halt',  command=self.quit ).pack( side=RIGHT )
@@ -164,6 +196,15 @@ class ResourceWindow( Toplevel ):
         Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT )
         Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT )
     # end of ResourceWindow.createToolBar
+
+
+    def closeResourceWindow( self ):
+        """
+        """
+        if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindow.closeResourceWindow()") )
+        self.parentApp.appWins.remove( self )
+        self.destroy()
+    # end of ResourceWindow.closeResourceWindow
 # end of class ResourceWindow
 
 
@@ -172,6 +213,10 @@ class ResourceWindows( list ):
     """
     Just keeps a list of the resource (Toplevel) windows.
     """
+    def __init__( self, ResourceWindowsParent ):
+        self.ResourceWindowsParent = ResourceWindowsParent
+        list.__init__( self )
+
     def iconify( self ):
         if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconify()") )
         for appWin in self:
@@ -189,6 +234,7 @@ class ResourceWindows( list ):
         if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.deiconify()") )
         for appWin in self:
             appWin.deiconify()
+            appWin.lift( aboveThis=self.ResourceWindowsParent )
     #end of ResourceWindows.deiconify
 # end of ResourceWindows class
 
@@ -209,17 +255,29 @@ class ResourceFrames( list ):
 
 
 class ResourceFrame( Frame ):
-    def __init__( self, parent=None ):
+    def __init__( self, parent ):
         if Globals.debugFlag: print( "ResourceFrame.__init__( {} )".format( parent ) )
         self.ResourceFrameParent = parent
         Frame.__init__( self, self.ResourceFrameParent )
-        #self.grid( sticky=W+E+N+S ) #.pack( expand=1 )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
         self.ResourceFrameParent.minsize( self.minimumXSize, self.minimumYSize )
         self.pack( expand=YES, fill=BOTH )
         self.createResourceFrameWidgets()
         #self.updateText( "Hello there" )
     # end of ResourceFrame.__init__
+
+    def __str__( self ):
+        """
+        """
+        resultString = ""
+        #print( "dir", dir(self) )
+        for tryThis in ('moduleAbbreviation','modulePath','editModulePath','lexiconPath',):
+            if tryThis in dir(self):
+                #print( "got", repr(tryThis) )
+                resultString += ('\n    ' if resultString else '') + '{} = {}'.format( tryThis, repr(self.__getattribute__(tryThis)) )
+        return resultString
+    # end of ResourceFrame.__str__
+
 
     def createResourceFrameWidgets( self ):
         #self.label1 = Label( self, text=self.moduleAbbreviation )
@@ -249,14 +307,17 @@ class ResourceFrame( Frame ):
         #Sizegrip( self ).pack( side="right" )#.grid( column=999, row=999, sticky=(S,E) )#
     # end of ResourceFrame.createApplicationWidgets
 
+
     def clearText( self ): # Leaves in normal state
         self.textBox['state'] = 'normal'
-        self.textBox.delete( '1.0', 'end' )
+        self.textBox.delete( '1.0', END )
     # end of ResourceFrame.updateText
 
-    def closeResourceFrame( self ):
-        #self.appWins.remove( self )
-        self.destroy()
+
+    def destroy( self ): # override so we can remove this frame from our list
+        if Globals.debugFlag and debuggingThisModule: print( t("ResourceFrame.destroy()") )
+        self.ResourceFrameParent.parentApp.projFrames.remove( self )
+        Frame.destroy( self )
     # end of ResourceFrame.closeResourceFrame
 # end of ResourceFrame class
 
@@ -275,10 +336,11 @@ def demo():
     #Globals.debugFlag = True
 
     tkRootWindow = Tk()
-    settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
-    settings.load()
+    tkRootWindow.title( ProgNameVersion )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    #settings.load()
 
-    application = Application( parent=tkRootWindow, settings=settings )
+    #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

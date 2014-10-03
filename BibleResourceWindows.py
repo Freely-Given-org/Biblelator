@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-09-28 (also update ProgVersion below)
+#   Last modified: 2014-10-03 (also update ProgVersion below)
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
@@ -25,12 +25,12 @@
 
 """
 Windows and frames to allow display and manipulation of
-    Bible resource windows.
+    (non-editable) Bible resource windows.
 """
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.11"
+ProgVersion = "0.13"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -42,7 +42,7 @@ from gettext import gettext as _
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
 from tkinter import Toplevel, Menu, Text, StringVar, messagebox
-from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES
+from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES, END
 from tkinter.ttk import Style, Frame#, Button, Combobox
 #from tkinter.tix import Spinbox
 
@@ -52,18 +52,20 @@ sys.path.append( sourceFolder )
 import Globals
 #from BibleOrganizationalSystems import BibleOrganizationalSystem
 #import Hebrew
-from HebrewLexicon import HebrewLexicon
+#from HebrewLexicon import HebrewLexicon
 #from HebrewWLC import HebrewWLC
 #import Greek
 #from GreekNT import GreekNT
 #import VerseReferences
-from USFMBible import USFMBible #, USFMStylesheets
+#from USFMBible import USFMBible #, USFMStylesheets
 from SwordResources import SwordType
 from DigitalBiblePlatform import DBPBible
+from UnknownBible import UnknownBible
 
 # Biblelator imports
 from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
 from ResourceWindows import ResourceFrame
+
 
 
 def t( messageString ):
@@ -79,11 +81,12 @@ def t( messageString ):
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
-class SwordResourceFrame( ResourceFrame ):
+
+class SwordBibleResourceFrame( ResourceFrame ):
     def __init__( self, parent, master, moduleAbbreviation ):
-        if Globals.debugFlag: print( "SwordResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
+        if Globals.debugFlag: print( "SwordBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
         self.resourceWindowParent, self.myMaster, self.moduleAbbreviation = parent, master, moduleAbbreviation
-        #print( "sP", self.SwordResourceFrameParent )
+        #print( "sP", self.SwordBibleResourceFrameParent )
         #print( "sm", self.myMaster )
         #print( "ma", self.moduleAbbreviation )
         ResourceFrame.__init__( self, self.resourceWindowParent )
@@ -106,7 +109,7 @@ class SwordResourceFrame( ResourceFrame ):
         #"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
         #"tabs", "tabstyle", "underline", and "wrap".
         self.SwordModule = None # Loaded later in self.getBibleData()
-    # end of SwordResourceFrame.__init__
+    # end of SwordBibleResourceFrame.__init__
 
     def createSwordFrameWidgets( self ):
         pass
@@ -136,7 +139,7 @@ class SwordResourceFrame( ResourceFrame ):
         #self.QUIT.pack( side="bottom" )
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    # end of SwordResourceFrame.createSwordFrameWidgets
+    # end of SwordBibleResourceFrame.createSwordFrameWidgets
 
     def getBibleData( self ):
         """
@@ -148,35 +151,35 @@ class SwordResourceFrame( ResourceFrame ):
             self.resourceWindowParent.title( "{} ({}) UNAVAILABLE".format( self.moduleAbbreviation, 'Sw' if SwordType=="CrosswireLibrary" else 'SwM' ) )
             return
         assert( self.SwordModule is not None )
-        print( "sM", self.SwordModule )
+        if Globals.debugFlag and debuggingThisModule: print( "sM", self.SwordModule )
         print( "mN", self.SwordModule.getDescription() )
 
         previousVerseData = None
-        if self.myMaster.previousBnCV and self.myMaster.previousBnCV[1]!='0' and self.myMaster.previousBnCV[2]!='0': # Sword doesn't seem to handle introductions???
+        if self.myMaster.previousBnameCV and self.myMaster.previousBnameCV[1]!='0' and self.myMaster.previousBnameCV[2]!='0': # Sword doesn't seem to handle introductions???
             #previousVerse = (  prevBCV, SwordResources.getBCV( prevBCV, self.moduleAbbreviation ) )
-            previousVerseData = ( self.myMaster.previousBnCV, self.myMaster.SwordInterface.getVerseData( self.SwordModule, self.myMaster.SwordPreviousKey ) )
+            previousVerseData = ( self.myMaster.previousBnameCV, self.myMaster.SwordInterface.getVerseData( self.SwordModule, self.myMaster.SwordPreviousKey ) )
 
         verseData = self.myMaster.SwordInterface.getVerseData( self.SwordModule, self.myMaster.SwordKey )
 
         nextVersesData = []
-        for nextBnCV,nextSwordKey in zip( self.myMaster.nextBnCVs, self.myMaster.SwordNextKeys ):
-            #nextVerseText = SwordResources.getBnCV( nextBCV, self.moduleAbbreviation )
+        for nextBnameCV,nextSwordKey in zip( self.myMaster.nextBnameCVs, self.myMaster.SwordNextKeys ):
+            #nextVerseText = SwordResources.getBnameCV( nextBCV, self.moduleAbbreviation )
             nextVerseText = self.myMaster.SwordInterface.getVerseData( self.SwordModule, nextSwordKey )
             #print( "here", nextBCV, nextVerseText )
-            if nextVerseText: nextVersesData.append( (nextBnCV,nextVerseText) )
+            if nextVerseText: nextVersesData.append( (nextBnameCV,nextVerseText) )
 
         return verseData, previousVerseData, nextVersesData
-    # end of SwordResourceFrame.getBibleData
+    # end of SwordBibleResourceFrame.getBibleData
 
 
     def update( self ): # Leaves in disabled state
-        def displayVerse( firstFlag, BnCV, verseDataList, currentVerse=False ):
-            print( "SwordResourceFrame.displayVerse", firstFlag, BnCV, verseDataList, currentVerse )
+        def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
+            #print( "SwordBibleResourceFrame.displayVerse", firstFlag, BnameCV, verseDataList, currentVerse )
             #haveC = None
             lastCharWasSpace = haveTextFlag = not firstFlag
             if verseDataList is None:
-                print( "  ", BnCV, "has no data" )
-                self.textBox.insert( 'end', '--' )
+                print( "  ", BnameCV, "has no data" )
+                self.textBox.insert( END, '--' )
             else:
                 for entry in verseDataList:
                     if isinstance( entry, tuple ):
@@ -188,39 +191,39 @@ class SwordResourceFrame( ResourceFrame ):
                         #else: print( "   Ignore C={}".format( cleanText ) )
                         pass
                     elif marker == 'c#': # Might want to display this (added) c marker
-                        if cleanText != BnCV[0]:
-                            if not lastCharWasSpace: self.textBox.insert( 'end', ' ', 'v-' )
-                            self.textBox.insert( 'end', cleanText, 'c#' )
+                        if cleanText != BnameCV[0]:
+                            if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
+                            self.textBox.insert( END, cleanText, 'c#' )
                             lastCharWasSpace = False
                     elif marker == 'p':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else 'v~' )
+                            self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'q1':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*q1' if currentVerse else 'q1' )
+                            self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'm': pass
                     elif marker == 'v':
                         if haveTextFlag:
-                            self.textBox.insert( 'end', ' ', 'v-' )
-                        self.textBox.insert( 'end', cleanText, marker )
-                        self.textBox.insert( 'end', ' ', 'v+' )
+                            self.textBox.insert( END, ' ', 'v-' )
+                        self.textBox.insert( END, cleanText, marker )
+                        self.textBox.insert( END, ' ', 'v+' )
                         lastCharWasSpace = haveTextFlag = True
                     elif marker in ('v~','p~'):
-                        self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else marker )
+                        self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
                         haveTextFlag = True
                     else:
-                        logging.critical( t("SwordResourceFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
+                        logging.critical( t("SwordBibleResourceFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
         # end of displayVerse
 
-        if Globals.debugFlag and debuggingThisModule: print( "SwordResourceFrame.update()" )
+        if Globals.debugFlag and debuggingThisModule: print( "SwordBibleResourceFrame.update()" )
         bibleData = self.getBibleData()
         self.clearText()
         if bibleData:
@@ -229,27 +232,30 @@ class SwordResourceFrame( ResourceFrame ):
             #p.start()
 
             if previousVerse:
-                BnCV, previousVerseData = previousVerse
-                displayVerse( True, BnCV, previousVerseData )
-            displayVerse( not previousVerse, self.myMaster.BnCV, verseData, currentVerse=True )
-            for BnCV,nextVerseData in nextVerses:
-                displayVerse( False, BnCV, nextVerseData )
+                BnameCV, previousVerseData = previousVerse
+                displayVerse( True, BnameCV, previousVerseData )
+            displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
+            for BnameCV,nextVerseData in nextVerses:
+                displayVerse( False, BnameCV, nextVerseData )
         self.textBox['state'] = 'disabled' # Don't allow editing
-    # end of SwordResourceFrame.update
-# end of SwordResourceFrame class
+    # end of SwordBibleResourceFrame.update
+# end of SwordBibleResourceFrame class
 
 
-class FCBHResourceFrame( ResourceFrame ):
+
+class DBPBibleResourceFrame( ResourceFrame ):
     def __init__( self, parent, master, moduleAbbreviation ):
-        if Globals.debugFlag: print( "FCBHResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
+        if Globals.debugFlag:
+            print( "DBPBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
+            assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         self.resourceWindowParent, self.myMaster, self.moduleAbbreviation = parent, master, moduleAbbreviation
-        #print( "sP", self.FCBHFrameParent )
+        #print( "sP", self.DBPFrameParent )
         #print( "sm", self.myMaster )
         #print( "ma", self.moduleAbbreviation )
         ResourceFrame.__init__( self, self.resourceWindowParent )
         #self.grid( sticky=W+E+N+S ) #.pack()
         self.pack()
-        self.createFCBHFrameWidgets()
+        self.createDBPFrameWidgets()
         #print( self.ResourceFrameParent.geometry() )
         if 1:
             for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
@@ -264,16 +270,16 @@ class FCBHResourceFrame( ResourceFrame ):
         #"background", "bgstipple", "borderwidth", "elide", "fgstipple", "font", "foreground", "justify", "lmargin1",
         #"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
         #"tabs", "tabstyle", "underline", and "wrap".
-        try: self.FCBHModule = DBPBible( self.moduleAbbreviation )
-        except FileNotFoundError:
-            self.FCBHModule = None
-        self.resourceWindowParent.title( "{}.{}{}".format( self.moduleAbbreviation[:3], self.moduleAbbreviation[3:], ' (online)' if self.FCBHModule else ' (offline)' ) )
-        #if self.FCBHModule:
-            #print( "sM", self.FCBHModule )
-            #print( "mN", self.FCBHModule.getDescription() )
-    # end of FCBHResourceFrame.__init__
+        try: self.DBPModule = DBPBible( self.moduleAbbreviation )
+        except ConnectionError:
+            self.DBPModule = None
+        self.resourceWindowParent.title( "{}.{}{}".format( self.moduleAbbreviation[:3], self.moduleAbbreviation[3:], ' (online)' if self.DBPModule else ' (offline)' ) )
+        #if self.DBPModule:
+            #print( "sM", self.DBPModule )
+            #print( "mN", self.DBPModule.getDescription() )
+    # end of DBPBibleResourceFrame.__init__
 
-    def createFCBHFrameWidgets( self ):
+    def createDBPFrameWidgets( self ):
         pass
         #self.label1 = Label( self, text=self.moduleAbbreviation )
         #self.label1.pack()
@@ -291,7 +297,7 @@ class FCBHResourceFrame( ResourceFrame ):
 
         #self.textBox = Text( self, width=40, height=10 )
         #self.textBox['wrap'] = 'word'
-        #verseText = FCBHResources.getBCV( self.parent.bcv )
+        #verseText = DBPResources.getBCV( self.parent.bcv )
         #print( "vt", verseText )
         #self.textBox.insert( '1.0', verseText )
         #self.textBox.pack()
@@ -301,33 +307,33 @@ class FCBHResourceFrame( ResourceFrame ):
         #self.QUIT.pack( side="bottom" )
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    # end of FCBHResourceFrame.createFCBHFrameWidgets
+    # end of DBPBibleResourceFrame.createDBPFrameWidgets
 
 
     def getBibleData( self ):
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
-        if Globals.debugFlag: print( "FCBHWindow.getBibleData()" )
-        if not self.FCBHModule:
+        if Globals.debugFlag: print( "DBPWindow.getBibleData()" )
+        if not self.DBPModule:
             print( "RETURN1" )
             return
 
         lastParagraphNumber = None
 
         previousVerseData = None
-        if self.myMaster.previousBnCV and self.myMaster.previousBnCV[1]!='0' and self.myMaster.previousBnCV[2]!='0': # FCBH doesn't seem to handle introductions???
-            #previousVerse = (  prevBCV, FCBHResources.getBCV( prevBCV, self.moduleAbbreviation ) )
-            previousVerseData = self.FCBHModule.getVerseData( self.myMaster.previousVerseKey )
+        if self.myMaster.previousBnameCV and self.myMaster.previousBnameCV[1]!='0' and self.myMaster.previousBnameCV[2]!='0': # DBP doesn't seem to handle introductions???
+            #previousVerse = (  prevBCV, DBPResources.getBCV( prevBCV, self.moduleAbbreviation ) )
+            previousVerseData = self.DBPModule.getVerseData( self.myMaster.previousVerseKey )
             #print( "previous1", lastParagraphNumber, previousVerseData )
             if previousVerseData and previousVerseData[0][0] == 'p#':
                 lastParagraphNumber = previousVerseData[0][3]
                 #print( "lpN", lastParagraphNumber )
                 previousVerseData.pop( 0 ) # Get rid of the p# line
                 #print( "previous2", lastParagraphNumber, previousVerseData )
-            previousVerseData = ( self.myMaster.previousBnCV, previousVerseData, )
+            previousVerseData = ( self.myMaster.previousBnameCV, previousVerseData, )
 
-        verseData = self.FCBHModule.getVerseData( self.myMaster.verseKey )
+        verseData = self.DBPModule.getVerseData( self.myMaster.verseKey )
         if verseData and verseData[0][0] == 'p#':
             thisParagraphNumber = verseData[0][3]
             verseData.pop( 0 ) # Get rid of the p# line
@@ -340,7 +346,7 @@ class FCBHResourceFrame( ResourceFrame ):
         nextVersesData = []
         for nextVerseKey in self.myMaster.nextVerseKeys:
             BBB = nextVerseKey[0]
-            nextVerseData = self.FCBHModule.getVerseData( nextVerseKey )
+            nextVerseData = self.DBPModule.getVerseData( nextVerseKey )
             if nextVerseData:
                 if nextVerseData and nextVerseData[0][0] == 'p#':
                     thisParagraphNumber = nextVerseData[0][3]
@@ -353,17 +359,17 @@ class FCBHResourceFrame( ResourceFrame ):
                 nextVersesData.append( (nextVerseKey,nextVerseData) )
 
         return verseData, previousVerseData, nextVersesData
-    # end of FCBHResourceFrame.getBibleData
+    # end of DBPBibleResourceFrame.getBibleData
 
 
     def update( self ): # Leaves in disabled state
-        def displayVerse( firstFlag, BnCV, verseDataList, currentVerse=False ):
-            #print( "FCBHResourceFrame.displayVerse", firstFlag, BnCV, [], currentVerse )
+        def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
+            #print( "DBPBibleResourceFrame.displayVerse", firstFlag, BnameCV, [], currentVerse )
             #haveC = None
             lastCharWasSpace = haveTextFlag = not firstFlag
             if verseDataList is None:
-                print( "  ", BnCV, "has no data" )
-                self.textBox.insert( 'end', '--' )
+                print( "  ", BnameCV, "has no data" )
+                self.textBox.insert( END, '--' )
             else:
                 #lastParagraphNumber = None
                 for entry in verseDataList:
@@ -376,50 +382,50 @@ class FCBHResourceFrame( ResourceFrame ):
                         #else: print( "   Ignore C={}".format( cleanText ) )
                         pass
                     elif marker == 'c#': # Might want to display this (added) c marker
-                        if cleanText != BnCV[0]:
-                            if not lastCharWasSpace: self.textBox.insert( 'end', ' ', 'v-' )
-                            self.textBox.insert( 'end', cleanText, 'c#' )
+                        if cleanText != BnameCV[0]:
+                            if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
+                            self.textBox.insert( END, cleanText, 'c#' )
                             lastCharWasSpace = False
                     #elif marker == 'p#':
                         #pass # Should be converted to p by now
                         #if lastParagraphNumber is not None and cleanText!=lastParagraphNumber:
-                            #self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                            #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                             #lastCharWasSpace = True
                             #if cleanText:
-                                #self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else 'v~' )
+                                #self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
                                 #lastCharWasSpace = False
                             #haveTextFlag = True
                         #lastParagraphNumber = cleanText
                     elif marker == 'p':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else 'v~' )
+                            self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'q1':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*q1' if currentVerse else 'q1' )
+                            self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'm': pass
                     elif marker == 'v':
                         if haveTextFlag:
-                            self.textBox.insert( 'end', ' ', 'v-' )
-                        self.textBox.insert( 'end', cleanText, marker )
-                        self.textBox.insert( 'end', ' ', 'v+' )
+                            self.textBox.insert( END, ' ', 'v-' )
+                        self.textBox.insert( END, cleanText, marker )
+                        self.textBox.insert( END, ' ', 'v+' )
                         lastCharWasSpace = haveTextFlag = True
                     elif marker in ('v~','p~'):
-                        self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else marker )
+                        self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
                         haveTextFlag = True
                     else:
-                        logging.critical( t("FCBHResourceFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
+                        logging.critical( t("DBPBibleResourceFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
         # end of displayVerse
 
-        if Globals.debugFlag: print( t("FCBHResourceFrame.update()") )
-        if not self.FCBHModule:
+        if Globals.debugFlag: print( t("DBPBibleResourceFrame.update()") )
+        if not self.DBPModule:
             print( "RETURN2" )
             return
         bibleData = self.getBibleData()
@@ -427,35 +433,200 @@ class FCBHResourceFrame( ResourceFrame ):
         if bibleData:
             verseData, previousVerse, nextVerses = bibleData
             if previousVerse:
-                BnCV, previousVerseData = previousVerse
-                displayVerse( True, BnCV, previousVerseData )
-            displayVerse( not previousVerse, self.myMaster.BnCV, verseData, currentVerse=True )
-            for BnCV,nextVerseData in nextVerses:
-                displayVerse( False, BnCV, nextVerseData )
+                BnameCV, previousVerseData = previousVerse
+                displayVerse( True, BnameCV, previousVerseData )
+            displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
+            for BnameCV,nextVerseData in nextVerses:
+                displayVerse( False, BnameCV, nextVerseData )
         self.textBox['state'] = 'disabled' # Don't allow editing
-    # end of FCBHResourceFrame.update
-# end of FCBHResourceFrame class
+    # end of DBPBibleResourceFrame.update
+# end of DBPBibleResourceFrame class
 
 
-class USFMResourceFrame( ResourceFrame ):
+
+#class USFMResourceFrame( ResourceFrame ):
+    #def __init__( self, parent, master, modulePath ):
+        #if Globals.debugFlag: print( "USFMResourceFrame.__init__( {}, {}, {} )".format( parent, master, modulePath ) )
+        #self.resourceWindowParent, self.myMaster, self.modulePath = parent, master, modulePath
+        #ResourceFrame.__init__( self, self.resourceWindowParent )
+        #self.pack( expand=YES, fill=BOTH )
+        ##self.createUSFMResourceFrameWidgets()
+        ##print( self.ResourceFrameParent.geometry() )
+        #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
+            #self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
+        #try: self.USFMBible = USFMBible( self.modulePath )
+        #except FileNotFoundError:
+            #logging.error( t("USFMResourceFrame.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
+            #self.USFMBible = None
+        #self.resourceWindowParent.title( "{} (USFM){}".format( self.modulePath if self.USFMBible is None else self.USFMBible.name, ' NOT FOUND' if self.USFMBible is None else '' ) )
+    ## end of USFMResourceFrame.__init__
+
+
+    #def xxcreateUSFMResourceFrameWidgets( self ):
+        #pass
+        ##self.label1 = Label( self, text=self.moduleAbbreviation )
+        ##self.label1.pack()
+
+        ##self.hi_there = Button( self )
+        ##self.hi_there['text'] = "Refresh"
+        ##self.hi_there["command"] = self.update
+        ##self.hi_there.pack(side="top")
+
+        ##self.bStyle = Style( self )
+        ##self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
+        ##self.bStyle.map("Red.TButton",
+                        ##foreground=[('pressed', 'red'), ('active', 'blue')],
+                        ##background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
+
+        ##self.textBox = Text( self, width=40, height=10 )
+        ##self.textBox['wrap'] = 'word'
+        ##verseText = SwordResources.getBCV( self.parent.bcv )
+        ##print( "vt", verseText )
+        ##self.textBox.insert( '1.0', verseText )
+        ##self.textBox.pack()
+        ##self.textBox['state'] = 'disabled' # Don't allow editing
+
+        ##self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
+        ##self.QUIT.pack( side="bottom" )
+
+        ##Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
+    ## end of USFMResourceFrame.createUSFMResourceFrameWidgets
+
+    #def getBibleData( self ):
+        #"""
+        #Returns the requested verse, the previous verse, and the next n verses.
+        #"""
+        #if Globals.debugFlag: print( t("USFMResourceFrame.getBibleData()") )
+        #if self.USFMBible is None:
+            #return
+
+        #previousVerseData = None
+        #if self.myMaster.previousVerseKey:
+            #BBB = self.myMaster.previousVerseKey[0]
+            ##if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
+            ##if self.myMaster.previousVerseKey[1]!='0' and self.myMaster.previousVerseKey[2]!='0': # Sword doesn't seem to handle introductions???
+            ##previousVerse = (  prevBCV, SwordResources.getBCV( prevBCV, self.moduleAbbreviation ) )
+            #previousVerseData = ( self.myMaster.previousVerseKey, self.USFMBible.getVerseData( self.myMaster.previousVerseKey ) )
+
+        #BBB = self.myMaster.verseKey[0]
+        ##print( "1", self.USFMBible )
+        ##if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
+        ##print( "2", self.USFMBible )
+        #verseData = self.USFMBible.getVerseData( self.myMaster.verseKey )
+
+        #nextVersesData = []
+        #for nextVerseKey in self.myMaster.nextVerseKeys:
+            #BBB = nextVerseKey[0]
+            ##if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
+            #nextVerseData = self.USFMBible.getVerseData( nextVerseKey )
+            #if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData) )
+
+        #return verseData, previousVerseData, nextVersesData
+    ## end of USFMResourceFrame.getBibleData
+
+
+    #def update( self ): # Leaves in disabled state
+        #def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
+            ##print( "USFMResourceFrame.displayVerse", firstFlag, BnameCV, [], currentVerse )
+            #haveC = None
+            #lastCharWasSpace = haveTextFlag = not firstFlag
+            #if verseDataList is None:
+                #print( "  ", BnameCV, "has no data" )
+                #self.textBox.insert( END, '--' )
+            #else:
+                #for entry in verseDataList:
+                    #marker, cleanText = entry.getMarker(), entry.getCleanText()
+                    ##print( "  ", haveTextFlag, marker, repr(cleanText) )
+                    #if marker.startswith( '¬' ): pass # Ignore these closing markers
+                    #elif marker == 'c': # Don't want to display this (original) c marker
+                        ##if not firstFlag: haveC = cleanText
+                        ##else: print( "   Ignore C={}".format( cleanText ) )
+                        #pass
+                    #elif marker == 'c#': # Might want to display this (added) c marker
+                        #if cleanText != BnameCV[0]:
+                            #if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
+                            #self.textBox.insert( END, cleanText, 'c#' )
+                            #lastCharWasSpace = False
+                    #elif marker == 's1':
+                        #self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                        #haveTextFlag = True
+                    #elif marker == 'r':
+                        #self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                        #haveTextFlag = True
+                    #elif marker == 'p':
+                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
+                        #lastCharWasSpace = True
+                        #if cleanText:
+                            #self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
+                            #lastCharWasSpace = False
+                        #haveTextFlag = True
+                    #elif marker == 'q1':
+                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
+                        #lastCharWasSpace = True
+                        #if cleanText:
+                            #self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
+                            #lastCharWasSpace = False
+                        #haveTextFlag = True
+                    #elif marker == 'm': pass
+                    #elif marker == 'v':
+                        #if haveTextFlag:
+                            #self.textBox.insert( END, ' ', 'v-' )
+                        #self.textBox.insert( END, cleanText, marker )
+                        #self.textBox.insert( END, ' ', 'v+' )
+                        #lastCharWasSpace = haveTextFlag = True
+                    #elif marker in ('v~','p~'):
+                        #self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
+                        #haveTextFlag = True
+                    #else:
+                        #logging.critical( t("USFMResourceFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
+        ## end of displayVerse
+
+        #if Globals.debugFlag: print( "USFMResourceFrame.update()" )
+        #bibleData = self.getBibleData()
+        #self.clearText()
+        #if bibleData:
+            #verseData, previousVerse, nextVerses = self.getBibleData()
+            #if previousVerse:
+                #BnameCV, previousVerseData = previousVerse
+                #displayVerse( True, BnameCV, previousVerseData )
+            #displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
+            #for BnameCV,nextVerseData in nextVerses:
+                #displayVerse( False, BnameCV, nextVerseData )
+        #self.textBox['state'] = 'disabled' # Don't allow editing
+    ## end of USFMResourceFrame.update
+## end of USFMResourceFrame class
+
+
+
+class InternalBibleResourceFrame( ResourceFrame ):
     def __init__( self, parent, master, modulePath ):
-        if Globals.debugFlag: print( "USFMResourceFrame.__init__( {}, {}, {} )".format( parent, master, modulePath ) )
+        """
+        Given a folder, try to open an UnknownBible.
+        If successful, set self.InternalBible to point to the loaded Bible.
+        """
+        if Globals.debugFlag: print( "InternalBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, modulePath ) )
         self.resourceWindowParent, self.myMaster, self.modulePath = parent, master, modulePath
         ResourceFrame.__init__( self, self.resourceWindowParent )
         self.pack( expand=YES, fill=BOTH )
-        #self.createUSFMResourceFrameWidgets()
+        #self.createInternalBibleResourceFrameWidgets()
         #print( self.ResourceFrameParent.geometry() )
-        for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
-            self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
-        try: self.USFMBible = USFMBible( self.modulePath )
+        for InternalBibleKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
+            self.textBox.tag_configure( InternalBibleKey, **styleDict ) # Create the style
+        try: self.UnknownBible = UnknownBible( self.modulePath )
         except FileNotFoundError:
-            logging.error( t("USFMResourceFrame.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
-            self.USFMBible = None
-        self.resourceWindowParent.title( "{} (USFM){}".format( self.modulePath if self.USFMBible is None else self.USFMBible.name, ' NOT FOUND' if self.USFMBible is None else '' ) )
-    # end of USFMResourceFrame.__init__
+            logging.error( t("InternalBibleResourceFrame.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
+            self.UnknownBible = None
+        if self.UnknownBible:
+            result = self.UnknownBible.search( autoLoadAlways=True )
+            if isinstance( result, str ):
+                print( "Unknown Bible returned: {}".format( repr(result) ) )
+                self.InternalBible = None
+            else: self.InternalBible = result
+        self.resourceWindowParent.title( "{} (InternalBible){}".format( self.modulePath if self.InternalBible is None else self.InternalBible.name, ' NOT FOUND' if self.InternalBible is None else '' ) )
+    # end of InternalBibleResourceFrame.__init__
 
 
-    def xxcreateUSFMResourceFrameWidgets( self ):
+    def xxcreateInternalBibleResourceFrameWidgets( self ):
         pass
         #self.label1 = Label( self, text=self.moduleAbbreviation )
         #self.label1.pack()
@@ -483,49 +654,49 @@ class USFMResourceFrame( ResourceFrame ):
         #self.QUIT.pack( side="bottom" )
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    # end of USFMResourceFrame.createUSFMResourceFrameWidgets
+    # end of InternalBibleResourceFrame.createInternalBibleResourceFrameWidgets
 
     def getBibleData( self ):
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
-        if Globals.debugFlag: print( t("USFMResourceFrame.getBibleData()") )
-        if self.USFMBible is None:
+        if Globals.debugFlag: print( t("InternalBibleResourceFrame.getBibleData()") )
+        if self.InternalBible is None:
             return
 
         previousVerseData = None
         if self.myMaster.previousVerseKey:
             BBB = self.myMaster.previousVerseKey[0]
-            #if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
+            #if BBB not in self.InternalBible: self.InternalBible.loadBook( BBB )
             #if self.myMaster.previousVerseKey[1]!='0' and self.myMaster.previousVerseKey[2]!='0': # Sword doesn't seem to handle introductions???
             #previousVerse = (  prevBCV, SwordResources.getBCV( prevBCV, self.moduleAbbreviation ) )
-            previousVerseData = ( self.myMaster.previousVerseKey, self.USFMBible.getVerseData( self.myMaster.previousVerseKey ) )
+            previousVerseData = ( self.myMaster.previousVerseKey, self.InternalBible.getVerseData( self.myMaster.previousVerseKey ) )
 
         BBB = self.myMaster.verseKey[0]
-        #print( "1", self.USFMBible )
-        #if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-        #print( "2", self.USFMBible )
-        verseData = self.USFMBible.getVerseData( self.myMaster.verseKey )
+        #print( "1", self.InternalBible )
+        #if BBB not in self.InternalBible: self.InternalBible.loadBook( BBB )
+        #print( "2", self.InternalBible )
+        verseData = self.InternalBible.getVerseData( self.myMaster.verseKey )
 
         nextVersesData = []
         for nextVerseKey in self.myMaster.nextVerseKeys:
             BBB = nextVerseKey[0]
-            #if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-            nextVerseData = self.USFMBible.getVerseData( nextVerseKey )
+            #if BBB not in self.InternalBible: self.InternalBible.loadBook( BBB )
+            nextVerseData = self.InternalBible.getVerseData( nextVerseKey )
             if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData) )
 
         return verseData, previousVerseData, nextVersesData
-    # end of USFMResourceFrame.getBibleData
+    # end of InternalBibleResourceFrame.getBibleData
 
 
     def update( self ): # Leaves in disabled state
-        def displayVerse( firstFlag, BnCV, verseDataList, currentVerse=False ):
-            #print( "USFMResourceFrame.displayVerse", firstFlag, BnCV, [], currentVerse )
+        def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
+            #print( "InternalBibleResourceFrame.displayVerse", firstFlag, BnameCV, [], currentVerse )
             haveC = None
             lastCharWasSpace = haveTextFlag = not firstFlag
             if verseDataList is None:
-                print( "  ", BnCV, "has no data" )
-                self.textBox.insert( 'end', '--' )
+                print( "  ", BnameCV, "has no data" )
+                self.textBox.insert( END, '--' )
             else:
                 for entry in verseDataList:
                     marker, cleanText = entry.getMarker(), entry.getCleanText()
@@ -536,55 +707,58 @@ class USFMResourceFrame( ResourceFrame ):
                         #else: print( "   Ignore C={}".format( cleanText ) )
                         pass
                     elif marker == 'c#': # Might want to display this (added) c marker
-                        if cleanText != BnCV[0]:
-                            if not lastCharWasSpace: self.textBox.insert( 'end', ' ', 'v-' )
-                            self.textBox.insert( 'end', cleanText, 'c#' )
+                        if cleanText != BnameCV[0]:
+                            if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
+                            self.textBox.insert( END, cleanText, 'c#' )
                             lastCharWasSpace = False
                     elif marker == 's1':
-                        self.textBox.insert( 'end', ('\n' if haveTextFlag else '')+cleanText, marker )
+                        self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                        haveTextFlag = True
+                    elif marker == 'r':
+                        self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
                     elif marker == 'p':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else 'v~' )
+                            self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'q1':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*q1' if currentVerse else 'q1' )
+                            self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'm': pass
                     elif marker == 'v':
                         if haveTextFlag:
-                            self.textBox.insert( 'end', ' ', 'v-' )
-                        self.textBox.insert( 'end', cleanText, marker )
-                        self.textBox.insert( 'end', ' ', 'v+' )
+                            self.textBox.insert( END, ' ', 'v-' )
+                        self.textBox.insert( END, cleanText, marker )
+                        self.textBox.insert( END, ' ', 'v+' )
                         lastCharWasSpace = haveTextFlag = True
                     elif marker in ('v~','p~'):
-                        self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else marker )
+                        self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
                         haveTextFlag = True
                     else:
-                        logging.critical( t("USFMResourceFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
+                        logging.critical( t("InternalBibleResourceFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
         # end of displayVerse
 
-        if Globals.debugFlag: print( "USFMResourceFrame.update()" )
+        if Globals.debugFlag: print( "InternalBibleResourceFrame.update()" )
         bibleData = self.getBibleData()
         self.clearText()
         if bibleData:
             verseData, previousVerse, nextVerses = self.getBibleData()
             if previousVerse:
-                BnCV, previousVerseData = previousVerse
-                displayVerse( True, BnCV, previousVerseData )
-            displayVerse( not previousVerse, self.myMaster.BnCV, verseData, currentVerse=True )
-            for BnCV,nextVerseData in nextVerses:
-                displayVerse( False, BnCV, nextVerseData )
+                BnameCV, previousVerseData = previousVerse
+                displayVerse( True, BnameCV, previousVerseData )
+            displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
+            for BnameCV,nextVerseData in nextVerses:
+                displayVerse( False, BnameCV, nextVerseData )
         self.textBox['state'] = 'disabled' # Don't allow editing
-    # end of USFMResourceFrame.update
-# end of USFMResourceFrame class
+    # end of InternalBibleResourceFrame.update
+# end of InternalBibleResourceFrame class
 
 
 
@@ -600,10 +774,12 @@ def demo():
     #Globals.debugFlag = True
 
     tkRootWindow = Tk()
-    settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
-    settings.load()
+    tkRootWindow.title( ProgNameVersion )
 
-    application = Application( parent=tkRootWindow, settings=settings )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    #settings.load()
+
+    #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-09-29 (also update ProgVersion below)
+#   Last modified: 2014-10-03 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.12"
+ProgVersion = "0.13"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -41,21 +41,18 @@ from gettext import gettext as _
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
 #from tkinter import Tk, TclError, Menu, Text, StringVar, messagebox
-#from tkinter import NORMAL, DISABLED, TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, SUNKEN, X, END
-from tkinter.ttk import Combobox, Label
-#from tkinter.tix import Spinbox
+#from tkinter import NORMAL, DISABLED, TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, SUNKEN, X
+from tkinter import Listbox
+from tkinter import END
+from tkinter.ttk import Label, Combobox
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
-#from BibleOrganizationalSystems import BibleOrganizationalSystem
-#import VerseReferences
-#import USFMStylesheets
-#import SwordResources
 
 # Biblelator imports
-#from BiblelatorGlobals import DATA_FOLDER, SETTINGS_FOLDER, MAX_WINDOWS, MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, GROUP_CODES, editModeNormal, parseGeometry, assembleGeometryFromList
+#from BiblelatorGlobals import MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE
 from ModalDialog import ModalDialog
 
 
@@ -75,6 +72,8 @@ def t( messageString ):
 
 
 class SaveWindowNameDialog( ModalDialog ):
+    """
+    """
     def __init__(self, parent, existingSettings, title=None):
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
@@ -119,6 +118,8 @@ class SaveWindowNameDialog( ModalDialog ):
 
 
 class DeleteWindowNameDialog( ModalDialog ):
+    """
+    """
     def __init__(self, parent, existingSettings, title=None):
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
@@ -153,8 +154,51 @@ class DeleteWindowNameDialog( ModalDialog ):
     def apply( self ):
         self.result = self.cb.get()
         print( t("Requested window set-up name is: {}").format( repr(self.result) ) )
-    # end of SaveWindowNameDialog.apply
+    # end of DeleteWindowNameDialog.apply
 # end of class DeleteWindowNameDialog
+
+
+
+class SelectResourceBox( ModalDialog ):
+    """
+    Given a list of available resources, select one and return the list item.
+    """
+    def __init__(self, parent, availableSettingsList, title=None):
+        print( "aS", repr(availableSettingsList) ) # Should be a list of tuples
+        if Globals.debugFlag: assert( isinstance( availableSettingsList, list ) )
+        self.availableSettingsList = availableSettingsList
+        ModalDialog.__init__( self, parent, title )
+    # end of SelectResourceBox.__init__
+
+    def body( self, master ):
+        Label( master, text=_("Select a resource to open") ).grid( row=0 )
+
+        self.lb = Listbox( master )
+        for item in self.availableSettingsList:
+            #print( "it", repr(item) )
+            if isinstance( item, tuple ): item = item[0]
+            self.lb.insert( END, item )
+        self.lb.grid( row=1 )
+
+        return self.lb # initial focus
+    # end of SelectResourceBox.apply
+
+
+    def validate( self ):
+        """
+        Must be at least one selected (otherwise force them to select CANCEL).
+        """
+        return self.lb.curselection()
+    # end of SelectResourceBox.validate
+
+
+    def apply( self ):
+        items = self.lb.curselection()
+        print( "items", repr(items) ) # a tuple
+        self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
+        print( t("Requested resource(s) is/are: {}").format( repr(self.result) ) )
+    # end of SelectResourceBox.apply
+# end of class SelectResourceBox
 
 
 
@@ -169,11 +213,15 @@ def demo():
     if Globals.debugFlag: print( t("Running demo...") )
 
     tkRootWindow = Tk()
+    tkRootWindow.title( ProgNameVersion )
 
-    swnd = SaveWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
-    print( "swndResult", swnd.result )
-    dwnd = DeleteWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
-    print( "dwndResult", dwnd.result )
+    #swnd = SaveWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
+    #print( "swndResult", swnd.result )
+    #dwnd = DeleteWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
+    #print( "dwndResult", dwnd.result )
+    srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
+    print( "srbResult", srb.result )
+
     #tkRootWindow.quit()
 
     # Start the program running

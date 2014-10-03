@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-09-29 (also update ProgVersion below)
+#   Last modified: 2014-10-03 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -25,11 +25,14 @@
 
 """
 Program to allow editing of USFM Bibles using Python3 and Tkinter.
+
+Note that many times in this application, where the term 'Bible' is used
+    it can refer to any versified resource, e.g., typically including commentaries.
 """
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.12"
+ProgVersion = "0.13"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 SettingsVersion = "1.0"
 
@@ -42,28 +45,36 @@ import multiprocessing
 
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
-from tkinter import Tk, TclError, Menu, Text, StringVar, messagebox
+from tkinter import Tk, TclError, Menu, Text, StringVar
 from tkinter import NORMAL, DISABLED, TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, SUNKEN, X, END
+from tkinter.scrolledtext import ScrolledText
+from tkinter.messagebox import showerror
+from tkinter.filedialog import askopenfilename, askdirectory
 from tkinter.ttk import Style, Frame, Button, Combobox, Label
 from tkinter.tix import Spinbox
+
+#fname = askopenfilename(filetypes=(("Template files", "*.tplate"),
+                                           #("HTML files", "*.html;*.htm"),
+                                           #("All files", "*.*") ))
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
+from DigitalBiblePlatform import DBPBibles
 import VerseReferences
 import USFMStylesheets
 import SwordResources
 
 # Biblelator imports
-from BiblelatorGlobals import DATA_FOLDER, SETTINGS_FOLDER, MAX_WINDOWS, MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, GROUP_CODES, editModeNormal, parseGeometry, assembleGeometryFromList
-from BiblelatorHelpers import SaveWindowNameDialog, DeleteWindowNameDialog
+from BiblelatorGlobals import DATA_FOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, GROUP_CODES, editModeNormal, parseGeometry, assembleGeometryFromList
+from BiblelatorHelpers import SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
 from ApplicationSettings import ApplicationSettings
 from ResourceWindows import ResourceWindows, ResourceWindow, ResourceFrames
-from BibleResourceWindows import SwordResourceFrame, USFMResourceFrame, FCBHResourceFrame
-from LexiconResourceWindows import HebrewLexiconResourceFrame, GreekLexiconResourceFrame, BibleLexiconResourceFrame
-from EditWindow import USFMEditWindow
+from BibleResourceWindows import SwordBibleResourceFrame, InternalBibleResourceFrame, DBPBibleResourceFrame
+from LexiconResourceWindows import BibleLexiconResourceFrame
+from EditWindow import TextEditFrame, USFMEditFrame, ESFMEditFrame
 
 
 
@@ -88,27 +99,37 @@ class Application( Frame ):
         self.ApplicationParent, self.settings = parent, settings
         #print( "p", parent )
         #print( "self", repr( self ) )
-        self.ApplicationParent.title( ProgNameVersion )
+        #self.ApplicationParent.title( ProgNameVersion )
+
+        self.themeName = 'default'
+        self.style = Style()
 
         self.genericBOS = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" )
         self.stylesheet = USFMStylesheets.USFMStylesheet().loadDefault()
         Frame.__init__( self, self.ApplicationParent )
         self.pack()
 
-        self.appWins = ResourceWindows()
-        self.projWins = ResourceFrames()
+        self.appWins = ResourceWindows( self )
+        self.projFrames = ResourceFrames()
 
-        print( t("Preload the Sword library...") )
-        self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
+        self.createStatusBar()
+        if Globals.debugFlag: # Create a scrolling debug box
+            self.debugText = ScrolledText( self.ApplicationParent )
+            self.debugText.pack( side=BOTTOM, fill=BOTH )
+            self.setDebugText( "Starting up..." )
+
+        self.SwordInterface = None
+        self.DBPInterface = None
+        #print( t("Preload the Sword library...") )
+        #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
         # Read and apply the saved settings
         self.parseAndApplySettings()
 
-        #self.windowsSettings = {}
+        #self.windowsSettingsDict = {}
         self.createMenuBar()
-        self.createStatusBar()
 
-        self.createToolBar()
+        if Globals.debugFlag: self.createToolBar() # only for debugging so far
         self.createApplicationWidgets()
 
         self.BCVHistory = []
@@ -141,29 +162,37 @@ class Application( Frame ):
 
 
         # Open some sample windows if we don't have any already
-        if not self.appWins and not self.projWins \
+        if not self.appWins and not self.projFrames \
         and Globals.debugFlag and debuggingThisModule: # Just for testing/kickstarting
             print( t("Application.__init__ Opening sample resources...") )
-            self.openSwordResourceFrame( 'KJV' )
-            self.openSwordResourceFrame( 'ASV' )
-            self.openSwordResourceFrame( 'WEB' )
+            self.openSwordBibleResourceWindow( 'KJV' )
+            self.openSwordBibleResourceWindow( 'ASV' )
+            self.openSwordBibleResourceWindow( 'WEB' )
             p1 = '../../../../../Data/Work/Matigsalug/Bible/MBTV/'
             p2 = 'C:\\My Paratext Projects\\MBTV\\'
             p = p1 if os.path.exists( p1 ) else p2
-            self.openUSFMResourceFrame( p )
+            self.openInternalBibleResourceWindow( p )
             self.openUSFMEditWindow( p, editModeNormal )
-            self.openFCBHResourceFrame( 'ENGESV' )
-            self.openHebrewLexiconResourceFrame( None )
-            self.openGreekLexiconResourceFrame( None )
-            self.openBibleLexiconResourceFrame( None )
+            self.openDBPBibleResourceWindow( 'ENGESV' )
+            #self.openHebrewLexiconResourceWindow( None )
+            #self.openGreekLexiconResourceWindow( None )
+            #self.openBibleLexiconResourceWindow( None )
         #self.after( 100, self.goto ) # Do a goto after the empty window has displayed
         self.goto()
+        if Globals.debugFlag: self.setDebugText( "__init__ finished." )
+        self.setStatus( "Ready" )
     # end of Application.__init__
 
 
     def notWrittenYet( self ):
-        messagebox.showerror( _("Not implemented"), _("Not yet available, sorry") )
+        showerror( _("Not implemented"), _("Not yet available, sorry") )
     # end of Application.notWrittenYet
+
+
+    def doHelp( self ):
+        from Help import HelpBox
+        hb = HelpBox( self.ApplicationParent, ProgName, ProgNameVersion )
+    # end of Application.doHelp
 
 
     def doAbout( self ):
@@ -181,7 +210,7 @@ class Application( Frame ):
         menuFile = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuFile, label='File', underline=0 )
         #menuFile.add_command( label='New...', command=self.notWrittenYet, underline=0 )
-        #menuFile.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        menuFile.add_command( label='Save all...', command=self.notWrittenYet, underline=0 )
         #menuFile.add_separator()
         #submenuFileImport = Menu( menuFile )
         #submenuFileImport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
@@ -190,7 +219,7 @@ class Application( Frame ):
         #submenuFileExport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
         #submenuFileExport.add_command( label='HTML', command=self.notWrittenYet, underline=0 )
         #menuFile.add_cascade( label='Export', menu=submenuFileExport, underline=0 )
-        #menuFile.add_separator()
+        menuFile.add_separator()
         menuFile.add_command( label='Quit app', command=self.quit, underline=0 ) # quit app
 
         #menuEdit = Menu( self.menubar )
@@ -198,13 +227,51 @@ class Application( Frame ):
         #menuEdit.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
         #menuEdit.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
 
+        menuGoto = Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=menuGoto, label='Goto', underline=0 )
+        menuGoto.add_command( label='Previous book', command=self.gotoPreviousBook, underline=0 )
+        menuGoto.add_command( label='Next book', command=self.gotoNextBook, underline=0 )
+        menuGoto.add_command( label='Previous chapter', command=self.gotoPreviousChapter, underline=0 )
+        menuGoto.add_command( label='Next chapter', command=self.gotoNextChapter, underline=0 )
+        menuGoto.add_command( label='Previous verse', command=self.gotoPreviousVerse, underline=0 )
+        menuGoto.add_command( label='Next verse', command=self.gotoNextVerse, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Forward', command=self.goForward, underline=0 )
+        menuGoto.add_command( label='Backward', command=self.goBackward, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Previous list item', command=self.gotoPreviousListItem, underline=0 )
+        menuGoto.add_command( label='Next list item', command=self.gotoNextListItem, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Book', command=self.gotoBook, underline=0 )
+
         menuProject = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuProject, label='Project', underline=0 )
+        menuProject.add_command( label='New...', command=self.notWrittenYet, underline=0 )
         menuProject.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        menuProject.add_separator()
+        menuProject.add_command( label='Backup...', command=self.notWrittenYet, underline=0 )
+        menuProject.add_command( label='Restore...', command=self.notWrittenYet, underline=0 )
 
         menuResources = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuResources, label='Resources', underline=0 )
-        menuResources.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        #menuResources.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        submenuBibleResourceType = Menu( menuResources, tearoff=False )
+        menuResources.add_cascade( label='Open Bible/Commentary', menu=submenuBibleResourceType, underline=5 )
+        #submenuBibleResourceType.add_command( label='USFM (local)...', command=self.openUSFMResource, underline=0 )
+        #submenuBibleResourceType.add_command( label='ESFM (local)...', command=self.openESFMResource, underline=0 )
+        submenuBibleResourceType.add_command( label='Online (DBP)...', command=self.openDBPBibleResource, underline=0 )
+        submenuBibleResourceType.add_command( label='Sword module...', command=self.openSwordResource, underline=0 )
+        submenuBibleResourceType.add_command( label='Other (local)...', command=self.openInternalBibleResource, underline=1 )
+        submenuLexiconResourceType = Menu( menuResources )
+        menuResources.add_cascade( label='Open lexicon', menu=submenuLexiconResourceType, underline=5 )
+        submenuLexiconResourceType.add_command( label='Hebrew...', command=self.notWrittenYet, underline=0 )
+        submenuLexiconResourceType.add_command( label='Greek...', command=self.notWrittenYet, underline=0 )
+        submenuLexiconResourceType.add_command( label='Bible...', command=self.notWrittenYet, underline=0 )
+        #submenuCommentaryResourceType = Menu( menuResources )
+        #menuResources.add_cascade( label='Open commentary', menu=submenuCommentaryResourceType, underline=5 )
+        menuResources.add_command( label='Open resource collection...', command=self.notWrittenYet, underline=5 )
+        menuResources.add_separator()
+        menuResources.add_command( label='Hide all resources', command=self.hideResources, underline=0 )
 
         menuTools = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuTools, label='Tools', underline=0 )
@@ -219,16 +286,30 @@ class Application( Frame ):
         menuWindow.add_command( label='Show all', command=self.showAll, underline=0 )
         menuWindow.add_command( label='Bring all here', command=self.bringAll, underline=0 )
         menuWindow.add_separator()
-        menuWindow.add_command( label='Save window setup', command=self.saveWindowSetup, underline=0 )
-        if len(self.windowsSettings)>1 or (self.windowsSettings and 'Current' not in self.windowsSettings):
-            menuWindow.add_command( label='Delete a window setting', command=self.deleteWindowSetting, underline=0 )
+        menuWindow.add_command( label='Save window setup', command=self.saveNewWindowSetup, underline=0 )
+        if len(self.windowsSettingsDict)>1 or (self.windowsSettingsDict and 'Current' not in self.windowsSettingsDict):
+            menuWindow.add_command( label='Delete a window setting', command=self.deleteExistingWindowSetup, underline=0 )
             menuWindow.add_separator()
-            for savedName in self.windowsSettings:
+            for savedName in self.windowsSettingsDict:
                 if savedName != 'Current':
                     menuWindow.add_command( label=savedName, command=self.notWrittenYet, underline=0 )
+        menuWindow.add_separator()
+        submenuWindowStyle = Menu( menuWindow )
+        menuWindow.add_cascade( label='Theme', menu=submenuWindowStyle, underline=0 )
+        for themeName in self.style.theme_names():
+            submenuWindowStyle.add_command( label=themeName.title(), command=lambda tN=themeName: self.changeTheme(tN), underline=0 )
+
+        if Globals.debugFlag:
+            menuDebug = Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=menuDebug, label='Debug', underline=0 )
+            menuDebug.add_command( label='View log...', command=self.notWrittenYet, underline=0 )
+            menuDebug.add_separator()
+            menuDebug.add_command( label='Options...', command=self.notWrittenYet, underline=0 )
 
         menuHelp = Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=menuHelp, label='Help', underline=0 )
+        menuHelp.add_command( label='Help...', command=self.doHelp, underline=0 )
+        menuHelp.add_separator()
         menuHelp.add_command( label='About...', command=self.doAbout, underline=0 )
 
         #filename = filedialog.askopenfilename()
@@ -252,23 +333,6 @@ class Application( Frame ):
         self.statusTextVariable.set( '' )
         self.setStatus( "Starting up..." )
     # end of Application.createStatusBar
-
-
-    def setStatus( self, newStatus=None ):
-        """
-        Set (or clear) the status bar text.
-        """
-        print( t("setStatus( {} )").format( repr(newStatus) ) )
-        print( "SB is", repr( self.statusTextVariable.get() ) )
-        if newStatus != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget['state'] = 'normal'
-            #self.statusBarTextWidget.delete( '1.0', 'end' )
-            #if newStatus:
-                #self.statusBarTextWidget.insert( '1.0', newStatus )
-            #self.statusBarTextWidget['state'] = 'disabled' # Don't allow editing
-            #self.statusText = newStatus
-            self.statusTextVariable.set( newStatus )
-    # end of Application.setStatus
 
 
     def createToolBar( self ):
@@ -379,38 +443,107 @@ class Application( Frame ):
     # end of Application.createApplicationWidgets
 
 
-    if 0:
-        def change_style(self, event=None):
-            """set the Style to the content of the Combobox"""
-            from tkinter import TclError
-            content = self.combo.get()
-            try:
-                self.style.theme_use(content)
-            except TclError as err:
-                messagebox.showerror('Error', err)
-            else:
-                self.ApplicationParent.title(content)
-        # end of Application.change_style
+    def setStatus( self, newStatus=None ):
+        """
+        Set (or clear) the status bar text.
+        """
+        print( t("setStatus( {} )").format( repr(newStatus) ) )
+        #print( "SB is", repr( self.statusTextVariable.get() ) )
+        if newStatus != self.statusTextVariable.get(): # it's changed
+            #self.statusBarTextWidget['state'] = 'normal'
+            #self.statusBarTextWidget.delete( '1.0', END )
+            #if newStatus:
+                #self.statusBarTextWidget.insert( '1.0', newStatus )
+            #self.statusBarTextWidget['state'] = 'disabled' # Don't allow editing
+            #self.statusText = newStatus
+            self.statusTextVariable.set( newStatus )
+    # end of Application.setStatus
 
+
+    def setDebugText( self, newMessage=None ):
+        """
+        """
+        print( t("setDebugText( {} )").format( repr(newMessage) ) )
+        assert( Globals.debugFlag )
+        self.debugText['state'] = 'normal' # Allow editing
+        self.debugText.delete( '1.0', END ) # Clear everything
+        self.debugText.insert( END, 'DEBUGGING INFORMATION:' )
+        if newMessage: self.debugText.insert( END, '\nMsg: ' + newMessage )
+        self.debugText.insert( END, '\n{} child windows:'.format( len(self.appWins) ) )
+        for j, appWin in enumerate( self.appWins ):
+            self.debugText.insert( END, "\n  {} {} ({}) {}".format( j, appWin.winType, appWin.genericWindowType, appWin.geometry() ) )
+        self.debugText.insert( END, '\n{} resource frames:'.format( len(self.projFrames) ) )
+        for j, projFrame in enumerate( self.projFrames ):
+            self.debugText.insert( END, "\n  {} {}".format( j, projFrame ) )
+        self.debugText['state'] = 'disabled' # Don't allow editing
+    # end of Application.setDebugText
+
+
+    def changeTheme( self, newThemeName ):
+        """
+        Set the window theme to the given scheme.
+        """
+        print( t("changeTheme( {} )").format( repr(newThemeName) ) )
+        if Globals.debugFlag:
+            assert( newThemeName )
+            self.setDebugText( 'Set theme to {}'.format( repr(newThemeName) ) )
+        self.themeName = newThemeName
+        try:
+            self.style.theme_use( newThemeName )
+        except TclError as err:
+            showerror( 'Error', err )
+    # end of Application.changeTheme
+
+
+    def retrieveWindowsSettings( self, windowsSettingsName ):
+        """
+        Gets a certain windows setting from the settings (INI) file information
+            and puts it into a dictionary.
+
+        Returns the dictionary.
+        """
+        if Globals.debugFlag:
+            print( t("retrieveWindowsSettings( {} )").format( repr(windowsSettingsName) ) )
+            self.setDebugText( "retrieveWindowsSettings..." )
+        windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
+        resultDict = {}
+        for j in range( 1, MAX_WINDOWS ):
+            winNumber = "window{}".format( j )
+            for keyName in windowsSettingsFields:
+                if keyName.startswith( winNumber ):
+                    if winNumber not in resultDict: resultDict[winNumber] = {}
+                    resultDict[winNumber][keyName[len(winNumber):]] = windowsSettingsFields[keyName]
+        #print( t("retrieveWindowsSettings"), resultDict )
+        return resultDict
+    # end of Application.retrieveWindowsSettings
 
 
     def parseAndApplySettings( self ):
+        """
+        Parse the settings out of the .INI file.
+        """
+        if Globals.debugFlag:
+            print( t("parseAndApplySettings()") )
+            self.setDebugText( "parseAndApplySettings..." )
         try: self.minimumXSize, self.minimumYSize = self.settings.data[ProgName]['minimumXSize'], self.settings.data[ProgName]['minimumYSize']
         except KeyError: self.minimumXSize, self.minimumYSize = MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE
         self.ApplicationParent.minsize( self.minimumXSize, self.minimumYSize )
         try: self.ApplicationParent.geometry( self.settings.data[ProgName]['windowGeometry'] )
         except KeyError: pass # we had no geometry set
         except TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
+        try: self.changeTheme( self.settings.data[ProgName]['themeName'] )
+        except KeyError: pass # we had no theme name set
 
-        windowsSettingsNames = []
+        # We keep our copy of all the windows settings in self.windowsSettingsDict
+        windowsSettingsNamesList = []
         for name in self.settings.data:
-            if name.startswith( 'WindowSetting' ): windowsSettingsNames.append( name[13:] )
-        print( t("Available windows settings are: {}").format( windowsSettingsNames ) )
-        if windowsSettingsNames: assert( 'Current' in windowsSettingsNames )
-        self.windowsSettings = {}
-        for windowsSettingsName in windowsSettingsNames:
-            self.windowsSettings[windowsSettingsName] = self.retrieveWindowsSettings( windowsSettingsName )
-        if 'Current' in windowsSettingsNames: self.applyWindowsSettings( 'Current', self.windowsSettings['Current'] )
+            if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
+        print( t("Available windows settings are: {}").format( windowsSettingsNamesList ) )
+        if windowsSettingsNamesList: assert( 'Current' in windowsSettingsNamesList )
+        self.windowsSettingsDict = {}
+        for windowsSettingsName in windowsSettingsNamesList:
+            self.windowsSettingsDict[windowsSettingsName] = self.retrieveWindowsSettings( windowsSettingsName )
+        if 'Current' in windowsSettingsNamesList: self.applyGivenWindowsSettings( 'Current' )
         else: logging.critical( t("Application.parseAndApplySettings: No current window settings available") )
 
         try: self.currentBCVGroup = self.settings.data['BCVGroups']['currentGroup']
@@ -426,31 +559,16 @@ class Application( Frame ):
     # end of Application.parseAndApplySettings
 
 
-    def retrieveWindowsSettings( self, windowsSettingsName ):
+    def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
         """
-        Gets the windows settings from the settings (INI) file information
-            and puts it into a dictionary.
-
-        Returns the dictionary
+        Given the name of windows settings,
+            find the settings in our dictionary
+            and then apply it by creating the windows.
         """
-        print( t("retrieveWindowsSettings( {} )").format( repr(windowsSettingsName) ) )
-        windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
-        resultDict = {}
-        for j in range( 1, MAX_WINDOWS ):
-            winNumber = "window{}".format( j )
-            for keyName in windowsSettingsFields:
-                if keyName.startswith( winNumber ):
-                    if winNumber not in resultDict: resultDict[winNumber] = {}
-                    resultDict[winNumber][keyName[len(winNumber):]] = windowsSettingsFields[keyName]
-        #print( t("retrieveWindowsSettings"), resultDict )
-        return resultDict
-    # end of Application.retrieveWindowsSettings
-
-
-    def applyWindowsSettings( self, windowsSettingsName, windowsSettingsFields ):
-        """
-        """
-        print( t("applyWindowsSettings( {} )").format( repr(windowsSettingsName) ) )
+        if Globals.debugFlag:
+            print( t("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
+            self.setDebugText( "applyGivenWindowsSettings..." )
+        windowsSettingsFields = self.windowsSettingsDict[givenWindowsSettingsName]
         for j in range( 1, MAX_WINDOWS ):
             winNumber = "window{}".format( j )
             if winNumber in windowsSettingsFields:
@@ -458,177 +576,335 @@ class Application( Frame ):
                 winType = thisStuff['Type']
                 windowGeometry = thisStuff['Geometry'] if 'Geometry' in thisStuff else None
                 #print( winType, windowGeometry )
-                if winType == 'SwordResourceWindow':
-                    self.openSwordResourceFrame( thisStuff['ModuleAbbreviation'], windowGeometry )
-                    #except: logging.error( "Unable to read SwordResourceFrame {} settings".format( j ) )
-                elif winType == 'FCBHResourceWindow':
-                    self.openFCBHResourceFrame( thisStuff['ModuleAbbreviation'], windowGeometry )
-                    #except: logging.error( "Unable to read FCBHResourceFrame {} settings".format( j ) )
-                elif winType == 'USFMResourceWindow':
-                    self.openUSFMResourceFrame( thisStuff['USFMFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
+                if winType == 'SwordBibleResourceWindow':
+                    self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
+                    #except: logging.error( "Unable to read SwordBibleResourceWindow {} settings".format( j ) )
+                elif winType == 'DBPBibleResourceWindow':
+                    self.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
+                    #except: logging.error( "Unable to read DBPBibleResourceWindow {} settings".format( j ) )
+                elif winType == 'InternalBibleResourceWindow':
+                    self.openInternalBibleResourceWindow( thisStuff['BibleFolderPath'], windowGeometry )
+                    #except: logging.error( "Unable to read InternalBibleResourceWindow {} settings".format( j ) )
 
-                elif winType == 'HebrewLexiconResourceWindow':
-                    self.openHebrewLexiconResourceFrame( thisStuff['HebrewLexiconFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
-                elif winType == 'GreekLexiconResourceWindow':
-                    self.openGreekLexiconResourceFrame( thisStuff['GreekLexiconFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
+                #elif winType == 'HebrewLexiconResourceWindow':
+                    #self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconFolder'], windowGeometry )
+                    ##except: logging.error( "Unable to read HebrewLexiconResourceWindow {} settings".format( j ) )
+                #elif winType == 'GreekLexiconResourceWindow':
+                    #self.openGreekLexiconResourceWindow( thisStuff['GreekLexiconFolder'], windowGeometry )
+                    ##except: logging.error( "Unable to read GreekLexiconResourceWindow {} settings".format( j ) )
                 elif winType == 'BibleLexiconResourceWindow':
-                    self.openBibleLexiconResourceFrame( thisStuff['BibleLexiconFolder'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMResourceFrame {} settings".format( j ) )
+                    self.openBibleLexiconResourceWindow( thisStuff['BibleLexiconFolder'], windowGeometry )
+                    #except: logging.error( "Unable to read BibleLexiconResourceWindow {} settings".format( j ) )
 
+                elif winType == 'TextEditWindow':
+                    self.openTextEditWindow( thisStuff['Folder'], thisStuff['EditMode'], windowGeometry )
+                    #except: logging.error( "Unable to read TextEditWindow {} settings".format( j ) )
                 elif winType == 'USFMEditWindow':
                     self.openUSFMEditWindow( thisStuff['USFMFolder'], thisStuff['EditMode'], windowGeometry )
                     #except: logging.error( "Unable to read USFMEditWindow {} settings".format( j ) )
+                elif winType == 'ESFMEditWindow':
+                    self.openESFMEditWindow( thisStuff['ESFMFolder'], thisStuff['EditMode'], windowGeometry )
+                    #except: logging.error( "Unable to read ESFMEditWindow {} settings".format( j ) )
 
                 else:
                     logging.critical( t("Application.__init__: Unknown {} window type").format( repr(winType) ) )
                     if Globals.debugFlag: halt
-    # end of Application.applyWindowsSettings
+    # end of Application.applyGivenWindowsSettings
 
 
-    def saveWindowSetup( self ):
+    def getCurrentWindowSettings( self ):
+        """
+        Go through the currently open windows and get their settings data
+            and save it in self.windowsSettingsDict['Current'].
+        """
+        print( t("getCurrentWindowSettings()") )
+        if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
+        self.windowsSettingsDict['Current'] = {}
+        for j, appWin in enumerate( self.appWins ):
+                winNumber = "window{}".format( j+1 )
+                self.windowsSettingsDict['Current'][winNumber] = {}
+                thisOne = self.windowsSettingsDict['Current'][winNumber]
+                thisOne['Type'] = appWin.winType #.replace( 'Window', 'Window' )
+                thisOne['Geometry'] = appWin.geometry()
+                if appWin.winType == 'SwordBibleResourceWindow':
+                    thisOne['ModuleAbbreviation'] = appWin.moduleAbbreviation
+                elif appWin.winType == 'DBPBibleResourceWindow':
+                    thisOne['ModuleAbbreviation'] = appWin.moduleAbbreviation
+                elif appWin.winType == 'InternalBibleResourceWindow':
+                    thisOne['BibleFolderPath'] = appWin.modulePath
+
+                #elif appWin.winType == 'HebrewLexiconResourceWindow':
+                    #thisOne['HebrewLexiconFolder'] = appWin.lexiconFolder
+                #elif appWin.winType == 'GreekLexiconResourceWindow':
+                    #thisOne['GreekLexiconFolder'] = appWin.lexiconFolder
+                elif appWin.winType == 'BibleLexiconResourceWindow':
+                    thisOne['BibleLexiconFolder'] = appWin.lexiconFolder
+
+                elif appWin.winType == 'USFMEditWindow':
+                    thisOne['USFMFolder'] = appWin.USFMFolder
+                    thisOne['EditMode'] = appWin.editMode
+
+                else:
+                    logging.critical( t("getCurrentWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
+                    if Globals.debugFlag: halt
+    # end of Application.getCurrentWindowSettings
+
+
+    def saveNewWindowSetup( self ):
         """
         Gets the name for the new window setup and saves the information.
         """
-        swnd = SaveWindowNameDialog( self, self.windowsSettings, title=_("Save window setup") )
+        if Globals.debugFlag:
+            print( t("saveNewWindowSetup()") )
+            self.setDebugText( "saveNewWindowSetup..." )
+        swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_("Save window setup") )
         print( "swndResult", repr(swnd.result) )
         if swnd.result:
-            self.saveWindowSettings( swnd.result )
-            self.settings.save() # Save file now in case we crash
-            print( "swS", self.windowsSettings )
+            self.getCurrentWindowSettings()
+            self.windowsSettingsDict[swnd.result] = self.windowsSettingsDict['Current'] # swnd.result is the new window name
+            print( "swS", self.windowsSettingsDict )
+            self.writeSettingsFile() # Save file now in case we crash
             self.createMenuBar() # refresh
-    # end of Application.saveWindowSetup
+    # end of Application.saveNewWindowSetup
 
 
-    def deleteWindowSetting( self ):
+    def deleteExistingWindowSetup( self ):
         """
         Gets the name of an existing window setting and deletes the setting.
         """
-        assert( self.windowsSettings and (len(self.windowsSettings)>1 or 'Current' not in self.windowsSettings) )
-        dwnd = DeleteWindowNameDialog( self, self.windowsSettings, title=_("Delete saved window setup") )
+        if Globals.debugFlag:
+            print( t("deleteExistingWindowSetup()") )
+            self.setDebugText( "deleteExistingWindowSetup..." )
+        assert( self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict) )
+        dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_("Delete saved window setup") )
         print( "dwndResult", repr(dwnd.result) )
         if dwnd.result:
             if Globals.debugFlag:
-                assert( dwnd.result in self.windowsSettings )
-            del self.windowsSettings[dwnd.result]
-            #self.saveWindowSettings( dwnd.result )
-            #self.settings.save() # Save file now in case we crash
+                assert( dwnd.result in self.windowsSettingsDict )
+            del self.windowsSettingsDict[dwnd.result]
+            #self.settings.save() # Save file now in case we crash -- don't worry -- it's easy to delete one
             self.createMenuBar() # refresh
-    # end of Application.deleteWindowSetting
+    # end of Application.deleteExistingWindowSetup
 
 
-    def openSwordResourceFrame( self, moduleAbbreviation, windowGeometry=None ):
-        rw = ResourceWindow( self.ApplicationParent, "BibleResource" )
-        rw.winType = "SwordResourceFrame"
+    def openSwordResource( self ):
+        """
+        """
+        if Globals.debugFlag:
+            print( t("openSwordResource()") )
+            self.setDebugText( "openSwordResource..." )
+        self.setStatus( "openSwordResource..." )
+        if self.SwordInterface is None:
+            self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+        self.goto()
+    # end of Application.openSwordResource
+
+
+    def openSwordBibleResourceWindow( self, moduleAbbreviation, windowGeometry=None ):
+        if Globals.debugFlag:
+            print( t("openSwordBibleResourceWindow()") )
+            self.setDebugText( "openSwordBibleResourceWindow..." )
+        if self.SwordInterface is None:
+            self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+        rw = ResourceWindow( self, "BibleResource" )
+        rw.winType = "SwordBibleResourceWindow"
         rw.moduleAbbreviation = moduleAbbreviation
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        srw = SwordResourceFrame( rw, self, rw.moduleAbbreviation )
+        srw = SwordBibleResourceFrame( rw, self, rw.moduleAbbreviation )
         srw.pack( expand=YES, fill=BOTH )
-        self.projWins.append( srw )
+        self.projFrames.append( srw )
         if not srw.SwordModule:
-            logging.critical( t("Application.openSwordResourceFrame: Unable to open module {}").format( repr(moduleAbbreviation) ) )
+            logging.critical( t("Application.openSwordBibleResourceWindow: Unable to open module {}").format( repr(moduleAbbreviation) ) )
             #rw.destroy()
-    # end of Application.openSwordResourceFrame
+    # end of Application.openSwordBibleResourceWindow
 
 
-    def openFCBHResourceFrame( self, moduleAbbreviation, windowGeometry=None ):
-        rw = ResourceWindow( self.ApplicationParent, "BibleResource" )
-        rw.winType = "FCBHResourceFrame"
+    def openDBPBibleResource( self ):
+        """
+        """
+        if Globals.debugFlag:
+            print( t("openDBPBibleResource()") )
+            self.setDebugText( "openDBPBibleResource..." )
+        self.setStatus( "openDBPBibleResource..." )
+        if self.DBPInterface is None:
+            self.DBPInterface = DBPBibles()
+            availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
+            #print( "aV1", repr(availableVolumes) )
+            if availableVolumes:
+                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_("Open DPB resource") )
+                print( "srbResult", repr(srb.result) )
+                if srb.result:
+                    for entry in srb.result:
+                        self.openDBPBibleResourceWindow( entry[1] )
+                    self.goto()
+                elif Globals.debugFlag: print( t("openDBPBibleResource: no resource selected!") )
+            else: logging.critical( t("openDBPBibleResource: no volumes available") )
+    # end of Application.openDBPBibleResource
+
+
+    def openDBPBibleResourceWindow( self, moduleAbbreviation, windowGeometry=None ):
+        if Globals.debugFlag:
+            print( t("openDBPBibleResourceWindow()") )
+            self.setDebugText( "openDBPBibleResourceWindow..." )
+            assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
+        rw = ResourceWindow( self, "BibleResource" )
+        rw.winType = "DBPBibleResourceWindow"
         rw.moduleAbbreviation = moduleAbbreviation
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        frw = FCBHResourceFrame( rw, self, rw.moduleAbbreviation )
+        frw = DBPBibleResourceFrame( rw, self, rw.moduleAbbreviation )
         frw.pack( expand=YES, fill=BOTH )
-        self.projWins.append( frw )
-        if not frw.FCBHModule:
-            logging.critical( t("Application.openFCBHResourceFrame: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
+        self.projFrames.append( frw )
+        if not frw.DBPModule:
+            logging.critical( t("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             #rw.destroy()
-    # end of Application.openFCBHResourceFrame
+    # end of Application.openDBPBibleResourceWindow
 
 
-    def openUSFMResourceFrame( self, USFMFolder, windowGeometry=None ):
-        rw = ResourceWindow( self.ApplicationParent, "BibleResource" )
-        rw.winType = "USFMResourceFrame"
-        rw.USFMFolder = USFMFolder
+    #def openUSFMResource( self ):
+        #"""
+        #"""
+        #if Globals.debugFlag:
+            #print( t("openUSFMResource()") )
+            #self.setDebugText( "openUSFMResource..." )
+        #self.setStatus( "openUSFMResource..." )
+        #requestedFolder = askdirectory()
+        #if requestedFolder:
+            #self.openInternalBibleResourceWindow( requestedFolder )
+            #self.goto()
+    ## end of Application.openUSFMResource
+
+
+    #def openInternalBibleResourceWindow( self, USFMFolder, windowGeometry=None ):
+        #if Globals.debugFlag:
+            #print( t("openInternalBibleResourceWindow()") )
+            #self.setDebugText( "openInternalBibleResourceWindow..." )
+        #rw = ResourceWindow( self, "BibleResource" )
+        #rw.winType = "USFMResourceWindow"
+        #rw.USFMFolder = USFMFolder
+        #if windowGeometry: rw.geometry( windowGeometry )
+        #self.appWins.append( rw )
+        #urw = USFMResourceFrame( rw, self, rw.USFMFolder )
+        #urw.pack( expand=YES, fill=BOTH )
+        #self.projFrames.append( urw )
+        #if urw.USFMBible is None:
+            #logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(USFMFolder) ) )
+            #rw.destroy()
+    ## end of Application.openInternalBibleResourceWindow
+
+
+    def openInternalBibleResource( self ):
+        """
+        """
+        if Globals.debugFlag:
+            print( t("openInternalBibleResource()") )
+            self.setDebugText( "openInternalBibleResource..." )
+        self.setStatus( "openInternalBibleResource..." )
+        requestedFolder = askdirectory()
+        if requestedFolder:
+            self.openInternalBibleResourceWindow( requestedFolder )
+            self.goto()
+    # end of Application.openInternalBibleResource
+
+
+    def openInternalBibleResourceWindow( self, modulePath, windowGeometry=None ):
+        if Globals.debugFlag:
+            print( t("openInternalBibleResourceWindow()") )
+            self.setDebugText( "openInternalBibleResourceWindow..." )
+        rw = ResourceWindow( self, "BibleResource" )
+        rw.winType = "InternalBibleResourceWindow"
+        rw.modulePath = modulePath
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        urw = USFMResourceFrame( rw, self, rw.USFMFolder )
+        urw = InternalBibleResourceFrame( rw, self, rw.modulePath )
         urw.pack( expand=YES, fill=BOTH )
-        self.projWins.append( urw )
-        if urw.USFMBible is None:
-            logging.critical( t("Application.openUSFMResourceFrame: Unable to open resource {}").format( repr(USFMFolder) ) )
-            #rw.destroy()
-    # end of Application.openUSFMResourceFrame
+        self.projFrames.append( urw )
+        if urw.InternalBible is None:
+            logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(modulePath) ) )
+            rw.destroy()
+    # end of Application.openInternalBibleResourceWindow
 
 
-    def openHebrewLexiconResourceFrame( self, lexiconFolder, windowGeometry=None ):
-        rw = ResourceWindow( self.ApplicationParent, "LexiconResource" )
-        rw.winType = "HebrewLexiconResourceFrame"
-        rw.lexiconFolder = lexiconFolder
-        if rw.lexiconFolder is None: rw.lexiconFolder = "../HebrewLexicon/"
-        if windowGeometry: rw.geometry( windowGeometry )
-        self.appWins.append( rw )
-        hlrw = HebrewLexiconResourceFrame( rw, self, rw.lexiconFolder )
-        hlrw.pack( expand=YES, fill=BOTH )
-        self.projWins.append( hlrw )
-        if hlrw.HebrewLexicon is None:
-            logging.critical( t("Application.openHebrewLexiconResourceFrame: Unable to open Hebrew lexicon {}").format( repr(lexiconFolder) ) )
-            #rw.destroy()
-    # end of Application.openHebrewLexiconResourceFrame
+    #def openHebrewLexiconResourceWindow( self, lexiconFolder, windowGeometry=None ):
+        #if Globals.debugFlag:
+            #print( t("openHebrewLexiconResourceWindow()") )
+            #self.setDebugText( "openHebrewLexiconResourceWindow..." )
+        #rw = ResourceWindow( self, "LexiconResource" )
+        #rw.winType = "HebrewLexiconResourceWindow"
+        #rw.lexiconFolder = lexiconFolder
+        #if rw.lexiconFolder is None: rw.lexiconFolder = "../HebrewLexicon/"
+        #if windowGeometry: rw.geometry( windowGeometry )
+        #self.appWins.append( rw )
+        #hlrw = HebrewLexiconResourceFrame( rw, self, rw.lexiconFolder )
+        #hlrw.pack( expand=YES, fill=BOTH )
+        #self.projFrames.append( hlrw )
+        #if hlrw.HebrewLexicon is None:
+            #logging.critical( t("Application.openHebrewLexiconResourceWindow: Unable to open Hebrew lexicon {}").format( repr(lexiconFolder) ) )
+            ##rw.destroy()
+    ## end of Application.openHebrewLexiconResourceWindow
 
 
-    def openGreekLexiconResourceFrame( self, lexiconFolder, windowGeometry=None ):
-        rw = ResourceWindow( self.ApplicationParent, "LexiconResource" )
-        rw.winType = "GreekLexiconResourceFrame"
-        rw.lexiconFolder = lexiconFolder
-        if rw.lexiconFolder is None: rw.lexiconFolder = "../morphgnt/strongs-dictionary-xml/"
-        if windowGeometry: rw.geometry( windowGeometry )
-        self.appWins.append( rw )
-        glrw = GreekLexiconResourceFrame( rw, self, rw.lexiconFolder )
-        glrw.pack( expand=YES, fill=BOTH )
-        self.projWins.append( glrw )
-        if glrw.GreekLexicon is None:
-            logging.critical( t("Application.openGreekLexiconResourceFrame: Unable to open Greek lexicon {}").format( repr(lexiconFolder) ) )
-            #rw.destroy()
-    # end of Application.openGreekLexiconResourceFrame
+    #def openGreekLexiconResourceWindow( self, lexiconFolder, windowGeometry=None ):
+        #if Globals.debugFlag:
+            #print( t("openGreekLexiconResourceWindow()") )
+            #self.setDebugText( "openGreekLexiconResourceWindow..." )
+        #rw = ResourceWindow( self, "LexiconResource" )
+        #rw.winType = "GreekLexiconResourceWindow"
+        #rw.lexiconFolder = lexiconFolder
+        #if rw.lexiconFolder is None: rw.lexiconFolder = "../morphgnt/strongs-dictionary-xml/"
+        #if windowGeometry: rw.geometry( windowGeometry )
+        #self.appWins.append( rw )
+        #glrw = GreekLexiconResourceFrame( rw, self, rw.lexiconFolder )
+        #glrw.pack( expand=YES, fill=BOTH )
+        #self.projFrames.append( glrw )
+        #if glrw.GreekLexicon is None:
+            #logging.critical( t("Application.openGreekLexiconResourceWindow: Unable to open Greek lexicon {}").format( repr(lexiconFolder) ) )
+            ##rw.destroy()
+    ## end of Application.openGreekLexiconResourceWindow
 
 
-    def openBibleLexiconResourceFrame( self, lexiconFolder, windowGeometry=None ):
-        rw = ResourceWindow( self.ApplicationParent, "LexiconResource" )
-        rw.winType = "BibleLexiconResourceFrame"
+    def openBibleLexiconResourceWindow( self, lexiconFolder, windowGeometry=None ):
+        if Globals.debugFlag:
+            print( t("openBibleLexiconResourceWindow()") )
+            self.setDebugText( "openBibleLexiconResourceWindow..." )
+        rw = ResourceWindow( self, "LexiconResource" )
+        rw.winType = "BibleLexiconResourceWindow"
         rw.lexiconFolder = lexiconFolder
         if rw.lexiconFolder is None: rw.lexiconFolder = "../"
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
         blrw = BibleLexiconResourceFrame( rw, self, rw.lexiconFolder )
         blrw.pack( expand=YES, fill=BOTH )
-        self.projWins.append( blrw )
+        self.projFrames.append( blrw )
         if blrw.BibleLexicon is None:
-            logging.critical( t("Application.openBibleLexiconResourceFrame: Unable to open Bible lexicon resource {}").format( repr(lexiconFolder) ) )
+            logging.critical( t("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {}").format( repr(lexiconFolder) ) )
             #rw.destroy()
-    # end of Application.openHebrewLexiconResourceFrame
+    # end of Application.openBibleLexiconResourceWindow
 
 
     def openUSFMEditWindow( self, USFMFolder, editMode, windowGeometry=None ):
-        rw = ResourceWindow( self.ApplicationParent, "Editor" ) # Open new top level window
+        if Globals.debugFlag:
+            print( t("openUSFMEditWindow()") )
+            self.setDebugText( "openUSFMEditWindow..." )
+        rw = ResourceWindow( self, "Editor" ) # Open new top level window
         rw.winType = "USFMEditWindow"
         rw.USFMFolder, rw.editMode = USFMFolder, editMode
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        uew = USFMEditWindow( rw, self, rw.USFMFolder, rw.editMode )
+        uew = USFMEditFrame( rw, self, rw.USFMFolder, rw.editMode )
         uew.pack( expand=YES, fill=BOTH )
-        self.projWins.append( uew )
-        if uew.USFMBible is None:
+        self.projFrames.append( uew )
+        if uew.InternalBible is None:
             logging.critical( t("Application.openUSFMEditWindow: Unable to open USFM Bible in {}").format( repr(USFMFolder) ) )
             #rw.destroy()
     # end of Application.openUSFMEditWindow
 
 
     def goBack( self, event=None ):
-        if Globals.debugFlag: print( "goBack" )
+        if Globals.debugFlag:
+            print( t("goBack()") )
+            self.setDebugText( "goBack..." )
         #print( dir(event) )
         assert( self.BCVHistory )
         assert( self.BCVHistoryIndex )
@@ -637,6 +913,8 @@ class Application( Frame ):
         self.setCurrentBCV( self.BCVHistory[self.BCVHistoryIndex] )
         self.updatePreviousNextButtons()
         self.goto()
+    # end of Application.goBack
+
 
     def goForward( self, event=None ):
         if Globals.debugFlag: print( "goForward" )
@@ -648,6 +926,8 @@ class Application( Frame ):
         self.setCurrentBCV( self.BCVHistory[self.BCVHistoryIndex] )
         self.updatePreviousNextButtons()
         self.goto()
+    # end of Application.goForward
+
 
     def setCurrentBCV( self, newBCV ):
         self.currentBCV = newBCV
@@ -662,6 +942,8 @@ class Application( Frame ):
             self.BCVHistoryIndex = len( self.BCVHistory )
             self.BCVHistory.append( self.currentBCV )
             self.updatePreviousNextButtons()
+    # end of Application.setCurrentBCV
+
 
     def updateBCVGroup( self, newGroupLetter ):
         assert( newGroupLetter in GROUP_CODES )
@@ -674,6 +956,8 @@ class Application( Frame ):
             self.setCurrentBCV( (self.genericBOS.getFirstBookCode(),'1','1') )
         self.updateBCVButtons()
         self.goto()
+    # end of Application.updateBCVGroup
+
 
     def updateBCVButtons( self ):
         groupButtons = [ self.GroupAButton, self.GroupBButton, self.GroupCButton, self.GroupDButton ]
@@ -689,19 +973,28 @@ class Application( Frame ):
         self.bookNameVar.set( self.genericBOS.getBookName(self.currentBCV[0]) )
         self.chapterNumberVar.set( self.currentBCV[1] )
         self.verseNumberVar.set( self.currentBCV[2] )
+    # end of Application.updateBCVButtons
+
 
     def updatePreviousNextButtons( self ):
         self.previousBCVButton.config( state=NORMAL if self.BCVHistory and self.BCVHistoryIndex>0 else DISABLED )
         self.nextBCVButton.config( state=NORMAL if self.BCVHistory and self.BCVHistoryIndex<len(self.BCVHistory)-1 else DISABLED )
+    # end of Application.updatePreviousNextButtons
+
 
     def selectGroupA( self ):
         self.updateBCVGroup( 'A' )
+    # end of Application.selectGroupA
     def selectGroupB( self ):
         self.updateBCVGroup( 'B' )
+    # end of Application.selectGroupB
     def selectGroupC( self ):
         self.updateBCVGroup( 'C' )
+    # end of Application.selectGroupC
     def selectGroupD( self ):
         self.updateBCVGroup( 'D' )
+    # end of Application.selectGroupD
+
 
     def updateBCVButtons( self ):
         groupButtons = [ self.GroupAButton, self.GroupBButton, self.GroupCButton, self.GroupDButton ]
@@ -717,104 +1010,301 @@ class Application( Frame ):
         self.bookNameVar.set( self.genericBOS.getBookName(self.currentBCV[0]) )
         self.chapterNumberVar.set( self.currentBCV[1] )
         self.verseNumberVar.set( self.currentBCV[2] )
+    # end of Application.updateBCVButtons
+
+
+    def gotoPreviousBook( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoPreviousBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoPreviousBook..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoPreviousBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoPreviousBook..." )
+    # end of Application.gotoPreviousBook
+
+
+    def gotoNextBook( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoNextBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoNextBook..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoNextBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoNextBook..." )
+        intC, intV = int( c ), int( v )
+        intC += 1
+        self.gotoBCV( b, c, v )
+    # end of Application.gotoNextBook
+
+
+    def gotoPreviousChapter( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoPreviousChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoPreviousChapter..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoPreviousChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoPreviousChapter..." )
+        intC, intV = int( c ), int( v )
+        if intC > 0:
+            intC -= 1
+            self.gotoBCV( b, intC, v )
+    # end of Application.gotoPreviousChapter
+
+
+    def gotoNextChapter( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoNextChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoNextChapter..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoNextChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoNextChapter..." )
+        intC, intV = int( c ), int( v )
+        intC += 1
+        self.gotoBCV( b, intC, v )
+    # end of Application.gotoNextChapter
+
+
+    def gotoPreviousVerse( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoPreviousVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoPreviousVerse..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoPreviousVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoPreviousVerse..." )
+        intC, intV = int( c ), int( v )
+        if intV > 0:
+            intV -= 1
+            self.gotoBCV( b, c, intV )
+    # end of Application.gotoPreviousVerse
+
+
+    def gotoNextVerse( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoNextVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoNextVerse..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoNextVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoNextVerse..." )
+        intC, intV = int( c ), int( v )
+        intV += 1
+        self.gotoBCV( b, c, intV )
+    # end of Application.gotoNextVerse
+
+
+    def goForward( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("goForward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "goForward..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("goForward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "goForward..." )
+    # end of Application.goForward
+
+
+    def goBackward( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("goBackward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "goBackward..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("goBackward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "goBackward..." )
+    # end of Application.goBackward
+
+
+    def gotoPreviousListItem( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoPreviousListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoPreviousListItem..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoPreviousListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoPreviousListItem..." )
+    # end of Application.gotoPreviousListItem
+
+
+    def gotoNextListItem( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoNextListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoNextListItem..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoNextListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoNextListItem..." )
+    # end of Application.gotoNextListItem
+
+
+    def gotoBook( self ):
+        """
+        """
+        #if Globals.debugFlag:
+            #print( t("gotoBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            #self.setDebugText( "gotoBook..." )
+        b, c, v = self.BnameCV
+        if Globals.debugFlag:
+            print( t("gotoBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
+            self.setDebugText( "gotoBook..." )
+    # end of Application.gotoBook
+
 
     def goto( self, event=None ):
         """
-        Handle a new book, chapter, verse setting.
+        Handle a new book, chapter, verse setting from the GUI.
         """
-        if Globals.debugFlag: print( "goto" )
+        if Globals.debugFlag: print( t("goto") )
         #print( dir(event) )
 
         b = self.bookNameVar.get()
         c = self.chapterNumberVar.get()
         v = self.verseNumberVar.get()
-        self.BnCV = (b, c, v)
+        self.gotoBCV( b, c, v )
+        self.setStatus( "Ready" )
+    # end of Application.goto
+
+
+    def haveSwordResourcesOpen( self ):
+        """
+        """
+        #if Globals.debugFlag: print( t("haveSwordResourcesOpen()") )
+        for appWin in self.appWins:
+            if 'Sword' in appWin.winType:
+                if self.SwordInterface is None:
+                    self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+                return True
+        return False
+    # end of Application.haveSwordResourcesOpen
+
+
+    def gotoBCV( self, b, c, v ):
+        self.BnameCV = (b, c, v)
         BBB = self.genericBOS.getBBB( b )
         #print( "BBB", BBB )
         self.setCurrentBCV( (BBB,c,v) )
         self.verseKey = VerseReferences.SimpleVerseKey( BBB, c, v )
-        if Globals.debugFlag: print( "  BCV", self.BnCV )
-        assert( self.genericBOS.isValidBCVRef( self.verseKey, repr( self.BnCV ), extended=True ) )
-        self.SwordKey = self.SwordInterface.makeKey( BBB, c, v )
+        if Globals.debugFlag: print( "  BCV", self.BnameCV )
+        assert( self.genericBOS.isValidBCVRef( self.verseKey, repr( self.BnameCV ), extended=True ) )
+        if self.haveSwordResourcesOpen(): self.SwordKey = self.SwordInterface.makeKey( BBB, c, v )
         #print( "swK", self.SwordKey.getText() )
 
         intC, intV = int( c ), int( v )
-        if Globals.debugFlag and ( self.SwordKey.getChapter()!=intC or self.SwordKey.getVerse() != intV ):
-            print( "Sword switched from {} {}:{} to {}:{}".format( BBB, intC,  intV, self.SwordKey.getChapter(), self.SwordKey.getVerse() ) )
+        #if Globals.debugFlag and ( self.SwordKey.getChapter()!=intC or self.SwordKey.getVerse() != intV ):
+        #    print( "Sword switched from {} {}:{} to {}:{}".format( BBB, intC,  intV, self.SwordKey.getChapter(), self.SwordKey.getVerse() ) )
 
 
         # Determine the previous verse number (if any)
         prevIntC, prevIntV = intC, intV
-        self.previousBnCV = self.previousVerseKey = self.SwordPreviousKey = None
+        self.previousBnameCV = self.previousVerseKey = self.SwordPreviousKey = None
         #print( "here with", intC, intV )
         if intV > 0: prevIntV = intV - 1
         elif intC > 1:
             prevIntC = intC - 1
             prevIntV = self.genericBOS.getNumVerses( BBB, prevIntC )
-            print( "Went back to previous chapter", prevIntC, prevIntV, "from", self.BnCV )
+            print( "Went back to previous chapter", prevIntC, prevIntV, "from", self.BnameCV )
         if prevIntV!=intV or prevIntC!=intC:
-            self.previousBnCV = (b, str(prevIntC), str(prevIntV))
+            self.previousBnameCV = (b, str(prevIntC), str(prevIntV))
             #print( "prev", self.previousBCV )
-            assert( self.previousBnCV != self.BnCV )
+            assert( self.previousBnameCV != self.BnameCV )
             self.previousVerseKey = VerseReferences.SimpleVerseKey( BBB, prevIntC, prevIntV )
-            self.SwordPreviousKey = self.SwordInterface.makeKey( BBB, str(prevIntC), str(prevIntV) )
+            if self.haveSwordResourcesOpen(): self.SwordPreviousKey = self.SwordInterface.makeKey( BBB, str(prevIntC), str(prevIntV) )
 
         # Determine the next valid verse numbers
         nextIntC, nextIntV = intC, intV
-        self.nextBnCVs, self.nextVerseKeys, self.SwordNextKeys = [], [], []
+        self.nextBnameCVs, self.nextVerseKeys, self.SwordNextKeys = [], [], []
         for n in range( 0, 5 ):
+            try: numVerses = self.genericBOS.getNumVerses( BBB, intC )
+            except KeyError: numVerses = 0
             nextIntV += 1
-            if nextIntV > self.genericBOS.getNumVerses( BBB, intC ):
+            if nextIntV > numVerses:
                 nextIntV = 1
                 nextIntC += 1 # Need to check................................
             if nextIntV!=intV or nextIntC!=intC:
-                nextBnCV = (b, str(nextIntC), str(nextIntV))
-                assert( nextBnCV != self.BnCV )
+                nextBnameCV = (b, str(nextIntC), str(nextIntV))
+                assert( nextBnameCV != self.BnameCV )
                 #print( "next", nextBCV )
-                self.nextBnCVs.append( nextBnCV )
+                self.nextBnameCVs.append( nextBnameCV )
                 self.nextVerseKeys.append( VerseReferences.SimpleVerseKey( BBB, nextIntC, nextIntV ) )
-                self.SwordNextKeys.append( self.SwordInterface.makeKey( BBB, str(nextIntC), str(nextIntV) ) )
+                if self.haveSwordResourcesOpen(): self.SwordNextKeys.append( self.SwordInterface.makeKey( BBB, str(nextIntC), str(nextIntV) ) )
 
-        self.projWins.update()
-    # end of Application.goto
+        self.projFrames.update()
+    # end of Application.gotoBCV
 
 
-    def getCurrentWindowSettings( self ):
+    def hideResources( self ):
         """
-        Go through the currently open windows and get their settings data
-            and save it in self.windowsSettings['Current'].
+        Minimize all of our resource windows,
+            i.e., leave the editor and main window
         """
-        print( t("getCurrentWindowSettings()") )
-        if 'Current' in self.windowsSettings: del self.windowsSettings['Current']
-        self.windowsSettings['Current'] = {}
-        for j, appWin in enumerate( self.appWins ):
-                winNumber = "window{}".format( j+1 )
-                #self.settings.data[winSetupName] = {}
-                #self.windowsSettings['Current'] = self.settings.data[winSetupName]
-                self.windowsSettings['Current'][winNumber+'Type'] = appWin.winType.replace( 'Frame', 'Window' )
-                self.windowsSettings['Current'][winNumber+'Geometry'] = appWin.geometry()
-                if appWin.winType == 'SwordResourceFrame':
-                    self.windowsSettings['Current'][winNumber+'ModuleAbbreviation'] = appWin.moduleAbbreviation
-                elif appWin.winType == 'FCBHResourceFrame':
-                    self.windowsSettings['Current'][winNumber+'ModuleAbbreviation'] = appWin.moduleAbbreviation
-                elif appWin.winType == 'USFMResourceFrame':
-                    self.windowsSettings['Current'][winNumber+'USFMFolder'] = appWin.USFMFolder
+        if Globals.debugFlag: self.setDebugText( 'hideResources' )
+        self.appWins.iconifyResources()
+    # end of Application.hideAll
 
-                elif appWin.winType == 'HebrewLexiconResourceFrame':
-                    self.windowsSettings['Current'][winNumber+'HebrewLexiconFolder'] = appWin.lexiconFolder
-                elif appWin.winType == 'GreekLexiconResourceFrame':
-                    self.windowsSettings['Current'][winNumber+'GreekLexiconFolder'] = appWin.lexiconFolder
-                elif appWin.winType == 'BibleLexiconResourceFrame':
-                    self.windowsSettings['Current'][winNumber+'BibleLexiconFolder'] = appWin.lexiconFolder
 
-                elif appWin.winType == 'USFMEditWindow':
-                    self.windowsSettings['Current'][winNumber+'USFMFolder'] = appWin.USFMFolder
-                    self.windowsSettings['Current'][winNumber+'EditMode'] = appWin.editMode
+    def hideAll( self, includeMe=True ):
+        """
+        Minimize all of our windows.
+        """
+        if Globals.debugFlag: self.setDebugText( 'hideAll' )
+        self.appWins.iconify()
+        if includeMe: self.ApplicationParent.iconify()
+    # end of Application.hideAll
 
-                else:
-                    logging.critical( t("getCurrentWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
-                    if Globals.deubgFlag: halt
-    # end of Application.saveWindowSettings
+
+    def showAll( self ):
+        """
+        Show/restore all of our windows.
+        """
+        if Globals.debugFlag: self.setDebugText( 'showAll' )
+        self.appWins.deiconify()
+        self.ApplicationParent.deiconify() # Do this last so it has the focus
+        self.ApplicationParent.lift()
+    # end of Application.hideAll
+
+
+    def bringAll( self ):
+        """
+        Bring all of our windows close.
+        """
+        if Globals.debugFlag: self.setDebugText( 'bringAll' )
+        x, y = parseGeometry( self.ApplicationParent.geometry() )[2:4]
+        if x > 30: x = x - 20
+        if y > 30: y = y - 20
+        for j, win in enumerate( self.appWins ):
+            geometrySet = parseGeometry( win.geometry() )
+            #print( geometrySet )
+            newX = x + 10*j
+            if newX < 10*j: newX = 10*j
+            newY = y + 10*j
+            if newY < 10*j: newY = 10*j
+            geometrySet[2:4] = newX, newY
+            win.geometry( assembleGeometryFromList( geometrySet ) )
+        self.showAll()
+    # end of Application.bringAll
 
 
     def writeSettingsFile( self ):
@@ -822,12 +1312,14 @@ class Application( Frame ):
         Update our program settings and save them.
         """
         print( t("Application.writeSettingsFile()") )
-        #self.settings.reset()
+        if Globals.debugFlag: self.setDebugText( 'writeSettingsFile' )
+        self.settings.reset()
 
         self.settings.data[ProgName] = {}
         main = self.settings.data[ProgName]
         main['settingsVersion'] = SettingsVersion
         main['progVersion'] = ProgVersion
+        main['themeName'] = self.themeName
         main['windowGeometry'] = self.ApplicationParent.geometry()
         main['minimumXSize'] = str( self.minimumXSize )
         main['minimumYSize'] = str( self.minimumYSize )
@@ -852,76 +1344,30 @@ class Application( Frame ):
 
         # Get the current window settings
         self.getCurrentWindowSettings()
-        # Save all the window settings
-        for windowsSettingName in self.windowsSettings:
-            print( t("Saving {}").format( windowsSettingName ) )
-            self.settings.data[windowsSettingName] = {}
-            winSettings = self.settings.data[windowsSettingName]
-            for winKeyName in self.windowsSettings[windowsSettingName]:
-                print( t("winKeyName: {}").format( winKeyName ) )
-                for settingName in self.windowsSettings[windowsSettingName][winKeyName]:
-                    print( t("settingName: {}").format( settingName ) )
-                    #winSettings[winKeyName
-
+        # Save all the various window set-ups
+        for windowsSettingName in self.windowsSettingsDict:
+            if Globals.debugFlag: print( t("Saving windows set-up {}").format( repr(windowsSettingName) ) )
+            try: # Just in case something goes wrong with characters in a settings name
+                self.settings.data['WindowSetting'+windowsSettingName] = {}
+                thisOne = self.settings.data['WindowSetting'+windowsSettingName]
+                for windowNumber,winDict in sorted( self.windowsSettingsDict[windowsSettingName].items() ):
+                    #print( "  ", repr(windowNumber), repr(winDict) )
+                    for windowSettingName,value in sorted( winDict.items() ):
+                        thisOne[windowNumber+windowSettingName] = value
+            except: logging.error( t("writeSettingsFile: unable to write {} windows set-up").format( repr(windowsSettingName) ) )
         self.settings.save()
     # end of writeSettingsFile
 
 
-    def hideResources( self ):
-        """
-        Minimize all of our resource windows,
-            i.e., leave the editor and main window
-        """
-        self.appWins.iconifyResources()
-    # end of Application.hideAll
-
-
-    def hideAll( self, includeMe=True ):
-        """
-        Minimize all of our windows.
-        """
-        self.appWins.iconify()
-        if includeMe: self.ApplicationParent.iconify()
-    # end of Application.hideAll
-
-
-    def showAll( self ):
-        """
-        Show/restore all of our windows.
-        """
-        self.appWins.deiconify()
-        self.ApplicationParent.deiconify() # Do this last so it has the focus
-    # end of Application.hideAll
-
-
-    def bringAll( self ):
-        """
-        Bring all of our windows close.
-        """
-        x, y = parseGeometry( self.ApplicationParent.geometry() )[2:4]
-        if x > 30: x = x - 20
-        if y > 30: y = y - 20
-        for j, win in enumerate( self.appWins ):
-            geometrySet = parseGeometry( win.geometry() )
-            #print( geometrySet )
-            newX = x + 10*j
-            if newX < 10*j: newX = 10*j
-            newY = y + 10*j
-            if newY < 10*j: newY = 10*j
-            geometrySet[2:4] = newX, newY
-            win.geometry( assembleGeometryFromList( geometrySet ) )
-        self.showAll()
-    # end of Application.bringAll
-
-
     def closeMe( self ):
         """
-        End the application.
+        Save files first, and then end the application.
         """
         self.writeSettingsFile()
         self.ApplicationParent.destroy()
     # end of Application.closeMe
 # end of class Application
+
 
 
 def main():
@@ -935,7 +1381,8 @@ def main():
     #Globals.debugFlag = True
 
     tkRootWindow = Tk()
-    settings = ApplicationSettings( DATA_FOLDER, SETTINGS_FOLDER, ProgName )
+    tkRootWindow.title( ProgNameVersion )
+    settings = ApplicationSettings( DATA_FOLDER, SETTINGS_SUBFOLDER, ProgName )
     settings.load()
 
     application = Application( parent=tkRootWindow, settings=settings )
@@ -954,15 +1401,6 @@ if __name__ == '__main__':
     Globals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
-
-
-    if 1 and Globals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        from tkinter import tix
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     main()
 

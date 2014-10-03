@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindow.py
-#   Last modified: 2014-09-28 (also update ProgVersion below)
+#   Last modified: 2014-10-03 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindow"
 ProgName = "Biblelator Edit Window"
-ProgVersion = "0.12"
+ProgVersion = "0.13"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -39,32 +39,20 @@ import sys, os.path, configparser, logging
 from gettext import gettext as _
 import multiprocessing
 
-# Importing this way means that we have to manually choose which
-#       widgets that we use (if there's one in each set)
-#import tkinter as tk
 from tkinter import Toplevel, Text, Menu #, StringVar, messagebox
-from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES
+from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES, END
 from tkinter.ttk import Style, Frame #, Button, Combobox
-#from tkinter.tix import Spinbox
-#from tkinter.ttk import * # Overrides any of the above widgets
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
-#from BibleOrganizationalSystems import BibleOrganizationalSystem
-#import Hebrew
-#from HebrewLexicon import HebrewLexicon
-#from HebrewWLC import HebrewWLC
-#import Greek
-#from GreekNT import GreekNT
-#import VerseReferences
 import USFMBible #, USFMStylesheets
-#import SwordResources, DigitalBiblePlatform
 
 # Biblelator imports
 from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE, editModeNormal, editModeUSFM
-from BibleResourceWindows import USFMResourceFrame
+from ResourceWindows import ResourceFrame
+from BibleResourceWindows import InternalBibleResourceFrame
 
 
 def t( messageString ):
@@ -80,28 +68,40 @@ def t( messageString ):
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
-class USFMEditWindow( USFMResourceFrame ):
+
+class TextEditFrame( ResourceFrame ):
+    pass
+
+
+
+class USFMEditFrame( InternalBibleResourceFrame ):
     def __init__( self, parent, master, modulePath, editMode ):
-        if Globals.debugFlag: print( "USFMEditWindow.__init__( {}, {}, {}, {} )".format( parent, master, modulePath, editMode ) )
-        self.USFMEditWindowParent, self.USFMEditMaster, self.editModulePath = parent, master, modulePath
-        USFMResourceFrame.__init__( self, parent, master, modulePath )
-        if self.USFMBible is not None:
+        if Globals.debugFlag: print( "USFMEditFrame.__init__( {}, {}, {}, {} )".format( parent, master, modulePath, editMode ) )
+        self.USFMEditFrameParent, self.USFMEditMaster, self.editModulePath = parent, master, modulePath
+        InternalBibleResourceFrame.__init__( self, parent, master, modulePath )
+        if self.InternalBible is not None:
             self.textBox['background'] = "white"
             self.textBox['selectbackground'] = "red"
             self.textBox['highlightbackground'] = "orange"
             self.textBox['inactiveselectbackground'] = "green"
             self.editMode = editMode
             #self.createUSFMEditFrameWidgets()
-            self.USFMEditWindowParent.title( "{} ({}) Editable".format( self.USFMBible.name, self.editMode ) )
+            self.USFMEditFrameParent.title( "{} ({}) Editable".format( self.InternalBible.name, self.editMode ) )
         else: self.editMode = None
         #self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
         self.createMenuBar()
-    # end of USFMEditWindow.__init__
+    # end of USFMEditFrame.__init__
 
 
     def notWrittenYet( self ):
         messagebox.showerror( _("Not implemented"), _("Not yet available, sorry") )
     # end of Application.notWrittenYet
+
+
+    def doHelp( self ):
+        from Help import HelpBox
+        hb = HelpBox( self.ApplicationParent, ProgName, ProgNameVersion )
+    # end of Application.doHelp
 
 
     def doAbout( self ):
@@ -111,9 +111,9 @@ class USFMEditWindow( USFMResourceFrame ):
 
 
     def createMenuBar( self ):
-        self.menubar = Menu( self.USFMEditWindowParent )
+        self.menubar = Menu( self.USFMEditFrameParent )
         #self['menu'] = self.menubar
-        self.USFMEditWindowParent.config( menu=self.menubar ) # alternative
+        self.USFMEditFrameParent.config( menu=self.menubar ) # alternative
 
         menuFile = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuFile, label='File', underline=0 )
@@ -128,7 +128,7 @@ class USFMEditWindow( USFMResourceFrame ):
         submenuFileExport.add_command( label='HTML', command=self.notWrittenYet, underline=0 )
         menuFile.add_cascade( label='Export', menu=submenuFileExport, underline=0 )
         menuFile.add_separator()
-        menuFile.add_command( label='Close', command=self.quit, underline=0 ) # quit app
+        menuFile.add_command( label='Close', command=self.closeEditor, underline=0 ) # close edit window
 
         menuEdit = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuEdit, label='Edit', underline=0 )
@@ -144,8 +144,20 @@ class USFMEditWindow( USFMResourceFrame ):
 
         menuGoto = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuGoto, label='Goto', underline=0 )
-        menuGoto.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous book', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next book', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous chapter', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next chapter', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous verse', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next verse', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Forward', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Backward', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Previous list item', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Next list item', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_separator()
+        menuGoto.add_command( label='Book', command=self.notWrittenYet, underline=0 )
 
         menuView = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuView, label='View', underline=0 )
@@ -162,6 +174,8 @@ class USFMEditWindow( USFMResourceFrame ):
 
         menuHelp = Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=menuHelp, label='Help', underline=0 )
+        menuHelp.add_command( label='Help...', command=self.doHelp, underline=0 )
+        menuHelp.add_separator()
         menuHelp.add_command( label='About...', command=self.doAbout, underline=0 )
 
         #filename = filedialog.askopenfilename()
@@ -212,17 +226,17 @@ class USFMEditWindow( USFMResourceFrame ):
         #self.QUIT.pack( side="bottom" )
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    # end of USFMEditWindow.createUSFMEditFrameWidgets
+    # end of USFMEditFrame.createUSFMEditFrameWidgets
 
 
     def update( self ): # Leaves in disabled state
-        def displayVerse( firstFlag, BnCV, verseDataList, currentVerse=False ):
-            #print( "USFMResourceFrame.displayVerse", firstFlag, BnCV, [], currentVerse )
+        def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
+            #print( "InternalBibleResourceFrame.displayVerse", firstFlag, BnameCV, [], currentVerse )
             haveC = None
             lastCharWasSpace = haveTextFlag = not firstFlag
             if verseDataList is None:
-                print( "  ", BnCV, "has no data" )
-                self.textBox.insert( 'end', '--' )
+                print( "  ", BnameCV, "has no data" )
+                self.textBox.insert( END, '--' )
             else:
                 for entry in verseDataList:
                     marker, cleanText = entry.getMarker(), entry.getCleanText()
@@ -233,55 +247,70 @@ class USFMEditWindow( USFMResourceFrame ):
                         #else: print( "   Ignore C={}".format( cleanText ) )
                         pass
                     elif marker == 'c#': # Might want to display this (added) c marker
-                        if cleanText != BnCV[0]:
-                            if not lastCharWasSpace: self.textBox.insert( 'end', ' ', 'v-' )
-                            self.textBox.insert( 'end', cleanText, 'c#' )
+                        if cleanText != BnameCV[0]:
+                            if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
+                            self.textBox.insert( END, cleanText, 'c#' )
                             lastCharWasSpace = False
                     elif marker == 's1':
-                        self.textBox.insert( 'end', ('\n' if haveTextFlag else '')+cleanText, marker )
+                        self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                        haveTextFlag = True
+                    elif marker == 'r':
+                        self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
                     elif marker == 'p':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else 'v~' )
+                            self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'q1':
-                        self.textBox.insert ( 'end', '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( 'end', cleanText, '*q1' if currentVerse else 'q1' )
+                            self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'm': pass
                     elif marker == 'v':
                         if haveTextFlag:
-                            self.textBox.insert( 'end', ' ', 'v-' )
-                        self.textBox.insert( 'end', cleanText, marker )
-                        self.textBox.insert( 'end', ' ', 'v+' )
+                            self.textBox.insert( END, ' ', 'v-' )
+                        self.textBox.insert( END, cleanText, marker )
+                        self.textBox.insert( END, ' ', 'v+' )
                         lastCharWasSpace = haveTextFlag = True
                     elif marker in ('v~','p~'):
-                        self.textBox.insert( 'end', cleanText, '*v~' if currentVerse else marker )
+                        self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
                         haveTextFlag = True
                     else:
-                        logging.critical( t("USFMEditWindow.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
+                        logging.critical( t("USFMEditFrame.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
         # end of displayVerse
 
-        if Globals.debugFlag: print( "USFMEditWindow.update()" )
+        if Globals.debugFlag: print( "USFMEditFrame.update()" )
         bibleData = self.getBibleData()
         self.clearText()
         if bibleData:
             verseData, previousVerse, nextVerses = self.getBibleData()
             if previousVerse:
-                BnCV, previousVerseData = previousVerse
-                displayVerse( True, BnCV, previousVerseData )
-            displayVerse( not previousVerse, self.myMaster.BnCV, verseData, currentVerse=True )
-            for BnCV,nextVerseData in nextVerses:
-                displayVerse( False, BnCV, nextVerseData )
+                BnameCV, previousVerseData = previousVerse
+                displayVerse( True, BnameCV, previousVerseData )
+            displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
+            for BnameCV,nextVerseData in nextVerses:
+                displayVerse( False, BnameCV, nextVerseData )
         self.textBox['state'] = 'normal' # Allow editing
-    # end of USFMEditWindow.update
-# end of USFMEditWindow class
+    # end of USFMEditFrame.update
+
+    def closeEditor( self ):
+        """
+        """
+        self.destroy()
+    # end of USFMEditFrame.closeEditor
+# end of USFMEditFrame class
+
+
+
+class ESFMEditFrame( USFMEditFrame ):
+    pass
+
 
 
 def demo():
@@ -296,10 +325,11 @@ def demo():
     #Globals.debugFlag = True
 
     tkRootWindow = Tk()
-    settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
-    settings.load()
+    tkRootWindow.title( ProgNameVersion )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    #settings.load()
 
-    application = Application( parent=tkRootWindow, settings=settings )
+    #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

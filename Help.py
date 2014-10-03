@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# About.py
+# Help.py
 #   Last modified: 2014-09-30 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
@@ -27,8 +27,8 @@
 Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
-ShortProgName = "About"
-ProgName = "About Box"
+ShortProgName = "Help"
+ProgName = "Help Box"
 ProgVersion = "0.12"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
@@ -64,12 +64,12 @@ def t( messageString ):
 
 
 
-class AboutBox( Toplevel ):
+class HelpBox( Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
-        if Globals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
+        if Globals.debugFlag: print( "HelpBox.__init__( {} )".format( parent ) )
         Toplevel.__init__( self, parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
-        self.title( 'About '+progName )
+        self.title( 'Help '+progName )
         self.textBox = Text( self ) #, state=DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=YES )
@@ -81,16 +81,16 @@ class AboutBox( Toplevel ):
         self.focus_set() # take over input focus,
         self.grab_set() # disable other windows while I'm open,
         self.wait_window() # and wait here until win destroyed
-    # end of AboutBox.__init__
-# end of class AboutBox
+    # end of HelpBox.__init__
+# end of class HelpBox
 
 
-class AboutBox2():
+class HelpBox2():
     def __init__( self, parent=None, progName=None, text=None ):
-        if Globals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
+        if Globals.debugFlag: print( "HelpBox2.__init__( {} )".format( parent ) )
         ab = Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
-        ab.title( 'About '+progName )
+        ab.title( 'Help '+progName )
         textBox = Text( ab ) #, state=DISABLED )
         textBox['wrap'] = 'word'
         textBox.pack( expand=YES )
@@ -102,8 +102,8 @@ class AboutBox2():
         ab.focus_set() # take over input focus,
         ab.grab_set() # disable other windows while I'm open,
         ab.wait_window() # and wait here until win destroyed
-    # end of AboutBox.__init__
-# end of class AboutBox
+    # end of HelpBox.__init__
+# end of class HelpBox
 
 
 def demo():
@@ -120,8 +120,8 @@ def demo():
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
-    ab = AboutBox( tkRootWindow, ProgName, ProgNameVersion )
-    ab = AboutBox2( tkRootWindow, ProgName, ProgNameVersion )
+    ab = HelpBox( tkRootWindow, ProgName, ProgNameVersion )
+    ab = HelpBox2( tkRootWindow, ProgName, ProgNameVersion )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
@@ -151,4 +151,4 @@ if __name__ == '__main__':
     demo()
 
     Globals.closedown( ProgName, ProgVersion )
-# end of About.py
+# end of Help.py
