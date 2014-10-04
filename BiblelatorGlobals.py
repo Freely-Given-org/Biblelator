@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-10-03 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = "0.13"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = False
@@ -110,6 +110,19 @@ def parseGeometry( geometry ):
     return [int(digits) for digits in m.groups()]
 # end of parseGeometry
 
+
+def centreWindow( parentWindow, width=300, height=150 ):
+    """
+    """
+    screenWidth = parentWindow.winfo_screenwidth()
+    screenHeight = parentWindow.winfo_screenheight()
+
+    x = (screenWidth - width) // 2
+    y = (screenHeight - height) // 2
+    print( "centreWindow", width, height, screenWidth, screenHeight, x, y, )
+
+    parentWindow.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
+# end of BiblelatorGlobals.centreWindow
 
 
 def demo():

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-09-30 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = "0.12"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -38,8 +38,9 @@ debuggingThisModule = True
 import sys #, os.path, configparser, logging
 #from gettext import gettext as _
 
-from tkinter import Toplevel, Text
+from tkinter import Toplevel #, Text
 from tkinter import YES, END
+from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
 #from tkinter import tix
 
@@ -66,11 +67,11 @@ def t( messageString ):
 
 class AboutBox( Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
-        if Globals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
+        #if Globals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
         Toplevel.__init__( self, parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
         self.title( 'About '+progName )
-        self.textBox = Text( self ) #, state=DISABLED )
+        self.textBox = ScrolledText( self ) #, state=DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=YES )
         self.textBox.insert( END, text )
@@ -87,11 +88,11 @@ class AboutBox( Toplevel ):
 
 class AboutBox2():
     def __init__( self, parent=None, progName=None, text=None ):
-        if Globals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
+        #if Globals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
         ab = Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
         ab.title( 'About '+progName )
-        textBox = Text( ab ) #, state=DISABLED )
+        textBox = ScrolledText( ab ) #, state=DISABLED )
         textBox['wrap'] = 'word'
         textBox.pack( expand=YES )
         textBox.insert( END, text )

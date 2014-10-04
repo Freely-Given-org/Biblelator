@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindow.py
-#   Last modified: 2014-10-03 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindow"
 ProgName = "Biblelator Edit Window"
-ProgVersion = "0.13"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -76,7 +76,7 @@ class TextEditFrame( ResourceFrame ):
 
 class USFMEditFrame( InternalBibleResourceFrame ):
     def __init__( self, parent, master, modulePath, editMode ):
-        if Globals.debugFlag: print( "USFMEditFrame.__init__( {}, {}, {}, {} )".format( parent, master, modulePath, editMode ) )
+        #if Globals.debugFlag: print( "USFMEditFrame.__init__( {}, {}, {}, {} )".format( parent, master, modulePath, editMode ) )
         self.USFMEditFrameParent, self.USFMEditMaster, self.editModulePath = parent, master, modulePath
         InternalBibleResourceFrame.__init__( self, parent, master, modulePath )
         if self.InternalBible is not None:
@@ -90,6 +90,7 @@ class USFMEditFrame( InternalBibleResourceFrame ):
         else: self.editMode = None
         #self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
         self.createMenuBar()
+        self.createContextMenu()
     # end of USFMEditFrame.__init__
 
 
@@ -100,13 +101,13 @@ class USFMEditFrame( InternalBibleResourceFrame ):
 
     def doHelp( self ):
         from Help import HelpBox
-        hb = HelpBox( self.ApplicationParent, ProgName, ProgNameVersion )
+        hb = HelpBox( self.USFMEditFrameParent, ProgName, ProgNameVersion )
     # end of Application.doHelp
 
 
     def doAbout( self ):
         from About import AboutBox
-        ab = AboutBox( self.ApplicationParent, ProgName, ProgNameVersion )
+        ab = AboutBox( self.USFMEditFrameParent, ProgName, ProgNameVersion )
     # end of Application.doAbout
 
 
@@ -117,66 +118,67 @@ class USFMEditFrame( InternalBibleResourceFrame ):
 
         menuFile = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuFile, label='File', underline=0 )
-        menuFile.add_command( label='New...', command=self.notWrittenYet, underline=0 )
-        menuFile.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        menuFile.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        menuFile.add_command( label='Open...', underline=0, command=self.notWrittenYet )
         menuFile.add_separator()
         submenuFileImport = Menu( menuFile )
-        submenuFileImport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        menuFile.add_cascade( label='Import', menu=submenuFileImport, underline=0 )
+        submenuFileImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        menuFile.add_cascade( label='Import', underline=0, menu=submenuFileImport )
         submenuFileExport = Menu( menuFile )
-        submenuFileExport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        submenuFileExport.add_command( label='HTML', command=self.notWrittenYet, underline=0 )
-        menuFile.add_cascade( label='Export', menu=submenuFileExport, underline=0 )
+        submenuFileExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        submenuFileExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
+        menuFile.add_cascade( label='Export', underline=0, menu=submenuFileExport )
         menuFile.add_separator()
-        menuFile.add_command( label='Close', command=self.closeEditor, underline=0 ) # close edit window
+        menuFile.add_command( label='Close', underline=0, command=self.closeEditor ) # close edit window
 
         menuEdit = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuEdit, label='Edit', underline=0 )
-        menuEdit.add_command( label='Undo...', command=self.notWrittenYet, underline=0 )
-        menuEdit.add_command( label='Redo...', command=self.notWrittenYet, underline=0 )
+        menuEdit.add_command( label='Undo...', underline=0, command=self.notWrittenYet )
+        menuEdit.add_command( label='Redo...', underline=0, command=self.notWrittenYet )
         menuEdit.add_separator()
-        menuEdit.add_command( label='Cut...', command=self.notWrittenYet, underline=0 )
-        menuEdit.add_command( label='Copy...', command=self.notWrittenYet, underline=0 )
-        menuEdit.add_command( label='Paste...', command=self.notWrittenYet, underline=0 )
+        menuEdit.add_command( label='Cut...', underline=2, command=self.notWrittenYet )
+        menuEdit.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
+        menuEdit.add_command( label='Paste...', underline=0, command=self.notWrittenYet )
         menuEdit.add_separator()
-        menuEdit.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
-        menuEdit.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
+        menuEdit.add_command( label='Find...', underline=0, command=self.notWrittenYet )
+        menuEdit.add_command( label='Replace...', underline=0, command=self.notWrittenYet )
 
         menuGoto = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuGoto, label='Goto', underline=0 )
-        menuGoto.add_command( label='Previous book', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next book', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Previous chapter', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next chapter', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Previous verse', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next verse', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next book', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Previous chapter', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next chapter', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Previous verse', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next verse', underline=0, command=self.notWrittenYet )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Forward', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Backward', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Forward', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Backward', underline=0, command=self.notWrittenYet )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Previous list item', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next list item', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous list item', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next list item', underline=0, command=self.notWrittenYet )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Book', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Book', underline=0, command=self.notWrittenYet )
 
         menuView = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuView, label='View', underline=0 )
-        menuView.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
-        menuView.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
+        menuView.add_command( label='Whole chapter', underline=6, command=self.notWrittenYet )
+        menuView.add_command( label='Whole book', underline=6, command=self.notWrittenYet )
+        menuView.add_command( label='Single verse', underline=7, command=self.notWrittenYet )
 
         menuTools = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuTools, label='Tools', underline=0 )
-        menuTools.add_command( label='Options...', command=self.notWrittenYet, underline=0 )
+        menuTools.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
         menuWindow = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuWindow, label='Window', underline=0 )
-        menuWindow.add_command( label='Bring in', command=self.notWrittenYet, underline=0 )
+        menuWindow.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
 
         menuHelp = Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=menuHelp, label='Help', underline=0 )
-        menuHelp.add_command( label='Help...', command=self.doHelp, underline=0 )
+        menuHelp.add_command( label='Help...', underline=0, command=self.doHelp )
         menuHelp.add_separator()
-        menuHelp.add_command( label='About...', command=self.doAbout, underline=0 )
+        menuHelp.add_command( label='About...', underline=0, command=self.doAbout )
 
         #filename = filedialog.askopenfilename()
         #filename = filedialog.asksaveasfilename()
@@ -187,15 +189,35 @@ class USFMEditFrame( InternalBibleResourceFrame ):
     # end of ResourceWindow.createMenuBar
 
 
-    def createToolBar( self ):
-        toolbar = Frame( self, cursor='hand2', relief=SUNKEN ) # bd=2
-        toolbar.pack( side=BOTTOM, fill=X )
-        Button( toolbar, text='Halt',  command=self.quit ).pack( side=RIGHT )
-        Button( toolbar, text='Hide Resources', command=self.hideResources ).pack(side=LEFT )
-        Button( toolbar, text='Hide All', command=self.hideAll ).pack( side=LEFT )
-        Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT )
-        Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT )
-    # end of ResourceWindow.createToolBar
+    def createContextMenu( self ):
+        """
+        """
+        self.contextMenu = Menu( self, tearoff=0 )
+        self.contextMenu.add_command( label="Cut", underline=2, command=self.notWrittenYet )
+        self.contextMenu.add_command( label="Copy", underline=0, command=self.notWrittenYet )
+        self.contextMenu.add_command( label="Paste", underline=0, command=self.notWrittenYet )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label="Close", underline=1, command=self.closeEditor )
+
+        self.bind( "<Button-3>", self.showContextMenu ) # right-click
+        #self.pack()
+    # end of ResourceWindow.createContextMenu
+
+
+    def showContextMenu(self, e):
+        self.contextMenu.post( e.x_root, e.y_root )
+    # end of ResourceWindow.showContextMenu
+
+
+    #def createToolBar( self ):
+        #toolbar = Frame( self, cursor='hand2', relief=SUNKEN ) # bd=2
+        #toolbar.pack( side=BOTTOM, fill=X )
+        #Button( toolbar, text='Halt',  command=self.quit ).pack( side=RIGHT )
+        #Button( toolbar, text='Hide Resources', command=self.hideResources ).pack(side=LEFT )
+        #Button( toolbar, text='Hide All', command=self.hideAll ).pack( side=LEFT )
+        #Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT )
+        #Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT )
+    ## end of ResourceWindow.createToolBar
 
 
     def xxcreateUSFMEditFrameWidgets( self ):
@@ -214,13 +236,13 @@ class USFMEditFrame( InternalBibleResourceFrame ):
                         #foreground=[('pressed', 'red'), ('active', 'blue')],
                         #background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
 
-        #self.textBox = Text( self, width=40, height=10 )
+        #self.textBox = ScrolledText( self, width=40, height=10 )
         #self.textBox['wrap'] = 'word'
         #verseText = SwordResources.getBCV( self.parent.bcv )
         #print( "vt", verseText )
         #self.textBox.insert( '1.0', verseText )
         #self.textBox.pack()
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         #self.QUIT.pack( side="bottom" )
@@ -296,7 +318,7 @@ class USFMEditFrame( InternalBibleResourceFrame ):
             displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             for BnameCV,nextVerseData in nextVerses:
                 displayVerse( False, BnameCV, nextVerseData )
-        self.textBox['state'] = 'normal' # Allow editing
+        self.textBox['state'] = NORMAL # Allow editing
     # end of USFMEditFrame.update
 
     def closeEditor( self ):

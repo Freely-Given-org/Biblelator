@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-10-03 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.13"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "1.0"
+SettingsVersion = "0.14"
 
 debuggingThisModule = True
 
@@ -45,9 +45,9 @@ import multiprocessing
 
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
-from tkinter import Tk, TclError, Menu, Text, StringVar
-from tkinter import NORMAL, DISABLED, TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, SUNKEN, X, END
-from tkinter.scrolledtext import ScrolledText
+from tkinter import Tk, TclError, Menu, StringVar, \
+        NORMAL, DISABLED, TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, RAISED, SUNKEN, X, END
+#from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import showerror
 from tkinter.filedialog import askopenfilename, askdirectory
 from tkinter.ttk import Style, Frame, Button, Combobox, Label
@@ -68,7 +68,9 @@ import USFMStylesheets
 import SwordResources
 
 # Biblelator imports
-from BiblelatorGlobals import DATA_FOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, GROUP_CODES, editModeNormal, parseGeometry, assembleGeometryFromList
+from BiblelatorGlobals import DATA_FOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, \
+        MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, GROUP_CODES, \
+        editModeNormal, parseGeometry, assembleGeometryFromList, centreWindow
 from BiblelatorHelpers import SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
 from ApplicationSettings import ApplicationSettings
 from ResourceWindows import ResourceWindows, ResourceWindow, ResourceFrames
@@ -97,12 +99,12 @@ class Application( Frame ):
     def __init__( self, parent, settings ):
         if Globals.debugFlag: print( t("Application.__init__( {} )").format( parent ) )
         self.ApplicationParent, self.settings = parent, settings
-        #print( "p", parent )
-        #print( "self", repr( self ) )
-        #self.ApplicationParent.title( ProgNameVersion )
 
         self.themeName = 'default'
         self.style = Style()
+
+        if Globals.debugFlag: print( "Button default font", Style().lookup("TButton", "font") )
+        if Globals.debugFlag: print( "Label default font", Style().lookup("TLabel", "font") )
 
         self.genericBOS = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" )
         self.stylesheet = USFMStylesheets.USFMStylesheet().loadDefault()
@@ -114,7 +116,9 @@ class Application( Frame ):
 
         self.createStatusBar()
         if Globals.debugFlag: # Create a scrolling debug box
-            self.debugText = ScrolledText( self.ApplicationParent )
+            from tkinter.scrolledtext import ScrolledText
+            #Style().configure('DebugText.TScrolledText', padding=2, background='orange')
+            self.debugText = ScrolledText( self.ApplicationParent, bg='orange' )#style='DebugText.TScrolledText' )
             self.debugText.pack( side=BOTTOM, fill=BOTH )
             self.setDebugText( "Starting up..." )
 
@@ -125,12 +129,14 @@ class Application( Frame ):
 
         # Read and apply the saved settings
         self.parseAndApplySettings()
+        if ProgName not in self.settings.data or 'windowGeometry' not in self.settings.data[ProgName]:
+            centreWindow( self.ApplicationParent, 600, 360 )
 
         #self.windowsSettingsDict = {}
         self.createMenuBar()
-
-        if Globals.debugFlag: self.createToolBar() # only for debugging so far
-        self.createApplicationWidgets()
+        self.createNavigationBar()
+        self.createToolBar()
+        if Globals.debugFlag: self.createDebugToolBar()
 
         self.BCVHistory = []
         self.BCVHistoryIndex = None
@@ -209,108 +215,108 @@ class Application( Frame ):
 
         menuFile = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuFile, label='File', underline=0 )
-        #menuFile.add_command( label='New...', command=self.notWrittenYet, underline=0 )
-        menuFile.add_command( label='Save all...', command=self.notWrittenYet, underline=0 )
+        #menuFile.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        menuFile.add_command( label='Save all...', underline=0, command=self.notWrittenYet )
         #menuFile.add_separator()
         #submenuFileImport = Menu( menuFile )
-        #submenuFileImport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        #menuFile.add_cascade( label='Import', menu=submenuFileImport, underline=0 )
+        #submenuFileImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #menuFile.add_cascade( label='Import', underline=0, menu=submenuFileImport )
         #submenuFileExport = Menu( menuFile )
-        #submenuFileExport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        #submenuFileExport.add_command( label='HTML', command=self.notWrittenYet, underline=0 )
-        #menuFile.add_cascade( label='Export', menu=submenuFileExport, underline=0 )
+        #submenuFileExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #submenuFileExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
+        #menuFile.add_cascade( label='Export', underline=0, menu=submenuFileExport )
         menuFile.add_separator()
-        menuFile.add_command( label='Quit app', command=self.quit, underline=0 ) # quit app
+        menuFile.add_command( label='Quit app', underline=0, command=self.quit ) # quit app
 
         #menuEdit = Menu( self.menubar )
         #self.menubar.add_cascade( menu=menuEdit, label='Edit', underline=0 )
-        #menuEdit.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
-        #menuEdit.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
+        #menuEdit.add_command( label='Find...', underline=0, command=self.notWrittenYet )
+        #menuEdit.add_command( label='Replace...', underline=0, command=self.notWrittenYet )
 
         menuGoto = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuGoto, label='Goto', underline=0 )
-        menuGoto.add_command( label='Previous book', command=self.gotoPreviousBook, underline=0 )
-        menuGoto.add_command( label='Next book', command=self.gotoNextBook, underline=0 )
-        menuGoto.add_command( label='Previous chapter', command=self.gotoPreviousChapter, underline=0 )
-        menuGoto.add_command( label='Next chapter', command=self.gotoNextChapter, underline=0 )
-        menuGoto.add_command( label='Previous verse', command=self.gotoPreviousVerse, underline=0 )
-        menuGoto.add_command( label='Next verse', command=self.gotoNextVerse, underline=0 )
+        menuGoto.add_command( label='Previous book', underline=0, command=self.gotoPreviousBook )
+        menuGoto.add_command( label='Next book', underline=0, command=self.gotoNextBook )
+        menuGoto.add_command( label='Previous chapter', underline=0, command=self.gotoPreviousChapter )
+        menuGoto.add_command( label='Next chapter', underline=0, command=self.gotoNextChapter )
+        menuGoto.add_command( label='Previous verse', underline=0, command=self.gotoPreviousVerse )
+        menuGoto.add_command( label='Next verse', underline=0, command=self.gotoNextVerse )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Forward', command=self.goForward, underline=0 )
-        menuGoto.add_command( label='Backward', command=self.goBackward, underline=0 )
+        menuGoto.add_command( label='Forward', underline=0, command=self.goForward )
+        menuGoto.add_command( label='Backward', underline=0, command=self.goBackward )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Previous list item', command=self.gotoPreviousListItem, underline=0 )
-        menuGoto.add_command( label='Next list item', command=self.gotoNextListItem, underline=0 )
+        menuGoto.add_command( label='Previous list item', underline=0, command=self.gotoPreviousListItem )
+        menuGoto.add_command( label='Next list item', underline=0, command=self.gotoNextListItem )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Book', command=self.gotoBook, underline=0 )
+        menuGoto.add_command( label='Book', underline=0, command=self.gotoBook )
 
         menuProject = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuProject, label='Project', underline=0 )
-        menuProject.add_command( label='New...', command=self.notWrittenYet, underline=0 )
-        menuProject.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        menuProject.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        menuProject.add_command( label='Open...', underline=0, command=self.notWrittenYet )
         menuProject.add_separator()
-        menuProject.add_command( label='Backup...', command=self.notWrittenYet, underline=0 )
-        menuProject.add_command( label='Restore...', command=self.notWrittenYet, underline=0 )
+        menuProject.add_command( label='Backup...', underline=0, command=self.notWrittenYet )
+        menuProject.add_command( label='Restore...', underline=0, command=self.notWrittenYet )
 
         menuResources = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuResources, label='Resources', underline=0 )
-        #menuResources.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        #menuResources.add_command( label='Open...', underline=0, command=self.notWrittenYet )
         submenuBibleResourceType = Menu( menuResources, tearoff=False )
-        menuResources.add_cascade( label='Open Bible/Commentary', menu=submenuBibleResourceType, underline=5 )
-        #submenuBibleResourceType.add_command( label='USFM (local)...', command=self.openUSFMResource, underline=0 )
-        #submenuBibleResourceType.add_command( label='ESFM (local)...', command=self.openESFMResource, underline=0 )
-        submenuBibleResourceType.add_command( label='Online (DBP)...', command=self.openDBPBibleResource, underline=0 )
-        submenuBibleResourceType.add_command( label='Sword module...', command=self.openSwordResource, underline=0 )
-        submenuBibleResourceType.add_command( label='Other (local)...', command=self.openInternalBibleResource, underline=1 )
+        menuResources.add_cascade( label='Open Bible/Commentary', underline=5, menu=submenuBibleResourceType )
+        #submenuBibleResourceType.add_command( label='USFM (local)...', underline=0, command=self.openUSFMResource )
+        #submenuBibleResourceType.add_command( label='ESFM (local)...', underline=0, command=self.openESFMResource )
+        submenuBibleResourceType.add_command( label='Online (DBP)...', underline=0, command=self.openDBPBibleResource )
+        submenuBibleResourceType.add_command( label='Sword module...', underline=0, command=self.openSwordResource )
+        submenuBibleResourceType.add_command( label='Other (local)...', underline=1, command=self.openInternalBibleResource )
         submenuLexiconResourceType = Menu( menuResources )
-        menuResources.add_cascade( label='Open lexicon', menu=submenuLexiconResourceType, underline=5 )
-        submenuLexiconResourceType.add_command( label='Hebrew...', command=self.notWrittenYet, underline=0 )
-        submenuLexiconResourceType.add_command( label='Greek...', command=self.notWrittenYet, underline=0 )
-        submenuLexiconResourceType.add_command( label='Bible...', command=self.notWrittenYet, underline=0 )
+        menuResources.add_cascade( label='Open lexicon', menu=submenuLexiconResourceType )
+        #submenuLexiconResourceType.add_command( label='Hebrew...', underline=5, command=self.notWrittenYet )
+        #submenuLexiconResourceType.add_command( label='Greek...', underline=0, command=self.notWrittenYet )
+        submenuLexiconResourceType.add_command( label='Bible...', underline=0, command=self.notWrittenYet )
         #submenuCommentaryResourceType = Menu( menuResources )
-        #menuResources.add_cascade( label='Open commentary', menu=submenuCommentaryResourceType, underline=5 )
-        menuResources.add_command( label='Open resource collection...', command=self.notWrittenYet, underline=5 )
+        #menuResources.add_cascade( label='Open commentary', underline=5, menu=submenuCommentaryResourceType )
+        menuResources.add_command( label='Open resource collection...', underline=5, command=self.notWrittenYet )
         menuResources.add_separator()
-        menuResources.add_command( label='Hide all resources', command=self.hideResources, underline=0 )
+        menuResources.add_command( label='Hide all resources', underline=0, command=self.hideResources )
 
         menuTools = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuTools, label='Tools', underline=0 )
-        menuTools.add_command( label='Checks...', command=self.notWrittenYet, underline=0 )
+        menuTools.add_command( label='Checks...', underline=0, command=self.notWrittenYet )
         menuTools.add_separator()
-        menuTools.add_command( label='Options...', command=self.notWrittenYet, underline=0 )
+        menuTools.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
         menuWindow = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuWindow, label='Window', underline=0 )
-        menuWindow.add_command( label='Hide resources', command=self.hideResources, underline=0 )
-        menuWindow.add_command( label='Hide all', command=self.hideAll, underline=1 )
-        menuWindow.add_command( label='Show all', command=self.showAll, underline=0 )
-        menuWindow.add_command( label='Bring all here', command=self.bringAll, underline=0 )
+        menuWindow.add_command( label='Hide resources', underline=0, command=self.hideResources )
+        menuWindow.add_command( label='Hide all', underline=1, command=self.hideAll )
+        menuWindow.add_command( label='Show all', underline=0, command=self.showAll )
+        menuWindow.add_command( label='Bring all here', underline=0, command=self.bringAll )
         menuWindow.add_separator()
-        menuWindow.add_command( label='Save window setup', command=self.saveNewWindowSetup, underline=0 )
+        menuWindow.add_command( label='Save window setup', underline=0, command=self.saveNewWindowSetup )
         if len(self.windowsSettingsDict)>1 or (self.windowsSettingsDict and 'Current' not in self.windowsSettingsDict):
-            menuWindow.add_command( label='Delete a window setting', command=self.deleteExistingWindowSetup, underline=0 )
+            menuWindow.add_command( label='Delete a window setting', underline=0, command=self.deleteExistingWindowSetup )
             menuWindow.add_separator()
             for savedName in self.windowsSettingsDict:
                 if savedName != 'Current':
-                    menuWindow.add_command( label=savedName, command=self.notWrittenYet, underline=0 )
+                    menuWindow.add_command( label=savedName, underline=0, command=self.notWrittenYet )
         menuWindow.add_separator()
         submenuWindowStyle = Menu( menuWindow )
-        menuWindow.add_cascade( label='Theme', menu=submenuWindowStyle, underline=0 )
+        menuWindow.add_cascade( label='Theme', underline=0, menu=submenuWindowStyle )
         for themeName in self.style.theme_names():
-            submenuWindowStyle.add_command( label=themeName.title(), command=lambda tN=themeName: self.changeTheme(tN), underline=0 )
+            submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.changeTheme(tN) )
 
         if Globals.debugFlag:
             menuDebug = Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=menuDebug, label='Debug', underline=0 )
-            menuDebug.add_command( label='View log...', command=self.notWrittenYet, underline=0 )
+            menuDebug.add_command( label='View log...', underline=0, command=self.notWrittenYet )
             menuDebug.add_separator()
-            menuDebug.add_command( label='Options...', command=self.notWrittenYet, underline=0 )
+            menuDebug.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
         menuHelp = Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=menuHelp, label='Help', underline=0 )
-        menuHelp.add_command( label='Help...', command=self.doHelp, underline=0 )
+        menuHelp.add_command( label='Help...', underline=0, command=self.doHelp )
         menuHelp.add_separator()
-        menuHelp.add_command( label='About...', command=self.doAbout, underline=0 )
+        menuHelp.add_command( label='About...', underline=0, command=self.doAbout )
 
         #filename = filedialog.askopenfilename()
         #filename = filedialog.asksaveasfilename()
@@ -321,52 +327,29 @@ class Application( Frame ):
     # end of Application.createMenuBar
 
 
-    def createStatusBar( self ):
-        #statusBar = Frame( self, relief=SUNKEN ) # bd=2
-        #statusBar.pack( side=BOTTOM, fill=X )
-        #self.statusBarTextWidget = Text( self.ApplicationParent )
-        #self.statusBarTextWidget.pack( side=BOTTOM, fill=X )
-        #self.statusBarTextWidget['state'] = 'disabled' # Don't allow editing
-        self.statusTextVariable=StringVar()
-        self.statusTextLabel = Label( self.ApplicationParent, relief=SUNKEN, textvariable=self.statusTextVariable ) #, font=('arial',16,'normal') )
-        self.statusTextLabel.pack( side=BOTTOM, fill=X )
-        self.statusTextVariable.set( '' )
-        self.setStatus( "Starting up..." )
-    # end of Application.createStatusBar
-
-
-    def createToolBar( self ):
-        toolbar = Frame( self, cursor='hand2', relief=SUNKEN ) # bd=2
-        Button( toolbar, text='Halt',  command=self.quit ).pack( side=RIGHT )
-        Button( toolbar, text='Hide Resources', command=self.hideResources ).pack(side=LEFT )
-        Button( toolbar, text='Hide All', command=self.hideAll ).pack( side=LEFT )
-        Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT )
-        Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT )
-        toolbar.pack( side=TOP, fill=X )
-    # end of Application.createToolBar
-
-
-    def createApplicationWidgets( self ):
+    def createNavigationBar( self ):
+        Style().configure('NavigationBar.TFrame', background='yellow')
         #self.label1 = Label( self, text="My label" )
         #self.label1.pack()
 
+        navigationBar = Frame( self, cursor='hand2', relief=RAISED, style='NavigationBar.TFrame' )
 
-        self.previousBCVButton = Button( self, width=4, text='<-', command=self.goBack, state=DISABLED )
+        self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.goBack, state=DISABLED )
         #self.previousBCVButton['text'] = '<-'
         #self.previousBCVButton["command"] = self.goBack
         #self.previousBCVButton.grid( row=0, column=0 )
         self.previousBCVButton.pack( side=LEFT )
 
-        self.nextBCVButton = Button( self, width=4, text='->', command=self.goForward, state=DISABLED )
+        self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.goForward, state=DISABLED )
         #self.nextBCVButton['text'] = '->'
         #self.nextBCVButton["command"] = self.goForward
         #self.nextBCVButton.grid( row=0, column=1 )
         self.nextBCVButton.pack( side=LEFT )
 
-        self.GroupAButton = Button( self, width=2, text='A', command=self.selectGroupA, state=DISABLED )
-        self.GroupBButton = Button( self, width=2, text='B', command=self.selectGroupB, state=DISABLED )
-        self.GroupCButton = Button( self, width=2, text='C', command=self.selectGroupC, state=DISABLED )
-        self.GroupDButton = Button( self, width=2, text='D', command=self.selectGroupD, state=DISABLED )
+        self.GroupAButton = Button( navigationBar, width=2, text='A', command=self.selectGroupA, state=DISABLED )
+        self.GroupBButton = Button( navigationBar, width=2, text='B', command=self.selectGroupB, state=DISABLED )
+        self.GroupCButton = Button( navigationBar, width=2, text='C', command=self.selectGroupC, state=DISABLED )
+        self.GroupDButton = Button( navigationBar, width=2, text='D', command=self.selectGroupD, state=DISABLED )
         #self.GroupAButton.grid( row=0, column=2 )
         #self.GroupBButton.grid( row=0, column=3 )
         #self.GroupCButton.grid( row=1, column=2 )
@@ -381,7 +364,7 @@ class Application( Frame ):
         self.bookNameVar = StringVar()
         self.bookNameVar.set( bookName )
         self.BBB = self.genericBOS.getBBB( bookName )
-        self.bookNameBox = Combobox( self, textvariable=self.bookNameVar )
+        self.bookNameBox = Combobox( navigationBar, textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         self.bookNameBox['width'] = len( 'Deuteronomy' )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.goto )
@@ -392,7 +375,7 @@ class Application( Frame ):
         self.chapterNumberVar.set( '1' )
         self.maxChapters = self.genericBOS.getNumChapters( self.BBB )
         #print( "maxChapters", self.maxChapters )
-        self.chapterSpinbox = Spinbox( self, from_=0.0, to=self.maxChapters, textvariable=self.chapterNumberVar )
+        self.chapterSpinbox = Spinbox( navigationBar, from_=0.0, to=self.maxChapters, textvariable=self.chapterNumberVar )
         self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.goto
         #self.chapterSpinbox.grid( row=0, column=5 )
@@ -411,7 +394,7 @@ class Application( Frame ):
         #print( "maxVerses", self.maxVerses )
         #self.maxVersesVar.set( str(self.maxVerses) )
         # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = Spinbox( self, from_=0.0, to=1.0+self.maxVerses, textvariable=self.verseNumberVar )
+        self.verseSpinbox = Spinbox( navigationBar, from_=0.0, to=1.0+self.maxVerses, textvariable=self.verseNumberVar )
         self.verseSpinbox['width'] = 3
         self.verseSpinbox['command'] = self.goto
         #self.verseSpinbox.grid( row=0, column=6 )
@@ -423,38 +406,79 @@ class Application( Frame ):
         #self.verseNumberBox['width'] = 3
         #self.verseNumberBox.pack()
 
-        self.updateButton = Button( self )
+        self.updateButton = Button( navigationBar )
         self.updateButton['text'] = 'Update'
         self.updateButton["command"] = self.goto
         #self.updateButton.grid( row=0, column=7 )
         self.updateButton.pack( side=LEFT )
 
-        self.bStyle = Style( self )
-        #self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
-        self.bStyle.map("Red.TButton",
-                        foreground=[('pressed', 'red'), ('active', 'blue')],
-                        background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
-
-        self.QUIT = Button( self, text="QUIT", style="Red.TButton", command=self.closeMe )
-        #self.QUIT.grid( row=1, column=7 )
+        Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
+                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+        self.QUIT = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.closeMe )
         self.QUIT.pack( side=RIGHT )
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    # end of Application.createApplicationWidgets
+        navigationBar.pack( side=TOP, fill=X )
+    # end of Application.createNavigationBar
+
+
+    def createToolBar( self ):
+        """
+        Create a tool bar containing several buttons at the top of the main window.
+        """
+        Style().configure('ToolBar.TFrame', background='green')
+
+        toolbar = Frame( self, cursor='hand2', relief=RAISED, style='ToolBar.TFrame' )
+        Button( toolbar, text='Hide Resources', command=self.hideResources ).pack( side=LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Hide All', command=self.hideAll ).pack( side=LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT, padx=2, pady=2 )
+        toolbar.pack( side=TOP, fill=X )
+    # end of Application.createToolBar
+
+
+    def createDebugToolBar( self ):
+        """
+        Create a debug tool bar containing several additional buttons at the top of the main window.
+        """
+        Style().configure( 'DebugToolBar.TFrame', background='red' )
+        Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
+                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+
+        toolbar = Frame( self, cursor='hand2', relief=RAISED, style='DebugToolBar.TFrame' )
+        Button( toolbar, text='Halt', style='Halt.TButton', command=self.quit ).pack( side=RIGHT, padx=2, pady=2 )
+        toolbar.pack( side=TOP, fill=X )
+    # end of Application.createDebugToolBar
+
+
+    def createStatusBar( self ):
+        """
+        Create a status bar containing only one text label at the bottom of the main window.
+        """
+        Style().configure( 'StatusBar.TLabel', background='blue' )
+
+        self.statusTextVariable=StringVar()
+        statusTextLabel = Label( self.ApplicationParent, relief=SUNKEN,
+                                    textvariable=self.statusTextVariable, style='StatusBar.TLabel' )
+                                    #, font=('arial',16,NORMAL) )
+        statusTextLabel.pack( side=BOTTOM, fill=X )
+        self.statusTextVariable.set( '' ) # first initial value
+        self.setStatus( "Starting up..." )
+    # end of Application.createStatusBar
 
 
     def setStatus( self, newStatus=None ):
         """
         Set (or clear) the status bar text.
         """
-        print( t("setStatus( {} )").format( repr(newStatus) ) )
+        if Globals.debugFlag: print( t("setStatus( {} )").format( repr(newStatus) ) )
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatus != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget['state'] = 'normal'
+            #self.statusBarTextWidget['state'] = NORMAL
             #self.statusBarTextWidget.delete( '1.0', END )
             #if newStatus:
                 #self.statusBarTextWidget.insert( '1.0', newStatus )
-            #self.statusBarTextWidget['state'] = 'disabled' # Don't allow editing
+            #self.statusBarTextWidget['state'] = DISABLED # Don't allow editing
             #self.statusText = newStatus
             self.statusTextVariable.set( newStatus )
     # end of Application.setStatus
@@ -465,7 +489,7 @@ class Application( Frame ):
         """
         print( t("setDebugText( {} )").format( repr(newMessage) ) )
         assert( Globals.debugFlag )
-        self.debugText['state'] = 'normal' # Allow editing
+        self.debugText['state'] = NORMAL # Allow editing
         self.debugText.delete( '1.0', END ) # Clear everything
         self.debugText.insert( END, 'DEBUGGING INFORMATION:' )
         if newMessage: self.debugText.insert( END, '\nMsg: ' + newMessage )
@@ -475,7 +499,7 @@ class Application( Frame ):
         self.debugText.insert( END, '\n{} resource frames:'.format( len(self.projFrames) ) )
         for j, projFrame in enumerate( self.projFrames ):
             self.debugText.insert( END, "\n  {} {}".format( j, projFrame ) )
-        self.debugText['state'] = 'disabled' # Don't allow editing
+        self.debugText['state'] = DISABLED # Don't allow editing
     # end of Application.setDebugText
 
 
@@ -483,8 +507,8 @@ class Application( Frame ):
         """
         Set the window theme to the given scheme.
         """
-        print( t("changeTheme( {} )").format( repr(newThemeName) ) )
         if Globals.debugFlag:
+            print( t("changeTheme( {} )").format( repr(newThemeName) ) )
             assert( newThemeName )
             self.setDebugText( 'Set theme to {}'.format( repr(newThemeName) ) )
         self.themeName = newThemeName
@@ -538,7 +562,7 @@ class Application( Frame ):
         windowsSettingsNamesList = []
         for name in self.settings.data:
             if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
-        print( t("Available windows settings are: {}").format( windowsSettingsNamesList ) )
+        if Globals.debugFlag: print( t("Available windows settings are: {}").format( windowsSettingsNamesList ) )
         if windowsSettingsNamesList: assert( 'Current' in windowsSettingsNamesList )
         self.windowsSettingsDict = {}
         for windowsSettingsName in windowsSettingsNamesList:
@@ -711,12 +735,12 @@ class Application( Frame ):
         rw.moduleAbbreviation = moduleAbbreviation
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        srw = SwordBibleResourceFrame( rw, self, rw.moduleAbbreviation )
-        srw.pack( expand=YES, fill=BOTH )
-        self.projFrames.append( srw )
-        if not srw.SwordModule:
-            logging.critical( t("Application.openSwordBibleResourceWindow: Unable to open module {}").format( repr(moduleAbbreviation) ) )
-            #rw.destroy()
+        swBRF = SwordBibleResourceFrame( rw, self, rw.moduleAbbreviation )
+        swBRF.pack( expand=YES, fill=BOTH )
+        self.projFrames.append( swBRF )
+        #if swBRF.SwordModule is None: # doesn't work coz loaded later
+            #logging.critical( t("Application.openSwordBibleResourceWindow: Unable to open module {}").format( repr(moduleAbbreviation) ) )
+            ##rw.destroy()
     # end of Application.openSwordBibleResourceWindow
 
 
@@ -753,10 +777,10 @@ class Application( Frame ):
         rw.moduleAbbreviation = moduleAbbreviation
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        frw = DBPBibleResourceFrame( rw, self, rw.moduleAbbreviation )
-        frw.pack( expand=YES, fill=BOTH )
-        self.projFrames.append( frw )
-        if not frw.DBPModule:
+        dBRF = DBPBibleResourceFrame( rw, self, rw.moduleAbbreviation )
+        dBRF.pack( expand=YES, fill=BOTH )
+        self.projFrames.append( dBRF )
+        if dBRF.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             #rw.destroy()
     # end of Application.openDBPBibleResourceWindow
@@ -785,10 +809,10 @@ class Application( Frame ):
         #rw.USFMFolder = USFMFolder
         #if windowGeometry: rw.geometry( windowGeometry )
         #self.appWins.append( rw )
-        #urw = USFMResourceFrame( rw, self, rw.USFMFolder )
-        #urw.pack( expand=YES, fill=BOTH )
-        #self.projFrames.append( urw )
-        #if urw.USFMBible is None:
+        #uRF = USFMResourceFrame( rw, self, rw.USFMFolder )
+        #uRF.pack( expand=YES, fill=BOTH )
+        #self.projFrames.append( uRF )
+        #if uRF.USFMBible is None:
             #logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(USFMFolder) ) )
             #rw.destroy()
     ## end of Application.openInternalBibleResourceWindow
@@ -817,10 +841,10 @@ class Application( Frame ):
         rw.modulePath = modulePath
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        urw = InternalBibleResourceFrame( rw, self, rw.modulePath )
-        urw.pack( expand=YES, fill=BOTH )
-        self.projFrames.append( urw )
-        if urw.InternalBible is None:
+        iBRF = InternalBibleResourceFrame( rw, self, rw.modulePath )
+        iBRF.pack( expand=YES, fill=BOTH )
+        self.projFrames.append( iBRF )
+        if iBRF.InternalBible is None:
             logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(modulePath) ) )
             rw.destroy()
     # end of Application.openInternalBibleResourceWindow
@@ -874,10 +898,10 @@ class Application( Frame ):
         if rw.lexiconFolder is None: rw.lexiconFolder = "../"
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        blrw = BibleLexiconResourceFrame( rw, self, rw.lexiconFolder )
-        blrw.pack( expand=YES, fill=BOTH )
-        self.projFrames.append( blrw )
-        if blrw.BibleLexicon is None:
+        bLRF = BibleLexiconResourceFrame( rw, self, rw.lexiconFolder )
+        bLRF.pack( expand=YES, fill=BOTH )
+        self.projFrames.append( bLRF )
+        if bLRF.BibleLexicon is None:
             logging.critical( t("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {}").format( repr(lexiconFolder) ) )
             #rw.destroy()
     # end of Application.openBibleLexiconResourceWindow
@@ -892,10 +916,10 @@ class Application( Frame ):
         rw.USFMFolder, rw.editMode = USFMFolder, editMode
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        uew = USFMEditFrame( rw, self, rw.USFMFolder, rw.editMode )
-        uew.pack( expand=YES, fill=BOTH )
-        self.projFrames.append( uew )
-        if uew.InternalBible is None:
+        uEF = USFMEditFrame( rw, self, rw.USFMFolder, rw.editMode )
+        uEF.pack( expand=YES, fill=BOTH )
+        self.projFrames.append( uEF )
+        if uEF.InternalBible is None:
             logging.critical( t("Application.openUSFMEditWindow: Unable to open USFM Bible in {}").format( repr(USFMFolder) ) )
             #rw.destroy()
     # end of Application.openUSFMEditWindow

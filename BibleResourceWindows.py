@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-03 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.13"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -41,8 +41,9 @@ from gettext import gettext as _
 
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
-from tkinter import Toplevel, Menu, Text, StringVar, messagebox
+from tkinter import Toplevel, Menu, StringVar, messagebox #, Text
 from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES, END
+#from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Style, Frame#, Button, Combobox
 #from tkinter.tix import Spinbox
 
@@ -84,7 +85,7 @@ def t( messageString ):
 
 class SwordBibleResourceFrame( ResourceFrame ):
     def __init__( self, parent, master, moduleAbbreviation ):
-        if Globals.debugFlag: print( "SwordBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
+        #if Globals.debugFlag: print( "SwordBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
         self.resourceWindowParent, self.myMaster, self.moduleAbbreviation = parent, master, moduleAbbreviation
         #print( "sP", self.SwordBibleResourceFrameParent )
         #print( "sm", self.myMaster )
@@ -133,7 +134,7 @@ class SwordBibleResourceFrame( ResourceFrame ):
         #print( "vt", verseText )
         #self.textBox.insert( '1.0', verseText )
         #self.textBox.pack()
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         #self.QUIT.pack( side="bottom" )
@@ -152,7 +153,7 @@ class SwordBibleResourceFrame( ResourceFrame ):
             return
         assert( self.SwordModule is not None )
         if Globals.debugFlag and debuggingThisModule: print( "sM", self.SwordModule )
-        print( "mN", self.SwordModule.getDescription() )
+        if Globals.debugFlag: print( "mN", self.SwordModule.getDescription() )
 
         previousVerseData = None
         if self.myMaster.previousBnameCV and self.myMaster.previousBnameCV[1]!='0' and self.myMaster.previousBnameCV[2]!='0': # Sword doesn't seem to handle introductions???
@@ -237,7 +238,7 @@ class SwordBibleResourceFrame( ResourceFrame ):
             displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             for BnameCV,nextVerseData in nextVerses:
                 displayVerse( False, BnameCV, nextVerseData )
-        self.textBox['state'] = 'disabled' # Don't allow editing
+        self.textBox['state'] = DISABLED # Don't allow editing
     # end of SwordBibleResourceFrame.update
 # end of SwordBibleResourceFrame class
 
@@ -246,7 +247,7 @@ class SwordBibleResourceFrame( ResourceFrame ):
 class DBPBibleResourceFrame( ResourceFrame ):
     def __init__( self, parent, master, moduleAbbreviation ):
         if Globals.debugFlag:
-            print( "DBPBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
+            #print( "DBPBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, moduleAbbreviation ) )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         self.resourceWindowParent, self.myMaster, self.moduleAbbreviation = parent, master, moduleAbbreviation
         #print( "sP", self.DBPFrameParent )
@@ -275,8 +276,8 @@ class DBPBibleResourceFrame( ResourceFrame ):
             self.DBPModule = None
         self.resourceWindowParent.title( "{}.{}{}".format( self.moduleAbbreviation[:3], self.moduleAbbreviation[3:], ' (online)' if self.DBPModule else ' (offline)' ) )
         #if self.DBPModule:
-            #print( "sM", self.DBPModule )
-            #print( "mN", self.DBPModule.getDescription() )
+            #if Globals.debugFlag: print( "sM", self.DBPModule )
+            #if Globals.debugFlag: print( "mN", self.DBPModule.getDescription() )
     # end of DBPBibleResourceFrame.__init__
 
     def createDBPFrameWidgets( self ):
@@ -301,7 +302,7 @@ class DBPBibleResourceFrame( ResourceFrame ):
         #print( "vt", verseText )
         #self.textBox.insert( '1.0', verseText )
         #self.textBox.pack()
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         #self.QUIT.pack( side="bottom" )
@@ -438,7 +439,7 @@ class DBPBibleResourceFrame( ResourceFrame ):
             displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             for BnameCV,nextVerseData in nextVerses:
                 displayVerse( False, BnameCV, nextVerseData )
-        self.textBox['state'] = 'disabled' # Don't allow editing
+        self.textBox['state'] = DISABLED # Don't allow editing
     # end of DBPBibleResourceFrame.update
 # end of DBPBibleResourceFrame class
 
@@ -484,7 +485,7 @@ class DBPBibleResourceFrame( ResourceFrame ):
         ##print( "vt", verseText )
         ##self.textBox.insert( '1.0', verseText )
         ##self.textBox.pack()
-        ##self.textBox['state'] = 'disabled' # Don't allow editing
+        ##self.textBox['state'] = DISABLED # Don't allow editing
 
         ##self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         ##self.QUIT.pack( side="bottom" )
@@ -592,7 +593,7 @@ class DBPBibleResourceFrame( ResourceFrame ):
             #displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             #for BnameCV,nextVerseData in nextVerses:
                 #displayVerse( False, BnameCV, nextVerseData )
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
     ## end of USFMResourceFrame.update
 ## end of USFMResourceFrame class
 
@@ -604,7 +605,7 @@ class InternalBibleResourceFrame( ResourceFrame ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.InternalBible to point to the loaded Bible.
         """
-        if Globals.debugFlag: print( "InternalBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, modulePath ) )
+        #if Globals.debugFlag: print( "InternalBibleResourceFrame.__init__( {}, {}, {} )".format( parent, master, modulePath ) )
         self.resourceWindowParent, self.myMaster, self.modulePath = parent, master, modulePath
         ResourceFrame.__init__( self, self.resourceWindowParent )
         self.pack( expand=YES, fill=BOTH )
@@ -648,7 +649,7 @@ class InternalBibleResourceFrame( ResourceFrame ):
         #print( "vt", verseText )
         #self.textBox.insert( '1.0', verseText )
         #self.textBox.pack()
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         #self.QUIT.pack( side="bottom" )
@@ -756,7 +757,7 @@ class InternalBibleResourceFrame( ResourceFrame ):
             displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             for BnameCV,nextVerseData in nextVerses:
                 displayVerse( False, BnameCV, nextVerseData )
-        self.textBox['state'] = 'disabled' # Don't allow editing
+        self.textBox['state'] = DISABLED # Don't allow editing
     # end of InternalBibleResourceFrame.update
 # end of InternalBibleResourceFrame class
 

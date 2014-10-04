@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-10-03 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.13"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -42,8 +42,8 @@ from gettext import gettext as _
 #       widgets that we use (if there's one in each set)
 #from tkinter import Tk, TclError, Menu, Text, StringVar, messagebox
 #from tkinter import NORMAL, DISABLED, TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, SUNKEN, X
-from tkinter import Listbox
-from tkinter import END
+from tkinter import Listbox, \
+        END, EXTENDED
 from tkinter.ttk import Label, Combobox
 
 # BibleOrgSys imports
@@ -173,7 +173,16 @@ class SelectResourceBox( ModalDialog ):
     def body( self, master ):
         Label( master, text=_("Select a resource to open") ).grid( row=0 )
 
-        self.lb = Listbox( master )
+        self.lb = Listbox( master, selectmode=EXTENDED )
+        """ Note: selectmode can be
+            SINGLE (just a single choice),
+            BROWSE (same, but the selection can be moved using the mouse),
+            MULTIPLE (multiple item can be choosen, by clicking at them one at a time), or
+            EXTENDED (multiple ranges of items can be chosen using the Shift and Control keyboard modifiers).
+            The default is BROWSE.
+            Use MULTIPLE to get “checklist” behavior,
+            and EXTENDED when the user would usually pick only one item,
+                but sometimes would like to select one or more ranges of items. """
         for item in self.availableSettingsList:
             #print( "it", repr(item) )
             if isinstance( item, tuple ): item = item[0]

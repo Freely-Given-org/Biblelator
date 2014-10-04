@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Help.py
-#   Last modified: 2014-09-30 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Help"
 ProgName = "Help Box"
-ProgVersion = "0.12"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -38,8 +38,9 @@ debuggingThisModule = True
 import sys #, os.path, configparser, logging
 #from gettext import gettext as _
 
-from tkinter import Toplevel, Text
+from tkinter import Toplevel #, Text
 from tkinter import YES, END
+from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
 #from tkinter import tix
 
@@ -66,11 +67,11 @@ def t( messageString ):
 
 class HelpBox( Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
-        if Globals.debugFlag: print( "HelpBox.__init__( {} )".format( parent ) )
+        #if Globals.debugFlag: print( "HelpBox.__init__( {} )".format( parent ) )
         Toplevel.__init__( self, parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
-        self.title( 'Help '+progName )
-        self.textBox = Text( self ) #, state=DISABLED )
+        self.title( 'Help for '+progName )
+        self.textBox = ScrolledText( self ) #, state=DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=YES )
         self.textBox.insert( END, text )
@@ -90,8 +91,8 @@ class HelpBox2():
         if Globals.debugFlag: print( "HelpBox2.__init__( {} )".format( parent ) )
         ab = Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
-        ab.title( 'Help '+progName )
-        textBox = Text( ab ) #, state=DISABLED )
+        ab.title( 'Help for '+progName )
+        textBox = ScrolledText( ab ) #, state=DISABLED )
         textBox['wrap'] = 'word'
         textBox.pack( expand=YES )
         textBox.insert( END, text )

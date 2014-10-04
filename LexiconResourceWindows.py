@@ -114,13 +114,13 @@ def t( messageString ):
                         ##foreground=[('pressed', 'red'), ('active', 'blue')],
                         ##background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
 
-        ##self.textBox = Text( self, width=40, height=10 )
+        ##self.textBox = ScrolledText( self, width=40, height=10 )
         ##self.textBox['wrap'] = 'word'
         ##verseText = SwordResources.getBCV( self.parent.bcv )
         ##print( "vt", verseText )
         ##self.textBox.insert( '1.0', verseText )
         ##self.textBox.pack()
-        ##self.textBox['state'] = 'disabled' # Don't allow editing
+        ##self.textBox['state'] = DISABLED # Don't allow editing
 
         ##self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         ##self.QUIT.pack( side="bottom" )
@@ -227,7 +227,7 @@ def t( messageString ):
             #displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             #for BnameCV,nextVerseData in nextVerses:
                 #displayVerse( False, BnameCV, nextVerseData )
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
     ## end of HebrewLexiconResourceFrame.update
 ## end of HebrewLexiconResourceFrame class
 
@@ -266,13 +266,13 @@ def t( messageString ):
                         ##foreground=[('pressed', 'red'), ('active', 'blue')],
                         ##background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
 
-        ##self.textBox = Text( self, width=40, height=10 )
+        ##self.textBox = ScrolledText( self, width=40, height=10 )
         ##self.textBox['wrap'] = 'word'
         ##verseText = SwordResources.getBCV( self.parent.bcv )
         ##print( "vt", verseText )
         ##self.textBox.insert( '1.0', verseText )
         ##self.textBox.pack()
-        ##self.textBox['state'] = 'disabled' # Don't allow editing
+        ##self.textBox['state'] = DISABLED # Don't allow editing
 
         ##self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         ##self.QUIT.pack( side="bottom" )
@@ -379,7 +379,7 @@ def t( messageString ):
             #displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             #for BnameCV,nextVerseData in nextVerses:
                 #displayVerse( False, BnameCV, nextVerseData )
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
     ## end of GreekLexiconResourceFrame.update
 ## end of GreekLexiconResourceFrame class
 
@@ -424,7 +424,7 @@ class BibleLexiconResourceFrame( ResourceFrame ):
         #print( "vt", verseText )
         #self.textBox.insert( '1.0', verseText )
         #self.textBox.pack()
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         #self.QUIT.pack( side="bottom" )
@@ -531,7 +531,7 @@ class BibleLexiconResourceFrame( ResourceFrame ):
             displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             for BnameCV,nextVerseData in nextVerses:
                 displayVerse( False, BnameCV, nextVerseData )
-        self.textBox['state'] = 'disabled' # Don't allow editing
+        self.textBox['state'] = DISABLED # Don't allow editing
     # end of BibleLexiconResourceFrame.update
 # end of BibleLexiconResourceFrame class
 

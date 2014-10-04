@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-03 (also update ProgVersion below)
+#   Last modified: 2014-10-04 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows and frames to allow display and manipulation of
 
 ShortProgName = "ResourceWindows"
 ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.13"
+ProgVersion = "0.14"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -41,8 +41,9 @@ from gettext import gettext as _
 
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
-from tkinter import Toplevel, TclError, Menu, Text, StringVar, messagebox
+from tkinter import Toplevel, TclError, Menu, StringVar, messagebox# , Text
 from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES, END
+from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Style, Frame#, Button, Combobox
 #from tkinter.tix import Spinbox
 
@@ -79,7 +80,7 @@ class ResourceWindow( Toplevel ):
             but the more accurate winType is set later by the subclass.
         """
         if Globals.debugFlag:
-            print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+            #print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
             assert( genericWindowType in ('BibleResource','LexiconResource','Editor') )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
@@ -88,6 +89,7 @@ class ResourceWindow( Toplevel ):
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
         if self.genericWindowType != 'Editor': # the editor creates its own
             self.createMenuBar()
+            self.createContextMenu()
         #self.createToolBar()
         #self.pack( expand=1 )
     # end of ResourceWindow.__init__
@@ -122,60 +124,61 @@ class ResourceWindow( Toplevel ):
 
         menuFile = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuFile, label='File', underline=0 )
-        #menuFile.add_command( label='New...', command=self.notWrittenYet, underline=0 )
-        #menuFile.add_command( label='Open...', command=self.notWrittenYet, underline=0 )
+        #menuFile.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        #menuFile.add_command( label='Open...', underline=0, command=self.notWrittenYet )
         #menuFile.add_separator()
         #submenuFileImport = Menu( menuFile )
-        #submenuFileImport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        #menuFile.add_cascade( label='Import', menu=submenuFileImport, underline=0 )
+        #submenuFileImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #menuFile.add_cascade( label='Import', underline=0, menu=submenuFileImport )
         #submenuFileExport = Menu( menuFile )
-        #submenuFileExport.add_command( label='USX', command=self.notWrittenYet, underline=0 )
-        #submenuFileExport.add_command( label='HTML', command=self.notWrittenYet, underline=0 )
-        #menuFile.add_cascade( label='Export', menu=submenuFileExport, underline=0 )
+        #submenuFileExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #submenuFileExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
+        #menuFile.add_cascade( label='Export', underline=0, menu=submenuFileExport )
         #menuFile.add_separator()
-        menuFile.add_command( label='Close', command=self.closeResourceWindow, underline=0 ) # close this window
+        menuFile.add_command( label='Close', underline=0, command=self.closeResourceWindow ) # close this window
 
         menuEdit = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuEdit, label='Edit', underline=0 )
-        menuEdit.add_command( label='Copy...', command=self.notWrittenYet, underline=0 )
+        menuEdit.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
         menuEdit.add_separator()
-        menuEdit.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
+        menuEdit.add_command( label='Find...', underline=0, command=self.notWrittenYet )
 
         menuGoto = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuGoto, label='Goto', underline=0 )
-        menuGoto.add_command( label='Previous book', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next book', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Previous chapter', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next chapter', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Previous verse', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next verse', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next book', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Previous chapter', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next chapter', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Previous verse', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next verse', underline=0, command=self.notWrittenYet )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Forward', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Backward', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Forward', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Backward', underline=0, command=self.notWrittenYet )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Previous list item', command=self.notWrittenYet, underline=0 )
-        menuGoto.add_command( label='Next list item', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Previous list item', underline=0, command=self.notWrittenYet )
+        menuGoto.add_command( label='Next list item', underline=0, command=self.notWrittenYet )
         menuGoto.add_separator()
-        menuGoto.add_command( label='Book', command=self.notWrittenYet, underline=0 )
+        menuGoto.add_command( label='Book', underline=0, command=self.notWrittenYet )
 
         menuView = Menu( self.menubar )
         self.menubar.add_cascade( menu=menuView, label='View', underline=0 )
-        #menuView.add_command( label='Find...', command=self.notWrittenYet, underline=0 )
-        #menuView.add_command( label='Replace...', command=self.notWrittenYet, underline=0 )
+        menuView.add_command( label='Whole chapter', underline=6, command=self.notWrittenYet )
+        menuView.add_command( label='Whole book', underline=6, command=self.notWrittenYet )
+        menuView.add_command( label='Single verse', underline=7, command=self.notWrittenYet )
 
         menuTools = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuTools, label='Tools', underline=0 )
-        menuTools.add_command( label='Options...', command=self.notWrittenYet, underline=0 )
+        menuTools.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
         menuWindow = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=menuWindow, label='Window', underline=0 )
-        menuWindow.add_command( label='Bring in', command=self.notWrittenYet, underline=0 )
+        menuWindow.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
 
         menuHelp = Menu( self.menubar, name='help', tearoff=False )
-        self.menubar.add_cascade( menu=menuHelp, label='Help', underline=0 )
-        menuHelp.add_command( label='Help...', command=self.doHelp, underline=0 )
+        self.menubar.add_cascade( menu=menuHelp, underline=0, label='Help' )
+        menuHelp.add_command( label='Help...', underline=0, command=self.doHelp )
         menuHelp.add_separator()
-        menuHelp.add_command( label='About...', command=self.doAbout, underline=0 )
+        menuHelp.add_command( label='About...', underline=0, command=self.doAbout )
 
         #filename = filedialog.askopenfilename()
         #filename = filedialog.asksaveasfilename()
@@ -186,16 +189,34 @@ class ResourceWindow( Toplevel ):
     # end of ResourceWindow.createMenuBar
 
 
-    def createToolBar( self ):
-        if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindow.createToolBar()") )
-        toolbar = Frame( self, cursor='hand2', relief=SUNKEN ) # bd=2
-        toolbar.pack( side=BOTTOM, fill=X )
-        Button( toolbar, text='Halt',  command=self.quit ).pack( side=RIGHT )
-        Button( toolbar, text='Hide Resources', command=self.hideResources ).pack(side=LEFT )
-        Button( toolbar, text='Hide All', command=self.hideAll ).pack( side=LEFT )
-        Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT )
-        Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT )
-    # end of ResourceWindow.createToolBar
+    def createContextMenu( self ):
+        """
+        """
+        self.contextMenu = Menu( self, tearoff=0 )
+        self.contextMenu.add_command( label="Copy", underline=0, command=self.notWrittenYet )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label="Close", underline=0, command=self.closeResourceWindow )
+
+        self.bind( "<Button-3>", self.showContextMenu ) # right-click
+        #self.pack()
+    # end of ResourceWindow.createContextMenu
+
+
+    def showContextMenu(self, e):
+        self.contextMenu.post( e.x_root, e.y_root )
+    # end of ResourceWindow.showContextMenu
+
+
+    #def createToolBar( self ):
+        #if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindow.createToolBar()") )
+        #toolbar = Frame( self, cursor='hand2', relief=RAISED ) # bd=2
+        #toolbar.pack( side=BOTTOM, fill=X )
+        #Button( toolbar, text='Halt',  command=self.quit ).pack( side=RIGHT )
+        #Button( toolbar, text='Hide Resources', command=self.hideResources ).pack(side=LEFT )
+        #Button( toolbar, text='Hide All', command=self.hideAll ).pack( side=LEFT )
+        #Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT )
+        #Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT )
+    ## end of ResourceWindow.createToolBar
 
 
     def closeResourceWindow( self ):
@@ -256,7 +277,7 @@ class ResourceFrames( list ):
 
 class ResourceFrame( Frame ):
     def __init__( self, parent ):
-        if Globals.debugFlag: print( "ResourceFrame.__init__( {} )".format( parent ) )
+        #if Globals.debugFlag: print( "ResourceFrame.__init__( {} )".format( parent ) )
         self.ResourceFrameParent = parent
         Frame.__init__( self, self.ResourceFrameParent )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
@@ -294,11 +315,11 @@ class ResourceFrame( Frame ):
                         #foreground=[('pressed', 'red'), ('active', 'blue')],
                         #background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
 
-        self.textBox = Text( self, state=DISABLED )
+        self.textBox = ScrolledText( self, state=DISABLED )
         self.textBox['wrap'] = 'word'
         #self.textBox.grid( sticky=N+E+S+W ) #.pack( expand=1 )
         self.textBox.pack( expand=YES, fill=BOTH )
-        #self.textBox['state'] = 'disabled' # Don't allow editing
+        #self.textBox['state'] = DISABLED # Don't allow editing
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.closeResourceFrame)
         #self.QUIT.pack( side="bottom" )
@@ -309,7 +330,7 @@ class ResourceFrame( Frame ):
 
 
     def clearText( self ): # Leaves in normal state
-        self.textBox['state'] = 'normal'
+        self.textBox['state'] = NORMAL
         self.textBox.delete( '1.0', END )
     # end of ResourceFrame.updateText
 
