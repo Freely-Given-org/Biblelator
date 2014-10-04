@@ -272,7 +272,11 @@ class DBPBibleResourceFrame( ResourceFrame ):
         #"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
         #"tabs", "tabstyle", "underline", and "wrap".
         try: self.DBPModule = DBPBible( self.moduleAbbreviation )
+        except FileNotFoundError:
+            logging.error( t("DBPBibleResourceFrame.__init__ Unable to find a key to connect to Digital Bible Platform") )
+            self.DBPModule = None
         except ConnectionError:
+            logging.error( t("DBPBibleResourceFrame.__init__ Unable to connect to Digital Bible Platform") )
             self.DBPModule = None
         self.resourceWindowParent.title( "{}.{}{}".format( self.moduleAbbreviation[:3], self.moduleAbbreviation[3:], ' (online)' if self.DBPModule else ' (offline)' ) )
         #if self.DBPModule:
