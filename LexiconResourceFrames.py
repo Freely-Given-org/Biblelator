@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# LexiconResourceWindows.py
-#   Last modified: 2014-10-03 (also update ProgVersion below)
+# LexiconResourceFrames.py
+#   Last modified: 2014-10-07 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -28,9 +28,9 @@ Windows and frames to allow display and manipulation of
     Bible and lexicon resource windows.
 """
 
-ShortProgName = "LexiconResourceWindows"
-ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.13"
+ShortProgName = "LexiconResourceFrames"
+ProgName = "Biblelator Lexicon Resource Frames"
+ProgVersion = "0.15"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -59,13 +59,11 @@ from BibleLexicon import BibleLexicon
 #import Greek
 #from GreekNT import GreekNT
 #import VerseReferences
-#from USFMBible import USFMBible #, USFMStylesheets
-#from SwordResources import SwordType
-#from DigitalBiblePlatform import DBPBible
 
 # Biblelator imports
 from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
 from ResourceWindows import ResourceFrame
+
 
 
 def t( messageString ):
@@ -560,7 +558,7 @@ def demo():
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of LexiconResourceWindows.demo
+# end of LexiconResourceFrames.demo
 
 
 if __name__ == '__main__':
@@ -584,4 +582,4 @@ if __name__ == '__main__':
     demo()
 
     Globals.closedown( ProgName, ProgVersion )
-# end of LexiconResourceWindows.py
+# end of LexiconResourceFrames.py

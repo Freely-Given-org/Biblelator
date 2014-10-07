@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-04 (also update ProgVersion below)
+#   Last modified: 2014-10-07 (also update ProgVersion below)
 #
-# Base of Bible and lexicon resource windows for Biblelator Bible display/editing
+# Base of Bible and lexicon resource windows and frames for Biblelator Bible display/editing
 #
 # Copyright (C) 2013-2014 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -30,7 +30,7 @@ Base windows and frames to allow display and manipulation of
 
 ShortProgName = "ResourceWindows"
 ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.14"
+ProgVersion = "0.15"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -41,11 +41,10 @@ from gettext import gettext as _
 
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
-from tkinter import Toplevel, TclError, Menu, StringVar, messagebox# , Text
-from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES, END
+from tkinter import Toplevel, TclError, Menu, IntVar, messagebox# , Text
+from tkinter import NORMAL, DISABLED, BOTTOM, LEFT, RIGHT, BOTH, YES, END, E
 from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import Style, Frame#, Button, Combobox
-#from tkinter.tix import Spinbox
+from tkinter.ttk import Style, Frame # Sizegrip, Button, Combobox
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -53,7 +52,7 @@ sys.path.append( sourceFolder )
 import Globals
 
 # Biblelator imports
-from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
+from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE, CONTEXT_VIEW_MODES
 
 
 
@@ -82,22 +81,53 @@ class ResourceWindow( Toplevel ):
         if Globals.debugFlag:
             #print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
-            assert( genericWindowType in ('BibleResource','LexiconResource','Editor') )
+            assert( genericWindowType in ('BibleResource','LexiconResource','BibleEditor') )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         Toplevel.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeResourceWindow )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
-        if self.genericWindowType != 'Editor': # the editor creates its own
+
+        self.contextViewMode = 'Default'
+        if 'Bible' in self.genericWindowType:
+            self._viewRadio = IntVar()
+            #self._viewRadio.set( 0 )
+        if 'Editor' not in self.genericWindowType: # the editor creates its own
             self.createMenuBar()
             self.createContextMenu()
         #self.createToolBar()
         #self.pack( expand=1 )
+        #Sizegrip( self ).pack( side=BOTTOM, anchor=E )
     # end of ResourceWindow.__init__
 
 
     def notWrittenYet( self ):
         messagebox.showerror( _("Not implemented"), _("Not yet available, sorry") )
     # end of ResourceWindow.notWrittenYet
+
+
+    def changeBibleContextView( self ):
+        """
+        Called when  a Bible context view is changed from the menus/GUI.
+        """
+        currentViewNumber = self._viewRadio.get()
+        if Globals.debugFlag:
+            print( t("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
+            assert( currentViewNumber in range( 1, 4+1 ) )
+        previousContextViewMode = self.contextViewMode
+        if 'Bible' in self.genericWindowType:
+            if currentViewNumber == 1: self.contextViewMode = CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
+            elif currentViewNumber == 2: self.contextViewMode = CONTEXT_VIEW_MODES[1] # 'ByVerse'
+            elif currentViewNumber == 3: self.contextViewMode = CONTEXT_VIEW_MODES[2] # 'ByBook'
+            elif currentViewNumber == 4: self.contextViewMode = CONTEXT_VIEW_MODES[3] # 'ByChapter'
+            else: halt # unknown Bible view mode
+        else: halt # window type view mode not handled yet
+        if self.contextViewMode != previousContextViewMode: # we need to update our view
+            if   self.groupCode == 'A': windowVerseKey = self.parentApp.GroupA_VerseKey
+            elif self.groupCode == 'B': windowVerseKey = self.parentApp.GroupB_VerseKey
+            elif self.groupCode == 'C': windowVerseKey = self.parentApp.GroupC_VerseKey
+            elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
+            self.resourceFrame.updateShownBCV( windowVerseKey )
+    # end of ResourceWindow.changeBibleContextView
 
 
     def doHelp( self ):
@@ -122,63 +152,71 @@ class ResourceWindow( Toplevel ):
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
 
-        menuFile = Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=menuFile, label='File', underline=0 )
-        #menuFile.add_command( label='New...', underline=0, command=self.notWrittenYet )
-        #menuFile.add_command( label='Open...', underline=0, command=self.notWrittenYet )
-        #menuFile.add_separator()
-        #submenuFileImport = Menu( menuFile )
-        #submenuFileImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #menuFile.add_cascade( label='Import', underline=0, menu=submenuFileImport )
-        #submenuFileExport = Menu( menuFile )
-        #submenuFileExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #submenuFileExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
-        #menuFile.add_cascade( label='Export', underline=0, menu=submenuFileExport )
-        #menuFile.add_separator()
-        menuFile.add_command( label='Close', underline=0, command=self.closeResourceWindow ) # close this window
+        fileMenu = Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
+        #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #subfileMenuImport = Menu( fileMenu )
+        #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
+        #subfileMenuExport = Menu( fileMenu )
+        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
+        #fileMenu.add_separator()
+        fileMenu.add_command( label='Close', underline=0, command=self.closeResourceWindow ) # close this window
 
-        menuEdit = Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=menuEdit, label='Edit', underline=0 )
-        menuEdit.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
-        menuEdit.add_separator()
-        menuEdit.add_command( label='Find...', underline=0, command=self.notWrittenYet )
+        editMenu = Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
+        editMenu.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
+        editMenu.add_separator()
+        editMenu.add_command( label='Find...', underline=0, command=self.notWrittenYet )
 
-        menuGoto = Menu( self.menubar )
-        self.menubar.add_cascade( menu=menuGoto, label='Goto', underline=0 )
-        menuGoto.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
-        menuGoto.add_command( label='Next book', underline=0, command=self.notWrittenYet )
-        menuGoto.add_command( label='Previous chapter', underline=0, command=self.notWrittenYet )
-        menuGoto.add_command( label='Next chapter', underline=0, command=self.notWrittenYet )
-        menuGoto.add_command( label='Previous verse', underline=0, command=self.notWrittenYet )
-        menuGoto.add_command( label='Next verse', underline=0, command=self.notWrittenYet )
-        menuGoto.add_separator()
-        menuGoto.add_command( label='Forward', underline=0, command=self.notWrittenYet )
-        menuGoto.add_command( label='Backward', underline=0, command=self.notWrittenYet )
-        menuGoto.add_separator()
-        menuGoto.add_command( label='Previous list item', underline=0, command=self.notWrittenYet )
-        menuGoto.add_command( label='Next list item', underline=0, command=self.notWrittenYet )
-        menuGoto.add_separator()
-        menuGoto.add_command( label='Book', underline=0, command=self.notWrittenYet )
+        gotoMenu = Menu( self.menubar )
+        self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
+        if 'Bible' in self.genericWindowType:
+            gotoMenu.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next book', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Previous chapter', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next chapter', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Previous verse', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next verse', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_separator()
+            gotoMenu.add_command( label='Forward', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Backward', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_separator()
+            gotoMenu.add_command( label='Previous list item', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next list item', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_separator()
+            gotoMenu.add_command( label='Book', underline=0, command=self.notWrittenYet )
 
-        menuView = Menu( self.menubar )
-        self.menubar.add_cascade( menu=menuView, label='View', underline=0 )
-        menuView.add_command( label='Whole chapter', underline=6, command=self.notWrittenYet )
-        menuView.add_command( label='Whole book', underline=6, command=self.notWrittenYet )
-        menuView.add_command( label='Single verse', underline=7, command=self.notWrittenYet )
+        viewMenu = Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
+        if 'Bible' in self.genericWindowType:
+            if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
+            elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 2 )
+            elif self.contextViewMode == 'ByBook': self._viewRadio.set( 3 )
+            elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 4 )
 
-        menuTools = Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=menuTools, label='Tools', underline=0 )
-        menuTools.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+            viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
+            viewMenu.add_radiobutton( label='Single verse', underline=7, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
+            viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
+            viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
 
-        menuWindow = Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=menuWindow, label='Window', underline=0 )
-        menuWindow.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
+        toolsMenu = Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
+        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
-        menuHelp = Menu( self.menubar, name='help', tearoff=False )
-        self.menubar.add_cascade( menu=menuHelp, underline=0, label='Help' )
-        menuHelp.add_command( label='Help...', underline=0, command=self.doHelp )
-        menuHelp.add_separator()
-        menuHelp.add_command( label='About...', underline=0, command=self.doAbout )
+        windowMenu = Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
+        windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
+
+        helpMenu = Menu( self.menubar, name='help', tearoff=False )
+        self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
+        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
+        helpMenu.add_separator()
+        helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
 
         #filename = filedialog.askopenfilename()
         #filename = filedialog.asksaveasfilename()
@@ -266,11 +304,16 @@ class ResourceFrames( list ):
     These are the frames where most of the work is done
         in displaying resources and their controls.
     """
-    def update( self ):
-        if Globals.debugFlag: print( "ResourceFrames.update()" )
-        for projWin in self:
-            projWin.update()
-    # end of ResourceFrames.update
+    def updateShownBCV( self, groupCode ):
+        """
+        Called when we probably need to update some resource frames with a new Bible reference.
+        """
+        if Globals.debugFlag: print( t("ResourceFrames.updateShownBCV( {} )").format( groupCode ) )
+        for resourceFrame in self:
+            if 'Bible' in resourceFrame.ResourceFrameParent.genericWindowType:
+                if resourceFrame.resourceWindowParent.groupCode == groupCode:
+                    resourceFrame.updateShownBCV( resourceFrame.ResourceFrameParent.parentApp.currentVerseKey )
+    # end of ResourceFrames.updateShownBCV
 # end of ResourceFrames class
 
 
@@ -285,6 +328,7 @@ class ResourceFrame( Frame ):
         self.pack( expand=YES, fill=BOTH )
         self.createResourceFrameWidgets()
         #self.updateText( "Hello there" )
+        #Sizegrip( self ).pack( side=BOTTOM, anchor=E )
     # end of ResourceFrame.__init__
 
     def __str__( self ):

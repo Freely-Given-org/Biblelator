@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ModalDialog.py
-#   Last modified: 2014-09-29 (also update ProgVersion below)
+#   Last modified: 2014-10-07 (also update ProgVersion below)
 #
 # xxxMain program for Biblelator Bible display/editing
 #
@@ -31,7 +31,7 @@ xxxProgram to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = "0.12"
+ProgVersion = "0.15"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -110,8 +110,7 @@ class ModalDialog( Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        if Globals.debugFlag: print( t("This 'body' method must be overridden!") )
-        halt
+        if Globals.debugFlag: print( t("This 'body' method must be overridden!") ); halt
     # end of ModalDialog.body
 
 

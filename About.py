@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-10-04 (also update ProgVersion below)
+#   Last modified: 2014-10-06 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -117,9 +117,12 @@ def demo():
     #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( "Running demo..." )
-    #Globals.debugFlag = True
 
     tkRootWindow = Tk()
+    if Globals.debugFlag:
+        #print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser', 
+            print( 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
     tkRootWindow.title( ProgNameVersion )
     ab = AboutBox( tkRootWindow, ProgName, ProgNameVersion )
     ab = AboutBox2( tkRootWindow, ProgName, ProgNameVersion )
