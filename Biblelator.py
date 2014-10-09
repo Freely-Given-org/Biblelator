@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-10-07 (also update ProgVersion below)
+#   Last modified: 2014-10-09 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.15"
+ProgVersion = "0.16"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.15"
+SettingsVersion = "0.16"
 
 debuggingThisModule = True
 
@@ -73,10 +73,10 @@ from BiblelatorGlobals import DATA_FOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, \
         EDIT_MODE_NORMAL, parseGeometry, assembleGeometryFromList, centreWindow
 from BiblelatorHelpers import SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
 from ApplicationSettings import ApplicationSettings
-from ResourceWindows import ResourceWindows, ResourceWindow, ResourceFrames
-from BibleResourceFrames import SwordBibleResourceFrame, InternalBibleResourceFrame, DBPBibleResourceFrame
-from LexiconResourceFrames import BibleLexiconResourceFrame
-from EditFrames import USFMEditFrame # TextEditFrame, ESFMEditFrame
+from ResourceWindows import ResourceWindows, ResourceWindow
+from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
+from LexiconResourceWindows import BibleLexiconResourceWindow
+from EditWindows import USFMEditWindow
 
 
 
@@ -112,7 +112,6 @@ class Application( Frame ):
         self.pack()
 
         self.appWins = ResourceWindows( self )
-        self.projFrames = ResourceFrames()
 
         self.createStatusBar()
         if Globals.debugFlag: # Create a scrolling debug box
@@ -168,7 +167,7 @@ class Application( Frame ):
 
 
         # Open some sample windows if we don't have any already
-        if not self.appWins and not self.projFrames \
+        if not self.appWins \
         and Globals.debugFlag and debuggingThisModule: # Just for testing/kickstarting
             print( t("Application.__init__ Opening sample resources...") )
             self.openSwordBibleResourceWindow( 'KJV' )
@@ -497,9 +496,9 @@ class Application( Frame ):
         self.debugText.insert( END, '\n{} child windows:'.format( len(self.appWins) ) )
         for j, appWin in enumerate( self.appWins ):
             self.debugText.insert( END, "\n  {} {} ({}) {}".format( j, appWin.winType, appWin.genericWindowType, appWin.geometry() ) )
-        self.debugText.insert( END, '\n{} resource frames:'.format( len(self.projFrames) ) )
-        for j, projFrame in enumerate( self.projFrames ):
-            self.debugText.insert( END, "\n  {} {}".format( j, projFrame ) )
+        #self.debugText.insert( END, '\n{} resource frames:'.format( len(self.appWins) ) )
+        #for j, projFrame in enumerate( self.appWins ):
+            #self.debugText.insert( END, "\n  {} {}".format( j, projFrame ) )
         self.debugText['state'] = DISABLED # Don't allow editing
     # end of Application.setDebugText
 
@@ -750,19 +749,15 @@ class Application( Frame ):
             self.setDebugText( "openSwordBibleResourceWindow..." )
         if self.SwordInterface is None:
             self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
-        rw = ResourceWindow( self, 'BibleResource' )
-        rw.winType = 'SwordBibleResourceWindow'
-        rw.moduleAbbreviation = moduleAbbreviation
-        if windowGeometry: rw.geometry( windowGeometry )
-        self.appWins.append( rw )
-        swBRF = SwordBibleResourceFrame( rw, self, rw.moduleAbbreviation )
-        swBRF.pack( expand=YES, fill=BOTH )
-        rw.resourceFrame = swBRF
-        self.projFrames.append( swBRF )
-        #if swBRF.SwordModule is None: # doesn't work coz loaded later
-            #logging.critical( t("Application.openSwordBibleResourceWindow: Unable to open module {}").format( repr(moduleAbbreviation) ) )
-            ##rw.destroy()
-        return rw
+        #rw = ResourceWindow( self, 'BibleResource' )
+        #rw.winType = 'SwordBibleResourceWindow'
+        #rw.moduleAbbreviation = moduleAbbreviation
+        #if windowGeometry: rw.geometry( windowGeometry )
+        #self.appWins.append( rw )
+        swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
+        if windowGeometry: swBRW.geometry( windowGeometry )
+        self.appWins.append( swBRW )
+        return swBRW
     # end of Application.openSwordBibleResourceWindow
 
 
@@ -796,15 +791,13 @@ class Application( Frame ):
             print( t("openDBPBibleResourceWindow()") )
             self.setDebugText( "openDBPBibleResourceWindow..." )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
-        rw = ResourceWindow( self, 'BibleResource' )
-        rw.winType = 'DBPBibleResourceWindow'
-        rw.moduleAbbreviation = moduleAbbreviation
-        if windowGeometry: rw.geometry( windowGeometry )
-        self.appWins.append( rw )
-        dBRF = DBPBibleResourceFrame( rw, self, rw.moduleAbbreviation )
-        dBRF.pack( expand=YES, fill=BOTH )
-        rw.resourceFrame = dBRF
-        self.projFrames.append( dBRF )
+        #rw = ResourceWindow( self, 'BibleResource' )
+        #rw.winType = 'DBPBibleResourceWindow'
+        #rw.moduleAbbreviation = moduleAbbreviation
+        dBRF = DBPBibleResourceWindow( self, moduleAbbreviation )
+        if windowGeometry: dBRF.geometry( windowGeometry )
+        self.appWins.append( dBRF )
+        #dBRF.pack( expand=YES, fill=BOTH )
         if dBRF.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             #rw.destroy()
@@ -832,19 +825,19 @@ class Application( Frame ):
         if Globals.debugFlag:
             print( t("openInternalBibleResourceWindow()") )
             self.setDebugText( "openInternalBibleResourceWindow..." )
-        rw = ResourceWindow( self, 'BibleResource' )
-        rw.winType = 'InternalBibleResourceWindow'
-        rw.modulePath = modulePath
-        if windowGeometry: rw.geometry( windowGeometry )
-        self.appWins.append( rw )
-        iBRF = InternalBibleResourceFrame( rw, self, rw.modulePath )
-        iBRF.pack( expand=YES, fill=BOTH )
-        rw.resourceFrame = iBRF
-        self.projFrames.append( iBRF )
+        #rw = ResourceWindow( self, 'BibleResource' )
+        #rw.winType = 'InternalBibleResourceWindow'
+        #rw.modulePath = modulePath
+        #if windowGeometry: rw.geometry( windowGeometry )
+        #self.appWins.append( rw )
+        iBRF = InternalBibleResourceWindow( self, modulePath )
+        #iBRF.pack( expand=YES, fill=BOTH )
+        if windowGeometry: iBRF.geometry( windowGeometry )
+        self.appWins.append( iBRF )
         if iBRF.InternalBible is None:
             logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(modulePath) ) )
-            rw.destroy()
-        return rw
+            iBRF.destroy()
+        return iBRF
     # end of Application.openInternalBibleResourceWindow
 
 
@@ -858,10 +851,10 @@ class Application( Frame ):
         #if rw.lexiconFolder is None: rw.lexiconFolder = "../HebrewLexicon/"
         #if windowGeometry: rw.geometry( windowGeometry )
         #self.appWins.append( rw )
-        #hlrw = HebrewLexiconResourceFrame( rw, self, rw.lexiconFolder )
+        #hlrw = HebrewLexiconResourceWindow( rw, self, rw.lexiconFolder )
         #hlrw.pack( expand=YES, fill=BOTH )
         #rw.resourceFrame = hlrw
-        #self.projFrames.append( hlrw )
+        #self.appWins.append( hlrw )
         #if hlrw.HebrewLexicon is None:
             #logging.critical( t("Application.openHebrewLexiconResourceWindow: Unable to open Hebrew lexicon {}").format( repr(lexiconFolder) ) )
             ##rw.destroy()
@@ -879,10 +872,10 @@ class Application( Frame ):
         #if rw.lexiconFolder is None: rw.lexiconFolder = "../morphgnt/strongs-dictionary-xml/"
         #if windowGeometry: rw.geometry( windowGeometry )
         #self.appWins.append( rw )
-        #glrw = GreekLexiconResourceFrame( rw, self, rw.lexiconFolder )
+        #glrw = GreekLexiconResourceWindow( rw, self, rw.lexiconFolder )
         #glrw.pack( expand=YES, fill=BOTH )
         #rw.resourceFrame = glrw
-        #self.projFrames.append( glrw )
+        #self.appWins.append( glrw )
         #if glrw.GreekLexicon is None:
             #logging.critical( t("Application.openGreekLexiconResourceWindow: Unable to open Greek lexicon {}").format( repr(lexiconFolder) ) )
             ##rw.destroy()
@@ -900,10 +893,10 @@ class Application( Frame ):
         if rw.lexiconFolder is None: rw.lexiconFolder = "../"
         if windowGeometry: rw.geometry( windowGeometry )
         self.appWins.append( rw )
-        bLRF = BibleLexiconResourceFrame( rw, self, rw.lexiconFolder )
+        bLRF = BibleLexiconResourceWindow( rw, self, rw.lexiconFolder )
         bLRF.pack( expand=YES, fill=BOTH )
         rw.resourceFrame = bLRF
-        self.projFrames.append( bLRF )
+        self.appWins.append( bLRF )
         if bLRF.BibleLexicon is None:
             logging.critical( t("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {}").format( repr(lexiconFolder) ) )
             #rw.destroy()
@@ -915,19 +908,15 @@ class Application( Frame ):
         if Globals.debugFlag:
             print( t("openUSFMBibleEditWindow()") )
             self.setDebugText( "openUSFMBibleEditWindow..." )
-        rw = ResourceWindow( self, 'BibleEditor' ) # Open new top level window
-        rw.winType = 'USFMBibleEditWindow'
-        rw.USFMFolder, rw.editMode = USFMFolder, editMode
-        if windowGeometry: rw.geometry( windowGeometry )
-        self.appWins.append( rw )
-        uEF = USFMEditFrame( rw, self, rw.USFMFolder, rw.editMode )
-        uEF.pack( expand=YES, fill=BOTH )
-        rw.resourceFrame = uEF
-        self.projFrames.append( uEF )
+        #rw.winType = 'USFMBibleEditWindow'
+        uEF = USFMEditWindow( self, USFMFolder, editMode )
+        #uEF.pack( expand=YES, fill=BOTH )
+        if windowGeometry: uEF.geometry( windowGeometry )
+        self.appWins.append( uEF )
         if uEF.InternalBible is None:
             logging.critical( t("Application.openUSFMBibleEditWindow: Unable to open USFM Bible in {}").format( repr(USFMFolder) ) )
             #rw.destroy()
-        return rw
+        return uEF
     # end of Application.openUSFMBibleEditWindow
 
 
@@ -1289,7 +1278,7 @@ class Application( Frame ):
                 #self.nextVerseKeys.append( SimpleVerseKey( BBB, nextIntC, nextIntV ) )
                 #if self.haveSwordResourcesOpen(): self.SwordNextKeys.append( self.SwordInterface.makeKey( BBB, str(nextIntC), str(nextIntV) ) )
 
-        self.projFrames.updateShownBCV( self.currentVerseKeyGroup )
+        self.appWins.updateShownBCV( self.currentVerseKeyGroup )
     # end of Application.gotoBCV
 
 

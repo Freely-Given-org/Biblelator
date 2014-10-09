@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-07 (also update ProgVersion below)
+#   Last modified: 2014-10-10 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows and frames for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows and frames to allow display and manipulation of
 
 ShortProgName = "ResourceWindows"
 ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.15"
+ProgVersion = "0.16"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -97,6 +97,11 @@ class ResourceWindow( Toplevel ):
         #self.createToolBar()
         #self.pack( expand=1 )
         #Sizegrip( self ).pack( side=BOTTOM, anchor=E )
+
+        self.textBox = ScrolledText( self, state=DISABLED )
+        self.textBox['wrap'] = 'word'
+        self.textBox.pack( expand=YES, fill=BOTH )
+
     # end of ResourceWindow.__init__
 
 
@@ -126,8 +131,14 @@ class ResourceWindow( Toplevel ):
             elif self.groupCode == 'B': windowVerseKey = self.parentApp.GroupB_VerseKey
             elif self.groupCode == 'C': windowVerseKey = self.parentApp.GroupC_VerseKey
             elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
-            self.resourceFrame.updateShownBCV( windowVerseKey )
+            self.updateShownBCV( windowVerseKey )
     # end of ResourceWindow.changeBibleContextView
+
+
+    def clearText( self ): # Leaves in normal state
+        self.textBox['state'] = NORMAL
+        self.textBox.delete( '1.0', END )
+    # end of ResourceFrame.updateText
 
 
     def doHelp( self ):
@@ -295,96 +306,107 @@ class ResourceWindows( list ):
             appWin.deiconify()
             appWin.lift( aboveThis=self.ResourceWindowsParent )
     #end of ResourceWindows.deiconify
-# end of ResourceWindows class
 
-
-
-class ResourceFrames( list ):
-    """
-    These are the frames where most of the work is done
-        in displaying resources and their controls.
-    """
     def updateShownBCV( self, groupCode ):
         """
         Called when we probably need to update some resource frames with a new Bible reference.
         """
-        if Globals.debugFlag: print( t("ResourceFrames.updateShownBCV( {} )").format( groupCode ) )
-        for resourceFrame in self:
-            if 'Bible' in resourceFrame.ResourceFrameParent.genericWindowType:
-                if resourceFrame.resourceWindowParent.groupCode == groupCode:
-                    resourceFrame.updateShownBCV( resourceFrame.ResourceFrameParent.parentApp.currentVerseKey )
-    # end of ResourceFrames.updateShownBCV
-# end of ResourceFrames class
+        if Globals.debugFlag: print( t("ResourceWindows.updateShownBCV( {} )").format( groupCode ) )
+        for appWin in self:
+            if 'Bible' in appWin.genericWindowType:
+                if appWin.groupCode == groupCode:
+                    appWin.updateShownBCV( appWin.parentApp.currentVerseKey )
+    # end of ResourceWindows.updateShownBCV
+# end of ResourceWindows class
 
 
 
-class ResourceFrame( Frame ):
-    def __init__( self, parent ):
-        #if Globals.debugFlag: print( "ResourceFrame.__init__( {} )".format( parent ) )
-        self.ResourceFrameParent = parent
-        Frame.__init__( self, self.ResourceFrameParent )
-        self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
-        self.ResourceFrameParent.minsize( self.minimumXSize, self.minimumYSize )
-        self.pack( expand=YES, fill=BOTH )
-        self.createResourceFrameWidgets()
-        #self.updateText( "Hello there" )
-        #Sizegrip( self ).pack( side=BOTTOM, anchor=E )
-    # end of ResourceFrame.__init__
-
-    def __str__( self ):
-        """
-        """
-        resultString = ""
-        #print( "dir", dir(self) )
-        for tryThis in ('moduleAbbreviation','modulePath','editModulePath','lexiconPath',):
-            if tryThis in dir(self):
-                #print( "got", repr(tryThis) )
-                resultString += ('\n    ' if resultString else '') + '{} = {}'.format( tryThis, repr(self.__getattribute__(tryThis)) )
-        return resultString
-    # end of ResourceFrame.__str__
+#class ResourceFrames( list ):
+    #"""
+    #These are the frames where most of the work is done
+        #in displaying resources and their controls.
+    #"""
+    #def updateShownBCV( self, groupCode ):
+        #"""
+        #Called when we probably need to update some resource frames with a new Bible reference.
+        #"""
+        #if Globals.debugFlag: print( t("ResourceFrames.updateShownBCV( {} )").format( groupCode ) )
+        #for resourceFrame in self:
+            #if 'Bible' in resourceFrame.ResourceFrameParent.genericWindowType:
+                #if resourceFrame.resourceWindowParent.groupCode == groupCode:
+                    #resourceFrame.updateShownBCV( resourceFrame.ResourceFrameParent.parentApp.currentVerseKey )
+    ## end of ResourceFrames.updateShownBCV
+## end of ResourceFrames class
 
 
-    def createResourceFrameWidgets( self ):
-        #self.label1 = Label( self, text=self.moduleAbbreviation )
-        #self.label1.pack()
 
-        #self.hi_there = Button( self )
-        #self.hi_there['text'] = "Refresh"
-        #self.hi_there["command"] = self.update
-        #self.hi_there.pack(side="top")
+#class ResourceFrame( Frame ):
+    #def __init__( self, parent ):
+        ##if Globals.debugFlag: print( "ResourceFrame.__init__( {} )".format( parent ) )
+        #self.ResourceFrameParent = parent
+        #Frame.__init__( self, self.ResourceFrameParent )
+        #self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
+        #self.ResourceFrameParent.minsize( self.minimumXSize, self.minimumYSize )
+        #self.pack( expand=YES, fill=BOTH )
+        #self.createResourceFrameWidgets()
+        ##self.updateText( "Hello there" )
+        ##Sizegrip( self ).pack( side=BOTTOM, anchor=E )
+    ## end of ResourceFrame.__init__
 
-        #self.bStyle = Style( self )
-        #self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
-        #self.bStyle.map("Red.TButton",
-                        #foreground=[('pressed', 'red'), ('active', 'blue')],
-                        #background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
-
-        self.textBox = ScrolledText( self, state=DISABLED )
-        self.textBox['wrap'] = 'word'
-        #self.textBox.grid( sticky=N+E+S+W ) #.pack( expand=1 )
-        self.textBox.pack( expand=YES, fill=BOTH )
-        #self.textBox['state'] = DISABLED # Don't allow editing
-
-        #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.closeResourceFrame)
-        #self.QUIT.pack( side="bottom" )
-
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-        #Sizegrip( self ).pack( side="right" )#.grid( column=999, row=999, sticky=(S,E) )#
-    # end of ResourceFrame.createApplicationWidgets
+    #def __str__( self ):
+        #"""
+        #"""
+        #resultString = ""
+        ##print( "dir", dir(self) )
+        #for tryThis in ('moduleAbbreviation','modulePath','editModulePath','lexiconPath',):
+            #if tryThis in dir(self):
+                ##print( "got", repr(tryThis) )
+                #resultString += ('\n    ' if resultString else '') + '{} = {}'.format( tryThis, repr(self.__getattribute__(tryThis)) )
+        #return resultString
+    ## end of ResourceFrame.__str__
 
 
-    def clearText( self ): # Leaves in normal state
-        self.textBox['state'] = NORMAL
-        self.textBox.delete( '1.0', END )
-    # end of ResourceFrame.updateText
+    #def createResourceFrameWidgets( self ):
+        ##self.label1 = Label( self, text=self.moduleAbbreviation )
+        ##self.label1.pack()
+
+        ##self.hi_there = Button( self )
+        ##self.hi_there['text'] = "Refresh"
+        ##self.hi_there["command"] = self.update
+        ##self.hi_there.pack(side="top")
+
+        ##self.bStyle = Style( self )
+        ##self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
+        ##self.bStyle.map("Red.TButton",
+                        ##foreground=[('pressed', 'red'), ('active', 'blue')],
+                        ##background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
+
+        #self.textBox = ScrolledText( self, state=DISABLED )
+        #self.textBox['wrap'] = 'word'
+        ##self.textBox.grid( sticky=N+E+S+W ) #.pack( expand=1 )
+        #self.textBox.pack( expand=YES, fill=BOTH )
+        ##self.textBox['state'] = DISABLED # Don't allow editing
+
+        ##self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.closeResourceFrame)
+        ##self.QUIT.pack( side="bottom" )
+
+        ##Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
+        ##Sizegrip( self ).pack( side="right" )#.grid( column=999, row=999, sticky=(S,E) )#
+    ## end of ResourceFrame.createApplicationWidgets
 
 
-    def destroy( self ): # override so we can remove this frame from our list
-        if Globals.debugFlag and debuggingThisModule: print( t("ResourceFrame.destroy()") )
-        self.ResourceFrameParent.parentApp.projFrames.remove( self )
-        Frame.destroy( self )
-    # end of ResourceFrame.closeResourceFrame
-# end of ResourceFrame class
+    #def clearText( self ): # Leaves in normal state
+        #self.textBox['state'] = NORMAL
+        #self.textBox.delete( '1.0', END )
+    ## end of ResourceFrame.updateText
+
+
+    #def destroy( self ): # override so we can remove this frame from our list
+        #if Globals.debugFlag and debuggingThisModule: print( t("ResourceFrame.destroy()") )
+        #self.ResourceFrameParent.parentApp.projFrames.remove( self )
+        #Frame.destroy( self )
+    ## end of ResourceFrame.closeResourceFrame
+## end of ResourceFrame class
 
 
 
