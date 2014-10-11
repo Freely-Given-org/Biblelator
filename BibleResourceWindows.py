@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-10 (also update ProgVersion below)
+#   Last modified: 2014-10-11 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -101,12 +101,17 @@ class BibleResourceWindow( ResourceWindow ):
         #"background", "bgstipple", "borderwidth", "elide", "fgstipple", "font", "foreground", "justify", "lmargin1",
         #"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
         #"tabs", "tabstyle", "underline", and "wrap".
+
+        # Define which functions we use by default
+        self.getNumVerses = self.parentApp.genericBibleOrganisationalSystem.getNumVerses
+        self.getNumChapters = self.parentApp.genericBibleOrganisationalSystem.getNumChapters
+
         self.cache = OrderedDict()
     # end of BibleResourceWindow.__init__
 
 
     def getSwordVerseKey( self, verseKey ):
-            if 0 and Globals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
+            if Globals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
             BBB, C, V = verseKey.getBCV()
             return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceWindow.getSwordVerseKey
@@ -130,7 +135,7 @@ class BibleResourceWindow( ResourceWindow ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        #if Globals.debugFlag and debuggingThisModule: print( t("getCachedVerseData( {} )").format( verseKey ) )
+        if Globals.debugFlag and debuggingThisModule: print( t("getCachedVerseData( {} )").format( verseKey ) )
         if str(verseKey) in self.cache:
             #if Globals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceWindow cache") )
             self.cache.move_to_end( str(verseKey) )
@@ -148,7 +153,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         Add the requested verse to the end of self.textBox.
         """
-        if 0 and Globals.debugFlag and debuggingThisModule:
+        if Globals.debugFlag and debuggingThisModule:
             print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
         lastCharWasSpace = haveTextFlag = not firstFlag
         if verseDataList is None:
@@ -161,8 +166,12 @@ class BibleResourceWindow( ResourceWindow ):
                 else: marker, cleanText = entry.getMarker(), entry.getCleanText()
                 #print( "  ", haveTextFlag, marker, repr(cleanText) )
                 if marker and marker[0]=='¬': pass # Ignore end markers for now
+                elif marker in ('chapters',): pass # Ignore added markers for now
                 elif marker == 'id':
                     self.textBox.insert( END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
+                    haveTextFlag = True
+                elif marker in ('ide','rem',):
+                    self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker == 'c': # Don't want to display this (original) c marker
                     #if not firstFlag: haveC = cleanText
@@ -173,7 +182,7 @@ class BibleResourceWindow( ResourceWindow ):
                         if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
                         self.textBox.insert( END, cleanText, 'c#' )
                         lastCharWasSpace = False
-                elif marker in ('mt1','mt2','mt3','mt4',):
+                elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
                     self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker in ('s1','s2','s3','s4',):
@@ -189,7 +198,7 @@ class BibleResourceWindow( ResourceWindow ):
                         self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
                         lastCharWasSpace = False
                     haveTextFlag = True
-                elif marker == 'p#' and self.parentApp.winType=='DBPBibleResourceWindow':
+                elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
                     pass # Just ignore these for now
                 elif marker in ('q1','q2','q3','q4',):
                     self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
@@ -225,25 +234,33 @@ class BibleResourceWindow( ResourceWindow ):
         prevBBB, prevIntC, prevIntV = BBB, intC, intV
         previousVersesData = []
         for n in range( -self.parentApp.viewVersesBefore, 0 ):
+            failed = False
             print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
             if prevIntV > 0: prevIntV -= 1
             elif prevIntC > 0:
                 prevIntC -= 1
-                prevIntV = self.parentApp.genericBOS.getNumVerses( prevBBB, prevIntC )
-                print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                except KeyError:
+                    if prevIntC != 0: # we can expect an error for chapter zero
+                        logging.critical( t("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                    failed = True
+                if not failed:
+                    print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
             else:
-                prevBBB = self.parentApp.genericBOS.getPreviousBookCode( BBB )
-                prevIntC = self.parentApp.genericBOS.getNumChapters( prevBBB )
-                prevIntV = self.parentApp.genericBOS.getNumVerses( prevBBB, prevIntC )
-            previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
-            previousVerseData = self.getCachedVerseData( previousVerseKey )
-            if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
+                prevBBB = self.parentApp.genericBibleOrganisationalSystem.getPreviousBookCode( BBB )
+                prevIntC = self.getNumChapters( prevBBB )
+                prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+            if not failed:
+                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
+                previousVerseData = self.getCachedVerseData( previousVerseKey )
+                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
 
         # Determine the next valid verse numbers
         nextBBB, nextIntC, nextIntV = BBB, intC, intV
         nextVersesData = []
         for n in range( 0, self.parentApp.viewVersesAfter ):
-            try: numVerses = self.parentApp.genericBOS.getNumVerses( nextBBB, nextIntC )
+            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
             except KeyError: numVerses = 0
             nextIntV += 1
             if nextIntV > numVerses:
@@ -288,8 +305,8 @@ class BibleResourceWindow( ResourceWindow ):
         elif self.contextViewMode == 'ByBook':
             BBB, C, V = newVerseKey.getBCV()
             intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            for thisC in range( 0, self.parentApp.genericBOS.getNumChapters( BBB ) ):
-                try: numVerses = self.parentApp.genericBOS.getNumVerses( BBB, thisC )
+            for thisC in range( 0, self.getNumChapters( BBB ) ):
+                try: numVerses = self.getNumVerses( BBB, thisC )
                 except KeyError: numVerses = 0
                 for thisV in range( 0, numVerses ):
                     thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
@@ -301,7 +318,7 @@ class BibleResourceWindow( ResourceWindow ):
         elif self.contextViewMode == 'ByChapter':
             BBB, C, V = newVerseKey.getBCV()
             intV = newVerseKey.getVerseNumberInt()
-            try: numVerses = self.parentApp.genericBOS.getNumVerses( BBB, C )
+            try: numVerses = self.getNumVerses( BBB, C )
             except KeyError: numVerses = 0
             for thisV in range( 0, numVerses ):
                 thisVerseKey = SimpleVerseKey( BBB, C, thisV )
@@ -415,6 +432,9 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                 print( "Unknown Bible returned: {}".format( repr(result) ) )
                 self.InternalBible = None
             else: self.InternalBible = result
+        if self.InternalBible is not None: # Define which functions we use by default
+            self.getNumVerses = self.InternalBible.getNumVerses
+            self.getNumChapters = self.InternalBible.getNumChapters
     # end of InternalBibleResourceWindow.__init__
 
 
@@ -434,7 +454,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
             try: return self.InternalBible.getVerseData( verseKey )
             except KeyError:
                 logging.critical( t("InternalBibleResourceWindow.getVerseData for {} {} got a KeyError!") \
-                                                                .format( self.parentApp.winType, verseKey ) )
+                                                                .format( self.winType, verseKey ) )
     # end of InternalBibleResourceWindow.getVerseData
 # end of InternalBibleResourceWindow class
 
