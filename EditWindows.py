@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-10-09 (also update ProgVersion below)
+#   Last modified: 2014-10-12 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.16"
+ProgVersion = "0.17"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -69,8 +69,9 @@ def t( messageString ):
 
 
 
-class TextEditFrame( ResourceWindow ):
+class TextEditWindow( ResourceWindow ):
     pass
+# end of TextEditWindow class
 
 
 
@@ -98,24 +99,24 @@ class USFMEditWindow( InternalBibleResourceWindow ):
         self.title( "[{}] {} ({}) Editable {}".format( self.groupCode,
                                     self.InternalBible.name if self.InternalBible is not None else 'None',
                                     self.editMode, self.contextViewMode ) )
-    # end if InternalBibleResourceWindow.refreshTitle
+    # end if USFMEditWindow.refreshTitle
 
 
     def notWrittenYet( self ):
         messagebox.showerror( _("Not implemented"), _("Not yet available, sorry") )
-    # end of Application.notWrittenYet
+    # end of USFMEditWindow.notWrittenYet
 
 
     def doHelp( self ):
         from Help import HelpBox
         hb = HelpBox( self.USFMEditWindowParentApp, ProgName, ProgNameVersion )
-    # end of Application.doHelp
+    # end of USFMEditWindow.doHelp
 
 
     def doAbout( self ):
         from About import AboutBox
         ab = AboutBox( self.USFMEditWindowParentApp, ProgName, ProgNameVersion )
-    # end of Application.doAbout
+    # end of USFMEditWindow.doAbout
 
 
     def createMenuBar( self ):
@@ -193,7 +194,7 @@ class USFMEditWindow( InternalBibleResourceWindow ):
         #colorchooser.askcolor(initialcolor='#ff0000')
         #messagebox.showinfo(message='Have a good day')
         #messagebox.askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
-    # end of ResourceWindow.createMenuBar
+    # end of USFMEditWindow.createMenuBar
 
 
     def createContextMenu( self ):
@@ -208,12 +209,12 @@ class USFMEditWindow( InternalBibleResourceWindow ):
 
         self.bind( "<Button-3>", self.showContextMenu ) # right-click
         #self.pack()
-    # end of ResourceWindow.createContextMenu
+    # end of USFMEditWindow.createContextMenu
 
 
-    def showContextMenu(self, e):
-        self.contextMenu.post( e.x_root, e.y_root )
-    # end of ResourceWindow.showContextMenu
+    #def showContextMenu(self, e):
+        #self.contextMenu.post( e.x_root, e.y_root )
+    ## end of USFMEditWindow.showContextMenu
 
 
     #def createToolBar( self ):
@@ -227,108 +228,6 @@ class USFMEditWindow( InternalBibleResourceWindow ):
     ## end of ResourceWindow.createToolBar
 
 
-    def xxcreateUSFMEditWindowWidgets( self ):
-        pass
-        #self.label1 = Label( self, text=self.moduleAbbreviation )
-        #self.label1.pack()
-
-        #self.hi_there = Button( self )
-        #self.hi_there['text'] = "Refresh"
-        #self.hi_there["command"] = self.update
-        #self.hi_there.pack(side="top")
-
-        #self.bStyle = Style( self )
-        #self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
-        #self.bStyle.map("Red.TButton",
-                        #foreground=[('pressed', 'red'), ('active', 'blue')],
-                        #background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
-
-        #self.textBox = ScrolledText( self, width=40, height=10 )
-        #self.textBox['wrap'] = 'word'
-        #verseText = SwordResources.getBCV( self.parent.bcv )
-        #print( "vt", verseText )
-        #self.textBox.insert( '1.0', verseText )
-        #self.textBox.pack()
-        #self.textBox['state'] = DISABLED # Don't allow editing
-
-        #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
-        #self.QUIT.pack( side="bottom" )
-
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    # end of USFMEditWindow.createUSFMEditWindowWidgets
-
-
-    #def update( self ): # Leaves in disabled state
-        #def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
-            ##print( "InternalBibleResourceWindow.displayVerse", firstFlag, BnameCV, [], currentVerse )
-            #haveC = None
-            #lastCharWasSpace = haveTextFlag = not firstFlag
-            #if verseDataList is None:
-                #print( "  ", BnameCV, "has no data" )
-                #self.textBox.insert( END, '--' )
-            #else:
-                #for entry in verseDataList:
-                    #marker, cleanText = entry.getMarker(), entry.getCleanText()
-                    ##print( "  ", haveTextFlag, marker, repr(cleanText) )
-                    #if marker.startswith( '¬' ): pass # Ignore these closing markers
-                    #elif marker == 'c': # Don't want to display this (original) c marker
-                        ##if not firstFlag: haveC = cleanText
-                        ##else: print( "   Ignore C={}".format( cleanText ) )
-                        #pass
-                    #elif marker == 'c#': # Might want to display this (added) c marker
-                        #if cleanText != BnameCV[0]:
-                            #if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
-                            #self.textBox.insert( END, cleanText, 'c#' )
-                            #lastCharWasSpace = False
-                    #elif marker == 's1':
-                        #self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                        #haveTextFlag = True
-                    #elif marker == 'r':
-                        #self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                        #haveTextFlag = True
-                    #elif marker == 'p':
-                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
-                        #lastCharWasSpace = True
-                        #if cleanText:
-                            #self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
-                            #lastCharWasSpace = False
-                        #haveTextFlag = True
-                    #elif marker == 'q1':
-                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
-                        #lastCharWasSpace = True
-                        #if cleanText:
-                            #self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
-                            #lastCharWasSpace = False
-                        #haveTextFlag = True
-                    #elif marker == 'm': pass
-                    #elif marker == 'v':
-                        #if haveTextFlag:
-                            #self.textBox.insert( END, ' ', 'v-' )
-                        #self.textBox.insert( END, cleanText, marker )
-                        #self.textBox.insert( END, ' ', 'v+' )
-                        #lastCharWasSpace = haveTextFlag = True
-                    #elif marker in ('v~','p~'):
-                        #self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
-                        #haveTextFlag = True
-                    #else:
-                        #logging.critical( t("USFMEditWindow.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
-        ## end of displayVerse
-
-        #if Globals.debugFlag: print( "USFMEditWindow.update()" )
-        #bibleData = self.getBibleData()
-        #self.clearText()
-        #if bibleData:
-            #verseData, previousVerse, nextVerses = self.getBibleData()
-            #if previousVerse:
-                #BnameCV, previousVerseData = previousVerse
-                #displayVerse( True, BnameCV, previousVerseData )
-            #displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
-            #for BnameCV,nextVerseData in nextVerses:
-                #displayVerse( False, BnameCV, nextVerseData )
-        #self.textBox['state'] = NORMAL # Allow editing
-    ## end of USFMEditWindow.update
-
-
     def closeEditor( self ):
         """
         """
@@ -338,8 +237,9 @@ class USFMEditWindow( InternalBibleResourceWindow ):
 
 
 
-class ESFMEditFrame( USFMEditWindow ):
+class ESFMEditWindow( USFMEditWindow ):
     pass
+# end of ESFMEditWindow class
 
 
 

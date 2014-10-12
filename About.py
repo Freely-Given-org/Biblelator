@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-10-06 (also update ProgVersion below)
+#   Last modified: 2014-10-11 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = "0.14"
+ProgVersion = "0.16"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -39,7 +39,7 @@ import sys #, os.path, configparser, logging
 #from gettext import gettext as _
 
 from tkinter import Toplevel #, Text
-from tkinter import YES, END
+from tkinter import YES, END, DISABLED
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
 #from tkinter import tix
@@ -75,6 +75,7 @@ class AboutBox( Toplevel ):
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=YES )
         self.textBox.insert( END, text )
+        self.textBox['state'] = DISABLED # Don't allow editing
 
         self.okButton = Button( self, text='Ok', command=self.destroy )
         self.okButton.pack()
@@ -96,6 +97,7 @@ class AboutBox2():
         textBox['wrap'] = 'word'
         textBox.pack( expand=YES )
         textBox.insert( END, text )
+        self.textBox['state'] = DISABLED # Don't allow editing
 
         okButton = Button( ab, text='Ok', command=ab.destroy )
         okButton.pack()
@@ -121,7 +123,7 @@ def demo():
     tkRootWindow = Tk()
     if Globals.debugFlag:
         #print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-        for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser', 
+        for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
             print( 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
     tkRootWindow.title( ProgNameVersion )
     ab = AboutBox( tkRootWindow, ProgName, ProgNameVersion )
