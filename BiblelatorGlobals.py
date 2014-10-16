@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-10-07 (also update ProgVersion below)
+#   Last modified: 2014-10-16 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -29,23 +29,16 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = "0.15"
+ProgVersion = "0.18"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = False
 
 
 import sys, re
-#import sys, logging #, os.path, configparser, logging
 from gettext import gettext as _
 #import multiprocessing
 
-# Importing this way means that we have to manually choose which
-#       widgets that we use (if there's one in each set)
-#from tkinter import Tk, Menu, StringVar, messagebox
-#from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES
-#from tkinter.ttk import Style, Frame, Button, Combobox
-#from tkinter.tix import Spinbox
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -68,8 +61,12 @@ def t( messageString ):
 
 
 # Programmed settings
-DATA_FOLDER = 'BiblelatorData/'
-SETTINGS_SUBFOLDER = 'BiblelatorSettings/'
+APP_NAME = 'Biblelator'
+DATA_FOLDER = APP_NAME + 'Data/'
+SETTINGS_SUBFOLDER = APP_NAME + 'Settings/'
+
+
+START = '1.0' # for tkinter
 
 
 MAX_WINDOWS = 20
@@ -78,8 +75,8 @@ MAX_WINDOWS = 20
 # Default settings (Note: X=width, Y=height)
 MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE = 450, 100
 MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE = 350, 100
-GROUP_CODES = ( 'A', 'B', 'C', 'D' )
-CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'ByVerse', 'ByBook', 'ByChapter' )
+BIBLE_GROUP_CODES = ( 'A', 'B', 'C', 'D' )
+BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'ByVerse', 'ByBook', 'ByChapter' )
 
 
 # Constants

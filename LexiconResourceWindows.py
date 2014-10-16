@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-10-09 (also update ProgVersion below)
+#   Last modified: 2014-10-16 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.16"
+ProgVersion = "0.18"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -39,12 +39,7 @@ debuggingThisModule = True
 import sys, os.path, logging
 from gettext import gettext as _
 
-# Importing this way means that we have to manually choose which
-#       widgets that we use (if there's one in each set)
-#from tkinter import Toplevel, Menu, Text, StringVar, messagebox
-#from tkinter import NORMAL, DISABLED, LEFT, RIGHT, BOTH, YES, END
-#from tkinter.ttk import Style, Frame#, Button, Combobox
-#from tkinter.tix import Spinbox
+from tkinter import DISABLED, END
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -79,325 +74,29 @@ def t( messageString ):
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
-#class HebrewLexiconResourceWindow( ResourceWindow ):
-    #def __init__( self, parent, master, lexiconPath=None ):
-        #if Globals.debugFlag: print( "HebrewLexiconResourceWindow.__init__( {}, {}, {} )".format( parent, master, lexiconPath ) )
-        #self.resourceWindowParent, self.myMaster, self.lexiconPath = parent, master, lexiconPath
-        #ResourceWindow.__init__( self, self.resourceWindowParent )
-        #self.pack( expand=YES, fill=BOTH )
-        ##self.createHebrewLexiconResourceWindowWidgets()
-        ##for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
-        ##    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
-        #try: self.HebrewLexicon = HebrewLexicon( self.lexiconPath )
-        #except FileNotFoundError:
-            #logging.error( t("HebrewLexiconResourceWindow.__init__ Unable to find Hebrew lexicon path: {}").format( repr(self.lexiconPath) ) )
-            #self.HebrewLexicon = None
-        #self.resourceWindowParent.title( "Hebrew Lexicon" )
-    ## end of HebrewLexiconResourceWindow.__init__
-
-
-    #def xxcreateHebrewLexiconResourceWindowWidgets( self ):
-        #pass
-        ##self.label1 = Label( self, text=self.moduleAbbreviation )
-        ##self.label1.pack()
-
-        ##self.hi_there = Button( self )
-        ##self.hi_there['text'] = "Refresh"
-        ##self.hi_there["command"] = self.update
-        ##self.hi_there.pack(side="top")
-
-        ##self.bStyle = Style( self )
-        ##self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
-        ##self.bStyle.map("Red.TButton",
-                        ##foreground=[('pressed', 'red'), ('active', 'blue')],
-                        ##background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
-
-        ##self.textBox = ScrolledText( self, width=40, height=10 )
-        ##self.textBox['wrap'] = 'word'
-        ##verseText = SwordResources.getBCV( self.parent.bcv )
-        ##print( "vt", verseText )
-        ##self.textBox.insert( '1.0', verseText )
-        ##self.textBox.pack()
-        ##self.textBox['state'] = DISABLED # Don't allow editing
-
-        ##self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
-        ##self.QUIT.pack( side="bottom" )
-
-        ##Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    ## end of HebrewLexiconResourceWindow.createHebrewLexiconResourceWindowWidgets
-
-
-    #def getBibleData( self ):
-        #"""
-        #Returns the requested verse, the previous verse, and the next n verses.
-        #"""
-        #if Globals.debugFlag: print( t("HebrewLexiconResourceWindow.getBibleData()") )
-        #if self.HebrewLexicon is None:
-            #return
-        #return
-
-        #previousVerseData = None
-        #if self.myMaster.previousVerseKey:
-            #BBB = self.myMaster.previousVerseKey[0]
-            ##if BBB not in self.HebrewLexicon: self.HebrewLexicon.loadBook( BBB )
-            ##if self.myMaster.previousVerseKey[1]!='0' and self.myMaster.previousVerseKey[2]!='0': # Sword doesn't seem to handle introductions???
-            ##previousVerse = (  prevBCV, SwordResources.getBCV( prevBCV, self.moduleAbbreviation ) )
-            #previousVerseData = ( self.myMaster.previousVerseKey, self.USFMBible.getVerseData( self.myMaster.previousVerseKey ) )
-
-        #BBB = self.myMaster.verseKey[0]
-        ##print( "1", self.USFMBible )
-        ##if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-        ##print( "2", self.USFMBible )
-        #verseData = self.USFMBible.getVerseData( self.myMaster.verseKey )
-
-        #nextVersesData = []
-        #for nextVerseKey in self.myMaster.nextVerseKeys:
-            #BBB = nextVerseKey[0]
-            ##if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-            #nextVerseData = self.USFMBible.getVerseData( nextVerseKey )
-            #if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData) )
-
-        #return verseData, previousVerseData, nextVersesData
-    ## end of HebrewLexiconResourceWindow.getBibleData
-
-
-    #def update( self ): # Leaves in disabled state
-        #def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
-            ##print( "HebrewLexiconResourceWindow.displayVerse", firstFlag, BnameCV, [], currentVerse )
-            #haveC = None
-            #lastCharWasSpace = haveTextFlag = not firstFlag
-            #if verseDataList is None:
-                #print( "  ", BnameCV, "has no data" )
-                #self.textBox.insert( END, '--' )
-            #else:
-                #for entry in verseDataList:
-                    #marker, cleanText = entry.getMarker(), entry.getCleanText()
-                    ##print( "  ", haveTextFlag, marker, repr(cleanText) )
-                    #if marker.startswith( '¬' ): pass # Ignore these closing markers
-                    #elif marker == 'c': # Don't want to display this (original) c marker
-                        ##if not firstFlag: haveC = cleanText
-                        ##else: print( "   Ignore C={}".format( cleanText ) )
-                        #pass
-                    #elif marker == 'c#': # Might want to display this (added) c marker
-                        #if cleanText != BnameCV[0]:
-                            #if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
-                            #self.textBox.insert( END, cleanText, 'c#' )
-                            #lastCharWasSpace = False
-                    #elif marker == 's1':
-                        #self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                        #haveTextFlag = True
-                    #elif marker == 'p':
-                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
-                        #lastCharWasSpace = True
-                        #if cleanText:
-                            #self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
-                            #lastCharWasSpace = False
-                        #haveTextFlag = True
-                    #elif marker == 'q1':
-                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
-                        #lastCharWasSpace = True
-                        #if cleanText:
-                            #self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
-                            #lastCharWasSpace = False
-                        #haveTextFlag = True
-                    #elif marker == 'm': pass
-                    #elif marker == 'v':
-                        #if haveTextFlag:
-                            #self.textBox.insert( END, ' ', 'v-' )
-                        #self.textBox.insert( END, cleanText, marker )
-                        #self.textBox.insert( END, ' ', 'v+' )
-                        #lastCharWasSpace = haveTextFlag = True
-                    #elif marker in ('v~','p~'):
-                        #self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
-                        #haveTextFlag = True
-                    #else:
-                        #logging.critical( t("HebrewLexiconResourceWindow.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
-        ## end of displayVerse
-
-        #if Globals.debugFlag: print( "HebrewLexiconResourceWindow.update()" )
-        #bibleData = self.getBibleData()
-        #self.clearText()
-        #if bibleData:
-            #verseData, previousVerse, nextVerses = self.getBibleData()
-            #if previousVerse:
-                #BnameCV, previousVerseData = previousVerse
-                #displayVerse( True, BnameCV, previousVerseData )
-            #displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
-            #for BnameCV,nextVerseData in nextVerses:
-                #displayVerse( False, BnameCV, nextVerseData )
-        #self.textBox['state'] = DISABLED # Don't allow editing
-    ## end of HebrewLexiconResourceWindow.update
-## end of HebrewLexiconResourceWindow class
-
-
-
-#class GreekLexiconResourceWindow( ResourceWindow ):
-    #def __init__( self, parent, master, lexiconPath=None ):
-        #if Globals.debugFlag: print( "GreekLexiconResourceWindow.__init__( {}, {}, {} )".format( parent, master, lexiconPath ) )
-        #self.resourceWindowParent, self.myMaster, self.lexiconPath = parent, master, lexiconPath
-        #ResourceWindow.__init__( self, self.resourceWindowParent )
-        #self.pack( expand=YES, fill=BOTH )
-        ##self.createGreekLexiconResourceWindowWidgets()
-        ##for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
-        ##    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
-        #try: self.GreekLexicon = GreekLexicon( self.lexiconPath )
-        #except FileNotFoundError:
-            #logging.error( t("GreekLexiconResourceWindow.__init__ Unable to find Greek lexicon path: {}").format( repr(self.lexiconPath) ) )
-            #self.GreekLexicon = None
-        #self.resourceWindowParent.title( "Greek Lexicon" )
-    ## end of GreekLexiconResourceWindow.__init__
-
-
-    #def xxcreateGreekLexiconResourceWindowWidgets( self ):
-        #pass
-        ##self.label1 = Label( self, text=self.moduleAbbreviation )
-        ##self.label1.pack()
-
-        ##self.hi_there = Button( self )
-        ##self.hi_there['text'] = "Refresh"
-        ##self.hi_there["command"] = self.update
-        ##self.hi_there.pack(side="top")
-
-        ##self.bStyle = Style( self )
-        ##self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
-        ##self.bStyle.map("Red.TButton",
-                        ##foreground=[('pressed', 'red'), ('active', 'blue')],
-                        ##background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
-
-        ##self.textBox = ScrolledText( self, width=40, height=10 )
-        ##self.textBox['wrap'] = 'word'
-        ##verseText = SwordResources.getBCV( self.parent.bcv )
-        ##print( "vt", verseText )
-        ##self.textBox.insert( '1.0', verseText )
-        ##self.textBox.pack()
-        ##self.textBox['state'] = DISABLED # Don't allow editing
-
-        ##self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
-        ##self.QUIT.pack( side="bottom" )
-
-        ##Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-    ## end of GreekLexiconResourceWindow.createGreekLexiconResourceWindowWidgets
-
-
-    #def getBibleData( self ):
-        #"""
-        #Returns the requested verse, the previous verse, and the next n verses.
-        #"""
-        #if Globals.debugFlag: print( t("GreekLexiconResourceWindow.getBibleData()") )
-        #if self.GreekLexicon is None:
-            #return
-        #return
-
-        #previousVerseData = None
-        #if self.myMaster.previousVerseKey:
-            #BBB = self.myMaster.previousVerseKey[0]
-            ##if BBB not in self.GreekLexicon: self.GreekLexicon.loadBook( BBB )
-            ##if self.myMaster.previousVerseKey[1]!='0' and self.myMaster.previousVerseKey[2]!='0': # Sword doesn't seem to handle introductions???
-            ##previousVerse = (  prevBCV, SwordResources.getBCV( prevBCV, self.moduleAbbreviation ) )
-            #previousVerseData = ( self.myMaster.previousVerseKey, self.USFMBible.getVerseData( self.myMaster.previousVerseKey ) )
-
-        #BBB = self.myMaster.verseKey[0]
-        ##print( "1", self.USFMBible )
-        ##if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-        ##print( "2", self.USFMBible )
-        #verseData = self.USFMBible.getVerseData( self.myMaster.verseKey )
-
-        #nextVersesData = []
-        #for nextVerseKey in self.myMaster.nextVerseKeys:
-            #BBB = nextVerseKey[0]
-            ##if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-            #nextVerseData = self.USFMBible.getVerseData( nextVerseKey )
-            #if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData) )
-
-        #return verseData, previousVerseData, nextVersesData
-    ## end of GreekLexiconResourceWindow.getBibleData
-
-
-    #def update( self ): # Leaves in disabled state
-        #def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
-            ##print( "GreekLexiconResourceWindow.displayVerse", firstFlag, BnameCV, [], currentVerse )
-            #haveC = None
-            #lastCharWasSpace = haveTextFlag = not firstFlag
-            #if verseDataList is None:
-                #print( "  ", BnameCV, "has no data" )
-                #self.textBox.insert( END, '--' )
-            #else:
-                #for entry in verseDataList:
-                    #marker, cleanText = entry.getMarker(), entry.getCleanText()
-                    ##print( "  ", haveTextFlag, marker, repr(cleanText) )
-                    #if marker.startswith( '¬' ): pass # Ignore these closing markers
-                    #elif marker == 'c': # Don't want to display this (original) c marker
-                        ##if not firstFlag: haveC = cleanText
-                        ##else: print( "   Ignore C={}".format( cleanText ) )
-                        #pass
-                    #elif marker == 'c#': # Might want to display this (added) c marker
-                        #if cleanText != BnameCV[0]:
-                            #if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
-                            #self.textBox.insert( END, cleanText, 'c#' )
-                            #lastCharWasSpace = False
-                    #elif marker == 's1':
-                        #self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                        #haveTextFlag = True
-                    #elif marker == 'p':
-                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
-                        #lastCharWasSpace = True
-                        #if cleanText:
-                            #self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
-                            #lastCharWasSpace = False
-                        #haveTextFlag = True
-                    #elif marker == 'q1':
-                        #self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
-                        #lastCharWasSpace = True
-                        #if cleanText:
-                            #self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
-                            #lastCharWasSpace = False
-                        #haveTextFlag = True
-                    #elif marker == 'm': pass
-                    #elif marker == 'v':
-                        #if haveTextFlag:
-                            #self.textBox.insert( END, ' ', 'v-' )
-                        #self.textBox.insert( END, cleanText, marker )
-                        #self.textBox.insert( END, ' ', 'v+' )
-                        #lastCharWasSpace = haveTextFlag = True
-                    #elif marker in ('v~','p~'):
-                        #self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
-                        #haveTextFlag = True
-                    #else:
-                        #logging.critical( t("GreekLexiconResourceWindow.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
-        ## end of displayVerse
-
-        #if Globals.debugFlag: print( "GreekLexiconResourceWindow.update()" )
-        #bibleData = self.getBibleData()
-        #self.clearText()
-        #if bibleData:
-            #verseData, previousVerse, nextVerses = self.getBibleData()
-            #if previousVerse:
-                #BnameCV, previousVerseData = previousVerse
-                #displayVerse( True, BnameCV, previousVerseData )
-            #displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
-            #for BnameCV,nextVerseData in nextVerses:
-                #displayVerse( False, BnameCV, nextVerseData )
-        #self.textBox['state'] = DISABLED # Don't allow editing
-    ## end of GreekLexiconResourceWindow.update
-## end of GreekLexiconResourceWindow class
-
-
-
 class BibleLexiconResourceWindow( ResourceWindow ):
-    def __init__( self, parent, master, lexiconPath=None ):
-        if Globals.debugFlag: print( "BibleLexiconResourceWindow.__init__( {}, {}, {} )".format( parent, master, lexiconPath ) )
-        self.resourceWindowParent, self.myMaster, self.lexiconPath = parent, master, lexiconPath
-        ResourceWindow.__init__( self, self.resourceWindowParent )
-        self.pack( expand=YES, fill=BOTH )
+    def __init__( self, parentApp, lexiconPath=None ):
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("BibleLexiconResourceWindow.__init__( {}, {} )").format( parentApp, lexiconPath ) )
+        self.lexiconWord = None
+        ResourceWindow.__init__( self, parentApp, 'LexiconResource' )
+        self.parentApp, self.lexiconPath = parentApp, lexiconPath
+        self.moduleID = self.lexiconPath
+        self.winType = 'BibleLexiconResourceWindow'
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
         #    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
-        try: self.BibleLexicon = BibleLexicon( os.path.join( self.lexiconPath, 'HebrewLexicon/' ), os.path.join( self.lexiconPath, 'morphgnt/strongs-dictionary-xml/' ) )
+        try: self.BibleLexicon = BibleLexicon( os.path.join( self.lexiconPath, 'HebrewLexicon/' ),
+                                               os.path.join( self.lexiconPath, 'strongs-dictionary-xml/' ) )
         except FileNotFoundError:
-            logging.error( t("BibleLexiconResourceWindow.__init__ Unable to find Bible lexicon path: {}").format( repr(self.lexiconPath) ) )
+            logging.critical( t("BibleLexiconResourceWindow.__init__ Unable to find Bible lexicon path: {}").format( repr(self.lexiconPath) ) )
             self.BibleLexicon = None
-        self.resourceWindowParent.title( "Bible Lexicon" )
     # end of BibleLexiconResourceWindow.__init__
+
+
+    def refreshTitle( self ):
+        self.title( "[{}] {}".format( repr(self.lexiconWord), _("Bible Lexicon") ) )
+    # end if BibleLexiconResourceWindow.refreshTitle
 
 
     def xxcreateBibleLexiconResourceWindowWidgets( self ):
@@ -426,12 +125,10 @@ class BibleLexiconResourceWindow( ResourceWindow ):
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         #self.QUIT.pack( side="bottom" )
-
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
     # end of BibleLexiconResourceWindow.createBibleLexiconResourceWindowWidgets
 
 
-    def getBibleData( self ):
+    def xxxgetBibleData( self ):
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
@@ -465,7 +162,7 @@ class BibleLexiconResourceWindow( ResourceWindow ):
     # end of BibleLexiconResourceWindow.getBibleData
 
 
-    def update( self ): # Leaves in disabled state
+    def xxxupdate( self ): # Leaves in disabled state
         def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
             #print( "BibleLexiconResourceWindow.displayVerse", firstFlag, BnameCV, [], currentVerse )
             haveC = None
@@ -531,6 +228,22 @@ class BibleLexiconResourceWindow( ResourceWindow ):
                 displayVerse( False, BnameCV, nextVerseData )
         self.textBox['state'] = DISABLED # Don't allow editing
     # end of BibleLexiconResourceWindow.update
+
+
+    def updateLexiconWord( self, newLexiconWord ): # Leaves in disabled state
+        if Globals.debugFlag: print( t("updateLexiconWord( {} )").format( newLexiconWord ) )
+        self.lexiconWord = newLexiconWord
+        self.clearText() # Leaves the text box enabled
+        if self.BibleLexicon is None:
+            self.textBox.insert( END, "No lexicon loaded so can't display entry for {}.".format( repr(newLexiconWord) ) )
+        else:
+            self.textBox.insert( END, "Entry for {}".format( repr(newLexiconWord) ) )
+            #txt = self.BibleLexicon.getEntryData( self.lexiconWord )
+            #if txt: self.textBox.insert( END, '\n'+txt )
+            txt = self.BibleLexicon.getEntryHTML( self.lexiconWord )
+            if txt: self.textBox.insert( END, '\n'+txt )
+        self.textBox['state'] = DISABLED # Don't allow editing
+    # end of BibleLexiconResourceWindow.updateLexiconWord
 # end of BibleLexiconResourceWindow class
 
 

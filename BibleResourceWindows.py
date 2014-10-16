@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-13 (also update ProgVersion below)
+#   Last modified: 2014-10-16 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.17"
+ProgVersion = "0.18"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -40,7 +40,7 @@ import sys, logging #, os.path, configparser, logging
 from gettext import gettext as _
 from collections import OrderedDict
 
-from tkinter import Menu, IntVar, DISABLED, BOTH, YES, END
+from tkinter import Menu, IntVar, StringVar, DISABLED, BOTH, YES, END
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -53,7 +53,7 @@ from DigitalBiblePlatform import DBPBible
 from UnknownBible import UnknownBible
 
 # Biblelator imports
-from BiblelatorGlobals import GROUP_CODES
+from BiblelatorGlobals import BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
 from ResourceWindows import ResourceWindow
 
 
@@ -80,13 +80,17 @@ class BibleResourceWindow( ResourceWindow ):
     def __init__( self, parentApp, moduleID ):
         if Globals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {} )").format( parentApp, moduleID ) )
         self.parentApp, self.moduleID = parentApp, moduleID
-        self._viewRadio = IntVar()
+
+        # Set some dummy values required soon (esp. by refreshTitle)
+        self._viewRadio, self._groupRadio = IntVar(), StringVar()
+        self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
+        self.contextViewMode = 'Default'
+        self.verseKey = SimpleVerseKey( 'GEN','1','1' )
         ResourceWindow.__init__( self, self.parentApp, 'BibleResource' )
 
         if self.contextViewMode=='Default':
             self.contextViewMode = 'BeforeAndAfter'
             self.parentApp.viewVersesBefore, self.parentApp.viewVersesAfter = 2, 6
-        self.groupCode = GROUP_CODES[0] # Put into first/default BCV group
 
         if 1:
             for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -128,7 +132,9 @@ class BibleResourceWindow( ResourceWindow ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Close', underline=0, command=self.closeResourceWindow ) # close this window
+        fileMenu.add_command( label='Info...', underline=0, command=self.onInfo )
+        fileMenu.add_separator()
+        fileMenu.add_command( label='Close', underline=0, command=self.onClose ) # close this window
 
         editMenu = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
@@ -152,6 +158,12 @@ class BibleResourceWindow( ResourceWindow ):
         gotoMenu.add_command( label='Next list item', underline=0, command=self.notWrittenYet )
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Book', underline=0, command=self.notWrittenYet )
+        gotoMenu.add_separator()
+        self._groupRadio.set( self.groupCode )
+        gotoMenu.add_radiobutton( label='Group A', underline=6, value='A', variable=self._groupRadio, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group B', underline=6, value='B', variable=self._groupRadio, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadio, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadio, command=self.changeBibleGroupCode )
 
         viewMenu = Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
@@ -197,11 +209,11 @@ class BibleResourceWindow( ResourceWindow ):
             print( t("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
             assert( currentViewNumber in range( 1, 4+1 ) )
         previousContextViewMode = self.contextViewMode
-        if 'Bible' in self.genericWindowType:
-            if currentViewNumber == 1: self.contextViewMode = CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
-            elif currentViewNumber == 2: self.contextViewMode = CONTEXT_VIEW_MODES[1] # 'ByVerse'
-            elif currentViewNumber == 3: self.contextViewMode = CONTEXT_VIEW_MODES[2] # 'ByBook'
-            elif currentViewNumber == 4: self.contextViewMode = CONTEXT_VIEW_MODES[3] # 'ByChapter'
+        if self.genericWindowType == 'BibleResource':
+            if currentViewNumber == 1: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
+            elif currentViewNumber == 2: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[1] # 'ByVerse'
+            elif currentViewNumber == 3: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[2] # 'ByBook'
+            elif currentViewNumber == 4: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[3] # 'ByChapter'
             else: halt # unknown Bible view mode
         else: halt # window type view mode not handled yet
         if self.contextViewMode != previousContextViewMode: # we need to update our view
@@ -211,6 +223,28 @@ class BibleResourceWindow( ResourceWindow ):
             elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
             self.updateShownBCV( windowVerseKey )
     # end of BibleResourceWindow.changeBibleContextView
+
+
+    def changeBibleGroupCode( self ):
+        """
+        Called when  a Bible group code is changed from the menus/GUI.
+        """
+        previousGroupCode = self.groupCode
+        newGroupCode = self._groupRadio.get()
+        if Globals.debugFlag:
+            print( t("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
+            assert( newGroupCode in BIBLE_GROUP_CODES )
+        assert( 'Bible' in self.genericWindowType )
+        if 'Bible' in self.genericWindowType: # do we really need this test?
+            self.groupCode = newGroupCode
+        else: halt # window type view mode not handled yet
+        if self.groupCode != previousGroupCode: # we need to update our view
+            if   self.groupCode == 'A': windowVerseKey = self.parentApp.GroupA_VerseKey
+            elif self.groupCode == 'B': windowVerseKey = self.parentApp.GroupB_VerseKey
+            elif self.groupCode == 'C': windowVerseKey = self.parentApp.GroupC_VerseKey
+            elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
+            self.updateShownBCV( windowVerseKey )
+    # end of BibleResourceWindow.changeBibleGroupCode
 
 
     def getSwordVerseKey( self, verseKey ):
@@ -226,7 +260,10 @@ class BibleResourceWindow( ResourceWindow ):
 
         MUST BE OVERRIDDEN.
         """
-        if Globals.debugFlag: print( t("This 'body' method must be overridden!") ); halt
+        if Globals.debugFlag:
+            print( t("getVerseData( {} )").format( verseKey ) )
+            logging.critical( t("This getVerseData 'body' method must be overridden!") )
+            halt
     # end of BibleResourceWindow.getVerseData
 
 
@@ -238,7 +275,8 @@ class BibleResourceWindow( ResourceWindow ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        #if Globals.debugFlag and debuggingThisModule: print( t("getCachedVerseData( {} )").format( verseKey ) )
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("getCachedVerseData( {} )").format( verseKey ) )
         if str(verseKey) in self.cache:
             #if Globals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceWindow cache") )
             self.cache.move_to_end( str(verseKey) )
@@ -257,7 +295,8 @@ class BibleResourceWindow( ResourceWindow ):
         Add the requested verse to the end of self.textBox.
         """
         #if Globals.debugFlag and debuggingThisModule:
-            #print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
+            #try: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
+            #except UnicodeEncodeError: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
         lastCharWasSpace = haveTextFlag = not firstFlag
         if verseDataList is None:
             print( "  ", verseKey, "has no data for", self.moduleID )
@@ -434,7 +473,9 @@ class BibleResourceWindow( ResourceWindow ):
                 self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
                 startingFlag = False
 
-        else: halt # Unknown context view mode
+        else:
+            logging.critical( t("BibleResourceWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+            if Globals.debugFlag: halt # Unknown context view mode
 
         self.textBox['state'] = DISABLED # Don't allow editing
         self.refreshTitle()
@@ -446,8 +487,8 @@ class BibleResourceWindow( ResourceWindow ):
 class SwordBibleResourceWindow( BibleResourceWindow ):
     def __init__( self, parentApp, moduleAbbreviation ):
         if Globals.debugFlag: print( "SwordBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
-        BibleResourceWindow.__init__( self, parentApp, moduleAbbreviation )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
+        BibleResourceWindow.__init__( self, self.parentApp, self.moduleAbbreviation )
         self.winType = 'SwordBibleResourceWindow'
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
@@ -470,11 +511,26 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        #if Globals.debugFlag: print( t("SwordBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("SwordBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
-                return self.parentApp.SwordInterface.getVerseData( self.SwordModule, SwordKey )
+                rawInternalBibleData = self.parentApp.SwordInterface.getVerseData( self.SwordModule, SwordKey )
+                # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
+                from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
+                import re
+                adjustedInternalBibleData = InternalBibleEntryList()
+                for existingInternalBibleEntry in rawInternalBibleData:
+                    #print( 'eIBE', existingInternalBibleEntry )
+                    cleanText = existingInternalBibleEntry.getCleanText()
+                    cleanText = cleanText.replace( '</w>', '' )
+                    cleanText = re.sub( '<w .+?>', '', cleanText )
+                    newInternalBibleEntry = InternalBibleEntry( existingInternalBibleEntry[0], existingInternalBibleEntry[1], existingInternalBibleEntry[2],
+                        cleanText, existingInternalBibleEntry[4], existingInternalBibleEntry[5] )
+                    #print( 'nIBE', newInternalBibleEntry )
+                    adjustedInternalBibleData.append( newInternalBibleEntry )
+                return adjustedInternalBibleData
     # end of SwordBibleResourceWindow.getVerseData
 # end of SwordBibleResourceWindow class
 
@@ -485,8 +541,8 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
         if Globals.debugFlag:
             print( "DBPBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
-        BibleResourceWindow.__init__( self, parentApp, moduleAbbreviation )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
+        BibleResourceWindow.__init__( self, self.parentApp, self.moduleAbbreviation )
         self.winType = 'DBPBibleResourceWindow'
 
         try: self.DBPModule = DBPBible( self.moduleAbbreviation )
@@ -512,7 +568,8 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        #if Globals.debugFlag and debuggingThisModule: print( t("DBPBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("DBPBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
         if self.DBPModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 return self.DBPModule.getVerseData( verseKey )
@@ -525,11 +582,13 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
     def __init__( self, parentApp, modulePath ):
         """
         Given a folder, try to open an UnknownBible.
-        If successful, set self.InternalBible to point to the loaded Bible.
+        If successful, set self.internalBible to point to the loaded Bible.
         """
         if Globals.debugFlag: print( "InternalBibleResourceWindow.__init__( {}, {} )".format( parentApp, modulePath ) )
-        BibleResourceWindow.__init__( self, parentApp, modulePath )
         self.parentApp, self.modulePath = parentApp, modulePath
+
+        self.internalBible = None
+        BibleResourceWindow.__init__( self, self.parentApp, self.modulePath )
         self.winType = 'InternalBibleResourceWindow'
 
         try: self.UnknownBible = UnknownBible( self.modulePath )
@@ -540,18 +599,18 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
             result = self.UnknownBible.search( autoLoadAlways=True )
             if isinstance( result, str ):
                 print( "Unknown Bible returned: {}".format( repr(result) ) )
-                self.InternalBible = None
-            else: self.InternalBible = result
-        if self.InternalBible is not None: # Define which functions we use by default
-            self.getNumVerses = self.InternalBible.getNumVerses
-            self.getNumChapters = self.InternalBible.getNumChapters
+                self.internalBible = None
+            else: self.internalBible = result
+        if self.internalBible is not None: # Define which functions we use by default
+            self.getNumVerses = self.internalBible.getNumVerses
+            self.getNumChapters = self.internalBible.getNumChapters
     # end of InternalBibleResourceWindow.__init__
 
 
     def refreshTitle( self ):
         self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self.groupCode,
-                        self.modulePath if self.InternalBible is None else self.InternalBible.name,
-                        ' NOT FOUND' if self.InternalBible is None else '',
+                        self.modulePath if self.internalBible is None else self.internalBible.name,
+                        ' NOT FOUND' if self.internalBible is None else '',
                         self.verseKey.getBBB(), self.verseKey.getChapterNumber(), self.verseKey.getVerseNumber(),
                         self.contextViewMode ) )
     # end if InternalBibleResourceWindow.refreshTitle
@@ -561,9 +620,10 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        #if Globals.debugFlag: print( t("InternalBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
-        if self.InternalBible is not None:
-            try: return self.InternalBible.getVerseData( verseKey )
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("InternalBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
+        if self.internalBible is not None:
+            try: return self.internalBible.getVerseData( verseKey )
             except KeyError:
                 logging.critical( t("InternalBibleResourceWindow.getVerseData for {} {} got a KeyError!") \
                                                                 .format( self.winType, verseKey ) )

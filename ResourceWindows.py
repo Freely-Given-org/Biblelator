@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-13 (also update ProgVersion below)
+#   Last modified: 2014-10-16 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,21 +30,21 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ResourceWindows"
 ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.17"
+ProgVersion = "0.18"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
 
 
-import sys#, os.path, configparser, logging
+import sys
 from gettext import gettext as _
 
-# Importing this way means that we have to manually choose which
-#       widgets that we use (if there's one in each set)
 from tkinter import Toplevel, TclError, Menu, messagebox
-from tkinter import NORMAL, DISABLED, BOTTOM, LEFT, RIGHT, BOTH, YES, END, E
+from tkinter import NORMAL, DISABLED, BOTTOM, LEFT, RIGHT, BOTH, YES, E, FALSE, \
+                    END, INSERT, SEL, SEL_FIRST, SEL_LAST
+from tkinter.messagebox import showerror, showinfo
 from tkinter.scrolledtext import ScrolledText
-#from tkinter.ttk import Style, Frame # Sizegrip, Button, Combobox
+from tkinter.simpledialog import askstring, askinteger
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -52,7 +52,8 @@ sys.path.append( sourceFolder )
 import Globals
 
 # Biblelator imports
-from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
+from BiblelatorGlobals import APP_NAME, START, \
+                             MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
 
 
 
@@ -81,26 +82,25 @@ class ResourceWindow( Toplevel ):
         if Globals.debugFlag:
             #print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
-            assert( genericWindowType in ('BibleResource','LexiconResource','BibleEditor') )
+            assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor') )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         Toplevel.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeResourceWindow )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
 
-        self.contextViewMode = 'Default'
-        #if 'Bible' in self.genericWindowType:
-            #self._viewRadio = IntVar()
-            ##self._viewRadio.set( 0 )
-        #if 'Editor' not in self.genericWindowType: # the editor creates its own
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
-        #self.pack( expand=1 )
-        #Sizegrip( self ).pack( side=BOTTOM, anchor=E )
 
         self.textBox = ScrolledText( self, state=DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=YES, fill=BOTH )
+
+        # Options for find, etc.
+        self.optionsDict = {}
+        self.optionsDict['caseinsens'] = True
+
+        self.refreshTitle() # Must be in superclass
     # end of ResourceWindow.__init__
 
 
@@ -132,86 +132,9 @@ class ResourceWindow( Toplevel ):
 
 
     def createMenuBar( self ):
-        if Globals.debugFlag: print( t("This 'createMenuBar' method can be overridden!") )
-        pass
-
-        #self.menubar = Menu( self )
-        ##self['menu'] = self.menubar
-        #self.config( menu=self.menubar ) # alternative
-
-        #fileMenu = Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        ##fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
-        ##fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
-        ##fileMenu.add_separator()
-        ##subfileMenuImport = Menu( fileMenu )
-        ##subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        ##fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
-        ##subfileMenuExport = Menu( fileMenu )
-        ##subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        ##subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
-        ##fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
-        ##fileMenu.add_separator()
-        #fileMenu.add_command( label='Close', underline=0, command=self.closeResourceWindow ) # close this window
-
-        #editMenu = Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
-        #editMenu.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
-        #editMenu.add_separator()
-        #editMenu.add_command( label='Find...', underline=0, command=self.notWrittenYet )
-
-        #gotoMenu = Menu( self.menubar )
-        #self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
-        #if 'Bible' in self.genericWindowType:
-            #gotoMenu.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_command( label='Next book', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_command( label='Previous chapter', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_command( label='Next chapter', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_command( label='Previous verse', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_command( label='Next verse', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_separator()
-            #gotoMenu.add_command( label='Forward', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_command( label='Backward', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_separator()
-            #gotoMenu.add_command( label='Previous list item', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_command( label='Next list item', underline=0, command=self.notWrittenYet )
-            #gotoMenu.add_separator()
-            #gotoMenu.add_command( label='Book', underline=0, command=self.notWrittenYet )
-
-        #viewMenu = Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
-        #if 'Bible' in self.genericWindowType:
-            #if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
-            #elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 2 )
-            #elif self.contextViewMode == 'ByBook': self._viewRadio.set( 3 )
-            #elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 4 )
-
-            #viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
-            #viewMenu.add_radiobutton( label='Single verse', underline=7, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
-            #viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
-            #viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
-
-        #toolsMenu = Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        #toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
-
-        #windowMenu = Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
-        #windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
-
-        #helpMenu = Menu( self.menubar, name='help', tearoff=False )
-        #self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        #helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
-        #helpMenu.add_separator()
-        #helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
-
-        #filename = filedialog.askopenfilename()
-        #filename = filedialog.asksaveasfilename()
-        #dirname = filedialog.askdirectory()
-        #colorchooser.askcolor(initialcolor='#ff0000')
-        #messagebox.showinfo(message='Have a good day')
-        #messagebox.askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
-    # end of ResourceWindow.createMenuBar
+        if Globals.debugFlag:
+            print( t("This 'createMenuBar' method MUST be overridden!") )
+            halt
 
 
     def createContextMenu( self ):
@@ -219,9 +142,13 @@ class ResourceWindow( Toplevel ):
         Can be overriden if necessary.
         """
         self.contextMenu = Menu( self, tearoff=0 )
-        self.contextMenu.add_command( label="Copy", underline=0, command=self.notWrittenYet )
+        self.contextMenu.add_command( label="Copy", underline=0, command=self.onCopy )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Close", underline=0, command=self.closeResourceWindow )
+        self.contextMenu.add_command( label="Select all", underline=7, command=self.onSelectAll )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label="Find...", underline=0, command=self.onFind )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label="Close", underline=1, command=self.onClose )
 
         self.bind( "<Button-3>", self.showContextMenu ) # right-click
         #self.pack()
@@ -237,25 +164,142 @@ class ResourceWindow( Toplevel ):
         """
         Designed to be overridden.
         """
-        if Globals.debugFlag: print( t("This 'createToolBar' method can be overridden!") )
-        pass
-        #if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindow.createToolBar()") )
-        #toolbar = Frame( self, cursor='hand2', relief=RAISED ) # bd=2
-        #toolbar.pack( side=BOTTOM, fill=X )
-        #Button( toolbar, text='Halt',  command=self.quit ).pack( side=RIGHT )
-        #Button( toolbar, text='Hide Resources', command=self.hideResources ).pack(side=LEFT )
-        #Button( toolbar, text='Hide All', command=self.hideAll ).pack( side=LEFT )
-        #Button( toolbar, text='Show All', command=self.showAll ).pack( side=LEFT )
-        #Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=LEFT )
+        if Globals.debugFlag:
+            print( t("This 'createToolBar' method can be overridden!") )
     # end of ResourceWindow.createToolBar
 
 
+    def onCopy( self ):                           # get text selected by mouse, etc.
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.onCopy()") )
+        if not self.textBox.tag_ranges( SEL ):       # save in cross-app clipboard
+            showerror( APP_NAME, 'No text selected')
+        else:
+            text = self.textBox.get( SEL_FIRST, SEL_LAST)
+            self.clipboard_clear()
+            self.clipboard_append(text)
+    # end of ResourceWindow.onCopy
+
+
+    def onSelectAll( self ):
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.onSelectAll()") )
+        self.textBox.tag_add( SEL, START, END+'-1c' )   # select entire text
+        self.textBox.mark_set( INSERT, START )          # move insert point to top
+        self.textBox.see( INSERT )                      # scroll to top
+    # end of ResourceWindow.onSelectAll
+
+
+    def onGoto( self, forceline=None):
+        line = forceline or askinteger( APP_NAME, _("Enter line number") )
+        self.textBox.update()
+        self.textBox.focus()
+        if line is not None:
+            maxindex = self.textBox.index( END+'-1c' )
+            maxline  = int( maxindex.split('.')[0] )
+            if line > 0 and line <= maxline:
+                self.textBox.mark_set( INSERT, '{}.0'.format(line) ) # goto line
+                self.textBox.tag_remove( SEL, START, END )          # delete selects
+                self.textBox.tag_add( SEL, INSERT, 'insert + 1l' )  # select line
+                self.textBox.see( INSERT )                          # scroll to line
+            else:
+                showerror( APP_NAME, _("No such line number") )
+    # end of ResourceWindow.onGoto
+
+
+    def onFind( self, lastkey=None):
+        key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        self.textBox.update()
+        self.textBox.focus()
+        self.lastfind = key
+        if key:
+            nocase = self.optionsDict['caseinsens']
+            where = self.textBox.search( key, INSERT, END, nocase=nocase )
+            if not where:                                          # don't wrap
+                showerror( APP_NAME, 'String not found' )
+            else:
+                pastkey = where + '+%dc' % len(key)           # index past key
+                self.textBox.tag_remove( SEL, START, END )         # remove any sel
+                self.textBox.tag_add( SEL, where, pastkey )        # select key
+                self.textBox.mark_set( INSERT, pastkey )           # for next find
+                self.textBox.see( where )                          # scroll display
+    # end of ResourceWindow.onFind
+
+
+    def onRefind( self ):
+        self.onFind( self.lastfind)
+    # end of ResourceWindow.onRefind
+
+
+    def onInfo( self ):
+        """
+        pop-up dialog giving text statistics and cursor location;
+        caveat (2.1): Tk insert position column counts a tab as one
+        character: translate to next multiple of 8 to match visual?
+        """
+        text  = self.getAllText()
+        bytes = len( text )             # words uses a simple guess:
+        lines = len( text.split('\n') ) # any separated by whitespace
+        words = len( text.split() )     # 3.x: bytes is really chars
+        index = self.textBox.index( INSERT ) # str is unicode code points
+        where = tuple( index.split('.') )
+        showinfo( APP_NAME+' Information',
+                 'Current location:\n\n' +
+                 'line:\t%s\ncolumn:\t%s\n\n' % where +
+                 'File text statistics:\n\n' +
+                 'chars:\t{}\nlines:\t{}\nwords:\t{}\n'.format( bytes, lines, words) )
+    # end of ResourceWindow.onInfo
+
+
+    ############################################################################
+    # Utilities, useful outside this class
+    ############################################################################
+
+    def isEmpty( self ):
+        return not self.getAllText()
+    # end of ResourceWindow.modified
+
+    def modified( self ):
+        return self.textBox.edit_modified()
+    # end of ResourceWindow.modified
+
+    def getAllText( self ):
+        """ Returns all the text as a string. """
+        return self.textBox.get( START, END+'-1c' )
+    # end of ResourceWindow.modified
+
+    def setAllText( self, newText ):
+        """
+        caller: call self.update() first if just packed, else the
+        initial position may be at line 2, not line 1 (2.1; Tk bug?)
+        """
+        self.textBox.delete( START, END )
+        self.textBox.insert( END, newText )
+        self.textBox.mark_set( INSERT, START ) # move insert point to top
+        self.textBox.see( INSERT ) # scroll to top, insert is set
+        
+        self.textBox.edit_reset() # clear undo/redo stks
+        self.textBox.edit_modified( FALSE ) # clear modified flag
+    # end of ResourceWindow.setAllText
+
+
+    def onClose( self ):
+        """
+        Called from the GUI.
+
+        Can be overridden.
+        """
+        self.closeResourceWindow()
+    # end of ResourceWindow.onClose
+        
     def closeResourceWindow( self ):
         """
+        Called to finally and irreversibly remove this window from our list and close it.
         """
         if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindow.closeResourceWindow()") )
         self.parentApp.appWins.remove( self )
         self.destroy()
+        if Globals.debugFlag: self.parentApp.setDebugText( "Closed resource window" )
     # end of ResourceWindow.closeResourceWindow
 # end of class ResourceWindow
 
@@ -269,11 +313,13 @@ class ResourceWindows( list ):
         self.ResourceWindowsParent = ResourceWindowsParent
         list.__init__( self )
 
+
     def iconify( self ):
         if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconify()") )
         for appWin in self:
             appWin.iconify()
     #end of ResourceWindows.iconify
+
 
     def iconifyResources( self ):
         if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconifyResources()") )
@@ -282,6 +328,7 @@ class ResourceWindows( list ):
                 appWin.iconify()
     #end of ResourceWindows.iconifyResources
 
+
     def deiconify( self ):
         if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.deiconify()") )
         for appWin in self:
@@ -289,16 +336,29 @@ class ResourceWindows( list ):
             appWin.lift( aboveThis=self.ResourceWindowsParent )
     #end of ResourceWindows.deiconify
 
+
     def updateThisBibleGroup( self, groupCode ):
         """
         Called when we probably need to update some resource windows with a new Bible reference.
         """
         if Globals.debugFlag: print( t("ResourceWindows.updateThisBibleGroup( {} )").format( groupCode ) )
         for appWin in self:
-            if 'Bible' in appWin.genericWindowType:
+            if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.groupCode == groupCode:
                     appWin.updateShownBCV( appWin.parentApp.currentVerseKey )
     # end of ResourceWindows.updateThisBibleGroup
+
+
+    def updateLexicons( self, newLexiconWord ):
+        """
+        Called when we probably need to update some resource windows with a new word.
+        """
+        if Globals.debugFlag:
+            print( t("ResourceWindows.updateLexicons( {} )").format( newLexiconWord ) )
+        for appWin in self:
+            if appWin.genericWindowType == 'LexiconResource':
+                appWin.updateLexiconWord( newLexiconWord )
+    # end of ResourceWindows.updateLexicons
 # end of ResourceWindows class
 
 
