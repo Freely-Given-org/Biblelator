@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-10-16 (also update ProgVersion below)
+#   Last modified: 2014-10-18 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.18"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.18" # Only need to change this if the settings format has changed
+SettingsVersion = "0.19" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -49,7 +49,7 @@ from tkinter import Tk, TclError, Menu, StringVar, Spinbox, \
         TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, RAISED, SUNKEN, X, \
         NORMAL, DISABLED
 #from tkinter.scrolledtext import ScrolledText
-from tkinter.messagebox import showerror, showinfo
+from tkinter.messagebox import showerror, showwarning, showinfo
 from tkinter.filedialog import Open, Directory #, SaveAs
 #from tkinter.filedialog import FileDialog, LoadFileDialog, SaveFileDialog
 #from tkinter.filedialog import askdirectory, askopenfile, askopenfilename, askopenfiles, asksaveasfile, asksaveasfilename, test
@@ -118,7 +118,7 @@ class Application( Frame ):
 
         self.lexiconWord = None
         self.currentProject = None
-        
+
         if Globals.debugFlag: print( "Button default font", Style().lookup("TButton", "font") )
         if Globals.debugFlag: print( "Label default font", Style().lookup("TLabel", "font") )
 
@@ -148,9 +148,15 @@ class Application( Frame ):
         #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
         # Set default folders
-        self.lastParatextFileDir = "C:\\My Paratext Projects\\"
-        self.lastInternalBibleDir = "C:\\My Paratext Projects\\"
-        
+        self.lastParatextFileDir = './'
+        self.lastInternalBibleDir = './'
+        if sys.platform.startswith( 'win' ):
+            self.lastParatextFileDir = 'C:\\My Paratext Projects\\'
+            self.lastInternalBibleDir = 'C:\\My Paratext Projects\\'
+        elif sys.platform == 'linux': # temp.........................................
+            self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/My Paratext Projects/'
+            self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/'
+
         # Read and apply the saved settings
         self.parseAndApplySettings()
         if ProgName not in self.settings.data or 'windowGeometry' not in self.settings.data[ProgName]:
@@ -206,8 +212,8 @@ class Application( Frame ):
         elif groupCode == 'D': return self.GroupD_VerseKey
         else: halt
     # end of Application.getVerseKey
-    
-       
+
+
     def notWrittenYet( self ):
         showerror( _("Not implemented"), _("Not yet available, sorry") )
     # end of Application.notWrittenYet
@@ -539,7 +545,7 @@ class Application( Frame ):
     def setReadyStatus( self ):
         self.setStatus( _("Ready") )
 
-        
+
     def setDebugText( self, newMessage=None ):
         """
         """
@@ -749,7 +755,7 @@ class Application( Frame ):
                 else:
                     logging.critical( t("getCurrentWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
                     if Globals.debugFlag: halt
-                    
+
                 if appWin.genericWindowType == 'BibleResource':
                     try: thisOne['GroupCode'] = appWin.groupCode
                     except AttributeError: logging.critical( t("getCurrentWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
@@ -922,7 +928,7 @@ class Application( Frame ):
     def openInternalBibleResourceWindow( self, modulePath, windowGeometry=None ):
         """
         Create the actual requested local/internal Bible resource window.
-        
+
         Returns the new InternalBibleResourceWindow object.
         """
         if Globals.debugFlag:
@@ -960,7 +966,7 @@ class Application( Frame ):
 
     def openBibleLexiconResourceWindow( self, lexiconPath, windowGeometry=None ):
         """
-        
+
         Returns the new BibleLexiconResourceWindow object.
         """
         if Globals.debugFlag:
@@ -1029,7 +1035,7 @@ class Application( Frame ):
 
     def openUSFMBibleEditWindow( self, USFMFolder, editMode, windowGeometry=None ):
         """
-        
+
         Returns the new USFMEditWindow object.
         """
         if Globals.debugFlag:
@@ -1590,7 +1596,7 @@ class Application( Frame ):
                         fullpath = os.path.join(thisDir, name)
                         yield fullpath
         # end of find
-        
+
         matches = []
         try:
             for filepath in find(pattern=filenamepatt, startdir=dirname):
@@ -1669,7 +1675,7 @@ class Application( Frame ):
             def runCommand(self, selection):                       # redefine me lower
                 print('You selected:', selection)
         # end of class ScrolledList
-        
+
         print( 'Matches for %s: %s' % (grepkey, len(matches)))
 
         # catch list double-click
@@ -1695,7 +1701,7 @@ class Application( Frame ):
         self.notWrittenYet()
     # end of Application.onOpenBiblelatorProject
 
-        
+
     def onOpenBibleditProject( self ):
         """
         """
@@ -1703,7 +1709,7 @@ class Application( Frame ):
         self.notWrittenYet()
     # end of Application.onOpenBibleditProject
 
-        
+
     def onOpenParatextProject( self ):
         """
         """
@@ -1732,16 +1738,34 @@ class Application( Frame ):
         if 'Editable' in uB.ssfDict and uB.ssfDict['Editable'] != 'T':
             showerror( APP_NAME, 'Project {} ({}) is not set to be editable'.format( uBName, uBFullName ) )
             return
+
+        # Find the correct folder
         if 'Directory' not in uB.ssfDict:
             showerror( APP_NAME, 'Project {} ({}) has no directory specified'.format( uBName, uBFullName ) )
             return
+        ssfDirectory = uB.ssfDict['Directory']
+        if not os.path.exists( ssfDirectory ):
+            showwarning( APP_NAME, 'SSF project {} ({}) directory {} not found on this system'.format( uBName, uBFullName, repr(ssfDirectory) ) )
+            if not sys.platform.startswith( 'win' ): # Let's try the next folder down
+                print( "Not windows" )
+                print( 'ssD1', repr(ssfDirectory) )
+                slash = '\\' if '\\' in ssfDirectory else '/'
+                if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
+                ix = ssfDirectory.rfind( slash ) # Find the last slash
+                if ix!= -1:
+                    ssfDirectory = os.path.join( os.path.dirname(fileResult), ssfDirectory[ix+1:] + '/' )
+                    print( 'ssD2', repr(ssfDirectory) )
+                    if not os.path.exists( ssfDirectory ):
+                        showerror( APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
+                        return
         #print( "uB1", uB )
-        uB.preload( uB.ssfDict['Directory'] )
+        uB.preload( ssfDirectory )
         #print( "uB2", uB )
 ##        ssfText = open( fileResult, 'rt', encoding='utf-8' ).read()
 ##        if ssfText == None:
 ##            showerror( APP_NAME, 'Could not decode and open file ' + fileResult )
 ##        else:
+
         uEW = USFMEditWindow( self, uB )
         uEW.setFilepath( fileResult )
 ##            tEW.setAllText( ssfText )
@@ -1752,7 +1776,7 @@ class Application( Frame ):
         self.setReadyStatus()
     # end of Application.onOpenParatextProject
 
-        
+
     def onProjectClose( self ):
         """
         """
@@ -1760,7 +1784,7 @@ class Application( Frame ):
         self.notWrittenYet()
     # end of Application.onProjectClose
 
-        
+
     def writeSettingsFile( self ):
         """
         Update our program settings and save them.
@@ -1824,7 +1848,7 @@ class Application( Frame ):
                 haveModifications = True; break
         if haveModifications:
             showerror( _("Save files"), _("You need to save or close your work first.") )
-        else:            
+        else:
             self.writeSettingsFile()
             self.ApplicationParent.destroy()
     # end of Application.closeMe
@@ -1839,10 +1863,16 @@ def main():
     if Globals.verbosityLevel > 0: print( ProgNameVersion )
     #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if Globals.debugFlag: print( t("Running main...") )
-    #Globals.debugFlag = True
+    if Globals.debugFlag:
+        import os
+        print( t("Platform is"), sys.platform )
+        print( t("OS name is"), os.name )
+        print( t("OS uname is"), os.uname() )
+        print( t("Running main...") )
 
     tkRootWindow = Tk()
+    if Globals.debugFlag:
+        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( ProgNameVersion )
     settings = ApplicationSettings( DATA_FOLDER, SETTINGS_SUBFOLDER, ProgName )
     settings.load()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-16 (also update ProgVersion below)
+#   Last modified: 2014-10-18 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ResourceWindows"
 ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.18"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -270,6 +270,9 @@ class ResourceWindow( Toplevel ):
 
     def setAllText( self, newText ):
         """
+        Sets the textBox (assumed to be enabled) to the given text
+            then positions the insert cursor at the BEGINNING of the text.
+
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
@@ -277,7 +280,7 @@ class ResourceWindow( Toplevel ):
         self.textBox.insert( END, newText )
         self.textBox.mark_set( INSERT, START ) # move insert point to top
         self.textBox.see( INSERT ) # scroll to top, insert is set
-        
+
         self.textBox.edit_reset() # clear undo/redo stks
         self.textBox.edit_modified( FALSE ) # clear modified flag
     # end of ResourceWindow.setAllText
@@ -291,7 +294,7 @@ class ResourceWindow( Toplevel ):
         """
         self.closeResourceWindow()
     # end of ResourceWindow.onClose
-        
+
     def closeResourceWindow( self ):
         """
         Called to finally and irreversibly remove this window from our list and close it.

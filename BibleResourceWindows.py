@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-16 (also update ProgVersion below)
+#   Last modified: 2014-10-18 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.18"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -40,20 +40,21 @@ import sys, logging #, os.path, configparser, logging
 from gettext import gettext as _
 from collections import OrderedDict
 
-from tkinter import Menu, IntVar, StringVar, DISABLED, BOTH, YES, END
+from tkinter import Menu, IntVar, StringVar, DISABLED, LEFT, BOTH, YES, INSERT, END, FALSE
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
 from VerseReferences import SimpleVerseKey
+from USFMFile import splitMarkerText
 #from BibleOrganizationalSystems import BibleOrganizationalSystem
 from SwordResources import SwordType
 from DigitalBiblePlatform import DBPBible
 from UnknownBible import UnknownBible
 
 # Biblelator imports
-from BiblelatorGlobals import BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
+from BiblelatorGlobals import START, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
 from ResourceWindows import ResourceWindow
 
 
@@ -85,7 +86,7 @@ class BibleResourceWindow( ResourceWindow ):
         self._viewRadio, self._groupRadio = IntVar(), StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = 'Default'
-        self.verseKey = SimpleVerseKey( 'GEN','1','1' )
+        self.verseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
         ResourceWindow.__init__( self, self.parentApp, 'BibleResource' )
 
         if self.contextViewMode=='Default':
@@ -480,6 +481,51 @@ class BibleResourceWindow( ResourceWindow ):
         self.textBox['state'] = DISABLED # Don't allow editing
         self.refreshTitle()
     # end of BibleResourceWindow.updateShownBCV
+
+
+    def setAllText( self, newBibleText ):
+        """
+        Sets the textBox (assumed to be enabled) to the given Bible text.
+
+        Inserts BCV marks as it does it.
+
+        Doesn't position the cursor as it assumes a follow-up call will navigate to the current verse.
+
+        caller: call self.update() first if just packed, else the
+        initial position may be at line 2, not line 1 (2.1; Tk bug?)
+        """
+        self.textBox.delete( START, END ) # clear any existing text
+        self.textBox.mark_set( 'C0V0', START )
+        C = V = '0'
+        for line in newBibleText.split( '\n' ):
+            #print( "line", repr(line) )
+            if not line: self.textBox.insert( END, '\n' ); continue
+            marker, text = splitMarkerText( line )
+            #print( "m,t", repr(marker), repr(text) )
+            if marker == 'c':
+                C, V = text, '0' # Doesn't handle footnotes, etc.
+                markName = 'C{}V0'.format( C )
+                self.textBox.mark_set( markName, INSERT )
+                self.textBox.mark_gravity( markName, LEFT )
+            elif marker == 'v':
+                V = text.split()[0] # Doesn't handle footnotes, etc.
+                markName = 'C{}V{}'.format( C, V )
+                self.textBox.mark_set( markName, INSERT )
+                self.textBox.mark_gravity( markName, LEFT )
+            elif C == '0': # marker each line
+                markName = 'C0V{}'.format( V )
+                self.textBox.mark_set( markName, INSERT )
+                self.textBox.mark_gravity( markName, LEFT )
+                V = str( int(V) + 1 )
+            self.textBox.insert( END, line+'\n', marker ) # This will ensure a \n at the end of the file
+
+        # Not needed here hopefully
+        #self.textBox.mark_set( INSERT, START ) # move insert point to top
+        #self.textBox.see( INSERT ) # scroll to top, insert is set
+
+        self.textBox.edit_reset() # clear undo/redo stks
+        self.textBox.edit_modified( FALSE ) # clear modified flag
+    # end of BibleResourceWindow.setAllText
 # end of BibleResourceWindow class
 
 

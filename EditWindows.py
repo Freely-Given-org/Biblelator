@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-10-16 (also update ProgVersion below)
+#   Last modified: 2014-10-18 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.18"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -80,7 +80,7 @@ class TextEditWindow( ResourceWindow ):
     def __init__( self, parentApp, folderPath=None, filename=None ):
         if Globals.debugFlag: print( t("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
-        
+
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = 'Default'
         ResourceWindow.__init__( self, self.parentApp, 'TextEditor' )
@@ -450,7 +450,7 @@ class TextEditWindow( ResourceWindow ):
         self.textBox.insert( END, newText )
         self.textBox.mark_set( INSERT, START ) # move insert point to top
         self.textBox.see( INSERT ) # scroll to top, insert is set
-        
+
         self.textBox.edit_reset() # clear undo/redo stks
         self.textBox.edit_modified( FALSE ) # clear modified flag
     # end of TextEditWindow.setAllText
@@ -469,7 +469,7 @@ class TextEditWindow( ResourceWindow ):
         """
         self.onClose()
     # end of TextEditWindow.closeEditor
-        
+
     def closeEditor( self ):
         """
         """
@@ -489,7 +489,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             print( "USFMEditWindow.__init__( {}, {} )".format( parentApp, USFMBible ) )
         self.parentApp, self.internalBible = parentApp, USFMBible
         self.USFMFolder = self.internalBible.sourceFolder
-        
+
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = 'Default'
         BibleResourceWindow.__init__( self, parentApp, 'BibleEditor' )
@@ -497,7 +497,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         # Now we need to override a few critical variables
         self.genericWindowType = 'BibleEditor'
         self.winType = 'USFMBibleEditWindow'
-        
+
         if self.internalBible is not None:
             self.textBox['background'] = "white"
             self.textBox['selectbackground'] = "red"
@@ -834,10 +834,17 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             #print( "contextViewMode", self.contextViewMode )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
 
-        self.verseKey = newVerseKey
-        self.clearText() # Leaves the text box enabled
-        startingFlag = True
-        self.setAllText( self.getBookData( newVerseKey ) )
+        if newVerseKey.getBBB() != self.verseKey.getBBB(): # we've switched books
+            if self.modified():
+                self.showerror( APP_NAME, "Should save text here!" )
+            self.clearText() # Leaves the text box enabled
+            self.setAllText( self.getBookData( newVerseKey ) )
+
+        if newVerseKey != self.verseKey: # we have a change of reference
+            desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
+            try: self.textBox.see( desiredMark )
+            except TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
+            self.verseKey = newVerseKey
 
         self.refreshTitle()
     # end of USFMEditWindow.updateShownBCV
