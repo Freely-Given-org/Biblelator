@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ApplicationSettings.py
-#   Last modified: 2014-09-28 (also update ProgVersion below)
+#   Last modified: 2014-10-18 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "ApplicationSettings"
 ProgName = "Application Settings"
-ProgVersion = "0.12"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -137,6 +137,7 @@ class ApplicationSettings:
         """
         Load the settings file (if we found it).
         """
+        if Globals.debugFlag and debuggingThisModule: print( t("ApplicationSettings.load()") )
         self.reset() # Creates self.data
         assert( self.data )
         if self.settingsFilepath and os.path.isfile( self.settingsFilepath ) and os.access( self.settingsFilepath, os.R_OK ):
@@ -149,6 +150,7 @@ class ApplicationSettings:
         Save all of the program settings to disk.
             They must have already been saved into self.data.
         """
+        if Globals.debugFlag and debuggingThisModule: print( t("ApplicationSettings.save()") )
         assert( self.data )
         assert( self.settingsFilepath )
         with open( self.settingsFilepath, 'wt') as settingsFile: # It may or may not have previously existed

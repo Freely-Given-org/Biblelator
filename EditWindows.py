@@ -505,6 +505,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             self.textBox['inactiveselectbackground'] = "green"
         else: self.editMode = None
 
+        self.textBox.bind( '<1>', self.onMoveInsert )
         self.lastBBB = None
     # end of USFMEditWindow.__init__
 
@@ -821,6 +822,16 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
 
         return verseData, previousVersesData, nextVersesData
     # end of USFMEditWindow.getBeforeAndAfterBibleData
+
+
+    def onMoveInsert( self, event ):
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.onMoveInsert( {} )").format( event ) )
+        tagNames = self.textBox.tag_names( INSERT )
+        print( "tN", tagNames )
+        mark = self.textBox.mark_previous( INSERT )
+        print( "mark", mark )
+    # end of USFMEditWindow.onMoveInsert
 
 
     def updateShownBCV( self, newVerseKey ):

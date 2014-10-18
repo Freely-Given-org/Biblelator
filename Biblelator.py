@@ -867,9 +867,11 @@ class Application( Frame ):
             self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
         availableModules = self.SwordInterface.library
         #print( "aM1", availableModules )
+        ourList = None
         if availableModules is not None:
             ourList = availableModules.getAvailableModuleCodes()
-            #print( "ourList", ourList )
+        #print( "ourList", ourList )
+        if ourList:
             srb = SelectResourceBox( self, ourList, title=_("Open Sword resource") )
             #print( "srbResult", repr(srb.result) )
             if srb.result:
@@ -879,7 +881,9 @@ class Application( Frame ):
                 #self.acceptNewBCV()
                 #self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
             elif Globals.debugFlag: print( t("onOpenSwordResource: no resource selected!") )
-        else: logging.critical( t("onOpenSwordResource: no volumes available") )
+        else:
+            logging.critical( t("onOpenSwordResource: no list available") )
+            showerror( APP_NAME, _("No Sword resources discovered") )
         #self.acceptNewBCV()
         #self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
     # end of Application.onOpenSwordResource
