@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ModalDialog.py
-#   Last modified: 2014-10-07 (also update ProgVersion below)
+#   Last modified: 2014-10-21 (also update ProgVersion below)
 #
 # xxxMain program for Biblelator Bible display/editing
 #
@@ -31,7 +31,7 @@ xxxProgram to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = "0.15"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -40,9 +40,8 @@ debuggingThisModule = True
 import sys, os.path, configparser, logging
 from gettext import gettext as _
 
-from tkinter import Toplevel, ACTIVE, LEFT
+import tkinter as tk
 from tkinter.ttk import Frame, Button
-#from tkinter import tix
 
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
@@ -63,14 +62,14 @@ def t( messageString ):
 
 
 
-class ModalDialog( Toplevel ):
+class ModalDialog( tk.Toplevel ):
     """
     A Toplevel window that's a modal dialog
         and intended to be subclassed.
     """
     def __init__(self, parent, title=None, okText=None):
 
-        Toplevel.__init__( self, parent )
+        tk.Toplevel.__init__( self, parent )
         self.transient( parent )
 
         if title:
@@ -119,10 +118,10 @@ class ModalDialog( Toplevel ):
         # standard buttons
         box = Frame( self )
 
-        w = Button( box, text=self.okText, width=10, command=self.ok, default=ACTIVE )
-        w.pack( side=LEFT, padx=5, pady=5 )
+        w = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
+        w.pack( side=tk.LEFT, padx=5, pady=5 )
         w = Button( box, text=_("Cancel"), width=10, command=self.cancel )
-        w.pack( side=LEFT, padx=5, pady=5 )
+        w.pack( side=tk.LEFT, padx=5, pady=5 )
 
         self.bind( "<Return>", self.ok )
         self.bind( "<Escape>", self.cancel )

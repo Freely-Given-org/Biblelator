@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-18 (also update ProgVersion below)
+#   Last modified: 2014-10-21 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -39,12 +39,10 @@ debuggingThisModule = True
 import sys
 from gettext import gettext as _
 
-from tkinter import Toplevel, TclError, Menu, messagebox
-from tkinter import NORMAL, DISABLED, BOTTOM, LEFT, RIGHT, BOTH, YES, E, FALSE, \
-                    END, INSERT, SEL, SEL_FIRST, SEL_LAST
+import tkinter as tk
 from tkinter.messagebox import showerror, showinfo
-from tkinter.scrolledtext import ScrolledText
 from tkinter.simpledialog import askstring, askinteger
+from tkinter.ttk import Scrollbar
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -71,20 +69,20 @@ def t( messageString ):
 
 
 
-class ResourceWindow( Toplevel ):
+class ResourceWindow( tk.Toplevel ):
     """
     """
     def __init__( self, parentApp, genericWindowType ):
         """
         The genericWindowType is set here,
-            but the more accurate winType is set later by the subclass.
+            but the more specific winType is set later by the subclass.
         """
-        if Globals.debugFlag:
-            #print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
             assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor') )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
-        Toplevel.__init__( self, self.parentApp )
+        tk.Toplevel.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeResourceWindow )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
 
@@ -92,9 +90,19 @@ class ResourceWindow( Toplevel ):
         self.createToolBar()
         self.createContextMenu()
 
-        self.textBox = ScrolledText( self, state=DISABLED )
+        # Create a scroll bar to fill the right-hand side of the window
+        self.vScrollbar = Scrollbar( self )
+        self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+
+        #if 'textBox' in dir(self): # we have one already -- presumably a specialised one
+            #halt # We have one already
+        #else: # let's make one
+
+        self.textBox = tk.Text( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
         self.textBox['wrap'] = 'word'
-        self.textBox.pack( expand=YES, fill=BOTH )
+        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+
+        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
 
         # Options for find, etc.
         self.optionsDict = {}
@@ -105,13 +113,13 @@ class ResourceWindow( Toplevel ):
 
 
     def notWrittenYet( self ):
-        messagebox.showerror( _("Not implemented"), _("Not yet available, sorry") )
+        showerror( _("Not implemented"), _("Not yet available, sorry") )
     # end of ResourceWindow.notWrittenYet
 
 
     def clearText( self ): # Leaves in normal state
-        self.textBox['state'] = NORMAL
-        self.textBox.delete( '1.0', END )
+        self.textBox['state'] = tk.NORMAL
+        self.textBox.delete( '1.0', tk.END )
     # end of ResourceFrame.updateText
 
 
@@ -141,7 +149,7 @@ class ResourceWindow( Toplevel ):
         """
         Can be overriden if necessary.
         """
-        self.contextMenu = Menu( self, tearoff=0 )
+        self.contextMenu = tk.Menu( self, tearoff=0 )
         self.contextMenu.add_command( label="Copy", underline=0, command=self.onCopy )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label="Select all", underline=7, command=self.onSelectAll )
@@ -172,10 +180,10 @@ class ResourceWindow( Toplevel ):
     def onCopy( self ):                           # get text selected by mouse, etc.
         if Globals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.onCopy()") )
-        if not self.textBox.tag_ranges( SEL ):       # save in cross-app clipboard
+        if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             showerror( APP_NAME, 'No text selected')
         else:
-            text = self.textBox.get( SEL_FIRST, SEL_LAST)
+            text = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
             self.clipboard_clear()
             self.clipboard_append(text)
     # end of ResourceWindow.onCopy
@@ -184,9 +192,9 @@ class ResourceWindow( Toplevel ):
     def onSelectAll( self ):
         if Globals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.onSelectAll()") )
-        self.textBox.tag_add( SEL, START, END+'-1c' )   # select entire text
-        self.textBox.mark_set( INSERT, START )          # move insert point to top
-        self.textBox.see( INSERT )                      # scroll to top
+        self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
+        self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
+        self.textBox.see( tk.INSERT )                      # scroll to top
     # end of ResourceWindow.onSelectAll
 
 
@@ -195,13 +203,13 @@ class ResourceWindow( Toplevel ):
         self.textBox.update()
         self.textBox.focus()
         if line is not None:
-            maxindex = self.textBox.index( END+'-1c' )
+            maxindex = self.textBox.index( tk.END+'-1c' )
             maxline  = int( maxindex.split('.')[0] )
             if line > 0 and line <= maxline:
-                self.textBox.mark_set( INSERT, '{}.0'.format(line) ) # goto line
-                self.textBox.tag_remove( SEL, START, END )          # delete selects
-                self.textBox.tag_add( SEL, INSERT, 'insert + 1l' )  # select line
-                self.textBox.see( INSERT )                          # scroll to line
+                self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
+                self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
+                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
+                self.textBox.see( tk.INSERT )                          # scroll to line
             else:
                 showerror( APP_NAME, _("No such line number") )
     # end of ResourceWindow.onGoto
@@ -214,14 +222,14 @@ class ResourceWindow( Toplevel ):
         self.lastfind = key
         if key:
             nocase = self.optionsDict['caseinsens']
-            where = self.textBox.search( key, INSERT, END, nocase=nocase )
+            where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
                 showerror( APP_NAME, 'String not found' )
             else:
                 pastkey = where + '+%dc' % len(key)           # index past key
-                self.textBox.tag_remove( SEL, START, END )         # remove any sel
-                self.textBox.tag_add( SEL, where, pastkey )        # select key
-                self.textBox.mark_set( INSERT, pastkey )           # for next find
+                self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
+                self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 self.textBox.see( where )                          # scroll display
     # end of ResourceWindow.onFind
 
@@ -241,7 +249,7 @@ class ResourceWindow( Toplevel ):
         bytes = len( text )             # words uses a simple guess:
         lines = len( text.split('\n') ) # any separated by whitespace
         words = len( text.split() )     # 3.x: bytes is really chars
-        index = self.textBox.index( INSERT ) # str is unicode code points
+        index = self.textBox.index( tk.INSERT ) # str is unicode code points
         where = tuple( index.split('.') )
         showinfo( APP_NAME+' Information',
                  'Current location:\n\n' +
@@ -265,7 +273,7 @@ class ResourceWindow( Toplevel ):
 
     def getAllText( self ):
         """ Returns all the text as a string. """
-        return self.textBox.get( START, END+'-1c' )
+        return self.textBox.get( START, tk.END+'-1c' )
     # end of ResourceWindow.modified
 
     def setAllText( self, newText ):
@@ -276,10 +284,10 @@ class ResourceWindow( Toplevel ):
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        self.textBox.delete( START, END )
-        self.textBox.insert( END, newText )
-        self.textBox.mark_set( INSERT, START ) # move insert point to top
-        self.textBox.see( INSERT ) # scroll to top, insert is set
+        self.textBox.delete( START, tk.END )
+        self.textBox.insert( tk.END, newText )
+        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
         self.textBox.edit_reset() # clear undo/redo stks
         self.textBox.edit_modified( FALSE ) # clear modified flag
@@ -340,15 +348,16 @@ class ResourceWindows( list ):
     #end of ResourceWindows.deiconify
 
 
-    def updateThisBibleGroup( self, groupCode ):
+    def updateThisBibleGroup( self, groupCode, newVerseKey ):
         """
         Called when we probably need to update some resource windows with a new Bible reference.
         """
-        if Globals.debugFlag: print( t("ResourceWindows.updateThisBibleGroup( {} )").format( groupCode ) )
+        if Globals.debugFlag: print( t("ResourceWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.groupCode == groupCode:
-                    appWin.updateShownBCV( appWin.parentApp.currentVerseKey )
+                    #appWin.updateShownBCV( appWin.parentApp.currentVerseKey )
+                    self.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
     # end of ResourceWindows.updateThisBibleGroup
 
 
@@ -360,7 +369,7 @@ class ResourceWindows( list ):
             print( t("ResourceWindows.updateLexicons( {} )").format( newLexiconWord ) )
         for appWin in self:
             if appWin.genericWindowType == 'LexiconResource':
-                appWin.updateLexiconWord( newLexiconWord )
+                self.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
     # end of ResourceWindows.updateLexicons
 # end of ResourceWindows class
 

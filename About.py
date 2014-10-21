@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-10-11 (also update ProgVersion below)
+#   Last modified: 2014-10-21 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = "0.16"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -38,17 +38,14 @@ debuggingThisModule = True
 import sys #, os.path, configparser, logging
 #from gettext import gettext as _
 
-from tkinter import Toplevel #, Text
-from tkinter import YES, END, DISABLED
+import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
-#from tkinter import tix
 
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
 
-#from ApplicationSettings import ApplicationSettings
 
 
 def t( messageString ):
@@ -65,17 +62,17 @@ def t( messageString ):
 
 
 
-class AboutBox( Toplevel ):
+class AboutBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
         #if Globals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
-        Toplevel.__init__( self, parent )
+        tk.Toplevel.__init__( self, parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
         self.title( 'About '+progName )
-        self.textBox = ScrolledText( self ) #, state=DISABLED )
+        self.textBox = ScrolledText( self ) #, state=tk.DISABLED )
         self.textBox['wrap'] = 'word'
-        self.textBox.pack( expand=YES )
-        self.textBox.insert( END, text )
-        self.textBox['state'] = DISABLED # Don't allow editing
+        self.textBox.pack( expand=tk.YES )
+        self.textBox.insert( tk.END, text )
+        self.textBox['state'] = tk.DISABLED # Don't allow editing
 
         self.okButton = Button( self, text='Ok', command=self.destroy )
         self.okButton.pack()
@@ -90,14 +87,14 @@ class AboutBox( Toplevel ):
 class AboutBox2():
     def __init__( self, parent=None, progName=None, text=None ):
         #if Globals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
-        ab = Toplevel( parent )
+        ab = tk.Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
         ab.title( 'About '+progName )
-        textBox = ScrolledText( ab ) #, state=DISABLED )
+        textBox = ScrolledText( ab ) #, state=tk.DISABLED )
         textBox['wrap'] = 'word'
-        textBox.pack( expand=YES )
-        textBox.insert( END, text )
-        self.textBox['state'] = DISABLED # Don't allow editing
+        textBox.pack( expand=tk.YES )
+        textBox.insert( tk.END, text )
+        textBox['state'] = tk.DISABLED # Don't allow editing
 
         okButton = Button( ab, text='Ok', command=ab.destroy )
         okButton.pack()
@@ -113,14 +110,14 @@ def demo():
     """
     Main program to handle command line parameters and then run what they want.
     """
-    from tkinter import Tk
+    #from tkinter import Tk
 
     if Globals.verbosityLevel > 0: print( ProgNameVersion )
     #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( "Running demo..." )
 
-    tkRootWindow = Tk()
+    tkRootWindow = tk.Tk()
     if Globals.debugFlag:
         #print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
@@ -147,10 +144,10 @@ if __name__ == '__main__':
 
 
     if Globals.debugFlag:
-        from tkinter import TclVersion, TkVersion
+        #from tkinter import TclVersion, TkVersion
         from tkinter import tix
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
+        print( "TclVersion is", tk.TclVersion )
+        print( "TkVersion is", tk.TkVersion )
         print( "tix TclVersion is", tix.TclVersion )
         print( "tix TkVersion is", tix.TkVersion )
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-18 (also update ProgVersion below)
+#   Last modified: 2014-10-20 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -33,14 +33,13 @@ ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys, logging #, os.path, configparser, logging
 from gettext import gettext as _
 from collections import OrderedDict
-
-from tkinter import Menu, IntVar, StringVar, DISABLED, LEFT, BOTH, YES, INSERT, END, FALSE
+import tkinter as tk
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -83,7 +82,7 @@ class BibleResourceWindow( ResourceWindow ):
         self.parentApp, self.moduleID = parentApp, moduleID
 
         # Set some dummy values required soon (esp. by refreshTitle)
-        self._viewRadio, self._groupRadio = IntVar(), StringVar()
+        self._viewRadio, self._groupRadio = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = 'Default'
         self.verseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
@@ -97,12 +96,12 @@ class BibleResourceWindow( ResourceWindow ):
             for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
                 self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
         else:
-            self.textBox.tag_configure( 'verseNumberFormat', foreground='blue', font='helvetica 8', relief='raised', offset='3' )
+            self.textBox.tag_configure( 'verseNumberFormat', foreground='blue', font='helvetica 8', relief='tk.RAISED', offset='3' )
             self.textBox.tag_configure( 'versePreSpaceFormat', background='pink', font='helvetica 8' )
             self.textBox.tag_configure( 'versePostSpaceFormat', background='pink', font='helvetica 4' )
             self.textBox.tag_configure( 'verseTextFormat', font='sil-doulos 12' )
             self.textBox.tag_configure( 'otherVerseTextFormat', font='sil-doulos 9' )
-        #self.textBox.tag_configure( 'verseText', background='yellow', font='helvetica 14 bold', relief='raised' )
+        #self.textBox.tag_configure( 'verseText', background='yellow', font='helvetica 14 bold', relief='tk.RAISED' )
         #"background", "bgstipple", "borderwidth", "elide", "fgstipple", "font", "foreground", "justify", "lmargin1",
         #"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
         #"tabs", "tabstyle", "underline", and "wrap".
@@ -116,19 +115,19 @@ class BibleResourceWindow( ResourceWindow ):
 
 
     def createMenuBar( self ):
-        self.menubar = Menu( self )
+        self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
 
-        fileMenu = Menu( self.menubar, tearoff=False )
+        fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
         #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
         #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
         #fileMenu.add_separator()
-        #subfileMenuImport = Menu( fileMenu )
+        #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
-        #subfileMenuExport = Menu( fileMenu )
+        #subfileMenuExport = tk.Menu( fileMenu )
         #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
@@ -137,13 +136,13 @@ class BibleResourceWindow( ResourceWindow ):
         fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.onClose ) # close this window
 
-        editMenu = Menu( self.menubar, tearoff=False )
+        editMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
         editMenu.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
         editMenu.add_separator()
         editMenu.add_command( label='Find...', underline=0, command=self.notWrittenYet )
 
-        gotoMenu = Menu( self.menubar )
+        gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
         gotoMenu.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
         gotoMenu.add_command( label='Next book', underline=0, command=self.notWrittenYet )
@@ -166,7 +165,7 @@ class BibleResourceWindow( ResourceWindow ):
         gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadio, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadio, command=self.changeBibleGroupCode )
 
-        viewMenu = Menu( self.menubar, tearoff=False )
+        viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
         if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
         elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 2 )
@@ -178,15 +177,15 @@ class BibleResourceWindow( ResourceWindow ):
         viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
 
-        toolsMenu = Menu( self.menubar, tearoff=False )
+        toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
         toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
-        windowMenu = Menu( self.menubar, tearoff=False )
+        windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
         windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
 
-        helpMenu = Menu( self.menubar, name='help', tearoff=False )
+        helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
         helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
         helpMenu.add_separator()
@@ -196,8 +195,8 @@ class BibleResourceWindow( ResourceWindow ):
         #filename = filedialog.asksaveasfilename()
         #dirname = filedialog.askdirectory()
         #colorchooser.askcolor(initialcolor='#ff0000')
-        #messagebox.showinfo(message='Have a good day')
-        #messagebox.askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
+        #showinfo(message='Have a good day')
+        #askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
     # end of BibleResourceWindow.createMenuBar
 
 
@@ -301,7 +300,7 @@ class BibleResourceWindow( ResourceWindow ):
         lastCharWasSpace = haveTextFlag = not firstFlag
         if verseDataList is None:
             print( "  ", verseKey, "has no data for", self.moduleID )
-            #self.textBox.insert( END, '--' )
+            #self.textBox.insert( tk.END, '--' )
         else:
             for entry in verseDataList:
                 if isinstance( entry, tuple ):
@@ -311,10 +310,10 @@ class BibleResourceWindow( ResourceWindow ):
                 if marker and marker[0]=='¬': pass # Ignore end markers for now
                 elif marker in ('chapters',): pass # Ignore added markers for now
                 elif marker == 'id':
-                    self.textBox.insert( END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker in ('ide','rem',):
-                    self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker == 'c': # Don't want to display this (original) c marker
                     #if not firstFlag: haveC = cleanText
@@ -322,43 +321,43 @@ class BibleResourceWindow( ResourceWindow ):
                     pass
                 elif marker == 'c#': # Might want to display this (added) c marker
                     if cleanText != verseKey.getBBB():
-                        if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
-                        self.textBox.insert( END, cleanText, 'c#' )
+                        if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
+                        self.textBox.insert( tk.END, cleanText, 'c#' )
                         lastCharWasSpace = False
                 elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
-                    self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker in ('s1','s2','s3','s4',):
-                    self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker == 'r':
-                    self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker in ('p','ip',):
-                    self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
+                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
                     lastCharWasSpace = True
                     if cleanText:
-                        self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
+                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
                         lastCharWasSpace = False
                     haveTextFlag = True
                 elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
                     pass # Just ignore these for now
                 elif marker in ('q1','q2','q3','q4',):
-                    self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
+                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
                     lastCharWasSpace = True
                     if cleanText:
-                        self.textBox.insert( END, cleanText, '*'+marker if currentVerse else marker )
+                        self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
                         lastCharWasSpace = False
                     haveTextFlag = True
                 elif marker == 'm': pass
                 elif marker == 'v':
                     if haveTextFlag:
-                        self.textBox.insert( END, ' ', 'v-' )
-                    self.textBox.insert( END, cleanText, marker )
-                    self.textBox.insert( END, ' ', 'v+' )
+                        self.textBox.insert( tk.END, ' ', 'v-' )
+                    self.textBox.insert( tk.END, cleanText, marker )
+                    self.textBox.insert( tk.END, ' ', 'v+' )
                     lastCharWasSpace = haveTextFlag = True
                 elif marker in ('v~','p~'):
-                    self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
+                    self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
                     haveTextFlag = True
                 else:
                     logging.critical( t("BibleResourceWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
@@ -478,7 +477,7 @@ class BibleResourceWindow( ResourceWindow ):
             logging.critical( t("BibleResourceWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
             if Globals.debugFlag: halt # Unknown context view mode
 
-        self.textBox['state'] = DISABLED # Don't allow editing
+        self.textBox['state'] = tk.DISABLED # Don't allow editing
         self.refreshTitle()
     # end of BibleResourceWindow.updateShownBCV
 
@@ -494,37 +493,37 @@ class BibleResourceWindow( ResourceWindow ):
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        self.textBox.delete( START, END ) # clear any existing text
+        self.textBox.delete( START, tk.END ) # clear any existing text
         self.textBox.mark_set( 'C0V0', START )
         C = V = '0'
         for line in newBibleText.split( '\n' ):
             #print( "line", repr(line) )
-            if not line: self.textBox.insert( END, '\n' ); continue
+            if not line: self.textBox.insert( tk.END, '\n' ); continue
             marker, text = splitMarkerText( line )
             #print( "m,t", repr(marker), repr(text) )
             if marker == 'c':
                 C, V = text, '0' # Doesn't handle footnotes, etc.
                 markName = 'C{}V0'.format( C )
-                self.textBox.mark_set( markName, INSERT )
-                self.textBox.mark_gravity( markName, LEFT )
+                self.textBox.mark_set( markName, tk.INSERT )
+                self.textBox.mark_gravity( markName, tk.LEFT )
             elif marker == 'v':
                 V = text.split()[0] # Doesn't handle footnotes, etc.
                 markName = 'C{}V{}'.format( C, V )
-                self.textBox.mark_set( markName, INSERT )
-                self.textBox.mark_gravity( markName, LEFT )
+                self.textBox.mark_set( markName, tk.INSERT )
+                self.textBox.mark_gravity( markName, tk.LEFT )
             elif C == '0': # marker each line
                 markName = 'C0V{}'.format( V )
-                self.textBox.mark_set( markName, INSERT )
-                self.textBox.mark_gravity( markName, LEFT )
+                self.textBox.mark_set( markName, tk.INSERT )
+                self.textBox.mark_gravity( markName, tk.LEFT )
                 V = str( int(V) + 1 )
-            self.textBox.insert( END, line+'\n', marker ) # This will ensure a \n at the end of the file
+            self.textBox.insert( tk.END, line+'\n', marker ) # This will ensure a \n at the end of the file
 
         # Not needed here hopefully
-        #self.textBox.mark_set( INSERT, START ) # move insert point to top
-        #self.textBox.see( INSERT ) # scroll to top, insert is set
+        #self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        #self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
         self.textBox.edit_reset() # clear undo/redo stks
-        self.textBox.edit_modified( FALSE ) # clear modified flag
+        self.textBox.edit_modified( False ) # clear modified flag
     # end of BibleResourceWindow.setAllText
 # end of BibleResourceWindow class
 
@@ -588,6 +587,8 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
             print( "DBPBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
+
+        self.DBPModule = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, self.moduleAbbreviation )
         self.winType = 'DBPBibleResourceWindow'
 
@@ -633,7 +634,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         if Globals.debugFlag: print( "InternalBibleResourceWindow.__init__( {}, {} )".format( parentApp, modulePath ) )
         self.parentApp, self.modulePath = parentApp, modulePath
 
-        self.internalBible = None
+        self.internalBible = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, self.modulePath )
         self.winType = 'InternalBibleResourceWindow'
 

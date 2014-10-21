@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-10-04 (also update ProgVersion below)
+#   Last modified: 2014-10-19 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.14"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -40,10 +40,11 @@ from gettext import gettext as _
 
 # Importing this way means that we have to manually choose which
 #       widgets that we use (if there's one in each set)
+import tkinter as tk
 #from tkinter import Tk, TclError, Menu, Text, StringVar, messagebox
-#from tkinter import NORMAL, DISABLED, TOP, BOTTOM, LEFT, RIGHT, BOTH, YES, SUNKEN, X
-from tkinter import Listbox, \
-        END, EXTENDED
+#from tkinter import tk.NORMAL, tk.DISABLED, tk.TOP, tk.BOTTOM, tk.LEFT, tk.RIGHT, tk.BOTH, tk.YES, tk.SUNKEN, X
+#from tkinter import tk.Listbox, \
+        #tk.END, tk.EXTENDED
 from tkinter.ttk import Label, Combobox
 
 # BibleOrgSys imports
@@ -173,20 +174,20 @@ class SelectResourceBox( ModalDialog ):
     def body( self, master ):
         Label( master, text=_("Select a resource to open") ).grid( row=0 )
 
-        self.lb = Listbox( master, selectmode=EXTENDED )
+        self.lb = tk.Listbox( master, selectmode=tk.EXTENDED )
         """ Note: selectmode can be
             SINGLE (just a single choice),
             BROWSE (same, but the selection can be moved using the mouse),
             MULTIPLE (multiple item can be choosen, by clicking at them one at a time), or
-            EXTENDED (multiple ranges of items can be chosen using the Shift and Control keyboard modifiers).
+            tk.EXTENDED (multiple ranges of items can be chosen using the Shift and Control keyboard modifiers).
             The default is BROWSE.
             Use MULTIPLE to get “checklist” behavior,
-            and EXTENDED when the user would usually pick only one item,
+            and tk.EXTENDED when the user would usually pick only one item,
                 but sometimes would like to select one or more ranges of items. """
         for item in self.availableSettingsList:
             #print( "it", repr(item) )
             if isinstance( item, tuple ): item = item[0]
-            self.lb.insert( END, item )
+            self.lb.insert( tk.END, item )
         self.lb.grid( row=1 )
 
         return self.lb # initial focus

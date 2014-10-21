@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-10-16 (also update ProgVersion below)
+#   Last modified: 2014-10-21 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.18"
+ProgVersion = "0.19"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -39,7 +39,7 @@ debuggingThisModule = True
 import sys, os.path, logging
 from gettext import gettext as _
 
-from tkinter import DISABLED, END
+import tkinter as tk
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -121,7 +121,7 @@ class BibleLexiconResourceWindow( ResourceWindow ):
         #print( "vt", verseText )
         #self.textBox.insert( '1.0', verseText )
         #self.textBox.pack()
-        #self.textBox['state'] = DISABLED # Don't allow editing
+        #self.textBox['state'] = tk.DISABLED # Don't allow editing
 
         #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
         #self.QUIT.pack( side="bottom" )
@@ -169,7 +169,7 @@ class BibleLexiconResourceWindow( ResourceWindow ):
             lastCharWasSpace = haveTextFlag = not firstFlag
             if verseDataList is None:
                 print( "  ", BnameCV, "has no data" )
-                self.textBox.insert( END, '--' )
+                self.textBox.insert( tk.END, '--' )
             else:
                 for entry in verseDataList:
                     marker, cleanText = entry.getMarker(), entry.getCleanText()
@@ -181,35 +181,35 @@ class BibleLexiconResourceWindow( ResourceWindow ):
                         pass
                     elif marker == 'c#': # Might want to display this (added) c marker
                         if cleanText != BnameCV[0]:
-                            if not lastCharWasSpace: self.textBox.insert( END, ' ', 'v-' )
-                            self.textBox.insert( END, cleanText, 'c#' )
+                            if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
+                            self.textBox.insert( tk.END, cleanText, 'c#' )
                             lastCharWasSpace = False
                     elif marker == 's1':
-                        self.textBox.insert( END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                        self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
                     elif marker == 'p':
-                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( END, cleanText, '*v~' if currentVerse else 'v~' )
+                            self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'q1':
-                        self.textBox.insert ( END, '\n  ' if haveTextFlag else '  ' )
+                        self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
                         lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( END, cleanText, '*q1' if currentVerse else 'q1' )
+                            self.textBox.insert( tk.END, cleanText, '*q1' if currentVerse else 'q1' )
                             lastCharWasSpace = False
                         haveTextFlag = True
                     elif marker == 'm': pass
                     elif marker == 'v':
                         if haveTextFlag:
-                            self.textBox.insert( END, ' ', 'v-' )
-                        self.textBox.insert( END, cleanText, marker )
-                        self.textBox.insert( END, ' ', 'v+' )
+                            self.textBox.insert( tk.END, ' ', 'v-' )
+                        self.textBox.insert( tk.END, cleanText, marker )
+                        self.textBox.insert( tk.END, ' ', 'v+' )
                         lastCharWasSpace = haveTextFlag = True
                     elif marker in ('v~','p~'):
-                        self.textBox.insert( END, cleanText, '*v~' if currentVerse else marker )
+                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
                         haveTextFlag = True
                     else:
                         logging.critical( t("BibleLexiconResourceWindow.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
@@ -226,7 +226,7 @@ class BibleLexiconResourceWindow( ResourceWindow ):
             displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
             for BnameCV,nextVerseData in nextVerses:
                 displayVerse( False, BnameCV, nextVerseData )
-        self.textBox['state'] = DISABLED # Don't allow editing
+        self.textBox['state'] = tk.DISABLED # Don't allow editing
     # end of BibleLexiconResourceWindow.update
 
 
@@ -235,14 +235,14 @@ class BibleLexiconResourceWindow( ResourceWindow ):
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
         if self.BibleLexicon is None:
-            self.textBox.insert( END, "No lexicon loaded so can't display entry for {}.".format( repr(newLexiconWord) ) )
+            self.textBox.insert( tk.END, "No lexicon loaded so can't display entry for {}.".format( repr(newLexiconWord) ) )
         else:
-            self.textBox.insert( END, "Entry for {}".format( repr(newLexiconWord) ) )
+            self.textBox.insert( tk.END, "Entry for {}".format( repr(newLexiconWord) ) )
             #txt = self.BibleLexicon.getEntryData( self.lexiconWord )
-            #if txt: self.textBox.insert( END, '\n'+txt )
+            #if txt: self.textBox.insert( tk.END, '\n'+txt )
             txt = self.BibleLexicon.getEntryHTML( self.lexiconWord )
-            if txt: self.textBox.insert( END, '\n'+txt )
-        self.textBox['state'] = DISABLED # Don't allow editing
+            if txt: self.textBox.insert( tk.END, '\n'+txt )
+        self.textBox['state'] = tk.DISABLED # Don't allow editing
     # end of BibleLexiconResourceWindow.updateLexiconWord
 # end of BibleLexiconResourceWindow class
 
@@ -252,14 +252,14 @@ def demo():
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    from tkinter import Tk
+    #from tkinter import Tk
     if Globals.verbosityLevel > 0: print( ProgNameVersion )
     #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if Globals.debugFlag: print( t("Running demo...") )
     #Globals.debugFlag = True
 
-    tkRootWindow = Tk()
+    tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
     #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
     #settings.load()
