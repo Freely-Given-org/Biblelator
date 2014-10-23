@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-21 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -44,14 +44,15 @@ from tkinter.messagebox import showerror, showinfo
 from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Scrollbar
 
+# Biblelator imports
+from BiblelatorGlobals import APP_NAME, START, \
+                             MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
+from BiblelatorHelpers import errorBeep
+
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
-
-# Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, \
-                             MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
 
 
 
@@ -66,6 +67,19 @@ def t( messageString ):
     if Globals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
+
+
+
+class HTMLText( tk.Text ):
+    """
+    A custom Text widget which understands simple HTML.
+    """
+    def __init__( self, *args, **kwargs ):
+        if Globals.debugFlag: print( t("HTMLText.__init__( ... )") )
+        tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
+
+    # end of HTMLText.__init__
+# end of HTMLText class
 
 
 
@@ -85,10 +99,13 @@ class ResourceWindow( tk.Toplevel ):
         tk.Toplevel.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeResourceWindow )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
+        self.minsize( self.minimumXSize, self.minimumYSize )
 
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
+
+        self.myKeyboardBindings = []
 
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
@@ -101,8 +118,9 @@ class ResourceWindow( tk.Toplevel ):
         self.textBox = tk.Text( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
-
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.createStandardKeyboardBindings()
+        self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Options for find, etc.
         self.optionsDict = {}
@@ -112,31 +130,9 @@ class ResourceWindow( tk.Toplevel ):
     # end of ResourceWindow.__init__
 
 
-    def notWrittenYet( self ):
-        showerror( _("Not implemented"), _("Not yet available, sorry") )
-    # end of ResourceWindow.notWrittenYet
-
-
-    def clearText( self ): # Leaves in normal state
-        self.textBox['state'] = tk.NORMAL
-        self.textBox.delete( '1.0', tk.END )
-    # end of ResourceFrame.updateText
-
-
-    def doHelp( self ):
-        from Help import HelpBox
-        helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.winType )
-        hb = HelpBox( self, self.genericWindowType, helpInfo )
-    # end of Application.doHelp
-
-
-    def doAbout( self ):
-        from About import AboutBox
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.winType )
-        ab = AboutBox( self, self.genericWindowType, aboutInfo )
-    # end of Application.doAbout
+    def setFocus( self, event ):
+        '''Explicitly set focus, so user can select and copy text'''
+        self.textBox.focus_set()
 
 
     def createMenuBar( self ):
@@ -150,22 +146,49 @@ class ResourceWindow( tk.Toplevel ):
         Can be overriden if necessary.
         """
         self.contextMenu = tk.Menu( self, tearoff=0 )
-        self.contextMenu.add_command( label="Copy", underline=0, command=self.onCopy )
+        self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Select all", underline=7, command=self.onSelectAll )
+        self.contextMenu.add_command( label="Select all", underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Find...", underline=0, command=self.onFind )
+        self.contextMenu.add_command( label="Find...", underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Close", underline=1, command=self.onClose )
+        self.contextMenu.add_command( label="Close", underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] )
 
         self.bind( "<Button-3>", self.showContextMenu ) # right-click
         #self.pack()
     # end of ResourceWindow.createContextMenu
 
 
-    def showContextMenu(self, e):
-        self.contextMenu.post( e.x_root, e.y_root )
+    def showContextMenu( self, event ):
+        self.contextMenu.post( event.x_root, event.y_root )
     # end of ResourceWindow.showContextMenu
+
+
+    def createStandardKeyboardBindings( self ):
+        """
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.createStandardKeyboardBindings()") )
+        for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
+                             ('Find',self.doFind), ('Refind',self.doRefind),
+                             ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             ('Close',self.doClose) ):
+            if name in self.parentApp.keyBindingDict:
+                for keycode in self.parentApp.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keycode), repr(name) ) )
+                    self.textBox.bind( keycode, command )
+                self.myKeyboardBindings.append( (name,self.parentApp.keyBindingDict[name][0],) )
+            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+        #self.textBox.bind('<Control-a>', self.doSelectAll ); self.textBox.bind('<Control-A>', self.doSelectAll )
+        #self.textBox.bind('<Control-c>', self.doCopy ); self.textBox.bind('<Control-C>', self.doCopy )
+        #self.textBox.bind('<Control-f>', self.doFind ); self.textBox.bind('<Control-F>', self.doFind )
+        #self.textBox.bind('<Control-g>', self.doRefind ); self.textBox.bind('<Control-G>', self.doRefind )
+        #self.textBox.bind('<F1>', self.doHelp )
+        #self.textBox.bind('<F3>', self.doRefind )
+        #self.textBox.bind('<Control-F4>', self.doClose )
+        #self.textBox.bind('<F11>', self.doShowInfo )
+        #self.textBox.bind('<F12>', self.doAbout )
+    # end of ResourceWindow.createStandardKeyboardBindings()
 
 
     def createToolBar( self ):
@@ -177,28 +200,52 @@ class ResourceWindow( tk.Toplevel ):
     # end of ResourceWindow.createToolBar
 
 
-    def onCopy( self ):                           # get text selected by mouse, etc.
+    def clearText( self ): # Leaves in normal state
+        self.textBox['state'] = tk.NORMAL
+        self.textBox.delete( '1.0', tk.END )
+    # end of ResourceFrame.updateText
+
+
+    def notWrittenYet( self ):
+        errorBeep()
+        showerror( _("Not implemented"), _("Not yet available, sorry") )
+    # end of ResourceWindow.notWrittenYet
+
+
+    def doCopy( self, event=None ):
+        """
+        Copy the selected text onto the clipboard.
+        """
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onCopy()") )
+            print( t("TextEditWindow.doCopy()") )
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
+            errorBeep()
             showerror( APP_NAME, 'No text selected')
         else:
-            text = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
+            copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
+            print( "  copied text", repr(copyText) )
             self.clipboard_clear()
-            self.clipboard_append(text)
-    # end of ResourceWindow.onCopy
+            self.clipboard_append( copyText )
+    # end of ResourceWindow.doCopy
 
 
-    def onSelectAll( self ):
+    def doSelectAll( self, event=None ):
+        """
+        Select all the text in the text box.
+        """
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onSelectAll()") )
+            print( t("TextEditWindow.doSelectAll()") )
         self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
         self.textBox.see( tk.INSERT )                      # scroll to top
-    # end of ResourceWindow.onSelectAll
+    # end of ResourceWindow.doSelectAll
 
 
-    def onGoto( self, forceline=None):
+    def doGotoLine( self, event=None, forceline=None ):
+        """
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.doGotoLine()") )
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
         self.textBox.focus()
@@ -208,14 +255,15 @@ class ResourceWindow( tk.Toplevel ):
             if line > 0 and line <= maxline:
                 self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
                 self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
-                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
+                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert+1l' )  # select line
                 self.textBox.see( tk.INSERT )                          # scroll to line
             else:
+                errorBeep()
                 showerror( APP_NAME, _("No such line number") )
-    # end of ResourceWindow.onGoto
+    # end of ResourceWindow.doGotoLine
 
 
-    def onFind( self, lastkey=None):
+    def doFind( self, event=None, lastkey=None ):
         key = lastkey or askstring( APP_NAME, _("Enter search string") )
         self.textBox.update()
         self.textBox.focus()
@@ -224,6 +272,7 @@ class ResourceWindow( tk.Toplevel ):
             nocase = self.optionsDict['caseinsens']
             where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
+                errorBeep()
                 showerror( APP_NAME, 'String not found' )
             else:
                 pastkey = where + '+%dc' % len(key)           # index past key
@@ -231,15 +280,15 @@ class ResourceWindow( tk.Toplevel ):
                 self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 self.textBox.see( where )                          # scroll display
-    # end of ResourceWindow.onFind
+    # end of ResourceWindow.doFind
 
 
-    def onRefind( self ):
-        self.onFind( self.lastfind)
-    # end of ResourceWindow.onRefind
+    def doRefind( self, event=None ):
+        self.doFind( self.lastfind)
+    # end of ResourceWindow.doRefind
 
 
-    def onInfo( self ):
+    def doShowInfo( self, event=None ):
         """
         pop-up dialog giving text statistics and cursor location;
         caveat (2.1): Tk insert position column counts a tab as one
@@ -256,7 +305,7 @@ class ResourceWindow( tk.Toplevel ):
                  'line:\t%s\ncolumn:\t%s\n\n' % where +
                  'File text statistics:\n\n' +
                  'chars:\t{}\nlines:\t{}\nwords:\t{}\n'.format( bytes, lines, words) )
-    # end of ResourceWindow.onInfo
+    # end of ResourceWindow.doShowInfo
 
 
     ############################################################################
@@ -290,18 +339,37 @@ class ResourceWindow( tk.Toplevel ):
         self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
         self.textBox.edit_reset() # clear undo/redo stks
-        self.textBox.edit_modified( FALSE ) # clear modified flag
+        self.textBox.edit_modified( tk.FALSE ) # clear modified flag
     # end of ResourceWindow.setAllText
 
 
-    def onClose( self ):
+    def doHelp( self, event=None ):
+        from Help import HelpBox
+        helpInfo = ProgNameVersion
+        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\n  Keyboard shortcuts:"
+        for name,shortcut in self.myKeyboardBindings:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+    # end of Application.doHelp
+
+
+    def doAbout( self, event=None ):
+        from About import AboutBox
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.winType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+    # end of Application.doAbout
+
+
+    def doClose( self, event=None ):
         """
         Called from the GUI.
 
         Can be overridden.
         """
         self.closeResourceWindow()
-    # end of ResourceWindow.onClose
+    # end of ResourceWindow.doClose
 
     def closeResourceWindow( self ):
         """
@@ -357,7 +425,7 @@ class ResourceWindows( list ):
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.groupCode == groupCode:
                     #appWin.updateShownBCV( appWin.parentApp.currentVerseKey )
-                    self.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
+                    self.ResourceWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
     # end of ResourceWindows.updateThisBibleGroup
 
 
@@ -369,7 +437,7 @@ class ResourceWindows( list ):
             print( t("ResourceWindows.updateLexicons( {} )").format( newLexiconWord ) )
         for appWin in self:
             if appWin.genericWindowType == 'LexiconResource':
-                self.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
+                self.ResourceWindowsParent.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
     # end of ResourceWindows.updateLexicons
 # end of ResourceWindows class
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-10-21 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -40,26 +40,22 @@ from gettext import gettext as _
 import multiprocessing
 
 import tkinter as tk
-#from tkinter import TclError, Toplevel, Text, Menu
-#from tkinter import tk.NORMAL, tk.DISABLED, tk.LEFT, tk.RIGHT, tk.BOTH, tk.YES, TRUE, FALSE, \
-                    #tk.END, tk.INSERT, tk.SEL, tk.SEL_FIRST, tk.SEL_LAST
 from tkinter.messagebox import showerror, showinfo
 from tkinter.simpledialog import askstring, askinteger
-from tkinter.filedialog import SaveAs
+from tkinter.filedialog import asksaveasfilename
 from tkinter.colorchooser import askcolor
 from tkinter.ttk import Style, Frame
+
+# Biblelator imports
+from BiblelatorGlobals import APP_NAME, START, EDIT_MODE_NORMAL, EDIT_MODE_USFM
+from ResourceWindows import ResourceWindow
+from BibleResourceWindows import BibleResourceWindow
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
 from VerseReferences import SimpleVerseKey
-#import USFMBible
-
-# Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, EDIT_MODE_NORMAL, EDIT_MODE_USFM
-from ResourceWindows import ResourceWindow
-from BibleResourceWindows import BibleResourceWindow
 
 
 
@@ -159,7 +155,7 @@ class TextEditWindow( ResourceWindow ):
         ResourceWindow.__init__( self, self.parentApp, 'TextEditor' )
         self.moduleID = None
         self.winType = 'PlainTextEditWindow'
-        self.protocol( "WM_DELETE_WINDOW", self.closeEditor ) # Catch when window is closed
+        self.protocol( "WM_DELETE_WINDOW", self.onCloseEditor ) # Catch when window is closed
 
         self.textBox['background'] = "white"
         self.textBox['selectbackground'] = "red"
@@ -169,27 +165,32 @@ class TextEditWindow( ResourceWindow ):
         self.textBox['wrap'] = 'word'
         self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.createEditorKeyboardBindings()
 
         self.clearText()
+        self.after( 500, self.refreshTitle )
     # end of TextEditWindow.__init__
 
 
-    def refreshTitle( self ):
-        self.title( "{}[{}] {} ({}) Editable".format( '*' if self.modified() else '',
-                                            _("Text"), self.filename, self.folderPath ) )
-    # end if TextEditWindow.refreshTitle
-
-
-    def doHelp( self ):
-        from Help import HelpBox
-        hb = HelpBox( self.parentApp, ProgName, ProgNameVersion )
-    # end of TextEditWindow.doHelp
-
-
-    def doAbout( self ):
-        from About import AboutBox
-        ab = AboutBox( self.parentApp, ProgName, ProgNameVersion )
-    # end of TextEditWindow.doAbout
+    def createEditorKeyboardBindings( self ):
+        """
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.createEditorKeyboardBindings()") )
+        for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
+                             ('Undo',self.doUndo), ('Redo',self.doRedo),
+                             ('Save',self.doSave), ):
+            if name in self.parentApp.keyBindingDict:
+                for keycode in self.parentApp.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keycode), repr(name) ) )
+                    self.textBox.bind( keycode, command )
+                self.myKeyboardBindings.append( (name,self.parentApp.keyBindingDict[name][0],) )
+            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+        #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
+        #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
+        #self.textBox.bind('<Control-x>', self.doCut ); self.textBox.bind('<Control-X>', self.doCut )
+        #self.textBox.bind('<Control-g>', self.doRefind ); self.textBox.bind('<Control-G>', self.doRefind )
+    # end of ResourceWindow.createEditorKeyboardBindings()
 
 
     def createMenuBar( self ):
@@ -199,8 +200,8 @@ class TextEditWindow( ResourceWindow ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        fileMenu.add_command( label='Save', underline=0, command=self.notWrittenYet )
-        fileMenu.add_command( label='Save as...', underline=5, command=self.notWrittenYet )
+        fileMenu.add_command( label='Save', underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict['Save'][0] )
+        fileMenu.add_command( label='Save as...', underline=5, command=self.doSaveAs )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
@@ -210,32 +211,29 @@ class TextEditWindow( ResourceWindow ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.onInfo )
+        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Close', underline=0, command=self.closeEditor )
+        fileMenu.add_command( label='Close', underline=0, command=self.doCloseEditor, accelerator=self.parentApp.keyBindingDict['Close'][0] )
 
         editMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
-        editMenu.add_command( label='Undo', underline=0, command=self.onUndo )
-        editMenu.add_command( label='Redo', underline=0, command=self.onRedo )
+        editMenu.add_command( label='Undo', underline=0, command=self.doUndo, accelerator=self.parentApp.keyBindingDict['Undo'][0] )
+        editMenu.add_command( label='Redo', underline=0, command=self.doRedo, accelerator=self.parentApp.keyBindingDict['Redo'][0] )
         editMenu.add_separator()
-        editMenu.add_command( label='Cut', underline=2, command=self.onCut )
-        editMenu.add_command( label='Copy', underline=0, command=self.onCopy )
-        editMenu.add_command( label='Paste', underline=0, command=self.onPaste )
+        editMenu.add_command( label='Cut', underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict['Cut'][0] )
+        editMenu.add_command( label='Copy', underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
+        editMenu.add_command( label='Paste', underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict['Paste'][0] )
         editMenu.add_separator()
-        editMenu.add_command( label='Delete', underline=0, command=self.onDelete )
-        editMenu.add_command( label='Select all', underline=0, command=self.onSelectAll )
-        #editMenu.add_separator()
-        #editMenu.add_command( label='Find...', underline=0, command=self.onFind )
-        #editMenu.add_command( label='Replace...', underline=0, command=self.onReplace )
+        editMenu.add_command( label='Delete', underline=0, command=self.doDelete )
+        editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.onGoto )
+        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.onFind )
-        searchMenu.add_command( label='Find again', underline=5, command=self.onRefind )
-        searchMenu.add_command( label='Replace...', underline=0, command=self.onChange )
+        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+        searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
+        searchMenu.add_command( label='Replace...', underline=0, command=self.doFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label='Grep...', underline=0, command=self.onGrep )
 
@@ -272,30 +270,25 @@ class TextEditWindow( ResourceWindow ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
+        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
-
-        #filename = filedialog.askopenfilename()
-        #filename = filedialog.asksaveasfilename()
-        #dirname = filedialog.askdirectory()
-        #colorchooser.askcolor(initialcolor='#ff0000')
-        #showinfo(message='Have a good day')
-        #askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
+        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
     # end of TextEditWindow.createMenuBar
 
 
     def createContextMenu( self ):
         """
         """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.createContextMenu()") )
         self.contextMenu = tk.Menu( self, tearoff=0 )
-        self.contextMenu.add_command( label="Cut", underline=2, command=self.onCut )
-        self.contextMenu.add_command( label="Copy", underline=0, command=self.onCopy )
-        self.contextMenu.add_command( label="Paste", underline=0, command=self.onPaste )
+        self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict['Cut'][0] )
+        self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
+        self.contextMenu.add_command( label="Paste", underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict['Paste'][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Select all", underline=7, command=self.onSelectAll )
+        self.contextMenu.add_command( label="Select all", underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Close", underline=1, command=self.onClose )
+        self.contextMenu.add_command( label="Close", underline=1, command=self.doCloseEditor, accelerator=self.parentApp.keyBindingDict['Close'][0] )
 
         self.bind( "<Button-3>", self.showContextMenu ) # right-click
     # end of TextEditWindow.createContextMenu
@@ -317,86 +310,105 @@ class TextEditWindow( ResourceWindow ):
     ## end of TextEditWindow.createToolBar
 
 
-    def onUndo( self ):
+    def refreshTitle( self ):
+        self.title( "{}[{}] {} ({}) Editable".format( '*' if self.modified() else '',
+                                            _("Text"), self.filename, self.folderPath ) )
+        self.after( 200, self.refreshTitle )
+    # end if TextEditWindow.refreshTitle
+
+
+    def doHelp( self, event=None ):
+        from Help import HelpBox
+        hb = HelpBox( self.parentApp, ProgName, ProgNameVersion )
+    # end of TextEditWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        from About import AboutBox
+        ab = AboutBox( self.parentApp, ProgName, ProgNameVersion )
+    # end of TextEditWindow.doAbout
+
+
+    def doUndo( self, event=None ):
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onUndo()") )
+            print( t("TextEditWindow.doUndo()") )
         try: self.textBox.edit_undo()
-        except TclError:
+        except tk.TclError:
             showinfo( APP_NAME, 'Nothing to undo')
-    # end of TextEditWindow.onUndo
+    # end of TextEditWindow.doUndo
 
 
-    def onRedo( self ):
+    def doRedo( self, event=None ):
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onRedo()") )
+            print( t("TextEditWindow.doRedo()") )
         try: self.textBox.edit_redo()
-        except TclError:
+        except tk.TclError:
             showinfo( APP_NAME, 'Nothing to redo')
-    # end of TextEditWindow.onRedo
+    # end of TextEditWindow.doRedo
 
 
-    def xxxonCopy( self ):                           # get text selected by mouse, etc.
+    def xxxdoCopy( self ):                           # get text selected by mouse, etc.
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onCopy()") )
+            print( t("TextEditWindow.doCopy()") )
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             showerror( APP_NAME, 'No text selected')
         else:
             text = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
             self.clipboard_clear()
             self.clipboard_append(text)
-    # end of TextEditWindow.onCopy
+    # end of TextEditWindow.doCopy
 
 
-    def onDelete( self ):                         # delete selected text, no save
+    def doDelete( self, event=None ):                         # delete selected text, no save
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onDelete()") )
+            print( t("TextEditWindow.doDelete()") )
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( APP_NAME, 'No text selected')
         else:
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
-    # end of TextEditWindow.onDelete
+    # end of TextEditWindow.doDelete
 
 
-    def onCut( self ):
+    def doCut( self, event=None ):
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onCut()") )
+            print( t("TextEditWindow.doCut()") )
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( APP_NAME, 'No text selected')
         else:
-            self.onCopy()                       # save and delete selected text
-            self.onDelete()
-    # end of TextEditWindow.onCut
+            self.doCopy()                       # save and delete selected text
+            self.doDelete()
+    # end of TextEditWindow.doCut
 
 
-    def onPaste( self ):
+    def doPaste( self, event=None ):
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onPaste()") )
+            print( t("TextEditWindow.doPaste()") )
         try:
             text = self.selection_get( selection='CLIPBOARD')
-        except TclError:
+        except tk.TclError:
             showerror( APP_NAME, 'Nothing to paste')
             return
         self.textBox.insert( tk.INSERT, text)          # add at current insert cursor
         self.textBox.tag_remove( tk.SEL, START, tk.END)
         self.textBox.tag_add( tk.SEL, tk.INSERT+'-%dc' % len(text), tk.INSERT)
         self.textBox.see( tk.INSERT )                   # select it, so it can be cut
-    # end of TextEditWindow.onPaste
+    # end of TextEditWindow.doPaste
 
 
-    def xxxonSelectAll( self ):
+    def xxxdoSelectAll( self ):
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.onSelectAll()") )
+            print( t("TextEditWindow.doSelectAll()") )
         self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
         self.textBox.see( tk.INSERT )                      # scroll to top
-    # end of TextEditWindow.onSelectAll
+    # end of TextEditWindow.doSelectAll
 
 
     ############################################################################
     # Search menu commands
     ############################################################################
 
-    def xxxonGoto( self, forceline=None):
+    def xxxdoGotoLine( self, forceline=None):
         line = forceline or askinteger( APP_NAME, 'Enter line number' )
         self.textBox.update()
         self.textBox.focus()
@@ -410,10 +422,10 @@ class TextEditWindow( ResourceWindow ):
                 self.textBox.see( tk.INSERT )                          # scroll to line
             else:
                 showerror( APP_NAME, 'No such line number' )
-    # end of TextEditWindow.onGoto
+    # end of TextEditWindow.doGotoLine
 
 
-    def xxxonFind( self, lastkey=None):
+    def xxxdoFind( self, lastkey=None):
         key = lastkey or askstring( APP_NAME, 'Enter search string' )
         self.textBox.update()
         self.textBox.focus()
@@ -429,15 +441,15 @@ class TextEditWindow( ResourceWindow ):
                 self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 self.textBox.see( where )                          # scroll display
-    # end of TextEditWindow.onFind
+    # end of TextEditWindow.doFind
 
 
-    def xxxonRefind( self ):
-        self.onFind( self.lastfind)
-    # end of TextEditWindow.onRefind
+    def xxxdoRefind( self ):
+        self.doFind( self.lastfind)
+    # end of TextEditWindow.doRefind
 
 
-    def onChange( self ):
+    def doFindReplace( self ):
         """
         non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
@@ -451,16 +463,16 @@ class TextEditWindow( ResourceWindow ):
         entry1.grid(row=0, column=1, sticky=EW)
         entry2.grid(row=1, column=1, sticky=EW)
 
-        def onFind():                         # use my entry in enclosing scope
-            self.onFind( entry1.get() )         # runs normal find dialog callback
+        def doFind():                         # use my entry in enclosing scope
+            self.doFind( entry1.get() )         # runs normal find dialog callback
 
         def onApply():
             self.onDoChange( entry1.get(), entry2.get() )
 
-        Button( new, text='Find',  command=onFind ).grid(row=0, column=2, sticky=EW)
+        Button( new, text='Find',  command=doFind ).grid(row=0, column=2, sticky=EW)
         Button( new, text='Apply', command=onApply).grid(row=1, column=2, sticky=EW)
         new.columnconfigure(1, weight=1)      # expandable entries
-    # end of TextEditWindow.onChange
+    # end of TextEditWindow.doFindReplace
 
 
     def onDoChange( self, findtext, changeto):
@@ -469,12 +481,12 @@ class TextEditWindow( ResourceWindow ):
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
             self.textBox.insert( tk.INSERT, changeto)             # deletes if empty
             self.textBox.see( tk.INSERT )
-            self.onFind( findtext )                          # goto next appear
+            self.doFind( findtext )                          # goto next appear
             self.textBox.update()                             # force refresh
     # end of TextEditWindow.onDoChange
 
 
-    def xxxonInfo( self):
+    def xxxdoShowInfo( self, event=None ):
         """
         pop-up dialog giving text statistics and cursor location;
         caveat (2.1): Tk insert position column counts a tab as one
@@ -491,7 +503,7 @@ class TextEditWindow( ResourceWindow ):
                  'line:\t%s\ncolumn:\t%s\n\n' % where +
                  'File text statistics:\n\n' +
                  'chars:\t{}\nlines:\t{}\nwords:\t{}\n'.format( bytes, lines, words) )
-    # end of TextEditWindow.onInfo
+    # end of TextEditWindow.doShowInfo
 
 
     ############################################################################
@@ -522,10 +534,15 @@ class TextEditWindow( ResourceWindow ):
         self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
         self.textBox.edit_reset() # clear undo/redo stks
-        self.textBox.edit_modified( FALSE ) # clear modified flag
+        self.textBox.edit_modified( tk.FALSE ) # clear modified flag
     # end of TextEditWindow.setAllText
 
+
     def setFilepath( self, newFilepath ):
+        """
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.setFilepath( {} )").format( repr(newFilepath) ) )
         self.folderPath, self.filename = os.path.split( newFilepath )
         #self.currfile = name  # for save
         #self.filelabel.config(text=str(name))
@@ -533,22 +550,63 @@ class TextEditWindow( ResourceWindow ):
     # end of TextEditWindow.setFilepath
 
 
-    def onClose( self ):
+    def doSaveAs( self, event=None ):
         """
         Called if the user requests a close from the GUI.
         """
-        self.onClose()
-    # end of TextEditWindow.closeEditor
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.doSaveAs()") )
+        if self.modified():
+            saveAsFilepath = asksaveasfilename()
+            #print( "saveAsFilepath", repr(saveAsFilepath) )
+            if saveAsFilepath:
+                self.setFilepath( saveAsFilepath )
+                self.doSave()
+    # end of TextEditWindow.doSaveAs
 
-    def closeEditor( self ):
+    def doSave( self, event=None ):
         """
+        Called if the user requests a close from the GUI.
         """
         if Globals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.closeEditor()") )
-        if self.textBox.edit_modified():
-            pass
-        else: self.closeResourceWindow()
+            print( t("TextEditWindow.doSaveAs()") )
+        if self.modified():
+            if self.folderPath and self.filename:
+                filepath = os.path.join( self.folderPath, self.filename )
+                allText = self.getAllText()
+                with open( filepath, mode='wt' ) as theFile:
+                    theFile.write( allText )
+                self.textBox.edit_modified( tk.FALSE ) # clear modified flag
+                self.refreshTitle()
+            else: self.doSaveAs()
+    # end of TextEditWindow.doSaveAs
+
+
+    def doCloseEditor( self, event=None ):
+        """
+        Called if the user requests a close from the GUI.
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.doCloseEditor()") )
+        self.onCloseEditor()
     # end of TextEditWindow.closeEditor
+
+    def onCloseEditor( self ):
+        """
+        Called if the window is about to be destroyed.
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.onCloseEditor()") )
+        if self.modified():
+            if self.folderPath and self.filename:
+                self.doSave()
+                self.closeResourceWindow()
+            else: # we need to ask where to save it
+                self.doSaveAs()
+                if self.folderPath and self.filename: # assume we saved it
+                    self.closeResourceWindow()
+        else: self.closeResourceWindow()
+    # end of TextEditWindow.onCloseEditor
 # end of TextEditWindow class
 
 
@@ -570,8 +628,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
         self.textBox.setTextChangeCallback( self.onTextChange )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
-
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.doStandardKeyboardBindings()
+        self.createEditorKeyboardBindings()
 
         # Now we need to override a few critical variables
         self.genericWindowType = 'BibleEditor'
@@ -628,34 +687,29 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.onInfo )
+        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Close', underline=0, command=self.closeEditor )
+        fileMenu.add_command( label='Close', underline=0, command=self.doCloseEditor )
 
         editMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
-        editMenu.add_command( label='Undo', underline=0, command=self.onUndo )
-        editMenu.add_command( label='Redo', underline=0, command=self.onRedo )
+        editMenu.add_command( label='Undo', underline=0, command=self.doUndo )
+        editMenu.add_command( label='Redo', underline=0, command=self.doRedo )
         editMenu.add_separator()
-        editMenu.add_command( label='Cut', underline=2, command=self.onCut )
-        editMenu.add_command( label='Copy', underline=0, command=self.onCopy )
-        editMenu.add_command( label='Paste', underline=0, command=self.onPaste )
+        editMenu.add_command( label='Cut', underline=2, command=self.doCut )
+        editMenu.add_command( label='Copy', underline=0, command=self.doCopy )
+        editMenu.add_command( label='Paste', underline=0, command=self.doPaste )
         editMenu.add_separator()
-        editMenu.add_command( label='Delete', underline=0, command=self.onDelete )
-        editMenu.add_command( label='Select all', underline=0, command=self.onSelectAll )
-        #editMenu.add_separator()
-        #editMenu.add_command( label='Find...', underline=0, command=self.onFind )
-        #editMenu.add_command( label='Replace...', underline=0, command=self.onReplace )
+        editMenu.add_command( label='Delete', underline=0, command=self.doDelete )
+        editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll )
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.onGoto )
+        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.onFind )
-        searchMenu.add_command( label='Find again', underline=5, command=self.onRefind )
-        searchMenu.add_command( label='Replace...', underline=0, command=self.onChange )
-        #searchMenu.add_separator()
-        #searchMenu.add_command( label='Grep...', underline=0, command=self.onGrep )
+        searchMenu.add_command( label='Find...', underline=0, command=self.doFind )
+        searchMenu.add_command( label='Find again', underline=5, command=self.doRefind )
+        searchMenu.add_command( label='Replace...', underline=0, command=self.doFindReplace )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
@@ -705,13 +759,6 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
         helpMenu.add_separator()
         helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
-
-        #filename = filedialog.askopenfilename()
-        #filename = filedialog.asksaveasfilename()
-        #dirname = filedialog.askdirectory()
-        #colorchooser.askcolor(initialcolor='#ff0000')
-        #showinfo(message='Have a good day')
-        #askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
     # end of USFMEditWindow.createMenuBar
 
 
@@ -719,11 +766,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         """
         """
         self.contextMenu = tk.Menu( self, tearoff=0 )
-        self.contextMenu.add_command( label="Cut", underline=2, command=self.notWrittenYet )
-        self.contextMenu.add_command( label="Copy", underline=0, command=self.notWrittenYet )
-        self.contextMenu.add_command( label="Paste", underline=0, command=self.notWrittenYet )
+        self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut )
+        self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy )
+        self.contextMenu.add_command( label="Paste", underline=0, command=self.doPaste )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Close", underline=1, command=self.closeEditor )
+        self.contextMenu.add_command( label="Close", underline=1, command=self.doCloseEditor )
 
         self.bind( "<Button-3>", self.showContextMenu ) # right-click
         #self.pack()
@@ -811,8 +858,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             C, V = mark[1:].split( 'V', 1 )
             #print( "bits", bits )
             #C, V = bits
-            #self.parentApp.gotoBCV( self.verseKey.getBBB(), C, V, self.groupCode )
-            self.after_idle( lambda: self.parentApp.gotoBCV( self.verseKey.getBBB(), C, V, self.groupCode ) )
+            #self.parentApp.gotoGroupBCV( self.groupCode, self.verseKey.getBBB(), C, V )
+            self.after_idle( lambda: self.parentApp.gotoGroupBCV( self.groupCode, self.verseKey.getBBB(), C, V ) )
             self.lastCV = mark
     # end of USFMEditWindow.onTextChange
 
@@ -993,7 +1040,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         if newVerseKey != self.verseKey: # we have a change of reference
             desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
             try: self.textBox.see( desiredMark )
-            except TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
+            except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
             self.verseKey = newVerseKey
 
         self.refreshTitle()

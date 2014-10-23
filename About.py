@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-10-21 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -36,11 +36,13 @@ debuggingThisModule = True
 
 
 import sys #, os.path, configparser, logging
-#from gettext import gettext as _
+from gettext import gettext as _
 
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
+
+from BiblelatorGlobals import MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, centreWindowOnWindow
 
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
@@ -66,16 +68,19 @@ class AboutBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
         #if Globals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
-        #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
+        self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
+        self.minsize( self.minimumXSize, self.minimumYSize )
+        if parent: centreWindowOnWindow( self, parent )
+
+        self.okButton = Button( self, text='Ok', command=self.destroy )
+        self.okButton.pack( side=tk.BOTTOM )
+
         self.title( 'About '+progName )
         self.textBox = ScrolledText( self ) #, state=tk.DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=tk.YES )
         self.textBox.insert( tk.END, text )
         self.textBox['state'] = tk.DISABLED # Don't allow editing
-
-        self.okButton = Button( self, text='Ok', command=self.destroy )
-        self.okButton.pack()
 
         self.focus_set() # take over input focus,
         self.grab_set() # disable other windows while I'm open,
@@ -88,7 +93,13 @@ class AboutBox2():
     def __init__( self, parent=None, progName=None, text=None ):
         #if Globals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
         ab = tk.Toplevel( parent )
-        #self.minimumXSize, self.minimumYSize = MINIMUM_X_SIZE, MINIMUM_Y_SIZE
+        self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
+        self.minsize( self.minimumXSize, self.minimumYSize )
+        if parent: centreWindowOnWindow( self, parent )
+
+        self.okButton = Button( ab, text='Ok', command=ab.destroy )
+        self.okButton.pack( side=tk.BOTTOM )
+
         ab.title( 'About '+progName )
         textBox = ScrolledText( ab ) #, state=tk.DISABLED )
         textBox['wrap'] = 'word'

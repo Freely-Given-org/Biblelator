@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-10-21 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -41,23 +41,22 @@ from gettext import gettext as _
 
 import tkinter as tk
 
+# Biblelator imports
+from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
+from ResourceWindows import ResourceWindow, HTMLText
+
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
-#from BibleOrganizationalSystems import BibleOrganizationalSystem
+from BibleLexicon import BibleLexicon
 #import Hebrew
 #from HebrewLexicon import HebrewLexicon
 #from GreekLexicon import GreekLexicon
-from BibleLexicon import BibleLexicon
 #from HebrewWLC import HebrewWLC
 #import Greek
 #from GreekNT import GreekNT
 #import VerseReferences
-
-# Biblelator imports
-from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
-from ResourceWindows import ResourceWindow
 
 
 
@@ -83,9 +82,18 @@ class BibleLexiconResourceWindow( ResourceWindow ):
         self.parentApp, self.lexiconPath = parentApp, lexiconPath
         self.moduleID = self.lexiconPath
         self.winType = 'BibleLexiconResourceWindow'
+
+        # Make our own textBox
+        self.textBox.destroy()
+        self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
+        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
         #    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
+
+
         try: self.BibleLexicon = BibleLexicon( os.path.join( self.lexiconPath, 'HebrewLexicon/' ),
                                                os.path.join( self.lexiconPath, 'strongs-dictionary-xml/' ) )
         except FileNotFoundError:
@@ -97,6 +105,87 @@ class BibleLexiconResourceWindow( ResourceWindow ):
     def refreshTitle( self ):
         self.title( "[{}] {}".format( repr(self.lexiconWord), _("Bible Lexicon") ) )
     # end if BibleLexiconResourceWindow.refreshTitle
+
+
+    def createMenuBar( self ):
+        self.menubar = tk.Menu( self )
+        #self['menu'] = self.menubar
+        self.config( menu=self.menubar ) # alternative
+
+        fileMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
+        #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #subfileMenuImport = tk.Menu( fileMenu )
+        #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
+        #subfileMenuExport = tk.Menu( fileMenu )
+        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
+        #fileMenu.add_separator()
+        fileMenu.add_command( label='Info...', underline=0, command=self.onInfo )
+        fileMenu.add_separator()
+        fileMenu.add_command( label='Close', underline=0, command=self.onClose ) # close this window
+
+        editMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
+        editMenu.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
+        editMenu.add_separator()
+        editMenu.add_command( label='Find...', underline=0, command=self.notWrittenYet )
+
+        if 0:
+            gotoMenu = tk.Menu( self.menubar )
+            self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
+            gotoMenu.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next book', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Previous chapter', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next chapter', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Previous verse', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next verse', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_separator()
+            gotoMenu.add_command( label='Forward', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Backward', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_separator()
+            gotoMenu.add_command( label='Previous list item', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_command( label='Next list item', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_separator()
+            gotoMenu.add_command( label='Book', underline=0, command=self.notWrittenYet )
+            gotoMenu.add_separator()
+            self._groupRadio.set( self.groupCode )
+            gotoMenu.add_radiobutton( label='Group A', underline=6, value='A', variable=self._groupRadio, command=self.changeBibleGroupCode )
+            gotoMenu.add_radiobutton( label='Group B', underline=6, value='B', variable=self._groupRadio, command=self.changeBibleGroupCode )
+            gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadio, command=self.changeBibleGroupCode )
+            gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadio, command=self.changeBibleGroupCode )
+
+        if 0:
+            viewMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
+            if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
+            elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 2 )
+            elif self.contextViewMode == 'ByBook': self._viewRadio.set( 3 )
+            elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 4 )
+
+            viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
+            viewMenu.add_radiobutton( label='Single verse', underline=7, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
+            viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
+            viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
+
+        toolsMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
+        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+
+        windowMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
+        windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
+
+        helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
+        self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
+        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
+        helpMenu.add_separator()
+        helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
+    # end of BibleLexiconResourceWindow.createMenuBar
 
 
     def xxcreateBibleLexiconResourceWindowWidgets( self ):

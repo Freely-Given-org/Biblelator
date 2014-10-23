@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ModalDialog.py
-#   Last modified: 2014-10-21 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # xxxMain program for Biblelator Bible display/editing
 #
@@ -46,6 +46,7 @@ from tkinter.ttk import Frame, Button
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
+
 
 
 def t( messageString ):

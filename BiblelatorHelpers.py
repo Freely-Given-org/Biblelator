@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-10-19 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -38,23 +38,16 @@ debuggingThisModule = True
 import sys #, os.path, logging
 from gettext import gettext as _
 
-# Importing this way means that we have to manually choose which
-#       widgets that we use (if there's one in each set)
 import tkinter as tk
-#from tkinter import Tk, TclError, Menu, Text, StringVar, messagebox
-#from tkinter import tk.NORMAL, tk.DISABLED, tk.TOP, tk.BOTTOM, tk.LEFT, tk.RIGHT, tk.BOTH, tk.YES, tk.SUNKEN, X
-#from tkinter import tk.Listbox, \
-        #tk.END, tk.EXTENDED
 from tkinter.ttk import Label, Combobox
+
+# Biblelator imports
+from ModalDialog import ModalDialog
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
-
-# Biblelator imports
-#from BiblelatorGlobals import MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE
-from ModalDialog import ModalDialog
 
 
 
@@ -69,6 +62,19 @@ def t( messageString ):
     if Globals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
+
+
+
+def errorBeep():
+    """
+    """
+    if Globals.debugFlag and debuggingThisModule: print( t("errorBeep()") )
+    #import sys
+    #from subprocess import call
+    #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
+    #elif sys.platform == 'darwin': call(["afplay","dialog-error.ogg"])
+    #else: print( "errorBeep: sp", sys.platform )
+# end of errorBeep
 
 
 

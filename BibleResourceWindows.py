@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-20 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -41,20 +41,20 @@ from gettext import gettext as _
 from collections import OrderedDict
 import tkinter as tk
 
+# Biblelator imports
+from BiblelatorGlobals import START, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
+from ResourceWindows import ResourceWindow
+
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
 from VerseReferences import SimpleVerseKey
 from USFMFile import splitMarkerText
-#from BibleOrganizationalSystems import BibleOrganizationalSystem
 from SwordResources import SwordType
 from DigitalBiblePlatform import DBPBible
 from UnknownBible import UnknownBible
-
-# Biblelator imports
-from BiblelatorGlobals import START, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
-from ResourceWindows import ResourceWindow
+#from BibleOrganizationalSystems import BibleOrganizationalSystem
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -132,15 +132,31 @@ class BibleResourceWindow( ResourceWindow ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.onInfo )
+        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Close', underline=0, command=self.onClose ) # close this window
+        fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
 
-        editMenu = tk.Menu( self.menubar, tearoff=False )
+        editMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
-        editMenu.add_command( label='Copy...', underline=0, command=self.notWrittenYet )
+        #editMenu.add_command( label='Undo', underline=0, command=self.doUndo, accelerator=self.parentApp.keyBindingDict['Undo'][0] )
+        #editMenu.add_command( label='Redo', underline=0, command=self.doRedo, accelerator=self.parentApp.keyBindingDict['Redo'][0] )
+        #editMenu.add_separator()
+        #editMenu.add_command( label='Cut', underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict['Cut'][0] )
+        editMenu.add_command( label='Copy', underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
+        #editMenu.add_command( label='Paste', underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict['Paste'][0] )
         editMenu.add_separator()
-        editMenu.add_command( label='Find...', underline=0, command=self.notWrittenYet )
+        #editMenu.add_command( label='Delete', underline=0, command=self.doDelete )
+        editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
+
+        searchMenu = tk.Menu( self.menubar )
+        self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
+        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+        searchMenu.add_separator()
+        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+        searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
+        #searchMenu.add_command( label='Replace...', underline=0, command=self.doFindReplace )
+        #searchMenu.add_separator()
+        #searchMenu.add_command( label='Grep...', underline=0, command=self.onGrep )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
@@ -187,16 +203,9 @@ class BibleResourceWindow( ResourceWindow ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
+        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
-
-        #filename = filedialog.askopenfilename()
-        #filename = filedialog.asksaveasfilename()
-        #dirname = filedialog.askdirectory()
-        #colorchooser.askcolor(initialcolor='#ff0000')
-        #showinfo(message='Have a good day')
-        #askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
+        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
     # end of BibleResourceWindow.createMenuBar
 
 
@@ -392,9 +401,11 @@ class BibleResourceWindow( ResourceWindow ):
                     if Globals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
             else:
                 prevBBB = self.parentApp.genericBibleOrganisationalSystem.getPreviousBookCode( BBB )
-                prevIntC = self.getNumChapters( prevBBB )
-                prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                if Globals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+                if prevBBB is None: failed = True
+                else:
+                    prevIntC = self.getNumChapters( prevBBB )
+                    prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                    if Globals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
             if not failed:
                 previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
                 previousVerseData = self.getCachedVerseData( previousVerseKey )

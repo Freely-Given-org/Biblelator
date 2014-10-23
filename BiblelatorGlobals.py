@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-10-16 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -39,11 +39,11 @@ import sys, re
 from gettext import gettext as _
 #import multiprocessing
 
-
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
+
 
 
 def t( messageString ):
@@ -73,8 +73,11 @@ MAX_WINDOWS = 20
 
 
 # Default settings (Note: X=width, Y=height)
-MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE = 450, 100
-MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE = 350, 100
+MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE = 550, 150
+MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE = 350, 150
+MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE = 350, 150
+MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE = 350, 150
+
 BIBLE_GROUP_CODES = ( 'A', 'B', 'C', 'D' )
 BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'ByVerse', 'ByBook', 'ByChapter' )
 
@@ -82,6 +85,15 @@ BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'ByVerse', 'ByBook', 'ByChapter' 
 # Constants
 EDIT_MODE_NORMAL = 'Edit'
 EDIT_MODE_USFM = 'USFM Edit'
+
+
+defaultKeyBindingDict = { 'Cut':('Ctrl+x','<Control-X>','<Control-x>'), 'Copy':('Ctrl+c','<Control-C>','<Control-c>'),
+        'Paste':('Ctrl+v','<Control-V>','<Control-v>'), 'SelectAll':('Ctrl+a','<Control-A>','<Control-a>'),
+        'Find':('Ctrl+f','<Control-F>','<Control-f>'), 'Refind':('F3/Ctrl+g','<Control-G>','<Control-g>','<F3>'),
+        'Undo':('Ctrl+z','<Control-Z>','<Control-z>'), 'Redo':('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
+        'Line':('Ctrl+l','<Control-L>','<Control-l>'), 'Save':('Ctrl+c','<Control-S>','<Control-s>'),
+        'Help':('F1','<F1>'), 'Info':('F11','<F11>'), 'About':('F12','<F12>'),
+        'Close':('Ctrl+F4','<Control-F4>'), 'Quit':('Alt+F4','<Alt-F4>'), }
 
 
 
@@ -109,18 +121,32 @@ def parseGeometry( geometry ):
 # end of parseGeometry
 
 
-def centreWindow( parentWindow, width=300, height=150 ):
+def centreWindow( self, width=400, height=250 ):
     """
     """
-    screenWidth = parentWindow.winfo_screenwidth()
-    screenHeight = parentWindow.winfo_screenheight()
+    screenWidth = self.winfo_screenwidth()
+    screenHeight = self.winfo_screenheight()
 
     x = (screenWidth - width) // 2
     y = (screenHeight - height) // 2
-    print( "centreWindow", width, height, screenWidth, screenHeight, x, y, )
+    #print( "centreWindow", width, height, screenWidth, screenHeight, x, y )
 
-    parentWindow.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
+    self.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
 # end of BiblelatorGlobals.centreWindow
+
+
+def centreWindowOnWindow( self, parentWindow, width=400, height=250 ):
+    """
+    """
+    parentWidth, parentHeight, parentXOffset, parentYOffset = parseGeometry( parentWindow.geometry() )
+    #print( "centreWindowOnWindow parent is", "w =",parentWidth, "h =",parentHeight, "x =",parentXOffset, "y =",parentYOffset )
+
+    x = parentXOffset + (parentWidth - width) // 2
+    y = parentYOffset + (parentHeight - height) // 2
+    #print( "centreWindowOnWindow", "w =",width, "h =",height, "x =",x, "y =",y )
+
+    self.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
+# end of BiblelatorGlobals.centreWindowOnWindow
 
 
 def demo():

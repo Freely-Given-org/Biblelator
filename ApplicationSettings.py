@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ApplicationSettings.py
-#   Last modified: 2014-10-18 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -38,13 +38,12 @@ debuggingThisModule = True
 import sys, os.path, configparser, logging
 from gettext import gettext as _
 
+# Biblelator imports
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import Globals
-
-# Biblelator imports
 
 
 

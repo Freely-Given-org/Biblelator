@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-10-20 (also update ProgVersion below)
+#   Last modified: 2014-10-23 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -51,9 +51,16 @@ from tkinter.filedialog import Open, Directory #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 #from tkinter.tix import Spinbox
 
-#fname = askopenfilename(filetypes=(("Template files", "*.tplate"),
-                                           #("HTML files", "*.html;*.htm"),
-                                           #("All files", "*.*") ))
+# Biblelator imports
+from BiblelatorGlobals import APP_NAME, DATA_FOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, \
+        MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+        EDIT_MODE_NORMAL, parseGeometry, assembleGeometryFromList, centreWindow, defaultKeyBindingDict
+from BiblelatorHelpers import errorBeep, SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
+from ApplicationSettings import ApplicationSettings
+from ResourceWindows import ResourceWindows, ResourceWindow
+from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
+from LexiconResourceWindows import BibleLexiconResourceWindow
+from EditWindows import TextEditWindow, USFMEditWindow, ESFMEditWindow
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -65,17 +72,6 @@ from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 import SwordResources
 from USFMBible import USFMBible
-
-# Biblelator imports
-from BiblelatorGlobals import APP_NAME, DATA_FOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, \
-        MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
-        EDIT_MODE_NORMAL, parseGeometry, assembleGeometryFromList, centreWindow
-from BiblelatorHelpers import SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
-from ApplicationSettings import ApplicationSettings
-from ResourceWindows import ResourceWindows, ResourceWindow
-from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
-from LexiconResourceWindows import BibleLexiconResourceWindow
-from EditWindows import TextEditWindow, USFMEditWindow, ESFMEditWindow
 
 
 PARATEXT_FILETYPES = [('SSF files','.ssf'),('All files','*')]
@@ -97,6 +93,12 @@ def t( messageString ):
 
 
 class Application( Frame ):
+    """
+    This is the main application window (well, actually a frame in the root toplevel window).
+
+    Its main job is to keep track of self.currentVerseKey (and self.currentVerseKeyGroup)
+        and use that to inform child windows of BCV movements.
+    """
     global settings
     def __init__( self, parent, settings ):
         if Globals.debugFlag: print( t("Application.__init__( {} )").format( parent ) )
@@ -117,12 +119,23 @@ class Application( Frame ):
         if Globals.debugFlag: print( "Button default font", Style().lookup("TButton", "font") )
         if Globals.debugFlag: print( "Label default font", Style().lookup("TLabel", "font") )
 
+        # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" )
+        self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
+        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
+        self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
+        self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
+        self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
+        self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
+        self.getBBB = self.genericBibleOrganisationalSystem.getBBB
+        self.getBookName = self.genericBibleOrganisationalSystem.getBookName
+        self.getBookList = self.genericBibleOrganisationalSystem.getBookList
+
         self.stylesheet = BibleStylesheet().loadDefault()
         Frame.__init__( self, self.ApplicationParent )
         self.pack()
 
-        self.ApplicationParent.protocol( "WM_DELETE_WINDOW", self.closeMe ) # Catch when app is closed
+        self.ApplicationParent.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
 
         self.appWins = ResourceWindows( self )
 
@@ -152,6 +165,9 @@ class Application( Frame ):
             self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/My Paratext Projects/'
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/'
 
+        self.keyBindingDict = defaultKeyBindingDict
+        self.myKeyboardBindings = []
+
         # Read and apply the saved settings
         self.parseAndApplySettings()
         if ProgName not in self.settings.data or 'windowGeometry' not in self.settings.data[ProgName]:
@@ -179,6 +195,7 @@ class Application( Frame ):
         self.createNavigationBar()
         self.createToolBar()
         if Globals.debugFlag: self.createDebugToolBar()
+        self.createMainKeyboardBindings()
 
         self.BCVHistory = []
         self.BCVHistoryIndex = None
@@ -192,38 +209,11 @@ class Application( Frame ):
                     if 'Bible' in appWin.genericWindowType:
                         if appWin.groupCode == groupCode:
                             appWin.updateShownBCV( groupVerseKey )
-        self.updateBCVGroup( self.currentVerseKeyGroup ) # Does a acceptNewBCV
+        self.updateBCVGroup( self.currentVerseKeyGroup ) # Does a acceptNewBnCV
 
         if Globals.debugFlag: self.setDebugText( "__init__ finished." )
         self.setReadyStatus()
     # end of Application.__init__
-
-
-    def getVerseKey( self, groupCode ):
-        assert( groupCode in BIBLE_GROUP_CODES )
-        if   groupCode == 'A': return self.GroupA_VerseKey
-        elif groupCode == 'B': return self.GroupB_VerseKey
-        elif groupCode == 'C': return self.GroupC_VerseKey
-        elif groupCode == 'D': return self.GroupD_VerseKey
-        else: halt
-    # end of Application.getVerseKey
-
-
-    def notWrittenYet( self ):
-        showerror( _("Not implemented"), _("Not yet available, sorry") )
-    # end of Application.notWrittenYet
-
-
-    def doHelp( self ):
-        from Help import HelpBox
-        hb = HelpBox( self.ApplicationParent, ProgName, ProgNameVersion )
-    # end of Application.doHelp
-
-
-    def doAbout( self ):
-        from About import AboutBox
-        ab = AboutBox( self.ApplicationParent, ProgName, ProgNameVersion )
-    # end of Application.doAbout
 
 
     def createMenuBar( self ):
@@ -241,10 +231,10 @@ class Application( Frame ):
         #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
         fileNewSubmenu = tk.Menu( fileMenu, tearoff=False )
         fileMenu.add_cascade( label='New', underline=0, menu=fileNewSubmenu )
-        fileNewSubmenu.add_command( label='Text file', underline=0, command=self.onOpenNewTextEditWindow )
+        fileNewSubmenu.add_command( label='Text file', underline=0, command=self.doOpenNewTextEditWindow )
         fileOpenSubmenu = tk.Menu( fileMenu, tearoff=False )
         fileMenu.add_cascade( label='Open', underline=0, menu=fileOpenSubmenu )
-        fileOpenSubmenu.add_command( label='Text file...', underline=0, command=self.onOpenFileTextEditWindow )
+        fileOpenSubmenu.add_command( label='Text file...', underline=0, command=self.doOpenFileTextEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label='Save all...', underline=0, command=self.notWrittenYet )
         #subfileMenuImport = tk.Menu( fileMenu )
@@ -255,7 +245,7 @@ class Application( Frame ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Quit app', underline=0, command=self.closeMe ) # quit app
+        fileMenu.add_command( label='Quit app', underline=0, command=self.doCloseMe, accelerator=self.keyBindingDict['Quit'][0] ) # quit app
 
         #editMenu = tk.Menu( self.menubar )
         #self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
@@ -264,56 +254,56 @@ class Application( Frame ):
 
         gotoMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
-        gotoMenu.add_command( label='Previous book', underline=0, command=self.gotoPreviousBook )
-        gotoMenu.add_command( label='Next book', underline=0, command=self.gotoNextBook )
-        gotoMenu.add_command( label='Previous chapter', underline=0, command=self.gotoPreviousChapter )
-        gotoMenu.add_command( label='Next chapter', underline=0, command=self.gotoNextChapter )
-        gotoMenu.add_command( label='Previous verse', underline=0, command=self.gotoPreviousVerse )
-        gotoMenu.add_command( label='Next verse', underline=0, command=self.gotoNextVerse )
+        gotoMenu.add_command( label='Previous book', underline=0, command=self.doGotoPreviousBook )
+        gotoMenu.add_command( label='Next book', underline=0, command=self.doGotoNextBook )
+        gotoMenu.add_command( label='Previous chapter', underline=0, command=self.doGotoPreviousChapter )
+        gotoMenu.add_command( label='Next chapter', underline=0, command=self.doGotoNextChapter )
+        gotoMenu.add_command( label='Previous verse', underline=0, command=self.doGotoPreviousVerse )
+        gotoMenu.add_command( label='Next verse', underline=0, command=self.doGotoNextVerse )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Forward', underline=0, command=self.goForward )
-        gotoMenu.add_command( label='Backward', underline=0, command=self.goBackward )
+        gotoMenu.add_command( label='Forward', underline=0, command=self.doGoForward )
+        gotoMenu.add_command( label='Backward', underline=0, command=self.doGoBackward )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Previous list item', underline=0, command=self.gotoPreviousListItem )
-        gotoMenu.add_command( label='Next list item', underline=0, command=self.gotoNextListItem )
+        gotoMenu.add_command( label='Previous list item', underline=0, command=self.doGotoPreviousListItem )
+        gotoMenu.add_command( label='Next list item', underline=0, command=self.doGotoNextListItem )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Book', underline=0, command=self.gotoBook )
+        gotoMenu.add_command( label='Book', underline=0, command=self.doGotoBook )
 
         projectMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=projectMenu, label='Project', underline=0 )
         projectMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
         #submenuNewType = tk.Menu( resourcesMenu, tearoff=False )
         #projectMenu.add_cascade( label='New...', underline=5, menu=submenuNewType )
-        #submenuNewType.add_command( label='Text file...', underline=0, command=self.onOpenNewTextEditWindow )
+        #submenuNewType.add_command( label='Text file...', underline=0, command=self.doOpenNewTextEditWindow )
         #projectMenu.add_command( label='Open', underline=0, command=self.notWrittenYet )
         submenuProjectOpenType = tk.Menu( projectMenu, tearoff=False )
         projectMenu.add_cascade( label='Open', underline=0, menu=submenuProjectOpenType )
-        submenuProjectOpenType.add_command( label='Biblelator...', underline=0, command=self.onOpenBiblelatorProject )
+        submenuProjectOpenType.add_command( label='Biblelator...', underline=0, command=self.doOpenBiblelatorProject )
         submenuProjectOpenType.add_command( label='Bibledit...', underline=0, command=self.onOpenBibleditProject )
-        submenuProjectOpenType.add_command( label='Paratext...', underline=0, command=self.onOpenParatextProject )
+        submenuProjectOpenType.add_command( label='Paratext...', underline=0, command=self.doOpenParatextProject )
         projectMenu.add_separator()
         projectMenu.add_command( label='Backup...', underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label='Restore...', underline=0, command=self.notWrittenYet )
         projectMenu.add_separator()
-        projectMenu.add_command( label='Close', underline=0, command=self.onProjectClose )
+        projectMenu.add_command( label='Close', underline=0, command=self.doProjectClose )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label='Resources', underline=0 )
         submenuBibleResourceType = tk.Menu( resourcesMenu, tearoff=False )
         resourcesMenu.add_cascade( label='Open Bible/commentary', underline=5, menu=submenuBibleResourceType )
-        submenuBibleResourceType.add_command( label='Online (DBP)...', underline=0, command=self.onOpenDBPBibleResource )
-        submenuBibleResourceType.add_command( label='Sword module...', underline=0, command=self.onOpenSwordResource )
-        submenuBibleResourceType.add_command( label='Other (local)...', underline=1, command=self.onOpenInternalBibleResource )
+        submenuBibleResourceType.add_command( label='Online (DBP)...', underline=0, command=self.doOpenDBPBibleResource )
+        submenuBibleResourceType.add_command( label='Sword module...', underline=0, command=self.doOpenSwordResource )
+        submenuBibleResourceType.add_command( label='Other (local)...', underline=1, command=self.doOpenInternalBibleResource )
         submenuLexiconResourceType = tk.Menu( resourcesMenu, tearoff=False )
         resourcesMenu.add_cascade( label='Open lexicon', menu=submenuLexiconResourceType )
         #submenuLexiconResourceType.add_command( label='Hebrew...', underline=5, command=self.notWrittenYet )
         #submenuLexiconResourceType.add_command( label='Greek...', underline=0, command=self.notWrittenYet )
-        submenuLexiconResourceType.add_command( label='Bible', underline=0, command=self.onOpenBibleLexiconResource )
+        submenuLexiconResourceType.add_command( label='Bible', underline=0, command=self.doOpenBibleLexiconResource )
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu )
         #resourcesMenu.add_cascade( label='Open commentary', underline=5, menu=submenuCommentaryResourceType )
         resourcesMenu.add_command( label='Open resource collection...', underline=5, command=self.notWrittenYet )
         resourcesMenu.add_separator()
-        resourcesMenu.add_command( label='Hide all resources', underline=0, command=self.onHideResources )
+        resourcesMenu.add_command( label='Hide all resources', underline=0, command=self.doHideResources )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
@@ -325,14 +315,14 @@ class Application( Frame ):
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
-        windowMenu.add_command( label='Hide resources', underline=0, command=self.onHideResources )
-        windowMenu.add_command( label='Hide all', underline=1, command=self.onHideAll )
-        windowMenu.add_command( label='Show all', underline=0, command=self.onShowAll )
-        windowMenu.add_command( label='Bring all here', underline=0, command=self.onBringAll )
+        windowMenu.add_command( label='Hide resources', underline=0, command=self.doHideResources )
+        windowMenu.add_command( label='Hide all', underline=1, command=self.doHideAll )
+        windowMenu.add_command( label='Show all', underline=0, command=self.doShowAll )
+        windowMenu.add_command( label='Bring all here', underline=0, command=self.doBringAll )
         windowMenu.add_separator()
-        windowMenu.add_command( label='Save window setup', underline=0, command=self.saveNewWindowSetup )
+        windowMenu.add_command( label='Save window setup', underline=0, command=self.doSaveNewWindowSetup )
         if len(self.windowsSettingsDict)>1 or (self.windowsSettingsDict and 'Current' not in self.windowsSettingsDict):
-            windowMenu.add_command( label='Delete a window setting', underline=0, command=self.deleteExistingWindowSetup )
+            windowMenu.add_command( label='Delete a window setting', underline=0, command=self.doDeleteExistingWindowSetup )
             windowMenu.add_separator()
             for savedName in self.windowsSettingsDict:
                 if savedName != 'Current':
@@ -341,7 +331,7 @@ class Application( Frame ):
         submenuWindowStyle = tk.Menu( windowMenu )
         windowMenu.add_cascade( label='Theme', underline=0, menu=submenuWindowStyle )
         for themeName in self.style.theme_names():
-            submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.changeTheme(tN) )
+            submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.doChangeTheme(tN) )
 
         if Globals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
@@ -352,16 +342,9 @@ class Application( Frame ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
+        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.keyBindingDict['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
-
-        #filename = filedialog.askopenfilename()
-        #filename = filedialog.asksaveasfilename()
-        #dirname = filedialog.askdirectory()
-        #colorchooser.askcolor(initialcolor='#ff0000')
-        #showinfo(message='Have a good day')
-        #askyesno( message='Are you sure you want to install SuperVirus?' icon='question' title='Install' )
+        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.keyBindingDict['About'][0] )
     # end of Application.createMenuBar
 
 
@@ -381,9 +364,9 @@ class Application( Frame ):
         #self.previousBCVButton.grid( row=0, column=0 )
         self.previousBCVButton.pack( side=tk.LEFT )
 
-        self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.goForward, state=tk.DISABLED )
+        self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
         #self.nextBCVButton['text'] = '->'
-        #self.nextBCVButton['command'] = self.goForward
+        #self.nextBCVButton['command'] = self.doGoForward
         #self.nextBCVButton.grid( row=0, column=1 )
         self.nextBCVButton.pack( side=tk.LEFT )
 
@@ -400,11 +383,11 @@ class Application( Frame ):
         self.GroupCButton.pack( side=tk.LEFT )
         self.GroupDButton.pack( side=tk.LEFT )
 
-        self.bookNames = [self.genericBibleOrganisationalSystem.getBookName(BBB) for BBB in self.genericBibleOrganisationalSystem.getBookList()]
+        self.bookNames = [self.getBookName(BBB) for BBB in self.getBookList()]
         bookName = self.bookNames[0] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        self.BBB = self.genericBibleOrganisationalSystem.getBBB( bookName )
+        BBB = self.getBBB( bookName )
         self.bookNameBox = Combobox( navigationBar, textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -414,11 +397,11 @@ class Application( Frame ):
 
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
-        self.maxChapters = self.genericBibleOrganisationalSystem.getNumChapters( self.BBB )
+        self.maxChapters = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChapters )
         self.chapterSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=self.maxChapters, textvariable=self.chapterNumberVar )
         self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.acceptNewBCV
+        self.chapterSpinbox['command'] = self.acceptNewBnCV
         self.chapterSpinbox.bind( '<Return>', self.gotoNewChapter )
         #self.chapterSpinbox.grid( row=0, column=5 )
         self.chapterSpinbox.pack( side=tk.LEFT )
@@ -432,14 +415,14 @@ class Application( Frame ):
         self.verseNumberVar = tk.StringVar()
         self.verseNumberVar.set( '1' )
         #self.maxVersesVar = tk.StringVar()
-        self.maxVerses = self.genericBibleOrganisationalSystem.getNumVerses( self.BBB, self.chapterNumberVar.get() )
+        self.maxVerses = self.getNumVerses( BBB, self.chapterNumberVar.get() )
         #print( "maxVerses", self.maxVerses )
         #self.maxVersesVar.set( str(self.maxVerses) )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=1.0+self.maxVerses, textvariable=self.verseNumberVar )
         self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBCV
-        self.verseSpinbox.bind( '<Return>', self.acceptNewBCV )
+        self.verseSpinbox['command'] = self.acceptNewBnCV
+        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
         self.verseSpinbox.pack( side=tk.LEFT )
 
         #self.verseNumberVar = tk.StringVar()
@@ -457,13 +440,13 @@ class Application( Frame ):
         if 0: # I don't think we should need this button if everything else works right
             self.updateButton = Button( navigationBar )
             self.updateButton['text'] = 'Update'
-            self.updateButton['command'] = self.acceptNewBCV
+            self.updateButton['command'] = self.acceptNewBnCV
             #self.updateButton.grid( row=0, column=7 )
             self.updateButton.pack( side=tk.LEFT )
 
         Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
                                             background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
-        self.quitButton = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.closeMe )
+        self.quitButton = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.doCloseMe )
         self.quitButton.pack( side=tk.RIGHT )
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
@@ -480,10 +463,10 @@ class Application( Frame ):
         Style().configure('ToolBar.TFrame', background='green')
 
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
-        Button( toolbar, text='Hide Resources', command=self.onHideResources ).pack( side=tk.LEFT, padx=2, pady=2 )
-        Button( toolbar, text='Hide All', command=self.onHideAll ).pack( side=tk.LEFT, padx=2, pady=2 )
-        Button( toolbar, text='Show All', command=self.onShowAll ).pack( side=tk.LEFT, padx=2, pady=2 )
-        Button( toolbar, text='Bring All', command=self.onBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Hide Resources', command=self.doHideResources ).pack( side=tk.LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Hide All', command=self.doHideAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Show All', command=self.doShowAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of Application.createToolBar
 
@@ -518,6 +501,47 @@ class Application( Frame ):
         self.statusTextVariable.set( '' ) # first initial value
         self.setStatus( "Starting up..." )
     # end of Application.createStatusBar
+
+
+    def createMainKeyboardBindings( self ):
+        """
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("createMainKeyboardBindings()") )
+        self.myKeyboardBindings = []
+        for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
+            if name in self.keyBindingDict:
+                for keycode in self.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keycode), repr(name) ) )
+                    self.ApplicationParent.bind( keycode, command )
+                self.myKeyboardBindings.append( (name,self.keyBindingDict[name][0],) )
+            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+        #self.textBox.bind('<Control-a>', self.doSelectAll ); self.textBox.bind('<Control-A>', self.doSelectAll )
+        #self.textBox.bind('<Control-c>', self.doCopy ); self.textBox.bind('<Control-C>', self.doCopy )
+        #self.textBox.bind('<Control-f>', self.doFind ); self.textBox.bind('<Control-F>', self.doFind )
+        #self.textBox.bind('<Control-g>', self.doRefind ); self.textBox.bind('<Control-G>', self.doRefind )
+        #self.textBox.bind('<F1>', self.doHelp )
+        #self.textBox.bind('<F3>', self.doRefind )
+        #self.textBox.bind('<Control-F4>', self.doClose )
+        #self.textBox.bind('<F11>', self.doShowInfo )
+        #self.textBox.bind('<F12>', self.doAbout )
+    # end of ResourceWindow.createMainKeyboardBindings()
+
+
+    def notWrittenYet( self ):
+        errorBeep()
+        showerror( _("Not implemented"), _("Not yet available, sorry") )
+    # end of Application.notWrittenYet
+
+
+    def getVerseKey( self, groupCode ):
+        assert( groupCode in BIBLE_GROUP_CODES )
+        if   groupCode == 'A': return self.GroupA_VerseKey
+        elif groupCode == 'B': return self.GroupB_VerseKey
+        elif groupCode == 'C': return self.GroupC_VerseKey
+        elif groupCode == 'D': return self.GroupD_VerseKey
+        else: halt
+    # end of Application.getVerseKey
 
 
     def setStatus( self, newStatus=None ):
@@ -567,12 +591,12 @@ class Application( Frame ):
     # end of Application.setDebugText
 
 
-    def changeTheme( self, newThemeName ):
+    def doChangeTheme( self, newThemeName ):
         """
         Set the window theme to the given scheme.
         """
         if Globals.debugFlag:
-            print( t("changeTheme( {} )").format( repr(newThemeName) ) )
+            print( t("doChangeTheme( {} )").format( repr(newThemeName) ) )
             assert( newThemeName )
             self.setDebugText( 'Set theme to {}'.format( repr(newThemeName) ) )
         self.themeName = newThemeName
@@ -580,7 +604,7 @@ class Application( Frame ):
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
             showerror( 'Error', err )
-    # end of Application.changeTheme
+    # end of Application.doChangeTheme
 
 
     def parseAndApplySettings( self ):
@@ -621,19 +645,19 @@ class Application( Frame ):
         try: self.ApplicationParent.geometry( self.settings.data[ProgName]['windowGeometry'] )
         except KeyError: print( "KeyError1" ) # we had no geometry set
         except tk.TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
-        try: self.changeTheme( self.settings.data[ProgName]['themeName'] )
+        try: self.doChangeTheme( self.settings.data[ProgName]['themeName'] )
         except KeyError: print( "KeyError2" ) # we had no theme name set
 
         try: self.currentVerseKeyGroup = self.settings.data['BCVGroups']['currentGroup']
         except KeyError: self.currentVerseKeyGroup = 'A'
         try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
-        except KeyError: self.GroupA_VerseKey = SimpleVerseKey( self.genericBibleOrganisationalSystem.getFirstBookCode(), '1', '1' )
+        except KeyError: self.GroupA_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
         try: self.GroupB_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
-        except KeyError: self.GroupB_VerseKey = SimpleVerseKey( self.genericBibleOrganisationalSystem.getFirstBookCode(), '1', '1' )
+        except KeyError: self.GroupB_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
         try: self.GroupC_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['C-Book'],self.settings.data['BCVGroups']['C-Chapter'],self.settings.data['BCVGroups']['C-Verse'])
-        except KeyError: self.GroupC_VerseKey = SimpleVerseKey( self.genericBibleOrganisationalSystem.getFirstBookCode(), '1', '1' )
+        except KeyError: self.GroupC_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
         try: self.GroupD_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
-        except KeyError: self.GroupD_VerseKey = SimpleVerseKey( self.genericBibleOrganisationalSystem.getFirstBookCode(), '1', '1' )
+        except KeyError: self.GroupD_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
 
         # We keep our copy of all the windows settings in self.windowsSettingsDict
         windowsSettingsNamesList = []
@@ -687,7 +711,7 @@ class Application( Frame ):
                     #except: logging.error( "Unable to read BibleLexiconResourceWindow {} settings".format( j ) )
 
                 elif winType == 'PlainTextEditWindow':
-                    rw = self.onOpenNewTextEditWindow()
+                    rw = self.doOpenNewTextEditWindow()
                     #except: logging.error( "Unable to read TextEditWindow {} settings".format( j ) )
                 elif winType == 'USFMBibleEditWindow':
                     rw = self.openUSFMBibleEditWindow( thisStuff['USFMFolder'], thisStuff['EditMode'], windowGeometry )
@@ -758,13 +782,13 @@ class Application( Frame ):
     # end of Application.getCurrentWindowSettings
 
 
-    def saveNewWindowSetup( self ):
+    def doSaveNewWindowSetup( self ):
         """
         Gets the name for the new window setup and saves the information.
         """
         if Globals.debugFlag:
-            print( t("saveNewWindowSetup()") )
-            self.setDebugText( "saveNewWindowSetup..." )
+            print( t("doSaveNewWindowSetup()") )
+            self.setDebugText( "doSaveNewWindowSetup..." )
         swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_("Save window setup") )
         print( "swndResult", repr(swnd.result) )
         if swnd.result:
@@ -773,16 +797,16 @@ class Application( Frame ):
             print( "swS", self.windowsSettingsDict )
             self.writeSettingsFile() # Save file now in case we crash
             self.createMenuBar() # refresh
-    # end of Application.saveNewWindowSetup
+    # end of Application.doSaveNewWindowSetup
 
 
-    def deleteExistingWindowSetup( self ):
+    def doDeleteExistingWindowSetup( self ):
         """
         Gets the name of an existing window setting and deletes the setting.
         """
         if Globals.debugFlag:
-            print( t("deleteExistingWindowSetup()") )
-            self.setDebugText( "deleteExistingWindowSetup..." )
+            print( t("doDeleteExistingWindowSetup()") )
+            self.setDebugText( "doDeleteExistingWindowSetup..." )
         assert( self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict) )
         dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_("Delete saved window setup") )
         print( "dwndResult", repr(dwnd.result) )
@@ -792,19 +816,19 @@ class Application( Frame ):
             del self.windowsSettingsDict[dwnd.result]
             #self.settings.save() # Save file now in case we crash -- don't worry -- it's easy to delete one
             self.createMenuBar() # refresh
-    # end of Application.deleteExistingWindowSetup
+    # end of Application.doDeleteExistingWindowSetup
 
 
-    def onOpenDBPBibleResource( self ):
+    def doOpenDBPBibleResource( self ):
         """
         Open an online DigitalBiblePlatform Bible (called from a menu/GUI action).
 
         Requests a version name from the user.
         """
         if Globals.debugFlag:
-            print( t("onOpenDBPBibleResource()") )
-            self.setDebugText( "onOpenDBPBibleResource..." )
-        self.setStatus( "onOpenDBPBibleResource..." )
+            print( t("doOpenDBPBibleResource()") )
+            self.setDebugText( "doOpenDBPBibleResource..." )
+        self.setStatus( "doOpenDBPBibleResource..." )
         if self.DBPInterface is None:
             self.DBPInterface = DBPBibles()
             availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
@@ -815,14 +839,14 @@ class Application( Frame ):
                 if srb.result:
                     for entry in srb.result:
                         self.openDBPBibleResourceWindow( entry[1] )
-                    #self.acceptNewBCV()
-                    #self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
-                elif Globals.debugFlag: print( t("onOpenDBPBibleResource: no resource selected!") )
+                    #self.acceptNewBnCV()
+                    #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+                elif Globals.debugFlag: print( t("doOpenDBPBibleResource: no resource selected!") )
             else:
-                logging.critical( t("onOpenDBPBibleResource: no volumes available") )
+                logging.critical( t("doOpenDBPBibleResource: no volumes available") )
                 self.setStatus( "Digital Bible Platform unavailable (offline?)" )
-        if Globals.debugFlag: self.setDebugText( "Finished onOpenDBPBibleResource" )
-    # end of Application.onOpenDBPBibleResource
+        if Globals.debugFlag: self.setDebugText( "Finished doOpenDBPBibleResource" )
+    # end of Application.doOpenDBPBibleResource
 
     def openDBPBibleResourceWindow( self, moduleAbbreviation, windowGeometry=None ):
         """
@@ -847,7 +871,7 @@ class Application( Frame ):
     # end of Application.openDBPBibleResourceWindow
 
 
-    def onOpenSwordResource( self ):
+    def doOpenSwordResource( self ):
         """
         Open a local Sword Bible (called from a menu/GUI action).
 
@@ -855,8 +879,8 @@ class Application( Frame ):
         """
         if Globals.debugFlag:
             print( t("openSwordResource()") )
-            self.setDebugText( "onOpenSwordResource..." )
-        self.setStatus( "onOpenSwordResource..." )
+            self.setDebugText( "doOpenSwordResource..." )
+        self.setStatus( "doOpenSwordResource..." )
         if self.SwordInterface is None:
             self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
         availableModules = self.SwordInterface.library
@@ -872,15 +896,15 @@ class Application( Frame ):
                 for entry in srb.result:
                     self.setStatus( _("Loading {} Sword module...").format( repr(entry) ) )
                     self.openSwordBibleResourceWindow( entry )
-                #self.acceptNewBCV()
-                #self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
-            elif Globals.debugFlag: print( t("onOpenSwordResource: no resource selected!") )
+                #self.acceptNewBnCV()
+                #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+            elif Globals.debugFlag: print( t("doOpenSwordResource: no resource selected!") )
         else:
-            logging.critical( t("onOpenSwordResource: no list available") )
+            logging.critical( t("doOpenSwordResource: no list available") )
             showerror( APP_NAME, _("No Sword resources discovered") )
-        #self.acceptNewBCV()
-        #self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
-    # end of Application.onOpenSwordResource
+        #self.acceptNewBnCV()
+        #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+    # end of Application.doOpenSwordResource
 
     def openSwordBibleResourceWindow( self, moduleAbbreviation, windowGeometry=None ):
         """
@@ -903,7 +927,7 @@ class Application( Frame ):
     # end of Application.openSwordBibleResourceWindow
 
 
-    def onOpenInternalBibleResource( self ):
+    def doOpenInternalBibleResource( self ):
         """
         Open a local Bible (called from a menu/GUI action).
 
@@ -911,17 +935,17 @@ class Application( Frame ):
         """
         if Globals.debugFlag:
             print( t("openInternalBibleResource()") )
-            self.setDebugText( "onOpenInternalBibleResource..." )
-        self.setStatus( "onOpenInternalBibleResource..." )
+            self.setDebugText( "doOpenInternalBibleResource..." )
+        self.setStatus( "doOpenInternalBibleResource..." )
         #requestedFolder = askdirectory()
         self.openDialog = Directory( initialdir=self.lastInternalBibleDir )
         requestedFolder = self.openDialog.show()
         if requestedFolder:
             self.lastInternalBibleDir = requestedFolder
             self.openInternalBibleResourceWindow( requestedFolder )
-            #self.acceptNewBCV()
-            #self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
-    # end of Application.onOpenInternalBibleResource
+            #self.acceptNewBnCV()
+            #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+    # end of Application.doOpenInternalBibleResource
 
     def openInternalBibleResourceWindow( self, modulePath, windowGeometry=None ):
         """
@@ -945,22 +969,22 @@ class Application( Frame ):
     # end of Application.openInternalBibleResourceWindow
 
 
-    def onOpenBibleLexiconResource( self ):
+    def doOpenBibleLexiconResource( self ):
         """
         Open a local Bible (called from a menu/GUI action).
 
         Requests a folder from the user.
         """
         if Globals.debugFlag:
-            print( t("onOpenBibleLexiconResource()") )
-            self.setDebugText( "onOpenBibleLexiconResource..." )
-        self.setStatus( "onOpenBibleLexiconResource..." )
+            print( t("doOpenBibleLexiconResource()") )
+            self.setDebugText( "doOpenBibleLexiconResource..." )
+        self.setStatus( "doOpenBibleLexiconResource..." )
         #requestedFolder = askdirectory()
         #if requestedFolder:
         requestedFolder = None
         self.openBibleLexiconResourceWindow( requestedFolder )
-        #self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
-    # end of Application.onOpenBibleLexiconResource
+        #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+    # end of Application.doOpenBibleLexiconResource
 
     def openBibleLexiconResourceWindow( self, lexiconPath, windowGeometry=None ):
         """
@@ -985,29 +1009,29 @@ class Application( Frame ):
     # end of Application.openBibleLexiconResourceWindow
 
 
-    def onOpenNewTextEditWindow( self ):
+    def doOpenNewTextEditWindow( self ):
         """
         """
         if Globals.debugFlag:
-            print( t("onOpenNewTextEditWindow()") )
-            self.setDebugText( "onOpenNewTextEditWindow..." )
+            print( t("doOpenNewTextEditWindow()") )
+            self.setDebugText( "doOpenNewTextEditWindow..." )
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
         self.appWins.append( tEW )
-        if Globals.debugFlag: self.setDebugText( "Finished onOpenNewTextEditWindow" )
+        if Globals.debugFlag: self.setDebugText( "Finished doOpenNewTextEditWindow" )
         self.setReadyStatus()
-    # end of Application.onOpenNewTextEditWindow
+    # end of Application.doOpenNewTextEditWindow
 
 
-    def onOpenFileTextEditWindow( self ):
+    def doOpenFileTextEditWindow( self ):
         """
         Open a pop-up window and request the user to select a file.
 
         Then open the file in a plain text edit window.
         """
         if Globals.debugFlag:
-            print( t("onOpenFileTextEditWindow()") )
-            self.setDebugText( "onOpenFileTextEditWindow..." )
+            print( t("doOpenFileTextEditWindow()") )
+            self.setDebugText( "doOpenFileTextEditWindow..." )
         if not self.openDialog:
             fTypes = [('All files',  '*'),
                       ('Text files', '.txt')]
@@ -1026,9 +1050,9 @@ class Application( Frame ):
             tEW.setAllText( text )
             #if windowGeometry: tEW.geometry( windowGeometry )
             self.appWins.append( tEW )
-        if Globals.debugFlag: self.setDebugText( "Finished onOpenFileTextEditWindow" )
+        if Globals.debugFlag: self.setDebugText( "Finished doOpenFileTextEditWindow" )
         self.setReadyStatus()
-    # end of Application.onOpenFileTextEditWindow
+    # end of Application.doOpenFileTextEditWindow
 
 
     def openUSFMBibleEditWindow( self, USFMFolder, editMode, windowGeometry=None ):
@@ -1062,13 +1086,13 @@ class Application( Frame ):
         assert( self.BCVHistoryIndex >= 0)
         self.setCurrentVerseKey( self.BCVHistory[self.BCVHistoryIndex] )
         self.updatePreviousNextButtons()
-        #self.acceptNewBCV()
-        self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
+        #self.acceptNewBnCV()
+        self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.goBack
 
 
-    def goForward( self, event=None ):
-        if Globals.debugFlag and debuggingThisModule: print( t("goForward") )
+    def doGoForward( self, event=None ):
+        if Globals.debugFlag and debuggingThisModule: print( t("doGoForward") )
         #print( dir(event) )
         assert( self.BCVHistory )
         assert( self.BCVHistoryIndex < len(self.BCVHistory)-1 )
@@ -1076,37 +1100,14 @@ class Application( Frame ):
         assert( self.BCVHistoryIndex < len(self.BCVHistory) )
         self.setCurrentVerseKey( self.BCVHistory[self.BCVHistoryIndex] )
         self.updatePreviousNextButtons()
-        #self.acceptNewBCV()
-        self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
-    # end of Application.goForward
-
-
-    def setCurrentVerseKey( self, newVerseKey ):
-        """
-        """
-        if Globals.debugFlag and debuggingThisModule:
-            print( t("setCurrentVerseKey( {} )").format( newVerseKey ) )
-            self.setDebugText( "setCurrentVerseKey..." )
-            assert( isinstance( newVerseKey, SimpleVerseKey ) )
-        self.currentVerseKey = newVerseKey
-        if   self.currentVerseKeyGroup == 'A': self.GroupA_VerseKey = self.currentVerseKey
-        elif self.currentVerseKeyGroup == 'B': self.GroupB_VerseKey = self.currentVerseKey
-        elif self.currentVerseKeyGroup == 'C': self.GroupC_VerseKey = self.currentVerseKey
-        elif self.currentVerseKeyGroup == 'D': self.GroupD_VerseKey = self.currentVerseKey
-        else: halt
-        self.bookNameVar.set( self.genericBibleOrganisationalSystem.getBookName(self.currentVerseKey[0]) )
-        self.chapterNumberVar.set( self.currentVerseKey[1] )
-        self.verseNumberVar.set( self.currentVerseKey[2] )
-        if self.currentVerseKey not in self.BCVHistory:
-            self.BCVHistoryIndex = len( self.BCVHistory )
-            self.BCVHistory.append( self.currentVerseKey )
-            self.updatePreviousNextButtons()
-    # end of Application.setCurrentVerseKey
+        #self.acceptNewBnCV()
+        self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+    # end of Application.doGoForward
 
 
     def updateBCVGroup( self, newGroupLetter ):
         """
-        Change the group to the given one (and then do a acceptNewBCV)
+        Change the group to the given one (and then do a acceptNewBnCV)
         """
         if Globals.debugFlag and debuggingThisModule:
             print( t("updateBCVGroup( {} )").format( newGroupLetter ) )
@@ -1119,10 +1120,10 @@ class Application( Frame ):
         elif self.currentVerseKeyGroup == 'D': self.currentVerseKey = self.GroupD_VerseKey
         else: halt
         if self.currentVerseKey == ('', '1', '1'):
-            self.setCurrentVerseKey( SimpleVerseKey( self.genericBibleOrganisationalSystem.getFirstBookCode(), '1', '1' ) )
+            self.setCurrentVerseKey( SimpleVerseKey( self.getFirstBookCode(), '1', '1' ) )
         self.updateBCVGroupButtons()
-        #self.acceptNewBCV()
-        self.after_idle( self.acceptNewBCV ) # Do the acceptNewBCV once we're idle
+        #self.acceptNewBnCV()
+        self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.updateBCVGroup
 
 
@@ -1143,7 +1144,7 @@ class Application( Frame ):
         selectedButton.config( state=tk.DISABLED )#, relief=tk.SUNKEN )
         for otherButton in groupButtons:
             otherButton.config( state=tk.NORMAL ) #, relief=tk.RAISED )
-        self.bookNameVar.set( self.genericBibleOrganisationalSystem.getBookName(self.currentVerseKey[0]) )
+        self.bookNameVar.set( self.getBookName(self.currentVerseKey[0]) )
         self.chapterNumberVar.set( self.currentVerseKey[1] )
         self.verseNumberVar.set( self.currentVerseKey[2] )
     # end of Application.updateBCVGroupButtons
@@ -1175,169 +1176,145 @@ class Application( Frame ):
     # end of Application.selectGroupD
 
 
-    def gotoPreviousBook( self, gotoEnd=False ):
+    def doGotoPreviousBook( self, gotoEnd=False ):
         """
         """
-        #if Globals.debugFlag:
-            #print( t("gotoPreviousBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoPreviousBook..." )
-        b, c, v = self.BnameCV
+        BBB, C, V = self.currentVerseKey.getBCV()
         if Globals.debugFlag:
-            print( t("gotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoPreviousBook..." )
+            print( t("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
+            self.setDebugText( "doGotoPreviousBook..." )
+        newBBB = self.getPreviousBookCode( BBB )
+        if newBBB is None: self.gotoBCV( BBB, '0', '0' )
+        else:
+            self.maxChapters = self.getNumChapters( newBBB )
+            self.maxVerses = self.getNumVerses( newBBB, self.maxChapters )
+            if gotoEnd: self.gotoBCV( newBBB, self.maxChapters, self.maxVerses )
+            else: self.gotoBCV( newBBB, '0', '0' ) # go to the beginning
+    # end of Application.doGotoPreviousBook
+
+
+    def doGotoNextBook( self ):
+        """
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if Globals.debugFlag:
+            print( t("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoNextBook..." )
+        newBBB = self.getNextBookCode( BBB )
+        if newBBB is None: pass # stay just where we are
+        else:
+            self.maxChapters = self.getNumChapters( newBBB )
+            self.maxVerses = self.getNumVerses( newBBB, '0' )
+            self.gotoBCV( newBBB, '0', '0' ) # go to the beginning of the book
+    # end of Application.doGotoNextBook
+
+
+    def doGotoPreviousChapter( self, gotoEnd=False ):
+        """
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if Globals.debugFlag:
+            print( t("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoPreviousChapter..." )
+        intC, intV = int( C ), int( V )
+        if intC > 0: self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
+        else: self.doGotoPreviousBook( gotoEnd=True )
+    # end of Application.doGotoPreviousChapter
+
+
+    def doGotoNextChapter( self ):
+        """
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if Globals.debugFlag:
+            print( t("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoNextChapter..." )
+        intC = int( C )
+        if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
+        else: self.doGotoNextBook()
+    # end of Application.doGotoNextChapter
+
+
+    def doGotoPreviousVerse( self ):
+        """
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if Globals.debugFlag:
+            print( t("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoPreviousVerse..." )
+        intC, intV = int( C ), int( V )
+        if intV > 0: self.gotoBCV( BBB, C, intV-1 )
+        elif intC > 0: self.doGotoPreviousChapter( gotoEnd=True )
+        else: self.doGotoPreviousBook( gotoEnd=True )
+    # end of Application.doGotoPreviousVerse
+
+
+    def doGotoNextVerse( self ):
+        """
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if Globals.debugFlag:
+            print( t("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoNextVerse..." )
+        intV = int( V )
+        if intV < self.maxVerses: self.gotoBCV( BBB, C, intV+1 )
+        else: self.doGotoNextChapter()
+    # end of Application.doGotoNextVerse
+
+
+    def doGoForward( self ):
+        """
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if Globals.debugFlag:
+            print( t("doGoForward() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGoForward..." )
         self.notWrittenYet()
-    # end of Application.gotoPreviousBook
+    # end of Application.doGoForward
 
 
-    def gotoNextBook( self ):
+    def doGoBackward( self ):
         """
         """
-        #if Globals.debugFlag:
-            #print( t("gotoNextBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoNextBook..." )
-        b, c, v = self.BnameCV
+        BBB, C, V = self.currentVerseKey.getBCV()
         if Globals.debugFlag:
-            print( t("gotoNextBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoNextBook..." )
-        intC, intV = int( c ), int( v )
-        intC += 1
-        self.gotoBnCV( b, c, v )
-    # end of Application.gotoNextBook
-
-
-    def gotoPreviousChapter( self ):
-        """
-        """
-        #if Globals.debugFlag:
-            #print( t("gotoPreviousChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoPreviousChapter..." )
-        b, c, v = self.BnameCV
-        if Globals.debugFlag:
-            print( t("gotoPreviousChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoPreviousChapter..." )
-        intC, intV = int( c ), int( v )
-        if intC > 0: self.gotoBnCV( b, intC-1, v ) # what should v be?
-        else: self.gotoPreviousBook( gotoEnd=True )
-    # end of Application.gotoPreviousChapter
-
-
-    def gotoNextChapter( self ):
-        """
-        """
-        #if Globals.debugFlag:
-            #print( t("gotoNextChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoNextChapter..." )
-        b, c, v = self.BnameCV
-        if Globals.debugFlag:
-            print( t("gotoNextChapter() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoNextChapter..." )
-        intC = int( c )
-        if intC < self.maxChapters: self.gotoBnCV( b, intC+1, '0' )
-        else: self.gotoNextBook()
-    # end of Application.gotoNextChapter
-
-
-    def gotoPreviousVerse( self ):
-        """
-        """
-        #if Globals.debugFlag:
-            #print( t("gotoPreviousVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoPreviousVerse..." )
-        b, c, v = self.BnameCV
-        if Globals.debugFlag:
-            print( t("gotoPreviousVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoPreviousVerse..." )
-        intC, intV = int( c ), int( v )
-        if intV > 0: self.gotoBnCV( b, c, intV-1 )
-        elif intC > 0: self.gotoBnCV( b, intC-1, v ) # what should v be?
-        else: self.gotoPreviousBook( gotoEnd=True )
-    # end of Application.gotoPreviousVerse
-
-
-    def gotoNextVerse( self ):
-        """
-        """
-        #if Globals.debugFlag:
-            #print( t("gotoNextVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoNextVerse..." )
-        b, c, v = self.BnameCV
-        if Globals.debugFlag:
-            print( t("gotoNextVerse() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoNextVerse..." )
-        intC, intV = int( c ), int( v )
-        intV += 1
-        self.gotoBnCV( b, c, intV )
-    # end of Application.gotoNextVerse
-
-
-    def goForward( self ):
-        """
-        """
-        #if Globals.debugFlag:
-            #print( t("goForward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "goForward..." )
-        b, c, v = self.BnameCV
-        if Globals.debugFlag:
-            print( t("goForward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "goForward..." )
+            print( t("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGoBackward..." )
         self.notWrittenYet()
-    # end of Application.goForward
+    # end of Application.doGoBackward
 
 
-    def goBackward( self ):
+    def doGotoPreviousListItem( self ):
         """
         """
-        #if Globals.debugFlag:
-            #print( t("goBackward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "goBackward..." )
-        b, c, v = self.BnameCV
+        BBB, C, V = self.currentVerseKey.getBCV()
         if Globals.debugFlag:
-            print( t("goBackward() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "goBackward..." )
+            print( t("doGotoPreviousListItem() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoPreviousListItem..." )
         self.notWrittenYet()
-    # end of Application.goBackward
+    # end of Application.doGotoPreviousListItem
 
 
-    def gotoPreviousListItem( self ):
+    def doGotoNextListItem( self ):
         """
         """
-        #if Globals.debugFlag:
-            #print( t("gotoPreviousListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoPreviousListItem..." )
-        b, c, v = self.BnameCV
+        BBB, C, V = self.currentVerseKey.getBCV()
         if Globals.debugFlag:
-            print( t("gotoPreviousListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoPreviousListItem..." )
+            print( t("doGotoNextListItem() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoNextListItem..." )
         self.notWrittenYet()
-    # end of Application.gotoPreviousListItem
+    # end of Application.doGotoNextListItem
 
 
-    def gotoNextListItem( self ):
+    def doGotoBook( self ):
         """
         """
-        #if Globals.debugFlag:
-            #print( t("gotoNextListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoNextListItem..." )
-        b, c, v = self.BnameCV
+        BBB, C, V = self.currentVerseKey.getBCV()
         if Globals.debugFlag:
-            print( t("gotoNextListItem() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoNextListItem..." )
+            print( t("doGotoBook() from {} {}:{}").format( BBB, C, V ) )
+            self.setDebugText( "doGotoBook..." )
         self.notWrittenYet()
-    # end of Application.gotoNextListItem
-
-
-    def gotoBook( self ):
-        """
-        """
-        #if Globals.debugFlag:
-            #print( t("gotoBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            #self.setDebugText( "gotoBook..." )
-        b, c, v = self.BnameCV
-        if Globals.debugFlag:
-            print( t("gotoBook() from {} {}:{}").format( repr(b), repr(c), repr(v) ) )
-            self.setDebugText( "gotoBook..." )
-        self.notWrittenYet()
-    # end of Application.gotoBook
+    # end of Application.doGotoBook
 
 
     def gotoNewBook( self, event=None ):
@@ -1349,7 +1326,7 @@ class Application( Frame ):
 
         self.chapterNumberVar.set( '1' )
         self.verseNumberVar.set( '1' )
-        self.acceptNewBCV()
+        self.acceptNewBnCV()
     # end of Application.gotoNewBook
 
 
@@ -1362,24 +1339,24 @@ class Application( Frame ):
 
         #self.chapterNumberVar.set( '1' )
         self.verseNumberVar.set( '1' )
-        self.acceptNewBCV()
+        self.acceptNewBnCV()
     # end of Application.gotoNewChapter
 
 
-    def acceptNewBCV( self, event=None ):
+    def acceptNewBnCV( self, event=None ):
         """
         Handle a new book, chapter, verse setting from the GUI spinboxes.
         """
-        if Globals.debugFlag and debuggingThisModule: print( t("acceptNewBCV()") )
+        if Globals.debugFlag and debuggingThisModule: print( t("acceptNewBnCV()") )
         #print( dir(event) )
 
         bn = self.bookNameVar.get()
         C = self.chapterNumberVar.get()
         V = self.verseNumberVar.get()
         self.gotoBnCV( bn, C, V )
-        if Globals.debugFlag: self.setDebugText( "acceptNewBCV {} {}:{}".format( bn, C, V ) )
+        if Globals.debugFlag: self.setDebugText( "acceptNewBnCV {} {}:{}".format( bn, C, V ) )
         self.setReadyStatus()
-    # end of Application.acceptNewBCV
+    # end of Application.acceptNewBnCV
 
 
     def haveSwordResourcesOpen( self ):
@@ -1397,57 +1374,90 @@ class Application( Frame ):
 
     def gotoBnCV( self, bn, C, V ):
         """
-        Sets self.BnameCV and self.currentVerseKey (and if necessary, self.SwordKey)
-            then calls update on the child windows.
+        Converts the bookname to BBB and goes to that new reference.
+
+        Called from GUI.
         """
         if Globals.debugFlag: print( t("gotoBnCV( {} {}:{} )").format( bn, C, V ) )
-        self.BnameCV = (bn,C,V,)
-        BBB = self.genericBibleOrganisationalSystem.getBBB( bn )
+        #self.BnameCV = (bn,C,V,)
+        #BBB = self.getBBB( bn )
         #print( "BBB", BBB )
+        self.gotoBCV( self.getBBB( bn ), C, V )
+    # end of Application.gotoBnCV
+
+
+    def gotoBCV( self, BBB, C, V ):
+        """
+
+        """
+        if Globals.debugFlag: print( t("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
         if Globals.debugFlag:
-            print( "  BnCV", self.BnameCV, self.currentVerseKey )
-            assert( self.genericBibleOrganisationalSystem.isValidBCVRef( self.currentVerseKey, repr( self.BnameCV ), extended=True ) )
+            assert( self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True ) )
         if self.haveSwordResourcesOpen():
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
             #print( "swK", self.SwordKey.getText() )
         self.appWins.updateThisBibleGroup( self.currentVerseKeyGroup, self.currentVerseKey )
-    # end of Application.gotoBnCV
+    # end of Application.gotoBCV
 
 
-    def gotoBCV( self, BBB, C, V, groupCode=None ):
+    def gotoGroupBCV( self, groupCode, BBB, C, V ):
         """
         Sets self.BnameCV and self.currentVerseKey (and if necessary, self.SwordKey)
             then calls update on the child windows.
+
+        Called from child windows.
         """
-        if Globals.debugFlag: print( t("gotoBCV( {} {}:{} )").format( BBB, C, V ) )
+        if Globals.debugFlag:
+            print( t("gotoGroupBCV( {} {}:{} )").format( BBB, C, V ) )
+            assert( groupCode in BIBLE_GROUP_CODES )
         newVerseKey = SimpleVerseKey( BBB, C, V )
-        if groupCode is None:
+        if groupCode == self.currentVerseKeyGroup:
             if Globals.debugFlag: assert( newVerseKey != self.currentVerseKey )
-            self.BnameCV = (bn,C,V,)
-            BBB = self.genericBibleOrganisationalSystem.getBBB( bn )
-            #print( "BBB", BBB )
-            self.setCurrentVerseKey( newVerseKey )
-            if Globals.debugFlag:
-                print( "  BCV", self.BnameCV, self.currentVerseKey )
-                assert( self.genericBibleOrganisationalSystem.isValidBCVRef( self.currentVerseKey, repr( self.BnameCV ), extended=True ) )
-            if self.haveSwordResourcesOpen():
-                self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
-                #print( "swK", self.SwordKey.getText() )
-            self.appWins.updateThisBibleGroup( self.currentVerseKeyGroup, self.currentVerseKey )
-        else: # We're changing it for a specific group (not necessarily the current group)
-            if Globals.debugFlag: assert( groupCode in BIBLE_GROUP_CODES )
-            if groupCode == self.currentVerseKeyGroup:
-                self.gotoBCV( BBB, C, V ) # Recursive call
-            else: # it's not the currently selected group
-                if   groupCode == 'A': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
-                elif groupCode == 'B': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
-                elif groupCode == 'C': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
-                elif groupCode == 'D': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
-                else: halt
-                if Globals.debugFlag: assert( newVerseKey != oldVerseKey ) # we shouldn't have even been called
-                self.appWins.updateThisBibleGroup( groupCode, newVerseKey )
-    # end of Application.gotoBCV
+            self.gotoBCV( BBB, C, V )
+        else: # it's not the currently selected group
+            if   groupCode == 'A': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
+            elif groupCode == 'B': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
+            elif groupCode == 'C': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
+            elif groupCode == 'D': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
+            else: halt
+            if Globals.debugFlag: assert( newVerseKey != oldVerseKey ) # we shouldn't have even been called
+            self.appWins.updateThisBibleGroup( groupCode, newVerseKey )
+    # end of Application.gotoGroupBCV
+
+
+    def setCurrentVerseKey( self, newVerseKey ):
+        """
+        Called to set the current verse key (and to set the verse key for the current group).
+
+        Then it updates the main GUI spinboxes and our history.
+        """
+        if Globals.debugFlag and debuggingThisModule:
+            print( t("setCurrentVerseKey( {} )").format( newVerseKey ) )
+            self.setDebugText( "setCurrentVerseKey..." )
+            assert( isinstance( newVerseKey, SimpleVerseKey ) )
+        self.currentVerseKey = newVerseKey
+        if   self.currentVerseKeyGroup == 'A': self.GroupA_VerseKey = self.currentVerseKey
+        elif self.currentVerseKeyGroup == 'B': self.GroupB_VerseKey = self.currentVerseKey
+        elif self.currentVerseKeyGroup == 'C': self.GroupC_VerseKey = self.currentVerseKey
+        elif self.currentVerseKeyGroup == 'D': self.GroupD_VerseKey = self.currentVerseKey
+        else: halt
+
+        BBB = self.currentVerseKey.getBBB()
+        self.maxChapters = self.getNumChapters( BBB )
+        self.chapterSpinbox['to'] = self.maxChapters
+        self.maxVerses = self.getNumVerses( BBB, self.chapterNumberVar.get() )
+        self.verseSpinbox['to'] = self.maxVerses # + 1???
+
+        self.bookNameVar.set( self.getBookName( BBB ) )
+        self.chapterNumberVar.set( self.currentVerseKey.getChapterNumber() )
+        self.verseNumberVar.set( self.currentVerseKey.getVerseNumber() )
+
+        if self.currentVerseKey not in self.BCVHistory:
+            self.BCVHistoryIndex = len( self.BCVHistory )
+            self.BCVHistory.append( self.currentVerseKey )
+            self.updatePreviousNextButtons()
+    # end of Application.setCurrentVerseKey
 
 
     def acceptNewWord( self, event=None ):
@@ -1476,42 +1486,42 @@ class Application( Frame ):
     # end of Application.gotoWord
 
 
-    def onHideResources( self ):
+    def doHideResources( self ):
         """
         Minimize all of our resource windows,
             i.e., leave the editor and main window
         """
-        if Globals.debugFlag: self.setDebugText( 'onHideResources' )
+        if Globals.debugFlag: self.setDebugText( 'doHideResources' )
         self.appWins.iconifyResources()
-    # end of Application.onHideResources
+    # end of Application.doHideResources
 
 
-    def onHideAll( self, includeMe=True ):
+    def doHideAll( self, includeMe=True ):
         """
         Minimize all of our windows.
         """
-        if Globals.debugFlag: self.setDebugText( 'onHideAll' )
+        if Globals.debugFlag: self.setDebugText( 'doHideAll' )
         self.appWins.iconify()
         if includeMe: self.ApplicationParent.iconify()
-    # end of Application.onHideAll
+    # end of Application.doHideAll
 
 
-    def onShowAll( self ):
+    def doShowAll( self ):
         """
         Show/restore all of our windows.
         """
-        if Globals.debugFlag: self.setDebugText( 'onShowAll' )
+        if Globals.debugFlag: self.setDebugText( 'doShowAll' )
         self.appWins.deiconify()
         self.ApplicationParent.deiconify() # Do this last so it has the focus
         self.ApplicationParent.lift()
-    # end of Application.onShowAll
+    # end of Application.doShowAll
 
 
-    def onBringAll( self ):
+    def doBringAll( self ):
         """
         Bring all of our windows close.
         """
-        if Globals.debugFlag: self.setDebugText( 'onBringAll' )
+        if Globals.debugFlag: self.setDebugText( 'doBringAll' )
         x, y = parseGeometry( self.ApplicationParent.geometry() )[2:4]
         if x > 30: x = x - 20
         if y > 30: y = y - 20
@@ -1524,8 +1534,8 @@ class Application( Frame ):
             if newY < 10*j: newY = 10*j
             geometrySet[2:4] = newX, newY
             win.geometry( assembleGeometryFromList( geometrySet ) )
-        self.onShowAll()
-    # end of Application.onBringAll
+        self.doShowAll()
+    # end of Application.doBringAll
 
 
     def onGrep( self ):
@@ -1732,12 +1742,12 @@ class Application( Frame ):
     # end of Application.grepMatchesList
 
 
-    def onOpenBiblelatorProject( self ):
+    def doOpenBiblelatorProject( self ):
         """
         """
-        if Globals.debugFlag or debuggingThisModule: print( t("onOpenBiblelatorProject()") )
+        if Globals.debugFlag or debuggingThisModule: print( t("doOpenBiblelatorProject()") )
         self.notWrittenYet()
-    # end of Application.onOpenBiblelatorProject
+    # end of Application.doOpenBiblelatorProject
 
 
     def onOpenBibleditProject( self ):
@@ -1748,12 +1758,12 @@ class Application( Frame ):
     # end of Application.onOpenBibleditProject
 
 
-    def onOpenParatextProject( self ):
+    def doOpenParatextProject( self ):
         """
         """
         if Globals.debugFlag or debuggingThisModule:
-            print( t("onOpenParatextProject()") )
-            self.setDebugText( "onOpenParatextProject..." )
+            print( t("doOpenParatextProject()") )
+            self.setDebugText( "doOpenParatextProject..." )
         #if not self.openDialog:
         self.openDialog = Open( initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
         fileResult = self.openDialog.show()
@@ -1810,17 +1820,32 @@ class Application( Frame ):
 ##            #if windowGeometry: tEW.geometry( windowGeometry )
         self.appWins.append( uEW )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
-        if Globals.debugFlag: self.setDebugText( "Finished onOpenParatextProject" )
+        if Globals.debugFlag: self.setDebugText( "Finished doOpenParatextProject" )
         self.setReadyStatus()
-    # end of Application.onOpenParatextProject
+    # end of Application.doOpenParatextProject
 
 
-    def onProjectClose( self ):
+    def doHelp( self, event=None ):
+        from Help import HelpBox
+        helpInfo = ProgNameVersion + "\n  Keyboard shortcuts:"
+        for name,shortcut in self.myKeyboardBindings:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self.ApplicationParent, ProgName, helpInfo )
+    # end of Application.doHelp
+
+
+    def doAbout( self, event=None ):
+        from About import AboutBox
+        ab = AboutBox( self.ApplicationParent, ProgName, ProgNameVersion )
+    # end of Application.doAbout
+
+
+    def doProjectClose( self ):
         """
         """
-        if Globals.debugFlag or debuggingThisModule: print( t("onProjectClose()") )
+        if Globals.debugFlag or debuggingThisModule: print( t("doProjectClose()") )
         self.notWrittenYet()
-    # end of Application.onProjectClose
+    # end of Application.doProjectClose
 
 
     def writeSettingsFile( self ):
@@ -1875,11 +1900,11 @@ class Application( Frame ):
     # end of Application.writeSettingsFile
 
 
-    def closeMe( self ):
+    def doCloseMe( self ):
         """
         Save files first, and then end the application.
         """
-        if Globals.debugFlag and debuggingThisModule: print( t("closeMe()") )
+        if Globals.debugFlag and debuggingThisModule: print( t("doCloseMe()") )
         haveModifications = False
         for appWin in self.appWins:
             if 'Editor' in appWin.genericWindowType and appWin.modified():
@@ -1889,7 +1914,7 @@ class Application( Frame ):
         else:
             self.writeSettingsFile()
             self.ApplicationParent.destroy()
-    # end of Application.closeMe
+    # end of Application.doCloseMe
 # end of class Application
 
 
