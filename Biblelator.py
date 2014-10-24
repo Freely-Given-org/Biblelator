@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-10-24 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.19"
+ProgVersion = "0.20"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.19" # Only need to change this if the settings format has changed
+SettingsVersion = "0.20" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -1928,9 +1928,9 @@ def main():
 
     if Globals.debugFlag:
         import os
-        print( t("Platform is"), sys.platform )
-        print( t("OS name is"), os.name )
-        print( t("OS uname is"), os.uname() )
+        print( t("Platform is"), sys.platform ) # e.g., "win32"
+        print( t("OS name is"), os.name ) # e.g., "nt"
+        if sys.platform == "linux": print( t("OS uname is"), os.uname() )
         print( t("Running main...") )
 
     tkRootWindow = tk.Tk()

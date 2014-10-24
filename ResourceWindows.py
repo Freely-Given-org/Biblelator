@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-10-24 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -75,10 +75,23 @@ class HTMLText( tk.Text ):
     A custom Text widget which understands simple HTML.
     """
     def __init__( self, *args, **kwargs ):
-        if Globals.debugFlag: print( t("HTMLText.__init__( ... )") )
+        if Globals.debugFlag: print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
 
-    # end of HTMLText.__init__
+    def insert( self, point, iText ):
+        if Globals.debugFlag: print( t("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
+        if point != tk.END:
+            logging.critical( t("HTMLText.insert doesn't know how to insert at {}").format( repr(point) ) )
+            tk.Text.insert( self, point, iText )
+            return
+        remainingText = iText.replace( '\n', ' ' )
+        while '  ' in remainingText: remainingText = remainingText.replace( '  ', ' ' )
+        while remainingText:
+            ix = remainingText.find( '<' )
+        newText = ""
+        adjText = iText
+        tk.Text.insert( self, point, adjText )
+    # end of HTMLText.insert
 # end of HTMLText class
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-10-24 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.19"
+ProgVersion = "0.20"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -125,9 +125,9 @@ class BibleLexiconResourceWindow( ResourceWindow ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.onInfo )
+        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Close', underline=0, command=self.onClose ) # close this window
+        fileMenu.add_command( label='Close', underline=0, command=self.doClose ) # close this window
 
         editMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
