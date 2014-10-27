@@ -336,6 +336,8 @@ class Application( Frame ):
         if Globals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label='Debug', underline=0 )
+            debugMenu.add_command( label='View settings...', underline=0, command=self.doViewSettings )
+            debugMenu.add_separator()
             debugMenu.add_command( label='View log...', underline=0, command=self.notWrittenYet )
             debugMenu.add_separator()
             debugMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
@@ -1053,6 +1055,32 @@ class Application( Frame ):
         if Globals.debugFlag: self.setDebugText( "Finished doOpenFileTextEditWindow" )
         self.setReadyStatus()
     # end of Application.doOpenFileTextEditWindow
+
+
+    def doViewSettings( self ):
+        """
+        Open a pop-up text window with the current settings displayed.
+        """
+        if Globals.debugFlag:
+            print( t("doViewSettings()") )
+            self.setDebugText( "doViewSettings..." )
+        fileResult = self.settings.settingsFilepath
+        if not fileResult: return
+        if not os.path.isfile( fileResult ):
+            showerror( APP_NAME, 'Could not open file ' + fileResult )
+            return
+        text = open( fileResult, 'rt', encoding='utf-8' ).read()
+        if text == None:
+            showerror( APP_NAME, 'Could not decode and open file ' + fileResult )
+        else:
+            tEW = TextEditWindow( self )
+            tEW.setFilepath( fileResult )
+            tEW.setAllText( text )
+            #if windowGeometry: tEW.geometry( windowGeometry )
+            self.appWins.append( tEW )
+        if Globals.debugFlag: self.setDebugText( "Finished doViewSettings" )
+        self.setReadyStatus()
+    # end of Application.doViewSettings
 
 
     def openUSFMBibleEditWindow( self, USFMFolder, editMode, windowGeometry=None ):

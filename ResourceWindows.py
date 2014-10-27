@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-24 (also update ProgVersion below)
+#   Last modified: 2014-10-27 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,13 +30,13 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ResourceWindows"
 ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.19"
+ProgVersion = "0.20"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
 
 
-import sys
+import sys, logging
 from gettext import gettext as _
 
 import tkinter as tk
@@ -72,25 +72,126 @@ def t( messageString ):
 
 class HTMLText( tk.Text ):
     """
-    A custom Text widget which understands simple HTML.
+    A custom Text widget which understands and displays simple HTML.
+
+    It currently accepts:
+        heading tags:           h1,h2,h3
+        paragraph tags:         p, li
+        formatting tags:        span
+        hard-formatting tags:   i, b, em
+
+    For the styling, class names are appended to the tag names following a hyphen,
+        e.g., <span class="word"> would give an internal style of "span-word".
     """
     def __init__( self, *args, **kwargs ):
         if Globals.debugFlag: print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
+        self.tag_configure( 'i', font='sil-doulos 12 italic' )
+        self.tag_configure( 'b', font='sil-doulos 12 bold' )
+        self.tag_configure( 'em', font='sil-doulos 12 bold' )
+        self.tag_configure( 'span', foreground='red', font='sil-doulos 12' )
+        self.tag_configure( 'li', lmargin1=4, lmargin2=4, background='pink', font='helvetica 12' )
+        self.tag_configure( 'p', background='pink', font='helvetica 12', spacing1='1' )
+        self.tag_configure( 'h1', justify=tk.CENTER, foreground='blue', font='helvetica 15', spacing1='1', spacing3='0.5' )
+        self.tag_configure( 'h2', justify=tk.CENTER, foreground='green', font='helvetica 14', spacing1='0.8', spacing3='0.3' )
+        self.tag_configure( 'h3', justify=tk.CENTER, foreground='orange', font='helvetica 13', spacing1='0.5', spacing3='0.2' )
+        #background='yellow', font='helvetica 14 bold', relief=tk.RAISED
+        #"background", "bgstipple", "borderwidth", "elide", "fgstipple",
+        #"font", "foreground", "justify", "lmargin1", "lmargin2", "offset",
+        #"overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
+        #"tabs", "tabstyle", "underline", and "wrap".
 
     def insert( self, point, iText ):
-        if Globals.debugFlag: print( t("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
+        if Globals.debugFlag and debuggingThisModule:
+            try: print( t("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
+            except UnicodeEncodeError: print( t("HTMLText.insert( {}, {} )").format( repr(point), len(iText) ) )
         if point != tk.END:
             logging.critical( t("HTMLText.insert doesn't know how to insert at {}").format( repr(point) ) )
             tk.Text.insert( self, point, iText )
             return
         remainingText = iText.replace( '\n', ' ' )
         while '  ' in remainingText: remainingText = remainingText.replace( '  ', ' ' )
+        currentFormatTags, currentHTMLTags = [], []
+        #first = True
         while remainingText:
+            #try: print( "  Remaining: {}".format( repr(remainingText) ) )
+            #except UnicodeEncodeError: print( "  Remaining: {}".format( len(remainingText) ) )
             ix = remainingText.find( '<' )
-        newText = ""
-        adjText = iText
-        tk.Text.insert( self, point, adjText )
+            if ix == -1: # none found
+                tk.Text.insert( self, point, remainingText, currentFormatTags )
+                remainingText = ""
+            else: # presumably we have found the start of an HTML tag
+                if ix > 0:
+                    #print( "cFT", currentFormatTags, "cHT", currentHTMLTags )
+                    #try: print( "  on", repr(remainingText[:ix]) )
+                    #except UnicodeEncodeError: pass
+                    tk.Text.insert( self, point, remainingText[:ix], tuple(currentFormatTags) )
+                    #first = False
+                    remainingText = remainingText[ix:]
+                #try: print( "  tag", repr(remainingText[:5]) )
+                #except UnicodeEncodeError: print( "  tag" )
+                ixEnd = remainingText.find( '>' )
+                ixNext = remainingText.find( '<', 1 )
+                #print( "ixEnd", ixEnd, "ixNext", ixNext )
+                if ixEnd == -1 \
+                or (ixEnd!=-1 and ixNext!=-1 and ixEnd>ixNext): # no tag close or wrong tag closed
+                    logging.critical( t("HTMLText.insert: Missing close bracket") )
+                    tk.Text.insert( self, point, remainingText, currentFormatTags )
+                    remainingText = ""
+                    break
+                # There's a close marker -- check it's our one
+                fullHTMLTag = remainingText[1:ixEnd] # but without the < >
+                remainingText = remainingText[ixEnd+1:]
+                #if remainingText:
+                    #try: print( "after marker", remainingText[0] )
+                    #except UnicodeEncodeError: pass
+                if not fullHTMLTag:
+                    logging.critical( t("HTMLText.insert: Unexpected empty HTML tags") )
+                    continue
+                selfClosing = fullHTMLTag[-1] == '/'
+                if selfClosing:
+                    fullHTMLTag = fullHTML[:-1]
+                #try: print( "fullHTMLTag", repr(fullHTMLTag), "self-closing" if selfClosing else "" )
+                #except UnicodeEncodeError: pass
+                fullHTMLTagBits = fullHTMLTag.split()
+                HTMLTag = fullHTMLTagBits[0]
+                #try: print( "  bits", fullHTMLTagBits, repr(HTMLTag) )
+                #except UnicodeEncodeError: pass
+                if HTMLTag and HTMLTag[0] == '/': # it's a close tag
+                    assert( len(fullHTMLTagBits) == 1 ) # shouldn't have any attributes on a closing tag
+                    assert( not selfClosing )
+                    HTMLTag = HTMLTag[1:]
+                    #print( t("Got HTML {} close tag").format( repr(HTMLTag) ) )
+                    #print( "cHT", currentHTMLTags )
+                    if currentHTMLTags and HTMLTag == currentHTMLTags[-1]: # all good
+                        currentHTMLTags.pop() # Drop it
+                        currentFormatTags.pop()
+                    elif currentHTMLTags:
+                        logging.critical( t("HTMLText.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
+                    else:
+                        logging.critical( t("HTMLText.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
+                else: # it's not a close tag
+                    if HTMLTag not in ('h1','h2','h3','p','li','span','i','b','em',):
+                        logging.critical( t("HTMLText doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
+                        #currentHTMLTags.append( HTMLTag ) # remember it anyway in case it's closed later
+                        continue
+                    if 1 or self.edit_modified(): # This isn't the first text then
+                        if HTMLTag in ('h1','h2','h3','p','li',):
+                            tk.Text.insert( self, point, '\n' )
+                        #elif HTMLTag in ('li',):
+                            #tk.Text.insert( self, point, '\n' )
+                    formatTag = HTMLTag
+                    if len(fullHTMLTagBits)>1: # our HTML tag has some addition attributes
+                        #print( "Looking for attributes" )
+                        for bit in fullHTMLTagBits[1:]:
+                            #try: print( "  bit", repr(bit) )
+                            #except UnicodeEncodeError: pass
+                            if bit.startswith('class="') and bit[-1]=='"':
+                                formatTag += '-' + bit[7:-1]
+                            else: logging.warning( "Ignoring {} attribute on {} tag".format( bit, HTMLTag ) )
+                    if not selfClosing:
+                        currentHTMLTags.append( HTMLTag )
+                        currentFormatTags.append( formatTag )
     # end of HTMLText.insert
 # end of HTMLText class
 
@@ -437,8 +538,9 @@ class ResourceWindows( list ):
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.groupCode == groupCode:
-                    #appWin.updateShownBCV( appWin.parentApp.currentVerseKey )
-                    self.ResourceWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
+                    # The following line doesn't work coz it only updates ONE window
+                    #self.ResourceWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
+                    appWin.updateShownBCV( newVerseKey )
     # end of ResourceWindows.updateThisBibleGroup
 
 
@@ -450,7 +552,9 @@ class ResourceWindows( list ):
             print( t("ResourceWindows.updateLexicons( {} )").format( newLexiconWord ) )
         for appWin in self:
             if appWin.genericWindowType == 'LexiconResource':
-                self.ResourceWindowsParent.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
+                # The following line doesn't work coz it only updates ONE window
+                #self.ResourceWindowsParent.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
+                appWin.updateLexiconWord( newLexiconWord )
     # end of ResourceWindows.updateLexicons
 # end of ResourceWindows class
 
