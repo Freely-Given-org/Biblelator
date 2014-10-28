@@ -54,7 +54,7 @@ from BibleResourceWindows import BibleResourceWindow
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 
 
@@ -67,7 +67,7 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
@@ -80,7 +80,7 @@ class CustomText( tk.Text ):
     Adapted from http://stackoverflow.com/questions/13835207/binding-to-cursor-movement-doesnt-change-insert-mark
     """
     def __init__( self, *args, **kwargs ):
-        if Globals.debugFlag: print( t("CustomText.__init__( ... )") )
+        if BibleOrgSysGlobals.debugFlag: print( t("CustomText.__init__( ... )") )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
 
         # All widget changes happen via an internal Tcl command with the same name as the widget:
@@ -147,7 +147,7 @@ class CustomText( tk.Text ):
 
 class TextEditWindow( ResourceWindow ):
     def __init__( self, parentApp, folderPath=None, filename=None ):
-        if Globals.debugFlag: print( t("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
 
         # Set some dummy values required soon (esp. by refreshTitle)
@@ -175,7 +175,7 @@ class TextEditWindow( ResourceWindow ):
     def createEditorKeyboardBindings( self ):
         """
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.createEditorKeyboardBindings()") )
         for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
                              ('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -279,7 +279,7 @@ class TextEditWindow( ResourceWindow ):
     def createContextMenu( self ):
         """
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.createContextMenu()") )
         self.contextMenu = tk.Menu( self, tearoff=0 )
         self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict['Cut'][0] )
@@ -330,7 +330,7 @@ class TextEditWindow( ResourceWindow ):
 
 
     def doUndo( self, event=None ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doUndo()") )
         try: self.textBox.edit_undo()
         except tk.TclError:
@@ -339,7 +339,7 @@ class TextEditWindow( ResourceWindow ):
 
 
     def doRedo( self, event=None ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doRedo()") )
         try: self.textBox.edit_redo()
         except tk.TclError:
@@ -348,7 +348,7 @@ class TextEditWindow( ResourceWindow ):
 
 
     def xxxdoCopy( self ):                           # get text selected by mouse, etc.
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doCopy()") )
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             showerror( APP_NAME, 'No text selected')
@@ -360,7 +360,7 @@ class TextEditWindow( ResourceWindow ):
 
 
     def doDelete( self, event=None ):                         # delete selected text, no save
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doDelete()") )
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( APP_NAME, 'No text selected')
@@ -370,7 +370,7 @@ class TextEditWindow( ResourceWindow ):
 
 
     def doCut( self, event=None ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doCut()") )
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( APP_NAME, 'No text selected')
@@ -381,7 +381,7 @@ class TextEditWindow( ResourceWindow ):
 
 
     def doPaste( self, event=None ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doPaste()") )
         try:
             text = self.selection_get( selection='CLIPBOARD')
@@ -396,7 +396,7 @@ class TextEditWindow( ResourceWindow ):
 
 
     def xxxdoSelectAll( self ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doSelectAll()") )
         self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
@@ -541,7 +541,7 @@ class TextEditWindow( ResourceWindow ):
     def setFilepath( self, newFilepath ):
         """
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.setFilepath( {} )").format( repr(newFilepath) ) )
         self.folderPath, self.filename = os.path.split( newFilepath )
         #self.currfile = name  # for save
@@ -554,7 +554,7 @@ class TextEditWindow( ResourceWindow ):
         """
         Called if the user requests a close from the GUI.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doSaveAs()") )
         if self.modified():
             saveAsFilepath = asksaveasfilename()
@@ -568,7 +568,7 @@ class TextEditWindow( ResourceWindow ):
         """
         Called if the user requests a close from the GUI.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doSaveAs()") )
         if self.modified():
             if self.folderPath and self.filename:
@@ -586,7 +586,7 @@ class TextEditWindow( ResourceWindow ):
         """
         Called if the user requests a close from the GUI.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doCloseEditor()") )
         self.onCloseEditor()
     # end of TextEditWindow.closeEditor
@@ -595,7 +595,7 @@ class TextEditWindow( ResourceWindow ):
         """
         Called if the window is about to be destroyed.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.onCloseEditor()") )
         if self.modified():
             if self.folderPath and self.filename:
@@ -613,7 +613,7 @@ class TextEditWindow( ResourceWindow ):
 
 class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
     def __init__( self, parentApp, USFMBible ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.__init__( {}, {} )".format( parentApp, USFMBible ) )
         self.parentApp, self.internalBible = parentApp, USFMBible
         self.USFMFolder = self.internalBible.sourceFolder
@@ -801,7 +801,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         if 0: # Get line and column info
@@ -851,7 +851,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         # Try to put the most useful methods first (for efficiency)
         for j, mark in enumerate( (self.textBox.mark_previous(tk.INSERT), self.textBox.mark_previous(tk.INSERT+'-1c'),
                                    self.textBox.mark_previous(tk.INSERT+' linestart+1c'), self.textBox.mark_previous(tk.INSERT+' linestart'),) ):
-            if Globals.debugFlag and debuggingThisModule: print( "  mark", j, mark )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  mark", j, mark )
             if mark[0]=='C' and mark[1].isdigit() and 'V' in mark:
                 gotCV = True; break
         if gotCV and mark != self.lastCV:
@@ -869,7 +869,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         Fetches and returns the internal Bible data for the given book
             by reading the USFM source file completely and returning the text.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("USFMEditWindow.getBookData( {} )").format( verseKey ) )
         BBB = verseKey.getBBB()
         if BBB != self.lastBBB: self.bookText = None
@@ -891,7 +891,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         """
         Add the requested verse to the end of self.textBox.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             try: print( t("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
             except UnicodeEncodeError: print( t("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
         lastCharWasSpace = haveTextFlag = not firstFlag
@@ -965,7 +965,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("USFMEditWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
 
@@ -986,12 +986,12 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
                         logging.critical( t("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
                     failed = True
                 if not failed:
-                    if Globals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
             else:
                 prevBBB = self.parentApp.genericBibleOrganisationalSystem.getPreviousBookCode( BBB )
                 prevIntC = self.getNumChapters( prevBBB )
                 prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                if Globals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+                if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
             if not failed:
                 previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
                 previousVerseData = self.getVerseData( previousVerseKey )
@@ -1023,7 +1023,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
 
         Leaves the textbox in the disabled state.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.updateShownBCV( {}) for".format( newVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
@@ -1050,7 +1050,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
     def xxcloseEditor( self ):
         """
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("USFMEditWindow.closeEditor()") )
         if self.textBox.edit_modified():
             pass
@@ -1070,10 +1070,10 @@ def demo():
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if Globals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
     #Globals.debugFlag = True
 
     tkRootWindow = tk.Tk()
@@ -1093,13 +1093,13 @@ if __name__ == '__main__':
     import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if 1 and Globals.debugFlag and debuggingThisModule:
+    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #from tkinter import TclVersion, TkVersion
         from tkinter import tix
         print( "TclVersion is", tk.TclVersion )
@@ -1109,5 +1109,5 @@ if __name__ == '__main__':
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of EditWindows.py

@@ -52,7 +52,7 @@ from BiblelatorHelpers import errorBeep
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 
 
 
@@ -64,7 +64,7 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
@@ -84,7 +84,7 @@ class HTMLText( tk.Text ):
         e.g., <span class="word"> would give an internal style of "span-word".
     """
     def __init__( self, *args, **kwargs ):
-        if Globals.debugFlag: print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
         self.tag_configure( 'i', font='sil-doulos 12 italic' )
         self.tag_configure( 'b', font='sil-doulos 12 bold' )
@@ -102,7 +102,7 @@ class HTMLText( tk.Text ):
         #"tabs", "tabstyle", "underline", and "wrap".
 
     def insert( self, point, iText ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             try: print( t("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
             except UnicodeEncodeError: print( t("HTMLText.insert( {}, {} )").format( repr(point), len(iText) ) )
         if point != tk.END:
@@ -205,7 +205,7 @@ class ResourceWindow( tk.Toplevel ):
         The genericWindowType is set here,
             but the more specific winType is set later by the subclass.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
             assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor') )
@@ -250,7 +250,7 @@ class ResourceWindow( tk.Toplevel ):
 
 
     def createMenuBar( self ):
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("This 'createMenuBar' method MUST be overridden!") )
             halt
 
@@ -281,7 +281,7 @@ class ResourceWindow( tk.Toplevel ):
     def createStandardKeyboardBindings( self ):
         """
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doFind), ('Refind',self.doRefind),
@@ -309,7 +309,7 @@ class ResourceWindow( tk.Toplevel ):
         """
         Designed to be overridden.
         """
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("This 'createToolBar' method can be overridden!") )
     # end of ResourceWindow.createToolBar
 
@@ -330,7 +330,7 @@ class ResourceWindow( tk.Toplevel ):
         """
         Copy the selected text onto the clipboard.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doCopy()") )
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
@@ -347,7 +347,7 @@ class ResourceWindow( tk.Toplevel ):
         """
         Select all the text in the text box.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doSelectAll()") )
         self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
@@ -358,7 +358,7 @@ class ResourceWindow( tk.Toplevel ):
     def doGotoLine( self, event=None, forceline=None ):
         """
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doGotoLine()") )
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
@@ -489,10 +489,10 @@ class ResourceWindow( tk.Toplevel ):
         """
         Called to finally and irreversibly remove this window from our list and close it.
         """
-        if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindow.closeResourceWindow()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindow.closeResourceWindow()") )
         self.parentApp.appWins.remove( self )
         self.destroy()
-        if Globals.debugFlag: self.parentApp.setDebugText( "Closed resource window" )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource window" )
     # end of ResourceWindow.closeResourceWindow
 # end of class ResourceWindow
 
@@ -508,14 +508,14 @@ class ResourceWindows( list ):
 
 
     def iconify( self ):
-        if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconify()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconify()") )
         for appWin in self:
             appWin.iconify()
     #end of ResourceWindows.iconify
 
 
     def iconifyResources( self ):
-        if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconifyResources()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconifyResources()") )
         for appWin in self:
             if 'Resource' in appWin.genericWindowType:
                 appWin.iconify()
@@ -523,7 +523,7 @@ class ResourceWindows( list ):
 
 
     def deiconify( self ):
-        if Globals.debugFlag and debuggingThisModule: print( t("ResourceWindows.deiconify()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindows.deiconify()") )
         for appWin in self:
             appWin.deiconify()
             appWin.lift( aboveThis=self.ResourceWindowsParent )
@@ -534,7 +534,7 @@ class ResourceWindows( list ):
         """
         Called when we probably need to update some resource windows with a new Bible reference.
         """
-        if Globals.debugFlag: print( t("ResourceWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("ResourceWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.groupCode == groupCode:
@@ -548,7 +548,7 @@ class ResourceWindows( list ):
         """
         Called when we probably need to update some resource windows with a new word.
         """
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("ResourceWindows.updateLexicons( {} )").format( newLexiconWord ) )
         for appWin in self:
             if appWin.genericWindowType == 'LexiconResource':
@@ -566,10 +566,10 @@ def demo():
     """
     from tkinter import Tk
 
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if Globals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
     #Globals.debugFlag = True
 
     tkRootWindow = Tk()
@@ -591,13 +591,13 @@ if __name__ == '__main__':
     import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if 1 and Globals.debugFlag and debuggingThisModule:
+    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
         from tkinter import tix
         print( "TclVersion is", TclVersion )
@@ -607,5 +607,5 @@ if __name__ == '__main__':
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of ResourceWindows.py

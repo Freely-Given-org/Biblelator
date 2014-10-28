@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-10-28 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = "0.19"
+ProgVersion = "0.20"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -46,7 +46,7 @@ from BiblelatorGlobals import MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, centre
 
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 
 
 
@@ -58,7 +58,7 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
@@ -66,7 +66,7 @@ def t( messageString ):
 
 class AboutBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
-        #if Globals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
         self.minsize( self.minimumXSize, self.minimumYSize )
@@ -91,11 +91,11 @@ class AboutBox( tk.Toplevel ):
 
 class AboutBox2():
     def __init__( self, parent=None, progName=None, text=None ):
-        #if Globals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
         ab = tk.Toplevel( parent )
         self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
-        self.minsize( self.minimumXSize, self.minimumYSize )
-        if parent: centreWindowOnWindow( self, parent )
+        ab.minsize( self.minimumXSize, self.minimumYSize )
+        if parent: centreWindowOnWindow( ab, parent )
 
         self.okButton = Button( ab, text='Ok', command=ab.destroy )
         self.okButton.pack( side=tk.BOTTOM )
@@ -123,13 +123,13 @@ def demo():
     """
     #from tkinter import Tk
 
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( "Running demo..." )
 
     tkRootWindow = tk.Tk()
-    if Globals.debugFlag:
+    if BibleOrgSysGlobals.debugFlag:
         #print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
             print( 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
@@ -148,13 +148,13 @@ if __name__ == '__main__':
     import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if Globals.debugFlag:
+    if BibleOrgSysGlobals.debugFlag:
         #from tkinter import TclVersion, TkVersion
         from tkinter import tix
         print( "TclVersion is", tk.TclVersion )
@@ -164,5 +164,5 @@ if __name__ == '__main__':
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of About.py

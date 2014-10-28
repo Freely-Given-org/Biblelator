@@ -43,7 +43,7 @@ from gettext import gettext as _
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 
 
 
@@ -55,7 +55,7 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
@@ -66,31 +66,31 @@ class ApplicationSettings:
         """
         Try to find where the settings file might be (if anywhere).
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("ApplicationSettings.__init__( {} {} {} )").format( repr(dataFolderName), repr(settingsFolderName), repr(settingsFilename) ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
         if not self.settingsFilename.endswith( '.ini' ):
             self.settingsFilename = self.settingsFilename + '.ini'
         self.dataFolder = self.settingsFolder = self.settingsFilepath = None
         possibleFolders = ( os.path.expanduser('~'), os.getcwd(), os.curdir, os.pardir )
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "possibleFolders", possibleFolders )
         for folder in possibleFolders:
             if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
                 ourFolder1 = os.path.join( folder, dataFolderName )
                 if os.path.isdir( ourFolder1 ) and os.access( ourFolder1, os.W_OK ):
                     self.dataFolder = ourFolder1
-                    if Globals.debugFlag and debuggingThisModule:
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                         print( t("Found dataFolder = "), self.dataFolder )
                     ourFolder2 = os.path.join( self.dataFolder, settingsFolderName )
                     if os.path.isdir( ourFolder2 ) and os.access( ourFolder2, os.W_OK ):
                         self.settingsFolder = ourFolder2
-                        if Globals.debugFlag and debuggingThisModule:
+                        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                             print( t("Found settingsFolder = "), self.settingsFolder )
                         ourFilepath = os.path.join( ourFolder2, self.settingsFilename )
                         if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
                             self.settingsFilepath = ourFilepath
-                            if Globals.verbosityLevel > 2 or Globals.debugFlag:
+                            if BibleOrgSysGlobals.verbosityLevel > 2 or BibleOrgSysGlobals.debugFlag:
                                 print( t("Found settingsFilepath = "), self.settingsFilepath )
                     break
 
@@ -136,7 +136,7 @@ class ApplicationSettings:
         """
         Load the settings file (if we found it).
         """
-        if Globals.debugFlag and debuggingThisModule: print( t("ApplicationSettings.load()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ApplicationSettings.load()") )
         self.reset() # Creates self.data
         assert( self.data )
         if self.settingsFilepath and os.path.isfile( self.settingsFilepath ) and os.access( self.settingsFilepath, os.R_OK ):
@@ -149,7 +149,7 @@ class ApplicationSettings:
         Save all of the program settings to disk.
             They must have already been saved into self.data.
         """
-        if Globals.debugFlag and debuggingThisModule: print( t("ApplicationSettings.save()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ApplicationSettings.save()") )
         assert( self.data )
         assert( self.settingsFilepath )
         with open( self.settingsFilepath, 'wt') as settingsFile: # It may or may not have previously existed
@@ -165,8 +165,8 @@ def demo():
     """
     from tkinter import Tk
 
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( t("Running {} demo...").format( ProgName ) )
 
@@ -199,13 +199,13 @@ if __name__ == '__main__':
     #import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     #multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
     #printMultiprocessingInfo( 'main' )
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of ApplicationSettings.py

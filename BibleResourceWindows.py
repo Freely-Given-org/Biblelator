@@ -48,7 +48,7 @@ from ResourceWindows import ResourceWindow
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 from USFMFile import splitMarkerText
 from SwordResources import SwordType
@@ -69,7 +69,7 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 # end of BibleResourceWindows.t
@@ -78,7 +78,7 @@ def t( messageString ):
 
 class BibleResourceWindow( ResourceWindow ):
     def __init__( self, parentApp, moduleID ):
-        if Globals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {} )").format( parentApp, moduleID ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {} )").format( parentApp, moduleID ) )
         self.parentApp, self.moduleID = parentApp, moduleID
 
         # Set some dummy values required soon (esp. by refreshTitle)
@@ -214,7 +214,7 @@ class BibleResourceWindow( ResourceWindow ):
         Called when  a Bible context view is changed from the menus/GUI.
         """
         currentViewNumber = self._viewRadio.get()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
             assert( currentViewNumber in range( 1, 4+1 ) )
         previousContextViewMode = self.contextViewMode
@@ -240,7 +240,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         previousGroupCode = self.groupCode
         newGroupCode = self._groupRadio.get()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
             assert( newGroupCode in BIBLE_GROUP_CODES )
         assert( 'Bible' in self.genericWindowType )
@@ -260,7 +260,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
             #self.setDebugText( "doGotoPreviousBook..." )
         newBBB = self.getPreviousBookCode( BBB )
@@ -277,7 +277,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoNextBook..." )
         newBBB = self.getNextBookCode( BBB )
@@ -293,7 +293,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoPreviousChapter..." )
         intC, intV = int( C ), int( V )
@@ -306,7 +306,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoNextChapter..." )
         intC = int( C )
@@ -319,7 +319,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoPreviousVerse..." )
         intC, intV = int( C ), int( V )
@@ -333,7 +333,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoNextVerse..." )
         intV = int( V )
@@ -346,7 +346,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGoForward() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGoForward..." )
         self.notWrittenYet()
@@ -357,7 +357,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGoBackward..." )
         self.notWrittenYet()
@@ -368,7 +368,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousListItem() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoPreviousListItem..." )
         self.notWrittenYet()
@@ -379,7 +379,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextListItem() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoNextListItem..." )
         self.notWrittenYet()
@@ -390,7 +390,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         """
         BBB, C, V = self.currentVerseKey.getBCV()
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoBook() from {} {}:{}").format( BBB, C, V ) )
             #self.setDebugText( "doGotoBook..." )
         self.notWrittenYet()
@@ -401,7 +401,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
 
         """
-        if Globals.debugFlag: print( t("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentApp.gotoGroupBCV( self.groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -409,7 +409,7 @@ class BibleResourceWindow( ResourceWindow ):
 
 
     def getSwordVerseKey( self, verseKey ):
-            #if Globals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
             BBB, C, V = verseKey.getBCV()
             return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceWindow.getSwordVerseKey
@@ -421,7 +421,7 @@ class BibleResourceWindow( ResourceWindow ):
 
         MUST BE OVERRIDDEN.
         """
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("getVerseData( {} )").format( verseKey ) )
             logging.critical( t("This getVerseData 'body' method must be overridden!") )
             halt
@@ -436,10 +436,10 @@ class BibleResourceWindow( ResourceWindow ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("getCachedVerseData( {} )").format( verseKey ) )
         if str(verseKey) in self.cache:
-            #if Globals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceWindow cache") )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceWindow cache") )
             self.cache.move_to_end( str(verseKey) )
             return self.cache[str(verseKey)]
         verseData = self.getVerseData( verseKey )
@@ -455,7 +455,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         Add the requested verse to the end of self.textBox.
         """
-        #if Globals.debugFlag and debuggingThisModule:
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #try: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
             #except UnicodeEncodeError: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
         lastCharWasSpace = haveTextFlag = not firstFlag
@@ -529,7 +529,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( t("BibleResourceWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
 
@@ -550,14 +550,14 @@ class BibleResourceWindow( ResourceWindow ):
                         logging.critical( t("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
                     failed = True
                 if not failed:
-                    if Globals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
             else:
                 prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
                 if prevBBB is None: failed = True
                 else:
                     prevIntC = self.getNumChapters( prevBBB )
                     prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                    if Globals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
             if not failed:
                 previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
                 previousVerseData = self.getCachedVerseData( previousVerseKey )
@@ -587,7 +587,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         Called to set the current verse key.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("setCurrentVerseKey( {} )").format( newVerseKey ) )
             #self.setDebugText( "setCurrentVerseKey..." )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
@@ -607,7 +607,7 @@ class BibleResourceWindow( ResourceWindow ):
 
         Leaves the textbox in the disabled state.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleResourceWindow.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
             assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
@@ -660,7 +660,7 @@ class BibleResourceWindow( ResourceWindow ):
 
         else:
             logging.critical( t("BibleResourceWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
-            if Globals.debugFlag: halt # Unknown context view mode
+            if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
         self.textBox['state'] = tk.DISABLED # Don't allow editing
         self.refreshTitle()
@@ -716,7 +716,7 @@ class BibleResourceWindow( ResourceWindow ):
 
 class SwordBibleResourceWindow( BibleResourceWindow ):
     def __init__( self, parentApp, moduleAbbreviation ):
-        if Globals.debugFlag: print( "SwordBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
+        if BibleOrgSysGlobals.debugFlag: print( "SwordBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
         BibleResourceWindow.__init__( self, self.parentApp, self.moduleAbbreviation )
         self.winType = 'SwordBibleResourceWindow'
@@ -741,7 +741,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("SwordBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
@@ -768,7 +768,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
 
 class DBPBibleResourceWindow( BibleResourceWindow ):
     def __init__( self, parentApp, moduleAbbreviation ):
-        if Globals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( "DBPBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
@@ -800,7 +800,7 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("DBPBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
         if self.DBPModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
@@ -816,7 +816,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        if Globals.debugFlag: print( "InternalBibleResourceWindow.__init__( {}, {} )".format( parentApp, modulePath ) )
+        if BibleOrgSysGlobals.debugFlag: print( "InternalBibleResourceWindow.__init__( {}, {} )".format( parentApp, modulePath ) )
         self.parentApp, self.modulePath = parentApp, modulePath
 
         self.internalBible = None # (for refreshTitle called from the base class)
@@ -852,7 +852,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("InternalBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
         if self.internalBible is not None:
             try: return self.internalBible.getVerseData( verseKey )
@@ -869,10 +869,10 @@ def demo():
     Demo program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if Globals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
     #Globals.debugFlag = True
 
     tkRootWindow = Tk()
@@ -895,13 +895,13 @@ if __name__ == '__main__':
     import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if 1 and Globals.debugFlag and debuggingThisModule:
+    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
         from tkinter import tix
         print( "TclVersion is", TclVersion )
@@ -911,5 +911,5 @@ if __name__ == '__main__':
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of BibleResourceWindows.py

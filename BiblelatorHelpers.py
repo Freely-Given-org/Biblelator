@@ -47,7 +47,7 @@ from ModalDialog import ModalDialog
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 
 
 
@@ -59,7 +59,7 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
@@ -68,7 +68,7 @@ def t( messageString ):
 def errorBeep():
     """
     """
-    if Globals.debugFlag and debuggingThisModule: print( t("errorBeep()") )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("errorBeep()") )
     #import sys
     #from subprocess import call
     #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
@@ -172,7 +172,7 @@ class SelectResourceBox( ModalDialog ):
     """
     def __init__(self, parent, availableSettingsList, title=None):
         print( "aS", repr(availableSettingsList) ) # Should be a list of tuples
-        if Globals.debugFlag: assert( isinstance( availableSettingsList, list ) )
+        if BibleOrgSysGlobals.debugFlag: assert( isinstance( availableSettingsList, list ) )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parent, title )
     # end of SelectResourceBox.__init__
@@ -223,10 +223,10 @@ def demo():
     Main program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if Globals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
@@ -249,13 +249,13 @@ if __name__ == '__main__':
     import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if 1 and Globals.debugFlag and debuggingThisModule:
+    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
         from tkinter import tix
         print( "TclVersion is", TclVersion )
@@ -265,5 +265,5 @@ if __name__ == '__main__':
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of BiblelatorHelpers.py

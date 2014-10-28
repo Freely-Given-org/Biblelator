@@ -10,6 +10,7 @@ Things nearer the top of the list are higher in priority.
 * Save lexicon word so lexicon window is restored properly
 * Design project menu and save/reopen the current project
 * Get it usable as a USFM Bible editor
+* Autosave edited files
 * Get the logging working properly (and the debug View Log function)
 * Design the default short-cut keys for verse/chapter navigation
 * Work with someone as a test user

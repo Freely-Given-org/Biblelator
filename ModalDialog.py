@@ -45,7 +45,7 @@ from tkinter.ttk import Frame, Button
 
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 
 
 
@@ -57,7 +57,7 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
@@ -110,7 +110,7 @@ class ModalDialog( tk.Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        if Globals.debugFlag: print( t("This 'body' method must be overridden!") ); halt
+        if BibleOrgSysGlobals.debugFlag: print( t("This 'body' method must be overridden!") ); halt
     # end of ModalDialog.body
 
 
@@ -162,7 +162,7 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        if Globals.debugFlag: print( t("This 'validate' method can be overridden!") )
+        if BibleOrgSysGlobals.debugFlag: print( t("This 'validate' method can be overridden!") )
         return True # override
     # end of ModalDialog.validate
 
@@ -174,7 +174,7 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        if Globals.debugFlag: print( t("This 'apply' method should be overridden!") ); halt
+        if BibleOrgSysGlobals.debugFlag: print( t("This 'apply' method should be overridden!") ); halt
     # end of ModalDialog.apply
 # end of class ModalDialog
 
@@ -234,8 +234,8 @@ def demo():
     """
     from tkinter import Tk
 
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( "Running demo..." )
 
@@ -253,13 +253,13 @@ if __name__ == '__main__':
     import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if Globals.debugFlag:
+    if BibleOrgSysGlobals.debugFlag:
         from tkinter import TclVersion, TkVersion
         print( "TclVersion is", TclVersion )
         print( "TkVersion is", TkVersion )
@@ -268,5 +268,5 @@ if __name__ == '__main__':
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of ModalDialog.py

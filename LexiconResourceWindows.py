@@ -48,7 +48,7 @@ from ResourceWindows import ResourceWindow, HTMLText
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
-import Globals
+import BibleOrgSysGlobals
 from BibleLexicon import BibleLexicon
 #import Hebrew
 #from HebrewLexicon import HebrewLexicon
@@ -68,14 +68,14 @@ def t( messageString ):
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
-    if Globals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
 class BibleLexiconResourceWindow( ResourceWindow ):
     def __init__( self, parentApp, lexiconPath=None ):
-        if Globals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("BibleLexiconResourceWindow.__init__( {}, {} )").format( parentApp, lexiconPath ) )
         self.lexiconWord = None
         ResourceWindow.__init__( self, parentApp, 'LexiconResource' )
@@ -191,7 +191,7 @@ class BibleLexiconResourceWindow( ResourceWindow ):
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
-        if Globals.debugFlag: print( t("BibleLexiconResourceWindow.getBibleData()") )
+        if BibleOrgSysGlobals.debugFlag: print( t("BibleLexiconResourceWindow.getBibleData()") )
         if self.BibleLexicon is None:
             return
         return
@@ -274,7 +274,7 @@ class BibleLexiconResourceWindow( ResourceWindow ):
                         logging.critical( t("BibleLexiconResourceWindow.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
         # end of displayVerse
 
-        if Globals.debugFlag: print( "BibleLexiconResourceWindow.update()" )
+        if BibleOrgSysGlobals.debugFlag: print( "BibleLexiconResourceWindow.update()" )
         bibleData = self.getBibleData()
         self.clearText()
         if bibleData:
@@ -290,7 +290,7 @@ class BibleLexiconResourceWindow( ResourceWindow ):
 
 
     def updateLexiconWord( self, newLexiconWord ): # Leaves in disabled state
-        if Globals.debugFlag: print( t("updateLexiconWord( {} )").format( newLexiconWord ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("updateLexiconWord( {} )").format( newLexiconWord ) )
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
         if self.BibleLexicon is None:
@@ -313,10 +313,10 @@ def demo():
     Demo program to handle command line parameters and then run what they want.
     """
     #from tkinter import Tk
-    if Globals.verbosityLevel > 0: print( ProgNameVersion )
-    #if Globals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if Globals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
     #Globals.debugFlag = True
 
     tkRootWindow = tk.Tk()
@@ -338,13 +338,13 @@ if __name__ == '__main__':
     import multiprocessing
 
     # Configure basic set-up
-    parser = Globals.setup( ProgName, ProgVersion )
-    Globals.addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if 1 and Globals.debugFlag and debuggingThisModule:
+    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
         from tkinter import tix
         print( "TclVersion is", TclVersion )
@@ -354,5 +354,5 @@ if __name__ == '__main__':
 
     demo()
 
-    Globals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of LexiconResourceWindows.py
