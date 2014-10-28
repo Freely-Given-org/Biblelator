@@ -403,8 +403,8 @@ class BibleResourceWindow( ResourceWindow ):
         """
         if Globals.debugFlag: print( t("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
-        #adjBBB, adjC, adjV = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V ).getBCV()
-        self.parentApp.gotoGroupBCV( self.groupCode, BBB, C, V ) # then the App will update me
+        adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
+        self.parentApp.gotoGroupBCV( self.groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
     # end of BibleResourceWindow.gotoBCV
 
 
@@ -599,17 +599,23 @@ class BibleResourceWindow( ResourceWindow ):
     # end of BibleResourceWindow.setCurrentVerseKey
 
 
-    def updateShownBCV( self, newVerseKey ):
+    def updateShownBCV( self, newReferenceVerseKey ):
         """
         Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
+
+        The new verse key is in the reference versification system.
 
         Leaves the textbox in the disabled state.
         """
         if Globals.debugFlag and debuggingThisModule:
-            print( "BibleResourceWindow.updateShownBCV( {}) for".format( newVerseKey ), self.moduleID )
+            print( "BibleResourceWindow.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newVerseKey, SimpleVerseKey ) )
+            assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
 
+        refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
+        BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
+        newVerseKey = SimpleVerseKey( BBB, C, V, S )
+        
         self.setCurrentVerseKey( newVerseKey )
         self.clearText() # Leaves the text box enabled
         startingFlag = True
