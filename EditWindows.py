@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-10-29 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.19"
+ProgVersion = "0.20"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -319,13 +319,13 @@ class TextEditWindow( ResourceWindow ):
 
     def doHelp( self, event=None ):
         from Help import HelpBox
-        hb = HelpBox( self.parentApp, ProgName, ProgNameVersion )
+        hb = HelpBox( self, ProgName, ProgNameVersion )
     # end of TextEditWindow.doHelp
 
 
     def doAbout( self, event=None ):
         from About import AboutBox
-        ab = AboutBox( self.parentApp, ProgName, ProgNameVersion )
+        ab = AboutBox( self, ProgName, ProgNameVersion )
     # end of TextEditWindow.doAbout
 
 

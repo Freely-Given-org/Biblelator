@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-27 (also update ProgVersion below)
+#   Last modified: 2014-10-29 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -86,11 +86,11 @@ class BibleResourceWindow( ResourceWindow ):
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = 'Default'
         self.currentVerseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
-        ResourceWindow.__init__( self, self.parentApp, 'BibleResource' )
 
         if self.contextViewMode=='Default':
             self.contextViewMode = 'BeforeAndAfter'
             self.parentApp.viewVersesBefore, self.parentApp.viewVersesAfter = 2, 6
+        ResourceWindow.__init__( self, self.parentApp, 'BibleResource' )
 
         if 1:
             for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -181,17 +181,18 @@ class BibleResourceWindow( ResourceWindow ):
         gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadio, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadio, command=self.changeBibleGroupCode )
 
-        viewMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
+        self.viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=self.viewMenu, label='View', underline=0 )
         if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
         elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 2 )
         elif self.contextViewMode == 'ByBook': self._viewRadio.set( 3 )
         elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 4 )
+        else: print( self.contextViewMode ); halt
 
-        viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Single verse', underline=7, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
@@ -218,7 +219,7 @@ class BibleResourceWindow( ResourceWindow ):
             print( t("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
             assert( currentViewNumber in range( 1, 4+1 ) )
         previousContextViewMode = self.contextViewMode
-        if self.genericWindowType == 'BibleResource':
+        if 'Bible' in self.genericWindowType:
             if currentViewNumber == 1: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
             elif currentViewNumber == 2: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[1] # 'ByVerse'
             elif currentViewNumber == 3: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[2] # 'ByBook'
@@ -615,10 +616,18 @@ class BibleResourceWindow( ResourceWindow ):
         refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
         BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
         newVerseKey = SimpleVerseKey( BBB, C, V, S )
-        
+
         self.setCurrentVerseKey( newVerseKey )
         self.clearText() # Leaves the text box enabled
         startingFlag = True
+
+        # Temp since disabling menu entries doesn't seem to be working
+        if 'DBP' in self.winType:
+            if self.contextViewMode in ('ByBook', 'ByChapter' ):
+                print( t("updateShownBCV: temp converted contextViewMode for DBP") )
+                self._viewRadio.set( 1 ) # BeforeAndAfter
+                self.changeBibleContextView()
+                #self.contextViewMode = 'BeforeAndAfter'
 
         if self.contextViewMode == 'BeforeAndAfter':
             bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
@@ -776,6 +785,15 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
         self.DBPModule = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, self.moduleAbbreviation )
         self.winType = 'DBPBibleResourceWindow'
+
+        # Disable excessive online use
+        #for j in range( 0,3+1 ):
+            #print( j, self.viewMenu.entryconfigure( j ) )
+        self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED ) # Why don't these work???
+        self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
+        #for j in range( 0,3+1 ):
+            #print( j, self.viewMenu.entryconfigure( j ) )
+        #self.config( menu=self.menubar ) # alternative
 
         try: self.DBPModule = DBPBible( self.moduleAbbreviation )
         except FileNotFoundError:

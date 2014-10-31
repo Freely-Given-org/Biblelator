@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-10-29 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -29,13 +29,13 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = "0.18"
+ProgVersion = "0.20"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = False
 
 
-import sys, re
+import sys, os, re
 from gettext import gettext as _
 #import multiprocessing
 
@@ -63,6 +63,7 @@ def t( messageString ):
 # Programmed settings
 APP_NAME = 'Biblelator'
 DATA_FOLDER = APP_NAME + 'Data/'
+LOGGING_SUBFOLDER = APP_NAME + 'Logs/'
 SETTINGS_SUBFOLDER = APP_NAME + 'Settings/'
 
 
@@ -87,7 +88,7 @@ EDIT_MODE_NORMAL = 'Edit'
 EDIT_MODE_USFM = 'USFM Edit'
 
 
-defaultKeyBindingDict = { 'Cut':('Ctrl+x','<Control-X>','<Control-x>'), 'Copy':('Ctrl+c','<Control-C>','<Control-c>'),
+DEFAULT_KEY_BINDING_DICT = { 'Cut':('Ctrl+x','<Control-X>','<Control-x>'), 'Copy':('Ctrl+c','<Control-C>','<Control-c>'),
         'Paste':('Ctrl+v','<Control-V>','<Control-v>'), 'SelectAll':('Ctrl+a','<Control-A>','<Control-a>'),
         'Find':('Ctrl+f','<Control-F>','<Control-f>'), 'Refind':('F3/Ctrl+g','<Control-G>','<Control-g>','<F3>'),
         'Undo':('Ctrl+z','<Control-Z>','<Control-z>'), 'Redo':('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
@@ -97,15 +98,28 @@ defaultKeyBindingDict = { 'Cut':('Ctrl+x','<Control-X>','<Control-x>'), 'Copy':(
 
 
 
+def findHomeFolder():
+    """
+    Attempt to find the user's home folder and return it.
+    """
+    possibleHomeFolders = ( os.path.expanduser('~'), os.getcwd(), os.curdir, os.pardir )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( "possible home folders", possibleHomeFolders )
+    for folder in possibleHomeFolders:
+        if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
+            return folder
+# end of BiblelatorGlobals.findHomeFolder
+
+
 def assembleGeometry( width, height, xOffset, yOffset ):
     return "{}x{}+{}+{}".format( width, height, xOffset, yOffset )
-# end of assembleGeometry
+# end of BiblelatorGlobals.assembleGeometry
 
 
 def assembleGeometryFromList( geometryValues ):
     width, height, xOffset, yOffset = geometryValues
     return "{}x{}+{}+{}".format( width, height, xOffset, yOffset )
-# end of assembleGeometry
+# end of BiblelatorGlobals.assembleGeometryFromList
 
 
 def parseGeometry( geometry ):
@@ -118,7 +132,7 @@ def parseGeometry( geometry ):
     if not m:
         raise ValueError( "parseGeometry: failed to parse geometry string {}".format( repr(geometry) ) )
     return [int(digits) for digits in m.groups()]
-# end of parseGeometry
+# end of BiblelatorGlobals.parseGeometry
 
 
 def centreWindow( self, width=400, height=250 ):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ApplicationSettings.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-10-29 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "ApplicationSettings"
 ProgName = "Application Settings"
-ProgVersion = "0.19"
+ProgVersion = "0.20"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -62,7 +62,7 @@ def t( messageString ):
 
 
 class ApplicationSettings:
-    def __init__( self, dataFolderName, settingsFolderName, settingsFilename ):
+    def __init__( self, homeFolderName, dataFolderName, settingsFolderName, settingsFilename ):
         """
         Try to find where the settings file might be (if anywhere).
         """
@@ -72,37 +72,29 @@ class ApplicationSettings:
         if not self.settingsFilename.endswith( '.ini' ):
             self.settingsFilename = self.settingsFilename + '.ini'
         self.dataFolder = self.settingsFolder = self.settingsFilepath = None
-        possibleFolders = ( os.path.expanduser('~'), os.getcwd(), os.curdir, os.pardir )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "possibleFolders", possibleFolders )
-        for folder in possibleFolders:
-            if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
-                ourFolder1 = os.path.join( folder, dataFolderName )
-                if os.path.isdir( ourFolder1 ) and os.access( ourFolder1, os.W_OK ):
-                    self.dataFolder = ourFolder1
-                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                        print( t("Found dataFolder = "), self.dataFolder )
-                    ourFolder2 = os.path.join( self.dataFolder, settingsFolderName )
-                    if os.path.isdir( ourFolder2 ) and os.access( ourFolder2, os.W_OK ):
-                        self.settingsFolder = ourFolder2
-                        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                            print( t("Found settingsFolder = "), self.settingsFolder )
-                        ourFilepath = os.path.join( ourFolder2, self.settingsFilename )
-                        if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
-                            self.settingsFilepath = ourFilepath
-                            if BibleOrgSysGlobals.verbosityLevel > 2 or BibleOrgSysGlobals.debugFlag:
-                                print( t("Found settingsFilepath = "), self.settingsFilepath )
-                    break
+        ourFolder1 = os.path.join( homeFolderName, dataFolderName )
+        if os.path.isdir( ourFolder1 ) and os.access( ourFolder1, os.W_OK ):
+            self.dataFolder = ourFolder1
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( t("Found dataFolder = "), self.dataFolder )
+            ourFolder2 = os.path.join( self.dataFolder, settingsFolderName )
+            if os.path.isdir( ourFolder2 ) and os.access( ourFolder2, os.W_OK ):
+                self.settingsFolder = ourFolder2
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                    print( t("Found settingsFolder = "), self.settingsFolder )
+                ourFilepath = os.path.join( ourFolder2, self.settingsFilename )
+                if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
+                    self.settingsFilepath = ourFilepath
+                    if BibleOrgSysGlobals.verbosityLevel > 2 or BibleOrgSysGlobals.debugFlag:
+                        print( t("Found settingsFilepath = "), self.settingsFilepath )
 
         # Create new data and settings folders if necessary
         if not self.dataFolder:
             logging.info( t("No data folder found") )
-            for folder in possibleFolders:
-                if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
-                    logging.info( t("Creating our data folder in '{}'").format( folder ) )
-                    self.dataFolder = os.path.join( folder, dataFolderName )
-                    os.mkdir( self.dataFolder )
-                    break
+            if os.path.isdir( homeFolderName ) and os.access( homeFolderName, os.W_OK ):
+                logging.info( t("Creating our data folder in '{}'").format( homeFolderName ) )
+                self.dataFolder = os.path.join( homeFolderName, dataFolderName )
+                os.mkdir( self.dataFolder )
         if not self.settingsFolder:
             logging.info( t("No settings folder found") )
             if os.path.isdir( self.dataFolder ) and os.access( self.dataFolder, os.W_OK ):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ResourceWindows.py
-#   Last modified: 2014-10-27 (also update ProgVersion below)
+#   Last modified: 2014-10-31 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -53,6 +53,7 @@ from BiblelatorHelpers import errorBeep
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import BibleOrgSysGlobals
+from BibleStylesheets import DEFAULT_FONTNAME
 
 
 
@@ -81,25 +82,57 @@ class HTMLText( tk.Text ):
         hard-formatting tags:   i, b, em
 
     For the styling, class names are appended to the tag names following a hyphen,
-        e.g., <span class="word"> would give an internal style of "span-word".
+        e.g., <span class="Word"> would give an internal style of "spanWord".
     """
     def __init__( self, *args, **kwargs ):
         if BibleOrgSysGlobals.debugFlag: print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
-        self.tag_configure( 'i', font='sil-doulos 12 italic' )
-        self.tag_configure( 'b', font='sil-doulos 12 bold' )
-        self.tag_configure( 'em', font='sil-doulos 12 bold' )
-        self.tag_configure( 'span', foreground='red', font='sil-doulos 12' )
-        self.tag_configure( 'li', lmargin1=4, lmargin2=4, background='pink', font='helvetica 12' )
-        self.tag_configure( 'p', background='pink', font='helvetica 12', spacing1='1' )
-        self.tag_configure( 'h1', justify=tk.CENTER, foreground='blue', font='helvetica 15', spacing1='1', spacing3='0.5' )
-        self.tag_configure( 'h2', justify=tk.CENTER, foreground='green', font='helvetica 14', spacing1='0.8', spacing3='0.3' )
-        self.tag_configure( 'h3', justify=tk.CENTER, foreground='orange', font='helvetica 13', spacing1='0.5', spacing3='0.2' )
+        standardFont = DEFAULT_FONTNAME + ' 12'
+        self.styleDict = { # earliest entries have the highest priority
+            'i': { 'font':standardFont+' italic' },
+            'b': { 'font':standardFont+' bold' },
+            'em': { 'font':standardFont+' bold' },
+            'p_i': { 'font':standardFont+' italic' },
+            'p_b': { 'font':standardFont+' bold' },
+            'p_em': { 'font':standardFont+' bold' },
+
+            'span': { 'foreground':'red', 'font':standardFont },
+            'li': { 'lmargin1':4, 'lmargin2':4, 'background':'pink', 'font':standardFont },
+
+            'p': { 'background':'pink', 'font':standardFont, 'spacing1':'1' },
+            'p_span': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanGreekWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanHebrewWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanKJVUsage': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanStatus': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+
+            'p_spanSource': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanSource_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+            'p_spanSource_span': { 'foreground':'red', 'background':'pink', 'font':standardFont, 'spacing1':'1' },
+            'p_spanSource_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanSource_spanHebrew': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanSource_spanStrongs': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+
+            'p_spanMeaning': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanMeaning_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+            'p_spanMeaning_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+
+            'p_span_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+            'p_spanKJVUsage_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+
+            'h1': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
+            'h2': { 'justify':tk.CENTER, 'foreground':'green', 'font':DEFAULT_FONTNAME+' 14', 'spacing1':'0.8', 'spacing3':'0.3' },
+            'h3': { 'justify':tk.CENTER, 'foreground':'orange', 'font':DEFAULT_FONTNAME+' 13', 'spacing1':'0.5', 'spacing3':'0.2' },
+            }
+        for tag,styleEntry in self.styleDict.items():
+            self.tag_configure( tag, **styleEntry ) # Create the style
         #background='yellow', font='helvetica 14 bold', relief=tk.RAISED
         #"background", "bgstipple", "borderwidth", "elide", "fgstipple",
         #"font", "foreground", "justify", "lmargin1", "lmargin2", "offset",
         #"overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
         #"tabs", "tabstyle", "underline", and "wrap".
+    # end of HTMLText.__init__
+
 
     def insert( self, point, iText ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -110,6 +143,7 @@ class HTMLText( tk.Text ):
             tk.Text.insert( self, point, iText )
             return
         remainingText = iText.replace( '\n', ' ' )
+        remainingText = remainingText.replace( '<br>','\n' ).replace( '<br />','\n' ).replace( '<br/>','\n' )
         while '  ' in remainingText: remainingText = remainingText.replace( '  ', ' ' )
         currentFormatTags, currentHTMLTags = [], []
         #first = True
@@ -121,11 +155,18 @@ class HTMLText( tk.Text ):
                 tk.Text.insert( self, point, remainingText, currentFormatTags )
                 remainingText = ""
             else: # presumably we have found the start of an HTML tag
-                if ix > 0:
-                    #print( "cFT", currentFormatTags, "cHT", currentHTMLTags )
-                    #try: print( "  on", repr(remainingText[:ix]) )
-                    #except UnicodeEncodeError: pass
-                    tk.Text.insert( self, point, remainingText[:ix], tuple(currentFormatTags) )
+                if ix > 0: # this is where text is actually inserted into the box
+                    combinedFormats = '_'.join( currentFormatTags )
+                    if combinedFormats not in self.styleDict:
+                        print( "  Missing format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags )
+                        #try: print( "   on", repr(remainingText[:ix]) )
+                        #except UnicodeEncodeError: pass
+                    insertText = remainingText[:ix]
+                    #print( "  Got format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags, repr(insertText) )
+                    if 'Hebrew' in combinedFormats:
+                        print( "Reversing", repr(insertText ) )
+                        insertText = insertText[::-1] # Reverse the string (a horrible way to approximate RTL)
+                    tk.Text.insert( self, point, insertText, combinedFormats )
                     #first = False
                     remainingText = remainingText[ix:]
                 #try: print( "  tag", repr(remainingText[:5]) )
@@ -181,17 +222,21 @@ class HTMLText( tk.Text ):
                         #elif HTMLTag in ('li',):
                             #tk.Text.insert( self, point, '\n' )
                     formatTag = HTMLTag
-                    if len(fullHTMLTagBits)>1: # our HTML tag has some addition attributes
+                    if len(fullHTMLTagBits)>1: # our HTML tag has some additional attributes
                         #print( "Looking for attributes" )
                         for bit in fullHTMLTagBits[1:]:
                             #try: print( "  bit", repr(bit) )
                             #except UnicodeEncodeError: pass
                             if bit.startswith('class="') and bit[-1]=='"':
-                                formatTag += '-' + bit[7:-1]
+                                formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
                             else: logging.warning( "Ignoring {} attribute on {} tag".format( bit, HTMLTag ) )
                     if not selfClosing:
                         currentHTMLTags.append( HTMLTag )
                         currentFormatTags.append( formatTag )
+        if currentHTMLTags:
+            logging.critical( t("HTMLText.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
+        if currentFormatTags:
+            logging.critical( t("HTMLText.insert: Left-over format tags: {}").format( currentFormatTags ) )
     # end of HTMLText.insert
 # end of HTMLText class
 

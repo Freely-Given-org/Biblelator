@@ -30,9 +30,31 @@ The following are some of the reasons behind some of the major development decis
     TKinter is not the most beautiful or advanced widget set, but it is an intrinsic part
     of regular Python distributions. So it was chosen for its universality rather than
     trying to choose one of quite a number of competing toolkits (e.g., QT, wxWidgets, etc.)
+    which require extra installation complexities and which may not work well (or at all)
+    on some platforms.
 
 
-4. Prototype implementation
+4. Internationalised
+
+    Like the Bible Organisational System (BibleOrgSys) that Biblelator is based on top of, this
+    Bible editor is designed to (eventually) be flexible enough to handle different versification
+    systems, different combinations and orders for Bible books, etc.
+
+
+5. Downplaying chapters and verses
+
+    I don't like the over-emphasis of chapters and verses. I'm much more interested in semantic
+    structure such as phrases, clauses, sentences, and paragraphs. So Biblelator is designed
+    to downplay chapter and verse boundaries (yet keep them visible for those who do value them).
+
+
+6. Including introductions
+
+    Biblelator considers a book introduction as chapter "zero", and considers anything before
+    verse one in a chapter (e.g., a section heading), as verse "zero".
+
+
+7. Prototype implementation
 
     All of the existing code is considered as "prototype/proof-of-concept", i.e., it has not
     been optimised for speed and software simplicity (refactoring), but rather to get the

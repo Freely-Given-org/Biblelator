@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-10-24 (also update ProgVersion below)
+#   Last modified: 2014-10-29 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -52,9 +52,10 @@ from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 #from tkinter.tix import Spinbox
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DATA_FOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, \
+from BiblelatorGlobals import APP_NAME, DATA_FOLDER, LOGGING_SUBFOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, \
         MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
-        EDIT_MODE_NORMAL, parseGeometry, assembleGeometryFromList, centreWindow, defaultKeyBindingDict
+        EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
+        findHomeFolder, parseGeometry, assembleGeometryFromList, centreWindow
 from BiblelatorHelpers import errorBeep, SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
 from ApplicationSettings import ApplicationSettings
 from ResourceWindows import ResourceWindows, ResourceWindow
@@ -100,9 +101,9 @@ class Application( Frame ):
         and use that to inform child windows of BCV movements.
     """
     global settings
-    def __init__( self, parent, settings ):
+    def __init__( self, parent, homeFolder, loggingFolder, settings ):
         if BibleOrgSysGlobals.debugFlag: print( t("Application.__init__( {} )").format( parent ) )
-        self.ApplicationParent, self.settings = parent, settings
+        self.ApplicationParent, self.homeFolder, self.loggingFolder, self.settings = parent, homeFolder, loggingFolder, settings
 
         self.themeName = 'default'
         self.style = Style()
@@ -165,7 +166,7 @@ class Application( Frame ):
             self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/My Paratext Projects/'
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/'
 
-        self.keyBindingDict = defaultKeyBindingDict
+        self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
         self.myKeyboardBindings = []
 
         # Read and apply the saved settings
@@ -338,7 +339,7 @@ class Application( Frame ):
             self.menubar.add_cascade( menu=debugMenu, label='Debug', underline=0 )
             debugMenu.add_command( label='View settings...', underline=0, command=self.doViewSettings )
             debugMenu.add_separator()
-            debugMenu.add_command( label='View log...', underline=0, command=self.notWrittenYet )
+            debugMenu.add_command( label='View log...', underline=0, command=self.doViewLog )
             debugMenu.add_separator()
             debugMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
@@ -493,7 +494,7 @@ class Application( Frame ):
         Create a status bar containing only one text label at the bottom of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("createStatusBar()") )
-        Style().configure( 'StatusBar.TLabel', background='blue' )
+        Style().configure( 'StatusBar.TLabel', background='pink' )
 
         self.statusTextVariable = tk.StringVar()
         self.statusTextLabel = Label( self.ApplicationParent, relief=tk.SUNKEN,
@@ -571,6 +572,7 @@ class Application( Frame ):
         """
         """
         print( t("setDebugText( {} )").format( repr(newMessage) ) )
+        logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
         assert( BibleOrgSysGlobals.debugFlag )
         self.debugTextBox['state'] = tk.NORMAL # Allow editing
         self.debugTextBox.delete( '1.0', tk.END ) # Clear everything
@@ -660,6 +662,9 @@ class Application( Frame ):
         except KeyError: self.GroupC_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
         try: self.GroupD_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
         except KeyError: self.GroupD_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
+
+        try: self.lexiconWord = self.settings.data['Lexicon']['currentWord']
+        except KeyError: self.lexiconWord = None
 
         # We keep our copy of all the windows settings in self.windowsSettingsDict
         windowsSettingsNamesList = []
@@ -776,7 +781,7 @@ class Application( Frame ):
                     logging.critical( t("getCurrentWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
-                if appWin.genericWindowType == 'BibleResource':
+                if 'Bible' in appWin.genericWindowType:
                     try: thisOne['GroupCode'] = appWin.groupCode
                     except AttributeError: logging.critical( t("getCurrentWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
                     try: thisOne['ContextViewMode'] = appWin.contextViewMode
@@ -1081,6 +1086,33 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewSettings" )
         self.setReadyStatus()
     # end of Application.doViewSettings
+
+
+    def doViewLog( self ):
+        """
+        Open a pop-up text window with the current log displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("doViewLog()") )
+            self.setDebugText( "doViewLog..." )
+        filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        fileResult = os.path.join( self.loggingFolder, filename )
+        if not fileResult: return
+        if not os.path.isfile( fileResult ):
+            showerror( APP_NAME, 'Could not open file ' + fileResult )
+            return
+        text = open( fileResult, 'rt', encoding='utf-8' ).read()
+        if text == None:
+            showerror( APP_NAME, 'Could not decode and open file ' + fileResult )
+        else:
+            tEW = TextEditWindow( self )
+            tEW.setFilepath( fileResult )
+            tEW.setAllText( text )
+            #if windowGeometry: tEW.geometry( windowGeometry )
+            self.appWins.append( tEW )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" )
+        self.setReadyStatus()
+    # end of Application.doViewLog
 
 
     def openUSFMBibleEditWindow( self, USFMFolder, editMode, windowGeometry=None ):
@@ -1910,6 +1942,11 @@ class Application( Frame ):
         groups['D-Chapter'] = self.GroupD_VerseKey[1]
         groups['D-Verse'] = self.GroupD_VerseKey[2]
 
+        # Save the lexicon info
+        self.settings.data['Lexicon'] = {}
+        lexicon = self.settings.data['Lexicon']
+        if self.lexiconWord: lexicon['currentWord'] = self.lexiconWord
+
 
         # Get the current window settings
         self.getCurrentWindowSettings()
@@ -1947,7 +1984,7 @@ class Application( Frame ):
 
 
 
-def main():
+def main( homeFolder, loggingFolder ):
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -1965,10 +2002,10 @@ def main():
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( ProgNameVersion )
-    settings = ApplicationSettings( DATA_FOLDER, SETTINGS_SUBFOLDER, ProgName )
+    settings = ApplicationSettings( homeFolder, DATA_FOLDER, SETTINGS_SUBFOLDER, ProgName )
     settings.load()
 
-    application = Application( parent=tkRootWindow, settings=settings )
+    application = Application( tkRootWindow, homeFolder, loggingFolder, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -1980,12 +2017,14 @@ def main():
 
 if __name__ == '__main__':
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    homeFolder = findHomeFolder()
+    loggingFolder = os.path.join( homeFolder, DATA_FOLDER, LOGGING_SUBFOLDER )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolder=loggingFolder )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    main()
+    main( homeFolder, loggingFolder )
 
     BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of Biblelator.py
