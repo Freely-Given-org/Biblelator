@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.19"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -78,14 +78,32 @@ def errorBeep():
 
 
 
+class YesNoDialog( ModalDialog ):
+    """
+    """
+    def __init__( self, parent, message, title=None ):
+        self.message = message
+        ModalDialog.__init__( self, parent, title, okText=_('Yes'), cancelText=_('No') )
+    # end of YesNoDialog.__init__
+
+
+    def body( self, master ):
+        self.l = Label( master, text=self.message ).grid( row=0 )
+        return self.l
+    # end of YesNoDialog.body
+# end of class YesNoDialog
+
+
+
 class SaveWindowNameDialog( ModalDialog ):
     """
     """
-    def __init__(self, parent, existingSettings, title=None):
+    def __init__( self, parent, existingSettings, title=None ):
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parent, title )
     # end of SaveWindowNameDialog.__init__
+
 
     def body( self, master ):
         t1 = _("Enter a new name to save windows set-up")
@@ -127,11 +145,12 @@ class SaveWindowNameDialog( ModalDialog ):
 class DeleteWindowNameDialog( ModalDialog ):
     """
     """
-    def __init__(self, parent, existingSettings, title=None):
+    def __init__( self, parent, existingSettings, title=None ):
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parent, title, _("Delete") )
     # end of DeleteWindowNameDialog.__init__
+
 
     def body( self, master ):
         Label( master, text=_("Use to delete a saved windows set-up") ).grid( row=0 )
@@ -170,12 +189,13 @@ class SelectResourceBox( ModalDialog ):
     """
     Given a list of available resources, select one and return the list item.
     """
-    def __init__(self, parent, availableSettingsList, title=None):
+    def __init__( self, parent, availableSettingsList, title=None ):
         print( "aS", repr(availableSettingsList) ) # Should be a list of tuples
         if BibleOrgSysGlobals.debugFlag: assert( isinstance( availableSettingsList, list ) )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parent, title )
     # end of SelectResourceBox.__init__
+
 
     def body( self, master ):
         Label( master, text=_("Select a resource to open") ).grid( row=0 )

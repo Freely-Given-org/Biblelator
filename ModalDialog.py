@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ModalDialog.py
-#   Last modified: 2014-10-23 (also update ProgVersion below)
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # xxxMain program for Biblelator Bible display/editing
 #
@@ -31,7 +31,7 @@ xxxProgram to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = "0.19"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -68,18 +68,18 @@ class ModalDialog( tk.Toplevel ):
     A Toplevel window that's a modal dialog
         and intended to be subclassed.
     """
-    def __init__(self, parent, title=None, okText=None):
+    def __init__(self, parent, title=None, okText=None, cancelText=None):
 
         tk.Toplevel.__init__( self, parent )
         self.transient( parent )
 
-        if title:
-            self.title( title )
-
-        if okText is None: okText = _("OK")
-        self.okText = okText
-
         self.parent = parent
+        if title: self.title( title )
+
+        if okText is None: okText = _("Ok")
+        self.okText = okText
+        if cancelText is None: cancelText = _("Cancel")
+        self.cancelText = cancelText
 
         self.result = None # Used to return an optional result
 
@@ -121,7 +121,7 @@ class ModalDialog( tk.Toplevel ):
 
         w = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
-        w = Button( box, text=_("Cancel"), width=10, command=self.cancel )
+        w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
 
         self.bind( "<Return>", self.ok )
@@ -174,7 +174,8 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("This 'apply' method should be overridden!") ); halt
+        if BibleOrgSysGlobals.debugFlag: print( t("This 'apply' method should be overridden!") )
+        self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog
 

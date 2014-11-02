@@ -18,7 +18,6 @@ Things nearer the top of the list are higher in priority.
 * Design the default short-cut keys for verse/chapter navigation
 * Work with someone as a test user
 * Work out how the help system will work and start implementing some content
-* Get the logging (and perhaps other edit windows) to reload if their file has changed on disk
 * Improve Sword Bible module display
 * Look at doing some windows updates in idle time
 * Release version 0.5

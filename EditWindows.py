@@ -48,6 +48,7 @@ from tkinter.ttk import Style, Frame
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, EDIT_MODE_NORMAL, EDIT_MODE_USFM
+from BiblelatorHelpers import YesNoDialog
 from ChildWindows import ChildWindow
 from BibleResourceWindows import BibleResourceWindow
 
@@ -320,11 +321,22 @@ class TextEditWindow( ChildWindow ):
 
 
     def checkForDiskChanges( self ):
+        """
+        Check if the file has changed on disk.
+
+        If it has, and the user hasn't yet made any changes, offer to reload.
+        """
         #print( "checkForDiskChanges" )
         if ( self.lastFiletime and os.stat( self.filePath ).st_mtime != self.lastFiletime ) \
         or ( self.lastFilesize and os.stat( self.filePath ).st_size != self.lastFilesize ):
+            if self.modified():
+                showerror( APP_NAME, _('File {} has also changed on disk').format( repr(self.filename) ) )
+            else: # We haven't modified the file since loading it
+                ynd = YesNoDialog( self, _('File {} has changed on disk. Reload?').format( repr(self.filename) ), title=_('Reload?') )
+                #print( "yndResult", repr(ynd.result) )
+                if ynd.result == True: # Yes was chosen
+                    self.loadText() # reload
             self.rememberFileTimeAndSize()
-            showerror( APP_NAME, 'File {} has changed on disk'.format( repr(self.filename) ) )
         self.after( 2000, self.checkForDiskChanges ) # Redo it so we keep checking
     # end if TextEditWindow.refreshTitle
 
@@ -550,24 +562,62 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.setAllText
 
 
-    def setFilepath( self, newFilePath ):
+    def setPathAndFile( self, folderPath, filename ):
         """
-        Store the filepath to our file.
+        Store the filepath to our file. (The alternative function is below.)
 
         Also gets the file size and last edit time so we can detect if it's changed later.
+
+        Returns True/False success flag.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.setPathAndFile( {}, {} )").format( repr(folderPath), repr(filename) ) )
+        self.folderPath, self.filename = folderPath, filename
+        self.filePath = os.path.join( self.folderPath, self.filename )
+        return self._checkFilepath()
+    # end of TextEditWindow.setPathAndFile
+
+    def setFilepath( self, newFilePath ):
+        """
+        Store the filepath to our file. (An alternative to the above function.)
+
+        Also gets the file size and last edit time so we can detect if it's changed later.
+
+        Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.setFilepath( {} )").format( repr(newFilePath) ) )
         self.filePath = newFilePath
         self.folderPath, self.filename = os.path.split( newFilePath )
+        return self._checkFilepath()
+    # end of TextEditWindow.setFilepath
 
-        #self.currfile = name  # for save
-        #self.filelabel.config(text=str(name))
+    def _checkFilepath( self ):
+        """
+        Checks to make sure that the file can be found and opened.
+
+        Also gets the file size and last edit time so we can detect if it's changed later.
+
+        Returns True/False success flag.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow._checkFilepath()") )
+
+        if not os.path.isfile( self.filePath ):
+            showerror( APP_NAME, 'No such file path: {}'.format( repr(self.filePath) ) )
+            return False
+        if not os.access( self.filePath, os.R_OK ):
+            showerror( APP_NAME, 'No permission to read {} in {}'.format( repr(self.filename), repr(self.folderPath) ) )
+            return False
+        if not os.access( self.filePath, os.W_OK ):
+            showerror( APP_NAME, 'No permission to write {} in {}'.format( repr(self.filename), repr(self.folderPath) ) )
+            return False
 
         self.rememberFileTimeAndSize()
 
         self.refreshTitle()
-    # end of TextEditWindow.setFilepath
+        return True
+    # end of TextEditWindow._checkFilepath
 
 
     def rememberFileTimeAndSize( self ):
@@ -576,6 +626,27 @@ class TextEditWindow( ChildWindow ):
         self.lastFiletime = os.stat( self.filePath ).st_mtime
         self.lastFilesize = os.stat( self.filePath ).st_size
     # end of TextEditWindow.rememberFileTimeAndSize
+
+
+    def loadText( self ):
+        """
+        Opens the file, reads all the data, and sets it into the text box.
+
+        Can also be used to RELOAD the text (e.g., if it has changed on the disk).
+
+        Returns True/False success flag.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.loadText()") )
+
+        text = open( self.filePath, 'rt', encoding='utf-8' ).read()
+        if text == None:
+            showerror( APP_NAME, 'Could not decode and open file ' + self.filePath )
+            return False
+        else:
+            self.setAllText( text )
+            return True
+    # end of TextEditWindow.loadText
 
 
     def doSaveAs( self, event=None ):

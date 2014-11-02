@@ -360,12 +360,6 @@ class ChildWindow( tk.Toplevel ):
     # end of ChildWindow.createToolBar
 
 
-    def clearText( self ): # Leaves in normal state
-        self.textBox['state'] = tk.NORMAL
-        self.textBox.delete( '1.0', tk.END )
-    # end of ResourceFrame.updateText
-
-
     def notWrittenYet( self ):
         errorBeep()
         showerror( _("Not implemented"), _("Not yet available, sorry") )
@@ -472,18 +466,27 @@ class ChildWindow( tk.Toplevel ):
     # Utilities, useful outside this class
     ############################################################################
 
+    def clearText( self ): # Leaves in normal state
+        self.textBox['state'] = tk.NORMAL
+        self.textBox.delete( START, tk.END )
+    # end of ResourceFrame.updateText
+
+
     def isEmpty( self ):
         return not self.getAllText()
     # end of ChildWindow.modified
+
 
     def modified( self ):
         return self.textBox.edit_modified()
     # end of ChildWindow.modified
 
+
     def getAllText( self ):
         """ Returns all the text as a string. """
         return self.textBox.get( START, tk.END+'-1c' )
     # end of ChildWindow.modified
+
 
     def setAllText( self, newText ):
         """
@@ -493,7 +496,8 @@ class ChildWindow( tk.Toplevel ):
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        self.textBox.delete( START, tk.END )
+        self.textBox['state'] = tk.NORMAL
+        self.textBox.delete( START, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
         self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
         self.textBox.see( tk.INSERT ) # scroll to top, insert is set

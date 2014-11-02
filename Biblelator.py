@@ -798,7 +798,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("doSaveNewWindowSetup()") )
             self.setDebugText( "doSaveNewWindowSetup..." )
-        swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_("Save window setup") )
+        swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
         print( "swndResult", repr(swnd.result) )
         if swnd.result:
             self.getCurrentWindowSettings()
@@ -817,7 +817,7 @@ class Application( Frame ):
             print( t("doDeleteExistingWindowSetup()") )
             self.setDebugText( "doDeleteExistingWindowSetup..." )
         assert( self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict) )
-        dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_("Delete saved window setup") )
+        dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
         print( "dwndResult", repr(dwnd.result) )
         if dwnd.result:
             if BibleOrgSysGlobals.debugFlag:
@@ -843,7 +843,7 @@ class Application( Frame ):
             availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
             #print( "aV1", repr(availableVolumes) )
             if availableVolumes:
-                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_("Open DPB resource") )
+                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DPB resource') )
                 #print( "srbResult", repr(srb.result) )
                 if srb.result:
                     for entry in srb.result:
@@ -1071,20 +1071,12 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("doViewSettings()") )
             self.setDebugText( "doViewSettings..." )
-        fileResult = self.settings.settingsFilepath
-        if not fileResult: return
-        if not os.path.isfile( fileResult ):
-            showerror( APP_NAME, 'Could not open file ' + fileResult )
-            return
-        text = open( fileResult, 'rt', encoding='utf-8' ).read()
-        if text == None:
-            showerror( APP_NAME, 'Could not decode and open file ' + fileResult )
-        else:
-            tEW = TextEditWindow( self )
-            tEW.setFilepath( fileResult )
-            tEW.setAllText( text )
-            #if windowGeometry: tEW.geometry( windowGeometry )
-            self.childWindows.append( tEW )
+        tEW = TextEditWindow( self )
+        #if windowGeometry: tEW.geometry( windowGeometry )
+        self.childWindows.append( tEW )
+        if not tEW.setFilepath( self.settings.settingsFilepath ) \
+        or not tEW.loadText():
+            tEW.closeChildWindow()
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewSettings" )
         self.setReadyStatus()
     # end of Application.doViewSettings
@@ -1098,20 +1090,12 @@ class Application( Frame ):
             print( t("doViewLog()") )
             self.setDebugText( "doViewLog..." )
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
-        fileResult = os.path.join( self.loggingFolder, filename )
-        if not fileResult: return
-        if not os.path.isfile( fileResult ):
-            showerror( APP_NAME, 'Could not open file ' + fileResult )
-            return
-        text = open( fileResult, 'rt', encoding='utf-8' ).read()
-        if text == None:
-            showerror( APP_NAME, 'Could not decode and open file ' + fileResult )
-        else:
-            tEW = TextEditWindow( self )
-            tEW.setFilepath( fileResult )
-            tEW.setAllText( text )
-            #if windowGeometry: tEW.geometry( windowGeometry )
-            self.childWindows.append( tEW )
+        tEW = TextEditWindow( self )
+        #if windowGeometry: tEW.geometry( windowGeometry )
+        self.childWindows.append( tEW )
+        if not tEW.setPathAndFile( self.loggingFolder, filename ) \
+        or not tEW.loadText():
+            tEW.closeChildWindow()
         #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
         self.setReadyStatus()
     # end of Application.doViewLog
