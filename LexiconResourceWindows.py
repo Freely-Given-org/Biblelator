@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-10-27 (also update ProgVersion below)
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.20"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -43,7 +43,7 @@ import tkinter as tk
 
 # Biblelator imports
 from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
-from ResourceWindows import ResourceWindow, HTMLText
+from ChildWindows import ChildWindow, HTMLText
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -73,12 +73,12 @@ def t( messageString ):
     return '{}{}'.format( nameBit, _(errorBit) )
 
 
-class BibleLexiconResourceWindow( ResourceWindow ):
+class BibleLexiconResourceWindow( ChildWindow ):
     def __init__( self, parentApp, lexiconPath=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("BibleLexiconResourceWindow.__init__( {}, {} )").format( parentApp, lexiconPath ) )
         self.lexiconWord = None
-        ResourceWindow.__init__( self, parentApp, 'LexiconResource' )
+        ChildWindow.__init__( self, parentApp, 'LexiconResource' )
         self.parentApp, self.lexiconPath = parentApp, lexiconPath
         self.moduleID = self.lexiconPath
         self.winType = 'BibleLexiconResourceWindow'
@@ -142,6 +142,11 @@ class BibleLexiconResourceWindow( ResourceWindow ):
         searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
         searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
 
+        gotoMenu = tk.Menu( self.menubar )
+        self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
+        gotoMenu.add_command( label='Previous entry', underline=0, command=self.doGotoPreviousEntry )
+        gotoMenu.add_command( label='Next entry', underline=0, command=self.doGotoNextEntry )
+
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
         toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
@@ -158,135 +163,30 @@ class BibleLexiconResourceWindow( ResourceWindow ):
     # end of BibleLexiconResourceWindow.createMenuBar
 
 
-    def xxcreateBibleLexiconResourceWindowWidgets( self ):
-        pass
-        #self.label1 = Label( self, text=self.moduleAbbreviation )
-        #self.label1.pack()
-
-        #self.hi_there = Button( self )
-        #self.hi_there['text'] = "Refresh"
-        #self.hi_there["command"] = self.update
-        #self.hi_there.pack(side="top")
-
-        #self.bStyle = Style( self )
-        #self.bStyle.configure( "Red.TButton", foreground="red", background="white" )
-        #self.bStyle.map("Red.TButton",
-                        #foreground=[('pressed', 'red'), ('active', 'blue')],
-                        #background=[('pressed', '!disabled', 'black'), ('active', 'white')] )
-
-        #self.textBox = Text( self, width=40, height=10 )
-        #self.textBox['wrap'] = 'word'
-        #verseText = SwordResources.getBCV( self.parent.bcv )
-        #print( "vt", verseText )
-        #self.textBox.insert( '1.0', verseText )
-        #self.textBox.pack()
-        #self.textBox['state'] = tk.DISABLED # Don't allow editing
-
-        #self.QUIT = Button( self, text="Close", style="Red.TButton", command=self.destroy)
-        #self.QUIT.pack( side="bottom" )
-    # end of BibleLexiconResourceWindow.createBibleLexiconResourceWindowWidgets
-
-
-    def xxxgetBibleData( self ):
+    def doGotoPreviousEntry( self ):
         """
-        Returns the requested verse, the previous verse, and the next n verses.
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("BibleLexiconResourceWindow.getBibleData()") )
-        if self.BibleLexicon is None:
-            return
-        return
-
-        previousVerseData = None
-        if self.myMaster.previousVerseKey:
-            BBB = self.myMaster.previousVerseKey[0]
-            #if BBB not in self.HebrewLexicon: self.HebrewLexicon.loadBook( BBB )
-            #if self.myMaster.previousVerseKey[1]!='0' and self.myMaster.previousVerseKey[2]!='0': # Sword doesn't seem to handle introductions???
-            #previousVerse = (  prevBCV, SwordResources.getBCV( prevBCV, self.moduleAbbreviation ) )
-            previousVerseData = ( self.myMaster.previousVerseKey, self.USFMBible.getVerseData( self.myMaster.previousVerseKey ) )
-
-        BBB = self.myMaster.verseKey[0]
-        #print( "1", self.USFMBible )
-        #if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-        #print( "2", self.USFMBible )
-        verseData = self.USFMBible.getVerseData( self.myMaster.verseKey )
-
-        nextVersesData = []
-        for nextVerseKey in self.myMaster.nextVerseKeys:
-            BBB = nextVerseKey[0]
-            #if BBB not in self.USFMBible: self.USFMBible.loadBook( BBB )
-            nextVerseData = self.USFMBible.getVerseData( nextVerseKey )
-            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData) )
-
-        return verseData, previousVerseData, nextVersesData
-    # end of BibleLexiconResourceWindow.getBibleData
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("doGotoPreviousEntry() from {}").format( repr(self.lexiconWord) ) )
+            #self.setDebugText( "doGotoPreviousEntry..." )
+        if (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) and self.lexiconWord[1:].isdigit():
+            number = int( self.lexiconWord[1:] )
+            self.updateLexiconWord( self.lexiconWord[0] + str( number-1 ) )
+        else: logging.error( "can't doGotoPreviousEntry from {}".format( repr(self.lexiconWord) ) )
+    # end of BibleResourceWindow.doGotoPreviousEntry
 
 
-    def xxxupdate( self ): # Leaves in disabled state
-        def displayVerse( firstFlag, BnameCV, verseDataList, currentVerse=False ):
-            #print( "BibleLexiconResourceWindow.displayVerse", firstFlag, BnameCV, [], currentVerse )
-            haveC = None
-            lastCharWasSpace = haveTextFlag = not firstFlag
-            if verseDataList is None:
-                print( "  ", BnameCV, "has no data" )
-                self.textBox.insert( tk.END, '--' )
-            else:
-                for entry in verseDataList:
-                    marker, cleanText = entry.getMarker(), entry.getCleanText()
-                    #print( "  ", haveTextFlag, marker, repr(cleanText) )
-                    if marker.startswith( '¬' ): pass # Ignore these closing markers
-                    elif marker == 'c': # Don't want to display this (original) c marker
-                        #if not firstFlag: haveC = cleanText
-                        #else: print( "   Ignore C={}".format( cleanText ) )
-                        pass
-                    elif marker == 'c#': # Might want to display this (added) c marker
-                        if cleanText != BnameCV[0]:
-                            if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
-                            self.textBox.insert( tk.END, cleanText, 'c#' )
-                            lastCharWasSpace = False
-                    elif marker == 's1':
-                        self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                        haveTextFlag = True
-                    elif marker == 'p':
-                        self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                        lastCharWasSpace = True
-                        if cleanText:
-                            self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
-                            lastCharWasSpace = False
-                        haveTextFlag = True
-                    elif marker == 'q1':
-                        self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                        lastCharWasSpace = True
-                        if cleanText:
-                            self.textBox.insert( tk.END, cleanText, '*q1' if currentVerse else 'q1' )
-                            lastCharWasSpace = False
-                        haveTextFlag = True
-                    elif marker == 'm': pass
-                    elif marker == 'v':
-                        if haveTextFlag:
-                            self.textBox.insert( tk.END, ' ', 'v-' )
-                        self.textBox.insert( tk.END, cleanText, marker )
-                        self.textBox.insert( tk.END, ' ', 'v+' )
-                        lastCharWasSpace = haveTextFlag = True
-                    elif marker in ('v~','p~'):
-                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
-                        haveTextFlag = True
-                    else:
-                        logging.critical( t("BibleLexiconResourceWindow.displayVerse: Unknown marker {} {}").format( marker, cleanText ) )
-        # end of displayVerse
-
-        if BibleOrgSysGlobals.debugFlag: print( "BibleLexiconResourceWindow.update()" )
-        bibleData = self.getBibleData()
-        self.clearText()
-        if bibleData:
-            verseData, previousVerse, nextVerses = self.getBibleData()
-            if previousVerse:
-                BnameCV, previousVerseData = previousVerse
-                displayVerse( True, BnameCV, previousVerseData )
-            displayVerse( not previousVerse, self.myMaster.BnameCV, verseData, currentVerse=True )
-            for BnameCV,nextVerseData in nextVerses:
-                displayVerse( False, BnameCV, nextVerseData )
-        self.textBox['state'] = tk.DISABLED # Don't allow editing
-    # end of BibleLexiconResourceWindow.update
+    def doGotoNextEntry( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("doGotoNextEntry() from {}").format( repr(self.lexiconWord) ) )
+            #self.setDebugText( "doGotoNextEntry..." )
+        if (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) and self.lexiconWord[1:].isdigit():
+            number = int( self.lexiconWord[1:] )
+            self.updateLexiconWord( self.lexiconWord[0] + str( number+1 ) )
+        else: logging.error( "can't doGotoNextEntry from {}".format( repr(self.lexiconWord) ) )
+    # end of BibleResourceWindow.doGotoNextEntry
 
 
     def updateLexiconWord( self, newLexiconWord ): # Leaves in disabled state

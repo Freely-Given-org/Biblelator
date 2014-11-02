@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-10-29 (also update ProgVersion below)
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.20"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -48,7 +48,7 @@ from tkinter.ttk import Style, Frame
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, EDIT_MODE_NORMAL, EDIT_MODE_USFM
-from ResourceWindows import ResourceWindow
+from ChildWindows import ChildWindow
 from BibleResourceWindows import BibleResourceWindow
 
 # BibleOrgSys imports
@@ -145,14 +145,14 @@ class CustomText( tk.Text ):
 
 
 
-class TextEditWindow( ResourceWindow ):
+class TextEditWindow( ChildWindow ):
     def __init__( self, parentApp, folderPath=None, filename=None ):
         if BibleOrgSysGlobals.debugFlag: print( t("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = 'Default'
-        ResourceWindow.__init__( self, self.parentApp, 'TextEditor' )
+        ChildWindow.__init__( self, self.parentApp, 'TextEditor' )
         self.moduleID = None
         self.winType = 'PlainTextEditWindow'
         self.protocol( "WM_DELETE_WINDOW", self.onCloseEditor ) # Catch when window is closed
@@ -167,8 +167,10 @@ class TextEditWindow( ResourceWindow ):
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.createEditorKeyboardBindings()
 
+        self.lastFiletime = self.lastFilesize = None
         self.clearText()
-        self.after( 500, self.refreshTitle )
+        self.after( 555, self.refreshTitle )
+        self.after( 2222, self.checkForDiskChanges )
     # end of TextEditWindow.__init__
 
 
@@ -313,7 +315,17 @@ class TextEditWindow( ResourceWindow ):
     def refreshTitle( self ):
         self.title( "{}[{}] {} ({}) Editable".format( '*' if self.modified() else '',
                                             _("Text"), self.filename, self.folderPath ) )
-        self.after( 200, self.refreshTitle )
+        self.after( 200, self.refreshTitle ) # Redo it so we can put up the asterisk if the text is changed
+    # end if TextEditWindow.refreshTitle
+
+
+    def checkForDiskChanges( self ):
+        #print( "checkForDiskChanges" )
+        if ( self.lastFiletime and os.stat( self.filePath ).st_mtime != self.lastFiletime ) \
+        or ( self.lastFilesize and os.stat( self.filePath ).st_size != self.lastFilesize ):
+            self.rememberFileTimeAndSize()
+            showerror( APP_NAME, 'File {} has changed on disk'.format( repr(self.filename) ) )
+        self.after( 2000, self.checkForDiskChanges ) # Redo it so we keep checking
     # end if TextEditWindow.refreshTitle
 
 
@@ -538,16 +550,32 @@ class TextEditWindow( ResourceWindow ):
     # end of TextEditWindow.setAllText
 
 
-    def setFilepath( self, newFilepath ):
+    def setFilepath( self, newFilePath ):
         """
+        Store the filepath to our file.
+
+        Also gets the file size and last edit time so we can detect if it's changed later.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.setFilepath( {} )").format( repr(newFilepath) ) )
-        self.folderPath, self.filename = os.path.split( newFilepath )
+            print( t("TextEditWindow.setFilepath( {} )").format( repr(newFilePath) ) )
+        self.filePath = newFilePath
+        self.folderPath, self.filename = os.path.split( newFilePath )
+
         #self.currfile = name  # for save
         #self.filelabel.config(text=str(name))
+
+        self.rememberFileTimeAndSize()
+
         self.refreshTitle()
     # end of TextEditWindow.setFilepath
+
+
+    def rememberFileTimeAndSize( self ):
+        """
+        """
+        self.lastFiletime = os.stat( self.filePath ).st_mtime
+        self.lastFilesize = os.stat( self.filePath ).st_size
+    # end of TextEditWindow.rememberFileTimeAndSize
 
 
     def doSaveAs( self, event=None ):
@@ -600,12 +628,12 @@ class TextEditWindow( ResourceWindow ):
         if self.modified():
             if self.folderPath and self.filename:
                 self.doSave()
-                self.closeResourceWindow()
+                self.closeChildWindow()
             else: # we need to ask where to save it
                 self.doSaveAs()
                 if self.folderPath and self.filename: # assume we saved it
-                    self.closeResourceWindow()
-        else: self.closeResourceWindow()
+                    self.closeChildWindow()
+        else: self.closeChildWindow()
     # end of TextEditWindow.onCloseEditor
 # end of TextEditWindow class
 
@@ -737,14 +765,16 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
         if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
-        elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 2 )
-        elif self.contextViewMode == 'ByBook': self._viewRadio.set( 3 )
-        elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 4 )
+        elif self.contextViewMode == 'BySection': self._viewRadio.set( 2 )
+        elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 3 )
+        elif self.contextViewMode == 'ByBook': self._viewRadio.set( 4 )
+        elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 5 )
 
         viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Single verse', underline=7, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadio, command=self.changeBibleContextView )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
@@ -1054,7 +1084,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             print( t("USFMEditWindow.closeEditor()") )
         if self.textBox.edit_modified():
             pass
-        else: self.closeResourceWindow()
+        else: self.closeChildWindow()
     # end of USFMEditWindow.closeEditor
 # end of USFMEditWindow class
 

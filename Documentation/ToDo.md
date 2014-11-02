@@ -8,15 +8,17 @@ Eventually we will use the issue tracker at Github
 
 Things nearer the top of the list are higher in priority.
 
-* Handle multiple overlapping tags in the HTML window
 * Design project menu and save/reopen the current project
+* Handle multiple overlapping tags in the HTML window
+* Add "Display by Section" for Bible that have section headings
+    Does that mean we have previous/next section navigation also?
 * Get it usable as a USFM Bible editor
 * Autosave edited files
 * Allow exports from the project window
 * Design the default short-cut keys for verse/chapter navigation
 * Work with someone as a test user
 * Work out how the help system will work and start implementing some content
-* Get the logging (and perhaps other edit windows) to check if their file has changed on disk and reload
+* Get the logging (and perhaps other edit windows) to reload if their file has changed on disk
 * Improve Sword Bible module display
 * Look at doing some windows updates in idle time
 * Release version 0.5

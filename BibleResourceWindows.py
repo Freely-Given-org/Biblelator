@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-10-29 (also update ProgVersion below)
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.20"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = False
@@ -43,7 +43,7 @@ import tkinter as tk
 
 # Biblelator imports
 from BiblelatorGlobals import START, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
-from ResourceWindows import ResourceWindow
+from ChildWindows import ChildWindow
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -76,7 +76,7 @@ def t( messageString ):
 
 
 
-class BibleResourceWindow( ResourceWindow ):
+class BibleResourceWindow( ChildWindow ):
     def __init__( self, parentApp, moduleID ):
         if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {} )").format( parentApp, moduleID ) )
         self.parentApp, self.moduleID = parentApp, moduleID
@@ -90,7 +90,7 @@ class BibleResourceWindow( ResourceWindow ):
         if self.contextViewMode=='Default':
             self.contextViewMode = 'BeforeAndAfter'
             self.parentApp.viewVersesBefore, self.parentApp.viewVersesAfter = 2, 6
-        ResourceWindow.__init__( self, self.parentApp, 'BibleResource' )
+        ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
 
         if 1:
             for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -160,18 +160,20 @@ class BibleResourceWindow( ResourceWindow ):
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
-        gotoMenu.add_command( label='Previous book', underline=0, command=self.doGotoPreviousBook )
-        gotoMenu.add_command( label='Next book', underline=0, command=self.doGotoNextBook )
-        gotoMenu.add_command( label='Previous chapter', underline=0, command=self.doGotoPreviousChapter )
-        gotoMenu.add_command( label='Next chapter', underline=0, command=self.doGotoNextChapter )
-        gotoMenu.add_command( label='Previous verse', underline=0, command=self.doGotoPreviousVerse )
-        gotoMenu.add_command( label='Next verse', underline=0, command=self.doGotoNextVerse )
+        gotoMenu.add_command( label='Previous book', underline=-1, command=self.doGotoPreviousBook )
+        gotoMenu.add_command( label='Next book', underline=-1, command=self.doGotoNextBook )
+        gotoMenu.add_command( label='Previous chapter', underline=-1, command=self.doGotoPreviousChapter )
+        gotoMenu.add_command( label='Next chapter', underline=-1, command=self.doGotoNextChapter )
+        gotoMenu.add_command( label='Previous section', underline=-1, command=self.notWrittenYet )
+        gotoMenu.add_command( label='Next section', underline=-1, command=self.notWrittenYet )
+        gotoMenu.add_command( label='Previous verse', underline=-1, command=self.doGotoPreviousVerse )
+        gotoMenu.add_command( label='Next verse', underline=-1, command=self.doGotoNextVerse )
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Forward', underline=0, command=self.doGoForward )
         gotoMenu.add_command( label='Backward', underline=0, command=self.doGoBackward )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Previous list item', underline=0, command=self.doGotoPreviousListItem )
-        gotoMenu.add_command( label='Next list item', underline=0, command=self.doGotoNextListItem )
+        gotoMenu.add_command( label='Previous list item', underline=0, state=tk.DISABLED, command=self.doGotoPreviousListItem )
+        gotoMenu.add_command( label='Next list item', underline=0, state=tk.DISABLED, command=self.doGotoNextListItem )
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Book', underline=0, command=self.doGotoBook )
         gotoMenu.add_separator()
@@ -184,15 +186,17 @@ class BibleResourceWindow( ResourceWindow ):
         self.viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=self.viewMenu, label='View', underline=0 )
         if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
-        elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 2 )
-        elif self.contextViewMode == 'ByBook': self._viewRadio.set( 3 )
-        elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 4 )
+        elif self.contextViewMode == 'BySection': self._viewRadio.set( 2 )
+        elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 3 )
+        elif self.contextViewMode == 'ByBook': self._viewRadio.set( 4 )
+        elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 5 )
         else: print( self.contextViewMode ); halt
 
         self.viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadio, command=self.changeBibleContextView )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
@@ -217,13 +221,14 @@ class BibleResourceWindow( ResourceWindow ):
         currentViewNumber = self._viewRadio.get()
         if BibleOrgSysGlobals.debugFlag:
             print( t("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
-            assert( currentViewNumber in range( 1, 4+1 ) )
+            assert( currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 ) )
         previousContextViewMode = self.contextViewMode
         if 'Bible' in self.genericWindowType:
             if currentViewNumber == 1: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
-            elif currentViewNumber == 2: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[1] # 'ByVerse'
-            elif currentViewNumber == 3: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[2] # 'ByBook'
-            elif currentViewNumber == 4: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[3] # 'ByChapter'
+            elif currentViewNumber == 2: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[1] # 'BySection'
+            elif currentViewNumber == 3: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[2] # 'ByVerse'
+            elif currentViewNumber == 4: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[3] # 'ByBook'
+            elif currentViewNumber == 5: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[4] # 'ByChapter'
             else: halt # unknown Bible view mode
         else: halt # window type view mode not handled yet
         if self.contextViewMode != previousContextViewMode: # we need to update our view
@@ -263,7 +268,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
-            #self.setDebugText( "doGotoPreviousBook..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousBook..." )
         newBBB = self.getPreviousBookCode( BBB )
         if newBBB is None: self.gotoBCV( BBB, '0', '0' )
         else:
@@ -280,7 +285,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoNextBook..." )
+            self.parentApp.setDebugText( "BRW doGotoNextBook..." )
         newBBB = self.getNextBookCode( BBB )
         if newBBB is None: pass # stay just where we are
         else:
@@ -296,7 +301,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoPreviousChapter..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousChapter..." )
         intC, intV = int( C ), int( V )
         if intC > 0: self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
         else: self.doGotoPreviousBook( gotoEnd=True )
@@ -309,7 +314,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoNextChapter..." )
+            self.parentApp.setDebugText( "BRW doGotoNextChapter..." )
         intC = int( C )
         if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
         else: self.doGotoNextBook()
@@ -322,7 +327,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoPreviousVerse..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousVerse..." )
         intC, intV = int( C ), int( V )
         if intV > 0: self.gotoBCV( BBB, C, intV-1 )
         elif intC > 0: self.doGotoPreviousChapter( gotoEnd=True )
@@ -336,7 +341,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoNextVerse..." )
+            self.parentApp.setDebugText( "BRW doGotoNextVerse..." )
         intV = int( V )
         if intV < self.maxVerses: self.gotoBCV( BBB, C, intV+1 )
         else: self.doGotoNextChapter()
@@ -349,7 +354,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGoForward() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGoForward..." )
+            self.parentApp.setDebugText( "BRW doGoForward..." )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGoForward
 
@@ -360,7 +365,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGoBackward..." )
+            self.parentApp.setDebugText( "BRW doGoBackward..." )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGoBackward
 
@@ -371,7 +376,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoPreviousListItem() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoPreviousListItem..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousListItem..." )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGotoPreviousListItem
 
@@ -382,7 +387,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoNextListItem() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoNextListItem..." )
+            self.parentApp.setDebugText( "BRW doGotoNextListItem..." )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGotoNextListItem
 
@@ -393,7 +398,7 @@ class BibleResourceWindow( ResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( t("doGotoBook() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGotoBook..." )
+            self.parentApp.setDebugText( "BRW doGotoBook..." )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGotoBook
 
@@ -559,7 +564,9 @@ class BibleResourceWindow( ResourceWindow ):
                     prevIntC = self.getNumChapters( prevBBB )
                     prevIntV = self.getNumVerses( prevBBB, prevIntC )
                     if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
-            if not failed:
+            if not failed and prevIntV is not None:
+                #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
+                assert( prevBBB and isinstance(prevBBB, str) )
                 previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
                 previousVerseData = self.getCachedVerseData( previousVerseKey )
                 if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
@@ -569,9 +576,9 @@ class BibleResourceWindow( ResourceWindow ):
         nextVersesData = []
         for n in range( 0, self.parentApp.viewVersesAfter ):
             try: numVerses = self.getNumVerses( nextBBB, nextIntC )
-            except KeyError: numVerses = 0
+            except KeyError: numVerses = None # for an invalid BBB
             nextIntV += 1
-            if nextIntV > numVerses:
+            if numVerses is None or nextIntV > numVerses:
                 nextIntV = 1
                 nextIntC += 1 # Need to check................................
             nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
@@ -590,7 +597,7 @@ class BibleResourceWindow( ResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("setCurrentVerseKey( {} )").format( newVerseKey ) )
-            #self.setDebugText( "setCurrentVerseKey..." )
+            self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
         self.currentVerseKey = newVerseKey
 
@@ -627,7 +634,6 @@ class BibleResourceWindow( ResourceWindow ):
                 print( t("updateShownBCV: temp converted contextViewMode for DBP") )
                 self._viewRadio.set( 1 ) # BeforeAndAfter
                 self.changeBibleContextView()
-                #self.contextViewMode = 'BeforeAndAfter'
 
         if self.contextViewMode == 'BeforeAndAfter':
             bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
@@ -642,6 +648,21 @@ class BibleResourceWindow( ResourceWindow ):
 
         elif self.contextViewMode == 'ByVerse':
             self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+
+        elif self.contextViewMode == 'BySection':
+            self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+            BBB, C, V = newVerseKey.getBCV()
+            intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+            print( "BySection is not finished yet -- just shows a single verse!" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            #for thisC in range( 0, self.getNumChapters( BBB ) ):
+                #try: numVerses = self.getNumVerses( BBB, thisC )
+                #except KeyError: numVerses = 0
+                #for thisV in range( 0, numVerses ):
+                    #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                    #thisVerseData = self.getCachedVerseData( thisVerseKey )
+                    #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                            #currentVerse=thisC==intC and thisV==intV )
+                    #startingFlag = False
 
         elif self.contextViewMode == 'ByBook':
             BBB, C, V = newVerseKey.getBCV()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-10-29 (also update ProgVersion below)
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.20"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.20" # Only need to change this if the settings format has changed
+SettingsVersion = "0.21" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -58,7 +58,7 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER, LOGGING_SUBFOLDER, SETTINGS
         findHomeFolder, parseGeometry, assembleGeometryFromList, centreWindow
 from BiblelatorHelpers import errorBeep, SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
 from ApplicationSettings import ApplicationSettings
-from ResourceWindows import ResourceWindows, ResourceWindow
+from ChildWindows import ChildWindows, ChildWindow
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from LexiconResourceWindows import BibleLexiconResourceWindow
 from EditWindows import TextEditWindow, USFMEditWindow, ESFMEditWindow
@@ -138,7 +138,7 @@ class Application( Frame ):
 
         self.ApplicationParent.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
 
-        self.appWins = ResourceWindows( self )
+        self.childWindows = ChildWindows( self )
 
         self.createStatusBar()
         if BibleOrgSysGlobals.debugFlag: # Create a scrolling debug box
@@ -175,7 +175,7 @@ class Application( Frame ):
             centreWindow( self.ApplicationParent, 600, 360 )
 
 ##        # Open some sample windows if we don't have any already
-##        if not self.appWins \
+##        if not self.childWindows \
 ##        and BibleOrgSysGlobals.debugFlag and debuggingThisModule: # Just for testing/kickstarting
 ##            print( t("Application.__init__ Opening sample resources...") )
 ##            self.openSwordBibleResourceWindow( 'KJV' )
@@ -206,7 +206,7 @@ class Application( Frame ):
             if groupCode != self.currentVerseKeyGroup: # that gets done below
                 groupVerseKey = self.getVerseKey( groupCode )
                 if BibleOrgSysGlobals.debugFlag: assert( isinstance( groupVerseKey, SimpleVerseKey ) )
-                for appWin in self.appWins:
+                for appWin in self.childWindows:
                     if 'Bible' in appWin.genericWindowType:
                         if appWin.groupCode == groupCode:
                             appWin.updateShownBCV( groupVerseKey )
@@ -255,18 +255,20 @@ class Application( Frame ):
 
         gotoMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
-        gotoMenu.add_command( label='Previous book', underline=0, command=self.doGotoPreviousBook )
-        gotoMenu.add_command( label='Next book', underline=0, command=self.doGotoNextBook )
-        gotoMenu.add_command( label='Previous chapter', underline=0, command=self.doGotoPreviousChapter )
-        gotoMenu.add_command( label='Next chapter', underline=0, command=self.doGotoNextChapter )
-        gotoMenu.add_command( label='Previous verse', underline=0, command=self.doGotoPreviousVerse )
-        gotoMenu.add_command( label='Next verse', underline=0, command=self.doGotoNextVerse )
+        gotoMenu.add_command( label='Previous book', underline=-1, command=self.doGotoPreviousBook )
+        gotoMenu.add_command( label='Next book', underline=-1, command=self.doGotoNextBook )
+        gotoMenu.add_command( label='Previous chapter', underline=-1, command=self.doGotoPreviousChapter )
+        gotoMenu.add_command( label='Next chapter', underline=-1, command=self.doGotoNextChapter )
+        gotoMenu.add_command( label='Previous section', underline=-1, command=self.notWrittenYet )
+        gotoMenu.add_command( label='Next section', underline=-1, command=self.notWrittenYet )
+        gotoMenu.add_command( label='Previous verse', underline=-1, command=self.doGotoPreviousVerse )
+        gotoMenu.add_command( label='Next verse', underline=-1, command=self.doGotoNextVerse )
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Forward', underline=0, command=self.doGoForward )
         gotoMenu.add_command( label='Backward', underline=0, command=self.doGoBackward )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Previous list item', underline=0, command=self.doGotoPreviousListItem )
-        gotoMenu.add_command( label='Next list item', underline=0, command=self.doGotoNextListItem )
+        gotoMenu.add_command( label='Previous list item', underline=0, state=tk.DISABLED, command=self.doGotoPreviousListItem )
+        gotoMenu.add_command( label='Next list item', underline=0, state=tk.DISABLED, command=self.doGotoNextListItem )
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Book', underline=0, command=self.doGotoBook )
 
@@ -528,7 +530,7 @@ class Application( Frame ):
         #self.textBox.bind('<Control-F4>', self.doClose )
         #self.textBox.bind('<F11>', self.doShowInfo )
         #self.textBox.bind('<F12>', self.doAbout )
-    # end of ResourceWindow.createMainKeyboardBindings()
+    # end of ChildWindow.createMainKeyboardBindings()
 
 
     def notWrittenYet( self ):
@@ -582,14 +584,14 @@ class Application( Frame ):
             self.debugTextBox.insert( tk.END, '\n' )
             self.debugTextBox.insert( tk.END, 'Msg: ' + newMessage, 'emp' )
             self.lastDebugMessage = newMessage
-        self.debugTextBox.insert( tk.END, '\n\n{} child windows:'.format( len(self.appWins) ) )
-        for j, appWin in enumerate( self.appWins ):
+        self.debugTextBox.insert( tk.END, '\n\n{} child windows:'.format( len(self.childWindows) ) )
+        for j, appWin in enumerate( self.childWindows ):
             self.debugTextBox.insert( tk.END, "\n  {} {} ({}) {} {}" \
-                                    .format( j, appWin.winType.replace('ResourceWindow',''),
+                                    .format( j, appWin.winType.replace('ChildWindow',''),
                                         appWin.genericWindowType.replace('Resource',''),
                                         appWin.geometry(), appWin.moduleID ) )
-        #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.appWins) ) )
-        #for j, projFrame in enumerate( self.appWins ):
+        #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
+        #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
         self.debugTextBox['state'] = tk.DISABLED # Don't allow editing
     # end of Application.setDebugText
@@ -751,7 +753,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getCurrentWindowSettings()") )
         if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
         self.windowsSettingsDict['Current'] = {}
-        for j, appWin in enumerate( self.appWins ):
+        for j, appWin in enumerate( self.childWindows ):
                 winNumber = "window{}".format( j+1 )
                 self.windowsSettingsDict['Current'][winNumber] = {}
                 thisOne = self.windowsSettingsDict['Current'][winNumber]
@@ -867,10 +869,10 @@ class Application( Frame ):
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         dBRW = DBPBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: dBRW.geometry( windowGeometry )
-        self.appWins.append( dBRW )
+        self.childWindows.append( dBRW )
         if dBRW.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
-            #dBRW.destroy()
+            dBRW.closeChildWindow()
         else: dBRW.updateShownBCV( self.getVerseKey( dBRW.groupCode ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openDPBBibleResourceWindow" )
         self.setReadyStatus()
@@ -926,7 +928,7 @@ class Application( Frame ):
             self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
         swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: swBRW.geometry( windowGeometry )
-        self.appWins.append( swBRW )
+        self.childWindows.append( swBRW )
         swBRW.updateShownBCV( self.getVerseKey( swBRW.groupCode ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openSwordBibleResourceWindow" )
         self.setReadyStatus()
@@ -965,10 +967,10 @@ class Application( Frame ):
             self.setDebugText( "openInternalBibleResourceWindow..." )
         iBRW = InternalBibleResourceWindow( self, modulePath )
         if windowGeometry: iBRW.geometry( windowGeometry )
-        self.appWins.append( iBRW )
+        self.childWindows.append( iBRW )
         if iBRW.internalBible is None:
             logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(modulePath) ) )
-            iBRW.destroy()
+            iBRW.closeChildWindow()
         else: iBRW.updateShownBCV( self.getVerseKey( iBRW.groupCode ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openInternalBibleResourceWindow" )
         self.setReadyStatus()
@@ -1004,10 +1006,10 @@ class Application( Frame ):
         if lexiconPath is None: lexiconPath = "../"
         bLRW = BibleLexiconResourceWindow( self, lexiconPath )
         if windowGeometry: bLRW.geometry( windowGeometry )
-        self.appWins.append( bLRW )
+        self.childWindows.append( bLRW )
         if bLRW.BibleLexicon is None:
             logging.critical( t("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {}").format( repr(lexiconPath) ) )
-            #bLRW.destroy()
+            bLRW.closeChildWindow()
         elif self.lexiconWord:
             bLRW.updateLexiconWord( self.lexiconWord )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBibleLexiconResourceWindow" )
@@ -1024,7 +1026,7 @@ class Application( Frame ):
             self.setDebugText( "doOpenNewTextEditWindow..." )
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        self.appWins.append( tEW )
+        self.childWindows.append( tEW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenNewTextEditWindow" )
         self.setReadyStatus()
     # end of Application.doOpenNewTextEditWindow
@@ -1056,7 +1058,7 @@ class Application( Frame ):
             tEW.setFilepath( fileResult )
             tEW.setAllText( text )
             #if windowGeometry: tEW.geometry( windowGeometry )
-            self.appWins.append( tEW )
+            self.childWindows.append( tEW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenFileTextEditWindow" )
         self.setReadyStatus()
     # end of Application.doOpenFileTextEditWindow
@@ -1082,7 +1084,7 @@ class Application( Frame ):
             tEW.setFilepath( fileResult )
             tEW.setAllText( text )
             #if windowGeometry: tEW.geometry( windowGeometry )
-            self.appWins.append( tEW )
+            self.childWindows.append( tEW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewSettings" )
         self.setReadyStatus()
     # end of Application.doViewSettings
@@ -1109,8 +1111,8 @@ class Application( Frame ):
             tEW.setFilepath( fileResult )
             tEW.setAllText( text )
             #if windowGeometry: tEW.geometry( windowGeometry )
-            self.appWins.append( tEW )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" )
+            self.childWindows.append( tEW )
+        #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
         self.setReadyStatus()
     # end of Application.doViewLog
 
@@ -1125,10 +1127,10 @@ class Application( Frame ):
             self.setDebugText( "openUSFMBibleEditWindow..." )
         uEW = USFMEditWindow( self, USFMFolder, editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
-        self.appWins.append( uEW )
+        self.childWindows.append( uEW )
         if uEW.InternalBible is None:
             logging.critical( t("Application.openUSFMBibleEditWindow: Unable to open USFM Bible in {}").format( repr(USFMFolder) ) )
-            #uEW.destroy()
+            uEW.closeChildWindow()
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openUSFMBibleEditWindow" )
         self.setReadyStatus()
         return uEW
@@ -1423,7 +1425,7 @@ class Application( Frame ):
         """
         """
         #if BibleOrgSysGlobals.debugFlag: print( t("haveSwordResourcesOpen()") )
-        for appWin in self.appWins:
+        for appWin in self.childWindows:
             if 'Sword' in appWin.winType:
                 if self.SwordInterface is None:
                     self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
@@ -1457,7 +1459,7 @@ class Application( Frame ):
         if self.haveSwordResourcesOpen():
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
             #print( "swK", self.SwordKey.getText() )
-        self.appWins.updateThisBibleGroup( self.currentVerseKeyGroup, self.currentVerseKey )
+        self.childWindows.updateThisBibleGroup( self.currentVerseKeyGroup, self.currentVerseKey )
     # end of Application.gotoBCV
 
 
@@ -1482,7 +1484,7 @@ class Application( Frame ):
             elif groupCode == 'D': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
             else: halt
             if BibleOrgSysGlobals.debugFlag: assert( newVerseKey != oldVerseKey ) # we shouldn't have even been called
-            self.appWins.updateThisBibleGroup( groupCode, newVerseKey )
+            self.childWindows.updateThisBibleGroup( groupCode, newVerseKey )
     # end of Application.gotoGroupBCV
 
 
@@ -1542,7 +1544,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: print( t("gotoWord( {} )").format( lexiconWord ) )
         assert( lexiconWord is None or isinstance( lexiconWord, str ) )
         self.lexiconWord = lexiconWord
-        self.appWins.updateLexicons( lexiconWord )
+        self.childWindows.updateLexicons( lexiconWord )
     # end of Application.gotoWord
 
 
@@ -1552,7 +1554,7 @@ class Application( Frame ):
             i.e., leave the editor and main window
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideResources' )
-        self.appWins.iconifyResources()
+        self.childWindows.iconifyResources()
     # end of Application.doHideResources
 
 
@@ -1561,7 +1563,7 @@ class Application( Frame ):
         Minimize all of our windows.
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAll' )
-        self.appWins.iconify()
+        self.childWindows.iconify()
         if includeMe: self.ApplicationParent.iconify()
     # end of Application.doHideAll
 
@@ -1571,7 +1573,7 @@ class Application( Frame ):
         Show/restore all of our windows.
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAll' )
-        self.appWins.deiconify()
+        self.childWindows.deiconify()
         self.ApplicationParent.deiconify() # Do this last so it has the focus
         self.ApplicationParent.lift()
     # end of Application.doShowAll
@@ -1585,7 +1587,7 @@ class Application( Frame ):
         x, y = parseGeometry( self.ApplicationParent.geometry() )[2:4]
         if x > 30: x = x - 20
         if y > 30: y = y - 20
-        for j, win in enumerate( self.appWins ):
+        for j, win in enumerate( self.childWindows ):
             geometrySet = parseGeometry( win.geometry() )
             #print( geometrySet )
             newX = x + 10*j
@@ -1878,7 +1880,7 @@ class Application( Frame ):
         uEW.setFilepath( fileResult )
 ##            tEW.setAllText( ssfText )
 ##            #if windowGeometry: tEW.geometry( windowGeometry )
-        self.appWins.append( uEW )
+        self.childWindows.append( uEW )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenParatextProject" )
         self.setReadyStatus()
@@ -1971,7 +1973,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("doCloseMe()") )
         haveModifications = False
-        for appWin in self.appWins:
+        for appWin in self.childWindows:
             if 'Editor' in appWin.genericWindowType and appWin.modified():
                 haveModifications = True; break
         if haveModifications:

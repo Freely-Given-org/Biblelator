@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-10-29 (also update ProgVersion below)
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = "0.20"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = False
@@ -67,7 +67,7 @@ LOGGING_SUBFOLDER = APP_NAME + 'Logs/'
 SETTINGS_SUBFOLDER = APP_NAME + 'Settings/'
 
 
-START = '1.0' # for tkinter
+START = '1.0' # constant for tkinter
 
 
 MAX_WINDOWS = 20
@@ -80,7 +80,7 @@ MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE = 350, 150
 MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE = 350, 150
 
 BIBLE_GROUP_CODES = ( 'A', 'B', 'C', 'D' )
-BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'ByVerse', 'ByBook', 'ByChapter' )
+BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'BySection', 'ByVerse', 'ByBook', 'ByChapter' )
 
 
 # Constants

@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# ResourceWindows.py
-#   Last modified: 2014-10-31 (also update ProgVersion below)
+# ChildWindows.py
+#   Last modified: 2014-11-02 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -25,12 +25,12 @@
 
 """
 Base windows to allow display and manipulation of
-    Bible and lexicon resource windows.
+    various Bible and lexicon, etc. child windows.
 """
 
-ShortProgName = "ResourceWindows"
-ProgName = "Biblelator Resource Windows"
-ProgVersion = "0.20"
+ShortProgName = "ChildWindows"
+ProgName = "Biblelator Child Windows"
+ProgVersion = "0.21"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -85,7 +85,8 @@ class HTMLText( tk.Text ):
         e.g., <span class="Word"> would give an internal style of "spanWord".
     """
     def __init__( self, *args, **kwargs ):
-        if BibleOrgSysGlobals.debugFlag: print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
         standardFont = DEFAULT_FONTNAME + ' 12'
         self.styleDict = { # earliest entries have the highest priority
@@ -164,7 +165,7 @@ class HTMLText( tk.Text ):
                     insertText = remainingText[:ix]
                     #print( "  Got format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags, repr(insertText) )
                     if 'Hebrew' in combinedFormats:
-                        print( "Reversing", repr(insertText ) )
+                        #print( "Reversing", repr(insertText ) )
                         insertText = insertText[::-1] # Reverse the string (a horrible way to approximate RTL)
                     tk.Text.insert( self, point, insertText, combinedFormats )
                     #first = False
@@ -242,7 +243,7 @@ class HTMLText( tk.Text ):
 
 
 
-class ResourceWindow( tk.Toplevel ):
+class ChildWindow( tk.Toplevel ):
     """
     """
     def __init__( self, parentApp, genericWindowType ):
@@ -251,12 +252,12 @@ class ResourceWindow( tk.Toplevel ):
             but the more specific winType is set later by the subclass.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("ResourceWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+            print( t("ChildWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
             assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor') )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
-        self.protocol( "WM_DELETE_WINDOW", self.closeResourceWindow )
+        self.protocol( "WM_DELETE_WINDOW", self.closeChildWindow )
         self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
         self.minsize( self.minimumXSize, self.minimumYSize )
 
@@ -286,7 +287,7 @@ class ResourceWindow( tk.Toplevel ):
         self.optionsDict['caseinsens'] = True
 
         self.refreshTitle() # Must be in superclass
-    # end of ResourceWindow.__init__
+    # end of ChildWindow.__init__
 
 
     def setFocus( self, event ):
@@ -315,12 +316,12 @@ class ResourceWindow( tk.Toplevel ):
 
         self.bind( "<Button-3>", self.showContextMenu ) # right-click
         #self.pack()
-    # end of ResourceWindow.createContextMenu
+    # end of ChildWindow.createContextMenu
 
 
     def showContextMenu( self, event ):
         self.contextMenu.post( event.x_root, event.y_root )
-    # end of ResourceWindow.showContextMenu
+    # end of ChildWindow.showContextMenu
 
 
     def createStandardKeyboardBindings( self ):
@@ -347,7 +348,7 @@ class ResourceWindow( tk.Toplevel ):
         #self.textBox.bind('<Control-F4>', self.doClose )
         #self.textBox.bind('<F11>', self.doShowInfo )
         #self.textBox.bind('<F12>', self.doAbout )
-    # end of ResourceWindow.createStandardKeyboardBindings()
+    # end of ChildWindow.createStandardKeyboardBindings()
 
 
     def createToolBar( self ):
@@ -356,7 +357,7 @@ class ResourceWindow( tk.Toplevel ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( t("This 'createToolBar' method can be overridden!") )
-    # end of ResourceWindow.createToolBar
+    # end of ChildWindow.createToolBar
 
 
     def clearText( self ): # Leaves in normal state
@@ -368,7 +369,7 @@ class ResourceWindow( tk.Toplevel ):
     def notWrittenYet( self ):
         errorBeep()
         showerror( _("Not implemented"), _("Not yet available, sorry") )
-    # end of ResourceWindow.notWrittenYet
+    # end of ChildWindow.notWrittenYet
 
 
     def doCopy( self, event=None ):
@@ -385,7 +386,7 @@ class ResourceWindow( tk.Toplevel ):
             print( "  copied text", repr(copyText) )
             self.clipboard_clear()
             self.clipboard_append( copyText )
-    # end of ResourceWindow.doCopy
+    # end of ChildWindow.doCopy
 
 
     def doSelectAll( self, event=None ):
@@ -397,7 +398,7 @@ class ResourceWindow( tk.Toplevel ):
         self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
         self.textBox.see( tk.INSERT )                      # scroll to top
-    # end of ResourceWindow.doSelectAll
+    # end of ChildWindow.doSelectAll
 
 
     def doGotoLine( self, event=None, forceline=None ):
@@ -419,7 +420,7 @@ class ResourceWindow( tk.Toplevel ):
             else:
                 errorBeep()
                 showerror( APP_NAME, _("No such line number") )
-    # end of ResourceWindow.doGotoLine
+    # end of ChildWindow.doGotoLine
 
 
     def doFind( self, event=None, lastkey=None ):
@@ -439,12 +440,12 @@ class ResourceWindow( tk.Toplevel ):
                 self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 self.textBox.see( where )                          # scroll display
-    # end of ResourceWindow.doFind
+    # end of ChildWindow.doFind
 
 
     def doRefind( self, event=None ):
         self.doFind( self.lastfind)
-    # end of ResourceWindow.doRefind
+    # end of ChildWindow.doRefind
 
 
     def doShowInfo( self, event=None ):
@@ -464,7 +465,7 @@ class ResourceWindow( tk.Toplevel ):
                  'line:\t%s\ncolumn:\t%s\n\n' % where +
                  'File text statistics:\n\n' +
                  'chars:\t{}\nlines:\t{}\nwords:\t{}\n'.format( bytes, lines, words) )
-    # end of ResourceWindow.doShowInfo
+    # end of ChildWindow.doShowInfo
 
 
     ############################################################################
@@ -473,16 +474,16 @@ class ResourceWindow( tk.Toplevel ):
 
     def isEmpty( self ):
         return not self.getAllText()
-    # end of ResourceWindow.modified
+    # end of ChildWindow.modified
 
     def modified( self ):
         return self.textBox.edit_modified()
-    # end of ResourceWindow.modified
+    # end of ChildWindow.modified
 
     def getAllText( self ):
         """ Returns all the text as a string. """
         return self.textBox.get( START, tk.END+'-1c' )
-    # end of ResourceWindow.modified
+    # end of ChildWindow.modified
 
     def setAllText( self, newText ):
         """
@@ -499,7 +500,7 @@ class ResourceWindow( tk.Toplevel ):
 
         self.textBox.edit_reset() # clear undo/redo stks
         self.textBox.edit_modified( tk.FALSE ) # clear modified flag
-    # end of ResourceWindow.setAllText
+    # end of ChildWindow.setAllText
 
 
     def doHelp( self, event=None ):
@@ -527,66 +528,66 @@ class ResourceWindow( tk.Toplevel ):
 
         Can be overridden.
         """
-        self.closeResourceWindow()
-    # end of ResourceWindow.doClose
+        self.closeChildWindow()
+    # end of ChildWindow.doClose
 
-    def closeResourceWindow( self ):
+    def closeChildWindow( self ):
         """
         Called to finally and irreversibly remove this window from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindow.closeResourceWindow()") )
-        self.parentApp.appWins.remove( self )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildWindow.closeChildWindow()") )
+        self.parentApp.childWindows.remove( self )
         self.destroy()
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource window" )
-    # end of ResourceWindow.closeResourceWindow
-# end of class ResourceWindow
+    # end of ChildWindow.closeChildWindow
+# end of class ChildWindow
 
 
 
-class ResourceWindows( list ):
+class ChildWindows( list ):
     """
     Just keeps a list of the resource (Toplevel) windows.
     """
-    def __init__( self, ResourceWindowsParent ):
-        self.ResourceWindowsParent = ResourceWindowsParent
+    def __init__( self, ChildWindowsParent ):
+        self.ChildWindowsParent = ChildWindowsParent
         list.__init__( self )
 
 
     def iconify( self ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconify()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildWindows.iconify()") )
         for appWin in self:
             appWin.iconify()
-    #end of ResourceWindows.iconify
+    #end of ChildWindows.iconify
 
 
     def iconifyResources( self ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindows.iconifyResources()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildWindows.iconifyResources()") )
         for appWin in self:
             if 'Resource' in appWin.genericWindowType:
                 appWin.iconify()
-    #end of ResourceWindows.iconifyResources
+    #end of ChildWindows.iconifyResources
 
 
     def deiconify( self ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ResourceWindows.deiconify()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildWindows.deiconify()") )
         for appWin in self:
             appWin.deiconify()
-            appWin.lift( aboveThis=self.ResourceWindowsParent )
-    #end of ResourceWindows.deiconify
+            appWin.lift( aboveThis=self.ChildWindowsParent )
+    #end of ChildWindows.deiconify
 
 
     def updateThisBibleGroup( self, groupCode, newVerseKey ):
         """
         Called when we probably need to update some resource windows with a new Bible reference.
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("ResourceWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("ChildWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.groupCode == groupCode:
                     # The following line doesn't work coz it only updates ONE window
-                    #self.ResourceWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
+                    #self.ChildWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
                     appWin.updateShownBCV( newVerseKey )
-    # end of ResourceWindows.updateThisBibleGroup
+    # end of ChildWindows.updateThisBibleGroup
 
 
     def updateLexicons( self, newLexiconWord ):
@@ -594,14 +595,14 @@ class ResourceWindows( list ):
         Called when we probably need to update some resource windows with a new word.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("ResourceWindows.updateLexicons( {} )").format( newLexiconWord ) )
+            print( t("ChildWindows.updateLexicons( {} )").format( newLexiconWord ) )
         for appWin in self:
             if appWin.genericWindowType == 'LexiconResource':
                 # The following line doesn't work coz it only updates ONE window
-                #self.ResourceWindowsParent.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
+                #self.ChildWindowsParent.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
                 appWin.updateLexiconWord( newLexiconWord )
-    # end of ResourceWindows.updateLexicons
-# end of ResourceWindows class
+    # end of ChildWindows.updateLexicons
+# end of ChildWindows class
 
 
 
@@ -629,7 +630,7 @@ def demo():
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of ResourceWindows.demo
+# end of ChildWindows.demo
 
 
 if __name__ == '__main__':
@@ -653,4 +654,4 @@ if __name__ == '__main__':
     demo()
 
     BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
-# end of ResourceWindows.py
+# end of ChildWindows.py
