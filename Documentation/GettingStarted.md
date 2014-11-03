@@ -1,0 +1,57 @@
+Getting Started with Biblelator
+===============================
+
+This document is to help the Biblelator user to get an understanding how the developer
+    anticipated that the program might be used.
+
+Installation is not described here -- you should follow the instructions in
+    Installation.md before using this document.
+
+For an overview of the program design philosophy, see Development.md.
+
+
+1. Settings
+
+    When Biblelator is run the first time, it tries to create a BiblelatorData folder in
+    the user's home folder. Inside there, it creates a BiblelatorSettings folder and the
+    file Biblelator.ini inside that. This file can be viewed (or even changed if you are
+    careful) with a simple text editor program. (If Notepad doesn't work, try Wordpad.)
+
+    The idea of the settings file is that Biblelator tries to remember the size and position
+    of open windows plus the current Scripture reference position, and to return to the
+    last values when the program is restarted.
+
+    If you want to reset Biblelator to its default settings, the settings file can be
+    renamed (e.g., to Biblelator.ini.bak) and Biblelator will now ignore those settings
+    when starting up.
+
+
+2. Logging
+
+    A folder called BiblelatorLogs is also created inside the BiblelatorData folder. The
+    last two logs (e.g., Biblelator_log.txt and Biblelator_log.txt.bak) are kept in this
+    folder. These logs may be useful to the programmers after a program crash to help
+    determine what caused the fault.
+
+
+3. Main window
+
+    The Biblelator main window is a small window that is used to open other windows.
+    It also contains the main bar for entering book/chapter/verse values
+        and for entering lexicon words.
+    The main window can usually be kept fairly small and be placed in the most convenient
+        part of the screen. However, if Biblelator is started in debug mode (with the
+        --debug flag on the command line), the main window may need to be made larger
+        in order to properly display the additional logging information.
+
+
+4. Resource windows
+
+    Resources are texts which are opened read-only for study or reference purposes as you
+        translate in a project window. This includes Bibles, commentaries, and lexicons.
+    The Resource menu in the main window is used to launch new resource windows.
+
+
+5. Project windows
+
+    Projects are Bibles in the process of being translated, so they have a full edit window.

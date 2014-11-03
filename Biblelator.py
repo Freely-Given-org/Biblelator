@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-02 (also update ProgVersion below)
+#   Last modified: 2014-11-03 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -890,8 +890,12 @@ class Application( Frame ):
             print( t("openSwordResource()") )
             self.setDebugText( "doOpenSwordResource..." )
         self.setStatus( "doOpenSwordResource..." )
-        if self.SwordInterface is None:
+        if self.SwordInterface is None and SwordResources.SwordType is not None:
             self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+        if self.SwordInterface is None: # still
+            logging.critical( t("doOpenSwordResource: no Sword interface available") )
+            showerror( APP_NAME, _("Sorry, no Sword interface discovered") )
+            return
         availableModules = self.SwordInterface.library
         #print( "aM1", availableModules )
         ourList = None

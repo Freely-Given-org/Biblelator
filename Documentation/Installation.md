@@ -41,35 +41,36 @@ version of Biblelator onto your computer.
         of BibleOrgSys and Biblelator, you just have to do a "git pull" command
         on each of those folders.
 
-3. Create a folder for Biblelator.
+
+3. Create a folder for Biblelator -- we recommend the name BiblelatorFiles.
     If you want other uses on your computer to be able to use Biblelator,
         either create this folder somewhere public such as in Public Documents, or else
         change the permissions of the folder to allow other users
             to be able to read from it and write to it.
     You can call the folder anything you like,
-        but these instructions will assume that you just called it Biblelator.
+        but these instructions will assume that you called it BiblelatorFiles.
 
 
-4. Install the Bible Organisational System inside the Biblelator folder.
+4. Install the Bible Organisational System inside the BiblelatorFiles folder.
     Open https://github.com/openscriptures/BibleOrgSys in a browser window.
     On the right-hand side of the page are links to either:
         a. Download BibleOrgSys with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future development versions.
         b. Without Git, download the current version BibleOrgSys as a ZIP file and
-            unzip the file in the Biblelator folder
+            unzip the file in the BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called BibleOrgSys
-        inside your Biblelator folder from step #3.
+        inside your BiblelatorFiles folder from step #3.
 
 
-5. Install the Biblelator program inside the Biblelator folder.
+5. Install the Biblelator program inside the BiblelatorFiles folder.
     Open https://github.com/openscriptures/Biblelator in a browser window.
     On the right-hand side of the page are links to either:
         a. Download Biblelator with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future development versions.
         b. Without Git, download the current version Biblelator as a ZIP file and
-            unzip the file in the Biblelator folder
-    Either way, you should end up with another folder called Biblelator
-        inside your Biblelator folder from step #3.
+            unzip the file in the BiblelatorFiles folder (then remove -master from the folder name).
+    Either way, you should end up with a new folder called Biblelator
+        inside your BiblelatorFiles folder from step #3.
 
 
 6. Install OpenScriptures HebrewLexicon.
@@ -78,9 +79,9 @@ version of Biblelator onto your computer.
         a. Download HebrewLexicon with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future corrected versions.
         b. Without Git, download the current version HebrewLexicon as a ZIP file and
-            unzip the file in the first/top Biblelator folder
+            unzip the file in the first/top BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called HebrewLexicon
-        inside your Biblelator folder from step #3.
+        inside your BiblelatorFiles folder from step #3.
 
 
 7. Install morhgnt Greek Strongs info.
@@ -89,9 +90,9 @@ version of Biblelator onto your computer.
         a. Download strongs-dictionary-xml with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future corrected versions.
         b. Without Git, download the current version strongs-dictionary-xml as a ZIP file and
-            unzip the file in the first/top Biblelator folder
+            unzip the file in the first/top BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called strongs-dictionary-xml
-        inside your Biblelator folder from step #3.
+        inside your BiblelatorFiles folder from step #3.
 
 
 8. Make Biblelator.py executable -- only on Linux.
@@ -129,7 +130,8 @@ version of Biblelator onto your computer.
     If the program does not run, please copy the contents of the command window,
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
     Note that a BiblelatorData folder should be created in your home folder when you exit the program,
-        and inside that, a BiblelatorSettings folder should contain your settings information.
+        and inside that, a BiblelatorSettings folder should contain your settings information
+        and a BiblelatorLogs folder should contain a log file.
 
 
 11. Run Biblelator in the normal mode for normal working.
@@ -142,8 +144,10 @@ version of Biblelator onto your computer.
         which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/.
 
 
-12. Make a desktop or toolbar shortcut to run Biblelator on your system so it can be started easier
+12. Eventually (once the program is working fully and reliably) you might like to
+    make a desktop or toolbar shortcut to run Biblelator on your system so it can be started easier
     (without having to open a command window and manually navigate to files and folders).
+    Meanwhile though, it's probably useful to have the command window open
 
 
 13. If you wish to access online Scripture resources from the Digital Bible Platform
@@ -161,5 +165,14 @@ version of Biblelator onto your computer.
     Then hopefully we can get you started with basic access to these modules.
 
 
-Please see the document Operation.md for help on how the Biblelator resource and project
+15. Program updates
+    If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each
+        of them with "git pull" on each folder (or the equivalent command from the GUI if you
+        use TortoiseGit or equivalent.
+    If you installed Biblelator and/or BibleOrgSys by downloading a zip file from GitHub.com,
+        you should regularly update each of them by downloading the latest zip file and
+        extracting them into each folder to overwrite existing files.
+
+
+Please see the document GettingStarted.md for help on how the Biblelator resource and project
     windows are designed to work.

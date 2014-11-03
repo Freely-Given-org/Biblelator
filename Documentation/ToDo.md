@@ -9,6 +9,7 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 * Design project menu and save/reopen the current project
+* Consider toolbars in child windows (and/or hiding the menu)
 * Handle multiple overlapping tags in the HTML window
 * Add "Display by Section" for Bible that have section headings
     Does that mean we have previous/next section navigation also?
