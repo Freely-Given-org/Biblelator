@@ -22,8 +22,9 @@ For an overview of the program design philosophy, see Development.md.
     last values when the program is restarted.
 
     If you want to reset Biblelator to its default settings, the settings file can be
-    renamed (e.g., to Biblelator.ini.bak) and Biblelator will now ignore those settings
-    when starting up.
+    renamed (e.g., to Biblelator.ini.bak) or deleted (if you're sure you don't want to
+    reuse them) and Biblelator will now ignore those settings when starting up. (This might
+    also be necessary if a bug causes Biblelator to freeze or malfunction.)
 
 
 2. Logging
@@ -55,3 +56,15 @@ For an overview of the program design philosophy, see Development.md.
 5. Project windows
 
     Projects are Bibles in the process of being translated, so they have a full edit window.
+
+
+6. Bible Groups
+
+    Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All
+    new windows are assigned to group A by default but this can be easily changed. Each
+    group can be set to a different reference, e.g., if group A windows are in Matthew,
+    group B windows might be displaying a reference in Isaiah that was quoted by Matthew.
+
+    In the future, there will be automatic ways to display OT references (like the above
+    example -- at the moment it must be set-up by hand) and also to display synoptic
+    gospel references.

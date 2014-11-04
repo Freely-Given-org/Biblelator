@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ChildWindows.py
-#   Last modified: 2014-11-02 (also update ProgVersion below)
+#   Last modified: 2014-11-04 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -254,7 +254,7 @@ class ChildWindow( tk.Toplevel ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("ChildWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
-            assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor') )
+            assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor',) )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeChildWindow )
@@ -265,7 +265,8 @@ class ChildWindow( tk.Toplevel ):
         self.createToolBar()
         self.createContextMenu()
 
-        self.myKeyboardBindings = []
+        self.myKeyboardBindingsList = []
+        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
 
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
@@ -333,11 +334,15 @@ class ChildWindow( tk.Toplevel ):
                              ('Find',self.doFind), ('Refind',self.doRefind),
                              ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              ('Close',self.doClose) ):
+            assert( (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList )
             if name in self.parentApp.keyBindingDict:
-                for keycode in self.parentApp.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keycode), repr(name) ) )
-                    self.textBox.bind( keycode, command )
-                self.myKeyboardBindings.append( (name,self.parentApp.keyBindingDict[name][0],) )
+                for keyCode in self.parentApp.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    self.textBox.bind( keyCode, command )
+                    if BibleOrgSysGlobals.debugFlag:
+                        assert( keyCode not in self.myKeyboardShortcutsList )
+                        self.myKeyboardShortcutsList.append( keyCode )
+                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
         #self.textBox.bind('<Control-a>', self.doSelectAll ); self.textBox.bind('<Control-A>', self.doSelectAll )
         #self.textBox.bind('<Control-c>', self.doCopy ); self.textBox.bind('<Control-C>', self.doCopy )
@@ -512,7 +517,7 @@ class ChildWindow( tk.Toplevel ):
         helpInfo = ProgNameVersion
         helpInfo += "\nHelp for {}".format( self.winType )
         helpInfo += "\n  Keyboard shortcuts:"
-        for name,shortcut in self.myKeyboardBindings:
+        for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
     # end of Application.doHelp
@@ -540,8 +545,14 @@ class ChildWindow( tk.Toplevel ):
         Called to finally and irreversibly remove this window from our list and close it.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildWindow.closeChildWindow()") )
-        self.parentApp.childWindows.remove( self )
-        self.destroy()
+        if self in self.parentApp.childWindows:
+            self.parentApp.childWindows.remove( self )
+            self.destroy()
+        else: # we might not have finished making our window yet
+            if BibleOrgSysGlobals.debugFlag:
+                print( t("ChildWindow.closeChildWindow() for {} wasn't in list").format( self.winType ) )
+            try: self.destroy()
+            except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource window" )
     # end of ChildWindow.closeChildWindow
 # end of class ChildWindow

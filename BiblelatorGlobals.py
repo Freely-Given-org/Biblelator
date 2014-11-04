@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-11-02 (also update ProgVersion below)
+#   Last modified: 2014-11-04 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -88,11 +88,12 @@ EDIT_MODE_NORMAL = 'Edit'
 EDIT_MODE_USFM = 'USFM Edit'
 
 
+# Not all of these are used for all windows
 DEFAULT_KEY_BINDING_DICT = { 'Cut':('Ctrl+x','<Control-X>','<Control-x>'), 'Copy':('Ctrl+c','<Control-C>','<Control-c>'),
         'Paste':('Ctrl+v','<Control-V>','<Control-v>'), 'SelectAll':('Ctrl+a','<Control-A>','<Control-a>'),
         'Find':('Ctrl+f','<Control-F>','<Control-f>'), 'Refind':('F3/Ctrl+g','<Control-G>','<Control-g>','<F3>'),
         'Undo':('Ctrl+z','<Control-Z>','<Control-z>'), 'Redo':('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
-        'Line':('Ctrl+l','<Control-L>','<Control-l>'), 'Save':('Ctrl+c','<Control-S>','<Control-s>'),
+        'Line':('Ctrl+l','<Control-L>','<Control-l>'), 'Save':('Ctrl+s','<Control-S>','<Control-s>'),
         'Help':('F1','<F1>'), 'Info':('F11','<F11>'), 'About':('F12','<F12>'),
         'Close':('Ctrl+F4','<Control-F4>'), 'Quit':('Alt+F4','<Alt-F4>'), }
 

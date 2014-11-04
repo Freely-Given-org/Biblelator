@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-11-02 (also update ProgVersion below)
+#   Last modified: 2014-11-04 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -166,6 +166,7 @@ class TextEditWindow( ChildWindow ):
         self.textBox['wrap'] = 'word'
         self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
 
         self.lastFiletime = self.lastFilesize = None
@@ -183,11 +184,15 @@ class TextEditWindow( ChildWindow ):
         for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
                              ('Undo',self.doUndo), ('Redo',self.doRedo),
                              ('Save',self.doSave), ):
+            assert( (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList )
             if name in self.parentApp.keyBindingDict:
-                for keycode in self.parentApp.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keycode), repr(name) ) )
-                    self.textBox.bind( keycode, command )
-                self.myKeyboardBindings.append( (name,self.parentApp.keyBindingDict[name][0],) )
+                for keyCode in self.parentApp.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    self.textBox.bind( keyCode, command )
+                    if BibleOrgSysGlobals.debugFlag:
+                        assert( keyCode not in self.myKeyboardShortcutsList )
+                        self.myKeyboardShortcutsList.append( keyCode )
+                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
         #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
         #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
@@ -341,13 +346,13 @@ class TextEditWindow( ChildWindow ):
     # end if TextEditWindow.refreshTitle
 
 
-    def doHelp( self, event=None ):
+    def xxxdoHelp( self, event=None ):
         from Help import HelpBox
         hb = HelpBox( self, ProgName, ProgNameVersion )
     # end of TextEditWindow.doHelp
 
 
-    def doAbout( self, event=None ):
+    def xxxdoAbout( self, event=None ):
         from About import AboutBox
         ab = AboutBox( self, ProgName, ProgNameVersion )
     # end of TextEditWindow.doAbout
@@ -711,7 +716,7 @@ class TextEditWindow( ChildWindow ):
 
 
 class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
-    def __init__( self, parentApp, USFMBible ):
+    def __init__( self, parentApp, USFMBible, editMode=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.__init__( {}, {} )".format( parentApp, USFMBible ) )
         self.parentApp, self.internalBible = parentApp, USFMBible
@@ -728,19 +733,20 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.textBox.setTextChangeCallback( self.onTextChange )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
-        self.doStandardKeyboardBindings()
-        self.createEditorKeyboardBindings()
+        #self.createStandardKeyboardBindings()
+        #self.createEditorKeyboardBindings()
 
         # Now we need to override a few critical variables
         self.genericWindowType = 'BibleEditor'
         self.winType = 'USFMBibleEditWindow'
+        if editMode is not None: self.editMode = editMode
 
-        if self.internalBible is not None:
+        if self.internalBible is None: self.editMode = None
+        else:
             self.textBox['background'] = 'white'
             self.textBox['selectbackground'] = 'red'
             self.textBox['highlightbackground'] = 'orange'
             self.textBox['inactiveselectbackground'] = 'green'
-        else: self.editMode = None
 
         #self.textBox.bind( '<1>', self.onTextChange )
         self.lastBBB = None
@@ -751,7 +757,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.title( "{}[{}] {} {} {}:{} ({}) Editable {}".format( '*' if self.modified() else '',
                                     self.groupCode,
                                     self.internalBible.name if self.internalBible is not None else 'None',
-                                    self.verseKey.getBBB(), self.verseKey.getChapterNumber(), self.verseKey.getVerseNumber(),
+                                    self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber(),
                                     self.editMode, self.contextViewMode ) )
     # end if USFMEditWindow.refreshTitle
 
@@ -959,8 +965,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             C, V = mark[1:].split( 'V', 1 )
             #print( "bits", bits )
             #C, V = bits
-            #self.parentApp.gotoGroupBCV( self.groupCode, self.verseKey.getBBB(), C, V )
-            self.after_idle( lambda: self.parentApp.gotoGroupBCV( self.groupCode, self.verseKey.getBBB(), C, V ) )
+            #self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V )
+            self.after_idle( lambda: self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V ) )
             self.lastCV = mark
     # end of USFMEditWindow.onTextChange
 
@@ -1129,7 +1135,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             #print( "contextViewMode", self.contextViewMode )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
 
-        if newVerseKey.getBBB() != self.verseKey.getBBB(): # we've switched books
+        if newVerseKey.getBBB() != self.currentVerseKey.getBBB(): # we've switched books
             if self.modified():
                 self.showerror( APP_NAME, "Should save text here!" )
             self.loading = True
@@ -1138,11 +1144,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             self.loading = False
             self.lastCV = None
 
-        if newVerseKey != self.verseKey: # we have a change of reference
+        if newVerseKey != self.currentVerseKey: # we have a change of reference
             desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
             try: self.textBox.see( desiredMark )
             except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
-            self.verseKey = newVerseKey
+            self.currentVerseKey = newVerseKey
 
         self.refreshTitle()
     # end of USFMEditWindow.updateShownBCV

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-03 (also update ProgVersion below)
+#   Last modified: 2014-11-04 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -75,7 +75,8 @@ import SwordResources
 from USFMBible import USFMBible
 
 
-PARATEXT_FILETYPES = [('SSF files','.ssf'),('All files','*')]
+TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
+PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 
 
 
@@ -108,9 +109,8 @@ class Application( Frame ):
         self.themeName = 'default'
         self.style = Style()
 
-        self.lastFileDir = '.'
         self.lastFind = None
-        self.openDialog = None
+        #self.openDialog = None
         self.saveDialog = None
         self.optionsDict = {}
 
@@ -157,17 +157,18 @@ class Application( Frame ):
         #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
         # Set default folders
+        self.lastFileDir = '.'
         self.lastParatextFileDir = './'
         self.lastInternalBibleDir = './'
         if sys.platform.startswith( 'win' ):
             self.lastParatextFileDir = 'C:\\My Paratext Projects\\'
             self.lastInternalBibleDir = 'C:\\My Paratext Projects\\'
         elif sys.platform == 'linux': # temp.........................................
-            self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/My Paratext Projects/'
-            self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/'
+            self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/'
+            self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
 
         self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
-        self.myKeyboardBindings = []
+        self.myKeyboardBindingsList = []
 
         # Read and apply the saved settings
         self.parseAndApplySettings()
@@ -513,23 +514,14 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("createMainKeyboardBindings()") )
-        self.myKeyboardBindings = []
+        self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
-                for keycode in self.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keycode), repr(name) ) )
-                    self.ApplicationParent.bind( keycode, command )
-                self.myKeyboardBindings.append( (name,self.keyBindingDict[name][0],) )
+                for keyCode in self.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    self.ApplicationParent.bind( keyCode, command )
+                self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-        #self.textBox.bind('<Control-a>', self.doSelectAll ); self.textBox.bind('<Control-A>', self.doSelectAll )
-        #self.textBox.bind('<Control-c>', self.doCopy ); self.textBox.bind('<Control-C>', self.doCopy )
-        #self.textBox.bind('<Control-f>', self.doFind ); self.textBox.bind('<Control-F>', self.doFind )
-        #self.textBox.bind('<Control-g>', self.doRefind ); self.textBox.bind('<Control-G>', self.doRefind )
-        #self.textBox.bind('<F1>', self.doHelp )
-        #self.textBox.bind('<F3>', self.doRefind )
-        #self.textBox.bind('<Control-F4>', self.doClose )
-        #self.textBox.bind('<F11>', self.doShowInfo )
-        #self.textBox.bind('<F12>', self.doAbout )
     # end of ChildWindow.createMainKeyboardBindings()
 
 
@@ -722,8 +714,8 @@ class Application( Frame ):
                 elif winType == 'PlainTextEditWindow':
                     rw = self.doOpenNewTextEditWindow()
                     #except: logging.error( "Unable to read TextEditWindow {} settings".format( j ) )
-                elif winType == 'USFMBibleEditWindow':
-                    rw = self.openUSFMBibleEditWindow( thisStuff['USFMFolder'], thisStuff['EditMode'], windowGeometry )
+                elif winType == 'ParatextUSFMBibleEditWindow':
+                    rw = self.openParatextBibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
                     #except: logging.error( "Unable to read USFMBibleEditWindow {} settings".format( j ) )
                 elif winType == 'ESFMEditWindow':
                     rw = self.openESFMEditWindow( thisStuff['ESFMFolder'], thisStuff['EditMode'], windowGeometry )
@@ -733,15 +725,18 @@ class Application( Frame ):
                     logging.critical( t("Application.__init__: Unknown {} window type").format( repr(winType) ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
-                groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
-                if groupCode:
-                    if BibleOrgSysGlobals.debugFlag: assert( groupCode in BIBLE_GROUP_CODES )
-                    rw.groupCode = groupCode
-                contextViewMode = thisStuff['ContextViewMode'] if 'ContextViewMode' in thisStuff else None
-                if contextViewMode:
-                    if BibleOrgSysGlobals.debugFlag: assert( contextViewMode in BIBLE_CONTEXT_VIEW_MODES )
-                    rw.contextViewMode = contextViewMode
-                    rw.createMenuBar()
+                if rw is None:
+                    logging.critical( t("Application.__init__: Failed to reopen {} window type!!! How did this happen?").format( repr(winType) ) )
+                else:
+                    groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
+                    if groupCode:
+                        if BibleOrgSysGlobals.debugFlag: assert( groupCode in BIBLE_GROUP_CODES )
+                        rw.groupCode = groupCode
+                    contextViewMode = thisStuff['ContextViewMode'] if 'ContextViewMode' in thisStuff else None
+                    if contextViewMode:
+                        if BibleOrgSysGlobals.debugFlag: assert( contextViewMode in BIBLE_CONTEXT_VIEW_MODES )
+                        rw.contextViewMode = contextViewMode
+                        rw.createMenuBar()
     # end of Application.applyGivenWindowsSettings
 
 
@@ -760,23 +755,23 @@ class Application( Frame ):
                 thisOne['Type'] = appWin.winType #.replace( 'Window', 'Window' )
                 thisOne['Geometry'] = appWin.geometry()
                 if appWin.winType == 'SwordBibleResourceWindow':
-                    thisOne['ModuleAbbreviation'] = appWin.moduleAbbreviation
+                    thisOne['ModuleAbbreviation'] = appWin.moduleID
                 elif appWin.winType == 'DBPBibleResourceWindow':
-                    thisOne['ModuleAbbreviation'] = appWin.moduleAbbreviation
+                    thisOne['ModuleAbbreviation'] = appWin.moduleID
                 elif appWin.winType == 'InternalBibleResourceWindow':
-                    thisOne['BibleFolderPath'] = appWin.modulePath
+                    thisOne['BibleFolderPath'] = appWin.moduleID
 
                 #elif appWin.winType == 'HebrewLexiconResourceWindow':
                     #thisOne['HebrewLexiconPath'] = appWin.lexiconPath
                 #elif appWin.winType == 'GreekLexiconResourceWindow':
                     #thisOne['HebrewLexiconPath'] = appWin.lexiconPath
                 elif appWin.winType == 'BibleLexiconResourceWindow':
-                    thisOne['BibleLexiconPath'] = appWin.lexiconPath
+                    thisOne['BibleLexiconPath'] = appWin.moduleID
 
                 elif appWin.winType == 'PlainTextEditWindow':
                     pass # ???
-                elif appWin.winType == 'USFMBibleEditWindow':
-                    thisOne['USFMFolder'] = appWin.USFMFolder
+                elif appWin.winType == 'ParatextUSFMBibleEditWindow':
+                    thisOne['SSFFilepath'] = appWin.moduleID
                     thisOne['EditMode'] = appWin.editMode
 
                 else:
@@ -869,14 +864,19 @@ class Application( Frame ):
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         dBRW = DBPBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: dBRW.geometry( windowGeometry )
-        self.childWindows.append( dBRW )
         if dBRW.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRW.closeChildWindow()
-        else: dBRW.updateShownBCV( self.getVerseKey( dBRW.groupCode ) )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openDPBBibleResourceWindow" )
-        self.setReadyStatus()
-        return dBRW
+            showerror( APP_NAME, _("Sorry, unable to open DBP resource") )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openDPBBibleResourceWindow" )
+            self.setReadyStatus()
+            return None
+        else:
+            dBRW.updateShownBCV( self.getVerseKey( dBRW.groupCode ) )
+            self.childWindows.append( dBRW )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openDPBBibleResourceWindow" )
+            self.setReadyStatus()
+            return dBRW
     # end of Application.openDBPBibleResourceWindow
 
 
@@ -932,8 +932,8 @@ class Application( Frame ):
             self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
         swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: swBRW.geometry( windowGeometry )
-        self.childWindows.append( swBRW )
         swBRW.updateShownBCV( self.getVerseKey( swBRW.groupCode ) )
+        self.childWindows.append( swBRW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openSwordBibleResourceWindow" )
         self.setReadyStatus()
         return swBRW
@@ -951,8 +951,8 @@ class Application( Frame ):
             self.setDebugText( "doOpenInternalBibleResource..." )
         self.setStatus( "doOpenInternalBibleResource..." )
         #requestedFolder = askdirectory()
-        self.openDialog = Directory( initialdir=self.lastInternalBibleDir )
-        requestedFolder = self.openDialog.show()
+        openDialog = Directory( initialdir=self.lastInternalBibleDir )
+        requestedFolder = openDialog.show()
         if requestedFolder:
             self.lastInternalBibleDir = requestedFolder
             self.openInternalBibleResourceWindow( requestedFolder )
@@ -971,20 +971,25 @@ class Application( Frame ):
             self.setDebugText( "openInternalBibleResourceWindow..." )
         iBRW = InternalBibleResourceWindow( self, modulePath )
         if windowGeometry: iBRW.geometry( windowGeometry )
-        self.childWindows.append( iBRW )
         if iBRW.internalBible is None:
             logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(modulePath) ) )
             iBRW.closeChildWindow()
-        else: iBRW.updateShownBCV( self.getVerseKey( iBRW.groupCode ) )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openInternalBibleResourceWindow" )
-        self.setReadyStatus()
-        return iBRW
+            showerror( APP_NAME, _("Sorry, unable to open internal Bible resource") )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleResourceWindow" )
+            self.setReadyStatus()
+            return None
+        else:
+            iBRW.updateShownBCV( self.getVerseKey( iBRW.groupCode ) )
+            self.childWindows.append( iBRW )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openInternalBibleResourceWindow" )
+            self.setReadyStatus()
+            return iBRW
     # end of Application.openInternalBibleResourceWindow
 
 
     def doOpenBibleLexiconResource( self ):
         """
-        Open a local Bible (called from a menu/GUI action).
+        Open the Bible lexicon (called from a menu/GUI action).
 
         Requests a folder from the user.
         """
@@ -1001,6 +1006,7 @@ class Application( Frame ):
 
     def openBibleLexiconResourceWindow( self, lexiconPath, windowGeometry=None ):
         """
+        Create the actual requested local/internal Bible lexicon resource window.
 
         Returns the new BibleLexiconResourceWindow object.
         """
@@ -1010,15 +1016,19 @@ class Application( Frame ):
         if lexiconPath is None: lexiconPath = "../"
         bLRW = BibleLexiconResourceWindow( self, lexiconPath )
         if windowGeometry: bLRW.geometry( windowGeometry )
-        self.childWindows.append( bLRW )
         if bLRW.BibleLexicon is None:
             logging.critical( t("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {}").format( repr(lexiconPath) ) )
             bLRW.closeChildWindow()
+            showerror( APP_NAME, _("Sorry, unable to open Bible lexicon resource") )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openBibleLexiconResourceWindow" )
+            self.setReadyStatus()
+            return None
         elif self.lexiconWord:
             bLRW.updateLexiconWord( self.lexiconWord )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBibleLexiconResourceWindow" )
-        self.setReadyStatus()
-        return bLRW
+            self.childWindows.append( bLRW )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBibleLexiconResourceWindow" )
+            self.setReadyStatus()
+            return bLRW
     # end of Application.openBibleLexiconResourceWindow
 
 
@@ -1045,11 +1055,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("doOpenFileTextEditWindow()") )
             self.setDebugText( "doOpenFileTextEditWindow..." )
-        if not self.openDialog:
-            fTypes = [('All files',  '*'),
-                      ('Text files', '.txt')]
-            self.openDialog = Open( initialdir=self.lastFileDir, filetypes=fTypes )
-        fileResult = self.openDialog.show()
+        openDialog = Open( initialdir=self.lastFileDir, filetypes=TEXT_FILETYPES )
+        fileResult = openDialog.show()
         if not fileResult: return
         if not os.path.isfile( fileResult ):
             showerror( APP_NAME, 'Could not open file ' + fileResult )
@@ -1077,11 +1084,14 @@ class Application( Frame ):
             self.setDebugText( "doViewSettings..." )
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        self.childWindows.append( tEW )
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewSettings" )
+            showerror( APP_NAME, _("Sorry, unable to open settings file") )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewSettings" )
+        else:
+            self.childWindows.append( tEW )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewSettings" )
         self.setReadyStatus()
     # end of Application.doViewSettings
 
@@ -1096,33 +1106,152 @@ class Application( Frame ):
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        self.childWindows.append( tEW )
         if not tEW.setPathAndFile( self.loggingFolder, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-        #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+            showerror( APP_NAME, _("Sorry, unable to open log file") )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
+        else:
+            self.childWindows.append( tEW )
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
         self.setReadyStatus()
     # end of Application.doViewLog
 
 
-    def openUSFMBibleEditWindow( self, USFMFolder, editMode, windowGeometry=None ):
+    def doOpenBiblelatorProject( self ):
         """
+        """
+        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doOpenBiblelatorProject()") )
+        self.notWrittenYet()
+    # end of Application.doOpenBiblelatorProject
+
+
+    def onOpenBibleditProject( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("onOpenBibleditProject()") )
+        self.notWrittenYet()
+    # end of Application.onOpenBibleditProject
+
+
+    def doOpenParatextProject( self ):
+        """
+        Open the Paratext Bible project (called from a menu/GUI action).
+
+        Requests a SSF file from the user.
+        """
+        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+            print( t("doOpenParatextProject()") )
+            self.setDebugText( "doOpenParatextProject..." )
+        #if not self.openDialog:
+        openDialog = Open( initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
+        SSFFilepath = openDialog.show()
+        if not SSFFilepath: return
+        if not os.path.isfile( SSFFilepath ):
+            showerror( APP_NAME, 'Could not open file ' + SSFFilepath )
+            return
+        uB = USFMBible( None ) # Get a blank object
+        uB.loadSSFData( SSFFilepath )
+##        print( "ssf" )
+##        for something in uB.ssfDict:
+##            try: print( "  ", something, uB.ssfDict[something] )
+##            except UnicodeEncodeError: print( "   (skipped)" )
+        try: uBName = uB.ssfDict['Name']
+        except KeyError:
+            showerror( APP_NAME, 'Could not find name in ' + SSFFilepath )
+        try: uBFullName = uB.ssfDict['FullName']
+        except KeyError:
+            showerror( APP_NAME, 'Could not find full name in ' + SSFFilepath )
+        if 'Editable' in uB.ssfDict and uB.ssfDict['Editable'] != 'T':
+            showerror( APP_NAME, 'Project {} ({}) is not set to be editable'.format( uBName, uBFullName ) )
+            return
+
+        # Find the correct folder that contains the actual USFM files
+        if 'Directory' in uB.ssfDict:
+            ssfDirectory = uB.ssfDict['Directory']
+        else:
+            showerror( APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( uBName, uBFullName ) )
+            ssfDirectory = None
+        if ssfDirectory is None or not os.path.exists( ssfDirectory ):
+            if ssfDirectory is not None:
+                showwarning( APP_NAME, 'SSF project {} ({}) folder {} not found on this system -- trying folder below SSF instead'.format( uBName, uBFullName, repr(ssfDirectory) ) )
+            if not sys.platform.startswith( 'win' ): # Let's try the next folder down
+                print( "Not windows" )
+                print( 'ssD1', repr(ssfDirectory) )
+                slash = '\\' if '\\' in ssfDirectory else '/'
+                if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
+                ix = ssfDirectory.rfind( slash ) # Find the last slash
+                if ix!= -1:
+                    ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
+                    print( 'ssD2', repr(ssfDirectory) )
+                    if not os.path.exists( ssfDirectory ):
+                        showerror( APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
+                        return
+        self.openParatextBibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
+
+        ##print( "uB1", uB )
+        #uB.preload( ssfDirectory )
+        ##print( "uB2", uB )
+###        ssfText = open( SSFFilepath, 'rt', encoding='utf-8' ).read()
+###        if ssfText == None:
+###            showerror( APP_NAME, 'Could not decode and open file ' + SSFFilepath )
+###        else:
+
+        #uEW = USFMEditWindow( self, uB )
+        #uEW.winType = 'ParatextUSFMBibleEditWindow' # override the default
+        #uEW.setFilepath( SSFFilepath )
+###            tEW.setAllText( ssfText )
+###            #if windowGeometry: tEW.geometry( windowGeometry )
+        #self.childWindows.append( uEW )
+        #uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
+        #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenParatextProject" )
+        #self.setReadyStatus()
+    # end of Application.doOpenParatextProject
+
+    def openParatextBibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
+        """
+        Create the actual requested local Paratext Bible project window.
 
         Returns the new USFMEditWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("openUSFMBibleEditWindow()") )
-            self.setDebugText( "openUSFMBibleEditWindow..." )
-        uEW = USFMEditWindow( self, USFMFolder, editMode )
+            print( t("openParatextBibleEditWindow( {} )").format( repr(SSFFilepath) ) )
+            self.setDebugText( "openParatextBibleEditWindow..." )
+            assert( os.path.isfile( SSFFilepath ) )
+
+        uB = USFMBible( None ) # Get a blank object
+        uB.loadSSFData( SSFFilepath )
+
+        if 'Directory' in uB.ssfDict:
+            ssfDirectory = uB.ssfDict['Directory']
+        else:
+            ssfDirectory = None
+        if ssfDirectory is None or not os.path.exists( ssfDirectory ):
+            if not sys.platform.startswith( 'win' ): # Let's try the next folder down
+                print( "Not windows" )
+                print( 'ssD1', repr(ssfDirectory) )
+                slash = '\\' if '\\' in ssfDirectory else '/'
+                if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
+                ix = ssfDirectory.rfind( slash ) # Find the last slash
+                if ix!= -1:
+                    ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
+                    print( 'ssD2', repr(ssfDirectory) )
+                    if not os.path.exists( ssfDirectory ):
+                        showerror( APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
+                        return
+        uB.preload( ssfDirectory )
+
+        uEW = USFMEditWindow( self, uB, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
+        uEW.winType = 'ParatextUSFMBibleEditWindow' # override the default
+        uEW.moduleID = SSFFilepath
+        uEW.setFilepath( SSFFilepath )
+        uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
         self.childWindows.append( uEW )
-        if uEW.InternalBible is None:
-            logging.critical( t("Application.openUSFMBibleEditWindow: Unable to open USFM Bible in {}").format( repr(USFMFolder) ) )
-            uEW.closeChildWindow()
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openUSFMBibleEditWindow" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatextBibleEditWindow" )
         self.setReadyStatus()
         return uEW
-    # end of Application.openUSFMBibleEditWindow
+    # end of Application.openParatextBibleEditWindow
 
 
     def goBack( self, event=None ):
@@ -1792,101 +1921,24 @@ class Application( Frame ):
     # end of Application.grepMatchesList
 
 
-    def doOpenBiblelatorProject( self ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doOpenBiblelatorProject()") )
-        self.notWrittenYet()
-    # end of Application.doOpenBiblelatorProject
-
-
-    def onOpenBibleditProject( self ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("onOpenBibleditProject()") )
-        self.notWrittenYet()
-    # end of Application.onOpenBibleditProject
-
-
-    def doOpenParatextProject( self ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-            print( t("doOpenParatextProject()") )
-            self.setDebugText( "doOpenParatextProject..." )
-        #if not self.openDialog:
-        self.openDialog = Open( initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
-        fileResult = self.openDialog.show()
-        if not fileResult: return
-        if not os.path.isfile( fileResult ):
-            showerror( APP_NAME, 'Could not open file ' + fileResult )
-            return
-        uB = USFMBible( None ) # Get a blank object
-        uB.loadSSFData( fileResult )
-##        print( "ssf" )
-##        for something in uB.ssfDict:
-##            try: print( "  ", something, uB.ssfDict[something] )
-##            except UnicodeEncodeError: print( "   (skipped)" )
-        try: uBName = uB.ssfDict['Name']
-        except KeyError:
-            showerror( APP_NAME, 'Could not find name in ' + fileResult )
-        try: uBFullName = uB.ssfDict['FullName']
-        except KeyError:
-            showerror( APP_NAME, 'Could not find full name in ' + fileResult )
-        if 'Editable' in uB.ssfDict and uB.ssfDict['Editable'] != 'T':
-            showerror( APP_NAME, 'Project {} ({}) is not set to be editable'.format( uBName, uBFullName ) )
-            return
-
-        # Find the correct folder
-        if 'Directory' not in uB.ssfDict:
-            showerror( APP_NAME, 'Project {} ({}) has no directory specified'.format( uBName, uBFullName ) )
-            return
-        ssfDirectory = uB.ssfDict['Directory']
-        if not os.path.exists( ssfDirectory ):
-            showwarning( APP_NAME, 'SSF project {} ({}) directory {} not found on this system'.format( uBName, uBFullName, repr(ssfDirectory) ) )
-            if not sys.platform.startswith( 'win' ): # Let's try the next folder down
-                print( "Not windows" )
-                print( 'ssD1', repr(ssfDirectory) )
-                slash = '\\' if '\\' in ssfDirectory else '/'
-                if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
-                ix = ssfDirectory.rfind( slash ) # Find the last slash
-                if ix!= -1:
-                    ssfDirectory = os.path.join( os.path.dirname(fileResult), ssfDirectory[ix+1:] + '/' )
-                    print( 'ssD2', repr(ssfDirectory) )
-                    if not os.path.exists( ssfDirectory ):
-                        showerror( APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
-                        return
-        #print( "uB1", uB )
-        uB.preload( ssfDirectory )
-        #print( "uB2", uB )
-##        ssfText = open( fileResult, 'rt', encoding='utf-8' ).read()
-##        if ssfText == None:
-##            showerror( APP_NAME, 'Could not decode and open file ' + fileResult )
-##        else:
-
-        uEW = USFMEditWindow( self, uB )
-        uEW.setFilepath( fileResult )
-##            tEW.setAllText( ssfText )
-##            #if windowGeometry: tEW.geometry( windowGeometry )
-        self.childWindows.append( uEW )
-        uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenParatextProject" )
-        self.setReadyStatus()
-    # end of Application.doOpenParatextProject
-
-
     def doHelp( self, event=None ):
         from Help import HelpBox
-        helpInfo = ProgNameVersion + "\n  Keyboard shortcuts:"
-        for name,shortcut in self.myKeyboardBindings:
+        helpInfo = ProgNameVersion
+        helpInfo += "\n  Basic instructions:"
+        helpInfo += "\n    Use the Resource menu to open study/reference resources."
+        helpInfo += "\n    Use the Project menu to open editable Bibles."
+        helpInfo += "\n  Keyboard shortcuts:"
+        for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
-        hb = HelpBox( self.ApplicationParent, ProgName, helpInfo )
+        hb = HelpBox( self.ApplicationParent, APP_NAME, helpInfo )
     # end of Application.doHelp
 
 
     def doAbout( self, event=None ):
         from About import AboutBox
-        ab = AboutBox( self.ApplicationParent, ProgName, ProgNameVersion )
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\n  This program is not yet finished but the Resource menu should mostly work."
+        ab = AboutBox( self.ApplicationParent, APP_NAME, aboutInfo )
     # end of Application.doAbout
 
 
