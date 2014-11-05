@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # About.py
-#   Last modified: 2014-10-28 (also update ProgVersion below)
+#   Last modified: 2014-11-05 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = "0.20"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -42,7 +42,7 @@ import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
 
-from BiblelatorGlobals import MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, centreWindowOnWindow
+from BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE, parseWindowSize, centreWindowOnWindow
 
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
@@ -68,8 +68,10 @@ class AboutBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
         #if BibleOrgSysGlobals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
-        self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
-        self.minsize( self.minimumXSize, self.minimumYSize )
+        self.minimumSize = MINIMUM_ABOUT_SIZE
+        self.minsize( *parseWindowSize( self.minimumSize ) )
+        self.maximumSize = MAXIMUM_ABOUT_SIZE
+        self.maxsize( *parseWindowSize( self.maximumSize ) )
         if parent: centreWindowOnWindow( self, parent )
 
         self.okButton = Button( self, text='Ok', command=self.destroy )

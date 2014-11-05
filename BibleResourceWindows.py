@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-11-02 (also update ProgVersion below)
+#   Last modified: 2014-11-04 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -30,10 +30,10 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.21"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import sys, logging #, os.path, configparser, logging
@@ -697,7 +697,7 @@ class BibleResourceWindow( ChildWindow ):
     # end of BibleResourceWindow.updateShownBCV
 
 
-    def setAllText( self, newBibleText ):
+    def setAllText( self, newBibleText, markAsUnmodified=True ):
         """
         Sets the textBox (assumed to be enabled) to the given Bible text.
 
@@ -737,8 +737,9 @@ class BibleResourceWindow( ChildWindow ):
         #self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
         #self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
-        self.textBox.edit_reset() # clear undo/redo stks
-        self.textBox.edit_modified( False ) # clear modified flag
+        if markAsUnmodified:
+            self.textBox.edit_reset() # clear undo/redo stks
+            self.textBox.edit_modified( False ) # clear modified flag
     # end of BibleResourceWindow.setAllText
 # end of BibleResourceWindow class
 
@@ -912,7 +913,7 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #Globals.debugFlag = True
+    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

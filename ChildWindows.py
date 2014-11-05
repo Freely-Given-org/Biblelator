@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ChildWindows.py
-#   Last modified: 2014-11-04 (also update ProgVersion below)
+#   Last modified: 2014-11-05 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = "0.21"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -40,14 +40,13 @@ import sys, logging
 from gettext import gettext as _
 
 import tkinter as tk
-from tkinter.messagebox import showerror, showinfo
 from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Scrollbar
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, \
-                             MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
-from BiblelatorHelpers import errorBeep
+                             MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, parseWindowSize
+from BiblelatorDialogs import errorBeep, showerror, showinfo
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -258,13 +257,15 @@ class ChildWindow( tk.Toplevel ):
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeChildWindow )
-        self.minimumXSize, self.minimumYSize = MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
-        self.minsize( self.minimumXSize, self.minimumYSize )
+        self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
+        self.minsize( *parseWindowSize( self.minimumSize ) )
+        self.maxsize( *parseWindowSize( self.maximumSize ) )
 
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
 
+        self.settings = None
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
 
@@ -631,7 +632,7 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #Globals.debugFlag = True
+    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

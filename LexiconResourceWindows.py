@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-11-02 (also update ProgVersion below)
+#   Last modified: 2014-11-05 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.21"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -42,7 +42,6 @@ from gettext import gettext as _
 import tkinter as tk
 
 # Biblelator imports
-from BiblelatorGlobals import MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE
 from ChildWindows import ChildWindow, HTMLText
 
 # BibleOrgSys imports
@@ -56,7 +55,6 @@ from BibleLexicon import BibleLexicon
 #from HebrewWLC import HebrewWLC
 #import Greek
 #from GreekNT import GreekNT
-#import VerseReferences
 
 
 
@@ -217,7 +215,7 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #Globals.debugFlag = True
+    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )

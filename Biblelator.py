@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-04 (also update ProgVersion below)
+#   Last modified: 2014-11-06 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.21"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.21" # Only need to change this if the settings format has changed
+SettingsVersion = "0.22" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -44,7 +44,6 @@ from gettext import gettext as _
 import multiprocessing
 
 import tkinter as tk
-from tkinter.messagebox import showerror, showwarning, showinfo
 from tkinter.filedialog import Open, Directory #, SaveAs
 #from tkinter.filedialog import FileDialog, LoadFileDialog, SaveFileDialog
 #from tkinter.filedialog import askdirectory, askopenfile, askopenfilename, askopenfiles, asksaveasfile, asksaveasfilename, test
@@ -52,12 +51,14 @@ from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 #from tkinter.tix import Spinbox
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DATA_FOLDER, LOGGING_SUBFOLDER, SETTINGS_SUBFOLDER, MAX_WINDOWS, \
-        MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, MAX_WINDOWS, \
+        INITIAL_MAIN_SIZE, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, \
+        BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
         EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolder, parseGeometry, assembleGeometryFromList, centreWindow
-from BiblelatorHelpers import errorBeep, SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox
-from ApplicationSettings import ApplicationSettings
+        findHomeFolderPath, parseWindowGeometry, parseWindowSize, assembleWindowGeometryFromList, assembleWindowSize, centreWindow
+from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
+        SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox, GetNewProjectName
+from Settings import ApplicationSettings, ProjectSettings
 from ChildWindows import ChildWindows, ChildWindow
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from LexiconResourceWindows import BibleLexiconResourceWindow
@@ -102,9 +103,9 @@ class Application( Frame ):
         and use that to inform child windows of BCV movements.
     """
     global settings
-    def __init__( self, parent, homeFolder, loggingFolder, settings ):
+    def __init__( self, parent, homeFolderPath, loggingFolderPath, settings ):
         if BibleOrgSysGlobals.debugFlag: print( t("Application.__init__( {} )").format( parent ) )
-        self.ApplicationParent, self.homeFolder, self.loggingFolder, self.settings = parent, homeFolder, loggingFolder, settings
+        self.ApplicationParent, self.homeFolderPath, self.loggingFolderPath, self.settings = parent, homeFolderPath, loggingFolderPath, settings
 
         self.themeName = 'default'
         self.style = Style()
@@ -172,8 +173,8 @@ class Application( Frame ):
 
         # Read and apply the saved settings
         self.parseAndApplySettings()
-        if ProgName not in self.settings.data or 'windowGeometry' not in self.settings.data[ProgName]:
-            centreWindow( self.ApplicationParent, 600, 360 )
+        if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
+            centreWindow( self.ApplicationParent, *INITIAL_MAIN_SIZE.split( 'x', 1 ) )
 
 ##        # Open some sample windows if we don't have any already
 ##        if not self.childWindows \
@@ -275,7 +276,7 @@ class Application( Frame ):
 
         projectMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=projectMenu, label='Project', underline=0 )
-        projectMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        projectMenu.add_command( label='New...', underline=0, command=self.doStartNewProject )
         #submenuNewType = tk.Menu( resourcesMenu, tearoff=False )
         #projectMenu.add_cascade( label='New...', underline=5, menu=submenuNewType )
         #submenuNewType.add_command( label='Text file...', underline=0, command=self.doOpenNewTextEditWindow )
@@ -283,13 +284,13 @@ class Application( Frame ):
         submenuProjectOpenType = tk.Menu( projectMenu, tearoff=False )
         projectMenu.add_cascade( label='Open', underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label='Biblelator...', underline=0, command=self.doOpenBiblelatorProject )
-        submenuProjectOpenType.add_command( label='Bibledit...', underline=0, command=self.onOpenBibleditProject )
+        submenuProjectOpenType.add_command( label='Bibledit...', underline=0, command=self.doOpenBibleditProject )
         submenuProjectOpenType.add_command( label='Paratext...', underline=0, command=self.doOpenParatextProject )
         projectMenu.add_separator()
         projectMenu.add_command( label='Backup...', underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label='Restore...', underline=0, command=self.notWrittenYet )
-        projectMenu.add_separator()
-        projectMenu.add_command( label='Close', underline=0, command=self.doProjectClose )
+        #projectMenu.add_separator()
+        #projectMenu.add_command( label='Close', underline=0, command=self.doProjectClose )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label='Resources', underline=0 )
@@ -637,12 +638,19 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("parseAndApplySettings()") )
             self.setDebugText( "parseAndApplySettings..." )
-        try: self.minimumXSize, self.minimumYSize = self.settings.data[ProgName]['minimumXSize'], self.settings.data[ProgName]['minimumYSize']
-        except KeyError: self.minimumXSize, self.minimumYSize = MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE
-        self.ApplicationParent.minsize( self.minimumXSize, self.minimumYSize )
-        try: self.ApplicationParent.geometry( self.settings.data[ProgName]['windowGeometry'] )
-        except KeyError: print( "KeyError1" ) # we had no geometry set
-        except tk.TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
+        try: self.minimumSize = self.settings.data[ProgName]['minimumSize']
+        except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
+        self.ApplicationParent.minsize( *parseWindowSize( self.minimumSize ) )
+        try: self.maximumSize = self.settings.data[ProgName]['maximumSize']
+        except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
+        self.ApplicationParent.maxsize( *parseWindowSize( self.maximumSize ) )
+        #try: self.ApplicationParent.geometry( self.settings.data[ProgName]['windowGeometry'] )
+        #except KeyError: print( "KeyError1" ) # we had no geometry set
+        #except tk.TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
+        windowSize = self.settings.data[ProgName]['windowSize'] if 'windowSize' in self.settings.data[ProgName] else None
+        windowPosition = self.settings.data[ProgName]['windowPosition'] if 'windowPosition' in self.settings.data[ProgName] else None
+        if windowSize and windowPosition: self.ApplicationParent.geometry( windowSize + '+' + windowPosition )
+
         try: self.doChangeTheme( self.settings.data[ProgName]['themeName'] )
         except KeyError: print( "KeyError2" ) # we had no theme name set
 
@@ -651,11 +659,11 @@ class Application( Frame ):
         try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
         except KeyError: self.GroupA_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
         try: self.GroupB_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
-        except KeyError: self.GroupB_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
+        except KeyError: self.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
         try: self.GroupC_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['C-Book'],self.settings.data['BCVGroups']['C-Chapter'],self.settings.data['BCVGroups']['C-Verse'])
-        except KeyError: self.GroupC_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
+        except KeyError: self.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
         try: self.GroupD_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
-        except KeyError: self.GroupD_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
+        except KeyError: self.GroupD_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
 
         try: self.lexiconWord = self.settings.data['Lexicon']['currentWord']
         except KeyError: self.lexiconWord = None
@@ -689,37 +697,43 @@ class Application( Frame ):
             if winNumber in windowsSettingsFields:
                 thisStuff = windowsSettingsFields[winNumber]
                 winType = thisStuff['Type']
-                windowGeometry = thisStuff['Geometry'] if 'Geometry' in thisStuff else None
+                #windowGeometry = thisStuff['Geometry'] if 'Geometry' in thisStuff else None
+                windowSize = thisStuff['Size'] if 'Size' in thisStuff else None
+                windowPosition = thisStuff['Position'] if 'Position' in thisStuff else None
+                windowGeometry = windowSize+'+'+windowPosition if windowSize and windowPosition else None
                 #print( winType, windowGeometry )
                 if winType == 'SwordBibleResourceWindow':
                     rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
-                    #except: logging.error( "Unable to read SwordBibleResourceWindow {} settings".format( j ) )
+                    #except: logging.critical( "Unable to read all SwordBibleResourceWindow {} settings".format( j ) )
                 elif winType == 'DBPBibleResourceWindow':
                     rw = self.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
-                    #except: logging.error( "Unable to read DBPBibleResourceWindow {} settings".format( j ) )
+                    #except: logging.critical( "Unable to read all DBPBibleResourceWindow {} settings".format( j ) )
                 elif winType == 'InternalBibleResourceWindow':
                     rw = self.openInternalBibleResourceWindow( thisStuff['BibleFolderPath'], windowGeometry )
-                    #except: logging.error( "Unable to read InternalBibleResourceWindow {} settings".format( j ) )
+                    #except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
 
                 #elif winType == 'HebrewLexiconResourceWindow':
                     #self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
-                    ##except: logging.error( "Unable to read HebrewLexiconResourceWindow {} settings".format( j ) )
+                    ##except: logging.critical( "Unable to read all HebrewLexiconResourceWindow {} settings".format( j ) )
                 #elif winType == 'GreekLexiconResourceWindow':
                     #self.openGreekLexiconResourceWindow( thisStuff['GreekLexiconPath'], windowGeometry )
-                    ##except: logging.error( "Unable to read GreekLexiconResourceWindow {} settings".format( j ) )
+                    ##except: logging.critical( "Unable to read all GreekLexiconResourceWindow {} settings".format( j ) )
                 elif winType == 'BibleLexiconResourceWindow':
                     rw = self.openBibleLexiconResourceWindow( thisStuff['BibleLexiconPath'], windowGeometry )
-                    #except: logging.error( "Unable to read BibleLexiconResourceWindow {} settings".format( j ) )
+                    #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
                 elif winType == 'PlainTextEditWindow':
                     rw = self.doOpenNewTextEditWindow()
-                    #except: logging.error( "Unable to read TextEditWindow {} settings".format( j ) )
+                    #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
+                elif winType == 'BiblelatorUSFMBibleEditWindow':
+                    rw = self.openBiblelatorBibleEditWindow( thisStuff['ProjectFolderPath'], thisStuff['EditMode'], windowGeometry )
+                    #except: logging.critical( "Unable to read all BiblelatorUSFMBibleEditWindow {} settings".format( j ) )
                 elif winType == 'ParatextUSFMBibleEditWindow':
                     rw = self.openParatextBibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
-                    #except: logging.error( "Unable to read USFMBibleEditWindow {} settings".format( j ) )
+                    #except: logging.critical( "Unable to read all ParatextUSFMBibleEditWindow {} settings".format( j ) )
                 elif winType == 'ESFMEditWindow':
                     rw = self.openESFMEditWindow( thisStuff['ESFMFolder'], thisStuff['EditMode'], windowGeometry )
-                    #except: logging.error( "Unable to read ESFMEditWindow {} settings".format( j ) )
+                    #except: logging.critical( "Unable to read all ESFMEditWindow {} settings".format( j ) )
 
                 else:
                     logging.critical( t("Application.__init__: Unknown {} window type").format( repr(winType) ) )
@@ -727,7 +741,15 @@ class Application( Frame ):
 
                 if rw is None:
                     logging.critical( t("Application.__init__: Failed to reopen {} window type!!! How did this happen?").format( repr(winType) ) )
-                else:
+                else: # we've opened our child window -- now customize it a bit more
+                    minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
+                    if minimumSize:
+                        if BibleOrgSysGlobals.debugFlag: assert( 'x' in minimumSize )
+                        rw.minsize( *parseWindowSize( minimumSize ) )
+                    maximumSize = thisStuff['MaximumSize'] if 'MaximumSize' in thisStuff else None
+                    if maximumSize:
+                        if BibleOrgSysGlobals.debugFlag: assert( 'x' in maximumSize )
+                        rw.maxsize( *parseWindowSize( maximumSize ) )
                     groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
                     if groupCode:
                         if BibleOrgSysGlobals.debugFlag: assert( groupCode in BIBLE_GROUP_CODES )
@@ -753,7 +775,9 @@ class Application( Frame ):
                 self.windowsSettingsDict['Current'][winNumber] = {}
                 thisOne = self.windowsSettingsDict['Current'][winNumber]
                 thisOne['Type'] = appWin.winType #.replace( 'Window', 'Window' )
-                thisOne['Geometry'] = appWin.geometry()
+                thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
+                thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
+                thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
                 if appWin.winType == 'SwordBibleResourceWindow':
                     thisOne['ModuleAbbreviation'] = appWin.moduleID
                 elif appWin.winType == 'DBPBibleResourceWindow':
@@ -770,6 +794,10 @@ class Application( Frame ):
 
                 elif appWin.winType == 'PlainTextEditWindow':
                     pass # ???
+
+                elif appWin.winType == 'BiblelatorUSFMBibleEditWindow':
+                    thisOne['ProjectFolderPath'] = appWin.moduleID
+                    thisOne['EditMode'] = appWin.editMode
                 elif appWin.winType == 'ParatextUSFMBibleEditWindow':
                     thisOne['SSFFilepath'] = appWin.moduleID
                     thisOne['EditMode'] = appWin.editMode
@@ -1106,7 +1134,7 @@ class Application( Frame ):
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        if not tEW.setPathAndFile( self.loggingFolder, filename ) \
+        if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
             showerror( APP_NAME, _("Sorry, unable to open log file") )
@@ -1118,6 +1146,37 @@ class Application( Frame ):
     # end of Application.doViewLog
 
 
+    def doStartNewProject( self ):
+        """
+        Asks the user for a project name and abbreviation,
+            creates the new folder
+        and then opens an editor window.
+        """
+        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doStartNewProject()") )
+        gnpn = GetNewProjectName( self, title=_("New Project Name") )
+        if gnpn.result: # This is a dictionary
+            projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
+            newFolderPath = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME, projAbbrev )
+            if os.path.isdir( newFolderPath ):
+                showerror( _("New Project"), _("Sorry, we already have a {} project folder").format( projAbbrev ) )
+                return None
+            os.mkdir( newFolderPath )
+            uB = USFMBible( None ) # Get a blank object
+            uB.name, uB.abbreviation = projName, projAbbrev
+            uEW = USFMEditWindow( self, uB )
+            uEW.winType = 'BiblelatorUSFMBibleEditWindow' # override the default
+            uEW.moduleID = newFolderPath
+            uEW.setFolderPath( newFolderPath )
+            uEW.settings = ProjectSettings( newFolderPath )
+            uEW.settings.saveNameAndAbbreviation( projName, projAbbrev )
+            uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
+            self.childWindows.append( uEW )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doStartNewProject" )
+            self.setReadyStatus()
+            return uEW
+    # end of Application.doStartNewProject
+
+
     def doOpenBiblelatorProject( self ):
         """
         """
@@ -1125,13 +1184,40 @@ class Application( Frame ):
         self.notWrittenYet()
     # end of Application.doOpenBiblelatorProject
 
+    def openBiblelatorBibleEditWindow( self, projectFolderPath, editMode=None, windowGeometry=None ):
+        """
+        Create the actual requested local Biblelator Bible project window.
 
-    def onOpenBibleditProject( self ):
+        Returns the new USFMEditWindow object.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("openBiblelatorBibleEditWindow( {} )").format( repr(projectFolderPath) ) )
+            self.setDebugText( "openBiblelatorBibleEditWindow..." )
+            assert( os.path.isdir( projectFolderPath ) )
+
+        uB = USFMBible( projectFolderPath )
+        uEW = USFMEditWindow( self, uB, editMode=editMode )
+        if windowGeometry: uEW.geometry( windowGeometry )
+        uEW.winType = 'BiblelatorUSFMBibleEditWindow' # override the default
+        uEW.moduleID = projectFolderPath
+        uEW.setFolderPath( projectFolderPath )
+        uEW.settings = ProjectSettings( projectFolderPath )
+        uEW.settings.loadUSFMData( uB )
+        uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
+        self.childWindows.append( uEW )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBiblelatorBibleEditWindow" )
+        self.setReadyStatus()
+        return uEW
+    # end of Application.openBiblelatorBibleEditWindow
+
+
+
+    def doOpenBibleditProject( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("onOpenBibleditProject()") )
+        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doOpenBibleditProject()") )
         self.notWrittenYet()
-    # end of Application.onOpenBibleditProject
+    # end of Application.doOpenBibleditProject
 
 
     def doOpenParatextProject( self ):
@@ -1150,7 +1236,7 @@ class Application( Frame ):
         if not os.path.isfile( SSFFilepath ):
             showerror( APP_NAME, 'Could not open file ' + SSFFilepath )
             return
-        uB = USFMBible( None ) # Get a blank object
+        uB = USFMBible( None ) # Create a blank USFM Bible object
         uB.loadSSFData( SSFFilepath )
 ##        print( "ssf" )
 ##        for something in uB.ssfDict:
@@ -1219,7 +1305,7 @@ class Application( Frame ):
             self.setDebugText( "openParatextBibleEditWindow..." )
             assert( os.path.isfile( SSFFilepath ) )
 
-        uB = USFMBible( None ) # Get a blank object
+        uB = USFMBible( None ) # Create a blank USFM Bible object
         uB.loadSSFData( SSFFilepath )
 
         if 'Directory' in uB.ssfDict:
@@ -1701,18 +1787,18 @@ class Application( Frame ):
         Bring all of our windows close.
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doBringAll' )
-        x, y = parseGeometry( self.ApplicationParent.geometry() )[2:4]
+        x, y = parseWindowGeometry( self.ApplicationParent.geometry() )[2:4]
         if x > 30: x = x - 20
         if y > 30: y = y - 20
         for j, win in enumerate( self.childWindows ):
-            geometrySet = parseGeometry( win.geometry() )
+            geometrySet = parseWindowGeometry( win.geometry() )
             #print( geometrySet )
             newX = x + 10*j
             if newX < 10*j: newX = 10*j
             newY = y + 10*j
             if newY < 10*j: newY = 10*j
             geometrySet[2:4] = newX, newY
-            win.geometry( assembleGeometryFromList( geometrySet ) )
+            win.geometry( assembleWindowGeometryFromList( geometrySet ) )
         self.doShowAll()
     # end of Application.doBringAll
 
@@ -1924,12 +2010,12 @@ class Application( Frame ):
     def doHelp( self, event=None ):
         from Help import HelpBox
         helpInfo = ProgNameVersion
-        helpInfo += "\n  Basic instructions:"
-        helpInfo += "\n    Use the Resource menu to open study/reference resources."
-        helpInfo += "\n    Use the Project menu to open editable Bibles."
-        helpInfo += "\n  Keyboard shortcuts:"
+        helpInfo += "\n\nBasic instructions:"
+        helpInfo += "\n  Use the Resource menu to open study/reference resources."
+        helpInfo += "\n  Use the Project menu to open editable Bibles."
+        helpInfo += "\n\nKeyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
-            helpInfo += "\n    {}\t{}".format( name, shortcut )
+            helpInfo += "\n  {}\t{}".format( name, shortcut )
         hb = HelpBox( self.ApplicationParent, APP_NAME, helpInfo )
     # end of Application.doHelp
 
@@ -1942,12 +2028,12 @@ class Application( Frame ):
     # end of Application.doAbout
 
 
-    def doProjectClose( self ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doProjectClose()") )
-        self.notWrittenYet()
-    # end of Application.doProjectClose
+    #def doProjectClose( self ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doProjectClose()") )
+        #self.notWrittenYet()
+    ## end of Application.doProjectClose
 
 
     def writeSettingsFile( self ):
@@ -1963,9 +2049,9 @@ class Application( Frame ):
         main['settingsVersion'] = SettingsVersion
         main['progVersion'] = ProgVersion
         main['themeName'] = self.themeName
-        main['windowGeometry'] = self.ApplicationParent.geometry()
-        main['minimumXSize'] = str( self.minimumXSize )
-        main['minimumYSize'] = str( self.minimumYSize )
+        main['windowSize'], main['windowPosition'] = self.ApplicationParent.geometry().split( '+', 1 )
+        main['minimumSize'] = self.minimumSize
+        main['maximumSize'] = self.maximumSize
 
         # Save the referenceGroups A..D
         self.settings.data['BCVGroups'] = {}
@@ -2026,7 +2112,7 @@ class Application( Frame ):
 
 
 
-def main( homeFolder, loggingFolder ):
+def main( homeFolderPath, loggingFolderPath ):
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -2044,10 +2130,10 @@ def main( homeFolder, loggingFolder ):
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( ProgNameVersion )
-    settings = ApplicationSettings( homeFolder, DATA_FOLDER, SETTINGS_SUBFOLDER, ProgName )
+    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     settings.load()
 
-    application = Application( tkRootWindow, homeFolder, loggingFolder, settings )
+    application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -2059,14 +2145,14 @@ def main( homeFolder, loggingFolder ):
 
 if __name__ == '__main__':
     # Configure basic set-up
-    homeFolder = findHomeFolder()
-    loggingFolder = os.path.join( homeFolder, DATA_FOLDER, LOGGING_SUBFOLDER )
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolder=loggingFolder )
+    homeFolderPath = findHomeFolderPath()
+    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    main( homeFolder, loggingFolder )
+    main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of Biblelator.py

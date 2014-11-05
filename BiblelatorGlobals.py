@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-11-04 (also update ProgVersion below)
+#   Last modified: 2014-11-05 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = "0.21"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = False
@@ -37,7 +37,6 @@ debuggingThisModule = False
 
 import sys, os, re
 from gettext import gettext as _
-#import multiprocessing
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -62,9 +61,10 @@ def t( messageString ):
 
 # Programmed settings
 APP_NAME = 'Biblelator'
-DATA_FOLDER = APP_NAME + 'Data/'
-LOGGING_SUBFOLDER = APP_NAME + 'Logs/'
-SETTINGS_SUBFOLDER = APP_NAME + 'Settings/'
+DATA_FOLDER_NAME = APP_NAME + 'Data/'
+LOGGING_SUBFOLDER_NAME = APP_NAME + 'Logs/'
+SETTINGS_SUBFOLDER_NAME = APP_NAME + 'Settings/'
+PROJECTS_SUBFOLDER_NAME = APP_NAME + 'Projects/'
 
 
 START = '1.0' # constant for tkinter
@@ -74,10 +74,10 @@ MAX_WINDOWS = 20
 
 
 # Default settings (Note: X=width, Y=height)
-MINIMUM_MAIN_X_SIZE, MINIMUM_MAIN_Y_SIZE = 550, 150
-MINIMUM_RESOURCE_X_SIZE, MINIMUM_RESOURCE_Y_SIZE = 350, 150
-MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE = 350, 150
-MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE = 350, 150
+INITIAL_MAIN_SIZE, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '600x360', '550x150', '700x500'
+INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE = '600x360', '350x150', '800x600'
+MINIMUM_HELP_SIZE, MAXIMUM_HELP_SIZE = '350x150', '500x400'
+MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE = '350x150', '500x400'
 
 BIBLE_GROUP_CODES = ( 'A', 'B', 'C', 'D' )
 BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'BySection', 'ByVerse', 'ByBook', 'ByChapter' )
@@ -99,9 +99,9 @@ DEFAULT_KEY_BINDING_DICT = { 'Cut':('Ctrl+x','<Control-X>','<Control-x>'), 'Copy
 
 
 
-def findHomeFolder():
+def findHomeFolderPath():
     """
-    Attempt to find the user's home folder and return it.
+    Attempt to find the path to the user's home folder and return it.
     """
     possibleHomeFolders = ( os.path.expanduser('~'), os.getcwd(), os.curdir, os.pardir )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -109,21 +109,32 @@ def findHomeFolder():
     for folder in possibleHomeFolders:
         if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
             return folder
-# end of BiblelatorGlobals.findHomeFolder
+# end of BiblelatorGlobals.findHomeFolderPath
 
 
-def assembleGeometry( width, height, xOffset, yOffset ):
+def assembleWindowGeometry( width, height, xOffset, yOffset ):
     return "{}x{}+{}+{}".format( width, height, xOffset, yOffset )
-# end of BiblelatorGlobals.assembleGeometry
+# end of BiblelatorGlobals.assembleWindowGeometry
 
 
-def assembleGeometryFromList( geometryValues ):
+def assembleWindowSize( width, height ):
+    return "{}x{}".format( width, height )
+# end of BiblelatorGlobals.assembleWindowSize
+
+
+def assembleWindowGeometryFromList( geometryValues ):
     width, height, xOffset, yOffset = geometryValues
     return "{}x{}+{}+{}".format( width, height, xOffset, yOffset )
-# end of BiblelatorGlobals.assembleGeometryFromList
+# end of BiblelatorGlobals.assembleWindowGeometryFromList
 
 
-def parseGeometry( geometry ):
+def assembleWindowSizeFromList( geometryValues ):
+    width, height = geometryValues
+    return "{}x{}".format( width, height )
+# end of BiblelatorGlobals.assembleWindowSizeFromList
+
+
+def parseWindowGeometry( geometry ):
     """
     Given a TKinter geometry string, e,g., 493x152+820+491 or 493x123+-119+9
         being width, height, xOffset, yOffset
@@ -131,14 +142,30 @@ def parseGeometry( geometry ):
     """
     m = re.match("(\d+)x(\d+)\+(-?\d+)\+(-?\d+)", geometry)
     if not m:
-        raise ValueError( "parseGeometry: failed to parse geometry string {}".format( repr(geometry) ) )
+        raise ValueError( "parseWindowGeometry: failed to parse geometry string {}".format( repr(geometry) ) )
     return [int(digits) for digits in m.groups()]
-# end of BiblelatorGlobals.parseGeometry
+# end of BiblelatorGlobals.parseWindowGeometry
+
+
+def parseWindowSize( geometry ):
+    """
+    Given a TKinter geometry string, e,g., 493x152
+        being width, height
+    return a list containing the two integer values.
+    """
+    m = re.match("(\d+)x(\d+)", geometry)
+    if not m:
+        raise ValueError( "parseWindowSize: failed to parse geometry string {}".format( repr(geometry) ) )
+    return [int(digits) for digits in m.groups()]
+# end of BiblelatorGlobals.parseWindowSize
 
 
 def centreWindow( self, width=400, height=250 ):
     """
     """
+    if isinstance( width, str ): width = int( width )
+    if isinstance( height, str ): height = int( height )
+
     screenWidth = self.winfo_screenwidth()
     screenHeight = self.winfo_screenheight()
 
@@ -153,7 +180,7 @@ def centreWindow( self, width=400, height=250 ):
 def centreWindowOnWindow( self, parentWindow, width=400, height=250 ):
     """
     """
-    parentWidth, parentHeight, parentXOffset, parentYOffset = parseGeometry( parentWindow.geometry() )
+    parentWidth, parentHeight, parentXOffset, parentYOffset = parseWindowGeometry( parentWindow.geometry() )
     #print( "centreWindowOnWindow parent is", "w =",parentWidth, "h =",parentHeight, "x =",parentXOffset, "y =",parentYOffset )
 
     x = parentXOffset + (parentWidth - width) // 2
@@ -174,17 +201,17 @@ def demo():
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
 
-    print( "assembleGeometry( 123, 234, 345, 456 ) = {}".format( assembleGeometry( 123, 234, 345, 456 ) ) )
+    print( "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
-    p1, p2 = parseGeometry( g1 ), parseGeometry( g2 )
-    print( "parseGeometry( {} ) = {}".format( g1, p1 ) )
-    print( "assembleGeometryFromList( {} ) = {}".format( p1, assembleGeometryFromList( p1 ) ) )
-    print( "parseGeometry( {} ) = {}".format( g2, p2 ) )
-    print( "assembleGeometryFromList( {} ) = {}".format( p2, assembleGeometryFromList( p2 ) ) )
+    p1, p2 = parseWindowGeometry( g1 ), parseWindowGeometry( g2 )
+    print( "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
+    print( "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
+    print( "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
+    print( "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
 
     #tkRootWindow = Tk()
     #tkRootWindow.title( ProgNameVersion )
-    #settings = ApplicationSettings( DATA_FOLDER, SETTINGS_SUBFOLDER, ProgName )
+    #settings = ApplicationSettings( DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )

@@ -14,12 +14,14 @@ For an overview of the program design philosophy, see Development.md.
 
     When Biblelator is run the first time, it tries to create a BiblelatorData folder in
     the user's home folder. Inside there, it creates a BiblelatorSettings folder and the
-    file Biblelator.ini inside that. This file can be viewed (or even changed if you are
-    careful) with a simple text editor program. (If Notepad doesn't work, try Wordpad.)
+    file Biblelator.ini inside that. The idea of the settings file is that Biblelator tries
+    to remember the size and position of open windows plus the current Scripture reference
+    position, and to return to the last values when the program is restarted.
 
-    The idea of the settings file is that Biblelator tries to remember the size and position
-    of open windows plus the current Scripture reference position, and to return to the
-    last values when the program is restarted.
+    The settings file can be viewed (or even changed if you are careful) with a simple text
+    editor program. (If Notepad doesn't work, try Wordpad.) Just make sure that Biblelator
+    is closed if you are editing settings, otherwise your changes may be overwritten when
+    Biblelator exits.
 
     If you want to reset Biblelator to its default settings, the settings file can be
     renamed (e.g., to Biblelator.ini.bak) or deleted (if you're sure you don't want to

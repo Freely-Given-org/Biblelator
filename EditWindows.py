@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-11-04 (also update ProgVersion below)
+#   Last modified: 2014-11-05 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.21"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -40,7 +40,6 @@ from gettext import gettext as _
 import multiprocessing
 
 import tkinter as tk
-from tkinter.messagebox import showerror, showinfo
 from tkinter.simpledialog import askstring, askinteger
 from tkinter.filedialog import asksaveasfilename
 from tkinter.colorchooser import askcolor
@@ -48,9 +47,10 @@ from tkinter.ttk import Style, Frame
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, EDIT_MODE_NORMAL, EDIT_MODE_USFM
-from BiblelatorHelpers import YesNoDialog
+from BiblelatorDialogs import showerror, showinfo, YesNoDialog
 from ChildWindows import ChildWindow
 from BibleResourceWindows import BibleResourceWindow
+from BiblelatorHelpers import createEmptyUSFMBook
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -332,8 +332,8 @@ class TextEditWindow( ChildWindow ):
         If it has, and the user hasn't yet made any changes, offer to reload.
         """
         #print( "checkForDiskChanges" )
-        if ( self.lastFiletime and os.stat( self.filePath ).st_mtime != self.lastFiletime ) \
-        or ( self.lastFilesize and os.stat( self.filePath ).st_size != self.lastFilesize ):
+        if ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
+        or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ):
             if self.modified():
                 showerror( APP_NAME, _('File {} has also changed on disk').format( repr(self.filename) ) )
             else: # We haven't modified the file since loading it
@@ -343,7 +343,7 @@ class TextEditWindow( ChildWindow ):
                     self.loadText() # reload
             self.rememberFileTimeAndSize()
         self.after( 2000, self.checkForDiskChanges ) # Redo it so we keep checking
-    # end if TextEditWindow.refreshTitle
+    # end if TextEditWindow.checkForDiskChanges
 
 
     def xxxdoHelp( self, event=None ):
@@ -362,8 +362,8 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doUndo()") )
         try: self.textBox.edit_undo()
-        except tk.TclError:
-            showinfo( APP_NAME, 'Nothing to undo')
+        except tk.TclError: showinfo( APP_NAME, 'Nothing to undo' )
+        self.textBox.update() # force refresh
     # end of TextEditWindow.doUndo
 
 
@@ -371,20 +371,20 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doRedo()") )
         try: self.textBox.edit_redo()
-        except tk.TclError:
-            showinfo( APP_NAME, 'Nothing to redo')
+        except tk.TclError: showinfo( APP_NAME, 'Nothing to redo' )
+        self.textBox.update() # force refresh
     # end of TextEditWindow.doRedo
 
 
     def xxxdoCopy( self ):                           # get text selected by mouse, etc.
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doCopy()") )
-        if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
+        if not self.textBox.tag_ranges( tk.SEL ):
             showerror( APP_NAME, 'No text selected')
-        else:
-            text = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
+        else: # save in cross-app clipboard
+            text = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST )
             self.clipboard_clear()
-            self.clipboard_append(text)
+            self.clipboard_append( text )
     # end of TextEditWindow.doCopy
 
 
@@ -394,7 +394,7 @@ class TextEditWindow( ChildWindow ):
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( APP_NAME, 'No text selected')
         else:
-            self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
+            self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST )
     # end of TextEditWindow.doDelete
 
 
@@ -418,8 +418,8 @@ class TextEditWindow( ChildWindow ):
             showerror( APP_NAME, 'Nothing to paste')
             return
         self.textBox.insert( tk.INSERT, text)          # add at current insert cursor
-        self.textBox.tag_remove( tk.SEL, START, tk.END)
-        self.textBox.tag_add( tk.SEL, tk.INSERT+'-%dc' % len(text), tk.INSERT)
+        self.textBox.tag_remove( tk.SEL, START, tk.END )
+        self.textBox.tag_add( tk.SEL, tk.INSERT+'-%dc' % len(text), tk.INSERT )
         self.textBox.see( tk.INSERT )                   # select it, so it can be cut
     # end of TextEditWindow.doPaste
 
@@ -480,17 +480,17 @@ class TextEditWindow( ChildWindow ):
 
     def doFindReplace( self ):
         """
-        non-modal find/change dialog
+        Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
         """
-        new = Toplevel( self )
-        new.title( 'PyEdit - change')
-        Label(new, text='Find text?', relief=RIDGE, width=15).grid(row=0, column=0)
-        Label(new, text='Change to?', relief=RIDGE, width=15).grid(row=1, column=0)
-        entry1 = Entry(new)
-        entry2 = Entry(new)
-        entry1.grid(row=0, column=1, sticky=EW)
-        entry2.grid(row=1, column=1, sticky=EW)
+        newPopupWindow = Toplevel( self )
+        newPopupWindow.title( '{} - change'.format( APP_NAME ) )
+        Label( newPopupWindow, text='Find text?', relief=RIDGE, width=15).grid( row=0, column=0 )
+        Label( newPopupWindow, text='Change to?', relief=RIDGE, width=15).grid( row=1, column=0 )
+        entry1 = Entry( newPopupWindow )
+        entry2 = Entry( newPopupWindow )
+        entry1.grid( row=0, column=1, sticky=EW )
+        entry2.grid( row=1, column=1, sticky=EW )
 
         def doFind():                         # use my entry in enclosing scope
             self.doFind( entry1.get() )         # runs normal find dialog callback
@@ -498,9 +498,9 @@ class TextEditWindow( ChildWindow ):
         def onApply():
             self.onDoChange( entry1.get(), entry2.get() )
 
-        Button( new, text='Find',  command=doFind ).grid(row=0, column=2, sticky=EW)
-        Button( new, text='Apply', command=onApply).grid(row=1, column=2, sticky=EW)
-        new.columnconfigure(1, weight=1)      # expandable entries
+        Button( newPopupWindow, text='Find',  command=doFind ).grid(row=0, column=2, sticky=EW )
+        Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=EW )
+        newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
     # end of TextEditWindow.doFindReplace
 
 
@@ -511,7 +511,7 @@ class TextEditWindow( ChildWindow ):
             self.textBox.insert( tk.INSERT, changeto)             # deletes if empty
             self.textBox.see( tk.INSERT )
             self.doFind( findtext )                          # goto next appear
-            self.textBox.update()                             # force refresh
+            self.textBox.update() # force refresh
     # end of TextEditWindow.onDoChange
 
 
@@ -567,9 +567,44 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.setAllText
 
 
+    def setFolderPath( self, newFolderPath ):
+        """
+        Store the folder path for where our files will be.
+
+        We're still waiting for the filename.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.setFolderPath( {} )").format( repr(newFolderPath) ) )
+            assert( self.filename is None )
+            assert( self.filepath is None )
+        self.folderPath = newFolderPath
+    # end of TextEditWindow.setFolderPath
+
+    def setFilename( self, filename, createFile=False ):
+        """
+        Store the filepath to our file.
+
+        A complement to the above function.
+
+        Also gets the file size and last edit time so we can detect if it's changed later.
+
+        Returns True/False success flag.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.setFilename( {} )").format( repr(filename) ) )
+            assert( self.folderPath )
+        self.filename = filename
+        self.filepath = os.path.join( self.folderPath, self.filename )
+        if createFile: # Create a blank file
+            with open( self.filepath, mode='wt' ) as theBlankFile: pass # write nothing
+        return self._checkFilepath()
+    # end of TextEditWindow.setFilename
+
     def setPathAndFile( self, folderPath, filename ):
         """
-        Store the filepath to our file. (The alternative function is below.)
+        Store the filepath to our file.
+
+        A more specific alternative to the above two functions. (The other alternative function is below.)
 
         Also gets the file size and last edit time so we can detect if it's changed later.
 
@@ -578,7 +613,7 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.setPathAndFile( {}, {} )").format( repr(folderPath), repr(filename) ) )
         self.folderPath, self.filename = folderPath, filename
-        self.filePath = os.path.join( self.folderPath, self.filename )
+        self.filepath = os.path.join( self.folderPath, self.filename )
         return self._checkFilepath()
     # end of TextEditWindow.setPathAndFile
 
@@ -592,7 +627,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.setFilepath( {} )").format( repr(newFilePath) ) )
-        self.filePath = newFilePath
+        self.filepath = newFilePath
         self.folderPath, self.filename = os.path.split( newFilePath )
         return self._checkFilepath()
     # end of TextEditWindow.setFilepath
@@ -608,13 +643,13 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow._checkFilepath()") )
 
-        if not os.path.isfile( self.filePath ):
-            showerror( APP_NAME, 'No such file path: {}'.format( repr(self.filePath) ) )
+        if not os.path.isfile( self.filepath ):
+            showerror( APP_NAME, 'No such file path: {}'.format( repr(self.filepath) ) )
             return False
-        if not os.access( self.filePath, os.R_OK ):
+        if not os.access( self.filepath, os.R_OK ):
             showerror( APP_NAME, 'No permission to read {} in {}'.format( repr(self.filename), repr(self.folderPath) ) )
             return False
-        if not os.access( self.filePath, os.W_OK ):
+        if not os.access( self.filepath, os.W_OK ):
             showerror( APP_NAME, 'No permission to write {} in {}'.format( repr(self.filename), repr(self.folderPath) ) )
             return False
 
@@ -628,8 +663,8 @@ class TextEditWindow( ChildWindow ):
     def rememberFileTimeAndSize( self ):
         """
         """
-        self.lastFiletime = os.stat( self.filePath ).st_mtime
-        self.lastFilesize = os.stat( self.filePath ).st_size
+        self.lastFiletime = os.stat( self.filepath ).st_mtime
+        self.lastFilesize = os.stat( self.filepath ).st_size
     # end of TextEditWindow.rememberFileTimeAndSize
 
 
@@ -644,9 +679,9 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.loadText()") )
 
-        text = open( self.filePath, 'rt', encoding='utf-8' ).read()
+        text = open( self.filepath, 'rt', encoding='utf-8' ).read()
         if text == None:
-            showerror( APP_NAME, 'Could not decode and open file ' + self.filePath )
+            showerror( APP_NAME, 'Could not decode and open file ' + self.filepath )
             return False
         else:
             self.setAllText( text )
@@ -673,17 +708,18 @@ class TextEditWindow( ChildWindow ):
         Called if the user requests a close from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.doSaveAs()") )
+            print( t("TextEditWindow.doSave()") )
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
                 allText = self.getAllText()
                 with open( filepath, mode='wt' ) as theFile:
                     theFile.write( allText )
+                self.rememberFileTimeAndSize()
                 self.textBox.edit_modified( tk.FALSE ) # clear modified flag
                 self.refreshTitle()
             else: self.doSaveAs()
-    # end of TextEditWindow.doSaveAs
+    # end of TextEditWindow.doSave
 
 
     def doCloseEditor( self, event=None ):
@@ -731,6 +767,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.textBox.destroy()
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
         self.textBox.setTextChangeCallback( self.onTextChange )
+        self.textBox['wrap'] = 'word'
+        self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         #self.createStandardKeyboardBindings()
@@ -749,6 +787,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             self.textBox['inactiveselectbackground'] = 'green'
 
         #self.textBox.bind( '<1>', self.onTextChange )
+        self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
     # end of USFMEditWindow.__init__
 
@@ -781,8 +820,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        fileMenu.add_command( label='Save', underline=0, command=self.notWrittenYet )
-        fileMenu.add_command( label='Save as...', underline=5, command=self.notWrittenYet )
+        fileMenu.add_command( label='Save', underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict['Save'][0] )
+        fileMenu.add_command( label='Save as...', underline=5, command=self.doSaveAs )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
@@ -983,7 +1022,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         if self.internalBible is not None:
             if self.bookText is None:
                 self.lastBBB = BBB
-                self.bookFilename = self.internalBible.possibleFilenameDict[BBB]
+                try: self.bookFilename = self.internalBible.possibleFilenameDict[BBB]
+                except (AttributeError,KeyError): # we have no books!
+                    return None
                 self.bookFilepath = os.path.join( self.internalBible.sourceFolder, self.bookFilename )
                 self.setFilepath( self.bookFilepath ) # For title displays, etc.
                 #print( t('gVD'), BBB, repr(self.bookFilepath), repr(self.internalBible.encoding) )
@@ -1135,12 +1176,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             #print( "contextViewMode", self.contextViewMode )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
 
-        if newVerseKey.getBBB() != self.currentVerseKey.getBBB(): # we've switched books
-            if self.modified():
-                self.showerror( APP_NAME, "Should save text here!" )
+        newBBB = newVerseKey.getBBB()
+        if newBBB != self.currentVerseKey.getBBB(): # we've switched books
+            if self.modified(): self.doSave()
             self.loading = True
             self.clearText() # Leaves the text box enabled
-            self.setAllText( self.getBookData( newVerseKey ) )
+            existingText = self.getBookData( newVerseKey )
+            if existingText is None: # We don't have this book
+                showerror( APP_NAME, "We need to create the book: {}".format( newBBB ) )
+                self.setFilename( '{}-{}.USFM'.format( BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber(newBBB), \
+                                BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation(newBBB) ), createFile=True )
+                self.setAllText( createEmptyUSFMBook( newBBB, self.getNumChapters, self.getNumVerses ), markAsUnmodified=False )
+            else: self.setAllText( existingText )
             self.loading = False
             self.lastCV = None
 
@@ -1181,7 +1228,7 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #Globals.debugFlag = True
+    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )

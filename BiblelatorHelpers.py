@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-11-02 (also update ProgVersion below)
+#   Last modified: 2014-11-04 (also update ProgVersion below)
 #
-# Main program for Biblelator Bible display/editing
+# Various help functions for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2014 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,20 +29,22 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.21"
+ProgVersion = "0.22"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
 
 
-import sys #, os.path, logging
+import sys #, logging
 from gettext import gettext as _
 
-import tkinter as tk
-from tkinter.ttk import Label, Combobox
+#import tkinter as tk
+#import tkinter.messagebox as tkmb
+#from tkinter.ttk import Label, Combobox, Entry
 
 # Biblelator imports
-from ModalDialog import ModalDialog
+from BiblelatorGlobals import APP_NAME
+#from ModalDialog import ModalDialog
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -65,177 +67,24 @@ def t( messageString ):
 
 
 
-def errorBeep():
+def createEmptyUSFMBook( BBB, getNumChapters, getNumVerses ):
     """
+    Returns a string that is the text of a blank USFM book.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("errorBeep()") )
-    #import sys
-    #from subprocess import call
-    #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
-    #elif sys.platform == 'darwin': call(["afplay","dialog-error.ogg"])
-    #else: print( "errorBeep: sp", sys.platform )
-# end of errorBeep
-
-
-
-class YesNoDialog( ModalDialog ):
-    """
-    """
-    def __init__( self, parent, message, title=None ):
-        self.message = message
-        ModalDialog.__init__( self, parent, title, okText=_('Yes'), cancelText=_('No') )
-    # end of YesNoDialog.__init__
-
-
-    def body( self, master ):
-        self.l = Label( master, text=self.message ).grid( row=0 )
-        return self.l
-    # end of YesNoDialog.body
-# end of class YesNoDialog
-
-
-
-class SaveWindowNameDialog( ModalDialog ):
-    """
-    """
-    def __init__( self, parent, existingSettings, title=None ):
-        self.existingSettings = existingSettings
-        self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
-        ModalDialog.__init__( self, parent, title )
-    # end of SaveWindowNameDialog.__init__
-
-
-    def body( self, master ):
-        t1 = _("Enter a new name to save windows set-up")
-        if self.haveExisting: t1 += ', ' + _("or choose an existing name to overwrite")
-        Label( master, text=t1 ).grid( row=0 )
-
-        #cbValues = [_("Enter (optional) new name") if self.haveExisting else _("Enter new set-up name")]
-        cbValues = []
-        if self.haveExisting:
-            for existingName in self.existingSettings:
-                if existingName != 'Current':
-                    cbValues.append( existingName)
-        self.cb = Combobox( master, values=cbValues )
-        #self.cb.current( 0 )
-        self.cb.grid( row=1 )
-
-        return self.cb # initial focus
-    # end of SaveWindowNameDialog.apply
-
-
-    def validate( self ):
-        result = self.cb.get()
-        if not result: return False
-        if not isinstance( result, str ): return False
-        for char in '[]':
-            if char in result: return False
-        return True
-    # end of SaveWindowNameDialog.validate
-
-
-    def apply( self ):
-        self.result = self.cb.get()
-        print( t("New window set-up name is: {}").format( repr(self.result) ) )
-    # end of SaveWindowNameDialog.apply
-# end of class SaveWindowNameDialog
-
-
-
-class DeleteWindowNameDialog( ModalDialog ):
-    """
-    """
-    def __init__( self, parent, existingSettings, title=None ):
-        self.existingSettings = existingSettings
-        self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
-        ModalDialog.__init__( self, parent, title, _("Delete") )
-    # end of DeleteWindowNameDialog.__init__
-
-
-    def body( self, master ):
-        Label( master, text=_("Use to delete a saved windows set-up") ).grid( row=0 )
-
-        #cbValues = [_("Enter (optional) new name") if self.haveExisting else _("Enter new set-up name")]
-        cbValues = []
-        if self.haveExisting:
-            for existingName in self.existingSettings:
-                if existingName != 'Current':
-                    cbValues.append( existingName)
-        self.cb = Combobox( master, state='readonly', values=cbValues )
-        #self.cb.current( 0 )
-        self.cb.grid( row=1 )
-
-        return self.cb # initial focus
-    # end of DeleteWindowNameDialog.apply
-
-
-    def validate( self ):
-        result = self.cb.get()
-        if not result: return False
-        if not isinstance( result, str ): return False
-        return True
-    # end of DeleteWindowNameDialog.validate
-
-
-    def apply( self ):
-        self.result = self.cb.get()
-        print( t("Requested window set-up name is: {}").format( repr(self.result) ) )
-    # end of DeleteWindowNameDialog.apply
-# end of class DeleteWindowNameDialog
-
-
-
-class SelectResourceBox( ModalDialog ):
-    """
-    Given a list of available resources, select one and return the list item.
-    """
-    def __init__( self, parent, availableSettingsList, title=None ):
-        print( "aS", repr(availableSettingsList) ) # Should be a list of tuples
-        if BibleOrgSysGlobals.debugFlag: assert( isinstance( availableSettingsList, list ) )
-        self.availableSettingsList = availableSettingsList
-        ModalDialog.__init__( self, parent, title )
-    # end of SelectResourceBox.__init__
-
-
-    def body( self, master ):
-        Label( master, text=_("Select a resource to open") ).grid( row=0 )
-
-        self.lb = tk.Listbox( master, selectmode=tk.EXTENDED )
-        """ Note: selectmode can be
-            SINGLE (just a single choice),
-            BROWSE (same, but the selection can be moved using the mouse),
-            MULTIPLE (multiple item can be choosen, by clicking at them one at a time), or
-            tk.EXTENDED (multiple ranges of items can be chosen using the Shift and Control keyboard modifiers).
-            The default is BROWSE.
-            Use MULTIPLE to get “checklist” behavior,
-            and tk.EXTENDED when the user would usually pick only one item,
-                but sometimes would like to select one or more ranges of items. """
-        for item in self.availableSettingsList:
-            #print( "it", repr(item) )
-            if isinstance( item, tuple ): item = item[0]
-            self.lb.insert( tk.END, item )
-        self.lb.grid( row=1 )
-
-        return self.lb # initial focus
-    # end of SelectResourceBox.apply
-
-
-    def validate( self ):
-        """
-        Must be at least one selected (otherwise force them to select CANCEL).
-        """
-        return self.lb.curselection()
-    # end of SelectResourceBox.validate
-
-
-    def apply( self ):
-        items = self.lb.curselection()
-        print( "items", repr(items) ) # a tuple
-        self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
-        print( t("Requested resource(s) is/are: {}").format( repr(self.result) ) )
-    # end of SelectResourceBox.apply
-# end of class SelectResourceBox
-
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( t("createEmptyUSFMBook( {} )").format( BBB ) )
+    USFMAbbreviation = BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation( BBB )
+    USFMNumber = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber( BBB )
+    bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME )
+    bookText += '\\ide UTF-8\n'
+    bookText += '\\h Bookname\n'
+    bookText += '\\mt Book Title\n'
+    for C in range( 1, getNumChapters(BBB)+1 ):
+        bookText += '\\c {}\n'.format( C )
+        for V in range( 1, getNumVerses(BBB,C) ):
+            bookText += '\\v {} \n'.format( V )
+    return bookText
+# end of BiblelatorHelpers.createEmptyUSFMBook
 
 
 def demo():
@@ -262,7 +111,7 @@ def demo():
 
     # Start the program running
     #tkRootWindow.mainloop()
-# end of Biblelator.demo
+# end of BiblelatorHelpers.demo
 
 
 if __name__ == '__main__':
