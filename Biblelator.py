@@ -159,6 +159,7 @@ class Application( Frame ):
 
         # Set default folders
         self.lastFileDir = '.'
+        self.lastBiblelatorFileDir = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME )
         self.lastParatextFileDir = './'
         self.lastInternalBibleDir = './'
         if sys.platform.startswith( 'win' ):
@@ -1154,6 +1155,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doStartNewProject()") )
         gnpn = GetNewProjectName( self, title=_("New Project Name") )
+        if not gnpn.result: return
         if gnpn.result: # This is a dictionary
             projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
             newFolderPath = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME, projAbbrev )
@@ -1181,7 +1183,13 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doOpenBiblelatorProject()") )
-        self.notWrittenYet()
+        openDialog = Directory( initialdir=self.lastBiblelatorFileDir )
+        requestedFolder = openDialog.show()
+        if not requestedFolder: return
+        if not os.path.isdir( requestedFolder ):
+            showerror( APP_NAME, 'Could not find folder ' + requestedFolder )
+            return
+        self.openBiblelatorBibleEditWindow( requestedFolder )
     # end of Application.doOpenBiblelatorProject
 
     def openBiblelatorBibleEditWindow( self, projectFolderPath, editMode=None, windowGeometry=None ):

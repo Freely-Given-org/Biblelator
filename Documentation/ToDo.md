@@ -9,7 +9,9 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 * Design project menu and save/reopen the current project
+* Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects
+* Consider when the same project/file is opened multiple times
 * Consider toolbars in child windows (and/or hiding the menu)
 * Handle multiple overlapping tags in the HTML window
 * Add "Display by Section" for Bible that have section headings
