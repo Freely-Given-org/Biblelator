@@ -168,10 +168,11 @@ version of Biblelator onto your computer.
 15. Program updates
     If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each
         of them with "git pull" on each folder (or the equivalent command from the GUI if you
-        use TortoiseGit or equivalent.
+        use TortoiseGit or equivalent).
     If you installed Biblelator and/or BibleOrgSys by downloading a zip file from GitHub.com,
         you should regularly update each of them by downloading the latest zip file and
-        extracting them into each folder to overwrite existing files.
+        extracting them into each folder to overwrite existing files. (This won't erase
+        renamed or deleted files, but who cares.)
 
 
 Please see the document GettingStarted.md for help on how the Biblelator resource and project

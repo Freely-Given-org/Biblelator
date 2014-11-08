@@ -9,6 +9,9 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 * Design project menu and save/reopen the current project
+* Get the different views working on the edit window
+* Work on user stylesheets
+* Make a full project properties dialog
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects
 * Consider when the same project/file is opened multiple times
@@ -37,6 +40,8 @@ Things nearer the top of the list are higher in priority.
 * Learn how to install Biblelator on OS X
 * Allow the short-cut keys to be edited within the program
 * Get full multiprocessing working
+* Add progress bars for slow tasks
 * Create an intelligent installer
 * Allow for automatic program updates (choice of stable and development branches)
 * Release version 1.0 (BibleOrgSys versification systems have to be working first)
+* Think more about fonts and writing systems, special Unicode characters, etc.

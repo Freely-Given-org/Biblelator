@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-06 (also update ProgVersion below)
+#   Last modified: 2014-11-08 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -77,6 +77,7 @@ from USFMBible import USFMBible
 
 
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
+BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
 PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 
 
@@ -285,7 +286,7 @@ class Application( Frame ):
         submenuProjectOpenType = tk.Menu( projectMenu, tearoff=False )
         projectMenu.add_cascade( label='Open', underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label='Biblelator...', underline=0, command=self.doOpenBiblelatorProject )
-        submenuProjectOpenType.add_command( label='Bibledit...', underline=0, command=self.doOpenBibleditProject )
+        #submenuProjectOpenType.add_command( label='Bibledit...', underline=0, command=self.doOpenBibleditProject )
         submenuProjectOpenType.add_command( label='Paratext...', underline=0, command=self.doOpenParatextProject )
         projectMenu.add_separator()
         projectMenu.add_command( label='Backup...', underline=0, command=self.notWrittenYet )
@@ -1183,13 +1184,15 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doOpenBiblelatorProject()") )
-        openDialog = Directory( initialdir=self.lastBiblelatorFileDir )
-        requestedFolder = openDialog.show()
-        if not requestedFolder: return
-        if not os.path.isdir( requestedFolder ):
-            showerror( APP_NAME, 'Could not find folder ' + requestedFolder )
+        openDialog = Open( initialdir=self.lastBiblelatorFileDir, filetypes=BIBLELATOR_PROJECT_FILETYPES )
+        projectSettingsFilepath = openDialog.show()
+        if not projectSettingsFilepath: return
+        if not os.path.isfile( projectSettingsFilepath ):
+            showerror( APP_NAME, 'Could not open file ' + projectSettingsFilepath )
             return
-        self.openBiblelatorBibleEditWindow( requestedFolder )
+        containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
+        if BibleOrgSysGlobals.debugFlag: assert( settingsFilename == 'ProjectSettings.ini' )
+        self.openBiblelatorBibleEditWindow( containingFolderPath )
     # end of Application.doOpenBiblelatorProject
 
     def openBiblelatorBibleEditWindow( self, projectFolderPath, editMode=None, windowGeometry=None ):
@@ -1220,12 +1223,12 @@ class Application( Frame ):
 
 
 
-    def doOpenBibleditProject( self ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doOpenBibleditProject()") )
-        self.notWrittenYet()
-    # end of Application.doOpenBibleditProject
+    #def doOpenBibleditProject( self ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doOpenBibleditProject()") )
+        #self.notWrittenYet()
+    ## end of Application.doOpenBibleditProject
 
 
     def doOpenParatextProject( self ):
