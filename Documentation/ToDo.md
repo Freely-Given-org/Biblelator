@@ -8,7 +8,6 @@ Eventually we will use the issue tracker at Github
 
 Things nearer the top of the list are higher in priority.
 
-* Design project menu and save/reopen the current project
 * Get the different views working on the edit window
 * Work on user stylesheets
 * Make a full project properties dialog
@@ -27,6 +26,7 @@ Things nearer the top of the list are higher in priority.
 * Work out how the help system will work and start implementing some content
 * Improve Sword Bible module display
 * Look at doing some windows updates in idle time
+* Design an icon
 * Release version 0.5
 * Improve Strongs (lexicon) HTML display
 * Allow handling of non-English DBP resources

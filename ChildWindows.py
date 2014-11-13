@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ChildWindows.py
-#   Last modified: 2014-11-05 (also update ProgVersion below)
+#   Last modified: 2014-11-11 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = "0.22"
+ProgVersion = "0.23"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -44,7 +44,7 @@ from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, \
+from BiblelatorGlobals import APP_NAME, START, DEFAULT, \
                              MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, parseWindowSize
 from BiblelatorDialogs import errorBeep, showerror, showinfo
 
@@ -265,6 +265,7 @@ class ChildWindow( tk.Toplevel ):
         self.createToolBar()
         self.createContextMenu()
 
+        self.viewMode = DEFAULT
         self.settings = None
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
@@ -298,6 +299,7 @@ class ChildWindow( tk.Toplevel ):
 
 
     def createMenuBar( self ):
+        logging.critical( t("PROGRAMMING ERROR: This 'createMenuBar' method MUST be overridden!") )
         if BibleOrgSysGlobals.debugFlag:
             print( t("This 'createMenuBar' method MUST be overridden!") )
             halt
@@ -361,8 +363,9 @@ class ChildWindow( tk.Toplevel ):
         """
         Designed to be overridden.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("This 'createToolBar' method can be overridden!") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( t("This 'createToolBar' method can be overridden!") )
+        pass
     # end of ChildWindow.createToolBar
 
 
@@ -480,7 +483,7 @@ class ChildWindow( tk.Toplevel ):
 
     def isEmpty( self ):
         return not self.getAllText()
-    # end of ChildWindow.modified
+    # end of ChildWindow.isEmpty
 
 
     def modified( self ):
@@ -491,7 +494,7 @@ class ChildWindow( tk.Toplevel ):
     def getAllText( self ):
         """ Returns all the text as a string. """
         return self.textBox.get( START, tk.END+'-1c' )
-    # end of ChildWindow.modified
+    # end of ChildWindow.getAllText
 
 
     def setAllText( self, newText ):

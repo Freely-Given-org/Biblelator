@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-11-05 (also update ProgVersion below)
+#   Last modified: 2014-11-11 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.22"
+ProgVersion = "0.23"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -106,6 +106,9 @@ class BibleLexiconResourceWindow( ChildWindow ):
 
 
     def createMenuBar( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleLexiconResourceWindow.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative

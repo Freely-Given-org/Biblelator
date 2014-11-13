@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-11-04 (also update ProgVersion below)
+#   Last modified: 2014-11-11 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.22"
+ProgVersion = "0.23"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -42,7 +42,7 @@ from collections import OrderedDict
 import tkinter as tk
 
 # Biblelator imports
-from BiblelatorGlobals import START, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
+from BiblelatorGlobals import START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
 from ChildWindows import ChildWindow
 
 # BibleOrgSys imports
@@ -77,17 +77,17 @@ def t( messageString ):
 
 
 class BibleResourceWindow( ChildWindow ):
-    def __init__( self, parentApp, moduleID ):
-        if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {} )").format( parentApp, moduleID ) )
-        self.parentApp, self.moduleID = parentApp, moduleID
+    def __init__( self, parentApp, winType, moduleID ):
+        if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {}, {} )").format( parentApp, winType, moduleID ) )
+        self.parentApp, self.winType, self.moduleID = parentApp, winType, moduleID
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self._viewRadio, self._groupRadio = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
-        self.contextViewMode = 'Default'
+        self.contextViewMode = DEFAULT
         self.currentVerseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
 
-        if self.contextViewMode=='Default':
+        if self.contextViewMode == DEFAULT:
             self.contextViewMode = 'BeforeAndAfter'
             self.parentApp.viewVersesBefore, self.parentApp.viewVersesAfter = 2, 6
         ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
@@ -119,11 +119,14 @@ class BibleResourceWindow( ChildWindow ):
         self.getBookList = self.BibleOrganisationalSystem.getBookList
         self.maxChapters, self.maxVerses = 150, 150 # temp
 
-        self.cache = OrderedDict()
+        self.verseCache = OrderedDict()
     # end of BibleResourceWindow.__init__
 
 
     def createMenuBar( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceWindow.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
@@ -183,7 +186,7 @@ class BibleResourceWindow( ChildWindow ):
         gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadio, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadio, command=self.changeBibleGroupCode )
 
-        self.viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
         self.menubar.add_cascade( menu=self.viewMenu, label='View', underline=0 )
         if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
         elif self.contextViewMode == 'BySection': self._viewRadio.set( 2 )
@@ -197,6 +200,10 @@ class BibleResourceWindow( ChildWindow ):
         self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadio, command=self.changeBibleContextView )
+
+        if 'DBP' in self.winType: # disable excessive online use
+            self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
+            self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
@@ -442,17 +449,17 @@ class BibleResourceWindow( ChildWindow ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("getCachedVerseData( {} )").format( verseKey ) )
-        if str(verseKey) in self.cache:
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getCachedVerseData( {} )").format( verseKey ) )
+        verseKeyHash = verseKey.makeHash()
+        if verseKeyHash in self.verseCache:
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceWindow cache") )
-            self.cache.move_to_end( str(verseKey) )
-            return self.cache[str(verseKey)]
+            self.verseCache.move_to_end( verseKeyHash )
+            return self.verseCache[verseKeyHash]
         verseData = self.getVerseData( verseKey )
-        self.cache[str(verseKey)] = verseData
-        if len(self.cache) > MAX_CACHED_VERSES:
-            #print( "Removing oldest cached entry", len(self.cache) )
-            self.cache.popitem( last=False )
+        self.verseCache[verseKeyHash] = verseData
+        if len(self.verseCache) > MAX_CACHED_VERSES:
+            #print( "Removing oldest cached entry", len(self.verseCache) )
+            self.verseCache.popitem( last=False )
         return verseData
     # end of BibleResourceWindow.getCachedVerseData
 
@@ -460,15 +467,25 @@ class BibleResourceWindow( ChildWindow ):
     def displayAppendVerse( self, firstFlag, verseKey, verseDataList, currentVerse=False ):
         """
         Add the requested verse to the end of self.textBox.
+
+        It connects the USFM markers as stylenames while it's doing it
+            and adds the CV marks at the same time for navigation.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #try: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
             #except UnicodeEncodeError: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+
+        BBB, C, V = verseKey.getBCV()
+        markName = 'C{}V{}'.format( C, V )
+        self.textBox.mark_set( markName, tk.INSERT )
+        self.textBox.mark_gravity( markName, tk.LEFT )
         lastCharWasSpace = haveTextFlag = not firstFlag
+
         if verseDataList is None:
-            print( "  ", verseKey, "has no data for", self.moduleID )
+            if C!='0': print( "  ", verseKey, "has no data for", self.moduleID )
             #self.textBox.insert( tk.END, '--' )
-        else:
+        elif self.viewMode == DEFAULT:
+            # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             for entry in verseDataList:
                 if isinstance( entry, tuple ):
                     marker, cleanText = entry[0], entry[3]
@@ -528,6 +545,8 @@ class BibleResourceWindow( ChildWindow ):
                     haveTextFlag = True
                 else:
                     logging.critical( t("BibleResourceWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
+        else:
+            logging.critical( t("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
     # end of BibleResourceWindow.displayAppendVerse
 
 
@@ -555,8 +574,8 @@ class BibleResourceWindow( ChildWindow ):
                     if prevIntC != 0: # we can expect an error for chapter zero
                         logging.critical( t("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
                     failed = True
-                if not failed:
-                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+                #if not failed:
+                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
             else:
                 prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
                 if prevBBB is None: failed = True
@@ -628,12 +647,11 @@ class BibleResourceWindow( ChildWindow ):
         self.clearText() # Leaves the text box enabled
         startingFlag = True
 
-        # Temp since disabling menu entries doesn't seem to be working
-        if 'DBP' in self.winType:
-            if self.contextViewMode in ('ByBook', 'ByChapter' ):
-                print( t("updateShownBCV: temp converted contextViewMode for DBP") )
-                self._viewRadio.set( 1 ) # BeforeAndAfter
-                self.changeBibleContextView()
+        # Safety-check in case they edited the settings file
+        if 'DBP' in self.winType and self.contextViewMode in ('ByBook','ByChapter',):
+            print( t("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
+            self._viewRadio.set( 3 ) # ByVerse
+            self.changeBibleContextView()
 
         if self.contextViewMode == 'BeforeAndAfter':
             bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
@@ -653,7 +671,7 @@ class BibleResourceWindow( ChildWindow ):
             self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
             BBB, C, V = newVerseKey.getBCV()
             intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            print( "BySection is not finished yet -- just shows a single verse!" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             #for thisC in range( 0, self.getNumChapters( BBB ) ):
                 #try: numVerses = self.getNumVerses( BBB, thisC )
                 #except KeyError: numVerses = 0
@@ -693,11 +711,18 @@ class BibleResourceWindow( ChildWindow ):
             if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
         self.textBox['state'] = tk.DISABLED # Don't allow editing
+
+        # Make sure we can see what we're supposed to be looking at
+        desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
+        try: self.textBox.see( desiredMark )
+        except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
+        self.lastCVMark = desiredMark
+
         self.refreshTitle()
     # end of BibleResourceWindow.updateShownBCV
 
 
-    def setAllText( self, newBibleText, markAsUnmodified=True ):
+    def setAllText( self, newBibleText ): #, markAsUnmodified=True ):
         """
         Sets the textBox (assumed to be enabled) to the given Bible text.
 
@@ -737,9 +762,9 @@ class BibleResourceWindow( ChildWindow ):
         #self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
         #self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
-        if markAsUnmodified:
-            self.textBox.edit_reset() # clear undo/redo stks
-            self.textBox.edit_modified( False ) # clear modified flag
+        #if markAsUnmodified:
+        self.textBox.edit_reset() # clear undo/redo stks
+        self.textBox.edit_modified( False ) # clear modified flag
     # end of BibleResourceWindow.setAllText
 # end of BibleResourceWindow class
 
@@ -749,8 +774,8 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
     def __init__( self, parentApp, moduleAbbreviation ):
         if BibleOrgSysGlobals.debugFlag: print( "SwordBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
-        BibleResourceWindow.__init__( self, self.parentApp, self.moduleAbbreviation )
-        self.winType = 'SwordBibleResourceWindow'
+        BibleResourceWindow.__init__( self, self.parentApp, 'SwordBibleResourceWindow', self.moduleAbbreviation )
+        #self.winType = 'SwordBibleResourceWindow'
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
         self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
@@ -772,8 +797,8 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("SwordBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( t("SwordBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
@@ -805,17 +830,12 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
 
         self.DBPModule = None # (for refreshTitle called from the base class)
-        BibleResourceWindow.__init__( self, self.parentApp, self.moduleAbbreviation )
-        self.winType = 'DBPBibleResourceWindow'
+        BibleResourceWindow.__init__( self, self.parentApp, 'DBPBibleResourceWindow', self.moduleAbbreviation )
+        #self.winType = 'DBPBibleResourceWindow'
 
         # Disable excessive online use
-        #for j in range( 0,3+1 ):
-            #print( j, self.viewMenu.entryconfigure( j ) )
-        self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED ) # Why don't these work???
+        self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
         self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
-        #for j in range( 0,3+1 ):
-            #print( j, self.viewMenu.entryconfigure( j ) )
-        #self.config( menu=self.menubar ) # alternative
 
         try: self.DBPModule = DBPBible( self.moduleAbbreviation )
         except FileNotFoundError:
@@ -860,8 +880,8 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         self.parentApp, self.modulePath = parentApp, modulePath
 
         self.internalBible = None # (for refreshTitle called from the base class)
-        BibleResourceWindow.__init__( self, self.parentApp, self.modulePath )
-        self.winType = 'InternalBibleResourceWindow'
+        BibleResourceWindow.__init__( self, self.parentApp, 'InternalBibleResourceWindow', self.modulePath )
+        #self.winType = 'InternalBibleResourceWindow'
 
         try: self.UnknownBible = UnknownBible( self.modulePath )
         except FileNotFoundError:

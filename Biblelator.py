@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-08 (also update ProgVersion below)
+#   Last modified: 2014-11-11 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.22"
+ProgVersion = "0.23"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.22" # Only need to change this if the settings format has changed
+SettingsVersion = "0.23" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -177,24 +177,6 @@ class Application( Frame ):
         self.parseAndApplySettings()
         if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
             centreWindow( self.ApplicationParent, *INITIAL_MAIN_SIZE.split( 'x', 1 ) )
-
-##        # Open some sample windows if we don't have any already
-##        if not self.childWindows \
-##        and BibleOrgSysGlobals.debugFlag and debuggingThisModule: # Just for testing/kickstarting
-##            print( t("Application.__init__ Opening sample resources...") )
-##            self.openSwordBibleResourceWindow( 'KJV' )
-##            self.openSwordBibleResourceWindow( 'ASV' )
-##            self.openSwordBibleResourceWindow( 'WEB' )
-##            p1 = '../../../../../Data/Work/Matigsalug/Bible/MBTV/'
-##            p2 = 'C:\\My Paratext Projects\\MBTV\\'
-##            p = p1 if os.path.exists( p1 ) else p2
-##            self.openInternalBibleResourceWindow( p )
-##            self.openUSFMBibleEditWindow( p, EDIT_MODE_NORMAL )
-##            #self.openHebrewLexiconResourceWindow( None )
-##            #self.openGreekLexiconResourceWindow( None )
-##            self.openBibleLexiconResourceWindow( None )
-##            self.openDBPBibleResourceWindow( 'ENGESV' )
-##            self.openDBPBibleResourceWindow( 'MBTWBT' )
 
         self.createMenuBar()
         self.createNavigationBar()
@@ -480,6 +462,16 @@ class Application( Frame ):
     # end of Application.createToolBar
 
 
+    def halt( self ):
+        """
+        Halts the program immediately without saving any files or settings.
+        Only used in debug mode.
+        """
+        logging.critical( "User selected HALT in DEBUG MODE. Not saving any files or settings!" )
+        self.quit()
+    # end of Application.halt
+
+
     def createDebugToolBar( self ):
         """
         Create a debug tool bar containing several additional buttons at the top of the main window.
@@ -490,7 +482,8 @@ class Application( Frame ):
                                             background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='DebugToolBar.TFrame' )
-        Button( toolbar, text='Halt', style='Halt.TButton', command=self.quit ).pack( side=tk.RIGHT, padx=2, pady=2 )
+        Button( toolbar, text='Halt', style='Halt.TButton', command=self.halt ).pack( side=tk.RIGHT, padx=2, pady=2 )
+        Button( toolbar, text='Save settings', command=self.writeSettingsFile ).pack( side=tk.RIGHT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of Application.createDebugToolBar
 
@@ -760,7 +753,7 @@ class Application( Frame ):
                     if contextViewMode:
                         if BibleOrgSysGlobals.debugFlag: assert( contextViewMode in BIBLE_CONTEXT_VIEW_MODES )
                         rw.contextViewMode = contextViewMode
-                        rw.createMenuBar()
+                        rw.createMenuBar() # in order to show the correct contextViewMode
     # end of Application.applyGivenWindowsSettings
 
 
@@ -1213,7 +1206,7 @@ class Application( Frame ):
         uEW.moduleID = projectFolderPath
         uEW.setFolderPath( projectFolderPath )
         uEW.settings = ProjectSettings( projectFolderPath )
-        uEW.settings.loadUSFMData( uB )
+        uEW.settings.loadUSFMMetadataInto( uB )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
         self.childWindows.append( uEW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBiblelatorBibleEditWindow" )

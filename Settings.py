@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Settings.py
-#   Last modified: 2014-11-06 (also update ProgVersion below)
+#   Last modified: 2014-11-09 (also update ProgVersion below)
 #
 # Handle settings for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = "0.22"
+ProgVersion = "0.23"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -216,11 +216,13 @@ class ProjectSettings( Settings ):
     # end of ProjectSettings.saveNameAndAbbreviation
 
 
-    def loadUSFMData( self, theUSFMBible ):
+    def loadUSFMMetadataInto( self, theUSFMBible ):
         """
+        Using metadata from the project settings file,
+            load the information into the given USFMBible object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("ProjectSettings.loadUSFMData( {} )").format( theUSFMBible ) )
+            print( t("ProjectSettings.loadUSFMMetadataInto( {} )").format( theUSFMBible ) )
 
         self.load() # Load the project settings into self.data
 
@@ -229,7 +231,7 @@ class ProjectSettings( Settings ):
         except KeyError: logging.critical( "Missing {} field in {} project settings".format( "'Name'", repr(self.folderName) ) )
         try: theUSFMBible.abbreviation = main['Abbreviation']
         except KeyError: logging.critical( "Missing {} field in {} project settings".format( "'Abbreviation'", repr(self.folderName) ) )
-    # end of ProjectSettings.loadUSFMData
+    # end of ProjectSettings.loadUSFMMetadataInto
 # end of class ProjectSettings
 
 
