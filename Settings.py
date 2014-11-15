@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Settings.py
-#   Last modified: 2014-11-09 (also update ProgVersion below)
+#   Last modified: 2014-11-14 (also update ProgVersion below)
 #
 # Handle settings for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = "0.23"
+ProgVersion = "0.24"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -110,6 +110,9 @@ class Settings:
         assert( self.data )
         if self.settingsFilepath and os.path.isfile( self.settingsFilepath ) and os.access( self.settingsFilepath, os.R_OK ):
             self.data.read( self.settingsFilepath )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            for section in self.data:
+                print( "  s.d main section =", section )
     #end of Settings.load
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ChildWindows.py
-#   Last modified: 2014-11-11 (also update ProgVersion below)
+#   Last modified: 2014-11-15 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = "0.23"
+ProgVersion = "0.24"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -453,21 +453,23 @@ class ChildWindow( tk.Toplevel ):
 
     def doShowInfo( self, event=None ):
         """
-        pop-up dialog giving text statistics and cursor location;
+        Pop-up dialog giving text statistics and cursor location;
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("ChildWindow.doShowInfo()") )
         text  = self.getAllText()
-        bytes = len( text )             # words uses a simple guess:
-        lines = len( text.split('\n') ) # any separated by whitespace
-        words = len( text.split() )     # 3.x: bytes is really chars
-        index = self.textBox.index( tk.INSERT ) # str is unicode code points
-        where = tuple( index.split('.') )
-        showinfo( APP_NAME+' Information',
-                 'Current location:\n\n' +
-                 'line:\t%s\ncolumn:\t%s\n\n' % where +
-                 'File text statistics:\n\n' +
-                 'chars:\t{}\nlines:\t{}\nwords:\t{}\n'.format( bytes, lines, words) )
+        numChars = len( text )
+        numLines = len( text.split('\n') )
+        numWords = len( text.split() )
+        index = self.textBox.index( tk.INSERT )
+        atLine, atColumn = index.split('.')
+        showinfo( 'Window Information',
+                 'Current location:\n' +
+                 '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) +
+                 '\nFile text statistics:\n' +
+                 '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}\n'.format( numChars, numLines, numWords ) )
     # end of ChildWindow.doShowInfo
 
 

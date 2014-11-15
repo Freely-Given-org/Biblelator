@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-11 (also update ProgVersion below)
+#   Last modified: 2014-11-15 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.23"
+ProgVersion = "0.24"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.23" # Only need to change this if the settings format has changed
+SettingsVersion = "0.24" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -274,7 +274,7 @@ class Application( Frame ):
         projectMenu.add_command( label='Backup...', underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label='Restore...', underline=0, command=self.notWrittenYet )
         #projectMenu.add_separator()
-        #projectMenu.add_command( label='Close', underline=0, command=self.doProjectClose )
+        #projectMenu.add_command( label='Export', underline=1, command=self.doProjectExports )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label='Resources', underline=0 )
@@ -501,7 +501,7 @@ class Application( Frame ):
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
-        self.setStatus( "Starting up..." )
+        self.setWaitStatus( "Starting up..." )
     # end of Application.createStatusBar
 
 
@@ -554,8 +554,25 @@ class Application( Frame ):
             self.statusTextLabel.update()
     # end of Application.setStatus
 
+    def setWaitStatus( self, newStatus ):
+        """
+        Set the status bar text and change the cursor to the wait/hourglass cursor.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("setWaitStatus( {} )").format( repr(newStatus) ) )
+        self.config( cursor='wait' )
+        self.setStatus( newStatus )
+        self.update()
+    # end of Application.setWaitStatus
+
     def setReadyStatus( self ):
+        """
+        Sets the status line to "Ready"
+            and sets the cursor to the normal cursor.
+        """
         self.setStatus( _("Ready") )
+        self.config( cursor='' )
+    # end of Application.setReadyStatus
 
 
     def setDebugText( self, newMessage=None ):
@@ -642,12 +659,16 @@ class Application( Frame ):
         #try: self.ApplicationParent.geometry( self.settings.data[ProgName]['windowGeometry'] )
         #except KeyError: print( "KeyError1" ) # we had no geometry set
         #except tk.TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
-        windowSize = self.settings.data[ProgName]['windowSize'] if 'windowSize' in self.settings.data[ProgName] else None
-        windowPosition = self.settings.data[ProgName]['windowPosition'] if 'windowPosition' in self.settings.data[ProgName] else None
-        if windowSize and windowPosition: self.ApplicationParent.geometry( windowSize + '+' + windowPosition )
+        try:
+            windowSize = self.settings.data[ProgName]['windowSize'] if 'windowSize' in self.settings.data[ProgName] else None
+            windowPosition = self.settings.data[ProgName]['windowPosition'] if 'windowPosition' in self.settings.data[ProgName] else None
+            #print( "ws", repr(windowSize), "wp", repr(windowPosition) )
+            if windowSize and windowPosition: self.ApplicationParent.geometry( windowSize + '+' + windowPosition )
+            else: logging.warning( "Settings.KeyError: no windowSize & windowPosition" )
+        except KeyError: pass # no [ProgName] entries
 
         try: self.doChangeTheme( self.settings.data[ProgName]['themeName'] )
-        except KeyError: print( "KeyError2" ) # we had no theme name set
+        except KeyError: logging.warning( "Settings.KeyError: no themeName" )
 
         try: self.currentVerseKeyGroup = self.settings.data['BCVGroups']['currentGroup']
         except KeyError: self.currentVerseKeyGroup = 'A'
@@ -855,7 +876,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("doOpenDBPBibleResource()") )
             self.setDebugText( "doOpenDBPBibleResource..." )
-        self.setStatus( "doOpenDBPBibleResource..." )
+        self.setWaitStatus( "doOpenDBPBibleResource..." )
         if self.DBPInterface is None:
             self.DBPInterface = DBPBibles()
             availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
@@ -930,7 +951,7 @@ class Application( Frame ):
             #print( "srbResult", repr(srb.result) )
             if srb.result:
                 for entry in srb.result:
-                    self.setStatus( _("Loading {} Sword module...").format( repr(entry) ) )
+                    self.setWaitStatus( _("Loading {} Sword module...").format( repr(entry) ) )
                     self.openSwordBibleResourceWindow( entry )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
@@ -1019,7 +1040,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("doOpenBibleLexiconResource()") )
             self.setDebugText( "doOpenBibleLexiconResource..." )
-        self.setStatus( "doOpenBibleLexiconResource..." )
+        self.setWaitStatus( "doOpenBibleLexiconResource..." )
         #requestedFolder = askdirectory()
         #if requestedFolder:
         requestedFolder = None
@@ -1344,6 +1365,13 @@ class Application( Frame ):
     # end of Application.openParatextBibleEditWindow
 
 
+    #def doProjectExports( self ):
+    #    """
+    #    Taking the
+    #    """
+    ## end of Application.openParatextBibleEditWindow
+
+        
     def goBack( self, event=None ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("goBack()") )

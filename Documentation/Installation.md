@@ -112,6 +112,8 @@ version of Biblelator onto your computer.
         depending on your Python3 version number.
     This test run of the program should just display the Biblelator version number
         and then exit immediately.
+    If you see the error "ImportError: No module named tkinter", check in case you are
+	accidentally using Python 2 rather than Python 3.
     If the program does not run, please copy the contents of the command window,
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
 
@@ -165,7 +167,13 @@ version of Biblelator onto your computer.
     Then hopefully we can get you started with basic access to these modules.
 
 
-15. Program updates
+15. PhotoBible
+    If you wish to use the PhotoBible export option for your USFM projects, you need to install
+	the free ImageMagick package. For Linux, this can usually be installed from your package
+	manager, and for Windows, the exe installation files can be downloaded from
+	http://www.imagemagick.org/download/binaries.
+
+16. Program updates
     If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each
         of them with "git pull" on each folder (or the equivalent command from the GUI if you
         use TortoiseGit or equivalent).

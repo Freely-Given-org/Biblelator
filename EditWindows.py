@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-11-13 (also update ProgVersion below)
+#   Last modified: 2014-11-15 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -29,11 +29,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.23"
+ProgVersion = "0.24"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
-
 
 import sys, os.path, configparser, logging
 from gettext import gettext as _
@@ -58,6 +57,7 @@ sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
+from BibleWriter import setDefaultControlFolder
 
 
 
@@ -519,26 +519,6 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.onDoChange
 
 
-    def xxxdoShowInfo( self, event=None ):
-        """
-        pop-up dialog giving text statistics and cursor location;
-        caveat (2.1): Tk insert position column counts a tab as one
-        character: translate to next multiple of 8 to match visual?
-        """
-        text  = self.getAllText()
-        bytes = len( text )             # words uses a simple guess:
-        lines = len( text.split('\n') ) # any separated by whitespace
-        words = len( text.split() )     # 3.x: bytes is really chars
-        index = self.textBox.index( tk.INSERT ) # str is unicode code points
-        where = tuple( index.split('.') )
-        showinfo( APP_NAME+' Information',
-                 'Current location:\n\n' +
-                 'line:\t%s\ncolumn:\t%s\n\n' % where +
-                 'File text statistics:\n\n' +
-                 'chars:\t{}\nlines:\t{}\nwords:\t{}\n'.format( bytes, lines, words) )
-    # end of TextEditWindow.doShowInfo
-
-
     ############################################################################
     # Utilities, useful outside this class
     ############################################################################
@@ -667,7 +647,7 @@ class TextEditWindow( ChildWindow ):
 
     def doSaveAs( self, event=None ):
         """
-        Called if the user requests a close from the GUI.
+        Called if the user requests a saveAs from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doSaveAs()") )
@@ -681,7 +661,7 @@ class TextEditWindow( ChildWindow ):
 
     def doSave( self, event=None ):
         """
-        Called if the user requests a close from the GUI.
+        Called if the user requests a save from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doSave()") )
@@ -769,6 +749,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
         self.bookText = None # The current text for this book
+        self.exportFolderPathname = None
     # end of USFMEditWindow.__init__
 
 
@@ -805,14 +786,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
         fileMenu.add_command( label='Save', underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict['Save'][0] )
         fileMenu.add_command( label='Save as...', underline=5, command=self.doSaveAs )
-        #fileMenu.add_separator()
+        fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
-        #subfileMenuExport = tk.Menu( fileMenu )
-        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
+        #fileMenu.add_command( label='Export', underline=1, command=self.doMostExports )
+        subfileMenuExport = tk.Menu( fileMenu )
+        subfileMenuExport.add_command( label='Quick exports', underline=0, command=self.doMostExports )
+        subfileMenuExport.add_command( label='PhotoBible', underline=0, command=self.doPhotoBibleExport )
+        subfileMenuExport.add_command( label='ODFs', underline=0, command=self.doODFsExport )
+        subfileMenuExport.add_command( label='PDFs', underline=1, command=self.doPDFsExport )
+        subfileMenuExport.add_command( label='All exports', underline=0, command=self.doAllExports )
+        fileMenu.add_cascade( label='Export', underline=1, menu=subfileMenuExport )
         fileMenu.add_separator()
         fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo )
         fileMenu.add_separator()
@@ -882,6 +867,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
+        #toolsMenu.add_separator()
         toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
@@ -996,6 +982,34 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
             #self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V )
             self.after_idle( lambda: self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V ) )
     # end of USFMEditWindow.onTextChange
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog giving text statistics and cursor location;
+        caveat (2.1): Tk insert position column counts a tab as one
+        character: translate to next multiple of 8 to match visual?
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.doShowInfo()") )
+        text  = self.getAllText()
+        numChars = len( text )
+        numLines = len( text.split( '\n' ) )
+        numWords = len( text.split() )
+        index = self.textBox.index( tk.INSERT )
+        atLine, atColumn = index.split('.')
+        BBB, C, V = self.currentVerseKey.getBCV()
+        numChaps = text.count( '\\c ' )
+        numVerses = text.count( '\\v ' )
+        numSectionHeadings = text.count('\\s ')+text.count('\\s1 ')+text.count('\\s2 ')+text.count('\\s3 ')+text.count('\\s4 ')
+        showinfo( '{} Window Information'.format( BBB ),
+                 'Current location:\n' +
+                 '  Chap:\t{}\n  Verse:\t{}\n'.format( C, V ) +
+                 '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) +
+                 '\nFile text statistics:\n' +
+                 '  Chapts:\t{}\n  Verses:\t{}\n  Sections:\t{}\n'.format( numChaps, numVerses, numSectionHeadings ) +
+                 '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}\n'.format( numChars, numLines, numWords ) )
+    # end of USFMEditWindow.doShowInfo
 
 
     def modified( self ):
@@ -1456,6 +1470,83 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
 
         self.refreshTitle()
     # end of USFMEditWindow.updateShownBCV
+
+
+    def _prepareForExports( self ):
+        """
+        Prepare to do some of the exports available in BibleOrgSys.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.prepareForExports()") )
+        if self.modified(): self.doSave()
+        if self.internalBible is not None:
+            self.parentApp.setWaitStatus( _("Preparing for export...") )
+            if self.exportFolderPathname is None:
+                fp = self.folderPath
+                if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
+                self.exportFolderPathname = fp + 'Export/'
+                #print( "eFolder", repr(self.exportFolderPathname) )
+                if not os.path.exists( self.exportFolderPathname ):
+                    os.mkdir( self.exportFolderPathname )
+            self.internalBible.load()
+            setDefaultControlFolder( '../BibleOrgSys/ControlFiles/' )
+            self.parentApp.setStatus( _("Export in process...") )
+    # end of USFMEditWindow._prepareForExports
+
+    def doMostExports( self ):
+        """
+        Do most of the quicker exports available in BibleOrgSys.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.doMostExports()") )
+        self._prepareForExports()
+        self.internalBible.doAllExports( self.exportFolderPathname )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doMostExports
+
+    def doPhotoBibleExport( self ):
+        """
+        Do the BibleOrgSys PhotoBible export.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.doPhotoBibleExport()") )
+        self._prepareForExports()
+        self.internalBible.toPhotoBible( os.path.join( self.exportFolderPathname, 'BOS_PhotoBible_Export/' ) )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doPhotoBibleExport
+
+    def doODFsExport( self ):
+        """
+        Do the BibleOrgSys ODFsExport export.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.doODFsExport()") )
+        self._prepareForExports()
+        self.internalBible.toODF( os.path.join( self.exportFolderPathname, 'BOS_ODF_Export/' ) )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doODFsExport
+
+    def doPDFsExport( self ):
+        """
+        Do the BibleOrgSys PDFsExport export.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.doPDFsExport()") )
+        self._prepareForExports()
+        self.internalBible.toTeX( os.path.join( self.exportFolderPathname, 'BOS_PDF(TeX)_Export/' ) )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doPDFsExport
+
+    def doAllExports( self ):
+        """
+        Do all exports available in BibleOrgSys.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.doAllExports()") )
+        self._prepareForExports()
+        self.internalBible.doAllExports( self.exportFolderPathname, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doAllExports
 
 
     def xxcloseEditor( self ):
