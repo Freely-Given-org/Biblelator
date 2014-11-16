@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-15 (also update ProgVersion below)
+#   Last modified: 2014-11-16 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.24"
+ProgVersion = "0.25"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.24" # Only need to change this if the settings format has changed
+SettingsVersion = "0.25" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -59,8 +59,9 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
         SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox, GetNewProjectName
 from Settings import ApplicationSettings, ProjectSettings
-from ChildWindows import ChildWindows, ChildWindow
+from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
+from BibleResourceCollection import BibleResourceCollectionWindow
 from LexiconResourceWindows import BibleLexiconResourceWindow
 from EditWindows import TextEditWindow, USFMEditWindow, ESFMEditWindow
 
@@ -224,17 +225,17 @@ class Application( Frame ):
         fileOpenSubmenu.add_command( label='Text file...', underline=0, command=self.doOpenFileTextEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label='Save all...', underline=0, command=self.notWrittenYet )
-        #subfileMenuImport = tk.Menu( fileMenu )
+        #subfileMenuImport = tk.Menu( fileMenu, tearoff=False )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
-        #subfileMenuExport = tk.Menu( fileMenu )
+        #subfileMenuExport = tk.Menu( fileMenu, tearoff=False )
         #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         fileMenu.add_separator()
         fileMenu.add_command( label='Quit app', underline=0, command=self.doCloseMe, accelerator=self.keyBindingDict['Quit'][0] ) # quit app
 
-        #editMenu = tk.Menu( self.menubar )
+        #editMenu = tk.Menu( self.menubar, tearoff=False )
         #self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
         #editMenu.add_command( label='Find...', underline=0, command=self.notWrittenYet )
         #editMenu.add_command( label='Replace...', underline=0, command=self.notWrittenYet )
@@ -288,9 +289,9 @@ class Application( Frame ):
         #submenuLexiconResourceType.add_command( label='Hebrew...', underline=5, command=self.notWrittenYet )
         #submenuLexiconResourceType.add_command( label='Greek...', underline=0, command=self.notWrittenYet )
         submenuLexiconResourceType.add_command( label='Bible', underline=0, command=self.doOpenBibleLexiconResource )
-        #submenuCommentaryResourceType = tk.Menu( resourcesMenu )
+        #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label='Open commentary', underline=5, menu=submenuCommentaryResourceType )
-        resourcesMenu.add_command( label='Open resource collection...', underline=5, command=self.notWrittenYet )
+        resourcesMenu.add_command( label='Open resource collection', underline=5, command=self.doOpenBibleResourceCollection )
         resourcesMenu.add_separator()
         resourcesMenu.add_command( label='Hide all resources', underline=0, command=self.doHideResources )
 
@@ -317,7 +318,7 @@ class Application( Frame ):
                 if savedName != 'Current':
                     windowMenu.add_command( label=savedName, underline=0, command=self.notWrittenYet )
         windowMenu.add_separator()
-        submenuWindowStyle = tk.Menu( windowMenu )
+        submenuWindowStyle = tk.Menu( windowMenu, tearoff=False )
         windowMenu.add_cascade( label='Theme', underline=0, menu=submenuWindowStyle )
         for themeName in self.style.theme_names():
             submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.doChangeTheme(tN) )
@@ -518,7 +519,7 @@ class Application( Frame ):
                     self.ApplicationParent.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-    # end of ChildWindow.createMainKeyboardBindings()
+    # end of Application.createMainKeyboardBindings()
 
 
     def notWrittenYet( self ):
@@ -738,6 +739,10 @@ class Application( Frame ):
                     rw = self.openBibleLexiconResourceWindow( thisStuff['BibleLexiconPath'], windowGeometry )
                     #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
+                elif winType == 'BibleResourceCollectionWindow':
+                    rw = self.openBibleResourceCollectionWindow( thisStuff['CollectionName'], windowGeometry )
+                    #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
+
                 elif winType == 'PlainTextEditWindow':
                     rw = self.doOpenNewTextEditWindow()
                     #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
@@ -807,6 +812,9 @@ class Application( Frame ):
                     #thisOne['HebrewLexiconPath'] = appWin.lexiconPath
                 elif appWin.winType == 'BibleLexiconResourceWindow':
                     thisOne['BibleLexiconPath'] = appWin.moduleID
+
+                elif appWin.winType == 'BibleResourceCollectionWindow':
+                    thisOne['CollectionName'] = appWin.moduleID
 
                 elif appWin.winType == 'PlainTextEditWindow':
                     pass # ???
@@ -1074,6 +1082,48 @@ class Application( Frame ):
             self.setReadyStatus()
             return bLRW
     # end of Application.openBibleLexiconResourceWindow
+
+
+    def doOpenBibleResourceCollection( self ):
+        """
+        Open a collection of Bible resources (called from a menu/GUI action).
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("doOpenBibleResourceCollection()") )
+            self.setDebugText( "doOpenBibleResourceCollection..." )
+        self.setStatus( "doOpenBibleResourceCollection..." )
+        #requestedFolder = askdirectory()
+        #openDialog = Directory( initialdir=self.lastInternalBibleDir )
+        #requestedFolder = openDialog.show()
+        #if requestedFolder:
+        self.openBibleResourceCollectionWindow( "New" )
+    # end of Application.doOpenBibleResourceCollection
+
+    def openBibleResourceCollectionWindow( self, collectionName, windowGeometry=None ):
+        """
+        Create the actual requested local/internal Bible resource collection window.
+
+        Returns the new BibleCollectionWindow object.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("openBibleResourceCollectionWindow( {} )").format( repr(collectionName) ) )
+            self.setDebugText( "openBibleResourceCollectionWindow..." )
+        BRC = BibleResourceCollectionWindow( self, collectionName )
+        if windowGeometry: BRC.geometry( windowGeometry )
+        #if BRC.internalBible is None:
+        #    logging.critical( t("Application.openBibleResourceCollection: Unable to open resource {}").format( repr(modulePath) ) )
+        #    BRC.closeChildWindow()
+        #    showerror( APP_NAME, _("Sorry, unable to open internal Bible resource") )
+        #    if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleResourceWindow" )
+        #    self.setReadyStatus()
+        #    return None
+        #else:
+        BRC.updateShownBCV( self.getVerseKey( BRC.groupCode ) )
+        self.childWindows.append( BRC )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBibleResourceCollection" )
+        self.setReadyStatus()
+        return BRC
+    # end of Application.openBibleResourceCollectionWindow
 
 
     def doOpenNewTextEditWindow( self ):

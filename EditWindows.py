@@ -29,7 +29,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.24"
+ProgVersion = "0.25"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -215,10 +215,10 @@ class TextEditWindow( ChildWindow ):
         fileMenu.add_command( label='Save', underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict['Save'][0] )
         fileMenu.add_command( label='Save as...', underline=5, command=self.doSaveAs )
         #fileMenu.add_separator()
-        #subfileMenuImport = tk.Menu( fileMenu )
+        #subfileMenuImport = tk.Menu( fileMenu, tearoff=False )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
-        #subfileMenuExport = tk.Menu( fileMenu )
+        #subfileMenuExport = tk.Menu( fileMenu, tearoff=False )
         #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
@@ -266,7 +266,7 @@ class TextEditWindow( ChildWindow ):
 ##        gotoMenu.add_separator()
 ##        gotoMenu.add_command( label='Book', underline=0, command=self.notWrittenYet )
 
-##        viewMenu = tk.Menu( self.menubar )
+##        viewMenu = tk.Menu( self.menubar, tearoff=False )
 ##        self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
 ##        viewMenu.add_command( label='Whole chapter', underline=6, command=self.notWrittenYet )
 ##        viewMenu.add_command( label='Whole book', underline=6, command=self.notWrittenYet )
@@ -293,7 +293,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.createContextMenu()") )
-        self.contextMenu = tk.Menu( self, tearoff=0 )
+        self.contextMenu = tk.Menu( self, tearoff=False )
         self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict['Cut'][0] )
         self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
         self.contextMenu.add_command( label="Paste", underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict['Paste'][0] )
@@ -787,11 +787,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         fileMenu.add_command( label='Save', underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict['Save'][0] )
         fileMenu.add_command( label='Save as...', underline=5, command=self.doSaveAs )
         fileMenu.add_separator()
-        #subfileMenuImport = tk.Menu( fileMenu )
+        #subfileMenuImport = tk.Menu( fileMenu, tearoff=False )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
         #fileMenu.add_command( label='Export', underline=1, command=self.doMostExports )
-        subfileMenuExport = tk.Menu( fileMenu )
+        subfileMenuExport = tk.Menu( fileMenu, tearoff=False )
         subfileMenuExport.add_command( label='Quick exports', underline=0, command=self.doMostExports )
         subfileMenuExport.add_command( label='PhotoBible', underline=0, command=self.doPhotoBibleExport )
         subfileMenuExport.add_command( label='ODFs', underline=0, command=self.doODFsExport )
