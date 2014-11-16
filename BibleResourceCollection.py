@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceCollection.py
-#   Last modified: 2014-11-16 (also update ProgVersion below)
+#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
@@ -44,7 +44,9 @@ import tkinter as tk
 from tkinter.filedialog import Open, Directory #, SaveAs
 
 # Biblelator imports
-from BiblelatorGlobals import START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
+from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
+from BiblelatorDialogs import showerror #, showwarning, showinfo, errorBeep
+#from ChildWindows import ChildWindow
 from BibleResourceWindows import BibleResourceWindow
 
 # BibleOrgSys imports
@@ -87,12 +89,15 @@ class BibleResourceBox( tk.Text ):
         self._viewRadio, self._groupRadio = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = DEFAULT
+        self.viewMode = DEFAULT
         self.currentVerseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
 
         if self.contextViewMode == DEFAULT:
             self.contextViewMode = 'BeforeAndAfter'
             self.parentWindow.viewVersesBefore, self.parentWindow.viewVersesAfter = 2, 6
         tk.Text.__init__( self )
+        #self.pack( expand=tk.YES, fill=tk.BOTH )
+
 
         if 1:
             for USFMKey, styleDict in self.parentWindow.parentApp.stylesheet.getTKStyles().items():
@@ -506,14 +511,6 @@ class SwordBibleResourceBox( BibleResourceBox ):
     # end of SwordBibleResourceBox.__init__
 
 
-    def refreshTitle( self ):
-        self.title( "[{}] {} ({}) {} {}:{} [{}]".format( self.groupCode,
-                                    self.moduleAbbreviation, 'Sw' if SwordType=="CrosswireLibrary" else 'SwM',
-                                    self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber(),
-                                    self.contextViewMode ) )
-    # end if SwordBibleResourceBox.refreshTitle
-
-
     def getVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
@@ -568,15 +565,6 @@ class DBPBibleResourceBox( BibleResourceBox ):
     # end of DBPBibleResourceBox.__init__
 
 
-    def refreshTitle( self ):
-        self.title( "[{}] {}.{}{} {} {}:{} [{}]".format( self.groupCode,
-                                        self.moduleAbbreviation[:3], self.moduleAbbreviation[3:],
-                                        ' (online)' if self.DBPModule else ' (offline)',
-                                        self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber(),
-                                        self.contextViewMode ) )
-    # end if DBPBibleResourceBox.refreshTitle
-
-
     def getVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
@@ -620,15 +608,6 @@ class InternalBibleResourceBox( BibleResourceBox ):
     # end of InternalBibleResourceBox.__init__
 
 
-    def refreshTitle( self ):
-        self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self.groupCode,
-                        self.modulePath if self.internalBible is None else self.internalBible.name,
-                        ' NOT FOUND' if self.internalBible is None else '',
-                        self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber(),
-                        self.contextViewMode ) )
-    # end if InternalBibleResourceBox.refreshTitle
-
-
     def getVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
@@ -645,7 +624,7 @@ class InternalBibleResourceBox( BibleResourceBox ):
 
     def updateShownBCV( self, newReferenceVerseKey ):
         """
-        Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
+        Updates self in various ways depending on the contextViewMode held by the enclosing window.
 
         The new verse key is in the reference versification system.
 
@@ -727,15 +706,13 @@ class InternalBibleResourceBox( BibleResourceBox ):
             logging.critical( t("BibleResourceWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
             if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
-        self.textBox['state'] = tk.DISABLED # Don't allow editing
+        self['state'] = tk.DISABLED # Don't allow editing
 
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
-        try: self.textBox.see( desiredMark )
+        try: self.see( desiredMark )
         except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
         self.lastCVMark = desiredMark
-
-        self.refreshTitle()
     # end of BibleResourceWindow.updateShownBCV
 # end of InternalBibleResourceBox class
 
@@ -745,8 +722,8 @@ class ResourceBoxes( list ):
     """
     Just keeps a list of the resource (Text) boxes.
     """
-    def __init__( self, ResourceBoxesParent ):
-        self.ResourceBoxesParent = ResourceBoxesParent
+    def __init__( self, resourceBoxesParent ):
+        self.resourceBoxesParent = resourceBoxesParent
         list.__init__( self )
 
 
@@ -759,7 +736,7 @@ class ResourceBoxes( list ):
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.groupCode == groupCode:
                     # The following line doesn't work coz it only updates ONE window
-                    #self.ResourceBoxesParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
+                    #self.resourceBoxesParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
                     appWin.updateShownBCV( newVerseKey )
     # end of ResourceBoxes.updateThisBibleGroup
 # end of ResourceBoxes class
@@ -767,6 +744,7 @@ class ResourceBoxes( list ):
 
 
 class BibleResourceCollectionWindow( BibleResourceWindow ):
+#class BibleResourceCollectionWindow( ChildWindow ):
     def __init__( self, parentApp, collectionName ):
         """
         Given a collection name, try to open an empty Bible resource collection window.
@@ -775,9 +753,17 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.parentApp, self.collectionName = parentApp, collectionName
 
         BibleResourceWindow.__init__( self, self.parentApp, 'BibleResourceCollectionWindow', self.collectionName )
+        #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.winType = 'InternalBibleResourceBox'
+        self.vScrollbar.destroy()
+        self.textBox.destroy()
 
         self.resourceBoxes = ResourceBoxes( self )
+
+        ##  Temp stuff
+        #self.tb = tk.Text( self )
+        #self.tb.pack( expand=tk.YES, fill=tk.X )
+
     # end of BibleResourceCollectionWindow.__init__
 
 
@@ -1133,17 +1119,18 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.parentApp.setDebugText( "openDBPBibleResourceBox..." )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         dBRB = DBPBibleResourceBox( self, moduleAbbreviation )
-        if windowGeometry: dBRB.geometry( windowGeometry )
+        if windowGeometry: halt; dBRB.geometry( windowGeometry )
+        dBRB.pack( expand=tk.YES, fill=tk.X )
         if dBRB.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
-            dBRB.closeChildWindow()
+            dBRB.destroy()
             showerror( APP_NAME, _("Sorry, unable to open DBP resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDPBBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return None
         else:
-            dBRW.updateShownBCV( self.parentApp.getVerseKey( dBRB.groupCode ) )
-            self.ResourceBoxes.append( dBRB )
+            dBRB.updateShownBCV( self.parentApp.getVerseKey( dBRB.groupCode ) )
+            self.resourceBoxes.append( dBRB )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openDPBBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return dBRB
@@ -1201,9 +1188,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if self.SwordInterface is None:
             self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
         swBRB = SwordBibleResourceBox( self, moduleAbbreviation )
-        if windowGeometry: swBRB.geometry( windowGeometry )
-        swBRW.updateShownBCV( self.parentApp.getVerseKey( swBRB.groupCode ) )
-        self.ResourceBoxes.append( swBRB )
+        if windowGeometry: halt; swBRB.geometry( windowGeometry )
+        swBRB.pack( expand=tk.YES, fill=tk.X )
+        swBRB.updateShownBCV( self.parentApp.getVerseKey( swBRB.groupCode ) )
+        self.resourceBoxes.append( swBRB )
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openSwordBibleResourceBox" )
         self.parentApp.setReadyStatus()
         return swBRB
@@ -1240,17 +1228,18 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             print( t("openInternalBibleResourceBox()") )
             self.parentApp.setDebugText( "openInternalBibleResourceBox..." )
         iBRB = InternalBibleResourceBox( self, modulePath )
-        if windowGeometry: iBRB.geometry( windowGeometry )
+        if windowGeometry: halt; iBRB.geometry( windowGeometry )
+        iBRB.pack( expand=tk.YES, fill=tk.X )
         if iBRB.internalBible is None:
             logging.critical( t("Application.openInternalBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
-            iBRB.closeChildWindow()
+            iBRB.destroy()
             showerror( APP_NAME, _("Sorry, unable to open internal Bible resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return None
         else:
             iBRB.updateShownBCV( self.parentApp.getVerseKey( iBRB.groupCode ) )
-            self.ResourceBoxes.append( iBRB )
+            self.resourceBoxes.append( iBRB )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openInternalBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return iBRB
@@ -1287,7 +1276,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         for resourceBox in self.resourceBoxes:
             resourceBox.updateShownBCV( newReferenceVerseKey )
 
-        if 0:            
+        if 0:
             refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
             BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
             newVerseKey = SimpleVerseKey( BBB, C, V, S )

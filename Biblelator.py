@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-16 (also update ProgVersion below)
+#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -561,7 +561,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("setWaitStatus( {} )").format( repr(newStatus) ) )
-        self.config( cursor='wait' )
+        self.ApplicationParent.config( cursor='watch' ) # 'wait' can only be used on Windows
         self.setStatus( newStatus )
         self.update()
     # end of Application.setWaitStatus
@@ -1421,7 +1421,7 @@ class Application( Frame ):
     #    """
     ## end of Application.openParatextBibleEditWindow
 
-        
+
     def goBack( self, event=None ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("goBack()") )
