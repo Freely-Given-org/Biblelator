@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ChildWindows.py
-#   Last modified: 2014-11-15 (also update ProgVersion below)
+#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = "0.24"
+ProgVersion = "0.25"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -242,7 +242,206 @@ class HTMLText( tk.Text ):
 
 
 
-class ChildWindow( tk.Toplevel ):
+class ChildBox():
+    """
+    A set of functions that work for any frame or window that has a member: self.textBox
+    """
+    def __init__( self, parentApp ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("ChildBox.__init__( {} )").format( parentApp ) )
+            assert( parentApp )
+        self.parentApp = parentApp
+
+        self.myKeyboardBindingsList = []
+        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
+    # end of ChildBox.__init__
+
+
+    def createStandardKeyboardBindings( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("ChildBox.createStandardKeyboardBindings()") )
+        for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
+                             ('Find',self.doFind), ('Refind',self.doRefind),
+                             ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             ('Close',self.doClose) ):
+            assert( (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList )
+            if name in self.parentApp.keyBindingDict:
+                for keyCode in self.parentApp.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    self.textBox.bind( keyCode, command )
+                    if BibleOrgSysGlobals.debugFlag:
+                        assert( keyCode not in self.myKeyboardShortcutsList )
+                        self.myKeyboardShortcutsList.append( keyCode )
+                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
+            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+    # end of ChildBox.createStandardKeyboardBindings()
+
+
+    def setFocus( self, event ):
+        '''Explicitly set focus, so user can select and copy text'''
+        self.textBox.focus_set()
+
+
+    def doCopy( self, event=None ):
+        """
+        Copy the selected text onto the clipboard.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("ChildBox.doCopy()") )
+        if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
+            errorBeep()
+            showerror( APP_NAME, 'No text selected')
+        else:
+            copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
+            print( "  copied text", repr(copyText) )
+            self.clipboard_clear()
+            self.clipboard_append( copyText )
+    # end of ChildBox.doCopy
+
+
+    def doSelectAll( self, event=None ):
+        """
+        Select all the text in the text box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("ChildBox.doSelectAll()") )
+        self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
+        self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
+        self.textBox.see( tk.INSERT )                      # scroll to top
+    # end of ChildBox.doSelectAll
+
+
+    def doGotoLine( self, event=None, forceline=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("ChildBox.doGotoLine()") )
+        line = forceline or askinteger( APP_NAME, _("Enter line number") )
+        self.textBox.update()
+        self.textBox.focus()
+        if line is not None:
+            maxindex = self.textBox.index( tk.END+'-1c' )
+            maxline  = int( maxindex.split('.')[0] )
+            if line > 0 and line <= maxline:
+                self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
+                self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
+                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert+1l' )  # select line
+                self.textBox.see( tk.INSERT )                          # scroll to line
+            else:
+                errorBeep()
+                showerror( APP_NAME, _("No such line number") )
+    # end of ChildBox.doGotoLine
+
+
+    def doFind( self, event=None, lastkey=None ):
+        key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        self.textBox.update()
+        self.textBox.focus()
+        self.lastfind = key
+        if key:
+            nocase = self.optionsDict['caseinsens']
+            where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
+            if not where:                                          # don't wrap
+                errorBeep()
+                showerror( APP_NAME, 'String not found' )
+            else:
+                pastkey = where + '+%dc' % len(key)           # index past key
+                self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
+                self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
+                self.textBox.see( where )                          # scroll display
+    # end of ChildBox.doFind
+
+
+    def doRefind( self, event=None ):
+        self.doFind( self.lastfind)
+    # end of ChildBox.doRefind
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog giving text statistics and cursor location;
+        caveat (2.1): Tk insert position column counts a tab as one
+        character: translate to next multiple of 8 to match visual?
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("ChildBox.doShowInfo()") )
+        text  = self.getAllText()
+        numChars = len( text )
+        numLines = len( text.split('\n') )
+        numWords = len( text.split() )
+        index = self.textBox.index( tk.INSERT )
+        atLine, atColumn = index.split('.')
+        showinfo( 'Window Information',
+                 'Current location:\n' +
+                 '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) +
+                 '\nFile text statistics:\n' +
+                 '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}\n'.format( numChars, numLines, numWords ) )
+    # end of ChildBox.doShowInfo
+
+
+    ############################################################################
+    # Utilities, useful outside this class
+    ############################################################################
+
+    def clearText( self ): # Leaves in normal state
+        self.textBox['state'] = tk.NORMAL
+        self.textBox.delete( START, tk.END )
+    # end of ChildBox.updateText
+
+
+    def isEmpty( self ):
+        return not self.getAllText()
+    # end of ChildBox.isEmpty
+
+
+    def modified( self ):
+        return self.textBox.edit_modified()
+    # end of ChildBox.modified
+
+
+    def getAllText( self ):
+        """ Returns all the text as a string. """
+        return self.textBox.get( START, tk.END+'-1c' )
+    # end of ChildBox.getAllText
+
+
+    def setAllText( self, newText ):
+        """
+        Sets the textBox (assumed to be enabled) to the given text
+            then positions the insert cursor at the BEGINNING of the text.
+
+        caller: call self.update() first if just packed, else the
+        initial position may be at line 2, not line 1 (2.1; Tk bug?)
+        """
+        self.textBox['state'] = tk.NORMAL
+        self.textBox.delete( START, tk.END ) # Delete everything that's existing
+        self.textBox.insert( tk.END, newText )
+        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        self.textBox.see( tk.INSERT ) # scroll to top, insert is set
+
+        self.textBox.edit_reset() # clear undo/redo stks
+        self.textBox.edit_modified( tk.FALSE ) # clear modified flag
+    # end of ChildBox.setAllText
+
+
+    def doClose( self, event=None ):
+        """
+        Called from the GUI.
+
+        Can be overridden.
+        """
+        self.destroy()
+    # end of ChildWindow.doClose
+# end of ChildBox class
+
+
+
+class ChildWindow( tk.Toplevel, ChildBox ):
     """
     """
     def __init__( self, parentApp, genericWindowType ):
@@ -256,6 +455,7 @@ class ChildWindow( tk.Toplevel ):
             assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor',) )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
+        ChildBox.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeChildWindow )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
@@ -267,8 +467,6 @@ class ChildWindow( tk.Toplevel ):
 
         self.viewMode = DEFAULT
         self.settings = None
-        self.myKeyboardBindingsList = []
-        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
 
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
@@ -293,9 +491,10 @@ class ChildWindow( tk.Toplevel ):
     # end of ChildWindow.__init__
 
 
-    def setFocus( self, event ):
-        '''Explicitly set focus, so user can select and copy text'''
-        self.textBox.focus_set()
+    def notWrittenYet( self ):
+        errorBeep()
+        showerror( _("Not implemented"), _("Not yet available, sorry") )
+    # end of ChildWindow.notWrittenYet
 
 
     def createMenuBar( self ):
@@ -328,37 +527,6 @@ class ChildWindow( tk.Toplevel ):
     # end of ChildWindow.showContextMenu
 
 
-    def createStandardKeyboardBindings( self ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.createStandardKeyboardBindings()") )
-        for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
-                             ('Find',self.doFind), ('Refind',self.doRefind),
-                             ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
-                             ('Close',self.doClose) ):
-            assert( (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList )
-            if name in self.parentApp.keyBindingDict:
-                for keyCode in self.parentApp.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                    self.textBox.bind( keyCode, command )
-                    if BibleOrgSysGlobals.debugFlag:
-                        assert( keyCode not in self.myKeyboardShortcutsList )
-                        self.myKeyboardShortcutsList.append( keyCode )
-                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
-            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-        #self.textBox.bind('<Control-a>', self.doSelectAll ); self.textBox.bind('<Control-A>', self.doSelectAll )
-        #self.textBox.bind('<Control-c>', self.doCopy ); self.textBox.bind('<Control-C>', self.doCopy )
-        #self.textBox.bind('<Control-f>', self.doFind ); self.textBox.bind('<Control-F>', self.doFind )
-        #self.textBox.bind('<Control-g>', self.doRefind ); self.textBox.bind('<Control-G>', self.doRefind )
-        #self.textBox.bind('<F1>', self.doHelp )
-        #self.textBox.bind('<F3>', self.doRefind )
-        #self.textBox.bind('<Control-F4>', self.doClose )
-        #self.textBox.bind('<F11>', self.doShowInfo )
-        #self.textBox.bind('<F12>', self.doAbout )
-    # end of ChildWindow.createStandardKeyboardBindings()
-
-
     def createToolBar( self ):
         """
         Designed to be overridden.
@@ -367,155 +535,6 @@ class ChildWindow( tk.Toplevel ):
             #print( t("This 'createToolBar' method can be overridden!") )
         pass
     # end of ChildWindow.createToolBar
-
-
-    def notWrittenYet( self ):
-        errorBeep()
-        showerror( _("Not implemented"), _("Not yet available, sorry") )
-    # end of ChildWindow.notWrittenYet
-
-
-    def doCopy( self, event=None ):
-        """
-        Copy the selected text onto the clipboard.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.doCopy()") )
-        if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
-            errorBeep()
-            showerror( APP_NAME, 'No text selected')
-        else:
-            copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
-            print( "  copied text", repr(copyText) )
-            self.clipboard_clear()
-            self.clipboard_append( copyText )
-    # end of ChildWindow.doCopy
-
-
-    def doSelectAll( self, event=None ):
-        """
-        Select all the text in the text box.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.doSelectAll()") )
-        self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
-        self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
-        self.textBox.see( tk.INSERT )                      # scroll to top
-    # end of ChildWindow.doSelectAll
-
-
-    def doGotoLine( self, event=None, forceline=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.doGotoLine()") )
-        line = forceline or askinteger( APP_NAME, _("Enter line number") )
-        self.textBox.update()
-        self.textBox.focus()
-        if line is not None:
-            maxindex = self.textBox.index( tk.END+'-1c' )
-            maxline  = int( maxindex.split('.')[0] )
-            if line > 0 and line <= maxline:
-                self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
-                self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
-                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert+1l' )  # select line
-                self.textBox.see( tk.INSERT )                          # scroll to line
-            else:
-                errorBeep()
-                showerror( APP_NAME, _("No such line number") )
-    # end of ChildWindow.doGotoLine
-
-
-    def doFind( self, event=None, lastkey=None ):
-        key = lastkey or askstring( APP_NAME, _("Enter search string") )
-        self.textBox.update()
-        self.textBox.focus()
-        self.lastfind = key
-        if key:
-            nocase = self.optionsDict['caseinsens']
-            where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
-            if not where:                                          # don't wrap
-                errorBeep()
-                showerror( APP_NAME, 'String not found' )
-            else:
-                pastkey = where + '+%dc' % len(key)           # index past key
-                self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
-                self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
-                self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
-                self.textBox.see( where )                          # scroll display
-    # end of ChildWindow.doFind
-
-
-    def doRefind( self, event=None ):
-        self.doFind( self.lastfind)
-    # end of ChildWindow.doRefind
-
-
-    def doShowInfo( self, event=None ):
-        """
-        Pop-up dialog giving text statistics and cursor location;
-        caveat (2.1): Tk insert position column counts a tab as one
-        character: translate to next multiple of 8 to match visual?
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("ChildWindow.doShowInfo()") )
-        text  = self.getAllText()
-        numChars = len( text )
-        numLines = len( text.split('\n') )
-        numWords = len( text.split() )
-        index = self.textBox.index( tk.INSERT )
-        atLine, atColumn = index.split('.')
-        showinfo( 'Window Information',
-                 'Current location:\n' +
-                 '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) +
-                 '\nFile text statistics:\n' +
-                 '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}\n'.format( numChars, numLines, numWords ) )
-    # end of ChildWindow.doShowInfo
-
-
-    ############################################################################
-    # Utilities, useful outside this class
-    ############################################################################
-
-    def clearText( self ): # Leaves in normal state
-        self.textBox['state'] = tk.NORMAL
-        self.textBox.delete( START, tk.END )
-    # end of ResourceFrame.updateText
-
-
-    def isEmpty( self ):
-        return not self.getAllText()
-    # end of ChildWindow.isEmpty
-
-
-    def modified( self ):
-        return self.textBox.edit_modified()
-    # end of ChildWindow.modified
-
-
-    def getAllText( self ):
-        """ Returns all the text as a string. """
-        return self.textBox.get( START, tk.END+'-1c' )
-    # end of ChildWindow.getAllText
-
-
-    def setAllText( self, newText ):
-        """
-        Sets the textBox (assumed to be enabled) to the given text
-            then positions the insert cursor at the BEGINNING of the text.
-
-        caller: call self.update() first if just packed, else the
-        initial position may be at line 2, not line 1 (2.1; Tk bug?)
-        """
-        self.textBox['state'] = tk.NORMAL
-        self.textBox.delete( START, tk.END ) # Delete everything that's existing
-        self.textBox.insert( tk.END, newText )
-        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
-        self.textBox.see( tk.INSERT ) # scroll to top, insert is set
-
-        self.textBox.edit_reset() # clear undo/redo stks
-        self.textBox.edit_modified( tk.FALSE ) # clear modified flag
-    # end of ChildWindow.setAllText
 
 
     def doHelp( self, event=None ):
@@ -637,7 +656,6 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
@@ -655,11 +673,12 @@ def demo():
 
 
 if __name__ == '__main__':
+    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
     import multiprocessing
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
-    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
+    parser = setup( ProgName, ProgVersion )
+    addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
@@ -674,5 +693,5 @@ if __name__ == '__main__':
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    closedown( ProgName, ProgVersion )
 # end of ChildWindows.py

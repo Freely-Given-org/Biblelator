@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-11-16 (also update ProgVersion below)
+#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -77,6 +77,9 @@ def t( messageString ):
 
 
 class BibleResourceWindow( ChildWindow ):
+    """
+    The superclass must provide a getVerseData function.
+    """
     def __init__( self, parentApp, winType, moduleID ):
         if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {}, {} )").format( parentApp, winType, moduleID ) )
         self.parentApp, self.winType, self.moduleID = parentApp, winType, moduleID
@@ -426,19 +429,6 @@ class BibleResourceWindow( ChildWindow ):
             BBB, C, V = verseKey.getBCV()
             return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceWindow.getSwordVerseKey
-
-
-    def getVerseData( self, verseKey ):
-        """
-        Fetches and returns the internal Bible data for the given reference.
-
-        MUST BE OVERRIDDEN.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("getVerseData( {} )").format( verseKey ) )
-            logging.critical( t("This getVerseData 'body' method must be overridden!") )
-            halt
-    # end of BibleResourceWindow.getVerseData
 
 
     def getCachedVerseData( self, verseKey ):
@@ -933,7 +923,6 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
@@ -952,11 +941,12 @@ def demo():
 
 
 if __name__ == '__main__':
+    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
     import multiprocessing
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
-    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
+    parser = setup( ProgName, ProgVersion )
+    addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
@@ -971,5 +961,5 @@ if __name__ == '__main__':
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    closedown( ProgName, ProgVersion )
 # end of BibleResourceWindows.py

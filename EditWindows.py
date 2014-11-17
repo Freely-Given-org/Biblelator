@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # EditWindows.py
-#   Last modified: 2014-11-15 (also update ProgVersion below)
+#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # xxx program for Biblelator Bible display/editing
 #
@@ -350,18 +350,6 @@ class TextEditWindow( ChildWindow ):
     # end if TextEditWindow.checkForDiskChanges
 
 
-    def xxxdoHelp( self, event=None ):
-        from Help import HelpBox
-        hb = HelpBox( self, ProgName, ProgNameVersion )
-    # end of TextEditWindow.doHelp
-
-
-    def xxxdoAbout( self, event=None ):
-        from About import AboutBox
-        ab = AboutBox( self, ProgName, ProgNameVersion )
-    # end of TextEditWindow.doAbout
-
-
     def doUndo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("TextEditWindow.doUndo()") )
@@ -378,18 +366,6 @@ class TextEditWindow( ChildWindow ):
         except tk.TclError: showinfo( APP_NAME, 'Nothing to redo' )
         self.textBox.update() # force refresh
     # end of TextEditWindow.doRedo
-
-
-    def xxxdoCopy( self ):                           # get text selected by mouse, etc.
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.doCopy()") )
-        if not self.textBox.tag_ranges( tk.SEL ):
-            showerror( APP_NAME, 'No text selected')
-        else: # save in cross-app clipboard
-            text = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST )
-            self.clipboard_clear()
-            self.clipboard_append( text )
-    # end of TextEditWindow.doCopy
 
 
     def doDelete( self, event=None ):                         # delete selected text, no save
@@ -426,15 +402,6 @@ class TextEditWindow( ChildWindow ):
         self.textBox.tag_add( tk.SEL, tk.INSERT+'-%dc' % len(text), tk.INSERT )
         self.textBox.see( tk.INSERT )                   # select it, so it can be cut
     # end of TextEditWindow.doPaste
-
-
-    def xxxdoSelectAll( self ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("TextEditWindow.doSelectAll()") )
-        self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
-        self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
-        self.textBox.see( tk.INSERT )                      # scroll to top
-    # end of TextEditWindow.doSelectAll
 
 
     ############################################################################
@@ -1576,15 +1543,13 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     tEW = TextEditWindow( tkRootWindow )
-    try: uEW = USFMEditWindow( tkRootWindow, None )
-    except: pass
+    uEW = USFMEditWindow( tkRootWindow, None )
 
     # Start the program running
     tkRootWindow.mainloop()
@@ -1592,11 +1557,12 @@ def demo():
 
 
 if __name__ == '__main__':
+    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
     import multiprocessing
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
-    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
+    parser = setup( ProgName, ProgVersion )
+    addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
@@ -1611,5 +1577,5 @@ if __name__ == '__main__':
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    closedown( ProgName, ProgVersion )
 # end of EditWindows.py

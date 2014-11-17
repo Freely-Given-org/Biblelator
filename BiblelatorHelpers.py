@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-11-04 (also update ProgVersion below)
+#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Various help functions for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.22"
+ProgVersion = "0.25"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -104,8 +104,8 @@ def demo():
     #print( "swndResult", swnd.result )
     #dwnd = DeleteWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
     #print( "dwndResult", dwnd.result )
-    srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
-    print( "srbResult", srb.result )
+    #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
+    #print( "srbResult", srb.result )
 
     #tkRootWindow.quit()
 
@@ -115,11 +115,12 @@ def demo():
 
 
 if __name__ == '__main__':
+    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
     import multiprocessing
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
-    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
+    parser = setup( ProgName, ProgVersion )
+    addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
@@ -134,5 +135,5 @@ if __name__ == '__main__':
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    closedown( ProgName, ProgVersion )
 # end of BiblelatorHelpers.py

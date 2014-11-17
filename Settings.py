@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Settings.py
-#   Last modified: 2014-11-14 (also update ProgVersion below)
+#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Handle settings for Biblelator Bible display/editing
 #
@@ -29,7 +29,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = "0.24"
+ProgVersion = "0.25"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -276,16 +276,17 @@ def demo():
 
 
 if __name__ == '__main__':
+    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
     #import multiprocessing
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
-    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
+    parser = setup( ProgName, ProgVersion )
+    addStandardOptionsAndProcess( parser )
 
     #multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
     #printMultiprocessingInfo( 'main' )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    closedown( ProgName, ProgVersion )
 # end of Settings.py

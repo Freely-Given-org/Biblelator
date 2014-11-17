@@ -73,7 +73,7 @@ from BibleOrganizationalSystems import BibleOrganizationalSystem
 from DigitalBiblePlatform import DBPBibles
 from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
-import SwordResources
+from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
 
 
@@ -122,6 +122,7 @@ class Application( Frame ):
 
         if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup("TButton", "font") )
         if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup("TLabel", "font") )
+        else: halt
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" )
@@ -225,13 +226,8 @@ class Application( Frame ):
         fileOpenSubmenu.add_command( label='Text file...', underline=0, command=self.doOpenFileTextEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label='Save all...', underline=0, command=self.notWrittenYet )
-        #subfileMenuImport = tk.Menu( fileMenu, tearoff=False )
-        #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
-        #subfileMenuExport = tk.Menu( fileMenu, tearoff=False )
-        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
+        fileMenu.add_separator()
+        fileMenu.add_command( label='Save settings', underline=0, command=self.writeSettingsFile )
         fileMenu.add_separator()
         fileMenu.add_command( label='Quit app', underline=0, command=self.doCloseMe, accelerator=self.keyBindingDict['Quit'][0] ) # quit app
 
@@ -638,7 +634,7 @@ class Application( Frame ):
             windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
             resultDict = {}
             for j in range( 1, MAX_WINDOWS ):
-                winNumber = "window{}".format( j )
+                winNumber = 'window{}'.format( j )
                 for keyName in windowsSettingsFields:
                     if keyName.startswith( winNumber ):
                         if winNumber not in resultDict: resultDict[winNumber] = {}
@@ -710,7 +706,7 @@ class Application( Frame ):
             self.setDebugText( "applyGivenWindowsSettings..." )
         windowsSettingsFields = self.windowsSettingsDict[givenWindowsSettingsName]
         for j in range( 1, MAX_WINDOWS ):
-            winNumber = "window{}".format( j )
+            winNumber = 'window{}'.format( j )
             if winNumber in windowsSettingsFields:
                 thisStuff = windowsSettingsFields[winNumber]
                 winType = thisStuff['Type']
@@ -740,8 +736,23 @@ class Application( Frame ):
                     #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
                 elif winType == 'BibleResourceCollectionWindow':
-                    rw = self.openBibleResourceCollectionWindow( thisStuff['CollectionName'], windowGeometry )
+                    collectionName = thisStuff['CollectionName']
+                    rw = self.openBibleResourceCollectionWindow( collectionName, windowGeometry )
                     #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
+                    if 'BibleResourceCollection'+collectionName in self.settings.data:
+                        collectionSettingsFields = self.settings.data['BibleResourceCollection'+collectionName]
+                        for k in range( 1, MAX_WINDOWS ):
+                            boxNumber = 'box{}'.format( k )
+                            boxType = boxSource = None
+                            for keyname in collectionSettingsFields:
+                                if keyname.startswith( boxNumber ):
+                                    #print( "found", keyname, "setting for", collectionName, "collection" )
+                                    if keyname == boxNumber+'Type': boxType = collectionSettingsFields[keyname]
+                                    elif keyname == boxNumber+'Source': boxSource = collectionSettingsFields[keyname]
+                                    else:
+                                        print( "Unknown {} collection key: {} = {}".format( repr(collectionName), keyname, collectionSettingsFields[keyname] ) )
+                                        if BibleOrgSysGlobals.debugFlag: halt
+                            if boxType and boxSource: rw.openBox( boxType, boxSource )
 
                 elif winType == 'PlainTextEditWindow':
                     rw = self.doOpenNewTextEditWindow()
@@ -783,12 +794,12 @@ class Application( Frame ):
     # end of Application.applyGivenWindowsSettings
 
 
-    def getCurrentWindowSettings( self ):
+    def getCurrentChildWindowSettings( self ):
         """
         Go through the currently open windows and get their settings data
             and save it in self.windowsSettingsDict['Current'].
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getCurrentWindowSettings()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getCurrentChildWindowSettings()") )
         if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
         self.windowsSettingsDict['Current'] = {}
         for j, appWin in enumerate( self.childWindows ):
@@ -827,15 +838,15 @@ class Application( Frame ):
                     thisOne['EditMode'] = appWin.editMode
 
                 else:
-                    logging.critical( t("getCurrentWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
+                    logging.critical( t("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
                 if 'Bible' in appWin.genericWindowType:
                     try: thisOne['GroupCode'] = appWin.groupCode
-                    except AttributeError: logging.critical( t("getCurrentWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
+                    except AttributeError: logging.critical( t("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
                     try: thisOne['ContextViewMode'] = appWin.contextViewMode
-                    except AttributeError: logging.critical( t("getCurrentWindowSettings: Why no contextViewMode in {}").format( appWin.winType ) )
-    # end of Application.getCurrentWindowSettings
+                    except AttributeError: logging.critical( t("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.winType ) )
+    # end of Application.getCurrentChildWindowSettings
 
 
     def doSaveNewWindowSetup( self ):
@@ -848,7 +859,7 @@ class Application( Frame ):
         swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
         print( "swndResult", repr(swnd.result) )
         if swnd.result:
-            self.getCurrentWindowSettings()
+            self.getCurrentChildWindowSettings()
             self.windowsSettingsDict[swnd.result] = self.windowsSettingsDict['Current'] # swnd.result is the new window name
             print( "swS", self.windowsSettingsDict )
             self.writeSettingsFile() # Save file now in case we crash
@@ -890,7 +901,7 @@ class Application( Frame ):
             availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
             #print( "aV1", repr(availableVolumes) )
             if availableVolumes:
-                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DPB resource') )
+                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
                 #print( "srbResult", repr(srb.result) )
                 if srb.result:
                     for entry in srb.result:
@@ -920,13 +931,13 @@ class Application( Frame ):
             logging.critical( t("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRW.closeChildWindow()
             showerror( APP_NAME, _("Sorry, unable to open DBP resource") )
-            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openDPBBibleResourceWindow" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openDBPBibleResourceWindow" )
             self.setReadyStatus()
             return None
         else:
             dBRW.updateShownBCV( self.getVerseKey( dBRW.groupCode ) )
             self.childWindows.append( dBRW )
-            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openDPBBibleResourceWindow" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openDBPBibleResourceWindow" )
             self.setReadyStatus()
             return dBRW
     # end of Application.openDBPBibleResourceWindow
@@ -942,8 +953,8 @@ class Application( Frame ):
             print( t("openSwordResource()") )
             self.setDebugText( "doOpenSwordResource..." )
         self.setStatus( "doOpenSwordResource..." )
-        if self.SwordInterface is None and SwordResources.SwordType is not None:
-            self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+        if self.SwordInterface is None and SwordType is not None:
+            self.SwordInterface = SwordInterface() # Load the Sword library
         if self.SwordInterface is None: # still
             logging.critical( t("doOpenSwordResource: no Sword interface available") )
             showerror( APP_NAME, _("Sorry, no Sword interface discovered") )
@@ -981,7 +992,7 @@ class Application( Frame ):
             print( t("openSwordBibleResourceWindow()") )
             self.setDebugText( "openSwordBibleResourceWindow..." )
         if self.SwordInterface is None:
-            self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+            self.SwordInterface = SwordInterface() # Load the Sword library
         swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: swBRW.geometry( windowGeometry )
         swBRW.updateShownBCV( self.getVerseKey( swBRW.groupCode ) )
@@ -1713,7 +1724,7 @@ class Application( Frame ):
         for appWin in self.childWindows:
             if 'Sword' in appWin.winType:
                 if self.SwordInterface is None:
-                    self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+                    self.SwordInterface = SwordInterface() # Load the Sword library
                 return True
         return False
     # end of Application.haveSwordResourcesOpen
@@ -2157,10 +2168,26 @@ class Application( Frame ):
         lexicon = self.settings.data['Lexicon']
         if self.lexiconWord: lexicon['currentWord'] = self.lexiconWord
 
+        # Save any open Bible resource collections
+        print( "save collection data..." )
+        for appWin in self.childWindows:
+            #print( "  gT", appWin.genericWindowType )
+            #print( "  wT", appWin.winType )
+            if appWin.winType == 'BibleResourceCollectionWindow':
+                if appWin.resourceBoxes: # so we don't create just an empty heading for an empty collection
+                    self.settings.data['BibleResourceCollection'+appWin.moduleID] = {}
+                    thisOne = self.settings.data['BibleResourceCollection'+appWin.moduleID]
+                    #print( "  found", appWin.moduleID )
+                    for j, box in enumerate( appWin.resourceBoxes ):
+                        boxNumber = 'box{}'.format( j+1 )
+                        #print( "    bT", box.boxType )
+                        #print( "    ID", box.moduleID )
+                        thisOne[boxNumber+'Type'] = box.boxType.replace( 'BibleResourceBox', '' )
+                        thisOne[boxNumber+'Source'] = box.moduleID
 
-        # Get the current window settings
-        self.getCurrentWindowSettings()
-        # Save all the various window set-ups
+        # Get the current child window settings
+        self.getCurrentChildWindowSettings()
+        # Save all the various window set-ups including both the named ones and the current one
         for windowsSettingName in self.windowsSettingsDict:
             if BibleOrgSysGlobals.debugFlag: print( t("Saving windows set-up {}").format( repr(windowsSettingName) ) )
             try: # Just in case something goes wrong with characters in a settings name
@@ -2199,6 +2226,7 @@ def main( homeFolderPath, loggingFolderPath ):
     Main program to handle command line parameters and then run what they want.
     """
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    else: halt
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag:
@@ -2207,6 +2235,7 @@ def main( homeFolderPath, loggingFolderPath ):
         print( t("OS name is"), os.name ) # e.g., "nt"
         if sys.platform == "linux": print( t("OS uname is"), os.uname() )
         print( t("Running main...") )
+    else: halt
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
@@ -2226,15 +2255,17 @@ def main( homeFolderPath, loggingFolderPath ):
 
 
 if __name__ == '__main__':
+    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
+
     # Configure basic set-up
     homeFolderPath = findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
-    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
+    parser = setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
+    addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
     main( homeFolderPath, loggingFolderPath )
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    closedown( ProgName, ProgVersion )
 # end of Biblelator.py

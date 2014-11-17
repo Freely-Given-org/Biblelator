@@ -42,11 +42,12 @@ from collections import OrderedDict
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory #, SaveAs
+from tkinter.ttk import Frame, Scrollbar
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
-from BiblelatorDialogs import showerror #, showwarning, showinfo, errorBeep
-#from ChildWindows import ChildWindow
+from BiblelatorDialogs import showerror, SelectResourceBox #, showwarning, showinfo, errorBeep
+from ChildWindows import ChildBox
 from BibleResourceWindows import BibleResourceWindow
 
 # BibleOrgSys imports
@@ -55,8 +56,8 @@ sys.path.append( sourceFolder )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 #from USFMFile import splitMarkerText
-from SwordResources import SwordType
-from DigitalBiblePlatform import DBPBible
+from DigitalBiblePlatform import DBPBibles, DBPBible
+from SwordResources import SwordType, SwordInterface
 from UnknownBible import UnknownBible
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 
@@ -80,12 +81,17 @@ def t( messageString ):
 
 
 
-class BibleResourceBox( tk.Text ):
+class BibleResourceBox( Frame, ChildBox ):
+    """
+    The superclass must provide a getVerseData function.
+    """
     def __init__( self, parentWindow, boxType, moduleID ):
         if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceBox.__init__( {}, {}, {} )").format( parentWindow, boxType, moduleID ) )
         self.parentWindow, self.boxType, self.moduleID = parentWindow, boxType, moduleID
+        Frame.__init__( self, parentWindow )
+        ChildBox.__init__( self, self.parentWindow.parentApp )
 
-        # Set some dummy values required soon (esp. by refreshTitle)
+        # Set some dummy values required soon
         self._viewRadio, self._groupRadio = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = DEFAULT
@@ -93,25 +99,29 @@ class BibleResourceBox( tk.Text ):
         self.currentVerseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
 
         if self.contextViewMode == DEFAULT:
-            self.contextViewMode = 'BeforeAndAfter'
+            self.contextViewMode = 'ByVerse'
             self.parentWindow.viewVersesBefore, self.parentWindow.viewVersesAfter = 2, 6
-        tk.Text.__init__( self )
-        #self.pack( expand=tk.YES, fill=tk.BOTH )
 
+        # Create a title bar
+        titleText = '{} ({})'.format( moduleID, boxType.replace( 'BibleResourceBox', '' ) )
+        self.titleLabel = tk.Label( self, text=titleText )
+        self.titleLabel.pack( side=tk.TOP, fill=tk.X )
 
-        if 1:
-            for USFMKey, styleDict in self.parentWindow.parentApp.stylesheet.getTKStyles().items():
-                self.tag_configure( USFMKey, **styleDict ) # Create the style
-        else:
-            self.tag_configure( 'verseNumberFormat', foreground='blue', font='helvetica 8', relief=tk.RAISED, offset='3' )
-            self.tag_configure( 'versePreSpaceFormat', background='pink', font='helvetica 8' )
-            self.tag_configure( 'versePostSpaceFormat', background='pink', font='helvetica 4' )
-            self.tag_configure( 'verseTextFormat', font='sil-doulos 12' )
-            self.tag_configure( 'otherVerseTextFormat', font='sil-doulos 9' )
-            #self.tag_configure( 'verseText', background='yellow', font='helvetica 14 bold', relief=tk.RAISED )
-            #"background", "bgstipple", "borderwidth", "elide", "fgstipple", "font", "foreground", "justify", "lmargin1",
-            #"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
-            #"tabs", "tabstyle", "underline", and "wrap".
+        # Create a scroll bar to fill the right-hand side of the window
+        self.vScrollbar = Scrollbar( self )
+        self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+
+        self.textBox = tk.Text( self, height=1, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
+        self.textBox['wrap'] = 'word'
+        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.createStandardKeyboardBindings()
+        self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
+
+        for USFMKey, styleDict in self.parentWindow.parentApp.stylesheet.getTKStyles().items():
+            self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
+
+        self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 
         # Set-up our Bible system and our callables
         self.BibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" ) # temp
@@ -130,17 +140,11 @@ class BibleResourceBox( tk.Text ):
     # end of BibleResourceBox.__init__
 
 
-    def clearText( self ): # Leaves in normal state
-        self['state'] = tk.NORMAL
-        self.delete( START, tk.END )
-    # end of BibleResourceBox.updateText
-
-
     def gotoBCV( self, BBB, C, V ):
         """
 
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceBox.gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentWindow.gotoGroupBCV( self.groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -150,21 +154,8 @@ class BibleResourceBox( tk.Text ):
     def getSwordVerseKey( self, verseKey ):
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
             BBB, C, V = verseKey.getBCV()
-            return self.parentWindow.SwordInterface.makeKey( BBB, C, V )
+            return self.parentWindow.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceBox.getSwordVerseKey
-
-
-    def getVerseData( self, verseKey ):
-        """
-        Fetches and returns the internal Bible data for the given reference.
-
-        MUST BE OVERRIDDEN.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("getVerseData( {} )").format( verseKey ) )
-            logging.critical( t("This getVerseData 'body' method must be overridden!") )
-            halt
-    # end of BibleResourceBox.getVerseData
 
 
     def getCachedVerseData( self, verseKey ):
@@ -203,13 +194,13 @@ class BibleResourceBox( tk.Text ):
 
         BBB, C, V = verseKey.getBCV()
         markName = 'C{}V{}'.format( C, V )
-        self.mark_set( markName, tk.INSERT )
-        self.mark_gravity( markName, tk.LEFT )
+        self.textBox.mark_set( markName, tk.INSERT )
+        self.textBox.mark_gravity( markName, tk.LEFT )
         lastCharWasSpace = haveTextFlag = not firstFlag
 
         if verseDataList is None:
             if C!='0': print( "  ", verseKey, "has no data for", self.moduleID )
-            #self.insert( tk.END, '--' )
+            #self.textBox.insert( tk.END, '--' )
         elif self.viewMode == DEFAULT:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             for entry in verseDataList:
@@ -220,10 +211,10 @@ class BibleResourceBox( tk.Text ):
                 if marker and marker[0]=='¬': pass # Ignore end markers for now
                 elif marker in ('chapters',): pass # Ignore added markers for now
                 elif marker == 'id':
-                    self.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker in ('ide','rem',):
-                    self.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker == 'c': # Don't want to display this (original) c marker
                     #if not firstFlag: haveC = cleanText
@@ -231,43 +222,43 @@ class BibleResourceBox( tk.Text ):
                     pass
                 elif marker == 'c#': # Might want to display this (added) c marker
                     if cleanText != verseKey.getBBB():
-                        if not lastCharWasSpace: self.insert( tk.END, ' ', 'v-' )
-                        self.insert( tk.END, cleanText, 'c#' )
+                        if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
+                        self.textBox.insert( tk.END, cleanText, 'c#' )
                         lastCharWasSpace = False
                 elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
-                    self.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker in ('s1','s2','s3','s4',):
-                    self.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker == 'r':
-                    self.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                     haveTextFlag = True
                 elif marker in ('p','ip',):
-                    self.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
                     lastCharWasSpace = True
                     if cleanText:
-                        self.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
+                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
                         lastCharWasSpace = False
                     haveTextFlag = True
                 elif marker == 'p#' and self.boxType=='DBPBibleResourceBox':
                     pass # Just ignore these for now
                 elif marker in ('q1','q2','q3','q4',):
-                    self.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
                     lastCharWasSpace = True
                     if cleanText:
-                        self.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                        self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
                         lastCharWasSpace = False
                     haveTextFlag = True
                 elif marker == 'm': pass
                 elif marker == 'v':
                     if haveTextFlag:
-                        self.insert( tk.END, ' ', 'v-' )
-                    self.insert( tk.END, cleanText, marker )
-                    self.insert( tk.END, ' ', 'v+' )
+                        self.textBox.insert( tk.END, ' ', 'v-' )
+                    self.textBox.insert( tk.END, cleanText, marker )
+                    self.textBox.insert( tk.END, ' ', 'v+' )
                     lastCharWasSpace = haveTextFlag = True
                 elif marker in ('v~','p~'):
-                    self.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
+                    self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
                     haveTextFlag = True
                 else:
                     logging.critical( t("BibleResourceBox.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
@@ -341,7 +332,7 @@ class BibleResourceBox( tk.Text ):
         Called to set the current verse key.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("setCurrentVerseKey( {} )").format( newVerseKey ) )
+            print( t("BibleResourceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
             self.parentWindow.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
         self.currentVerseKey = newVerseKey
@@ -436,19 +427,17 @@ class BibleResourceBox( tk.Text ):
             logging.critical( t("BibleResourceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
             if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
-        self['state'] = tk.DISABLED # Don't allow editing
+        self.textBox['state'] = tk.DISABLED # Don't allow editing
 
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
-        try: self.see( desiredMark )
+        try: self.textBox.see( desiredMark )
         except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
         self.lastCVMark = desiredMark
-
-        self.refreshTitle()
     # end of BibleResourceBox.updateShownBCV
 
 
-    def setAllText( self, newBibleText ): #, markAsUnmodified=True ):
+    def xxxsetAllText( self, newBibleText ): #, markAsUnmodified=True ):
         """
         Sets the textBox (assumed to be enabled) to the given Bible text.
 
@@ -460,51 +449,70 @@ class BibleResourceBox( tk.Text ):
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
         self.delete( START, tk.END ) # clear any existing text
-        self.mark_set( 'C0V0', START )
+        self.textBox.mark_set( 'C0V0', START )
         C = V = '0'
         for line in newBibleText.split( '\n' ):
             #print( "line", repr(line) )
-            if not line: self.insert( tk.END, '\n' ); continue
+            if not line: self.textBox.insert( tk.END, '\n' ); continue
             marker, text = splitMarkerText( line )
             #print( "m,t", repr(marker), repr(text) )
             if marker == 'c':
                 C, V = text, '0' # Doesn't handle footnotes, etc.
                 markName = 'C{}V0'.format( C )
-                self.mark_set( markName, tk.INSERT )
-                self.mark_gravity( markName, tk.LEFT )
+                self.textBox.mark_set( markName, tk.INSERT )
+                self.textBox.mark_gravity( markName, tk.LEFT )
             elif marker == 'v':
                 V = text.split()[0] # Doesn't handle footnotes, etc.
                 markName = 'C{}V{}'.format( C, V )
-                self.mark_set( markName, tk.INSERT )
-                self.mark_gravity( markName, tk.LEFT )
+                self.textBox.mark_set( markName, tk.INSERT )
+                self.textBox.mark_gravity( markName, tk.LEFT )
             elif C == '0': # marker each line
                 markName = 'C0V{}'.format( V )
-                self.mark_set( markName, tk.INSERT )
-                self.mark_gravity( markName, tk.LEFT )
+                self.textBox.mark_set( markName, tk.INSERT )
+                self.textBox.mark_gravity( markName, tk.LEFT )
                 V = str( int(V) + 1 )
-            self.insert( tk.END, line+'\n', marker ) # This will ensure a \n at the end of the file
+            self.textBox.insert( tk.END, line+'\n', marker ) # This will ensure a \n at the end of the file
 
         # Not needed here hopefully
-        #self.mark_set( tk.INSERT, START ) # move insert point to top
+        #self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
         #self.see( tk.INSERT ) # scroll to top, insert is set
 
         #if markAsUnmodified:
         self.edit_reset() # clear undo/redo stks
         self.edit_modified( False ) # clear modified flag
     # end of BibleResourceBox.setAllText
+
+
+    def doHelp( self, event=None ):
+        from Help import HelpBox
+        helpInfo = ProgNameVersion
+        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\n  Keyboard shortcuts:"
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+    # end of Application.doHelp
+
+
+    def doAbout( self, event=None ):
+        from About import AboutBox
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.winType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+    # end of Application.doAbout
 # end of BibleResourceBox class
 
 
 
 class SwordBibleResourceBox( BibleResourceBox ):
     def __init__( self, parentWindow, moduleAbbreviation ):
-        if BibleOrgSysGlobals.debugFlag: print( "SwordBibleResourceBox.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
+        if BibleOrgSysGlobals.debugFlag: print( "SwordBibleResourceBox.__init__( {}, {} )".format( parentWindow, moduleAbbreviation ) )
         self.parentWindow, self.moduleAbbreviation = parentWindow, moduleAbbreviation
         BibleResourceBox.__init__( self, self.parentWindow, 'SwordBibleResourceBox', self.moduleAbbreviation )
         #self.boxType = 'SwordBibleResourceBox'
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
-        self.SwordModule = self.parentWindow.SwordInterface.getModule( self.moduleAbbreviation )
+        self.SwordModule = self.parentWindow.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
         if self.SwordModule is None:
             logging.error( t("SwordBibleResourceBox.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
@@ -520,7 +528,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
-                rawInternalBibleData = self.parentWindow.SwordInterface.getVerseData( self.SwordModule, SwordKey )
+                rawInternalBibleData = self.parentWindow.parentApp.SwordInterface.getVerseData( self.SwordModule, SwordKey )
                 # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
                 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
                 import re
@@ -550,10 +558,6 @@ class DBPBibleResourceBox( BibleResourceBox ):
         self.DBPModule = None # (for refreshTitle called from the base class)
         BibleResourceBox.__init__( self, self.parentWindow, 'DBPBibleResourceBox', self.moduleAbbreviation )
         #self.boxType = 'DBPBibleResourceBox'
-
-        # Disable excessive online use
-        self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
-        self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
         try: self.DBPModule = DBPBible( self.moduleAbbreviation )
         except FileNotFoundError:
@@ -588,7 +592,7 @@ class InternalBibleResourceBox( BibleResourceBox ):
         if BibleOrgSysGlobals.debugFlag: print( "InternalBibleResourceBox.__init__( {}, {} )".format( parentWindow, modulePath ) )
         self.parentWindow, self.modulePath = parentWindow, modulePath
 
-        self.internalBible = None # (for refreshTitle called from the base class)
+        self.internalBible = None
         BibleResourceBox.__init__( self, self.parentWindow, 'InternalBibleResourceBox', self.modulePath )
         #self.boxType = 'InternalBibleResourceBox'
 
@@ -620,100 +624,6 @@ class InternalBibleResourceBox( BibleResourceBox ):
                 logging.critical( t("InternalBibleResourceBox.getVerseData for {} {} got a KeyError!") \
                                                                 .format( self.boxType, verseKey ) )
     # end of InternalBibleResourceBox.getVerseData
-
-
-    def updateShownBCV( self, newReferenceVerseKey ):
-        """
-        Updates self in various ways depending on the contextViewMode held by the enclosing window.
-
-        The new verse key is in the reference versification system.
-
-        Leaves the textbox in the disabled state.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleResourceWindow.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
-            #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
-
-        refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
-        BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
-        newVerseKey = SimpleVerseKey( BBB, C, V, S )
-
-        self.setCurrentVerseKey( newVerseKey )
-        self.clearText() # Leaves the text box enabled
-        startingFlag = True
-
-        # Safety-check in case they edited the settings file
-        if 'DBP' in self.boxType and self.contextViewMode in ('ByBook','ByChapter',):
-            print( t("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
-            self._viewRadio.set( 3 ) # ByVerse
-            self.changeBibleContextView()
-
-        if self.contextViewMode == 'BeforeAndAfter':
-            bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
-            if bibleData:
-                verseData, previousVerses, nextVerses = bibleData
-                for verseKey,previousVerseData in previousVerses:
-                    self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
-                    startingFlag = False
-                self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
-                for verseKey,nextVerseData in nextVerses:
-                    self.displayAppendVerse( False, verseKey, nextVerseData )
-
-        elif self.contextViewMode == 'ByVerse':
-            self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-
-        elif self.contextViewMode == 'BySection':
-            self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-            BBB, C, V = newVerseKey.getBCV()
-            intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-            #for thisC in range( 0, self.getNumChapters( BBB ) ):
-                #try: numVerses = self.getNumVerses( BBB, thisC )
-                #except KeyError: numVerses = 0
-                #for thisV in range( 0, numVerses ):
-                    #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                    #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            #currentVerse=thisC==intC and thisV==intV )
-                    #startingFlag = False
-
-        elif self.contextViewMode == 'ByBook':
-            BBB, C, V = newVerseKey.getBCV()
-            intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            for thisC in range( 0, self.getNumChapters( BBB ) ):
-                try: numVerses = self.getNumVerses( BBB, thisC )
-                except KeyError: numVerses = 0
-                for thisV in range( 0, numVerses ):
-                    thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                    thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            currentVerse=thisC==intC and thisV==intV )
-                    startingFlag = False
-
-        elif self.contextViewMode == 'ByChapter':
-            BBB, C, V = newVerseKey.getBCV()
-            intV = newVerseKey.getVerseNumberInt()
-            try: numVerses = self.getNumVerses( BBB, C )
-            except KeyError: numVerses = 0
-            for thisV in range( 0, numVerses ):
-                thisVerseKey = SimpleVerseKey( BBB, C, thisV )
-                thisVerseData = self.getCachedVerseData( thisVerseKey )
-                self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
-                startingFlag = False
-
-        else:
-            logging.critical( t("BibleResourceWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
-            if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
-
-        self['state'] = tk.DISABLED # Don't allow editing
-
-        # Make sure we can see what we're supposed to be looking at
-        desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
-        try: self.see( desiredMark )
-        except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
-        self.lastCVMark = desiredMark
-    # end of BibleResourceWindow.updateShownBCV
 # end of InternalBibleResourceBox class
 
 
@@ -732,12 +642,12 @@ class ResourceBoxes( list ):
         Called when we probably need to update some resource windows with a new Bible reference.
         """
         if BibleOrgSysGlobals.debugFlag: print( t("ResourceBoxes.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
-        for appWin in self:
-            if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
-                if appWin.groupCode == groupCode:
+        for resourceBox in self:
+            if 'Bible' in resourceBox.genericWindowType: # e.g., BibleResource, BibleEditor
+                if resourceBox.groupCode == groupCode:
                     # The following line doesn't work coz it only updates ONE window
-                    #self.resourceBoxesParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
-                    appWin.updateShownBCV( newVerseKey )
+                    #self.resourceBoxesParent.after_idle( lambda: resourceBox.updateShownBCV( newVerseKey ) )
+                    resourceBox.updateShownBCV( newVerseKey )
     # end of ResourceBoxes.updateThisBibleGroup
 # end of ResourceBoxes class
 
@@ -759,11 +669,6 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.textBox.destroy()
 
         self.resourceBoxes = ResourceBoxes( self )
-
-        ##  Temp stuff
-        #self.tb = tk.Text( self )
-        #self.tb.pack( expand=tk.YES, fill=tk.X )
-
     # end of BibleResourceCollectionWindow.__init__
 
 
@@ -777,33 +682,23 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         #fileMenu.add_separator()
-        #subfileMenuImport = tk.Menu( fileMenu )
-        #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
-        #subfileMenuExport = tk.Menu( fileMenu )
-        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
-        #fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
-        fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
 
-        editMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
-        editMenu.add_command( label='Copy', underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
-        editMenu.add_separator()
-        editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
+        if 0:
+            editMenu = tk.Menu( self.menubar )
+            self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
+            editMenu.add_command( label='Copy', underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
+            editMenu.add_separator()
+            editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
 
-        searchMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
-        searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
-        searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
+            searchMenu = tk.Menu( self.menubar )
+            self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
+            searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+            searchMenu.add_separator()
+            searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+            searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
@@ -833,39 +728,27 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
         self.menubar.add_cascade( menu=self.viewMenu, label='View', underline=0 )
         if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
-        elif self.contextViewMode == 'BySection': self._viewRadio.set( 2 )
+        #elif self.contextViewMode == 'BySection': self._viewRadio.set( 2 )
         elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 3 )
-        elif self.contextViewMode == 'ByBook': self._viewRadio.set( 4 )
-        elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 5 )
+        #elif self.contextViewMode == 'ByBook': self._viewRadio.set( 4 )
+        #elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 5 )
         else: print( self.contextViewMode ); halt
 
         self.viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadio, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadio, command=self.changeBibleContextView )
 
-        if 'DBP' in self.winType: # disable excessive online use
-            self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
-            self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
+        #if 'DBP' in self.winType: # disable excessive online use
+            #self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
+            #self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
-        submenuBibleResourceType = tk.Menu( resourcesMenu, tearoff=False )
-        resourcesMenu.add_cascade( label='Open Bible/commentary', underline=5, menu=submenuBibleResourceType )
-        submenuBibleResourceType.add_command( label='Online (DBP)...', underline=0, command=self.doOpenDBPBibleResource )
-        submenuBibleResourceType.add_command( label='Sword module...', underline=0, command=self.doOpenSwordResource )
-        submenuBibleResourceType.add_command( label='Other (local)...', underline=1, command=self.doOpenInternalBibleResource )
-        #submenuLexiconResourceType = tk.Menu( resourcesMenu, tearoff=False )
-        #resourcesMenu.add_cascade( label='Open lexicon', menu=submenuLexiconResourceType )
-        #submenuLexiconResourceType.add_command( label='Hebrew...', underline=5, command=self.notWrittenYet )
-        #submenuLexiconResourceType.add_command( label='Greek...', underline=0, command=self.notWrittenYet )
-        #submenuLexiconResourceType.add_command( label='Bible', underline=0, command=self.doOpenBibleLexiconResource )
-        #submenuCommentaryResourceType = tk.Menu( resourcesMenu )
-        #resourcesMenu.add_cascade( label='Open commentary', underline=5, menu=submenuCommentaryResourceType )
-        #resourcesMenu.add_command( label='Open resource collection...', underline=5, command=self.doOpenBibleResourceCollection() )
-        #resourcesMenu.add_separator()
-        #resourcesMenu.add_command( label='Hide all resources', underline=0, command=self.doHideResources )
+        resourcesMenu.add_command( label='Online (DBP)...', underline=0, command=self.doOpenDBPBibleResource )
+        resourcesMenu.add_command( label='Sword module...', underline=0, command=self.doOpenSwordResource )
+        resourcesMenu.add_command( label='Other (local)...', underline=1, command=self.doOpenInternalBibleResource )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
@@ -1089,12 +972,12 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             print( t("doOpenDBPBibleResource()") )
             self.parentApp.setDebugText( "doOpenDBPBibleResource..." )
         self.parentApp.setWaitStatus( "doOpenDBPBibleResource..." )
-        if self.DBPInterface is None:
-            self.DBPInterface = DBPBibles()
-            availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
+        if self.parentApp.DBPInterface is None:
+            self.parentApp.DBPInterface = DBPBibles()
+            availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
             #print( "aV1", repr(availableVolumes) )
             if availableVolumes:
-                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DPB resource') )
+                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
                 #print( "srbResult", repr(srb.result) )
                 if srb.result:
                     for entry in srb.result:
@@ -1118,20 +1001,20 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             print( t("openDBPBibleResourceBox()") )
             self.parentApp.setDebugText( "openDBPBibleResourceBox..." )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
+        #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         dBRB = DBPBibleResourceBox( self, moduleAbbreviation )
         if windowGeometry: halt; dBRB.geometry( windowGeometry )
-        dBRB.pack( expand=tk.YES, fill=tk.X )
         if dBRB.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRB.destroy()
             showerror( APP_NAME, _("Sorry, unable to open DBP resource") )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDPBBibleResourceBox" )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return None
         else:
             dBRB.updateShownBCV( self.parentApp.getVerseKey( dBRB.groupCode ) )
             self.resourceBoxes.append( dBRB )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openDPBBibleResourceBox" )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openDBPBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return dBRB
     # end of BibleResourceCollectionWindow.openDBPBibleResourceBox
@@ -1147,13 +1030,13 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             print( t("openSwordResource()") )
             self.parentApp.setDebugText( "doOpenSwordResource..." )
         self.parentApp.setStatus( "doOpenSwordResource..." )
-        if self.SwordInterface is None and SwordResources.SwordType is not None:
-            self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
-        if self.SwordInterface is None: # still
+        if self.parentApp.SwordInterface is None and SwordType is not None:
+            self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
+        if self.parentApp.SwordInterface is None: # still
             logging.critical( t("doOpenSwordResource: no Sword interface available") )
             showerror( APP_NAME, _("Sorry, no Sword interface discovered") )
             return
-        availableModules = self.SwordInterface.library
+        availableModules = self.parentApp.SwordInterface.library
         #print( "aM1", availableModules )
         ourList = None
         if availableModules is not None:
@@ -1185,11 +1068,11 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("openSwordBibleResourceBox()") )
             self.parentApp.setDebugText( "openSwordBibleResourceBox..." )
-        if self.SwordInterface is None:
-            self.SwordInterface = SwordResources.SwordInterface() # Load the Sword library
+        if self.parentApp.SwordInterface is None:
+            self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
+        #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         swBRB = SwordBibleResourceBox( self, moduleAbbreviation )
         if windowGeometry: halt; swBRB.geometry( windowGeometry )
-        swBRB.pack( expand=tk.YES, fill=tk.X )
         swBRB.updateShownBCV( self.parentApp.getVerseKey( swBRB.groupCode ) )
         self.resourceBoxes.append( swBRB )
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openSwordBibleResourceBox" )
@@ -1227,9 +1110,9 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("openInternalBibleResourceBox()") )
             self.parentApp.setDebugText( "openInternalBibleResourceBox..." )
+        #tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         iBRB = InternalBibleResourceBox( self, modulePath )
         if windowGeometry: halt; iBRB.geometry( windowGeometry )
-        iBRB.pack( expand=tk.YES, fill=tk.X )
         if iBRB.internalBible is None:
             logging.critical( t("Application.openInternalBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
             iBRB.destroy()
@@ -1246,18 +1129,15 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
     # end of BibleResourceCollectionWindow.openInternalBibleResourceBox
 
 
-    def getVerseData( self, verseKey ):
+    def openBox( self, boxType, boxSource ):
         """
-        Fetches and returns the internal Bible data for the given reference.
+        (Re)open a text box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("BibleResourceCollectionWindow.getVerseData( {} )").format( verseKey ) )
-        if self.internalBible is not None:
-            try: return self.internalBible.getVerseData( verseKey )
-            except KeyError:
-                logging.critical( t("BibleResourceCollectionWindow.getVerseData for {} {} got a KeyError!") \
-                                                                .format( self.winType, verseKey ) )
-    # end of BibleResourceCollectionWindow.getVerseData
+        if boxType == 'DBP': self.openDBPBibleResourceBox( boxSource )
+        elif boxType == 'Sword': self.openSwordBibleResourceBox( boxSource )
+        elif boxType == 'Internal': self.openInternalBibleResourceBox( boxSource )
+        elif BibleOrgSysGlobals.debugFlag: halt
+    # end of BibleResourceCollectionWindow.openBox
 
 
     def updateShownBCV( self, newReferenceVerseKey ):
@@ -1276,86 +1156,6 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         for resourceBox in self.resourceBoxes:
             resourceBox.updateShownBCV( newReferenceVerseKey )
 
-        if 0:
-            refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
-            BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
-            newVerseKey = SimpleVerseKey( BBB, C, V, S )
-
-            self.setCurrentVerseKey( newVerseKey )
-            self.clearText() # Leaves the text box enabled
-            startingFlag = True
-
-            # Safety-check in case they edited the settings file
-            if 'DBP' in self.winType and self.contextViewMode in ('ByBook','ByChapter',):
-                print( t("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
-                self._viewRadio.set( 3 ) # ByVerse
-                self.changeBibleContextView()
-
-            if self.contextViewMode == 'BeforeAndAfter':
-                bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
-                if bibleData:
-                    verseData, previousVerses, nextVerses = bibleData
-                    for verseKey,previousVerseData in previousVerses:
-                        self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
-                        startingFlag = False
-                    self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
-                    for verseKey,nextVerseData in nextVerses:
-                        self.displayAppendVerse( False, verseKey, nextVerseData )
-
-            elif self.contextViewMode == 'ByVerse':
-                self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-
-            elif self.contextViewMode == 'BySection':
-                self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-                BBB, C, V = newVerseKey.getBCV()
-                intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                #for thisC in range( 0, self.getNumChapters( BBB ) ):
-                    #try: numVerses = self.getNumVerses( BBB, thisC )
-                    #except KeyError: numVerses = 0
-                    #for thisV in range( 0, numVerses ):
-                        #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                        #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                        #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                #currentVerse=thisC==intC and thisV==intV )
-                        #startingFlag = False
-
-            elif self.contextViewMode == 'ByBook':
-                BBB, C, V = newVerseKey.getBCV()
-                intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                for thisC in range( 0, self.getNumChapters( BBB ) ):
-                    try: numVerses = self.getNumVerses( BBB, thisC )
-                    except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses ):
-                        thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                        thisVerseData = self.getCachedVerseData( thisVerseKey )
-                        self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                currentVerse=thisC==intC and thisV==intV )
-                        startingFlag = False
-
-            elif self.contextViewMode == 'ByChapter':
-                BBB, C, V = newVerseKey.getBCV()
-                intV = newVerseKey.getVerseNumberInt()
-                try: numVerses = self.getNumVerses( BBB, C )
-                except KeyError: numVerses = 0
-                for thisV in range( 0, numVerses ):
-                    thisVerseKey = SimpleVerseKey( BBB, C, thisV )
-                    thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
-                    startingFlag = False
-
-            else:
-                logging.critical( t("BibleResourceCollectionWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
-                if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
-
-            self.textBox['state'] = tk.DISABLED # Don't allow editing
-
-            # Make sure we can see what we're supposed to be looking at
-            desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
-            try: self.textBox.see( desiredMark )
-            except tk.TclError: print( t("BibleResourceCollectionWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
-            self.lastCVMark = desiredMark
-
         self.refreshTitle()
     # end of BibleResourceCollectionWindow.updateShownBCV
 # end of BibleResourceCollectionWindow class
@@ -1371,7 +1171,6 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
-    #BibleOrgSysGlobals.debugFlag = True
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
@@ -1390,11 +1189,12 @@ def demo():
 
 
 if __name__ == '__main__':
+    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
     import multiprocessing
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
-    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
+    parser = setup( ProgName, ProgVersion )
+    addStandardOptionsAndProcess( parser )
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
@@ -1409,5 +1209,5 @@ if __name__ == '__main__':
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    closedown( ProgName, ProgVersion )
 # end of BibleResourceCollection.py
