@@ -8,7 +8,9 @@ Eventually we will use the issue tracker at Github
 
 Things nearer the top of the list are higher in priority.
 
-* Get open resource collection working
+* Do verse prior context (extra view mode?)
+* Get Sword commentaries working
+* Create backup files when editing
 * Get the different views working on the edit window
 * Work on user stylesheets
 * Make a full project properties dialog and do project setting properly
@@ -27,6 +29,8 @@ Things nearer the top of the list are higher in priority.
 * Look at doing some windows updates in idle time
 * Design an icon
 * Release version 0.5
+* Allow users to "log-on"
+* Project backup to the cloud (Freely-Given.org server)
 * Improve Strongs (lexicon) HTML display
 * Allow handling of non-English DBP resources
 * Think more about use of colour for distinguishing windows
@@ -34,13 +38,16 @@ Things nearer the top of the list are higher in priority.
 * Make multiple Bible lexicon windows use the same (loaded) lexicon
 * Handle interlinear display (for original language resources)
 * Investigate integrating more online resources
-* Get it usable as a ESFM Bible editor
 * Improve the about page(s)
 * Learn how to install Biblelator on OS X
 * Allow the short-cut keys to be edited within the program
 * Get full multiprocessing working
 * Add progress bars for slow tasks
 * Create an intelligent installer
+* Full settings editor
 * Allow for automatic program updates (choice of stable and development branches)
+* Work on automated GUI testing
 * Release version 1.0 (BibleOrgSys versification systems have to be working first)
 * Think more about fonts and writing systems, special Unicode characters, etc.
+* Get it usable as a ESFM Bible editor
+* Work on scripting/macro language

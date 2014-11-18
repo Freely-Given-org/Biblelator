@@ -122,7 +122,6 @@ class Application( Frame ):
 
         if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup("TButton", "font") )
         if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup("TLabel", "font") )
-        else: halt
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" )
@@ -2226,7 +2225,6 @@ def main( homeFolderPath, loggingFolderPath ):
     Main program to handle command line parameters and then run what they want.
     """
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
-    else: halt
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag:
@@ -2235,7 +2233,6 @@ def main( homeFolderPath, loggingFolderPath ):
         print( t("OS name is"), os.name ) # e.g., "nt"
         if sys.platform == "linux": print( t("OS uname is"), os.uname() )
         print( t("Running main...") )
-    else: halt
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
