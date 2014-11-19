@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
+#   Last modified: 2014-11-20 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -78,7 +78,7 @@ def t( messageString ):
 
 class BibleResourceWindow( ChildWindow ):
     """
-    The superclass must provide a getVerseData function.
+    The superclass must provide a getContextVerseData function.
     """
     def __init__( self, parentApp, winType, moduleID ):
         if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceWindow.__init__( {}, {}, {} )").format( parentApp, winType, moduleID ) )
@@ -95,19 +95,22 @@ class BibleResourceWindow( ChildWindow ):
             self.parentApp.viewVersesBefore, self.parentApp.viewVersesAfter = 2, 6
         ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
 
-        if 1:
-            for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
-                self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
-        else:
-            self.textBox.tag_configure( 'verseNumberFormat', foreground='blue', font='helvetica 8', relief=tk.RAISED, offset='3' )
-            self.textBox.tag_configure( 'versePreSpaceFormat', background='pink', font='helvetica 8' )
-            self.textBox.tag_configure( 'versePostSpaceFormat', background='pink', font='helvetica 4' )
-            self.textBox.tag_configure( 'verseTextFormat', font='sil-doulos 12' )
-            self.textBox.tag_configure( 'otherVerseTextFormat', font='sil-doulos 9' )
-            #self.textBox.tag_configure( 'verseText', background='yellow', font='helvetica 14 bold', relief=tk.RAISED )
-            #"background", "bgstipple", "borderwidth", "elide", "fgstipple", "font", "foreground", "justify", "lmargin1",
-            #"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
-            #"tabs", "tabstyle", "underline", and "wrap".
+        # Set-up our standard Bible styles
+        for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
+            self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
+        # Add our extra specialised styles
+        self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
+        #else:
+            #self.textBox.tag_configure( 'verseNumberFormat', foreground='blue', font='helvetica 8', relief=tk.RAISED, offset='3' )
+            #self.textBox.tag_configure( 'versePreSpaceFormat', background='pink', font='helvetica 8' )
+            #self.textBox.tag_configure( 'versePostSpaceFormat', background='pink', font='helvetica 4' )
+            #self.textBox.tag_configure( 'verseTextFormat', font='sil-doulos 12' )
+            #self.textBox.tag_configure( 'otherVerseTextFormat', font='sil-doulos 9' )
+            ##self.textBox.tag_configure( 'verseText', background='yellow', font='helvetica 14 bold', relief=tk.RAISED )
+            ##"background", "bgstipple", "borderwidth", "elide", "fgstipple", "font", "foreground", "justify", "lmargin1",
+            ##"lmargin2", "offset", "overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
+            ##"tabs", "tabstyle", "underline", and "wrap".
 
         # Set-up our Bible system and our callables
         self.BibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" ) # temp
@@ -434,7 +437,7 @@ class BibleResourceWindow( ChildWindow ):
     def getCachedVerseData( self, verseKey ):
         """
         Checks to see if the requested verse is in our cache,
-            otherwise calls getVerseData to fetch it.
+            otherwise calls getContextVerseData (from the superclass) to fetch it.
 
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
@@ -445,7 +448,7 @@ class BibleResourceWindow( ChildWindow ):
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceWindow cache") )
             self.verseCache.move_to_end( verseKeyHash )
             return self.verseCache[verseKeyHash]
-        verseData = self.getVerseData( verseKey )
+        verseData = self.getContextVerseData( verseKey )
         self.verseCache[verseKeyHash] = verseData
         if len(self.verseCache) > MAX_CACHED_VERSES:
             #print( "Removing oldest cached entry", len(self.verseCache) )
@@ -454,7 +457,7 @@ class BibleResourceWindow( ChildWindow ):
     # end of BibleResourceWindow.getCachedVerseData
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseDataList, currentVerse=False ):
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
         """
         Add the requested verse to the end of self.textBox.
 
@@ -462,7 +465,7 @@ class BibleResourceWindow( ChildWindow ):
             and adds the CV marks at the same time for navigation.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
+            #try: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
             #except UnicodeEncodeError: print( t("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
         BBB, C, V = verseKey.getBCV()
@@ -470,6 +473,22 @@ class BibleResourceWindow( ChildWindow ):
         self.textBox.mark_set( markName, tk.INSERT )
         self.textBox.mark_gravity( markName, tk.LEFT )
         lastCharWasSpace = haveTextFlag = not firstFlag
+
+        if verseContextData is None: verseDataList = context = None
+        else: verseDataList, context = verseContextData
+
+        # Display the context preceding the first verse
+        if firstFlag and context:
+            #print( "context", context )
+            self.textBox.insert( tk.END, "Context:", 'contextHeader' )
+            contextString, first = "", True
+            for someMarker in context:
+                #print( "  someMarker", someMarker )
+                if someMarker != 'chapters':
+                    contextString += (' ' if first else ', ') + someMarker
+                    first = False
+            self.textBox.insert( tk.END, contextString, 'context' )
+            haveTextFlag = True
 
         if verseDataList is None:
             if C!='0': print( "  ", verseKey, "has no data for", self.moduleID )
@@ -783,16 +802,17 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
     # end if SwordBibleResourceWindow.refreshTitle
 
 
-    def getVerseData( self, verseKey ):
+    def getContextVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( t("SwordBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
+            #print( t("SwordBibleResourceWindow.getContextVerseData( {} )").format( verseKey ) )
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
-                rawInternalBibleData = self.parentApp.SwordInterface.getVerseData( self.SwordModule, SwordKey )
+                rawInternalBibleContextData = self.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
+                rawInternalBibleData, context = rawInternalBibleContextData
                 # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
                 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
                 import re
@@ -806,8 +826,8 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
                         cleanText, existingInternalBibleEntry[4], existingInternalBibleEntry[5] )
                     #print( 'nIBE', newInternalBibleEntry )
                     adjustedInternalBibleData.append( newInternalBibleEntry )
-                return adjustedInternalBibleData
-    # end of SwordBibleResourceWindow.getVerseData
+                return adjustedInternalBibleData, context
+    # end of SwordBibleResourceWindow.getContextVerseData
 # end of SwordBibleResourceWindow class
 
 
@@ -846,16 +866,16 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
     # end if DBPBibleResourceWindow.refreshTitle
 
 
-    def getVerseData( self, verseKey ):
+    def getContextVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("DBPBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
+            print( t("DBPBibleResourceWindow.getContextVerseData( {} )").format( verseKey ) )
         if self.DBPModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
-                return self.DBPModule.getVerseData( verseKey )
-    # end of DBPBibleResourceWindow.getVerseData
+                return self.DBPModule.getContextVerseData( verseKey )
+    # end of DBPBibleResourceWindow.getContextVerseData
 # end of DBPBibleResourceWindow class
 
 
@@ -898,18 +918,18 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
     # end if InternalBibleResourceWindow.refreshTitle
 
 
-    def getVerseData( self, verseKey ):
+    def getContextVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("InternalBibleResourceWindow.getVerseData( {} )").format( verseKey ) )
+            print( t("InternalBibleResourceWindow.getContextVerseData( {} )").format( verseKey ) )
         if self.internalBible is not None:
-            try: return self.internalBible.getVerseData( verseKey )
+            try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError:
-                logging.critical( t("InternalBibleResourceWindow.getVerseData for {} {} got a KeyError!") \
+                logging.critical( t("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.winType, verseKey ) )
-    # end of InternalBibleResourceWindow.getVerseData
+    # end of InternalBibleResourceWindow.getContextVerseData
 # end of InternalBibleResourceWindow class
 
 

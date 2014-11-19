@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceCollection.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
+#   Last modified: 2014-11-20 (also update ProgVersion below)
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Windows and frames to allow display and manipulation of
 
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -45,7 +45,9 @@ from tkinter.filedialog import Open, Directory #, SaveAs
 from tkinter.ttk import Frame, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
+from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+                INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
+                parseWindowSize
 from BiblelatorDialogs import showerror, SelectResourceBox #, showwarning, showinfo, errorBeep
 from ChildWindows import ChildBox
 from BibleResourceWindows import BibleResourceWindow
@@ -83,7 +85,7 @@ def t( messageString ):
 
 class BibleResourceBox( Frame, ChildBox ):
     """
-    The superclass must provide a getVerseData function.
+    The superclass must provide a getContextVerseData function.
     """
     def __init__( self, parentWindow, boxType, moduleID ):
         if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceBox.__init__( {}, {}, {} )").format( parentWindow, boxType, moduleID ) )
@@ -118,8 +120,12 @@ class BibleResourceBox( Frame, ChildBox ):
         self.createStandardKeyboardBindings()
         self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
 
-        for USFMKey, styleDict in self.parentWindow.parentApp.stylesheet.getTKStyles().items():
+        # Set-up our standard Bible styles
+        for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
             self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
+        # Add our extra specialised styles
+        self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
 
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 
@@ -138,6 +144,19 @@ class BibleResourceBox( Frame, ChildBox ):
 
         self.verseCache = OrderedDict()
     # end of BibleResourceBox.__init__
+
+
+    def createStandardKeyboardBindings( self ):
+        """
+        Create keyboard bindings for this widget.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("BibleResourceBox.createStandardKeyboardBindings()") )
+        for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
+                             ('Find',self.doFind), ('Refind',self.doRefind),
+                             ('Info',self.doShowInfo), ('Close',self.doClose) ):
+            self.createStandardKeyboardBinding( name, command )
+    # end of BibleResourceBox.createStandardKeyboardBindings()
 
 
     def gotoBCV( self, BBB, C, V ):
@@ -161,7 +180,7 @@ class BibleResourceBox( Frame, ChildBox ):
     def getCachedVerseData( self, verseKey ):
         """
         Checks to see if the requested verse is in our cache,
-            otherwise calls getVerseData to fetch it.
+            otherwise calls getContextVerseData (from the superclass) to fetch it.
 
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
@@ -172,24 +191,24 @@ class BibleResourceBox( Frame, ChildBox ):
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceBox cache") )
             self.verseCache.move_to_end( verseKeyHash )
             return self.verseCache[verseKeyHash]
-        verseData = self.getVerseData( verseKey )
-        self.verseCache[verseKeyHash] = verseData
+        verseContextData = self.getContextVerseData( verseKey )
+        self.verseCache[verseKeyHash] = verseContextData
         if len(self.verseCache) > MAX_CACHED_VERSES:
             #print( "Removing oldest cached entry", len(self.verseCache) )
             self.verseCache.popitem( last=False )
-        return verseData
+        return verseContextData
     # end of BibleResourceBox.getCachedVerseData
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseDataList, currentVerse=False ):
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
         """
-        Add the requested verse to the end of self.
+        Add the requested verse to the end of self.textBox.
 
         It connects the USFM markers as stylenames while it's doing it
             and adds the CV marks at the same time for navigation.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( t("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, verseDataList, currentVerse )
+            #try: print( t("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
             #except UnicodeEncodeError: print( t("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
         BBB, C, V = verseKey.getBCV()
@@ -197,6 +216,22 @@ class BibleResourceBox( Frame, ChildBox ):
         self.textBox.mark_set( markName, tk.INSERT )
         self.textBox.mark_gravity( markName, tk.LEFT )
         lastCharWasSpace = haveTextFlag = not firstFlag
+
+        if verseContextData is None: verseDataList = context = None
+        else: verseDataList, context = verseContextData
+
+        # Display the context preceding the first verse
+        if firstFlag and context:
+            #print( "context", context )
+            self.textBox.insert( tk.END, "Context:", 'contextHeader' )
+            contextString, first = "", True
+            for someMarker in context:
+                #print( "  someMarker", someMarker )
+                if someMarker != 'chapters':
+                    contextString += (' ' if first else ', ') + someMarker
+                    first = False
+            self.textBox.insert( tk.END, contextString, 'context' )
+            haveTextFlag = True
 
         if verseDataList is None:
             if C!='0': print( "  ", verseKey, "has no data for", self.moduleID )
@@ -435,71 +470,6 @@ class BibleResourceBox( Frame, ChildBox ):
         except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
         self.lastCVMark = desiredMark
     # end of BibleResourceBox.updateShownBCV
-
-
-    def xxxsetAllText( self, newBibleText ): #, markAsUnmodified=True ):
-        """
-        Sets the textBox (assumed to be enabled) to the given Bible text.
-
-        Inserts BCV marks as it does it.
-
-        Doesn't position the cursor as it assumes a follow-up call will navigate to the current verse.
-
-        caller: call self.update() first if just packed, else the
-        initial position may be at line 2, not line 1 (2.1; Tk bug?)
-        """
-        self.delete( START, tk.END ) # clear any existing text
-        self.textBox.mark_set( 'C0V0', START )
-        C = V = '0'
-        for line in newBibleText.split( '\n' ):
-            #print( "line", repr(line) )
-            if not line: self.textBox.insert( tk.END, '\n' ); continue
-            marker, text = splitMarkerText( line )
-            #print( "m,t", repr(marker), repr(text) )
-            if marker == 'c':
-                C, V = text, '0' # Doesn't handle footnotes, etc.
-                markName = 'C{}V0'.format( C )
-                self.textBox.mark_set( markName, tk.INSERT )
-                self.textBox.mark_gravity( markName, tk.LEFT )
-            elif marker == 'v':
-                V = text.split()[0] # Doesn't handle footnotes, etc.
-                markName = 'C{}V{}'.format( C, V )
-                self.textBox.mark_set( markName, tk.INSERT )
-                self.textBox.mark_gravity( markName, tk.LEFT )
-            elif C == '0': # marker each line
-                markName = 'C0V{}'.format( V )
-                self.textBox.mark_set( markName, tk.INSERT )
-                self.textBox.mark_gravity( markName, tk.LEFT )
-                V = str( int(V) + 1 )
-            self.textBox.insert( tk.END, line+'\n', marker ) # This will ensure a \n at the end of the file
-
-        # Not needed here hopefully
-        #self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
-        #self.see( tk.INSERT ) # scroll to top, insert is set
-
-        #if markAsUnmodified:
-        self.edit_reset() # clear undo/redo stks
-        self.edit_modified( False ) # clear modified flag
-    # end of BibleResourceBox.setAllText
-
-
-    def doHelp( self, event=None ):
-        from Help import HelpBox
-        helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.winType )
-        helpInfo += "\n  Keyboard shortcuts:"
-        for name,shortcut in self.myKeyboardBindingsList:
-            helpInfo += "\n    {}\t{}".format( name, shortcut )
-        hb = HelpBox( self, self.genericWindowType, helpInfo )
-    # end of Application.doHelp
-
-
-    def doAbout( self, event=None ):
-        from About import AboutBox
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.winType )
-        ab = AboutBox( self, self.genericWindowType, aboutInfo )
-    # end of Application.doAbout
 # end of BibleResourceBox class
 
 
@@ -519,16 +489,17 @@ class SwordBibleResourceBox( BibleResourceBox ):
     # end of SwordBibleResourceBox.__init__
 
 
-    def getVerseData( self, verseKey ):
+    def getContextVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( t("SwordBibleResourceBox.getVerseData( {} )").format( verseKey ) )
+            #print( t("SwordBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
-                rawInternalBibleData = self.parentWindow.parentApp.SwordInterface.getVerseData( self.SwordModule, SwordKey )
+                rawContextInternalBibleData = self.parentWindow.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
+                rawInternalBibleData, context = rawContextInternalBibleData
                 # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
                 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
                 import re
@@ -542,8 +513,8 @@ class SwordBibleResourceBox( BibleResourceBox ):
                         cleanText, existingInternalBibleEntry[4], existingInternalBibleEntry[5] )
                     #print( 'nIBE', newInternalBibleEntry )
                     adjustedInternalBibleData.append( newInternalBibleEntry )
-                return adjustedInternalBibleData
-    # end of SwordBibleResourceBox.getVerseData
+                return adjustedInternalBibleData, context
+    # end of SwordBibleResourceBox.getContextVerseData
 # end of SwordBibleResourceBox class
 
 
@@ -569,16 +540,16 @@ class DBPBibleResourceBox( BibleResourceBox ):
     # end of DBPBibleResourceBox.__init__
 
 
-    def getVerseData( self, verseKey ):
+    def getContextVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("DBPBibleResourceBox.getVerseData( {} )").format( verseKey ) )
+            print( t("DBPBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
         if self.DBPModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
-                return self.DBPModule.getVerseData( verseKey )
-    # end of DBPBibleResourceBox.getVerseData
+                return self.DBPModule.getContextVerseData( verseKey )
+    # end of DBPBibleResourceBox.getContextVerseData
 # end of DBPBibleResourceBox class
 
 
@@ -612,44 +583,31 @@ class InternalBibleResourceBox( BibleResourceBox ):
     # end of InternalBibleResourceBox.__init__
 
 
-    def getVerseData( self, verseKey ):
+    def getContextVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("InternalBibleResourceBox.getVerseData( {} )").format( verseKey ) )
+            print( t("InternalBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
         if self.internalBible is not None:
-            try: return self.internalBible.getVerseData( verseKey )
+            try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError:
-                logging.critical( t("InternalBibleResourceBox.getVerseData for {} {} got a KeyError!") \
+                logging.critical( t("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.boxType, verseKey ) )
-    # end of InternalBibleResourceBox.getVerseData
+    # end of InternalBibleResourceBox.getContextVerseData
 # end of InternalBibleResourceBox class
 
 
 
-class ResourceBoxes( list ):
+class BibleResourceBoxes( list ):
     """
     Just keeps a list of the resource (Text) boxes.
     """
     def __init__( self, resourceBoxesParent ):
         self.resourceBoxesParent = resourceBoxesParent
         list.__init__( self )
-
-
-    def updateThisBibleGroup( self, groupCode, newVerseKey ):
-        """
-        Called when we probably need to update some resource windows with a new Bible reference.
-        """
-        if BibleOrgSysGlobals.debugFlag: print( t("ResourceBoxes.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
-        for resourceBox in self:
-            if 'Bible' in resourceBox.genericWindowType: # e.g., BibleResource, BibleEditor
-                if resourceBox.groupCode == groupCode:
-                    # The following line doesn't work coz it only updates ONE window
-                    #self.resourceBoxesParent.after_idle( lambda: resourceBox.updateShownBCV( newVerseKey ) )
-                    resourceBox.updateShownBCV( newVerseKey )
-    # end of ResourceBoxes.updateThisBibleGroup
-# end of ResourceBoxes class
+    # end of BibleResourceBoxes.__init__
+# end of BibleResourceBoxes class
 
 
 
@@ -665,10 +623,17 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         BibleResourceWindow.__init__( self, self.parentApp, 'BibleResourceCollectionWindow', self.collectionName )
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.winType = 'InternalBibleResourceBox'
+
+        self.geometry( INITIAL_RESOURCE_COLLECTION_SIZE )
+        self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE
+        self.minsize( *parseWindowSize( self.minimumSize ) )
+        self.maxsize( *parseWindowSize( self.maximumSize ) )
+
+        # Get rid of the default widgets
         self.vScrollbar.destroy()
         self.textBox.destroy()
 
-        self.resourceBoxes = ResourceBoxes( self )
+        self.resourceBoxes = BibleResourceBoxes( self )
     # end of BibleResourceCollectionWindow.__init__
 
 
@@ -1153,11 +1118,45 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             #print( "contextViewMode", self.contextViewMode )
             assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
 
+        #refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
+        #BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
+        #newVerseKey = SimpleVerseKey( BBB, C, V, S )
+        self.setCurrentVerseKey( newReferenceVerseKey )
+
         for resourceBox in self.resourceBoxes:
             resourceBox.updateShownBCV( newReferenceVerseKey )
 
         self.refreshTitle()
     # end of BibleResourceCollectionWindow.updateShownBCV
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceCollectionWindow.doHelp()") )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\n  Keyboard shortcuts:"
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+    # end of BibleResourceCollectionWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceCollectionWindow.doAbout()") )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.winType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+    # end of BibleResourceCollectionWindow.doAbout
 # end of BibleResourceCollectionWindow class
 
 

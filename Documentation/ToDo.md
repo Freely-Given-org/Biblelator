@@ -8,20 +8,22 @@ Eventually we will use the issue tracker at Github
 
 Things nearer the top of the list are higher in priority.
 
-* Do verse prior context (extra view mode?)
+* Add close button to resource boxes
 * Get Sword commentaries working
 * Create backup files when editing
+* Autosave edited files
 * Get the different views working on the edit window
+* Release version 0.3
 * Work on user stylesheets
 * Make a full project properties dialog and do project setting properly
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
+* Release version 0.4
 * Consider when the same project/file is opened multiple times
 * Consider toolbars in child windows (and/or hiding the menu)
 * Handle multiple overlapping tags in the HTML window
 * Add "Display by Section" for Bibles that have section headings
     Does that mean we have previous/next section navigation also?
-* Autosave edited files
 * Design the default short-cut keys for verse/chapter navigation
 * Work with someone as a test user
 * Work out how the help system will work and start implementing some content

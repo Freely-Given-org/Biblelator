@@ -1155,7 +1155,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
                 if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
             if not failed:
                 previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
-                previousVerseData = self.getVerseData( previousVerseKey )
+                previousVerseData = self.getContextVerseData( previousVerseKey )
                 if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
 
         # Determine the next valid verse numbers
@@ -1169,10 +1169,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
                 nextIntV = 1
                 nextIntC += 1 # Need to check................................
             nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
-            nextVerseData = self.getVerseData( nextVerseKey )
+            nextVerseData = self.getContextVerseData( nextVerseKey )
             if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
 
-        verseData = self.getVerseData( newVerseKey )
+        verseData = self.getContextVerseData( newVerseKey )
 
         return verseData, previousVersesData, nextVersesData
     # end of USFMEditWindow.getBeforeAndAfterBibleData

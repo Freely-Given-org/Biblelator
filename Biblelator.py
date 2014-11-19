@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
+#   Last modified: 2014-11-19 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -32,9 +32,9 @@ Note that many times in this application, where the term 'Bible' is used
 
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.25" # Only need to change this if the settings format has changed
+SettingsVersion = "0.26" # Only need to change this if the settings format has changed
 
 debuggingThisModule = True
 
@@ -2100,7 +2100,12 @@ class Application( Frame ):
 
 
     def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("Application.doHelp()") )
         from Help import HelpBox
+
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
         helpInfo += "\n  Use the Resource menu to open study/reference resources."
@@ -2113,7 +2118,12 @@ class Application( Frame ):
 
 
     def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("Application.doAbout()") )
         from About import AboutBox
+
         aboutInfo = ProgNameVersion
         aboutInfo += "\n  This program is not yet finished but the Resource menu should mostly work."
         ab = AboutBox( self.ApplicationParent, APP_NAME, aboutInfo )

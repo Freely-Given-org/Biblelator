@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ChildWindows.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
+#   Last modified: 2014-11-20 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -30,7 +30,7 @@ Base windows to allow display and manipulation of
 
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 
 debuggingThisModule = True
@@ -45,7 +45,7 @@ from tkinter.ttk import Scrollbar
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, \
-                             MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, parseWindowSize
+                             INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, parseWindowSize
 from BiblelatorDialogs import errorBeep, showerror, showinfo
 
 # BibleOrgSys imports
@@ -259,8 +259,26 @@ class ChildBox():
     # end of ChildBox.__init__
 
 
+    def createStandardKeyboardBinding( self, name, command ):
+        """
+        Called from createStandardKeyboardBindings to do the actual work.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
+        assert( (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList )
+        if name in self.parentApp.keyBindingDict:
+            for keyCode in self.parentApp.keyBindingDict[name][1:]:
+                #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                self.textBox.bind( keyCode, command )
+                if BibleOrgSysGlobals.debugFlag:
+                    assert( keyCode not in self.myKeyboardShortcutsList )
+                    self.myKeyboardShortcutsList.append( keyCode )
+            self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
+        else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+    # end of ChildBox.createStandardKeyboardBinding()
+
     def createStandardKeyboardBindings( self ):
         """
+        Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("ChildBox.createStandardKeyboardBindings()") )
@@ -268,16 +286,7 @@ class ChildBox():
                              ('Find',self.doFind), ('Refind',self.doRefind),
                              ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              ('Close',self.doClose) ):
-            assert( (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList )
-            if name in self.parentApp.keyBindingDict:
-                for keyCode in self.parentApp.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                    self.textBox.bind( keyCode, command )
-                    if BibleOrgSysGlobals.debugFlag:
-                        assert( keyCode not in self.myKeyboardShortcutsList )
-                        self.myKeyboardShortcutsList.append( keyCode )
-                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
-            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+            self.createStandardKeyboardBinding( name, command )
     # end of ChildBox.createStandardKeyboardBindings()
 
 
@@ -457,6 +466,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         tk.Toplevel.__init__( self, self.parentApp )
         ChildBox.__init__( self, self.parentApp )
         self.protocol( "WM_DELETE_WINDOW", self.closeChildWindow )
+
+        self.geometry( INITIAL_RESOURCE_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
         self.maxsize( *parseWindowSize( self.maximumSize ) )
@@ -538,22 +549,32 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
 
     def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildWindow.doHelp()") )
         from Help import HelpBox
+
         helpInfo = ProgNameVersion
         helpInfo += "\nHelp for {}".format( self.winType )
         helpInfo += "\n  Keyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-    # end of Application.doHelp
+    # end of ChildWindow.doHelp
 
 
     def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceCollectionWindow.doAbout()") )
         from About import AboutBox
+
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.winType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-    # end of Application.doAbout
+    # end of ChildWindow.doAbout
 
 
     def doClose( self, event=None ):
