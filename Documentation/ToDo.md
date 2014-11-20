@@ -4,16 +4,16 @@ Biblelator ToDo List
 This is an informal list of things that need to be fixed or are planned to be done.
 
 Eventually we will use the issue tracker at Github
-    - actually, you're welcome to list your issues there already.
+    -- actually, you're welcome to list your issues there already.
 
 Things nearer the top of the list are higher in priority.
 
-* Add close button to resource boxes
-* Get Sword commentaries working
+* Get Sword commentaries displaying
 * Create backup files when editing
 * Autosave edited files
 * Get the different views working on the edit window
 * Release version 0.3
+* Display footnotes and xrefs in resources
 * Work on user stylesheets
 * Make a full project properties dialog and do project setting properly
 * Add "Recent" entries to the main menus
@@ -53,3 +53,5 @@ Things nearer the top of the list are higher in priority.
 * Think more about fonts and writing systems, special Unicode characters, etc.
 * Get it usable as a ESFM Bible editor
 * Work on scripting/macro language
+* Do NT/OT reference mode (Groups A/B work together)
+* Do synoptic gospel mode (Groups A/B/C/D work together)

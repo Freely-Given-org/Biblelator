@@ -42,7 +42,7 @@ from collections import OrderedDict
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory #, SaveAs
-from tkinter.ttk import Frame, Scrollbar
+from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
@@ -105,9 +105,12 @@ class BibleResourceBox( Frame, ChildBox ):
             self.parentWindow.viewVersesBefore, self.parentWindow.viewVersesAfter = 2, 6
 
         # Create a title bar
+        titleBar = Frame( self )
+        Button( titleBar, text=_('Close'), command=self.doClose ).pack( side=tk.RIGHT )
         titleText = '{} ({})'.format( moduleID, boxType.replace( 'BibleResourceBox', '' ) )
-        self.titleLabel = tk.Label( self, text=titleText )
+        self.titleLabel = tk.Label( titleBar, text=titleText )
         self.titleLabel.pack( side=tk.TOP, fill=tk.X )
+        titleBar.pack( side=tk.TOP, fill=tk.X )
 
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
@@ -470,6 +473,32 @@ class BibleResourceBox( Frame, ChildBox ):
         except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
         self.lastCVMark = desiredMark
     # end of BibleResourceBox.updateShownBCV
+
+
+    def doClose( self, event=None ):
+        """
+        Called from the GUI.
+
+        Can be overridden.
+        """
+        self.closeResourceBox()
+    # end of BibleResourceBox.doClose
+
+    def closeResourceBox( self ):
+        """
+        Called to finally and irreversibly remove this box from our list and close it.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceBox.closeResourceBox()") )
+        if self in self.parentWindow.resourceBoxes:
+            self.parentWindow.resourceBoxes.remove( self )
+            self.destroy()
+        else: # we might not have finished making our box yet
+            if BibleOrgSysGlobals.debugFlag:
+                print( t("BibleResourceBox.closeResourceBox() for {} wasn't in list").format( self.winType ) )
+            try: self.destroy()
+            except tk.TclError: pass # never mind
+        if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed resource box" )
+    # end of BibleResourceBox.closeResourceBox
 # end of BibleResourceBox class
 
 

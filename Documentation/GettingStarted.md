@@ -48,19 +48,32 @@ For an overview of the program design philosophy, see Development.md.
         in order to properly display the additional logging information.
 
 
-4. Resource windows
+4. Resource Windows
 
     Resources are texts which are opened read-only for study or reference purposes as you
         translate in a project window. This includes Bibles, commentaries, and lexicons.
     The Resource menu in the main window is used to launch new resource windows.
 
 
-5. Project windows
+5. Resource Collection Windows
+
+    Resources are texts which are opened read-only for study or reference purposes as you
+        translate in a project window. This includes Bibles, commentaries, and lexicons.
+    Unllike Resource Windows above, Resource Collection Windows allow the display of several
+        resource boxes within the same window. This makes better use of the screen space,
+        however, these resource boxes can't display large segments of the text (like chapters)
+        -- only a verse or two.
+    The Resource menu in the main window is used to launch new resource collection windows,
+        and then individual resource boxes are opened from the Resource menu inside that
+        new window.
+
+
+6. Project Windows
 
     Projects are Bibles in the process of being translated, so they have a full edit window.
 
 
-6. Bible Groups
+7. Bible Groups
 
     Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All
     new windows are assigned to group A by default but this can be easily changed. Each
