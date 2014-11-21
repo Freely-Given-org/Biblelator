@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceCollection.py
-#   Last modified: 2014-11-20 (also update ProgVersion below)
+#   Last modified: 2014-11-21 (also update ProgVersion below)
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
@@ -227,12 +227,12 @@ class BibleResourceBox( Frame, ChildBox ):
         if firstFlag and context:
             #print( "context", context )
             self.textBox.insert( tk.END, "Context:", 'contextHeader' )
-            contextString, first = "", True
+            contextString, firstMarker = "", True
             for someMarker in context:
                 #print( "  someMarker", someMarker )
                 if someMarker != 'chapters':
-                    contextString += (' ' if first else ', ') + someMarker
-                    first = False
+                    contextString += (' ' if firstMarker else ', ') + someMarker
+                    firstMarker = False
             self.textBox.insert( tk.END, contextString, 'context' )
             haveTextFlag = True
 
@@ -241,12 +241,19 @@ class BibleResourceBox( Frame, ChildBox ):
             #self.textBox.insert( tk.END, '--' )
         elif self.viewMode == DEFAULT:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
+            endMarkers = []
             for entry in verseDataList:
                 if isinstance( entry, tuple ):
                     marker, cleanText = entry[0], entry[3]
                 else: marker, cleanText = entry.getMarker(), entry.getCleanText()
                 #print( "  ", haveTextFlag, marker, repr(cleanText) )
-                if marker and marker[0]=='¬': pass # Ignore end markers for now
+                if BibleOrgSysGlobals.debugFlag: assert( marker )
+
+                if marker.startswith( '¬' ):
+                    if marker != '¬v': endMarkers.append( marker )  # Don't want end-verse markers
+                else: endMarkers = [] # Reset when we have normal markers
+
+                if marker.startswith( '¬' ): pass # Ignore end markers for now
                 elif marker in ('chapters',): pass # Ignore added markers for now
                 elif marker == 'id':
                     self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
@@ -300,6 +307,15 @@ class BibleResourceBox( Frame, ChildBox ):
                     haveTextFlag = True
                 else:
                     logging.critical( t("BibleResourceBox.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
+            if self.contextViewMode == 'ByVerse' and endMarkers:
+                print( "endMarkers", endMarkers )
+                self.textBox.insert( tk.END, " End context:", 'contextHeader' )
+                contextString, firstMarker = "", True
+                for someMarker in endMarkers:
+                    #print( "  someMarker", someMarker )
+                    contextString += (' ' if firstMarker else ', ') + someMarker
+                    firstMarker = False
+                self.textBox.insert( tk.END, contextString, 'context' )
         else:
             logging.critical( t("BibleResourceBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
     # end of BibleResourceBox.displayAppendVerse
