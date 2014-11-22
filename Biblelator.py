@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 # Biblelator.py
-#   Last modified: 2014-11-20 (also update ProgVersion below)
 #
 # Main program for Biblelator Bible display/editing
 #
@@ -30,17 +29,20 @@ Note that many times in this application, where the term 'Bible' is used
     it can refer to any versified resource, e.g., typically including commentaries.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-22"
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
 SettingsVersion = "0.26" # Only need to change this if the settings format has changed
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
 import sys, os.path, logging
-from gettext import gettext as _
 import multiprocessing
 
 import tkinter as tk
@@ -856,7 +858,7 @@ class Application( Frame ):
             print( t("doSaveNewWindowSetup()") )
             self.setDebugText( "doSaveNewWindowSetup..." )
         swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
-        print( "swndResult", repr(swnd.result) )
+        if BibleOrgSysGlobals.debugFlags: print( "swndResult", repr(swnd.result) )
         if swnd.result:
             self.getCurrentChildWindowSettings()
             self.windowsSettingsDict[swnd.result] = self.windowsSettingsDict['Current'] # swnd.result is the new window name
@@ -875,7 +877,7 @@ class Application( Frame ):
             self.setDebugText( "doDeleteExistingWindowSetup..." )
         assert( self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict) )
         dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
-        print( "dwndResult", repr(dwnd.result) )
+        if BibleOrgSysGlobals.debugFlags: print( "dwndResult", repr(dwnd.result) )
         if dwnd.result:
             if BibleOrgSysGlobals.debugFlag:
                 assert( dwnd.result in self.windowsSettingsDict )

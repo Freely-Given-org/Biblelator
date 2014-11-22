@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # ModalDialog.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
-# xxxMain program for Biblelator Bible display/editing
+# Framework for modal dialogs for the Biblelator program.
 #
 # Adapted from: http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 #
@@ -26,19 +25,22 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-xxxProgram to allow editing of USFM Bibles using Python3 and Tkinter.
+Framework for modal dialogs for the Biblelator program.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-22"
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
 import sys, os.path, configparser, logging
-from gettext import gettext as _
 
 import tkinter as tk
 from tkinter.ttk import Frame, Button

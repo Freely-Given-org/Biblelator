@@ -8,6 +8,7 @@ Eventually we will use the issue tracker at Github
 
 Things nearer the top of the list are higher in priority.
 
+* Don't allow two collections (also two resources, two projects???) with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Get Sword commentaries displaying
 * Create backup files when editing

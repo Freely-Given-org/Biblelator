@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceCollection.py
-#   Last modified: 2014-11-21 (also update ProgVersion below)
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
@@ -28,16 +27,19 @@ Windows and frames to allow display and manipulation of
     (non-editable) Bible resource windows.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-22"
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
 import sys, logging #, os.path, configparser, logging
-from gettext import gettext as _
 from collections import OrderedDict
 
 import tkinter as tk
@@ -48,7 +50,7 @@ from tkinter.ttk import Frame, Button, Scrollbar
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
-from BiblelatorDialogs import showerror, SelectResourceBox #, showwarning, showinfo, errorBeep
+from BiblelatorDialogs import showerror, SelectResourceBox, RenameResourceCollection #, showwarning, showinfo, errorBeep
 from ChildWindows import ChildBox
 from BibleResourceWindows import BibleResourceWindow
 
@@ -90,8 +92,9 @@ class BibleResourceBox( Frame, ChildBox ):
     def __init__( self, parentWindow, boxType, moduleID ):
         if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceBox.__init__( {}, {}, {} )").format( parentWindow, boxType, moduleID ) )
         self.parentWindow, self.boxType, self.moduleID = parentWindow, boxType, moduleID
+        self.parentApp = self.parentWindow.parentApp
         Frame.__init__( self, parentWindow )
-        ChildBox.__init__( self, self.parentWindow.parentApp )
+        ChildBox.__init__( self, self.parentApp )
 
         # Set some dummy values required soon
         self._viewRadio, self._groupRadio = tk.IntVar(), tk.StringVar()
@@ -176,7 +179,7 @@ class BibleResourceBox( Frame, ChildBox ):
     def getSwordVerseKey( self, verseKey ):
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
             BBB, C, V = verseKey.getBCV()
-            return self.parentWindow.parentApp.SwordInterface.makeKey( BBB, C, V )
+            return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceBox.getSwordVerseKey
 
 
@@ -387,7 +390,7 @@ class BibleResourceBox( Frame, ChildBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("BibleResourceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
-            self.parentWindow.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
+            self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
         self.currentVerseKey = newVerseKey
 
@@ -513,7 +516,7 @@ class BibleResourceBox( Frame, ChildBox ):
                 print( t("BibleResourceBox.closeResourceBox() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
-        if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed resource box" )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource box" )
     # end of BibleResourceBox.closeResourceBox
 # end of BibleResourceBox class
 
@@ -527,7 +530,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
         #self.boxType = 'SwordBibleResourceBox'
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
-        self.SwordModule = self.parentWindow.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
+        self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
         if self.SwordModule is None:
             logging.error( t("SwordBibleResourceBox.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
@@ -543,7 +546,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
-                rawContextInternalBibleData = self.parentWindow.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
+                rawContextInternalBibleData = self.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
                 rawInternalBibleData, context = rawContextInternalBibleData
                 # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
                 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
@@ -663,9 +666,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Given a collection name, try to open an empty Bible resource collection window.
         """
         if BibleOrgSysGlobals.debugFlag: print( "BibleResourceCollectionWindow.__init__( {}, {} )".format( parentApp, collectionName ) )
-        self.parentApp, self.collectionName = parentApp, collectionName
-
-        BibleResourceWindow.__init__( self, self.parentApp, 'BibleResourceCollectionWindow', self.collectionName )
+        self.parentApp = parentApp
+        BibleResourceWindow.__init__( self, self.parentApp, 'BibleResourceCollectionWindow', collectionName )
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.winType = 'InternalBibleResourceBox'
 
@@ -693,6 +695,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
         #fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
+        #fileMenu.add_separator()
+        fileMenu.add_command( label='Rename', underline=0, command=self.doRename )
         #fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
 
@@ -778,9 +782,21 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
     def refreshTitle( self ):
         self.title( "[{}] {} Bible Resource Collection {} {}:{}".format( self.groupCode,
-                        self.collectionName,
+                        self.moduleID,
                         self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber() ) )
     # end if BibleResourceCollectionWindow.refreshTitle
+
+
+    def doRename( self ):
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("doRename()") )
+            self.parentApp.setDebugText( "doRename..." )
+        rrc = RenameResourceCollection( self, self.moduleID, title=_('Rename collection') )
+        if BibleOrgSysGlobals.debugFlag: print( "rrcResult", repr(rrc.result) )
+        if rrc.result:
+            self.moduleID = rrc.result
+            self.refreshTitle()
+    # end if BibleResourceCollectionWindow.doRename
 
 
     def changeBibleContextView( self ):

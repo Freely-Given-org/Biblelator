@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorDialogs.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
@@ -24,19 +23,22 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow editing of USFM Bibles using Python3 and Tkinter.
+Various modal dialog windows for Biblelator Bible display/editing.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-22"
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
 import sys, logging
-from gettext import gettext as _
 
 import tkinter as tk
 import tkinter.messagebox as tkmb
@@ -267,7 +269,8 @@ class SelectResourceBox( ModalDialog ):
 
 
 class GetNewProjectName( ModalDialog ):
-
+    """
+    """
     def body( self, master ):
         """
         Override the empty ModalDialog.body function
@@ -317,6 +320,57 @@ class GetNewProjectName( ModalDialog ):
         self.result = {'Name':fullname, 'Abbreviation':abbreviation}
     # end of GetNewProjectName.apply
 # end of class GetNewProjectName
+
+
+
+class RenameResourceCollection( ModalDialog ):
+    """
+    Get the new name for a resource collection.
+    """
+    def __init__( self, parent, existingName, title=None ):
+        self.existingName = existingName
+        ModalDialog.__init__( self, parent, title )
+    # end of RenameResourceCollection.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        Label( master, text=_('Enter name to replace "{}"').format( self.existingName ) ).grid( row=0, column=0, columnspan=2 )
+        Label( master, text=_("New name:") ).grid( row=1, column=0 )
+
+        self.e1 = Entry( master )
+        self.e1.grid( row=1, column=1 )
+        return self.e1 # initial focus
+    # end of RenameResourceCollection.apply
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+        """
+        newName = self.e1.get()
+        lenName = len( newName )
+        if lenName < 3: showwarning( APP_NAME, _("New name is too short!") ); return False
+        if lenName > 30: showwarning( APP_NAME, _("New name is too long!") ); return False
+        for illegalChar in ':;"@#=/\\{}':
+            if illegalChar in newName:
+                showwarning( APP_NAME, "Not allowed {} characters".format( illegalChar ) ); return False
+        return True
+    # end of RenameResourceCollection.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+        """
+        self.result = self.e1.get()
+    # end of RenameResourceCollection.apply
+# end of class RenameResourceCollection
 
 
 
