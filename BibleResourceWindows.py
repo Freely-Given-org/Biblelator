@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
-#   Last modified: 2014-11-21 (also update ProgVersion below)
 #
 # Bible resource frames for Biblelator Bible display/editing
 #
@@ -28,16 +27,19 @@ Windows and frames to allow display and manipulation of
     (non-editable) Bible resource windows.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-23"
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
-import sys, logging #, os.path, configparser, logging
-from gettext import gettext as _
+import sys, logging
 from collections import OrderedDict
 import tkinter as tk
 
@@ -491,7 +493,7 @@ class BibleResourceWindow( ChildWindow ):
             haveTextFlag = True
 
         if verseDataList is None:
-            if C!='0': print( "  ", verseKey, "has no data for", self.moduleID )
+            if C!='0': print( "  ", t("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
         elif self.viewMode == DEFAULT:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded

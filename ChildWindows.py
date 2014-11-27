@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 # ChildWindows.py
-#   Last modified: 2014-11-20 (also update ProgVersion below)
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -28,16 +27,19 @@ Base windows to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-28"
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
-import sys, logging
-from gettext import gettext as _
+import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
@@ -47,12 +49,12 @@ from tkinter.ttk import Scrollbar
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, parseWindowSize
 from BiblelatorDialogs import errorBeep, showerror, showinfo
+from TextBoxes import HTMLText
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import BibleOrgSysGlobals
-from BibleStylesheets import DEFAULT_FONTNAME
 
 
 
@@ -67,178 +69,6 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
-
-
-
-class HTMLText( tk.Text ):
-    """
-    A custom Text widget which understands and displays simple HTML.
-
-    It currently accepts:
-        heading tags:           h1,h2,h3
-        paragraph tags:         p, li
-        formatting tags:        span
-        hard-formatting tags:   i, b, em
-
-    For the styling, class names are appended to the tag names following a hyphen,
-        e.g., <span class="Word"> would give an internal style of "spanWord".
-    """
-    def __init__( self, *args, **kwargs ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
-        tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
-        standardFont = DEFAULT_FONTNAME + ' 12'
-        self.styleDict = { # earliest entries have the highest priority
-            'i': { 'font':standardFont+' italic' },
-            'b': { 'font':standardFont+' bold' },
-            'em': { 'font':standardFont+' bold' },
-            'p_i': { 'font':standardFont+' italic' },
-            'p_b': { 'font':standardFont+' bold' },
-            'p_em': { 'font':standardFont+' bold' },
-
-            'span': { 'foreground':'red', 'font':standardFont },
-            'li': { 'lmargin1':4, 'lmargin2':4, 'background':'pink', 'font':standardFont },
-
-            'p': { 'background':'pink', 'font':standardFont, 'spacing1':'1' },
-            'p_span': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanGreekWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanHebrewWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanKJVUsage': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanStatus': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-
-            'p_spanSource': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanSource_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-            'p_spanSource_span': { 'foreground':'red', 'background':'pink', 'font':standardFont, 'spacing1':'1' },
-            'p_spanSource_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanSource_spanHebrew': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanSource_spanStrongs': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-
-            'p_spanMeaning': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanMeaning_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-            'p_spanMeaning_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-
-            'p_span_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-            'p_spanKJVUsage_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-
-            'h1': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
-            'h2': { 'justify':tk.CENTER, 'foreground':'green', 'font':DEFAULT_FONTNAME+' 14', 'spacing1':'0.8', 'spacing3':'0.3' },
-            'h3': { 'justify':tk.CENTER, 'foreground':'orange', 'font':DEFAULT_FONTNAME+' 13', 'spacing1':'0.5', 'spacing3':'0.2' },
-            }
-        for tag,styleEntry in self.styleDict.items():
-            self.tag_configure( tag, **styleEntry ) # Create the style
-        #background='yellow', font='helvetica 14 bold', relief=tk.RAISED
-        #"background", "bgstipple", "borderwidth", "elide", "fgstipple",
-        #"font", "foreground", "justify", "lmargin1", "lmargin2", "offset",
-        #"overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
-        #"tabs", "tabstyle", "underline", and "wrap".
-    # end of HTMLText.__init__
-
-
-    def insert( self, point, iText ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            try: print( t("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
-            except UnicodeEncodeError: print( t("HTMLText.insert( {}, {} )").format( repr(point), len(iText) ) )
-        if point != tk.END:
-            logging.critical( t("HTMLText.insert doesn't know how to insert at {}").format( repr(point) ) )
-            tk.Text.insert( self, point, iText )
-            return
-        remainingText = iText.replace( '\n', ' ' )
-        remainingText = remainingText.replace( '<br>','\n' ).replace( '<br />','\n' ).replace( '<br/>','\n' )
-        while '  ' in remainingText: remainingText = remainingText.replace( '  ', ' ' )
-        currentFormatTags, currentHTMLTags = [], []
-        #first = True
-        while remainingText:
-            #try: print( "  Remaining: {}".format( repr(remainingText) ) )
-            #except UnicodeEncodeError: print( "  Remaining: {}".format( len(remainingText) ) )
-            ix = remainingText.find( '<' )
-            if ix == -1: # none found
-                tk.Text.insert( self, point, remainingText, currentFormatTags )
-                remainingText = ""
-            else: # presumably we have found the start of an HTML tag
-                if ix > 0: # this is where text is actually inserted into the box
-                    combinedFormats = '_'.join( currentFormatTags )
-                    if combinedFormats not in self.styleDict:
-                        print( "  Missing format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags )
-                        #try: print( "   on", repr(remainingText[:ix]) )
-                        #except UnicodeEncodeError: pass
-                    insertText = remainingText[:ix]
-                    #print( "  Got format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags, repr(insertText) )
-                    if 'Hebrew' in combinedFormats:
-                        #print( "Reversing", repr(insertText ) )
-                        insertText = insertText[::-1] # Reverse the string (a horrible way to approximate RTL)
-                    tk.Text.insert( self, point, insertText, combinedFormats )
-                    #first = False
-                    remainingText = remainingText[ix:]
-                #try: print( "  tag", repr(remainingText[:5]) )
-                #except UnicodeEncodeError: print( "  tag" )
-                ixEnd = remainingText.find( '>' )
-                ixNext = remainingText.find( '<', 1 )
-                #print( "ixEnd", ixEnd, "ixNext", ixNext )
-                if ixEnd == -1 \
-                or (ixEnd!=-1 and ixNext!=-1 and ixEnd>ixNext): # no tag close or wrong tag closed
-                    logging.critical( t("HTMLText.insert: Missing close bracket") )
-                    tk.Text.insert( self, point, remainingText, currentFormatTags )
-                    remainingText = ""
-                    break
-                # There's a close marker -- check it's our one
-                fullHTMLTag = remainingText[1:ixEnd] # but without the < >
-                remainingText = remainingText[ixEnd+1:]
-                #if remainingText:
-                    #try: print( "after marker", remainingText[0] )
-                    #except UnicodeEncodeError: pass
-                if not fullHTMLTag:
-                    logging.critical( t("HTMLText.insert: Unexpected empty HTML tags") )
-                    continue
-                selfClosing = fullHTMLTag[-1] == '/'
-                if selfClosing:
-                    fullHTMLTag = fullHTML[:-1]
-                #try: print( "fullHTMLTag", repr(fullHTMLTag), "self-closing" if selfClosing else "" )
-                #except UnicodeEncodeError: pass
-                fullHTMLTagBits = fullHTMLTag.split()
-                HTMLTag = fullHTMLTagBits[0]
-                #try: print( "  bits", fullHTMLTagBits, repr(HTMLTag) )
-                #except UnicodeEncodeError: pass
-                if HTMLTag and HTMLTag[0] == '/': # it's a close tag
-                    assert( len(fullHTMLTagBits) == 1 ) # shouldn't have any attributes on a closing tag
-                    assert( not selfClosing )
-                    HTMLTag = HTMLTag[1:]
-                    #print( t("Got HTML {} close tag").format( repr(HTMLTag) ) )
-                    #print( "cHT", currentHTMLTags )
-                    if currentHTMLTags and HTMLTag == currentHTMLTags[-1]: # all good
-                        currentHTMLTags.pop() # Drop it
-                        currentFormatTags.pop()
-                    elif currentHTMLTags:
-                        logging.critical( t("HTMLText.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
-                    else:
-                        logging.critical( t("HTMLText.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
-                else: # it's not a close tag
-                    if HTMLTag not in ('h1','h2','h3','p','li','span','i','b','em',):
-                        logging.critical( t("HTMLText doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
-                        #currentHTMLTags.append( HTMLTag ) # remember it anyway in case it's closed later
-                        continue
-                    if 1 or self.edit_modified(): # This isn't the first text then
-                        if HTMLTag in ('h1','h2','h3','p','li',):
-                            tk.Text.insert( self, point, '\n' )
-                        #elif HTMLTag in ('li',):
-                            #tk.Text.insert( self, point, '\n' )
-                    formatTag = HTMLTag
-                    if len(fullHTMLTagBits)>1: # our HTML tag has some additional attributes
-                        #print( "Looking for attributes" )
-                        for bit in fullHTMLTagBits[1:]:
-                            #try: print( "  bit", repr(bit) )
-                            #except UnicodeEncodeError: pass
-                            if bit.startswith('class="') and bit[-1]=='"':
-                                formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
-                            else: logging.warning( "Ignoring {} attribute on {} tag".format( bit, HTMLTag ) )
-                    if not selfClosing:
-                        currentHTMLTags.append( HTMLTag )
-                        currentFormatTags.append( formatTag )
-        if currentHTMLTags:
-            logging.critical( t("HTMLText.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
-        if currentFormatTags:
-            logging.critical( t("HTMLText.insert: Left-over format tags: {}").format( currentFormatTags ) )
-    # end of HTMLText.insert
-# end of HTMLText class
 
 
 
@@ -264,15 +94,17 @@ class ChildBox():
         Called from createStandardKeyboardBindings to do the actual work.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
-        assert( (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList )
-        if name in self.parentApp.keyBindingDict:
-            for keyCode in self.parentApp.keyBindingDict[name][1:]:
+        try: kBD = self.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
+        assert( (name,kBD[name][0],) not in self.myKeyboardBindingsList )
+        if name in kBD:
+            for keyCode in kBD[name][1:]:
                 #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                 self.textBox.bind( keyCode, command )
                 if BibleOrgSysGlobals.debugFlag:
                     assert( keyCode not in self.myKeyboardShortcutsList )
                     self.myKeyboardShortcutsList.append( keyCode )
-            self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
+            self.myKeyboardBindingsList.append( (name,kBD[name][0],) )
         else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
     # end of ChildBox.createStandardKeyboardBinding()
 
@@ -303,7 +135,7 @@ class ChildBox():
             print( t("ChildBox.doCopy()") )
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
-            showerror( APP_NAME, 'No text selected')
+            showerror( self, APP_NAME, 'No text selected')
         else:
             copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
             print( "  copied text", repr(copyText) )
@@ -342,7 +174,7 @@ class ChildBox():
                 self.textBox.see( tk.INSERT )                          # scroll to line
             else:
                 errorBeep()
-                showerror( APP_NAME, _("No such line number") )
+                showerror( self, APP_NAME, _("No such line number") )
     # end of ChildBox.doGotoLine
 
 
@@ -356,7 +188,7 @@ class ChildBox():
             where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
                 errorBeep()
-                showerror( APP_NAME, 'String not found' )
+                showerror( self, APP_NAME, 'String not found' )
             else:
                 pastkey = where + '+%dc' % len(key)           # index past key
                 self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
@@ -385,7 +217,7 @@ class ChildBox():
         numWords = len( text.split() )
         index = self.textBox.index( tk.INSERT )
         atLine, atColumn = index.split('.')
-        showinfo( 'Window Information',
+        showinfo( self, 'Window Information',
                  'Current location:\n' +
                  '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) +
                  '\nFile text statistics:\n' +
@@ -504,7 +336,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( _("Not implemented"), _("Not yet available, sorry") )
+        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of ChildWindow.notWrittenYet
 
 
@@ -568,7 +400,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceCollectionWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("ChildWindow.doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -658,12 +490,285 @@ class ChildWindows( list ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("ChildWindows.updateLexicons( {} )").format( newLexiconWord ) )
         for appWin in self:
+            #print( "gwT", appWin.genericWindowType )
             if appWin.genericWindowType == 'LexiconResource':
                 # The following line doesn't work coz it only updates ONE window
                 #self.ChildWindowsParent.after_idle( lambda: appWin.updateLexiconWord( newLexiconWord ) )
                 appWin.updateLexiconWord( newLexiconWord )
     # end of ChildWindows.updateLexicons
 # end of ChildWindows class
+
+
+
+class HTMLWindow( tk.Toplevel, ChildBox ):
+    """
+    """
+    def __init__( self, parentWindow, filename=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("HTMLWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
+            assert( parentWindow )
+        self.parentWindow, self.initialFilename = parentWindow, filename
+        tk.Toplevel.__init__( self, self.parentWindow )
+        ChildBox.__init__( self, self.parentWindow )
+        self.protocol( "WM_DELETE_WINDOW", self.closeHTMLWindow )
+        self.title( 'HTMLWindow' )
+
+        self.geometry( INITIAL_RESOURCE_SIZE )
+        self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
+        self.minsize( *parseWindowSize( self.minimumSize ) )
+        self.maxsize( *parseWindowSize( self.maximumSize ) )
+
+        self.createMenuBar()
+        self.createToolBar()
+        self.createContextMenu()
+
+        self.viewMode = DEFAULT
+        self.settings = None
+
+        # Create a scroll bar to fill the right-hand side of the window
+        self.vScrollbar = Scrollbar( self )
+        self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+
+        #if 'textBox' in dir(self): # we have one already -- presumably a specialised one
+            #halt # We have one already
+        #else: # let's make one
+
+        self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
+        self.textBox['wrap'] = 'word'
+        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.createStandardKeyboardBindings()
+        self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
+
+        # Options for find, etc.
+        self.optionsDict = {}
+        self.optionsDict['caseinsens'] = True
+
+        if filename:
+            self.historyList = [ filename ]
+            self.historyIndex = 1 # Number from the end (starting with 1)
+            self.load( filename )
+        else:
+            self.historyList = []
+            self.historyIndex = 0 # = None
+    # end of HTMLWindow.__init__
+
+
+    def notWrittenYet( self ):
+        errorBeep()
+        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+    # end of HTMLWindow.notWrittenYet
+
+
+    def createMenuBar( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.createMenuBar()") )
+        try: kBD = self.parentWindow.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentApp.keyBindingDict
+
+        self.menubar = tk.Menu( self )
+        #self['menu'] = self.menubar
+        self.config( menu=self.menubar ) # alternative
+
+        fileMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
+        #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #subfileMenuImport = tk.Menu( fileMenu )
+        #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
+        #subfileMenuExport = tk.Menu( fileMenu )
+        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
+        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
+        #fileMenu.add_separator()
+        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=kBD['Info'][0] )
+        fileMenu.add_separator()
+        fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=kBD['Close'][0] ) # close this window
+
+        editMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
+        editMenu.add_command( label='Copy', underline=0, command=self.doCopy, accelerator=kBD['Copy'][0] )
+        editMenu.add_separator()
+        editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll, accelerator=kBD['SelectAll'][0] )
+
+        searchMenu = tk.Menu( self.menubar )
+        self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
+        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=kBD['Line'][0] )
+        searchMenu.add_separator()
+        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=kBD['Find'][0] )
+        searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=kBD['Refind'][0] )
+
+        gotoMenu = tk.Menu( self.menubar )
+        self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
+        gotoMenu.add_command( label='Back', underline=0, command=self.doGoBackward )
+        gotoMenu.add_command( label='Forward', underline=0, command=self.doGoForward )
+
+        toolsMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
+        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+
+        windowMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
+        windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
+
+        helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
+        self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
+        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=kBD['Help'][0] )
+        helpMenu.add_separator()
+        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=kBD['About'][0] )
+    # end of HTMLWindow.createMenuBar
+
+
+    def createContextMenu( self ):
+        """
+        Can be overriden if necessary.
+        """
+        try: kBD = self.parentWindow.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentApp.keyBindingDict
+
+        self.contextMenu = tk.Menu( self, tearoff=0 )
+        self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy, accelerator=kBD['Copy'][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label="Select all", underline=7, command=self.doSelectAll, accelerator=kBD['SelectAll'][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label="Find...", underline=0, command=self.doFind, accelerator=kBD['Find'][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label="Close", underline=1, command=self.doClose, accelerator=kBD['Close'][0] )
+
+        self.bind( "<Button-3>", self.showContextMenu ) # right-click
+        #self.pack()
+    # end of HTMLWindow.createContextMenu
+
+
+    def showContextMenu( self, event ):
+        self.contextMenu.post( event.x_root, event.y_root )
+    # end of HTMLWindow.showContextMenu
+
+
+    def createToolBar( self ):
+        """
+        Designed to be overridden.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( t("This 'createToolBar' method can be overridden!") )
+        pass
+    # end of HTMLWindow.createToolBar
+
+
+    def load( self, filepath ):
+        """
+        Loads the given HTML file into the window
+            and also finds and sets the window title
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.load( {} )").format( filepath ) )
+        self.folderPath, self.filename = os.path.split( filepath )
+        with open( filepath, 'rt' ) as HTMLFile:
+            fileContents = HTMLFile.read()
+        match = re.search( '<title>(.+?)</title>', fileContents )
+        if match:
+            #print( '0', repr(match.group(0)) ) # This includes the entire match, i.e., with the <title> tags, etc.
+            #print( '1', repr(match.group(1)) ) # This is just the title
+            title = match.group(1).replace( '\n', ' ' ).replace( '\r', ' ' ).replace( '  ', ' ' )
+            #print( "title", repr(title) )
+            self.title( title )
+        else: self.title( 'HTMLWindow' )
+        self.setAllText( fileContents )
+    # end of HTMLWindow.load
+
+
+    def gotoLink( self, link ):
+        """
+        Loads the given HTML file into the window
+            and also finds and sets the window title
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.gotoLink( {} )").format( link ) )
+        if not os.path.isabs( link ): # relative filepath
+            link = os.path.join( self.folderPath, link )
+        self.load( link )
+        self.historyList.append( link )
+        self.historyIndex = 1
+    # end of HTMLWindow.gotoLink
+
+
+    def doGoForward( self ):
+        """
+        """
+        if self.historyIndex > 1:
+            self.historyIndex -= 1
+            self.load( self.historyList[ -self.historyIndex ] )
+    # end of BibleResourceWindow.doGoForward
+
+
+    def doGoBackward( self ):
+        """
+        """
+        if self.historyIndex < len( self.historyList ):
+            self.historyIndex += 1
+            self.load( self.historyList[ -self.historyIndex ] )
+    # end of BibleResourceWindow.doGoBackward
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.doHelp()") )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\n  Keyboard shortcuts:"
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+    # end of HTMLWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.doAbout()") )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.winType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+    # end of HTMLWindow.doAbout
+
+
+    def doClose( self, event=None ):
+        """
+        Called from the GUI.
+
+        Can be overridden.
+        """
+        self.closeHTMLWindow()
+    # end of HTMLWindow.doClose
+
+    def closeHTMLWindow( self ):
+        """
+        Called to finally and irreversibly remove this window from our list and close it.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.closeHTMLWindow()") )
+        try: cWs = self.parentWindow.parentApp.childWindows
+        except AttributeError: cWs = self.parentApp.childWindows
+        if self in cWs:
+            cWs.remove( self )
+            self.destroy()
+        else: # we might not have finished making our window yet
+            if BibleOrgSysGlobals.debugFlag:
+                print( t("HTMLWindow.closeHTMLWindow() for {} wasn't in list").format( self.winType ) )
+            try: self.destroy()
+            except tk.TclError: pass # never mind
+        if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )
+    # end of HTMLWindow.closeHTMLWindow
+# end of class HTMLWindow
 
 
 

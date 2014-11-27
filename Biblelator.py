@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-22"
+LastModifiedDate = "2014-11-27"
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = "0.26"
@@ -59,7 +59,7 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME
         EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, parseWindowGeometry, parseWindowSize, assembleWindowGeometryFromList, assembleWindowSize, centreWindow
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
-        SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBox, GetNewProjectName
+        SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBoxDialog, GetNewProjectNameDialog, GetNewCollectionNameDialog
 from Settings import ApplicationSettings, ProjectSettings
 from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
@@ -107,9 +107,10 @@ class Application( Frame ):
         and use that to inform child windows of BCV movements.
     """
     global settings
-    def __init__( self, parent, homeFolderPath, loggingFolderPath, settings ):
-        if BibleOrgSysGlobals.debugFlag: print( t("Application.__init__( {} )").format( parent ) )
-        self.ApplicationParent, self.homeFolderPath, self.loggingFolderPath, self.settings = parent, homeFolderPath, loggingFolderPath, settings
+    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, settings ):
+        if BibleOrgSysGlobals.debugFlag: print( t("Application.__init__( {}, ... )").format( rootWindow ) )
+        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.settings = rootWindow, homeFolderPath, loggingFolderPath, settings
+        self.parentApp = self # Yes, that's me, myself!
 
         self.themeName = 'default'
         self.style = Style()
@@ -138,10 +139,10 @@ class Application( Frame ):
         self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         self.stylesheet = BibleStylesheet().loadDefault()
-        Frame.__init__( self, self.ApplicationParent )
+        Frame.__init__( self, self.rootWindow )
         self.pack()
 
-        self.ApplicationParent.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
+        self.rootWindow.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
 
         self.childWindows = ChildWindows( self )
 
@@ -150,7 +151,7 @@ class Application( Frame ):
             self.lastDebugMessage = None
             from tkinter.scrolledtext import ScrolledText
             #Style().configure('DebugText.TScrolledText', padding=2, background='orange')
-            self.debugTextBox = ScrolledText( self.ApplicationParent, bg='orange' )#style='DebugText.TScrolledText' )
+            self.debugTextBox = ScrolledText( self.rootWindow, bg='orange' )#style='DebugText.TScrolledText' )
             self.debugTextBox.pack( side=tk.BOTTOM, fill=tk.BOTH )
             #self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
             self.debugTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
@@ -179,7 +180,7 @@ class Application( Frame ):
         # Read and apply the saved settings
         self.parseAndApplySettings()
         if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
-            centreWindow( self.ApplicationParent, *INITIAL_MAIN_SIZE.split( 'x', 1 ) )
+            centreWindow( self.rootWindow, *INITIAL_MAIN_SIZE.split( 'x', 1 ) )
 
         self.createMenuBar()
         self.createNavigationBar()
@@ -212,9 +213,9 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("createMenuBar()") )
 
         #self.win = Toplevel( self )
-        self.menubar = tk.Menu( self.ApplicationParent )
-        #self.ApplicationParent['menu'] = self.menubar
-        self.ApplicationParent.config( menu=self.menubar ) # alternative
+        self.menubar = tk.Menu( self.rootWindow )
+        #self.rootWindow['menu'] = self.menubar
+        self.rootWindow.config( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
@@ -342,31 +343,18 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("createNavigationBar()") )
         Style().configure('NavigationBar.TFrame', background='yellow')
-        #self.label1 = Label( self, text="My label" )
-        #self.label1.pack()
 
         navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
 
-        self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.goBack, state=tk.DISABLED )
-        #self.previousBCVButton['text'] = '<-'
-        #self.previousBCVButton['command'] = self.goBack
-        #self.previousBCVButton.grid( row=0, column=0 )
+        self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
         self.previousBCVButton.pack( side=tk.LEFT )
-
         self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
-        #self.nextBCVButton['text'] = '->'
-        #self.nextBCVButton['command'] = self.doGoForward
-        #self.nextBCVButton.grid( row=0, column=1 )
         self.nextBCVButton.pack( side=tk.LEFT )
 
         self.GroupAButton = Button( navigationBar, width=2, text='A', command=self.selectGroupA, state=tk.DISABLED )
         self.GroupBButton = Button( navigationBar, width=2, text='B', command=self.selectGroupB, state=tk.DISABLED )
         self.GroupCButton = Button( navigationBar, width=2, text='C', command=self.selectGroupC, state=tk.DISABLED )
         self.GroupDButton = Button( navigationBar, width=2, text='D', command=self.selectGroupD, state=tk.DISABLED )
-        #self.GroupAButton.grid( row=0, column=2 )
-        #self.GroupBButton.grid( row=0, column=3 )
-        #self.GroupCButton.grid( row=1, column=2 )
-        #self.GroupDButton.grid( row=1, column=3 )
         self.GroupAButton.pack( side=tk.LEFT )
         self.GroupBButton.pack( side=tk.LEFT )
         self.GroupCButton.pack( side=tk.LEFT )
@@ -381,7 +369,6 @@ class Application( Frame ):
         self.bookNameBox['values'] = self.bookNames
         self.bookNameBox['width'] = len( 'Deuteronomy' )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.gotoNewBook )
-        #self.bookNameBox.grid( row=0, column=4 )
         self.bookNameBox.pack( side=tk.LEFT )
 
         self.chapterNumberVar = tk.StringVar()
@@ -392,7 +379,6 @@ class Application( Frame ):
         self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.acceptNewBnCV
         self.chapterSpinbox.bind( '<Return>', self.gotoNewChapter )
-        #self.chapterSpinbox.grid( row=0, column=5 )
         self.chapterSpinbox.pack( side=tk.LEFT )
 
         #self.chapterNumberVar = tk.StringVar()
@@ -494,7 +480,7 @@ class Application( Frame ):
         Style().configure( 'StatusBar.TLabel', background='pink' )
 
         self.statusTextVariable = tk.StringVar()
-        self.statusTextLabel = Label( self.ApplicationParent, relief=tk.SUNKEN,
+        self.statusTextLabel = Label( self.rootWindow, relief=tk.SUNKEN,
                                     textvariable=self.statusTextVariable, style='StatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
@@ -513,7 +499,7 @@ class Application( Frame ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
                     #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                    self.ApplicationParent.bind( keyCode, command )
+                    self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
     # end of Application.createMainKeyboardBindings()
@@ -521,7 +507,7 @@ class Application( Frame ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( _("Not implemented"), _("Not yet available, sorry") )
+        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of Application.notWrittenYet
 
 
@@ -558,7 +544,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("setWaitStatus( {} )").format( repr(newStatus) ) )
-        self.ApplicationParent.config( cursor='watch' ) # 'wait' can only be used on Windows
+        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
         self.setStatus( newStatus )
         self.update()
     # end of Application.setWaitStatus
@@ -612,7 +598,7 @@ class Application( Frame ):
         try:
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
-            showerror( 'Error', err )
+            showerror( self, 'Error', err )
     # end of Application.doChangeTheme
 
 
@@ -650,18 +636,18 @@ class Application( Frame ):
             self.setDebugText( "parseAndApplySettings..." )
         try: self.minimumSize = self.settings.data[ProgName]['minimumSize']
         except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
-        self.ApplicationParent.minsize( *parseWindowSize( self.minimumSize ) )
+        self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         try: self.maximumSize = self.settings.data[ProgName]['maximumSize']
         except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
-        self.ApplicationParent.maxsize( *parseWindowSize( self.maximumSize ) )
-        #try: self.ApplicationParent.geometry( self.settings.data[ProgName]['windowGeometry'] )
+        self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
+        #try: self.rootWindow.geometry( self.settings.data[ProgName]['windowGeometry'] )
         #except KeyError: print( "KeyError1" ) # we had no geometry set
         #except tk.TclError: logging.critical( t("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
         try:
             windowSize = self.settings.data[ProgName]['windowSize'] if 'windowSize' in self.settings.data[ProgName] else None
             windowPosition = self.settings.data[ProgName]['windowPosition'] if 'windowPosition' in self.settings.data[ProgName] else None
             #print( "ws", repr(windowSize), "wp", repr(windowPosition) )
-            if windowSize and windowPosition: self.ApplicationParent.geometry( windowSize + '+' + windowPosition )
+            if windowSize and windowPosition: self.rootWindow.geometry( windowSize + '+' + windowPosition )
             else: logging.warning( "Settings.KeyError: no windowSize & windowPosition" )
         except KeyError: pass # no [ProgName] entries
 
@@ -902,7 +888,7 @@ class Application( Frame ):
             availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
             #print( "aV1", repr(availableVolumes) )
             if availableVolumes:
-                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
+                srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
                 #print( "srbResult", repr(srb.result) )
                 if srb.result:
                     for entry in srb.result:
@@ -931,7 +917,7 @@ class Application( Frame ):
         if dBRW.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRW.closeChildWindow()
-            showerror( APP_NAME, _("Sorry, unable to open DBP resource") )
+            showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openDBPBibleResourceWindow" )
             self.setReadyStatus()
             return None
@@ -958,7 +944,7 @@ class Application( Frame ):
             self.SwordInterface = SwordInterface() # Load the Sword library
         if self.SwordInterface is None: # still
             logging.critical( t("doOpenSwordResource: no Sword interface available") )
-            showerror( APP_NAME, _("Sorry, no Sword interface discovered") )
+            showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
         #availableSwordModules = self.SwordInterface.library
         #print( "aM1", availableSwordModules )
@@ -968,7 +954,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: print( "{} sword module codes available".format( len(ourList) ) )
         #print( "ourList", ourList )
         if ourList:
-            srb = SelectResourceBox( self, ourList, title=_("Open Sword resource") )
+            srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
             #print( "srbResult", repr(srb.result) )
             if srb.result:
                 for entry in srb.result:
@@ -979,7 +965,7 @@ class Application( Frame ):
             elif BibleOrgSysGlobals.debugFlag: print( t("doOpenSwordResource: no resource selected!") )
         else:
             logging.critical( t("doOpenSwordResource: no list available") )
-            showerror( APP_NAME, _("No Sword resources discovered") )
+            showerror( self, APP_NAME, _("No Sword resources discovered") )
         #self.acceptNewBnCV()
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doOpenSwordResource
@@ -1039,7 +1025,7 @@ class Application( Frame ):
         if iBRW.internalBible is None:
             logging.critical( t("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(modulePath) ) )
             iBRW.closeChildWindow()
-            showerror( APP_NAME, _("Sorry, unable to open internal Bible resource") )
+            showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleResourceWindow" )
             self.setReadyStatus()
             return None
@@ -1084,12 +1070,12 @@ class Application( Frame ):
         if bLRW.BibleLexicon is None:
             logging.critical( t("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {}").format( repr(lexiconPath) ) )
             bLRW.closeChildWindow()
-            showerror( APP_NAME, _("Sorry, unable to open Bible lexicon resource") )
+            showerror( self, APP_NAME, _("Sorry, unable to open Bible lexicon resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openBibleLexiconResourceWindow" )
             self.setReadyStatus()
             return None
-        elif self.lexiconWord:
-            bLRW.updateLexiconWord( self.lexiconWord )
+        else:
+            if self.lexiconWord: bLRW.updateLexiconWord( self.lexiconWord )
             self.childWindows.append( bLRW )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBibleLexiconResourceWindow" )
             self.setReadyStatus()
@@ -1105,11 +1091,11 @@ class Application( Frame ):
             print( t("doOpenBibleResourceCollection()") )
             self.setDebugText( "doOpenBibleResourceCollection..." )
         self.setStatus( "doOpenBibleResourceCollection..." )
-        #requestedFolder = askdirectory()
-        #openDialog = Directory( initialdir=self.lastInternalBibleDir )
-        #requestedFolder = openDialog.show()
-        #if requestedFolder:
-        self.openBibleResourceCollectionWindow( "New" )
+        existingNames = []
+        for cw in self.childWindows:
+            existingNames.append( cw.moduleID.upper() )
+        gncn = GetNewCollectionNameDialog( self, existingNames, title=_("New Collection Name") )
+        if gncn.result: self.openBibleResourceCollectionWindow( gncn.result )
     # end of Application.doOpenBibleResourceCollection
 
     def openBibleResourceCollectionWindow( self, collectionName, windowGeometry=None ):
@@ -1126,7 +1112,7 @@ class Application( Frame ):
         #if BRC.internalBible is None:
         #    logging.critical( t("Application.openBibleResourceCollection: Unable to open resource {}").format( repr(modulePath) ) )
         #    BRC.closeChildWindow()
-        #    showerror( APP_NAME, _("Sorry, unable to open internal Bible resource") )
+        #    showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
         #    if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleResourceWindow" )
         #    self.setReadyStatus()
         #    return None
@@ -1166,11 +1152,11 @@ class Application( Frame ):
         fileResult = openDialog.show()
         if not fileResult: return
         if not os.path.isfile( fileResult ):
-            showerror( APP_NAME, 'Could not open file ' + fileResult )
+            showerror( self, APP_NAME, 'Could not open file ' + fileResult )
             return
         text = open( fileResult, 'rt', encoding='utf-8' ).read()
         if text == None:
-            showerror( APP_NAME, 'Could not decode and open file ' + fileResult )
+            showerror( self, APP_NAME, 'Could not decode and open file ' + fileResult )
         else:
             tEW = TextEditWindow( self )
             tEW.setFilepath( fileResult )
@@ -1194,7 +1180,7 @@ class Application( Frame ):
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( APP_NAME, _("Sorry, unable to open settings file") )
+            showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewSettings" )
         else:
             self.childWindows.append( tEW )
@@ -1216,7 +1202,7 @@ class Application( Frame ):
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( APP_NAME, _("Sorry, unable to open log file") )
+            showerror( self, APP_NAME, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:
             self.childWindows.append( tEW )
@@ -1232,13 +1218,13 @@ class Application( Frame ):
         and then opens an editor window.
         """
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( t("doStartNewProject()") )
-        gnpn = GetNewProjectName( self, title=_("New Project Name") )
+        gnpn = GetNewProjectNameDialog( self, title=_("New Project Name") )
         if not gnpn.result: return
         if gnpn.result: # This is a dictionary
             projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
             newFolderPath = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME, projAbbrev )
             if os.path.isdir( newFolderPath ):
-                showerror( _("New Project"), _("Sorry, we already have a {} project folder").format( projAbbrev ) )
+                showerror( self, _("New Project"), _("Sorry, we already have a {} project folder").format( projAbbrev ) )
                 return None
             os.mkdir( newFolderPath )
             uB = USFMBible( None ) # Get a blank object
@@ -1265,7 +1251,7 @@ class Application( Frame ):
         projectSettingsFilepath = openDialog.show()
         if not projectSettingsFilepath: return
         if not os.path.isfile( projectSettingsFilepath ):
-            showerror( APP_NAME, 'Could not open file ' + projectSettingsFilepath )
+            showerror( self, APP_NAME, 'Could not open file ' + projectSettingsFilepath )
             return
         containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
         if BibleOrgSysGlobals.debugFlag: assert( settingsFilename == 'ProjectSettings.ini' )
@@ -1322,7 +1308,7 @@ class Application( Frame ):
         SSFFilepath = openDialog.show()
         if not SSFFilepath: return
         if not os.path.isfile( SSFFilepath ):
-            showerror( APP_NAME, 'Could not open file ' + SSFFilepath )
+            showerror( self, APP_NAME, 'Could not open file ' + SSFFilepath )
             return
         uB = USFMBible( None ) # Create a blank USFM Bible object
         uB.loadSSFData( SSFFilepath )
@@ -1332,23 +1318,23 @@ class Application( Frame ):
 ##            except UnicodeEncodeError: print( "   (skipped)" )
         try: uBName = uB.ssfDict['Name']
         except KeyError:
-            showerror( APP_NAME, 'Could not find name in ' + SSFFilepath )
+            showerror( self, APP_NAME, 'Could not find name in ' + SSFFilepath )
         try: uBFullName = uB.ssfDict['FullName']
         except KeyError:
-            showerror( APP_NAME, 'Could not find full name in ' + SSFFilepath )
+            showerror( self, APP_NAME, 'Could not find full name in ' + SSFFilepath )
         if 'Editable' in uB.ssfDict and uB.ssfDict['Editable'] != 'T':
-            showerror( APP_NAME, 'Project {} ({}) is not set to be editable'.format( uBName, uBFullName ) )
+            showerror( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( uBName, uBFullName ) )
             return
 
         # Find the correct folder that contains the actual USFM files
         if 'Directory' in uB.ssfDict:
             ssfDirectory = uB.ssfDict['Directory']
         else:
-            showerror( APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( uBName, uBFullName ) )
+            showerror( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( uBName, uBFullName ) )
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if ssfDirectory is not None:
-                showwarning( APP_NAME, 'SSF project {} ({}) folder {} not found on this system -- trying folder below SSF instead'.format( uBName, uBFullName, repr(ssfDirectory) ) )
+                showwarning( self, APP_NAME, 'SSF project {} ({}) folder {} not found on this system -- trying folder below SSF instead'.format( uBName, uBFullName, repr(ssfDirectory) ) )
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 print( "Not windows" )
                 print( 'ssD1', repr(ssfDirectory) )
@@ -1359,7 +1345,7 @@ class Application( Frame ):
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     print( 'ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
-                        showerror( APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
+                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
                         return
         self.openParatextBibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
 
@@ -1368,7 +1354,7 @@ class Application( Frame ):
         ##print( "uB2", uB )
 ###        ssfText = open( SSFFilepath, 'rt', encoding='utf-8' ).read()
 ###        if ssfText == None:
-###            showerror( APP_NAME, 'Could not decode and open file ' + SSFFilepath )
+###            showerror( self, APP_NAME, 'Could not decode and open file ' + SSFFilepath )
 ###        else:
 
         #uEW = USFMEditWindow( self, uB )
@@ -1411,7 +1397,7 @@ class Application( Frame ):
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     print( 'ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
-                        showerror( APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
+                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
                         return
         uB.preload( ssfDirectory )
 
@@ -1435,10 +1421,10 @@ class Application( Frame ):
     ## end of Application.openParatextBibleEditWindow
 
 
-    def goBack( self, event=None ):
+    def doGoBackward( self, event=None ):
         if BibleOrgSysGlobals.debugFlag:
-            print( t("goBack()") )
-            self.setDebugText( "goBack..." )
+            print( t("doGoBackward()") )
+            self.setDebugText( "doGoBackward..." )
         #print( dir(event) )
         assert( self.BCVHistory )
         assert( self.BCVHistoryIndex )
@@ -1448,7 +1434,7 @@ class Application( Frame ):
         self.updatePreviousNextButtons()
         #self.acceptNewBnCV()
         self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-    # end of Application.goBack
+    # end of Application.doGoBackward
 
 
     def doGoForward( self, event=None ):
@@ -1482,8 +1468,8 @@ class Application( Frame ):
         if self.currentVerseKey == ('', '1', '1'):
             self.setCurrentVerseKey( SimpleVerseKey( self.getFirstBookCode(), '1', '1' ) )
         self.updateBCVGroupButtons()
-        #self.acceptNewBnCV()
-        self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+        self.acceptNewBnCV()
+        #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.updateBCVGroup
 
 
@@ -1622,26 +1608,26 @@ class Application( Frame ):
     # end of Application.doGotoNextVerse
 
 
-    def doGoForward( self ):
-        """
-        """
-        BBB, C, V = self.currentVerseKey.getBCV()
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("doGoForward() from {} {}:{}").format( BBB, C, V ) )
-            self.setDebugText( "doGoForward..." )
-        self.notWrittenYet()
-    # end of Application.doGoForward
+    #def doGoForward( self ):
+        #"""
+        #"""
+        #BBB, C, V = self.currentVerseKey.getBCV()
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( t("doGoForward() from {} {}:{}").format( BBB, C, V ) )
+            #self.setDebugText( "doGoForward..." )
+        #self.notWrittenYet()
+    ## end of Application.doGoForward
 
 
-    def doGoBackward( self ):
-        """
-        """
-        BBB, C, V = self.currentVerseKey.getBCV()
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
-            self.setDebugText( "doGoBackward..." )
-        self.notWrittenYet()
-    # end of Application.doGoBackward
+    #def doGoBackward( self ):
+        #"""
+        #"""
+        #BBB, C, V = self.currentVerseKey.getBCV()
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( t("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
+            #self.setDebugText( "doGoBackward..." )
+        #self.notWrittenYet()
+    ## end of Application.doGoBackward
 
 
     def doGotoPreviousListItem( self ):
@@ -1862,7 +1848,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAll' )
         self.childWindows.iconify()
-        if includeMe: self.ApplicationParent.iconify()
+        if includeMe: self.rootWindow.iconify()
     # end of Application.doHideAll
 
 
@@ -1872,8 +1858,8 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAll' )
         self.childWindows.deiconify()
-        self.ApplicationParent.deiconify() # Do this last so it has the focus
-        self.ApplicationParent.lift()
+        self.rootWindow.deiconify() # Do this last so it has the focus
+        self.rootWindow.lift()
     # end of Application.doShowAll
 
 
@@ -1882,7 +1868,7 @@ class Application( Frame ):
         Bring all of our windows close.
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doBringAll' )
-        x, y = parseWindowGeometry( self.ApplicationParent.geometry() )[2:4]
+        x, y = parseWindowGeometry( self.rootWindow.geometry() )[2:4]
         if x > 30: x = x - 20
         if y > 30: y = y - 20
         for j, win in enumerate( self.childWindows ):
@@ -2040,7 +2026,7 @@ class Application( Frame ):
             mypopup.destroy()     # close status
             self.update()         # erase it now
             if not matches:
-                showinfo( APP_NAME, 'Grep found no matches for: %r' % grepkey)
+                showinfo( self, APP_NAME, 'Grep found no matches for: %r' % grepkey)
             else:
                 self.grepMatchesList(matches, grepkey, encoding)
     # end of Application.grepThreadConsumer
@@ -2116,7 +2102,7 @@ class Application( Frame ):
         helpInfo += "\n\nKeyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n  {}\t{}".format( name, shortcut )
-        hb = HelpBox( self.ApplicationParent, APP_NAME, helpInfo )
+        hb = HelpBox( self.rootWindow, APP_NAME, helpInfo )
     # end of Application.doHelp
 
 
@@ -2129,7 +2115,7 @@ class Application( Frame ):
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\n  This program is not yet finished but the Resource menu should mostly work."
-        ab = AboutBox( self.ApplicationParent, APP_NAME, aboutInfo )
+        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
     # end of Application.doAbout
 
 
@@ -2154,7 +2140,7 @@ class Application( Frame ):
         main['settingsVersion'] = SettingsVersion
         main['progVersion'] = ProgVersion
         main['themeName'] = self.themeName
-        main['windowSize'], main['windowPosition'] = self.ApplicationParent.geometry().split( '+', 1 )
+        main['windowSize'], main['windowPosition'] = self.rootWindow.geometry().split( '+', 1 )
         main['minimumSize'] = self.minimumSize
         main['maximumSize'] = self.maximumSize
 
@@ -2224,10 +2210,10 @@ class Application( Frame ):
             if 'Editor' in appWin.genericWindowType and appWin.modified():
                 haveModifications = True; break
         if haveModifications:
-            showerror( _("Save files"), _("You need to save or close your work first.") )
+            showerror( self, _("Save files"), _("You need to save or close your work first.") )
         else:
             self.writeSettingsFile()
-            self.ApplicationParent.destroy()
+            self.rootWindow.destroy()
     # end of Application.doCloseMe
 # end of class Application
 

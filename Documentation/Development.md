@@ -1,6 +1,9 @@
 Biblelator Development Principles
 =================================
 
+Last updated: 2014-11-23 RJH
+
+
 The following are some of the reasons behind some of the major development decisions
     concerning the development of Biblelator.
 

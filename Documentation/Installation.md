@@ -1,6 +1,9 @@
 Biblelator Installation
 =======================
 
+Last updated: 2014-11-23 RJH
+
+
 Please see the document Development.md for information about the design decisions behind
 how and why Biblelator was developed.
 
@@ -43,7 +46,7 @@ version of Biblelator onto your computer.
 
 
 3. Create a folder for Biblelator -- we recommend the name BiblelatorFiles.
-    If you want other uses on your computer to be able to use Biblelator,
+    If you want other users on your computer to be able to use Biblelator,
         either create this folder somewhere public such as in Public Documents, or else
         change the permissions of the folder to allow other users
             to be able to read from it and write to it.
@@ -54,7 +57,7 @@ version of Biblelator onto your computer.
 4. Install the Bible Organisational System inside the BiblelatorFiles folder.
     Open https://github.com/openscriptures/BibleOrgSys in a browser window.
     On the right-hand side of the page are links to either:
-        a. Download BibleOrgSys with Git (using either HTTPS or SSH (if you have a GitHub account).
+        a. Download (clone) BibleOrgSys with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future development versions.
         b. Without Git, download the current version BibleOrgSys as a ZIP file and
             unzip the file in the BiblelatorFiles folder (then remove -master from the folder name).
@@ -65,7 +68,7 @@ version of Biblelator onto your computer.
 5. Install the Biblelator program inside the BiblelatorFiles folder.
     Open https://github.com/openscriptures/Biblelator in a browser window.
     On the right-hand side of the page are links to either:
-        a. Download Biblelator with Git (using either HTTPS or SSH (if you have a GitHub account).
+        a. Download (clone) Biblelator with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future development versions.
         b. Without Git, download the current version Biblelator as a ZIP file and
             unzip the file in the BiblelatorFiles folder (then remove -master from the folder name).
@@ -76,7 +79,7 @@ version of Biblelator onto your computer.
 6. Install OpenScriptures HebrewLexicon.
     Open https://github.com/openscriptures/HebrewLexicon
     On the right-hand side of the page are links to either:
-        a. Download HebrewLexicon with Git (using either HTTPS or SSH (if you have a GitHub account).
+        a. Download (clone) HebrewLexicon with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future corrected versions.
         b. Without Git, download the current version HebrewLexicon as a ZIP file and
             unzip the file in the first/top BiblelatorFiles folder (then remove -master from the folder name).
@@ -87,7 +90,7 @@ version of Biblelator onto your computer.
 7. Install morhgnt Greek Strongs info.
     Open https://github.com/morphgnt/strongs-dictionary-xml
     On the right-hand side of the page are links to either:
-        a. Download strongs-dictionary-xml with Git (using either HTTPS or SSH (if you have a GitHub account).
+        a. Download (clone) strongs-dictionary-xml with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future corrected versions.
         b. Without Git, download the current version strongs-dictionary-xml as a ZIP file and
             unzip the file in the first/top BiblelatorFiles folder (then remove -master from the folder name).

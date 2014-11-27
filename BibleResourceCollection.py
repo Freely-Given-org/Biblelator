@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-22"
+LastModifiedDate = "2014-11-23"
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = "0.26"
@@ -39,7 +39,7 @@ ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, logging #, os.path, configparser, logging
+import sys, logging
 from collections import OrderedDict
 
 import tkinter as tk
@@ -50,7 +50,7 @@ from tkinter.ttk import Frame, Button, Scrollbar
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
-from BiblelatorDialogs import showerror, SelectResourceBox, RenameResourceCollection #, showwarning, showinfo, errorBeep
+from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog #, showwarning, showinfo, errorBeep
 from ChildWindows import ChildBox
 from BibleResourceWindows import BibleResourceWindow
 
@@ -240,7 +240,7 @@ class BibleResourceBox( Frame, ChildBox ):
             haveTextFlag = True
 
         if verseDataList is None:
-            if C!='0': print( "  ", verseKey, "has no data for", self.moduleID )
+            if C!='0': print( "  ", t("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
         elif self.viewMode == DEFAULT:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
@@ -791,7 +791,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("doRename()") )
             self.parentApp.setDebugText( "doRename..." )
-        rrc = RenameResourceCollection( self, self.moduleID, title=_('Rename collection') )
+        existingNames = []
+        for cw in self.parentApp.childWindows:
+            existingNames.append( cw.moduleID.upper() )
+        rrc = RenameResourceCollectionDialog( self, self.moduleID, existingNames, title=_('Rename collection') )
         if BibleOrgSysGlobals.debugFlag: print( "rrcResult", repr(rrc.result) )
         if rrc.result:
             self.moduleID = rrc.result
@@ -1003,7 +1006,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
             #print( "aV1", repr(availableVolumes) )
             if availableVolumes:
-                srb = SelectResourceBox( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
+                srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
                 #print( "srbResult", repr(srb.result) )
                 if srb.result:
                     for entry in srb.result:
@@ -1033,7 +1036,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if dBRB.DBPModule is None:
             logging.critical( t("Application.openDBPBibleResourceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRB.destroy()
-            showerror( APP_NAME, _("Sorry, unable to open DBP resource") )
+            showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return None
@@ -1060,7 +1063,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
         if self.parentApp.SwordInterface is None: # still
             logging.critical( t("doOpenSwordResource: no Sword interface available") )
-            showerror( APP_NAME, _("Sorry, no Sword interface discovered") )
+            showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
         availableModules = self.parentApp.SwordInterface.library
         #print( "aM1", availableModules )
@@ -1069,7 +1072,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             ourList = availableModules.getAvailableModuleCodes()
         #print( "ourList", ourList )
         if ourList:
-            srb = SelectResourceBox( self, ourList, title=_("Open Sword resource") )
+            srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
             #print( "srbResult", repr(srb.result) )
             if srb.result:
                 for entry in srb.result:
@@ -1080,7 +1083,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             elif BibleOrgSysGlobals.debugFlag: print( t("doOpenSwordResource: no resource selected!") )
         else:
             logging.critical( t("doOpenSwordResource: no list available") )
-            showerror( APP_NAME, _("No Sword resources discovered") )
+            showerror( self, APP_NAME, _("No Sword resources discovered") )
         #self.acceptNewBnCV()
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of BibleResourceCollectionWindow.doOpenSwordResource
@@ -1142,7 +1145,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if iBRB.internalBible is None:
             logging.critical( t("Application.openInternalBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
             iBRB.destroy()
-            showerror( APP_NAME, _("Sorry, unable to open internal Bible resource") )
+            showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return None

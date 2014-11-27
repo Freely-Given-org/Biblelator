@@ -1,6 +1,9 @@
 Getting Started with Biblelator
 ===============================
 
+Last updated: 2014-11-23 RJH
+
+
 This document is to help the Biblelator user to get an understanding how the developer
     anticipated that the program might be used.
 
@@ -68,12 +71,17 @@ For an overview of the program design philosophy, see Development.md.
         new window.
 
 
-6. Project Windows
+6. Lexicon Windows
+
+    There is a Bible lexicon window, but it's not yet automatically linked to Bible resources.
+    At this stage, you can use the text book to the right of the verse number in the main
+    window in order to enter Strong's codes such as H123 or G1026.
+7. Project Windows
 
     Projects are Bibles in the process of being translated, so they have a full edit window.
 
 
-7. Bible Groups
+8. Bible Groups
 
     Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All
     new windows are assigned to group A by default but this can be easily changed. Each

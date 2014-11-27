@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 # LexiconResourceWindows.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
@@ -28,21 +27,25 @@ Windows and frames to allow display and manipulation of
     Bible and lexicon resource windows.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-28"
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
 import sys, os.path, logging
-from gettext import gettext as _
 
 import tkinter as tk
 
 # Biblelator imports
-from ChildWindows import ChildWindow, HTMLText
+from TextBoxes import HTMLText
+from ChildWindows import ChildWindow
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"

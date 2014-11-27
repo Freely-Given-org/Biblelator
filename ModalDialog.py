@@ -40,7 +40,7 @@ ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os.path, configparser, logging
+import sys, os.path, logging
 
 import tkinter as tk
 from tkinter.ttk import Frame, Button
@@ -86,7 +86,7 @@ class ModalDialog( tk.Toplevel ):
         self.result = None # Used to return an optional result
 
         body = Frame( self )
-        self.initial_focus = self.body( body )
+        self.initial_focus = self.body( body ) # Create the widgets in the body
         body.pack( padx=5, pady=5 )
 
         self.buttonbox()
@@ -100,6 +100,7 @@ class ModalDialog( tk.Toplevel ):
 
         self.geometry( "+{}+{}".format(parent.winfo_rootx()+50, parent.winfo_rooty()+50) )
 
+        self.parent.parentApp.setStatus( _("Waiting for user input...") )
         self.initial_focus.focus_set()
         self.wait_window( self )
     # end of ModalDialog.__init__
@@ -152,6 +153,7 @@ class ModalDialog( tk.Toplevel ):
     def cancel( self, event=None ):
 
         # put focus back to the parent window
+        self.parent.parentApp.setReadyStatus()
         self.parent.focus_set()
         self.destroy()
     # end of ModalDialog.cancel

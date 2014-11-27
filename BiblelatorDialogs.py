@@ -28,7 +28,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-22"
+LastModifiedDate = "2014-11-28"
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = "0.26"
@@ -47,6 +47,7 @@ from tkinter.ttk import Label, Combobox, Entry
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME
 from ModalDialog import ModalDialog
+from TextBoxes import HTMLText
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -81,31 +82,57 @@ def errorBeep():
 # end of errorBeep
 
 
-def showerror( title, errorText ):
+def showerror( parent, title, errorText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag: print( t("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
     logging.error( '{}: {}'.format( title, errorText ) )
+    parent.parentApp.setStatus( _("Waiting for user input after error...") )
     tkmb.showerror( title, errorText )
+    parent.parentApp.setReadyStatus()
 # end of showerror
 
 
-def showwarning( title, warningText ):
+def showwarning( parent, title, warningText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag: print( t("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
     logging.warning( '{}: {}'.format( title, warningText ) )
+    parent.parentApp.setStatus( _("Waiting for user input after warning...") )
     tkmb.showwarning( title, warningText )
+    parent.parentApp.setReadyStatus()
 # end of showwarning
 
 
-def showinfo( title, infoText ):
+def showinfo( parent, title, infoText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag: print( t("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
     logging.info( '{}: {}'.format( title, infoText ) )
+    parent.parentApp.setStatus( _("Waiting for user input after info...") )
     tkmb.showinfo( title, infoText )
+    parent.parentApp.setReadyStatus()
 # end of showinfo
+
+
+
+class HTMLDialog( ModalDialog ):
+    """
+    """
+    def __init__( self, parent, text, title=None ):
+        self.text = text
+        ModalDialog.__init__( self, parent, title )
+    # end of HTMLDialog.__init__
+
+
+    def body( self, master ):
+        html = HTMLText( master )
+        html.grid( row=0 )
+        html.insert( tk.END, self.text )
+        return html
+    # end of HTMLDialog.body
+# end of class HTMLDialog
+
 
 
 class YesNoDialog( ModalDialog ):
@@ -118,8 +145,9 @@ class YesNoDialog( ModalDialog ):
 
 
     def body( self, master ):
-        self.l = Label( master, text=self.message ).grid( row=0 )
-        return self.l
+        label = Label( master, text=self.message )
+        label.grid( row=0 )
+        return label
     # end of YesNoDialog.body
 # end of class YesNoDialog
 
@@ -128,7 +156,8 @@ class YesNoDialog( ModalDialog ):
 class SaveWindowNameDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, existingSettings, title=None ):
+    def __init__( self, parent, existingSettings, title ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SaveWindowNameDialog..." )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parent, title )
@@ -175,7 +204,8 @@ class SaveWindowNameDialog( ModalDialog ):
 class DeleteWindowNameDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, existingSettings, title=None ):
+    def __init__( self, parent, existingSettings, title ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "DeleteWindowNameDialog..." )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parent, title, _("Delete") )
@@ -215,16 +245,17 @@ class DeleteWindowNameDialog( ModalDialog ):
 
 
 
-class SelectResourceBox( ModalDialog ):
+class SelectResourceBoxDialog( ModalDialog ):
     """
     Given a list of available resources, select one and return the list item.
     """
-    def __init__( self, parent, availableSettingsList, title=None ):
+    def __init__( self, parent, availableSettingsList, title ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog..." )
         print( "aS", repr(availableSettingsList) ) # Should be a list of tuples
         if BibleOrgSysGlobals.debugFlag: assert( isinstance( availableSettingsList, list ) )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parent, title )
-    # end of SelectResourceBox.__init__
+    # end of SelectResourceBoxDialog.__init__
 
 
     def body( self, master ):
@@ -247,7 +278,7 @@ class SelectResourceBox( ModalDialog ):
         self.lb.grid( row=1 )
 
         return self.lb # initial focus
-    # end of SelectResourceBox.apply
+    # end of SelectResourceBoxDialog.apply
 
 
     def validate( self ):
@@ -255,7 +286,7 @@ class SelectResourceBox( ModalDialog ):
         Must be at least one selected (otherwise force them to select CANCEL).
         """
         return self.lb.curselection()
-    # end of SelectResourceBox.validate
+    # end of SelectResourceBoxDialog.validate
 
 
     def apply( self ):
@@ -263,21 +294,27 @@ class SelectResourceBox( ModalDialog ):
         print( "items", repr(items) ) # a tuple
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
         print( t("Requested resource(s) is/are: {}").format( repr(self.result) ) )
-    # end of SelectResourceBox.apply
-# end of class SelectResourceBox
+    # end of SelectResourceBoxDialog.apply
+# end of class SelectResourceBoxDialog
 
 
 
-class GetNewProjectName( ModalDialog ):
+class GetNewProjectNameDialog( ModalDialog ):
     """
     """
+    def __init__( self, parent, title ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewProjectNameDialog..." )
+        ModalDialog.__init__( self, parent, title )
+    # end of GetNewProjectNameDialog.__init__
+
+
     def body( self, master ):
         """
         Override the empty ModalDialog.body function
             to set up the dialog how we want it.
         """
-        Label( master, text="Full name:" ).grid( row=0 )
-        Label( master, text="Abbreviation:" ).grid( row=1 )
+        Label( master, text=_("Full name:") ).grid( row=0 )
+        Label( master, text=_("Abbreviation:") ).grid( row=1 )
 
         self.e1 = Entry( master )
         self.e2 = Entry( master )
@@ -285,7 +322,7 @@ class GetNewProjectName( ModalDialog ):
         self.e1.grid( row=0, column=1 )
         self.e2.grid( row=1, column=1 )
         return self.e1 # initial focus
-    # end of GetNewProjectName.apply
+    # end of GetNewProjectNameDialog.apply
 
 
     def validate( self ):
@@ -297,17 +334,17 @@ class GetNewProjectName( ModalDialog ):
         lenF = len( fullname )
         abbreviation = self.e2.get()
         lenA = len( abbreviation )
-        if lenF < 3: showwarning( APP_NAME, "Full name is too short!" ); return False
-        if lenF > 30: showwarning( APP_NAME, "Full name is too long!" ); return False
-        if lenA < 3: showwarning( APP_NAME, "Abbreviation is too short!" ); return False
-        if lenA > 8: showwarning( APP_NAME, "Abbreviation is too long!" ); return False
-        if ' ' in abbreviation: showwarning( APP_NAME, "Abbreviation cannot contain spaces!" ); return False
-        if '.' in abbreviation: showwarning( APP_NAME, "Abbreviation cannot contain a dot!" ); return False
+        if lenF < 3: showwarning( self, APP_NAME, _("Full name is too short!") ); return False
+        if lenF > 30: showwarning( self, APP_NAME, _("Full name is too long!") ); return False
+        if lenA < 3: showwarning( self, APP_NAME, _("Abbreviation is too short!") ); return False
+        if lenA > 8: showwarning( self, APP_NAME, _("Abbreviation is too long!") ); return False
+        if ' ' in abbreviation: showwarning( self, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
+        if '.' in abbreviation: showwarning( self, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
         for illegalChar in ':;"@#=/\\{}':
             if illegalChar in fullname or illegalChar in abbreviation:
-                showwarning( APP_NAME, "Not allowed {} characters".format( illegalChar ) ); return False
+                showwarning( self, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         return True
-    # end of GetNewProjectName.validate
+    # end of GetNewProjectNameDialog.validate
 
 
     def apply( self ):
@@ -318,19 +355,73 @@ class GetNewProjectName( ModalDialog ):
         fullname = self.e1.get()
         abbreviation = self.e2.get()
         self.result = {'Name':fullname, 'Abbreviation':abbreviation}
-    # end of GetNewProjectName.apply
-# end of class GetNewProjectName
+    # end of GetNewProjectNameDialog.apply
+# end of class GetNewProjectNameDialog
 
 
 
-class RenameResourceCollection( ModalDialog ):
+class GetNewCollectionNameDialog( ModalDialog ):
+    """
+    """
+    def __init__( self, parent, existingNames, title ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog..." )
+        self.existingNames = existingNames
+        print( "eNs", self.existingNames )
+        ModalDialog.__init__( self, parent, title )
+    # end of GetNewCollectionNameDialog.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        Label( master, text=_("Name:") ).grid( row=0 )
+        self.e1 = Entry( master )
+        self.e1.grid( row=0, column=1 )
+        return self.e1 # initial focus
+    # end of GetNewCollectionNameDialog.apply
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+        """
+        name = self.e1.get()
+        lenN = len( name )
+        if lenN < 3: showwarning( self, APP_NAME, _("Name is too short!") ); return False
+        if lenN > 30: showwarning( self, APP_NAME, _("Name is too long!") ); return False
+        for illegalChar in ' .:;"@#=/\\{}':
+            if illegalChar in name:
+                showwarning( self, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+        if name.upper() in self.existingNames:
+            showwarning( self, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+        return True
+    # end of GetNewCollectionNameDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+        """
+        self.result = self.e1.get()
+    # end of GetNewCollectionName.apply
+# end of class GetNewCollectionNameDialog
+
+
+
+class RenameResourceCollectionDialog( ModalDialog ):
     """
     Get the new name for a resource collection.
     """
-    def __init__( self, parent, existingName, title=None ):
-        self.existingName = existingName
+    def __init__( self, parent, existingName, existingNames, title ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "RenameResourceCollectionDialog..." )
+        self.existingName, self.existingNames = existingName, existingNames
+        print( "eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
-    # end of RenameResourceCollection.__init__
+    # end of RenameResourceCollectionDialog.__init__
 
 
     def body( self, master ):
@@ -344,7 +435,7 @@ class RenameResourceCollection( ModalDialog ):
         self.e1 = Entry( master )
         self.e1.grid( row=1, column=1 )
         return self.e1 # initial focus
-    # end of RenameResourceCollection.apply
+    # end of RenameResourceCollectionDialog.apply
 
 
     def validate( self ):
@@ -354,13 +445,15 @@ class RenameResourceCollection( ModalDialog ):
         """
         newName = self.e1.get()
         lenName = len( newName )
-        if lenName < 3: showwarning( APP_NAME, _("New name is too short!") ); return False
-        if lenName > 30: showwarning( APP_NAME, _("New name is too long!") ); return False
-        for illegalChar in ':;"@#=/\\{}':
+        if lenName < 3: showwarning( self, APP_NAME, _("New name is too short!") ); return False
+        if lenName > 30: showwarning( self, APP_NAME, _("New name is too long!") ); return False
+        for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in newName:
-                showwarning( APP_NAME, "Not allowed {} characters".format( illegalChar ) ); return False
+                showwarning( self, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+        if newName.upper() in self.existingNames:
+            showwarning( self, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
-    # end of RenameResourceCollection.validate
+    # end of RenameResourceCollectionDialog.validate
 
 
     def apply( self ):
@@ -369,8 +462,8 @@ class RenameResourceCollection( ModalDialog ):
             to process the results how we need them.
         """
         self.result = self.e1.get()
-    # end of RenameResourceCollection.apply
-# end of class RenameResourceCollection
+    # end of RenameResourceCollectionDialog.apply
+# end of class RenameResourceCollectionDialog
 
 
 

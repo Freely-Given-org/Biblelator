@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorHelpers.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
-# Various help functions for Biblelator Bible display/editing
+# Various non-GUI helper functions for Biblelator Bible display/editing
 #
 # Copyright (C) 2014 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -27,16 +26,19 @@
 Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = "2014-11-23"
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.25"
+ProgVersion = "0.26"
 ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
-import sys #, logging
-from gettext import gettext as _
+import sys
 
 #import tkinter as tk
 #import tkinter.messagebox as tkmb

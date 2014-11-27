@@ -1,6 +1,9 @@
 Biblelator ToDo List
 ====================
 
+Last updated: 2014-11-23 RJH
+
+
 This is an informal list of things that need to be fixed or are planned to be done.
 
 Eventually we will use the issue tracker at Github
@@ -8,7 +11,13 @@ Eventually we will use the issue tracker at Github
 
 Things nearer the top of the list are higher in priority.
 
-* Don't allow two collections (also two resources, two projects???) with the same name
+BOS improvements for Biblelator
+* Allow check by book (maybe it already does)
+* if book is more than 95% complete, mark empty (and omitted?) verses, etc.
+
+Biblelator stuff
+* Synchronise with other Bible programs (esp. on Windows)
+* Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Get Sword commentaries displaying
 * Create backup files when editing
