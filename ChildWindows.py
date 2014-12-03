@@ -29,12 +29,12 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-28"
+LastModifiedDate = '2014-12-03'
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.26'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -514,6 +514,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         ChildBox.__init__( self, self.parentWindow )
         self.protocol( "WM_DELETE_WINDOW", self.closeHTMLWindow )
         self.title( 'HTMLWindow' )
+        self.winType = 'HTMLWindow'
 
         self.geometry( INITIAL_RESOURCE_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE

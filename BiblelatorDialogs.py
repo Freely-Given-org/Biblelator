@@ -28,12 +28,12 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-28"
+LastModifiedDate = '2014-12-03'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.26'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -464,6 +464,69 @@ class RenameResourceCollectionDialog( ModalDialog ):
         self.result = self.e1.get()
     # end of RenameResourceCollectionDialog.apply
 # end of class RenameResourceCollectionDialog
+
+
+
+class GetBibleBookRangeDialog( ModalDialog ):
+    """
+    Get the new name for a resource collection.
+    """
+    def __init__( self, parent, givenBible, currentBBB, title ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetBibleBookRangeDialog..." )
+        #assert( currentBBB in givenBible ) -- no, it might not be loaded yet!
+        self.givenBible, self.currentBBB = givenBible, currentBBB
+        ModalDialog.__init__( self, parent, title )
+    # end of GetBibleBookRangeDialog.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        self.selectVariable = tk.IntVar()
+
+        self.rb1 = tk.Radiobutton( master, text=_("Current book")+" ({})".format( self.currentBBB ), variable=self.selectVariable, value=1 )
+        self.rb1.grid( row=0, column=0, sticky=tk.W )
+        allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
+        self.rb2 = tk.Radiobutton( master, text=allText, variable=self.selectVariable, value=2 )
+        self.rb2.grid( row=1, column=0, sticky=tk.W )
+        self.rb3 = tk.Radiobutton( master, text=_("OT books"), variable=self.selectVariable, value=3 )
+        self.rb3.grid( row=2, column=0, sticky=tk.W )
+        self.rb4 = tk.Radiobutton( master, text=_("NT books"), variable=self.selectVariable, value=4 )
+        self.rb4.grid( row=3, column=0, sticky=tk.W )
+        self.rb5 = tk.Radiobutton( master, text=_("DC books"), variable=self.selectVariable, value=5 )
+        self.rb5.grid( row=4, column=0, sticky=tk.W )
+
+        return self.rb1 # initial focus
+    # end of GetBibleBookRangeDialog.apply
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+        """
+        resultNumber = self.selectVariable.get()
+        return 1 <= resultNumber <= 5
+    # end of GetBibleBookRangeDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+        """
+        resultNumber = self.selectVariable.get()
+        if resultNumber == 1: self.result = [self.currentBBB]
+        elif resultNumber == 2: self.result = [book.BBB for book in self.givenBible] # all
+        elif resultNumber == 3: self.result = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR(book.BBB)] # OT
+        elif resultNumber == 4: self.result = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isNewTestament_NR(book.BBB)] # NT
+        elif resultNumber == 5: self.result = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isDeuterocanon_NR(book.BBB)] # DC
+        else:
+            halt # Unexpected result value
+    # end of GetBibleBookRangeDialog.apply
+# end of class GetBibleBookRangeDialog
 
 
 

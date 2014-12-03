@@ -28,12 +28,12 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-28"
+LastModifiedDate = '2014-12-03'
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.26'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -49,7 +49,7 @@ from tkinter.ttk import Style, Frame
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM
-from BiblelatorDialogs import showerror, showinfo, YesNoDialog
+from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow, HTMLWindow
 from BibleResourceWindows import BibleResourceWindow
@@ -1471,31 +1471,56 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         """
         Run the BibleOrgSys checks on the project.
         """
-        import webbrowser
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("USFMEditWindow.doCheckProject()") )
-        self._prepareInternalBible()
-        self.parentApp.setWaitStatus( _("Doing Bible checks...") )
-        self.internalBible.check()
-        displayExternally = False
-        if displayExternally: # Call up a browser window
-            indexFile = self.internalBible.makeErrorHTML( self.folderPath )
-            webbrowser.open( indexFile )
-        else: # display internally in our HTMLDialog
-            indexFile = self.internalBible.makeErrorHTML( self.folderPath )
-            HTMLWindow( self, indexFile )
-        if 0: # old code
-            errorDictionary = self.internalBible.getErrors()
-            errorText = ""
-            for mainKey, mainEntry in errorDictionary.items():
-                errorText += "<h1>{}</h1>".format( mainKey )
-                for subKey, subEntry in mainEntry.items():
-                    errorText += "<h2>{}</h2>".format( subKey )
-                    for something in subEntry:
-                        errorText += "<p>{}</p>".format( something )
-            print( "errorText", repr(errorText) )
-            HTMLDialog( self, errorText, title=_("Check Results") )
+        #self._prepareInternalBible()
+        currentBBB = self.currentVerseKey.getBBB()
+        gBBRD = GetBibleBookRangeDialog( self, self.internalBible, currentBBB, title=_('Books to be checked') )
+        #if BibleOrgSysGlobals.debugFlag: print( "gBBRDResult", repr(gBBRD.result) )
+        if gBBRD.result:
+            if BibleOrgSysGlobals.debugFlag: assert( isinstance( gBBRD.result, list ) )
+            if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
+                # It's just the current book to check
+                if self.modified(): self.doSave()
+                self.internalBible.loadBookIfNecessary( currentBBB )
+            else: # load all books
+                self._prepareInternalBible()
+            self.parentApp.setWaitStatus( _("Doing Bible checks...") )
+            self.internalBible.check( gBBRD.result )
+            displayExternally = False
+            if displayExternally: # Call up a browser window
+                import webbrowser
+                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                webbrowser.open( indexFile )
+            else: # display internally in our HTMLDialog
+                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                HTMLWindow( self, indexFile )
         self.parentApp.setReadyStatus()
     # end of USFMEditWindow.doCheckProject
+
+
+    def doSave( self, event=None ):
+        """
+        Called if the user requests a save from the GUI.
+
+        Same as TextEditWindow.doSave except
+            has a bit more housekeeping to do
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.doSave()") )
+        if self.modified():
+            if self.folderPath and self.filename:
+                filepath = os.path.join( self.folderPath, self.filename )
+                allText = self.getAllText()
+                with open( filepath, mode='wt' ) as theFile:
+                    theFile.write( allText )
+                self.rememberFileTimeAndSize()
+                self.textBox.edit_modified( tk.FALSE ) # clear modified flag
+                self.bookTextModified = False
+                #self.internalBible.unloadBooks() # coz they're now out of date
+                self.internalBible.reloadBook( self.currentVerseKey.getBBB() ) # coz it's now out of date
+                self.refreshTitle()
+            else: self.doSaveAs()
+    # end of USFMEditWindow.doSave
 
 
     def xxcloseEditor( self ):
