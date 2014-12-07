@@ -69,8 +69,8 @@ def t( messageString ):
 
 
 KNOWN_HTML_TAGS = ('!DOCTYPE','html','head','meta','link','title','body','div',
-                   'h1','h2','h3','p','li','a','span','i','b','em','small')
-NON_FORMATTING_TAGS = 'html','head','body','div', # Not sure about div yet...........
+                   'h1','h2','h3','p','li','a','span','table','tr','td','i','b','em','small')
+NON_FORMATTING_TAGS = 'html','head','body','div','table','tr','td', # Not sure about div yet...........
 HTML_REPLACEMENTS = ('&nbsp;',' '),('&lt;','<'),('&gt;','>'),('&amp;','&'),
 
 
@@ -136,7 +136,11 @@ class HTMLText( tk.Text ):
             'p_span_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
             'p_spanKJVUsage_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
 
+            #'td_a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
+            #'h1_td_a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
+
             'h1': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
+            'h1_a': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5',  'underline':1 },
             'h1PageHeading': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
             'h2': { 'justify':tk.CENTER, 'foreground':'green', 'font':DEFAULT_FONTNAME+' 14', 'spacing1':'0.8', 'spacing3':'0.3' },
             'h3': { 'justify':tk.CENTER, 'foreground':'orange', 'font':DEFAULT_FONTNAME+' 13', 'spacing1':'0.5', 'spacing3':'0.2' },
@@ -185,16 +189,17 @@ class HTMLText( tk.Text ):
                         pass # This is handled elsewhere
                     elif insertText: # it's not a title and not blank so we need to display this text
                         # Combine tag formats (but ignore consecutive identical tags e.g., p with a p
-                        #combinedFormats = '_'.join( currentFormatTags )
                         combinedFormats, lastTag, link = '', None, None
+                        #print( "cFT", currentFormatTags )
                         for tag in currentFormatTags:
                             if tag.startswith( 'a=' ):
                                 tag, link = 'a', tag[2:]
-                                #print( "What do we do with <a> link {}".format( repr(link) ) )
+                                #print( "Got <a> link {}".format( repr(link) ) )
                             if tag != lastTag:
                                 if combinedFormats: combinedFormats += '_'
                                 combinedFormats += tag
                                 lastTag = tag
+                        #print( "combinedFormats", repr(combinedFormats) )
                         if combinedFormats and combinedFormats not in self.styleDict:
                             print( "  Missing format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags )
                             #try: print( "   on", repr(remainingText[:ix]) )
@@ -206,6 +211,7 @@ class HTMLText( tk.Text ):
                             insertText = insertText[::-1] # Reverse the string (a horrible way to approximate RTL)
                         for htmlChars, replacementChars in HTML_REPLACEMENTS:
                             insertText = insertText.replace( htmlChars, replacementChars )
+                        #if link: print( "insertMarks", repr( (combinedFormats, 'href'+link,) if link else combinedFormats ) )
                         tk.Text.insert( self, point, insertText, (combinedFormats, 'href'+link,) if link else combinedFormats )
                         #first = False
                     remainingText = remainingText[ix:]
@@ -234,16 +240,30 @@ class HTMLText( tk.Text ):
                     fullHTMLTag = fullHTMLTag[:-1]
                 #try: print( "fullHTMLTag", repr(fullHTMLTag), "self-closing" if selfClosing else "" )
                 #except UnicodeEncodeError: pass
-                fullHTMLTagBits = fullHTMLTag.split()
+
+                # Can't do a normal split coz can have a space within a link, e.g., href="one two.htm"
+                fullHTMLTagBits = []
+                insideDoubleQuotes = False
+                currentField = ""
+                for char in fullHTMLTag:
+                    if char in (' ',) and not insideDoubleQuotes:
+                        fullHTMLTagBits.append( currentField )
+                        currentField = ""
+                    else:
+                        currentField += char
+                        if char == '"': insideDoubleQuotes = not insideDoubleQuotes
+                if currentField: fullHTMLTagBits.append( currentField ) # Make sure we get the last bit
+                #print( "{} got {}".format( repr(fullHTMLTag), fullHTMLTagBits ) )
                 HTMLTag = fullHTMLTagBits[0]
-                #try: print( "  bits", fullHTMLTagBits, repr(HTMLTag) )
-                #except UnicodeEncodeError: pass
+                #print( "HTMLTag", repr(HTMLTag) )
+
                 if HTMLTag and HTMLTag[0] == '/': # it's a close tag
                     assert( len(fullHTMLTagBits) == 1 ) # shouldn't have any attributes on a closing tag
                     assert( not selfClosing )
                     HTMLTag = HTMLTag[1:]
                     #print( t("Got HTML {} close tag").format( repr(HTMLTag) ) )
-                    #print( "cHT", currentHTMLTags )
+                    #print( "cHT1", currentHTMLTags )
+                    #print( "cFT1", currentFormatTags )
                     if currentHTMLTags and HTMLTag == currentHTMLTags[-1]: # all good
                         currentHTMLTags.pop() # Drop it
                         if HTMLTag not in NON_FORMATTING_TAGS:
@@ -252,15 +272,19 @@ class HTMLText( tk.Text ):
                         logging.critical( t("HTMLText.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
                     else:
                         logging.critical( t("HTMLText.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
+                    #print( "cHT2", currentHTMLTags )
+                    #print( "cFT2", currentFormatTags )
                 else: # it's not a close tag so must be an open tag
                     if HTMLTag not in KNOWN_HTML_TAGS:
                         logging.critical( t("HTMLText doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
                         #currentHTMLTags.append( HTMLTag ) # remember it anyway in case it's closed later
                         continue
-                    if HTMLTag in ('h1','h2','h3','p','li',):
+                    if HTMLTag in ('h1','h2','h3','p','li','table','tr',):
                         tk.Text.insert( self, point, '\n' )
                     #elif HTMLTag in ('li',):
                         #tk.Text.insert( self, point, '\n' )
+                    elif HTMLTag in ('td',):
+                        tk.Text.insert( self, point, '\t' )
                     formatTag = HTMLTag
                     if len(fullHTMLTagBits)>1: # our HTML tag has some additional attributes
                         #print( "Looking for attributes" )
@@ -271,7 +295,7 @@ class HTMLText( tk.Text ):
                                 formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
                             elif formatTag=='a' and bit.startswith('href="') and bit[-1]=='"':
                                 formatTag += '=' + bit[6:-1] # create a tag like 'a=http://something.com'
-                            else: logging.critical( "Ignoring {} attribute on {} tag".format( bit, HTMLTag ) )
+                            else: logging.critical( "Ignoring {} attribute on {} tag".format( bit, repr(HTMLTag) ) )
                     if not selfClosing:
                         if HTMLTag != '!DOCTYPE':
                             currentHTMLTags.append( HTMLTag )

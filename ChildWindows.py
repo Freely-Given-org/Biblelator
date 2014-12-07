@@ -43,7 +43,7 @@ import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
-from tkinter.ttk import Style, Scrollbar, Label
+from tkinter.ttk import Style, Frame, Scrollbar, Label, Button
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, parseWindowSize, \
@@ -515,7 +515,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         ChildBox.__init__( self, self.parentWindow )
         self.protocol( "WM_DELETE_WINDOW", self.closeHTMLWindow )
         self.title( 'HTMLWindow' )
+        self.genericWindowType = 'HTMLWindow'
         self.winType = 'HTMLWindow'
+        self.moduleID = 'HTML'
 
         self.geometry( INITIAL_HTML_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE
@@ -674,13 +676,26 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Create a status bar containing only one text label at the bottom of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("createStatusBar()") )
-        Style().configure( 'StatusBar.TLabel', background='pink' )
+        Style().configure('HTMLStatusBar.TFrame', background='yellow')
+        Style().configure( 'StatusBar.TLabel', background='white' )
+        #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
+                                            #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+
+        statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextVariable = tk.StringVar()
-        self.statusTextLabel = Label( self, relief=tk.SUNKEN,
+        self.statusTextLabel = Label( statusBar, relief=tk.SUNKEN,
                                     textvariable=self.statusTextVariable, style='StatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
-        self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
+        self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
+
+        # style='Halt.TButton',
+        self.forwardButton = Button( statusBar, text='Forward', command=self.doGoForward )
+        self.forwardButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        self.backButton = Button( statusBar, text='Back', command=self.doGoBackward )
+        self.backButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        statusBar.pack( side=tk.BOTTOM, fill=tk.X )
+
         self.statusTextVariable.set( '' ) # first initial value
         self.setReadyStatus()
     # end of HTMLWindow.createStatusBar

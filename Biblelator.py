@@ -787,6 +787,9 @@ class Application( Frame ):
         if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
         self.windowsSettingsDict['Current'] = {}
         for j, appWin in enumerate( self.childWindows ):
+                if appWin.winType == 'HTMLWindow':
+                    continue # We don't save these
+                
                 winNumber = "window{}".format( j+1 )
                 self.windowsSettingsDict['Current'][winNumber] = {}
                 thisOne = self.windowsSettingsDict['Current'][winNumber]
@@ -820,6 +823,9 @@ class Application( Frame ):
                 elif appWin.winType == 'ParatextUSFMBibleEditWindow':
                     thisOne['SSFFilepath'] = appWin.moduleID
                     thisOne['EditMode'] = appWin.editMode
+
+                elif appWin.winType == 'HTMLWindow':
+                    pass # We don't save these
 
                 else:
                     logging.critical( t("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )

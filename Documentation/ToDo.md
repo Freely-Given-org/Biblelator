@@ -19,8 +19,6 @@ BOS improvements for Biblelator
 Biblelator stuff
 * Add a status line (with Back button?) to HTML window?
 * Autosave edited files
-* Make default checking (HTML) window larger
-* Add a status line (with Back button?) to HTML window?
 * Synchronise with other Bible programs (esp. on Windows)
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)

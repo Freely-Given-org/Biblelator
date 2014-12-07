@@ -1516,7 +1516,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
                 webbrowser.open( indexFile )
             else: # display internally in our HTMLDialog
                 indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
-                HTMLWindow( self, indexFile )
+                hW = HTMLWindow( self, indexFile )
+                self.parentApp.childWindows.append( hW )
+                if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
         self.parentApp.setReadyStatus()
     # end of USFMEditWindow.doCheckProject
 
