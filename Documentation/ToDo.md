@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2014-12-01 RJH
+Last updated: 2014-12-03 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,12 +12,13 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 BOS improvements for Biblelator
-* Allow check by book (maybe it already does)
-* Allow intro paragraphs to end with colon
 * Fix quotation checking
 * Fix intro/text section checking
+* Handle nested USFM markers
 
 Biblelator stuff
+* Add a status line (with Back button?) to HTML window?
+* Autosave edited files
 * Make default checking (HTML) window larger
 * Add a status line (with Back button?) to HTML window?
 * Synchronise with other Bible programs (esp. on Windows)
@@ -25,7 +26,6 @@ Biblelator stuff
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Get Sword commentaries displaying
 * Create backup files when editing
-* Autosave edited files
 * Get some different views working on the edit window
 * Release version 0.3
 * Display footnotes and xrefs in resources
@@ -47,6 +47,7 @@ Biblelator stuff
 * Design an icon
 * Release version 0.5
 * Allow users to "log-on"
+* Project sharing (Hg vs Git)
 * Project backup to the cloud (Freely-Given.org server)
 * Improve Strongs (lexicon) HTML display
 * Allow handling of non-English DBP resources

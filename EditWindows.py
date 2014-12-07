@@ -31,7 +31,7 @@ from gettext import gettext as _
 LastModifiedDate = '2014-12-03'
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = '0.26'
+ProgVersion = '0.27'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -103,6 +103,10 @@ class TextEditWindow( ChildWindow ):
 
         self.lastFiletime = self.lastFilesize = None
         self.clearText()
+
+        self.autosaveTime = 3*60*1000 # msecs (zero is no autosaves)
+        self.autosaveScheduled = False
+
         self.after( 555, self.refreshTitle )
         self.after( 2222, self.checkForDiskChanges )
     # end of TextEditWindow.__init__
@@ -257,6 +261,9 @@ class TextEditWindow( ChildWindow ):
         self.title( "{}[{}] {} ({}) Editable".format( '*' if self.modified() else '',
                                             _("Text"), self.filename, self.folderPath ) )
         self.after( 200, self.refreshTitle ) # Redo it so we can put up the asterisk if the text is changed
+        if self.autosaveTime and self.modified() and not self.autosaveScheduled:
+            self.after( self.autosaveTime, self.doAutosave ) # Redo it so we can put up the asterisk if the text is changed
+            self.autosaveScheduled = True
     # end if TextEditWindow.refreshTitle
 
 
@@ -575,6 +582,22 @@ class TextEditWindow( ChildWindow ):
                 self.refreshTitle()
             else: self.doSaveAs()
     # end of TextEditWindow.doSave
+
+
+    def doAutosave( self ):
+        """
+        Called if the user requests a save from the GUI.
+
+        Sets up another call.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("TextEditWindow.doAutosave()") )
+        if self.modified():
+            self.doSave()
+            self.after( self.autosaveTime, self.doAutosave )
+        else:
+            self.autosaveScheduled = False
+    # end of TextEditWindow.doAutosave
 
 
     def doCloseEditor( self, event=None ):

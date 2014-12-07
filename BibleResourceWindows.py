@@ -3,7 +3,7 @@
 #
 # BibleResourceWindows.py
 #
-# Bible resource frames for Biblelator Bible display/editing
+# Bible resource windows for Biblelator Bible display/editing
 #
 # Copyright (C) 2013-2014 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -29,12 +29,12 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-23"
+LastModifiedDate = '2014-12-03'
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.27'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -563,7 +563,7 @@ class BibleResourceWindow( ChildWindow ):
                 else:
                     logging.critical( t("BibleResourceWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
             if self.contextViewMode == 'ByVerse' and endMarkers:
-                print( "endMarkers", endMarkers )
+                #print( "endMarkers", endMarkers )
                 self.textBox.insert( tk.END, " End context:", 'contextHeader' )
                 contextString, firstMarker = "", True
                 for someMarker in endMarkers:

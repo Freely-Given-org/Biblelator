@@ -29,12 +29,12 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-28"
+LastModifiedDate = '2014-12-08'
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.27'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -70,7 +70,8 @@ def t( messageString ):
 
 KNOWN_HTML_TAGS = ('!DOCTYPE','html','head','meta','link','title','body','div',
                    'h1','h2','h3','p','li','a','span','i','b','em','small')
-NON_FORMATTING_TAGS = ('html','head','body','div',) # Not sure about div yet...........
+NON_FORMATTING_TAGS = 'html','head','body','div', # Not sure about div yet...........
+HTML_REPLACEMENTS = ('&nbsp;',' '),('&lt;','<'),('&gt;','>'),('&amp;','&'),
 
 
 class HTMLText( tk.Text ):
@@ -203,6 +204,8 @@ class HTMLText( tk.Text ):
                         if 'Hebrew' in combinedFormats:
                             #print( "Reversing", repr(insertText ) )
                             insertText = insertText[::-1] # Reverse the string (a horrible way to approximate RTL)
+                        for htmlChars, replacementChars in HTML_REPLACEMENTS:
+                            insertText = insertText.replace( htmlChars, replacementChars )
                         tk.Text.insert( self, point, insertText, (combinedFormats, 'href'+link,) if link else combinedFormats )
                         #first = False
                     remainingText = remainingText[ix:]

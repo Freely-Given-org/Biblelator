@@ -31,13 +31,13 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-27"
+LastModifiedDate = '2014-12-08'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-SettingsVersion = "0.26" # Only need to change this if the settings format has changed
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.27'
+SettingsVersion = '0.27' # Only need to change this if the settings format has changed
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -47,10 +47,7 @@ import multiprocessing
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory #, SaveAs
-#from tkinter.filedialog import FileDialog, LoadFileDialog, SaveFileDialog
-#from tkinter.filedialog import askdirectory, askopenfile, askopenfilename, askopenfiles, asksaveasfile, asksaveasfilename, test
 from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
-#from tkinter.tix import Spinbox
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, MAX_WINDOWS, \
@@ -521,31 +518,31 @@ class Application( Frame ):
     # end of Application.getVerseKey
 
 
-    def setStatus( self, newStatus=None ):
+    def setStatus( self, newStatusText=None ):
         """
         Set (or clear) the status bar text.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("setStatus( {} )").format( repr(newStatus) ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("setStatus( {} )").format( repr(newStatusText) ) )
         #print( "SB is", repr( self.statusTextVariable.get() ) )
-        if newStatus != self.statusTextVariable.get(): # it's changed
+        if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget['state'] = tk.NORMAL
             #self.statusBarTextWidget.delete( '1.0', tk.END )
-            #if newStatus:
-                #self.statusBarTextWidget.insert( '1.0', newStatus )
+            #if newStatusText:
+                #self.statusBarTextWidget.insert( '1.0', newStatusText )
             #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
-            #self.statusText = newStatus
-            self.statusTextVariable.set( newStatus )
+            #self.statusText = newStatusText
+            self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
     # end of Application.setStatus
 
-    def setWaitStatus( self, newStatus ):
+    def setWaitStatus( self, newStatusText ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("setWaitStatus( {} )").format( repr(newStatus) ) )
+            print( t("setWaitStatus( {} )").format( repr(newStatusText) ) )
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        self.setStatus( newStatus )
+        self.setStatus( newStatusText )
         self.update()
     # end of Application.setWaitStatus
 

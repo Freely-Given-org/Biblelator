@@ -29,10 +29,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-03'
+LastModifiedDate = '2014-12-08'
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.26'
+ProgVersion = '0.27'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -43,11 +43,12 @@ import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
-from tkinter.ttk import Scrollbar
+from tkinter.ttk import Style, Scrollbar, Label
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, \
-                             INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, parseWindowSize
+from BiblelatorGlobals import APP_NAME, START, DEFAULT, parseWindowSize, \
+                             INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
+                             INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE
 from BiblelatorDialogs import errorBeep, showerror, showinfo
 from TextBoxes import HTMLText
 
@@ -516,14 +517,17 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.title( 'HTMLWindow' )
         self.winType = 'HTMLWindow'
 
-        self.geometry( INITIAL_RESOURCE_SIZE )
-        self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
+        self.geometry( INITIAL_HTML_SIZE )
+        self.minimumSize, self.maximumSize = MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
         self.maxsize( *parseWindowSize( self.maximumSize ) )
+
+        self.showStatusBar = True
 
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
+        self.createStatusBar()
 
         self.viewMode = DEFAULT
         self.settings = None
@@ -604,6 +608,10 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=kBD['Find'][0] )
         searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=kBD['Refind'][0] )
 
+        viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
+        viewMenu.add_command( label='Status bar', underline=0, command=self.notWrittenYet )
+
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
         gotoMenu.add_command( label='Back', underline=0, command=self.doGoBackward )
@@ -659,6 +667,60 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             #print( t("This 'createToolBar' method can be overridden!") )
         pass
     # end of HTMLWindow.createToolBar
+
+
+    def createStatusBar( self ):
+        """
+        Create a status bar containing only one text label at the bottom of the main window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("createStatusBar()") )
+        Style().configure( 'StatusBar.TLabel', background='pink' )
+
+        self.statusTextVariable = tk.StringVar()
+        self.statusTextLabel = Label( self, relief=tk.SUNKEN,
+                                    textvariable=self.statusTextVariable, style='StatusBar.TLabel' )
+                                    #, font=('arial',16,tk.NORMAL) )
+        self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
+        self.statusTextVariable.set( '' ) # first initial value
+        self.setReadyStatus()
+    # end of HTMLWindow.createStatusBar
+
+    def setStatus( self, newStatusText=None ):
+        """
+        Set (or clear) the status bar text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("setStatus( {} )").format( repr(newStatusText) ) )
+        #print( "SB is", repr( self.statusTextVariable.get() ) )
+        if newStatusText != self.statusTextVariable.get(): # it's changed
+            #self.statusBarTextWidget['state'] = tk.NORMAL
+            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #if newStatusText:
+                #self.statusBarTextWidget.insert( '1.0', newStatusText )
+            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+            #self.statusText = newStatusText
+            self.statusTextVariable.set( newStatusText )
+            self.statusTextLabel.update()
+    # end of HTMLWindow.setStatus
+
+    #def setWaitStatus( self, newStatusText ):
+        #"""
+        #Set the status bar text and change the cursor to the wait/hourglass cursor.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( t("setWaitStatus( {} )").format( repr(newStatusText) ) )
+        ##self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.setStatus( newStatusText )
+        #self.update()
+    ## end of HTMLWindow.setWaitStatus
+
+    def setReadyStatus( self ):
+        """
+        Sets the status line to "Ready"
+            and sets the cursor to the normal cursor.
+        """
+        self.setStatus( _("Ready") )
+        #self.config( cursor='' )
+    # end of HTMLWindow.setReadyStatus
 
 
     def load( self, filepath ):
