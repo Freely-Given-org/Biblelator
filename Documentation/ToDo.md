@@ -12,12 +12,13 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 BOS improvements for Biblelator
-* Fix quotation checking
+* Fix speech mark / quotation checking
 * Fix intro/text section checking
 * Handle nested USFM markers
+* Learn to read BCV files
 
 Biblelator stuff
-* Add a status line (with Back button?) to HTML window?
+* Display links in HTML status bar
 * Autosave edited files
 * Synchronise with other Bible programs (esp. on Windows)
 * Don't allow two projects with the same name

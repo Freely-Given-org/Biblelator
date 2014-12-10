@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-08'
+LastModifiedDate = '2014-12-10'
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.27'
@@ -524,12 +524,15 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.minsize( *parseWindowSize( self.minimumSize ) )
         self.maxsize( *parseWindowSize( self.maximumSize ) )
 
-        self.showStatusBar = True
+        self.showStatusBarVar = tk.BooleanVar()
+        self.showStatusBarVar.set( True )
+        self.statusTextVar = tk.StringVar()
+        self.statusTextVar.set( '' ) # first initial value
 
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
-        self.createStatusBar()
+        if self.showStatusBarVar.get(): self.createStatusBar()
 
         self.viewMode = DEFAULT
         self.settings = None
@@ -612,7 +615,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
-        viewMenu.add_command( label='Status bar', underline=0, command=self.notWrittenYet )
+        viewMenu.add_checkbutton( label='Status bar', underline=0, variable=self.showStatusBarVar, command=self.doToggleStatusBar )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
@@ -681,22 +684,20 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
-        statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
+        self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
-        self.statusTextVariable = tk.StringVar()
-        self.statusTextLabel = Label( statusBar, relief=tk.SUNKEN,
-                                    textvariable=self.statusTextVariable, style='StatusBar.TLabel' )
+        self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
+                                    textvariable=self.statusTextVar, style='StatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
         # style='Halt.TButton',
-        self.forwardButton = Button( statusBar, text='Forward', command=self.doGoForward )
+        self.forwardButton = Button( self.statusBar, text='Forward', command=self.doGoForward )
         self.forwardButton.pack( side=tk.RIGHT, padx=2, pady=2 )
-        self.backButton = Button( statusBar, text='Back', command=self.doGoBackward )
+        self.backButton = Button( self.statusBar, text='Back', command=self.doGoBackward )
         self.backButton.pack( side=tk.RIGHT, padx=2, pady=2 )
-        statusBar.pack( side=tk.BOTTOM, fill=tk.X )
+        self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
 
-        self.statusTextVariable.set( '' ) # first initial value
         self.setReadyStatus()
     # end of HTMLWindow.createStatusBar
 
@@ -705,16 +706,16 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Set (or clear) the status bar text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("setStatus( {} )").format( repr(newStatusText) ) )
-        #print( "SB is", repr( self.statusTextVariable.get() ) )
-        if newStatusText != self.statusTextVariable.get(): # it's changed
+        #print( "SB is", repr( self.statusTextVar.get() ) )
+        if newStatusText != self.statusTextVar.get(): # it's changed
             #self.statusBarTextWidget['state'] = tk.NORMAL
             #self.statusBarTextWidget.delete( '1.0', tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( '1.0', newStatusText )
             #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
             #self.statusText = newStatusText
-            self.statusTextVariable.set( newStatusText )
-            self.statusTextLabel.update()
+            self.statusTextVar.set( newStatusText )
+            if self.showStatusBarVar.get(): self.statusTextLabel.update()
     # end of HTMLWindow.setStatus
 
     #def setWaitStatus( self, newStatusText ):
@@ -736,6 +737,17 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.setStatus( _("Ready") )
         #self.config( cursor='' )
     # end of HTMLWindow.setReadyStatus
+
+    def doToggleStatusBar( self ):
+        """
+        Display or hide the status bar.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("doToggleStatusBar()") )
+        if self.showStatusBarVar.get():
+            self.createStatusBar()
+        else:
+            self.statusBar.destroy()
+    # end of HTMLWindow.doToggleStatusBar
 
 
     def load( self, filepath ):

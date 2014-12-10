@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-03'
+LastModifiedDate = '2014-12-10'
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
 ProgVersion = '0.27'
@@ -761,25 +761,25 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Book', underline=0, command=self.notWrittenYet )
         gotoMenu.add_separator()
-        self._groupRadio.set( self.groupCode )
-        gotoMenu.add_radiobutton( label='Group A', underline=6, value='A', variable=self._groupRadio, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group B', underline=6, value='B', variable=self._groupRadio, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadio, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadio, command=self.changeBibleGroupCode )
+        self._groupRadioVar.set( self.groupCode )
+        gotoMenu.add_radiobutton( label='Group A', underline=6, value='A', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group B', underline=6, value='B', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
-        if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
-        elif self.contextViewMode == 'BySection': self._viewRadio.set( 2 )
-        elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 3 )
-        elif self.contextViewMode == 'ByBook': self._viewRadio.set( 4 )
-        elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 5 )
+        if   self.contextViewMode == 'BeforeAndAfter': self._viewRadioVar.set( 1 )
+        elif self.contextViewMode == 'BySection': self._viewRadioVar.set( 2 )
+        elif self.contextViewMode == 'ByVerse': self._viewRadioVar.set( 3 )
+        elif self.contextViewMode == 'ByBook': self._viewRadioVar.set( 4 )
+        elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
 
-        viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadio, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
 
         viewMenu.entryconfigure( 'Before and after...', state=tk.DISABLED )
         viewMenu.entryconfigure( 'One section', state=tk.DISABLED )
@@ -1233,7 +1233,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         # Safety-check since editor code not finished yet for all modes
         if self.contextViewMode in ('BeforeAndAfter','BySection','ByVerse','ByChapter',):
             print( t("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
-            self._viewRadio.set( 4 ) # ByBook
+            self._viewRadioVar.set( 4 ) # ByBook
             self.changeBibleContextView()
 
         if self.textBox.edit_modified(): # we need to extract the changes into self.bookText

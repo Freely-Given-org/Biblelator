@@ -29,12 +29,12 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-23"
+LastModifiedDate = '2014-12-10'
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.27'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -97,7 +97,7 @@ class BibleResourceBox( Frame, ChildBox ):
         ChildBox.__init__( self, self.parentApp )
 
         # Set some dummy values required soon
-        self._viewRadio, self._groupRadio = tk.IntVar(), tk.StringVar()
+        self._viewRadioVar, self._groupRadioVar = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = DEFAULT
         self.viewMode = DEFAULT
@@ -424,7 +424,7 @@ class BibleResourceBox( Frame, ChildBox ):
         # Safety-check in case they edited the settings file
         if 'DBP' in self.boxType and self.contextViewMode in ('ByBook','ByChapter',):
             print( t("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
-            self._viewRadio.set( 3 ) # ByVerse
+            self._viewRadioVar.set( 3 ) # ByVerse
             self.changeBibleContextView()
 
         if self.contextViewMode == 'BeforeAndAfter':
@@ -733,26 +733,26 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Book', underline=0, command=self.doGotoBook )
         gotoMenu.add_separator()
-        self._groupRadio.set( self.groupCode )
-        gotoMenu.add_radiobutton( label='Group A', underline=6, value='A', variable=self._groupRadio, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group B', underline=6, value='B', variable=self._groupRadio, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadio, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadio, command=self.changeBibleGroupCode )
+        self._groupRadioVar.set( self.groupCode )
+        gotoMenu.add_radiobutton( label='Group A', underline=6, value='A', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group B', underline=6, value='B', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
         self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
         self.menubar.add_cascade( menu=self.viewMenu, label='View', underline=0 )
-        if   self.contextViewMode == 'BeforeAndAfter': self._viewRadio.set( 1 )
-        #elif self.contextViewMode == 'BySection': self._viewRadio.set( 2 )
-        elif self.contextViewMode == 'ByVerse': self._viewRadio.set( 3 )
-        #elif self.contextViewMode == 'ByBook': self._viewRadio.set( 4 )
-        #elif self.contextViewMode == 'ByChapter': self._viewRadio.set( 5 )
+        if   self.contextViewMode == 'BeforeAndAfter': self._viewRadioVar.set( 1 )
+        #elif self.contextViewMode == 'BySection': self._viewRadioVar.set( 2 )
+        elif self.contextViewMode == 'ByVerse': self._viewRadioVar.set( 3 )
+        #elif self.contextViewMode == 'ByBook': self._viewRadioVar.set( 4 )
+        #elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
         else: print( self.contextViewMode ); halt
 
-        self.viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadio, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadio, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadio, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadio, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadio, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
 
         #if 'DBP' in self.winType: # disable excessive online use
             #self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
@@ -806,7 +806,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         Called when  a Bible context view is changed from the menus/GUI.
         """
-        currentViewNumber = self._viewRadio.get()
+        currentViewNumber = self._viewRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
             print( t("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
             assert( currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 ) )
@@ -833,7 +833,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Called when  a Bible group code is changed from the menus/GUI.
         """
         previousGroupCode = self.groupCode
-        newGroupCode = self._groupRadio.get()
+        newGroupCode = self._groupRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
             print( t("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
             assert( newGroupCode in BIBLE_GROUP_CODES )
