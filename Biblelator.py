@@ -2253,7 +2253,6 @@ def demo():
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
-    #tkRootWindow.after( 30000, lambda: tkRootWindow.destroy() ) # Destroy the widget after 30 seconds
     tkRootWindow.after( 30000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
 
     # Start the program running
@@ -2302,7 +2301,7 @@ if __name__ == '__main__':
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    demo( homeFolderPath, loggingFolderPath )
+    main( homeFolderPath, loggingFolderPath )
 
     closedown( ProgName, ProgVersion )
 # end of Biblelator.py
