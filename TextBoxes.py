@@ -29,7 +29,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-08'
+LastModifiedDate = '2014-12-10'
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.27'
@@ -153,9 +153,16 @@ class HTMLText( tk.Text ):
         #"overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
         #"tabs", "tabstyle", "underline", and "wrap".
 
-        for tag in ('a','p_a','small_p_a',):
+        aTags = ('a','p_a','small_p_a','h1_a')
+        for tag in self.styleDict:
+            if tag.endswith( '_a' ): assert( tag in aTags )
+        for tag in aTags:
             assert( tag in self.styleDict )
             self.tag_bind( tag, "<Button-1>", self.openHyperlink )
+            #self.tag_bind( tag, "<Enter>", self.overHyperlink )
+            #self.tag_bind( tag, "<Leave>", self.leaveHyperlink )
+
+        self._lastOverLink = None
     # end of HTMLText.__init__
 
 
@@ -212,7 +219,12 @@ class HTMLText( tk.Text ):
                         for htmlChars, replacementChars in HTML_REPLACEMENTS:
                             insertText = insertText.replace( htmlChars, replacementChars )
                         #if link: print( "insertMarks", repr( (combinedFormats, 'href'+link,) if link else combinedFormats ) )
-                        tk.Text.insert( self, point, insertText, (combinedFormats, 'href'+link,) if link else combinedFormats )
+                        if link:
+                            hypertag = 'href' + link
+                            tk.Text.insert( self, point, insertText, (combinedFormats, hypertag,) )
+                            self.tag_bind( hypertag, "<Enter>", self.overHyperlink )
+                            self.tag_bind( hypertag, "<Leave>", self.leaveHyperlink )
+                        else: tk.Text.insert( self, point, insertText, combinedFormats )
                         #first = False
                     remainingText = remainingText[ix:]
                 #try: print( "  tag", repr(remainingText[:5]) )
@@ -308,31 +320,76 @@ class HTMLText( tk.Text ):
     # end of HTMLText.insert
 
 
-    def openHyperlink( self, event ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLText.openHyperlink()") )
-
+    def _getURL( self, event ):
+        """
+        Give a mouse event, get the URL underneath it.
+        """
         # get the index of the mouse cursor from the event.x and y attributes
         xy = '@{0},{1}'.format( event.x, event.y )
         #print( "xy", repr(xy) ) # e.g.., '@34,77'
         #print( "ixy", repr(self.index(xy)) ) # e.g., '4.3'
 
-        URL = None
+        #URL = None
         tagNames = self.tag_names( xy )
-        print( "tn", tagNames )
+        #print( "tn", tagNames )
         for tagName in tagNames:
             if tagName.startswith( 'href' ):
                 URL = tagName[4:]
-                print( "URL", repr(URL) )
-                break
+                #print( "URL", repr(URL) )
+                return URL
+    # end of HTMLText._getURL
 
-        if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
-            tag_range = self.tag_prevrange( tagName, xy )
-            print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
-            clickedText = self.get( *tag_range )
-            print( "Clicked on {}".format( repr(clickedText) ) )
+
+    def openHyperlink( self, event ):
+        """
+        Handle a click on a hyperlink.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLText.openHyperlink()") )
+        URL = self._getURL( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Clicked on {}".format( repr(clickedText) ) )
 
         if URL: self.master.gotoLink( URL )
     # end of HTMLText.openHyperlink
+
+
+    def overHyperlink( self, event ):
+        """
+        Handle a mouseover on a hyperlink.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLText.overHyperlink()") )
+        URL = self._getURL( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Over {}".format( repr(clickedText) ) )
+
+        if URL: self.master.overLink( URL )
+    # end of HTMLText.overHyperlink
+
+    def leaveHyperlink( self, event ):
+        """
+        Handle a mouseover on a hyperlink.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLText.leaveHyperlink()") )
+        self.master.leaveLink()
+    # end of HTMLText.leaveHyperlink
 # end of HTMLText class
 
 

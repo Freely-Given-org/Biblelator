@@ -524,15 +524,15 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.minsize( *parseWindowSize( self.minimumSize ) )
         self.maxsize( *parseWindowSize( self.maximumSize ) )
 
-        self.showStatusBarVar = tk.BooleanVar()
-        self.showStatusBarVar.set( True )
-        self.statusTextVar = tk.StringVar()
-        self.statusTextVar.set( '' ) # first initial value
+        self._showStatusBarVar = tk.BooleanVar()
+        self._showStatusBarVar.set( True )
+        self._statusTextVar = tk.StringVar()
+        self._statusTextVar.set( '' ) # first initial value
 
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
-        if self.showStatusBarVar.get(): self.createStatusBar()
+        if self._showStatusBarVar.get(): self.createStatusBar()
 
         self.viewMode = DEFAULT
         self.settings = None
@@ -615,7 +615,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label='View', underline=0 )
-        viewMenu.add_checkbutton( label='Status bar', underline=0, variable=self.showStatusBarVar, command=self.doToggleStatusBar )
+        viewMenu.add_checkbutton( label='Status bar', underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
@@ -687,7 +687,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self.statusTextVar, style='StatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
@@ -698,24 +698,25 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.backButton.pack( side=tk.RIGHT, padx=2, pady=2 )
         self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
 
-        self.setReadyStatus()
+        #self.setReadyStatus()
+        self.setStatus() # Clear it
     # end of HTMLWindow.createStatusBar
 
-    def setStatus( self, newStatusText=None ):
+    def setStatus( self, newStatusText='' ):
         """
         Set (or clear) the status bar text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("setStatus( {} )").format( repr(newStatusText) ) )
-        #print( "SB is", repr( self.statusTextVar.get() ) )
-        if newStatusText != self.statusTextVar.get(): # it's changed
+        #print( "SB is", repr( self._statusTextVar.get() ) )
+        if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget['state'] = tk.NORMAL
             #self.statusBarTextWidget.delete( '1.0', tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( '1.0', newStatusText )
             #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
             #self.statusText = newStatusText
-            self.statusTextVar.set( newStatusText )
-            if self.showStatusBarVar.get(): self.statusTextLabel.update()
+            self._statusTextVar.set( newStatusText )
+            if self._showStatusBarVar.get(): self.statusTextLabel.update()
     # end of HTMLWindow.setStatus
 
     #def setWaitStatus( self, newStatusText ):
@@ -743,7 +744,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Display or hide the status bar.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("doToggleStatusBar()") )
-        if self.showStatusBarVar.get():
+        if self._showStatusBarVar.get():
             self.createStatusBar()
         else:
             self.statusBar.destroy()
@@ -783,6 +784,24 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.historyList.append( link )
         self.historyIndex = 1
     # end of HTMLWindow.gotoLink
+
+
+    def overLink( self, link ):
+        """
+        Loads the given HTML file into the window
+            and also finds and sets the window title
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.overLink( {} )").format( link ) )
+        self.setStatus( link ) # Display it
+    # end of HTMLWindow.overLink
+
+
+    def leaveLink( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLWindow.leaveLink()") )
+        self.setStatus() # Clear it
+    # end of HTMLWindow.leaveLink
 
 
     def doGoForward( self ):

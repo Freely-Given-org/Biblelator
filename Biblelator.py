@@ -31,18 +31,18 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-08'
+LastModifiedDate = '2014-12-19'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.27'
-SettingsVersion = '0.27' # Only need to change this if the settings format has changed
+ProgVersion = '0.28'
+SettingsVersion = '0.28' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
-import sys, os.path, logging
+import sys, os, logging
 import multiprocessing
 
 import tkinter as tk
@@ -518,7 +518,7 @@ class Application( Frame ):
     # end of Application.getVerseKey
 
 
-    def setStatus( self, newStatusText=None ):
+    def setStatus( self, newStatusText='' ):
         """
         Set (or clear) the status bar text.
         """
@@ -789,7 +789,7 @@ class Application( Frame ):
         for j, appWin in enumerate( self.childWindows ):
                 if appWin.winType == 'HTMLWindow':
                     continue # We don't save these
-                
+
                 winNumber = "window{}".format( j+1 )
                 self.windowsSettingsDict['Current'][winNumber] = {}
                 thisOne = self.windowsSettingsDict['Current'][winNumber]
@@ -2198,7 +2198,7 @@ class Application( Frame ):
                     #print( "  ", repr(windowNumber), repr(winDict) )
                     for windowSettingName,value in sorted( winDict.items() ):
                         thisOne[windowNumber+windowSettingName] = value
-            except: logging.error( t("writeSettingsFile: unable to write {} windows set-up").format( repr(windowsSettingName) ) )
+            except UnicodeEncodeError: logging.error( t("writeSettingsFile: unable to write {} windows set-up").format( repr(windowsSettingName) ) )
         self.settings.save()
     # end of Application.writeSettingsFile
 
@@ -2222,6 +2222,45 @@ class Application( Frame ):
 
 
 
+def demo():
+    """
+    Unattended demo program to handle command line parameters and then run what they want.
+
+    Which windows open depends on the saved settings from the last use.
+    """
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
+
+    if BibleOrgSysGlobals.debugFlag:
+        print( t("Platform is"), sys.platform ) # e.g., "win32"
+        print( t("OS name is"), os.name ) # e.g., "nt"
+        if sys.platform == "linux": print( t("OS uname is"), os.uname() )
+        print( t("Running main...") )
+
+    tkRootWindow = tk.Tk()
+    if BibleOrgSysGlobals.debugFlag:
+        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+    tkRootWindow.title( ProgNameVersion )
+
+    homeFolderPath = findHomeFolderPath()
+    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
+    settings.load()
+
+    application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
+    # Calls to the window manager class (wm in Tk)
+    #application.master.title( ProgNameVersion )
+    #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Program a shutdown
+    #tkRootWindow.after( 30000, lambda: tkRootWindow.destroy() ) # Destroy the widget after 30 seconds
+    tkRootWindow.after( 30000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of Biblelator.demo
+
+
 def main( homeFolderPath, loggingFolderPath ):
     """
     Main program to handle command line parameters and then run what they want.
@@ -2230,7 +2269,6 @@ def main( homeFolderPath, loggingFolderPath ):
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag:
-        import os
         print( t("Platform is"), sys.platform ) # e.g., "win32"
         print( t("OS name is"), os.name ) # e.g., "nt"
         if sys.platform == "linux": print( t("OS uname is"), os.uname() )
@@ -2264,7 +2302,7 @@ if __name__ == '__main__':
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    main( homeFolderPath, loggingFolderPath )
+    demo( homeFolderPath, loggingFolderPath )
 
     closedown( ProgName, ProgVersion )
 # end of Biblelator.py

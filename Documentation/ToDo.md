@@ -18,7 +18,6 @@ BOS improvements for Biblelator
 * Learn to read BCV files
 
 Biblelator stuff
-* Display links in HTML status bar
 * Autosave edited files
 * Synchronise with other Bible programs (esp. on Windows)
 * Don't allow two projects with the same name
