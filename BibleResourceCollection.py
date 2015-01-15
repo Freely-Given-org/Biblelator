@@ -5,7 +5,7 @@
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2014 Robert Hunt
+# Copyright (C) 2014-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-10'
+LastModifiedDate = '2015-01-06'
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.27'
+ProgVersion = '0.28'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -110,7 +110,16 @@ class BibleResourceBox( Frame, ChildBox ):
         # Create a title bar
         titleBar = Frame( self )
         Button( titleBar, text=_('Close'), command=self.doClose ).pack( side=tk.RIGHT )
-        titleText = '{} ({})'.format( moduleID, boxType.replace( 'BibleResourceBox', '' ) )
+        # Try to get the title width somewhere near correct (if moduleID is a long path)
+        adjModuleID = moduleID
+        self.update() # so we can get the geometry
+        width = parseWindowSize( self.parentWindow.geometry() )[0] - 60 # Allow for above button
+        if len(adjModuleID)*10 > width: # Note: this doesn't adjust if the window size is changed
+            print( "BRB here1", len(adjModuleID), width, repr(adjModuleID) )
+            x = len(adjModuleID)*100/width # not perfect (too small) for narrow windows
+            adjModuleID = '…' + adjModuleID[int(x):]
+            print( "BRB here2", len(adjModuleID), x, repr(adjModuleID) )
+        titleText = '{} ({})'.format( adjModuleID, boxType.replace( 'BibleResourceBox', '' ) )
         self.titleLabel = tk.Label( titleBar, text=titleText )
         self.titleLabel.pack( side=tk.TOP, fill=tk.X )
         titleBar.pack( side=tk.TOP, fill=tk.X )

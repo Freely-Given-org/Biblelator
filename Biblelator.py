@@ -5,7 +5,7 @@
 #
 # Main program for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-19'
+LastModifiedDate = '2015-01-10' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.28'
@@ -81,18 +81,17 @@ BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI
 PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 
 
-
 def t( messageString ):
     """
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
+    Prepends the module name to a error or warning message string if we are in debug mode.
     Returns the new string.
     """
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}: {}'.format( nameBit, _(errorBit) )
+# end of t
 
 
 
@@ -572,10 +571,12 @@ class Application( Frame ):
             self.lastDebugMessage = newMessage
         self.debugTextBox.insert( tk.END, '\n\n{} child windows:'.format( len(self.childWindows) ) )
         for j, appWin in enumerate( self.childWindows ):
-            self.debugTextBox.insert( tk.END, "\n  {} {} ({}) {} {}" \
+            try: extra = ' ({})'.format( appWin.BCVUpdateType )
+            except AttributeError: extra = ''
+            self.debugTextBox.insert( tk.END, "\n  {} {} ({}) {} {}{}" \
                                     .format( j, appWin.winType.replace('ChildWindow',''),
                                         appWin.genericWindowType.replace('Resource',''),
-                                        appWin.geometry(), appWin.moduleID ) )
+                                        appWin.geometry(), appWin.moduleID, extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )

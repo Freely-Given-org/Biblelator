@@ -3,9 +3,9 @@
 #
 # EditWindows.py
 #
-# xxx program for Biblelator Bible display/editing
+# The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-10'
+LastModifiedDate = '2015-01-10' # by RJH
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
-ProgVersion = '0.27'
+ProgVersion = '0.28'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -48,12 +48,12 @@ from tkinter.colorchooser import askcolor
 from tkinter.ttk import Style, Frame
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM
+from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM, BIBLE_GROUP_CODES
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog
+from BiblelatorHelpers import createEmptyUSFMBook, mapReferenceVerseKey, mapParallelVerseKey
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow, HTMLWindow
 from BibleResourceWindows import BibleResourceWindow
-from BiblelatorHelpers import createEmptyUSFMBook
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -75,7 +75,6 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
-
 
 
 class TextEditWindow( ChildWindow ):
@@ -630,6 +629,10 @@ class TextEditWindow( ChildWindow ):
 
 
 class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
+    """
+    self.genericWindowType will be BibleEditor
+    self.winType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
+    """
     def __init__( self, parentApp, USFMBible, editMode=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.__init__( {}, {} )".format( parentApp, USFMBible ) )
@@ -671,14 +674,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.lastBBB = None
         self.bookText = None # The current text for this book
         self.exportFolderPathname = None
+
+        self.loading = True
     # end of USFMEditWindow.__init__
 
 
     def refreshTitle( self ):
-        self.title( "{}[{}] {} {} {}:{} ({}) Editable {}".format( '*' if self.modified() else '',
+        referenceBit = '' if self.currentVerseKey is None else '{} {}:{} ' \
+            .format( self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber() )
+        self.title( '{}[{}] {} {}({}) Editable {}'.format( '*' if self.modified() else '',
                                     self.groupCode,
                                     self.internalBible.name if self.internalBible is not None else 'None',
-                                    self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber(),
+                                    '' if self.currentVerseKey is None else referenceBit,
                                     self.editMode, self.contextViewMode ) )
     # end if USFMEditWindow.refreshTitle
 
@@ -795,6 +802,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
         windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
+        windowMenu.add_separator()
+        windowMenu.add_command( label='Start reference mode (A->B)', underline=6, command=self.startReferenceMode )
+        windowMenu.add_command( label='Start parallel mode (A->B,C,D)', underline=6, command=self.startParallelMode )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
@@ -1207,7 +1217,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         """
         Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
 
-        Basically does the following steps (depending on the contextViewMode):
+        If newReferenceVerseKey is None: clears the window
+
+        Otherwise, basically does the following steps (depending on the contextViewMode):
             1/ Saves any changes in the editor to self.bookText
             2/ If we've changed book:
                 if changes to self.bookText, save them to disk
@@ -1217,24 +1229,20 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
-
-        refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
-        BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
-        newVerseKey = SimpleVerseKey( BBB, C, V, S )
 
         oldVerseKey = self.currentVerseKey
-        self.setCurrentVerseKey( newVerseKey )
-        oldBBB, newBBB = oldVerseKey.getBBB(), self.currentVerseKey.getBBB()
+        oldBBB = None if oldVerseKey is None else oldVerseKey.getBBB()
 
-        savedCursorPosition = self.textBox.index( tk.INSERT ) # Something like 55.6 for line 55, before column 6
-        print( "savedCursorPosition", savedCursorPosition )   #   Beginning of file is 1.0
-
-        # Safety-check since editor code not finished yet for all modes
-        if self.contextViewMode in ('BeforeAndAfter','BySection','ByVerse','ByChapter',):
-            print( t("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
-            self._viewRadioVar.set( 4 ) # ByBook
-            self.changeBibleContextView()
+        if newReferenceVerseKey is None:
+            newBBB = None
+            self.setCurrentVerseKey( None )
+        else: # it must be a real verse key
+            assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
+            refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
+            newBBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
+            newVerseKey = SimpleVerseKey( newBBB, C, V, S )
+            self.setCurrentVerseKey( newVerseKey )
+            if newBBB == 'PSA': halt
 
         if self.textBox.edit_modified(): # we need to extract the changes into self.bookText
             logging.critical( "We need to extract the changes into self.bookText for {}".format( oldBBB ) )
@@ -1299,6 +1307,24 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
                 logging.critical( t("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
                 if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
             self.bookTextModified = True
+
+        if newReferenceVerseKey is None:
+            if oldVerseKey is not None:
+                if self.bookTextModified: self.doSave() # resets bookTextModified flag
+                self.clearText() # Leaves the text box enabled
+                self.textBox['state'] = tk.DISABLED # Don't allow editing
+                self.textBox.edit_modified( False ) # clear modified flag (otherwise we could empty the book file)
+                self.refreshTitle()
+            return
+
+        savedCursorPosition = self.textBox.index( tk.INSERT ) # Something like 55.6 for line 55, before column 6
+        print( "savedCursorPosition", savedCursorPosition )   #   Beginning of file is 1.0
+
+        # Safety-check since editor code not finished yet for all modes
+        if self.contextViewMode in ('BeforeAndAfter','BySection','ByVerse','ByChapter',):
+            print( t("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
+            self._viewRadioVar.set( 4 ) # ByBook
+            self.changeBibleContextView()
 
         # Now check if the book they're viewing has changed since last time
         #       If so, save the old book if necessary
@@ -1546,6 +1572,65 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
                 self.refreshTitle()
             else: self.doSaveAs()
     # end of USFMEditWindow.doSave
+
+
+    def startReferenceMode( self ):
+        """
+        Called from the GUI to duplicate this window into Group B,
+            and then link A->B to show OT references from the NT (etc.)
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.startReferenceMode()") )
+        if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
+            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
+            #print( "yndResult", repr(ynd.result) )
+            if ynd.result != True: return
+            self.groupCode = BIBLE_GROUP_CODES[0]
+        assert( self.groupCode == BIBLE_GROUP_CODES[0] ) # In first/default BCV group
+        uEW = USFMEditWindow( self.parentApp, self.internalBible, editMode=self.editMode )
+        #if windowGeometry: uEW.geometry( windowGeometry )
+        uEW.winType = self.winType # override the default
+        uEW.moduleID = self.moduleID
+        uEW.setFolderPath( self.folderPath )
+        uEW.settings = self.settings
+        #uEW.settings.loadUSFMMetadataInto( uB )
+        uEW.groupCode = BIBLE_GROUP_CODES[1]
+        uEW.BCVUpdateType = 'ReferenceMode'
+        uEW.updateShownBCV( mapReferenceVerseKey( self.currentVerseKey ) )
+        self.parentApp.childWindows.append( uEW )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openBiblelatorReferenceBibleEditWindow" )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.startReferenceMode
+
+
+    def startParallelMode( self ):
+        """
+        Called from the GUI to duplicate this window into Groups BCD,
+            and then link A->BCD to show synoptic gospel parallels (etc.)
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.startParallelMode()") )
+        if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
+            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
+            #print( "yndResult", repr(ynd.result) )
+            if ynd.result != True: return
+            self.groupCode = BIBLE_GROUP_CODES[0]
+        assert( self.groupCode == BIBLE_GROUP_CODES[0] ) # In first/default BCV group
+        for j in range( 1, len(BIBLE_GROUP_CODES) ):
+            uEW = USFMEditWindow( self.parentApp, self.internalBible, editMode=self.editMode )
+            #if windowGeometry: uEW.geometry( windowGeometry )
+            uEW.winType = self.winType # override the default
+            uEW.moduleID = self.moduleID
+            uEW.setFolderPath( self.folderPath )
+            uEW.settings = self.settings
+            #uEW.settings.loadUSFMMetadataInto( uB )
+            uEW.groupCode = BIBLE_GROUP_CODES[j]
+            uEW.BCVUpdateType = 'ParallelMode'
+            uEW.updateShownBCV( mapParallelVerseKey( BIBLE_GROUP_CODES[j], self.currentVerseKey ) )
+            self.parentApp.childWindows.append( uEW )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openBiblelatorParallelBibleEditWindows" )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.startParallelMode
 
 
     def xxcloseEditor( self ):

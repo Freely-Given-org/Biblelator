@@ -5,7 +5,7 @@
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-10'
+LastModifiedDate = '2015-01-10' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.27'
+ProgVersion = '0.28'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -46,10 +46,11 @@ from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, parseWindowSize, \
+from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, parseWindowSize, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
                              INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE
 from BiblelatorDialogs import errorBeep, showerror, showinfo
+from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey
 from TextBoxes import HTMLText
 
 # BibleOrgSys imports
@@ -473,14 +474,25 @@ class ChildWindows( list ):
     def updateThisBibleGroup( self, groupCode, newVerseKey ):
         """
         Called when we probably need to update some resource windows with a new Bible reference.
+
+        Note that this new verse key is in the reference versification system.
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("ChildWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("ChildWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
-                if appWin.groupCode == groupCode:
+                if appWin.BCVUpdateType==DEFAULT and appWin.groupCode==groupCode:
                     # The following line doesn't work coz it only updates ONE window
                     #self.ChildWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
                     appWin.updateShownBCV( newVerseKey )
+                    #print( '  Normal', appWin.groupCode, newVerseKey, appWin.moduleID )
+                elif groupCode == BIBLE_GROUP_CODES[0]:
+                    if appWin.BCVUpdateType=='ReferenceMode' and appWin.groupCode==BIBLE_GROUP_CODES[1]:
+                        appWin.updateShownBCV( mapReferenceVerseKey( newVerseKey ) )
+                        #print( '  Reference', appWin.groupCode, mapReferenceVerseKey( newVerseKey ), appWin.moduleID )
+                    elif appWin.BCVUpdateType=='ParallelMode' and appWin.groupCode!=BIBLE_GROUP_CODES[0]:
+                        appWin.updateShownBCV( mapParallelVerseKey( appWin.groupCode, newVerseKey ) )
+                        #print( '  Parallel', appWin.groupCode, mapParallelVerseKey( appWin.groupCode, newVerseKey ), appWin.moduleID )
     # end of ChildWindows.updateThisBibleGroup
 
 

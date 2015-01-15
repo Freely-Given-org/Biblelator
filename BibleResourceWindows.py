@@ -5,7 +5,7 @@
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-10'
+LastModifiedDate = '2015-01-10' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.27'
+ProgVersion = '0.28'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -90,6 +90,7 @@ class BibleResourceWindow( ChildWindow ):
         self._viewRadioVar, self._groupRadioVar = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = DEFAULT
+        self.BCVUpdateType = DEFAULT
         self.currentVerseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
 
         if self.contextViewMode == DEFAULT:
@@ -247,11 +248,12 @@ class BibleResourceWindow( ChildWindow ):
             else: halt # unknown Bible view mode
         else: halt # window type view mode not handled yet
         if self.contextViewMode != previousContextViewMode: # we need to update our view
-            if   self.groupCode == 'A': windowVerseKey = self.parentApp.GroupA_VerseKey
-            elif self.groupCode == 'B': windowVerseKey = self.parentApp.GroupB_VerseKey
-            elif self.groupCode == 'C': windowVerseKey = self.parentApp.GroupC_VerseKey
-            elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
-            self.updateShownBCV( windowVerseKey )
+            #if   self.groupCode == 'A': windowVerseKey = self.parentApp.GroupA_VerseKey
+            #elif self.groupCode == 'B': windowVerseKey = self.parentApp.GroupB_VerseKey
+            #elif self.groupCode == 'C': windowVerseKey = self.parentApp.GroupC_VerseKey
+            #elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
+            #self.updateShownBCV( windowVerseKey )
+            self.updateShownBCV( self.currentVerseKey )
     # end of BibleResourceWindow.changeBibleContextView
 
 
@@ -639,11 +641,20 @@ class BibleResourceWindow( ChildWindow ):
     def setCurrentVerseKey( self, newVerseKey ):
         """
         Called to set the current verse key.
+
+        Note that newVerseKey can be None.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( t("setCurrentVerseKey( {} )").format( newVerseKey ) )
             self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
-            assert( isinstance( newVerseKey, SimpleVerseKey ) )
+
+        if newVerseKey is None:
+            self.currentVerseKey = None
+            self.maxChapters = self.maxVerses = 0
+            return
+
+        # If we get this far, it must be a real verse key
+        assert( isinstance( newVerseKey, SimpleVerseKey ) )
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()

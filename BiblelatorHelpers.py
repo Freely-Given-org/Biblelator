@@ -5,7 +5,7 @@
 #
 # Various non-GUI helper functions for Biblelator Bible display/editing
 #
-# Copyright (C) 2014 Robert Hunt
+# Copyright (C) 2014-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,30 +28,26 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-23"
+LastModifiedDate = '2015-01-10' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.28'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
 import sys
 
-#import tkinter as tk
-#import tkinter.messagebox as tkmb
-#from tkinter.ttk import Label, Combobox, Entry
-
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME
-#from ModalDialog import ModalDialog
+from BiblelatorGlobals import APP_NAME, BIBLE_GROUP_CODES
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import BibleOrgSysGlobals
+from VerseReferences import SimpleVerseKey
 
 
 
@@ -87,6 +83,46 @@ def createEmptyUSFMBook( BBB, getNumChapters, getNumVerses ):
             bookText += '\\v {} \n'.format( V )
     return bookText
 # end of BiblelatorHelpers.createEmptyUSFMBook
+
+
+
+def mapReferenceVerseKey( mainVerseKey ):
+    """
+    Returns the verse key for OT references in the NT (and vv), etc.
+
+    Returns None if we don't have a mapping.
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( t("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+    referenceVerseKeyDict = {
+        SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
+        SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
+        }
+    if mainVerseKey in referenceVerseKeyDict:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
+        return referenceVerseKeyDict[mainVerseKey]
+# end of BiblelatorHelpers.mapReferenceVerseKey
+
+
+def mapParallelVerseKey( forGroupCode, mainVerseKey ):
+    """
+    Returns the verse key for synoptic references in the NT, etc.
+
+    Returns None if we don't have a mapping.
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( t("mapParallelVerseKey( {}, {} )").format( forGroupCode, mainVerseKey.getShortText() ) )
+    groupIndex = BIBLE_GROUP_CODES.index( forGroupCode ) - 1
+    parallelVerseKeyDict = {
+        SimpleVerseKey('MAT','3','13'): (SimpleVerseKey('MRK','1','9'), SimpleVerseKey('LUK','3','21'), SimpleVerseKey('JHN','1','31') )
+        }
+    if mainVerseKey in parallelVerseKeyDict:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( '  returning {}'.format( parallelVerseKeyDict[mainVerseKey][groupIndex].getShortText() ) )
+        return parallelVerseKeyDict[mainVerseKey][groupIndex]
+# end of BiblelatorHelpers.mapParallelVerseKey
+
 
 
 def demo():
