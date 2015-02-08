@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-01-10' # by RJH
+LastModifiedDate = '2015-02-04' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.28'
@@ -47,7 +47,8 @@ from BiblelatorGlobals import APP_NAME, BIBLE_GROUP_CODES
 sourceFolder = "../BibleOrgSys/"
 sys.path.append( sourceFolder )
 import BibleOrgSysGlobals
-from VerseReferences import SimpleVerseKey
+from VerseReferences import SimpleVerseKey, FlexibleVersesKey
+from BibleReferencesLinks import BibleReferencesLinks
 
 
 
@@ -122,6 +123,26 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
             print( '  returning {}'.format( parallelVerseKeyDict[mainVerseKey][groupIndex].getShortText() ) )
         return parallelVerseKeyDict[mainVerseKey][groupIndex]
 # end of BiblelatorHelpers.mapParallelVerseKey
+
+
+
+def mapReferencesVerseKey( mainVerseKey ):
+    """
+    Returns the FlexibleVerseKeys for references related to the given verse key.
+
+    Returns None if we don't have a mapping.
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( t("mapReferencesVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+    referenceVerseKeyDict = {
+        SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
+        SimpleVerseKey('MAT','3','3'): FlexibleVersesKey( 'ISA_40:3,7,14-15' ),
+        }
+    if mainVerseKey in referenceVerseKeyDict:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
+        return referenceVerseKeyDict[mainVerseKey]
+# end of BiblelatorHelpers.mapReferencesVerseKey
 
 
 

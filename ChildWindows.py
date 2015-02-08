@@ -29,14 +29,14 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-01-10' # by RJH
+LastModifiedDate = '2015-02-08' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.28'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys, os.path, logging, re
@@ -50,7 +50,7 @@ from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, parse
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
                              INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE
 from BiblelatorDialogs import errorBeep, showerror, showinfo
-from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey
+from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
 from TextBoxes import HTMLText
 
 # BibleOrgSys imports
@@ -493,6 +493,9 @@ class ChildWindows( list ):
                     elif appWin.BCVUpdateType=='ParallelMode' and appWin.groupCode!=BIBLE_GROUP_CODES[0]:
                         appWin.updateShownBCV( mapParallelVerseKey( appWin.groupCode, newVerseKey ) )
                         #print( '  Parallel', appWin.groupCode, mapParallelVerseKey( appWin.groupCode, newVerseKey ), appWin.moduleID )
+                    #elif appWin.BCVUpdateType=='ReferencesMode':
+                        #appWin.updateShownReferences( mapReferencesVerseKey( newVerseKey ) )
+                        ##print( '  Parallel', appWin.groupCode, mapParallelVerseKey( appWin.groupCode, newVerseKey ), appWin.moduleID )
     # end of ChildWindows.updateThisBibleGroup
 
 

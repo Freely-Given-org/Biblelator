@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-01-10' # by RJH
+LastModifiedDate = '2015-02-08' # by RJH
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
 ProgVersion = '0.28'
@@ -53,7 +53,8 @@ from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRang
 from BiblelatorHelpers import createEmptyUSFMBook, mapReferenceVerseKey, mapParallelVerseKey
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow, HTMLWindow
-from BibleResourceWindows import BibleResourceWindow
+from BibleResourceWindows import BibleBox, BibleResourceWindow
+from BibleReferenceCollection import BibleReferenceCollectionWindow
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -75,6 +76,7 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
+
 
 
 class TextEditWindow( ChildWindow ):
@@ -628,7 +630,7 @@ class TextEditWindow( ChildWindow ):
 
 
 
-class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
+class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     """
     self.genericWindowType will be BibleEditor
     self.winType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
@@ -644,6 +646,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         self.bookTextModified = False
         BibleResourceWindow.__init__( self, parentApp, 'USFMBibleEditWindow', None )
         TextEditWindow.__init__( self, parentApp )
+        BibleBox.__init__( self, parentApp )
 
         # Make our own textBox
         self.textBox.destroy()
@@ -805,6 +808,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         windowMenu.add_separator()
         windowMenu.add_command( label='Start reference mode (A->B)', underline=6, command=self.startReferenceMode )
         windowMenu.add_command( label='Start parallel mode (A->B,C,D)', underline=6, command=self.startParallelMode )
+        windowMenu.add_separator()
+        windowMenu.add_command( label='Start references mode (A->)', underline=0, command=self.startReferencesMode )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
@@ -975,7 +980,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
     # end of USFMEditWindow.getBookDataFromDisk
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseDataString, currentVerse=False ):
+    def EditWindowsXXXdisplayAppendVerse( self, firstFlag, verseKey, verseDataString, currentVerse=False ):
         """
         Add the requested verse to the end of self.textBox.
 
@@ -1631,6 +1636,35 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openBiblelatorParallelBibleEditWindows" )
         self.parentApp.setReadyStatus()
     # end of USFMEditWindow.startParallelMode
+
+
+    def startReferencesMode( self ):
+        """
+        Called from the GUI to duplicate this window into Group B,
+            and then link A->B to show OT references from the NT (etc.)
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( t("USFMEditWindow.startReferencesMode()") )
+        if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
+            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
+            #print( "yndResult", repr(ynd.result) )
+            if ynd.result != True: return
+            self.groupCode = BIBLE_GROUP_CODES[0]
+        assert( self.groupCode == BIBLE_GROUP_CODES[0] ) # In first/default BCV group
+        BRCW = BibleReferenceCollectionWindow( self.parentApp, self.internalBible )
+        #if windowGeometry: uEW.geometry( windowGeometry )
+        BRCW.winType = self.winType # override the default
+        BRCW.moduleID = self.moduleID
+        BRCW.setFolderPath( self.folderPath )
+        BRCW.settings = self.settings
+        #BRCW.settings.loadUSFMMetadataInto( uB )
+        BRCW.groupCode = BIBLE_GROUP_CODES[0] # Stays the same as the source window!
+        #BRCW.BCVUpdateType = 'ReferencesMode' # Leave as default
+        BRCW.updateShownBCV( self.currentVerseKey )
+        self.parentApp.childWindows.append( BRCW )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openBiblelatorReferencesBibleWindow" )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.startReferencesMode
 
 
     def xxcloseEditor( self ):

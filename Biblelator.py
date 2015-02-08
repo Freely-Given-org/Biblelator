@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-01-10' # by RJH
+LastModifiedDate = '2015-02-04' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.28'
@@ -57,10 +57,12 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME
         findHomeFolderPath, parseWindowGeometry, parseWindowSize, assembleWindowGeometryFromList, assembleWindowSize, centreWindow
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
         SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBoxDialog, GetNewProjectNameDialog, GetNewCollectionNameDialog
+from BiblelatorHelpers import mapReferencesVerseKey
 from Settings import ApplicationSettings, ProjectSettings
 from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from BibleResourceCollection import BibleResourceCollectionWindow
+from BibleReferenceCollection import BibleReferenceCollectionWindow
 from LexiconResourceWindows import BibleLexiconResourceWindow
 from EditWindows import TextEditWindow, USFMEditWindow, ESFMEditWindow
 
@@ -196,7 +198,7 @@ class Application( Frame ):
                     if 'Bible' in appWin.genericWindowType:
                         if appWin.groupCode == groupCode:
                             appWin.updateShownBCV( groupVerseKey )
-        self.updateBCVGroup( self.currentVerseKeyGroup ) # Does a acceptNewBnCV
+        self.updateBCVGroup( self.currentVerseKeyGroup ) # Does an acceptNewBnCV
 
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.setReadyStatus()
@@ -739,6 +741,11 @@ class Application( Frame ):
                                         if BibleOrgSysGlobals.debugFlag: halt
                             if boxType and boxSource: rw.openBox( boxType, boxSource )
 
+                elif winType == 'BibleReferenceCollectionWindow':
+                    xyz = "JustTesting!"
+                    rw = self.openBibleReferenceCollectionWindow( xyz, windowGeometry )
+                    #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
+
                 elif winType == 'PlainTextEditWindow':
                     rw = self.doOpenNewTextEditWindow()
                     #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
@@ -1127,6 +1134,48 @@ class Application( Frame ):
         self.setReadyStatus()
         return BRC
     # end of Application.openBibleResourceCollectionWindow
+
+
+    def doOpenBibleReferenceCollection( self ):
+        """
+        Open a collection of Bible References (called from a menu/GUI action).
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("doOpenBibleReferenceCollection()") )
+            self.setDebugText( "doOpenBibleReferenceCollection..." )
+        self.setStatus( "doOpenBibleReferenceCollection..." )
+        existingNames = []
+        for cw in self.childWindows:
+            existingNames.append( cw.moduleID.upper() )
+        gncn = GetNewCollectionNameDialog( self, existingNames, title=_("New Collection Name") )
+        if gncn.result: self.openBibleReferenceCollectionWindow( gncn.result )
+    # end of Application.doOpenBibleReferenceCollection
+
+    def openBibleReferenceCollectionWindow( self, collectionName, windowGeometry=None ):
+        """
+        Create the actual requested local/internal Bible Reference collection window.
+
+        Returns the new BibleCollectionWindow object.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( t("openBibleReferenceCollectionWindow( {} )").format( repr(collectionName) ) )
+            self.setDebugText( "openBibleReferenceCollectionWindow..." )
+        BRC = BibleReferenceCollectionWindow( self, collectionName )
+        if windowGeometry: BRC.geometry( windowGeometry )
+        #if BRC.internalBible is None:
+        #    logging.critical( t("Application.openBibleReferenceCollection: Unable to open Reference {}").format( repr(modulePath) ) )
+        #    BRC.closeChildWindow()
+        #    showerror( self, APP_NAME, _("Sorry, unable to open internal Bible Reference") )
+        #    if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleReferenceWindow" )
+        #    self.setReadyStatus()
+        #    return None
+        #else:
+        BRC.updateShownReferences( mapReferencesVerseKey( self.getVerseKey( BIBLE_GROUP_CODES[0] ) ) )
+        self.childWindows.append( BRC )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBibleReferenceCollection" )
+        self.setReadyStatus()
+        return BRC
+    # end of Application.openBibleReferenceCollectionWindow
 
 
     def doOpenNewTextEditWindow( self ):

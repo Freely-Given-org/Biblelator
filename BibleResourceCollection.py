@@ -23,13 +23,16 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Windows and frames to allow display and manipulation of
-    (non-editable) Bible resource windows.
+Boxes, Frames, and Windows to allow display and manipulation of
+    (non-editable) Bible resource collection windows.
+
+A Bible resource collection is a collection of different Bible resources
+    all displaying the same reference.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-01-06'
+LastModifiedDate = '2015-02-08' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.28'
@@ -51,8 +54,7 @@ from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
 from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog #, showwarning, showinfo, errorBeep
-from ChildWindows import ChildBox
-from BibleResourceWindows import BibleResourceWindow
+from BibleResourceWindows import BibleBox, BibleResourceWindow
 
 # BibleOrgSys imports
 sourceFolder = "../BibleOrgSys/"
@@ -85,7 +87,7 @@ def t( messageString ):
 
 
 
-class BibleResourceBox( Frame, ChildBox ):
+class BibleResourceBox( Frame, BibleBox ):
     """
     The superclass must provide a getContextVerseData function.
     """
@@ -94,7 +96,7 @@ class BibleResourceBox( Frame, ChildBox ):
         self.parentWindow, self.boxType, self.moduleID = parentWindow, boxType, moduleID
         self.parentApp = self.parentWindow.parentApp
         Frame.__init__( self, parentWindow )
-        ChildBox.__init__( self, self.parentApp )
+        BibleBox.__init__( self, self.parentApp )
 
         # Set some dummy values required soon
         self._viewRadioVar, self._groupRadioVar = tk.IntVar(), tk.StringVar()
@@ -215,7 +217,7 @@ class BibleResourceBox( Frame, ChildBox ):
     # end of BibleResourceBox.getCachedVerseData
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
+    def BibleResourceBoxXXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
         """
         Add the requested verse to the end of self.textBox.
 
