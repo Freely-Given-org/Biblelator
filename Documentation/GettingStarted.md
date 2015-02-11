@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2015-01-07 RJH
+Last updated: 2015-02-10 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -71,19 +71,27 @@ For an overview of the program design philosophy, see Development.md.
         new window.
 
 
-6. Lexicon Windows
+6. Reference Collection Windows
+
+    Reference collection windows display read-only cross-references all in the same version.
+    They display individual verses, groups of verses, or ranges of verses.
+    The Window menu in an edit window is used to launch new reference collection windows,
+        and the references will automatically show in that same version.
+
+
+7. Lexicon Windows
 
     There is a Bible lexicon window, but it's not yet automatically linked to Bible resources.
     At this stage, you can use the text box to the right of the verse number in the main
     window in order to enter Hebrew or Greek Strong's codes such as H123 or G1026.
 
 
-7. Project Windows
+8. Project Windows
 
     Projects are Bibles in the process of being translated, so they have a full edit window.
 
 
-8. Bible Groups
+9. Bible Groups
 
     Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All
     new windows are assigned to group A by default but this can be easily changed. Each

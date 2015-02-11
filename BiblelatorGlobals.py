@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 # BiblelatorGlobals.py
-#   Last modified: 2014-11-20 (also update ProgVersion below)
 #
 # Global variables for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +28,10 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-08'
+LastModifiedDate = '2015-02-10' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.27'
+ProgVersion = '0.28'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -80,6 +79,7 @@ MAX_WINDOWS = 20
 INITIAL_MAIN_SIZE, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '600x360', '550x150', '700x500'
 INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE = '600x360', '350x150', '800x600'
 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE = '600x360', '350x150', '800x1000'
+INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE = '600x400', '350x150', '800x1000'
 INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE = '800x600', '550x200', '1200x800'
 MINIMUM_HELP_SIZE, MAXIMUM_HELP_SIZE = '350x150', '500x400'
 MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE = '350x150', '500x400'

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-08' # by RJH
+LastModifiedDate = '2015-02-09' # by RJH
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
 ProgVersion = '0.28'
@@ -647,6 +647,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         BibleResourceWindow.__init__( self, parentApp, 'USFMBibleEditWindow', None )
         TextEditWindow.__init__( self, parentApp )
         BibleBox.__init__( self, parentApp )
+        self.viewMode = 'Unformatted'
 
         # Make our own textBox
         self.textBox.destroy()

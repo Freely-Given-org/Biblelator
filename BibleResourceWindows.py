@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-08' # by RJH
+LastModifiedDate = '2015-02-09' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.28'
@@ -83,17 +83,17 @@ class BibleBox( ChildBox ):
     """
     A set of functions that work for any Bible frame or window that has a member: self.textBox
     """
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False ):
         """
         Add the requested verse to the end of self.textBox.
 
         It connects the USFM markers as stylenames while it's doing it
             and adds the CV marks at the same time for navigation.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("BibleBox.displayAppendVerse( {}, {}, ..., {} )").format( firstFlag, verseKey, currentVerse ) )
-            #try: print( t("BibleBox.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerse ) )
-            #except UnicodeEncodeError: print( t("BibleBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( t("BibleBox.displayAppendVerse( {}, {}, ..., {} )").format( firstFlag, verseKey, currentVerse ) )
+            ##try: print( t("BibleBox.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerse ) )
+            ##except UnicodeEncodeError: print( t("BibleBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
         BBB, C, V = verseKey.getBCV()
         markName = 'C{}V{}'.format( C, V )
@@ -107,6 +107,9 @@ class BibleBox( ChildBox ):
         elif isinstance( verseContextData, tuple ):
             assert( len(verseContextData) == 2 )
             verseDataList, context = verseContextData
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                #print( "   VerseDataList: {}".format( verseDataList ) )
+                #print( "   Context: {}".format( context ) )
         elif isinstance( verseContextData, str ):
             verseDataList, context = verseContextData.split( '\n' ), None
         elif BibleOrgSysGlobals.debugFlag: halt
@@ -147,14 +150,14 @@ class BibleBox( ChildBox ):
                     else:
                         marker, cleanText = None, entry
                 elif BibleOrgSysGlobals.debugFlag: halt
-                #print( "  ", haveTextFlag, marker, repr(cleanText) )
+                #print( "  displayAppendVerse", haveTextFlag, marker, repr(cleanText) )
 
-                if self.viewMode == DEFAULT:
+                if self.viewMode == 'Unformatted':
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
                     elif marker in ('chapters',): pass # Ignore added markers for now
                     else: self.textBox.insert( tk.END, entry, marker )
 
-                elif self.viewMode == 'Formatted':
+                elif self.viewMode == DEFAULT:
                     if marker.startswith( '¬' ):
                         if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
                     else: endMarkers = [] # Reset when we have normal markers
@@ -221,7 +224,8 @@ class BibleBox( ChildBox ):
                 else:
                     logging.critical( t("BibleBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
                     if BibleOrgSysGlobals.debugFlag: halt
-            if self.contextViewMode == 'ByVerse' and endMarkers:
+
+            if lastFlag and self.contextViewMode == 'ByVerse' and endMarkers:
                 #print( "endMarkers", endMarkers )
                 self.textBox.insert( tk.END, " End context:", 'contextHeader' )
                 contextString, firstMarker = "", True

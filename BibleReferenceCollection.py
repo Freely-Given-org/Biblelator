@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-08' # by RJH
+LastModifiedDate = '2015-02-11' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.28'
@@ -51,9 +51,9 @@ from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
-                INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
+                INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
                 parseWindowSize
-from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog #, showwarning, showinfo, errorBeep
+from BiblelatorDialogs import showerror #, showwarning, showinfo, errorBeep
 from BiblelatorHelpers import mapReferencesVerseKey
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 
@@ -130,7 +130,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        self.textBox = tk.Text( self, height=1, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
+        self.textBox = tk.Text( self, height=1, yscrollcommand=self.vScrollbar.set )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
@@ -223,6 +223,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         if verseKeyHash in self.verseCache:
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleReferenceBox cache") )
             self.verseCache.move_to_end( verseKeyHash )
+            #print( "   returning", self.verseCache[verseKeyHash][0] )
             return self.verseCache[verseKeyHash]
         verseContextData = self.getContextVerseData( verseKey )
         self.verseCache[verseKeyHash] = verseContextData
@@ -325,46 +326,58 @@ class BibleReferenceBox( Frame, BibleBox ):
             assert( isinstance( newReferenceObject, SimpleVerseKey ) or isinstance( newReferenceObject, SimpleVersesKey ) or isinstance( newReferenceObject, VerseRangeKey ))
 
         for j, referenceVerse in enumerate( newReferenceObject ):
-            print( "  refVerse", j, referenceVerse )
+            #print( "  refVerse", j, referenceVerse )
             assert( isinstance( referenceVerse, SimpleVerseKey ) )
 
             refBBB, refC, refV, refS = referenceVerse.getBCVS()
             BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
             newVerseKey = SimpleVerseKey( BBB, C, V, S )
+            #print( "       newVK", newVerseKey )
 
-            self.displayAppendVerse( j==0, newVerseKey, self.getCachedVerseData( newVerseKey ) )
+            self.displayAppendVerse( j==0, newVerseKey, self.getCachedVerseData( newVerseKey ), lastFlag=False )
 
-        return
+        #self.setCurrentVerseKey( newVerseKey )
+        #self.clearText() # Leaves the text box enabled
+        #startingFlag = True
 
-        self.setCurrentVerseKey( newVerseKey )
-        self.clearText() # Leaves the text box enabled
-        startingFlag = True
+        ## Safety-check in case they edited the settings file
+        #if 'DBP' in self.boxType and self.contextViewMode in ('ByBook','ByChapter',):
+            #print( t("updateShownReferences: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
+            #self._viewRadioVar.set( 3 ) # ByVerse
+            #self.changeBibleContextView()
 
-        # Safety-check in case they edited the settings file
-        if 'DBP' in self.boxType and self.contextViewMode in ('ByBook','ByChapter',):
-            print( t("updateShownReferences: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
-            self._viewRadioVar.set( 3 ) # ByVerse
-            self.changeBibleContextView()
+        #if self.contextViewMode == 'BeforeAndAfter':
+            #bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
+            #if bibleData:
+                #verseData, previousVerses, nextVerses = bibleData
+                #for verseKey,previousVerseData in previousVerses:
+                    #self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
+                    #startingFlag = False
+                #self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
+                #for verseKey,nextVerseData in nextVerses:
+                    #self.displayAppendVerse( False, verseKey, nextVerseData )
 
-        if self.contextViewMode == 'BeforeAndAfter':
-            bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
-            if bibleData:
-                verseData, previousVerses, nextVerses = bibleData
-                for verseKey,previousVerseData in previousVerses:
-                    self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
-                    startingFlag = False
-                self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
-                for verseKey,nextVerseData in nextVerses:
-                    self.displayAppendVerse( False, verseKey, nextVerseData )
+        #elif self.contextViewMode == 'ByVerse':
+            #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
 
-        elif self.contextViewMode == 'ByVerse':
-            self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+        #elif self.contextViewMode == 'BySection':
+            #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+            #BBB, C, V = newVerseKey.getBCV()
+            #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+            #print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            ##for thisC in range( 0, self.getNumChapters( BBB ) ):
+                ##try: numVerses = self.getNumVerses( BBB, thisC )
+                ##except KeyError: numVerses = 0
+                ##for thisV in range( 0, numVerses ):
+                    ##thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                    ##thisVerseData = self.getCachedVerseData( thisVerseKey )
+                    ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                            ##currentVerse=thisC==intC and thisV==intV )
+                    ##startingFlag = False
 
-        elif self.contextViewMode == 'BySection':
-            self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-            BBB, C, V = newVerseKey.getBCV()
-            intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        #elif self.contextViewMode == 'ByBook':
+            #BBB, C, V = newVerseKey.getBCV()
+            #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
             #for thisC in range( 0, self.getNumChapters( BBB ) ):
                 #try: numVerses = self.getNumVerses( BBB, thisC )
                 #except KeyError: numVerses = 0
@@ -375,41 +388,22 @@ class BibleReferenceBox( Frame, BibleBox ):
                                             #currentVerse=thisC==intC and thisV==intV )
                     #startingFlag = False
 
-        elif self.contextViewMode == 'ByBook':
-            BBB, C, V = newVerseKey.getBCV()
-            intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            for thisC in range( 0, self.getNumChapters( BBB ) ):
-                try: numVerses = self.getNumVerses( BBB, thisC )
-                except KeyError: numVerses = 0
-                for thisV in range( 0, numVerses ):
-                    thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                    thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            currentVerse=thisC==intC and thisV==intV )
-                    startingFlag = False
+        #elif self.contextViewMode == 'ByChapter':
+            #BBB, C, V = newVerseKey.getBCV()
+            #intV = newVerseKey.getVerseNumberInt()
+            #try: numVerses = self.getNumVerses( BBB, C )
+            #except KeyError: numVerses = 0
+            #for thisV in range( 0, numVerses ):
+                #thisVerseKey = SimpleVerseKey( BBB, C, thisV )
+                #thisVerseData = self.getCachedVerseData( thisVerseKey )
+                #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
+                #startingFlag = False
 
-        elif self.contextViewMode == 'ByChapter':
-            BBB, C, V = newVerseKey.getBCV()
-            intV = newVerseKey.getVerseNumberInt()
-            try: numVerses = self.getNumVerses( BBB, C )
-            except KeyError: numVerses = 0
-            for thisV in range( 0, numVerses ):
-                thisVerseKey = SimpleVerseKey( BBB, C, thisV )
-                thisVerseData = self.getCachedVerseData( thisVerseKey )
-                self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
-                startingFlag = False
-
-        else:
-            logging.critical( t("BibleReferenceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
-            if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
+        #else:
+            #logging.critical( t("BibleReferenceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+            #if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
         self.textBox['state'] = tk.DISABLED # Don't allow editing
-
-        # Make sure we can see what we're supposed to be looking at
-        desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
-        try: self.textBox.see( desiredMark )
-        except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
-        self.lastCVMark = desiredMark
     # end of BibleReferenceBox.updateShownReferences
 
 
@@ -419,24 +413,24 @@ class BibleReferenceBox( Frame, BibleBox ):
 
         Can be overridden.
         """
-        self.closeResourceBox()
+        self.closeReferenceBox()
     # end of BibleReferenceBox.doClose
 
-    def closeResourceBox( self ):
+    def closeReferenceBox( self ):
         """
         Called to finally and irreversibly remove this box from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleReferenceBox.closeResourceBox()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleReferenceBox.closeReferenceBox()") )
         if self in self.parentWindow.referenceBoxes:
             self.parentWindow.referenceBoxes.remove( self )
             self.destroy()
         else: # we might not have finished making our box yet
             if BibleOrgSysGlobals.debugFlag:
-                print( t("BibleReferenceBox.closeResourceBox() for {} wasn't in list").format( self.winType ) )
+                print( t("BibleReferenceBox.closeReferenceBox() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource box" )
-    # end of BibleReferenceBox.closeResourceBox
+    # end of BibleReferenceBox.closeReferenceBox
 # end of BibleReferenceBox class
 
 
@@ -510,8 +504,8 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.winType = 'InternalBibleReferenceBox'
 
-        self.geometry( INITIAL_RESOURCE_COLLECTION_SIZE )
-        self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE
+        self.geometry( INITIAL_REFERENCE_COLLECTION_SIZE )
+        self.minimumSize, self.maximumSize = MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
         self.maxsize( *parseWindowSize( self.maximumSize ) )
 
@@ -551,7 +545,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
         #fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Rename', underline=0, command=self.doRename )
+        #fileMenu.add_command( label='Rename', underline=0, command=self.doRename )
         #fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
 
@@ -641,21 +635,6 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
     # end if BibleReferenceCollectionWindow.refreshTitle
 
 
-    def doRename( self ):
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("doRename()") )
-            self.parentApp.setDebugText( "doRename..." )
-        existingNames = []
-        for cw in self.parentApp.childWindows:
-            existingNames.append( cw.moduleID.upper() )
-        rrc = RenameResourceCollectionDialog( self, self.moduleID, existingNames, title=_('Rename collection') )
-        if BibleOrgSysGlobals.debugFlag: print( "rrcResult", repr(rrc.result) )
-        if rrc.result:
-            self.moduleID = rrc.result
-            self.refreshTitle()
-    # end if BibleReferenceCollectionWindow.doRename
-
-
     def openDBPBibleReferenceBox( self, moduleAbbreviation, windowGeometry=None ):
         """
         Create the actual requested DBP Bible resource window.
@@ -728,7 +707,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleReferenceCollectionWindow.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
+            print( "BibleReferenceCollectionWindow.updateShownBCV( {} ) for".format( newReferenceVerseKey ), self.moduleID )
             assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
 
         refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
@@ -750,19 +729,18 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownReferences( {}) for".format( newReferencesVerseKeys ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newReferencesVerseKeys, FlexibleVersesKey ) )
+            assert( isinstance( newReferencesVerseKeys, FlexibleVersesKey ) or newReferencesVerseKeys is None )
 
         # Remove any previous resource boxes
         for referenceBox in self.referenceBoxes:
             referenceBox.destroy()
         self.referenceBoxes = BibleReferenceBoxes( self )
 
-        # Open new resource boxes
-        for verseKeyObject in newReferencesVerseKeys:
-            print( "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
-            referenceBox = BibleReferenceBox( self, self.internalBible, verseKeyObject )
-            #referenceBox.updateShownReferences( verseKeyObject )
-            self.referenceBoxes.append( referenceBox )
+        if newReferencesVerseKeys is not None: # open new resource boxes
+            for verseKeyObject in newReferencesVerseKeys:
+                #print( "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
+                referenceBox = BibleReferenceBox( self, self.internalBible, verseKeyObject )
+                self.referenceBoxes.append( referenceBox )
 
         self.currentVerseKeys = newReferencesVerseKeys # The FlexibleVersesKey object
         self.refreshTitle()
