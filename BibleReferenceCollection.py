@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-11' # by RJH
+LastModifiedDate = '2015-02-15' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.28'
@@ -90,10 +90,10 @@ def t( messageString ):
 class BibleReferenceBox( Frame, BibleBox ):
     """
     """
-    def __init__( self, parentWindow, internalBible, referenceObject ):
-        if BibleOrgSysGlobals.debugFlag: print( t("BibleReferenceBox.__init__( {}, {}, {} )").format( parentWindow, internalBible.name, referenceObject ) )
-        self.parentWindow, self.internalBible, self.referenceObject = parentWindow, internalBible, referenceObject
-        self.parentApp = self.parentWindow.parentApp
+    def __init__( self, parentWindow, parentApp, internalBible, referenceObject ):
+        if BibleOrgSysGlobals.debugFlag: print( t("BibleReferenceBox.__init__( {}, {}, {}, {} )").format( parentWindow, parentApp, internalBible.name, referenceObject ) )
+        self.parentWindow, self.parentApp, self.internalBible, self.referenceObject = parentWindow, parentApp, internalBible, referenceObject
+        #self.parentApp = self.parentWindow.parentApp
         Frame.__init__( self, parentWindow )
         BibleBox.__init__( self, self.parentApp )
 
@@ -130,9 +130,9 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        self.textBox = tk.Text( self, height=1, yscrollcommand=self.vScrollbar.set )
+        self.textBox = tk.Text( self, height=4, yscrollcommand=self.vScrollbar.set )
         self.textBox['wrap'] = 'word'
-        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.textBox.pack( expand=tk.YES, fill=tk.X ) # Full width
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
         self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
@@ -203,7 +203,7 @@ class BibleReferenceBox( Frame, BibleBox ):
     # end of BibleReferenceBox.getContextVerseData
 
 
-    def getSwordVerseKey( self, verseKey ):
+    def XXXgetSwordVerseKey( self, verseKey ):
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
             BBB, C, V = verseKey.getBCV()
             return self.parentApp.SwordInterface.makeKey( BBB, C, V )
@@ -234,7 +234,7 @@ class BibleReferenceBox( Frame, BibleBox ):
     # end of BibleReferenceBox.getCachedVerseData
 
 
-    def getBeforeAndAfterBibleData( self, newVerseKey ):
+    def XXXXgetBeforeAndAfterBibleData( self, newVerseKey ):
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
@@ -294,7 +294,7 @@ class BibleReferenceBox( Frame, BibleBox ):
     # end of BibleReferenceBox.getBeforeAndAfterBibleData
 
 
-    def setCurrentVerseKey( self, newVerseKey ):
+    def XXXsetCurrentVerseKey( self, newVerseKey ):
         """
         Called to set the current verse key.
         """
@@ -334,7 +334,8 @@ class BibleReferenceBox( Frame, BibleBox ):
             newVerseKey = SimpleVerseKey( BBB, C, V, S )
             #print( "       newVK", newVerseKey )
 
-            self.displayAppendVerse( j==0, newVerseKey, self.getCachedVerseData( newVerseKey ), lastFlag=False )
+            # Set firstFlag as False (rather than j==0) so don't get context displayed
+            self.displayAppendVerse( False, newVerseKey, self.getCachedVerseData( newVerseKey ), lastFlag=False )
 
         #self.setCurrentVerseKey( newVerseKey )
         #self.clearText() # Leaves the text box enabled
@@ -435,48 +436,48 @@ class BibleReferenceBox( Frame, BibleBox ):
 
 
 
-class InternalBibleReferenceBox( BibleReferenceBox ):
-    def __init__( self, parentWindow, modulePath ):
-        """
-        Given a folder, try to open an UnknownBible.
-        If successful, set self.internalBible to point to the loaded Bible.
-        """
-        if BibleOrgSysGlobals.debugFlag: print( "InternalBibleReferenceBox.__init__( {}, {} )".format( parentWindow, modulePath ) )
-        self.parentWindow, self.modulePath = parentWindow, modulePath
+#class InternalBibleReferenceBox( BibleReferenceBox ):
+    #def __init__( self, parentWindow, modulePath ):
+        #"""
+        #Given a folder, try to open an UnknownBible.
+        #If successful, set self.internalBible to point to the loaded Bible.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag: print( "InternalBibleReferenceBox.__init__( {}, {} )".format( parentWindow, modulePath ) )
+        #self.parentWindow, self.modulePath = parentWindow, modulePath
 
-        self.internalBible = None
-        BibleReferenceBox.__init__( self, self.parentWindow, 'InternalBibleReferenceBox', self.modulePath )
-        #self.boxType = 'InternalBibleReferenceBox'
+        #self.internalBible = None
+        #BibleReferenceBox.__init__( self, self.parentWindow, 'InternalBibleReferenceBox', self.modulePath )
+        ##self.boxType = 'InternalBibleReferenceBox'
 
-        try: self.UnknownBible = UnknownBible( self.modulePath )
-        except FileNotFoundError:
-            logging.error( t("InternalBibleReferenceBox.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
-            self.UnknownBible = None
-        if self.UnknownBible:
-            result = self.UnknownBible.search( autoLoadAlways=True )
-            if isinstance( result, str ):
-                print( "Unknown Bible returned: {}".format( repr(result) ) )
-                self.internalBible = None
-            else: self.internalBible = result
-        if self.internalBible is not None: # Define which functions we use by default
-            self.getNumVerses = self.internalBible.getNumVerses
-            self.getNumChapters = self.internalBible.getNumChapters
-    # end of InternalBibleReferenceBox.__init__
+        #try: self.UnknownBible = UnknownBible( self.modulePath )
+        #except FileNotFoundError:
+            #logging.error( t("InternalBibleReferenceBox.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
+            #self.UnknownBible = None
+        #if self.UnknownBible:
+            #result = self.UnknownBible.search( autoLoadAlways=True )
+            #if isinstance( result, str ):
+                #print( "Unknown Bible returned: {}".format( repr(result) ) )
+                #self.internalBible = None
+            #else: self.internalBible = result
+        #if self.internalBible is not None: # Define which functions we use by default
+            #self.getNumVerses = self.internalBible.getNumVerses
+            #self.getNumChapters = self.internalBible.getNumChapters
+    ## end of InternalBibleReferenceBox.__init__
 
 
-    def getContextVerseData( self, verseKey ):
-        """
-        Fetches and returns the internal Bible data for the given reference.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("InternalBibleReferenceBox.getContextVerseData( {} )").format( verseKey ) )
-        if self.internalBible is not None:
-            try: return self.internalBible.getContextVerseData( verseKey )
-            except KeyError:
-                logging.critical( t("InternalBibleReferenceBox.getContextVerseData for {} {} got a KeyError!") \
-                                                                .format( self.boxType, verseKey ) )
-    # end of InternalBibleReferenceBox.getContextVerseData
-# end of InternalBibleReferenceBox class
+    #def getContextVerseData( self, verseKey ):
+        #"""
+        #Fetches and returns the internal Bible data for the given reference.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( t("InternalBibleReferenceBox.getContextVerseData( {} )").format( verseKey ) )
+        #if self.internalBible is not None:
+            #try: return self.internalBible.getContextVerseData( verseKey )
+            #except KeyError:
+                #logging.critical( t("InternalBibleReferenceBox.getContextVerseData for {} {} got a KeyError!") \
+                                                                #.format( self.boxType, verseKey ) )
+    ## end of InternalBibleReferenceBox.getContextVerseData
+## end of InternalBibleReferenceBox class
 
 
 
@@ -513,10 +514,25 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.vScrollbar.destroy()
         self.textBox.destroy()
 
+        # Make a frame inside a canvas inside our window (in order to get a scrollbar)
+        self.canvas = tk.Canvas( self, borderwidth=0, background="#ffffff" )
+        self.frame = Frame( self.canvas ) #, background="#ffffff" )
+        self.vsb = Scrollbar( self, orient="vertical", command=self.canvas.yview )
+        self.canvas.configure( yscrollcommand=self.vsb.set )
+        self.vsb.pack( side="right", fill="y" )
+        self.canvas.pack( side=tk.LEFT, fill=tk.BOTH, expand=True )
+        self.canvas.create_window( (4,4), window=self.frame, anchor="nw", tags="self.frame" )
+        self.frame.bind( "<Configure>", self.OnFrameConfigure )
+
         #self.BCVUpdateType = 'ReferencesMode' # Leave as default
         self.folderPath = self.filename = self.filepath = None
         self.referenceBoxes = BibleReferenceBoxes( self )
     # end of BibleReferenceCollectionWindow.__init__
+
+
+    def OnFrameConfigure(self, event):
+        '''Reset the scroll region to encompass the inner frame'''
+        self.canvas.configure( scrollregion=self.canvas.bbox("all") )
 
 
     def setFolderPath( self, newFolderPath ):
@@ -635,72 +651,72 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
     # end if BibleReferenceCollectionWindow.refreshTitle
 
 
-    def openDBPBibleReferenceBox( self, moduleAbbreviation, windowGeometry=None ):
-        """
-        Create the actual requested DBP Bible resource window.
+    #def openDBPBibleReferenceBox( self, moduleAbbreviation, windowGeometry=None ):
+        #"""
+        #Create the actual requested DBP Bible resource window.
 
-        Returns the new DBPBibleReferenceBox object.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("openDBPBibleReferenceBox()") )
-            self.parentApp.setDebugText( "openDBPBibleReferenceBox..." )
-            assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
-        #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
-        dBRB = DBPBibleReferenceBox( self, moduleAbbreviation )
-        if windowGeometry: halt; dBRB.geometry( windowGeometry )
-        if dBRB.DBPModule is None:
-            logging.critical( t("Application.openDBPBibleReferenceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
-            dBRB.destroy()
-            showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleReferenceBox" )
-            self.parentApp.setReadyStatus()
-            return None
-        else:
-            dBRB.updateShownBCV( self.parentApp.getVerseKey( dBRB.groupCode ) )
-            self.referenceBoxes.append( dBRB )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openDBPBibleReferenceBox" )
-            self.parentApp.setReadyStatus()
-            return dBRB
-    # end of BibleReferenceCollectionWindow.openDBPBibleReferenceBox
-
-
-    def openInternalBibleReferenceBox( self, modulePath, windowGeometry=None ):
-        """
-        Create the actual requested local/internal Bible resource window.
-
-        Returns the new InternalBibleReferenceBox object.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( t("openInternalBibleReferenceBox()") )
-            self.parentApp.setDebugText( "openInternalBibleReferenceBox..." )
-        #tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
-        iBRB = InternalBibleReferenceBox( self, modulePath )
-        if windowGeometry: halt; iBRB.geometry( windowGeometry )
-        if iBRB.internalBible is None:
-            logging.critical( t("Application.openInternalBibleReferenceBox: Unable to open resource {}").format( repr(modulePath) ) )
-            iBRB.destroy()
-            showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleReferenceBox" )
-            self.parentApp.setReadyStatus()
-            return None
-        else:
-            iBRB.updateShownBCV( self.parentApp.getVerseKey( iBRB.groupCode ) )
-            self.referenceBoxes.append( iBRB )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openInternalBibleReferenceBox" )
-            self.parentApp.setReadyStatus()
-            return iBRB
-    # end of BibleReferenceCollectionWindow.openInternalBibleReferenceBox
+        #Returns the new DBPBibleReferenceBox object.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( t("openDBPBibleReferenceBox()") )
+            #self.parentApp.setDebugText( "openDBPBibleReferenceBox..." )
+            #assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
+        ##tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
+        #dBRB = DBPBibleReferenceBox( self, moduleAbbreviation )
+        #if windowGeometry: halt; dBRB.geometry( windowGeometry )
+        #if dBRB.DBPModule is None:
+            #logging.critical( t("Application.openDBPBibleReferenceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
+            #dBRB.destroy()
+            #showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
+            #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleReferenceBox" )
+            #self.parentApp.setReadyStatus()
+            #return None
+        #else:
+            #dBRB.updateShownBCV( self.parentApp.getVerseKey( dBRB.groupCode ) )
+            #self.referenceBoxes.append( dBRB )
+            #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openDBPBibleReferenceBox" )
+            #self.parentApp.setReadyStatus()
+            #return dBRB
+    ## end of BibleReferenceCollectionWindow.openDBPBibleReferenceBox
 
 
-    def openBox( self, boxType, boxSource ):
-        """
-        (Re)open a text box.
-        """
-        if boxType == 'DBP': self.openDBPBibleReferenceBox( boxSource )
-        elif boxType == 'Sword': self.openSwordBibleReferenceBox( boxSource )
-        elif boxType == 'Internal': self.openInternalBibleReferenceBox( boxSource )
-        elif BibleOrgSysGlobals.debugFlag: halt
-    # end of BibleReferenceCollectionWindow.openBox
+    #def openInternalBibleReferenceBox( self, modulePath, windowGeometry=None ):
+        #"""
+        #Create the actual requested local/internal Bible resource window.
+
+        #Returns the new InternalBibleReferenceBox object.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( t("openInternalBibleReferenceBox()") )
+            #self.parentApp.setDebugText( "openInternalBibleReferenceBox..." )
+        ##tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
+        #iBRB = InternalBibleReferenceBox( self, modulePath )
+        #if windowGeometry: halt; iBRB.geometry( windowGeometry )
+        #if iBRB.internalBible is None:
+            #logging.critical( t("Application.openInternalBibleReferenceBox: Unable to open resource {}").format( repr(modulePath) ) )
+            #iBRB.destroy()
+            #showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
+            #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleReferenceBox" )
+            #self.parentApp.setReadyStatus()
+            #return None
+        #else:
+            #iBRB.updateShownBCV( self.parentApp.getVerseKey( iBRB.groupCode ) )
+            #self.referenceBoxes.append( iBRB )
+            #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openInternalBibleReferenceBox" )
+            #self.parentApp.setReadyStatus()
+            #return iBRB
+    ## end of BibleReferenceCollectionWindow.openInternalBibleReferenceBox
+
+
+    #def openBox( self, boxType, boxSource ):
+        #"""
+        #(Re)open a text box.
+        #"""
+        #if boxType == 'DBP': self.openDBPBibleReferenceBox( boxSource )
+        #elif boxType == 'Sword': self.openSwordBibleReferenceBox( boxSource )
+        #elif boxType == 'Internal': self.openInternalBibleReferenceBox( boxSource )
+        #elif BibleOrgSysGlobals.debugFlag: halt
+    ## end of BibleReferenceCollectionWindow.openBox
 
 
     def updateShownBCV( self, newReferenceVerseKey ):
@@ -729,7 +745,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownReferences( {}) for".format( newReferencesVerseKeys ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newReferencesVerseKeys, FlexibleVersesKey ) or newReferencesVerseKeys is None )
+            assert( isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None )
 
         # Remove any previous resource boxes
         for referenceBox in self.referenceBoxes:
@@ -737,10 +753,13 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.referenceBoxes = BibleReferenceBoxes( self )
 
         if newReferencesVerseKeys is not None: # open new resource boxes
-            for verseKeyObject in newReferencesVerseKeys:
-                #print( "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
-                referenceBox = BibleReferenceBox( self, self.internalBible, verseKeyObject )
-                self.referenceBoxes.append( referenceBox )
+            assert( isinstance( newReferencesVerseKeys, list ) )
+            for newReferencesVerseKey in newReferencesVerseKeys:
+                assert( isinstance( newReferencesVerseKey, FlexibleVersesKey ) )
+                for verseKeyObject in newReferencesVerseKey:
+                    #print( "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
+                    referenceBox = BibleReferenceBox( self.frame, self.parentApp, self.internalBible, verseKeyObject )
+                    self.referenceBoxes.append( referenceBox )
 
         self.currentVerseKeys = newReferencesVerseKeys # The FlexibleVersesKey object
         self.refreshTitle()

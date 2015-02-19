@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-04' # by RJH
+LastModifiedDate = '2015-02-12' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.28'
@@ -126,22 +126,38 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
 
 
 
+loadedReferences = None
 def mapReferencesVerseKey( mainVerseKey ):
     """
-    Returns the FlexibleVerseKeys for references related to the given verse key.
+    Returns the list of FlexibleVerseKeys for references related to the given verse key.
 
     Returns None if we don't have a mapping.
     """
+    global loadedReferences
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( t("mapReferencesVerseKey( {} )").format( mainVerseKey.getShortText() ) )
-    referenceVerseKeyDict = {
-        SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
-        SimpleVerseKey('MAT','3','3'): FlexibleVersesKey( 'ISA_40:3,7,14-15' ),
-        }
-    if mainVerseKey in referenceVerseKeyDict:
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
-        return referenceVerseKeyDict[mainVerseKey]
+    if loadedReferences is None:
+        loadedReferences = BibleReferencesLinks()
+        loadedReferences.loadData()
+    result = loadedReferences.getRelatedPassagesList( mainVerseKey )
+    # Returns a list containing 2-tuples:
+    #    0: Link type ('QuotedOTReference','AlludedOTReference','PossibleOTReference')
+    #    1: Link FlexibleVersesKey object
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( "  mapReferencesVerseKey got result:", result )
+    resultList = []
+    for linkType, link in result:
+        resultList.append( link )
+    return resultList
+    # old sample code
+        #referenceVerseKeyDict = {
+            #SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
+            #SimpleVerseKey('MAT','3','3'): FlexibleVersesKey( 'ISA_40:3,7,14-15' ),
+            #}
+        #if mainVerseKey in referenceVerseKeyDict:
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                #print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
+            #return referenceVerseKeyDict[mainVerseKey]
 # end of BiblelatorHelpers.mapReferencesVerseKey
 
 
