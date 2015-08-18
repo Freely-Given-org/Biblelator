@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 # Settings.py
-#   Last modified: 2014-11-17 (also update ProgVersion below)
 #
 # Handle settings for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -27,16 +26,19 @@
 Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
+from gettext import gettext as _
+
+LastModifiedDate = '2015-08-18' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = "0.25"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
+ProgVersion = '0.25'
+ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
 import sys, os.path, configparser, logging
-from gettext import gettext as _
 
 # Biblelator imports
 

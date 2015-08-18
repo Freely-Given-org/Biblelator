@@ -31,12 +31,12 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-04' # by RJH
+LastModifiedDate = '2015-08-18' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.28'
-SettingsVersion = '0.28' # Only need to change this if the settings format has changed
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgVersion = '0.29'
+SettingsVersion = '0.29' # Only need to change this if the settings format has changed
+ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
@@ -200,6 +200,10 @@ class Application( Frame ):
                             appWin.updateShownBCV( groupVerseKey )
         self.updateBCVGroup( self.currentVerseKeyGroup ) # Does an acceptNewBnCV
 
+        # See if there's any developer messages
+        if self.internetAccessEnabled and self.checkForMessagesEnabled:
+            self.doCheckForDeveloperMessages()
+
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.setReadyStatus()
     # end of Application.__init__
@@ -277,7 +281,7 @@ class Application( Frame ):
         self.menubar.add_cascade( menu=resourcesMenu, label='Resources', underline=0 )
         submenuBibleResourceType = tk.Menu( resourcesMenu, tearoff=False )
         resourcesMenu.add_cascade( label='Open Bible/commentary', underline=5, menu=submenuBibleResourceType )
-        submenuBibleResourceType.add_command( label='Online (DBP)...', underline=0, command=self.doOpenDBPBibleResource )
+        submenuBibleResourceType.add_command( label='Online (DBP)...', underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doOpenDBPBibleResource )
         submenuBibleResourceType.add_command( label='Sword module...', underline=0, command=self.doOpenSwordResource )
         submenuBibleResourceType.add_command( label='Other (local)...', underline=1, command=self.doOpenInternalBibleResource )
         submenuLexiconResourceType = tk.Menu( resourcesMenu, tearoff=False )
@@ -326,11 +330,15 @@ class Application( Frame ):
             debugMenu.add_separator()
             debugMenu.add_command( label='View log...', underline=0, command=self.doViewLog )
             debugMenu.add_separator()
+            debugMenu.add_command( label='Submit bug...', underline=0, command=self.doSubmitBug )
+            debugMenu.add_separator()
             debugMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
         helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.keyBindingDict['Help'][0] )
+        helpMenu.add_separator()
+        helpMenu.add_command( label='Submit bug...', underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doSubmitBug )
         helpMenu.add_separator()
         helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.keyBindingDict['About'][0] )
     # end of Application.createMenuBar
@@ -654,6 +662,36 @@ class Application( Frame ):
         try: self.doChangeTheme( self.settings.data[ProgName]['themeName'] )
         except KeyError: logging.warning( "Settings.KeyError: no themeName" )
 
+        # Internet stuff
+        try:
+            internetAccessString = self.settings.data['Internet']['internetAccess']
+            self.internetAccessEnabled = internetAccessString == 'Enabled'
+        except KeyError: self.internetAccessEnabled = False # default
+        try:
+            checkForMessagesString = self.settings.data['Internet']['checkForMessages']
+            self.checkForMessagesEnabled = checkForMessagesString == 'Enabled'
+        except KeyError: self.checkForMessagesEnabled = True # default
+        try:
+            lastMessageNumberString = self.settings.data['Internet']['lastMessageNumberRead']
+            self.lastMessageNumberRead = int( lastMessageNumberString )
+        except (KeyError, ValueError): self.lastMessageNumberRead = -1
+        try:
+            sendUsageStatisticsString = self.settings.data['Internet']['sendUsageStatistics']
+            self.sendUsageStatisticsEnabled = sendUsageStatisticsString == 'Enabled'
+        except KeyError: self.sendUsageStatisticsEnabled = True # default
+        try:
+            automaticUpdatesString = self.settings.data['Internet']['automaticUpdates']
+            self.automaticUpdatesEnabled = automaticUpdatesString == 'Enabled'
+        except KeyError: self.automaticUpdatesEnabled = True # default
+        try:
+            useDevelopmentVersionsString = self.settings.data['Internet']['useDevelopmentVersions']
+            self.useDevelopmentVersionsEnabled = useDevelopmentVersionsString == 'Enabled'
+        except KeyError: self.useDevelopmentVersionsEnabled = False # default
+        try:
+            cloudBackupsString = self.settings.data['Internet']['cloudBackups']
+            self.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
+        except KeyError: self.cloudBackupsEnabled = True # default
+
         try: self.currentVerseKeyGroup = self.settings.data['BCVGroups']['currentGroup']
         except KeyError: self.currentVerseKeyGroup = 'A'
         try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
@@ -786,6 +824,40 @@ class Application( Frame ):
     # end of Application.applyGivenWindowsSettings
 
 
+    def doCheckForDeveloperMessages( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("Application.doCheckForDeveloperMessages()") )
+
+        import requests
+        ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
+        #print( 'Status', repr(ri.status_code) )
+        #print( 'Headers',  repr(ri.headers) )
+        #print( 'Content', repr(ri.content) )
+        #print( 'Encoding',  repr(ri.encoding) )
+        #print( 'Text',  repr(ri.text) )
+        if ri.status_code == 200: # successful
+            fetchedText = ri.text
+            while fetchedText.endswith( '\n' ): result = result[:-1] # Removing trailing line feeds
+            n,ext = fetchedText.split( '.', 1 )
+            ni = int( n )
+            #print( ni, ext )
+        if ni > self.lastMessageNumberRead:
+            rq = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}".format( self.lastMessageNumberRead+1, ext ) )
+            if rq.status_code == 200: # successful
+                #print( r.text )
+
+                from About import AboutBox
+                aboutInfo = ProgNameVersion + " Developer Message #{}".format( self.lastMessageNumberRead )
+                aboutInfo += '\n  from Freely-Given.org'
+                aboutInfo += '\n\n' + rq.text
+                ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+
+                self.lastMessageNumberRead += 1
+    # end of Application.doCheckForDeveloperMessages
+
+
     def getCurrentChildWindowSettings( self ):
         """
         Go through the currently open windows and get their settings data
@@ -893,23 +965,29 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( t("doOpenDBPBibleResource()") )
             self.setDebugText( "doOpenDBPBibleResource..." )
-        self.setWaitStatus( "doOpenDBPBibleResource..." )
-        if self.DBPInterface is None:
-            self.DBPInterface = DBPBibles()
-            availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
-            #print( "aV1", repr(availableVolumes) )
-            if availableVolumes:
-                srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
-                #print( "srbResult", repr(srb.result) )
-                if srb.result:
-                    for entry in srb.result:
-                        self.openDBPBibleResourceWindow( entry[1] )
-                    #self.acceptNewBnCV()
-                    #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-                elif BibleOrgSysGlobals.debugFlag: print( t("doOpenDBPBibleResource: no resource selected!") )
-            else:
-                logging.critical( t("doOpenDBPBibleResource: no volumes available") )
-                self.setStatus( "Digital Bible Platform unavailable (offline?)" )
+
+        if self.internetAccessEnabled:
+            self.setWaitStatus( "doOpenDBPBibleResource..." )
+            if self.DBPInterface is None:
+                self.DBPInterface = DBPBibles()
+                availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
+                #print( "aV1", repr(availableVolumes) )
+                if availableVolumes:
+                    srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
+                    #print( "srbResult", repr(srb.result) )
+                    if srb.result:
+                        for entry in srb.result:
+                            self.openDBPBibleResourceWindow( entry[1] )
+                        #self.acceptNewBnCV()
+                        #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+                    elif BibleOrgSysGlobals.debugFlag: print( t("doOpenDBPBibleResource: no resource selected!") )
+                else:
+                    logging.critical( t("doOpenDBPBibleResource: no volumes available") )
+                    self.setStatus( "Digital Bible Platform unavailable (offline?)" )
+        else: # no Internet allowed
+            logging.critical( t("doOpenDBPBibleResource: Internet not enabled") )
+            self.setStatus( "Digital Bible Platform unavailable (You have disabled Internet access.)" )
+
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenDBPBibleResource" )
     # end of Application.doOpenDBPBibleResource
 
@@ -1366,22 +1444,22 @@ class Application( Frame ):
         uB = USFMBible( None ) # Create a blank USFM Bible object
         uB.loadSSFData( SSFFilepath )
 ##        print( "ssf" )
-##        for something in uB.ssfDict:
-##            try: print( "  ", something, uB.ssfDict[something] )
+##        for something in uB.suppliedMetadata:
+##            try: print( "  ", something, uB.suppliedMetadata[something] )
 ##            except UnicodeEncodeError: print( "   (skipped)" )
-        try: uBName = uB.ssfDict['Name']
+        try: uBName = uB.suppliedMetadata['Name']
         except KeyError:
             showerror( self, APP_NAME, 'Could not find name in ' + SSFFilepath )
-        try: uBFullName = uB.ssfDict['FullName']
+        try: uBFullName = uB.suppliedMetadata['FullName']
         except KeyError:
             showerror( self, APP_NAME, 'Could not find full name in ' + SSFFilepath )
-        if 'Editable' in uB.ssfDict and uB.ssfDict['Editable'] != 'T':
+        if 'Editable' in uB.suppliedMetadata and uB.suppliedMetadata['Editable'] != 'T':
             showerror( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( uBName, uBFullName ) )
             return
 
         # Find the correct folder that contains the actual USFM files
-        if 'Directory' in uB.ssfDict:
-            ssfDirectory = uB.ssfDict['Directory']
+        if 'Directory' in uB.suppliedMetadata:
+            ssfDirectory = uB.suppliedMetadata['Directory']
         else:
             showerror( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( uBName, uBFullName ) )
             ssfDirectory = None
@@ -1427,16 +1505,23 @@ class Application( Frame ):
 
         Returns the new USFMEditWindow object.
         """
+        from PTXBible import loadPTXSSFData
+
         if BibleOrgSysGlobals.debugFlag:
             print( t("openParatextBibleEditWindow( {} )").format( repr(SSFFilepath) ) )
             self.setDebugText( "openParatextBibleEditWindow..." )
             assert( os.path.isfile( SSFFilepath ) )
 
         uB = USFMBible( None ) # Create a blank USFM Bible object
-        uB.loadSSFData( SSFFilepath )
+        SSFDict = loadPTXSSFData( uB, SSFFilepath )
+        if SSFDict:
+            if uB.suppliedMetadata is None: uB.suppliedMetadata = {}
+            if 'PTX' not in uB.suppliedMetadata: uB.suppliedMetadata['PTX'] = {}
+            uB.suppliedMetadata['PTX']['SSF'] = SSFDict
+            uB.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
 
-        if 'Directory' in uB.ssfDict:
-            ssfDirectory = uB.ssfDict['Directory']
+        if 'Directory' in uB.suppliedMetadata['PTX']['SSF']:
+            ssfDirectory = uB.suppliedMetadata['PTX']['SSF']['Directory']
         else:
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
@@ -1452,7 +1537,8 @@ class Application( Frame ):
                     if not os.path.exists( ssfDirectory ):
                         showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
                         return
-        uB.preload( ssfDirectory )
+        uB.sourceFolder = ssfDirectory
+        uB.preload()
 
         uEW = USFMEditWindow( self, uB, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
@@ -2159,6 +2245,26 @@ class Application( Frame ):
     # end of Application.doHelp
 
 
+    def doSubmitBug( self, event=None ):
+        """
+        Prompt the user to enter a bug report,
+            collect other useful settings, etc.,
+            and then send it all somewhere.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("Application.doSubmitBug()") )
+
+        if not self.internetAccessEnabled: # we need to warn
+            showerror( self, APP_NAME, 'You need to allow Internet access first!' )
+            return
+
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
+        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+    # end of Application.doSubmitBug
+
+
     def doAbout( self, event=None ):
         """
         Display an about box.
@@ -2196,6 +2302,17 @@ class Application( Frame ):
         main['windowSize'], main['windowPosition'] = self.rootWindow.geometry().split( '+', 1 )
         main['minimumSize'] = self.minimumSize
         main['maximumSize'] = self.maximumSize
+
+        # Save the Internet access controls
+        self.settings.data['Internet'] = {}
+        internet = self.settings.data['Internet']
+        internet['internetAccess'] = 'Enabled' if self.internetAccessEnabled else 'Disabled'
+        internet['checkForMessages'] = 'Enabled' if self.checkForMessagesEnabled else 'Disabled'
+        internet['lastMessageNumberRead'] = str( self.lastMessageNumberRead )
+        internet['sendUsageStatistics'] = 'Enabled' if self.sendUsageStatisticsEnabled else 'Disabled'
+        internet['automaticUpdates'] = 'Enabled' if self.automaticUpdatesEnabled else 'Disabled'
+        internet['useDevelopmentVersions'] = 'Enabled' if self.useDevelopmentVersionsEnabled else 'Disabled'
+        internet['cloudBackups'] = 'Enabled' if self.cloudBackupsEnabled else 'Disabled'
 
         # Save the referenceGroups A..D
         self.settings.data['BCVGroups'] = {}
