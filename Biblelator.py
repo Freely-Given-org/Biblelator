@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-08-18' # by RJH
+LastModifiedDate = '2015-08-19' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.29'
@@ -1039,16 +1039,20 @@ class Application( Frame ):
         #print( "aM1", availableSwordModules )
         #ourList = None
         #if availableSwordModules is not None:
-        ourList = self.SwordInterface.getAvailableModuleCodes()
-        if BibleOrgSysGlobals.debugFlag: print( "{} sword module codes available".format( len(ourList) ) )
+        givenList = self.SwordInterface.getAvailableModuleCodeTuples( ['Biblical Texts','Commentaries'] )
+        genericName = { 'RawText':'Bible', 'zText':'Bible', 'RawCom':'Commentary', 'RawCom4':'Commentary', 'zCom':'Commentary' }
+        genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
+        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenList]
+        if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
         #print( "ourList", ourList )
         if ourList:
             srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
-            #print( "srbResult", repr(srb.result) )
+            print( "srbResult", repr(srb.result) )
             if srb.result:
-                for entry in srb.result:
-                    self.setWaitStatus( _("Loading {} Sword module...").format( repr(entry) ) )
-                    self.openSwordBibleResourceWindow( entry )
+                for entryString in srb.result:
+                    requestedModuleName, rest = entryString.split( ' (', 1 )
+                    self.setWaitStatus( _("Loading {} Sword module...").format( repr(requestedModuleName) ) )
+                    self.openSwordBibleResourceWindow( requestedModuleName )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
             elif BibleOrgSysGlobals.debugFlag: print( t("doOpenSwordResource: no resource selected!") )

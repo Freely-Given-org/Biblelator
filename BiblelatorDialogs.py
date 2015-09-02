@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2015 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-03'
+LastModifiedDate = '2015-08-18'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.26'
+ProgVersion = '0.27'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -251,7 +251,7 @@ class SelectResourceBoxDialog( ModalDialog ):
     """
     def __init__( self, parent, availableSettingsList, title ):
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog..." )
-        print( "aS", repr(availableSettingsList) ) # Should be a list of tuples
+        print( "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
         if BibleOrgSysGlobals.debugFlag: assert( isinstance( availableSettingsList, list ) )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parent, title )
