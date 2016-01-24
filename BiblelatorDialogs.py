@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2015 Robert Hunt
+# Copyright (C) 2013-2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -24,14 +24,29 @@
 
 """
 Various modal dialog windows for Biblelator Bible display/editing.
+
+    def errorBeep()
+    def showerror( parent, title, errorText )
+    def showwarning( parent, title, warningText )
+    def showinfo( parent, title, infoText )
+    class HTMLDialog( ModalDialog )
+    class YesNoDialog( ModalDialog )
+    class OkCancelDialog( ModalDialog )
+    class SaveWindowNameDialog( ModalDialog )
+    class DeleteWindowNameDialog( ModalDialog )
+    class SelectResourceBoxDialog( ModalDialog )
+    class GetNewProjectNameDialog( ModalDialog )
+    class GetNewCollectionNameDialog( ModalDialog )
+    class RenameResourceCollectionDialog( ModalDialog )
+    class GetBibleBookRangeDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-08-18'
+LastModifiedDate = '2016-01-09'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.27'
+ProgVersion = '0.29'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -50,14 +65,14 @@ from ModalDialog import ModalDialog
 from TextBoxes import HTMLText
 
 # BibleOrgSys imports
-sourceFolder = "../BibleOrgSys/"
-sys.path.append( sourceFolder )
+sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
 
-def t( messageString ):
+def ex( messageString ):
     """
+    Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
         if we are in debug mode.
     Returns the new string.
@@ -67,13 +82,14 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
+# end of ex
 
 
 
 def errorBeep():
     """
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("errorBeep()") )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("errorBeep()") )
     #import sys
     #from subprocess import call
     #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
@@ -85,7 +101,7 @@ def errorBeep():
 def showerror( parent, title, errorText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( t("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
+    if BibleOrgSysGlobals.debugFlag: print( ex("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
     logging.error( '{}: {}'.format( title, errorText ) )
     parent.parentApp.setStatus( _("Waiting for user input after error...") )
     tkmb.showerror( title, errorText )
@@ -96,7 +112,7 @@ def showerror( parent, title, errorText ):
 def showwarning( parent, title, warningText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( t("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
+    if BibleOrgSysGlobals.debugFlag: print( ex("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
     logging.warning( '{}: {}'.format( title, warningText ) )
     parent.parentApp.setStatus( _("Waiting for user input after warning...") )
     tkmb.showwarning( title, warningText )
@@ -107,7 +123,7 @@ def showwarning( parent, title, warningText ):
 def showinfo( parent, title, infoText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( t("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
+    if BibleOrgSysGlobals.debugFlag: print( ex("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
     logging.info( '{}: {}'.format( title, infoText ) )
     parent.parentApp.setStatus( _("Waiting for user input after info...") )
     tkmb.showinfo( title, infoText )
@@ -153,6 +169,24 @@ class YesNoDialog( ModalDialog ):
 
 
 
+class OkCancelDialog( ModalDialog ):
+    """
+    """
+    def __init__( self, parent, message, title=None ):
+        self.message = message
+        ModalDialog.__init__( self, parent, title, okText=_('Ok'), cancelText=_('Cancel') )
+    # end of OkCancelDialog.__init__
+
+
+    def body( self, master ):
+        label = Label( master, text=self.message )
+        label.grid( row=0 )
+        return label
+    # end of OkCancelDialog.body
+# end of class OkCancelDialog
+
+
+
 class SaveWindowNameDialog( ModalDialog ):
     """
     """
@@ -195,7 +229,7 @@ class SaveWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        print( t("New window set-up name is: {}").format( repr(self.result) ) )
+        print( ex("New window set-up name is: {}").format( repr(self.result) ) )
     # end of SaveWindowNameDialog.apply
 # end of class SaveWindowNameDialog
 
@@ -239,7 +273,7 @@ class DeleteWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        print( t("Requested window set-up name is: {}").format( repr(self.result) ) )
+        print( ex("Requested window set-up name is: {}").format( repr(self.result) ) )
     # end of DeleteWindowNameDialog.apply
 # end of class DeleteWindowNameDialog
 
@@ -293,7 +327,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         items = self.lb.curselection()
         print( "items", repr(items) ) # a tuple
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
-        print( t("Requested resource(s) is/are: {}").format( repr(self.result) ) )
+        print( ex("Requested resource(s) is/are: {}").format( repr(self.result) ) )
     # end of SelectResourceBoxDialog.apply
 # end of class SelectResourceBoxDialog
 
@@ -538,7 +572,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

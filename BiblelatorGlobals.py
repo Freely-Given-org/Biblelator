@@ -5,7 +5,7 @@
 #
 # Global variables for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2015 Robert Hunt
+# Copyright (C) 2013-2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-10' # by RJH
+LastModifiedDate = '2016-01-09' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.28'
+ProgVersion = '0.29'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -41,14 +41,14 @@ debuggingThisModule = False
 import sys, os, re
 
 # BibleOrgSys imports
-sourceFolder = "../BibleOrgSys/"
-sys.path.append( sourceFolder )
+sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
 
-def t( messageString ):
+def ex( messageString ):
     """
+    Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
         if we are in debug mode.
     Returns the new string.
@@ -58,11 +58,13 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
+# end of ex
 
 
 
 # Programmed settings
-APP_NAME = 'Biblelator'
+APP_NAME = 'Biblelator' # Ugly coz doesn't necessarily match the ProgName in Biblelator.py
+APP_NAME_VERSION = '{} v{}'.format( APP_NAME, ProgVersion ) # Ugly coz doesn't necessarily match the ProgVersion in Biblelator.py
 DATA_FOLDER_NAME = APP_NAME + 'Data/'
 LOGGING_SUBFOLDER_NAME = APP_NAME + 'Logs/'
 SETTINGS_SUBFOLDER_NAME = APP_NAME + 'Settings/'
@@ -205,7 +207,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo...") )
 
     print( "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"

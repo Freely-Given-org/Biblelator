@@ -5,7 +5,7 @@
 #
 # Various non-GUI helper functions for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2015 Robert Hunt
+# Copyright (C) 2014-2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-12' # by RJH
+LastModifiedDate = '2016-01-09' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.28'
+ProgVersion = '0.29'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -41,19 +41,19 @@ debuggingThisModule = True
 import sys
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, BIBLE_GROUP_CODES
+from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 
 # BibleOrgSys imports
-sourceFolder = "../BibleOrgSys/"
-sys.path.append( sourceFolder )
+sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey, FlexibleVersesKey
 from BibleReferencesLinks import BibleReferencesLinks
 
 
 
-def t( messageString ):
+def ex( messageString ):
     """
+    Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
         if we are in debug mode.
     Returns the new string.
@@ -63,6 +63,7 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
+# end of ex
 
 
 
@@ -71,16 +72,16 @@ def createEmptyUSFMBook( BBB, getNumChapters, getNumVerses ):
     Returns a string that is the text of a blank USFM book.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( t("createEmptyUSFMBook( {} )").format( BBB ) )
+        print( ex("createEmptyUSFMBook( {} )").format( BBB ) )
     USFMAbbreviation = BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation( BBB )
     USFMNumber = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber( BBB )
-    bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME )
+    bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME_VERSION )
     bookText += '\\ide UTF-8\n'
     bookText += '\\h Bookname\n'
     bookText += '\\mt Book Title\n'
     for C in range( 1, getNumChapters(BBB)+1 ):
         bookText += '\\c {}\n'.format( C )
-        for V in range( 1, getNumVerses(BBB,C) ):
+        for V in range( 1, getNumVerses(BBB,C)+1 ):
             bookText += '\\v {} \n'.format( V )
     return bookText
 # end of BiblelatorHelpers.createEmptyUSFMBook
@@ -94,7 +95,7 @@ def mapReferenceVerseKey( mainVerseKey ):
     Returns None if we don't have a mapping.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( t("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+        print( ex("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
     referenceVerseKeyDict = {
         SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
         SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
@@ -113,7 +114,7 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
     Returns None if we don't have a mapping.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( t("mapParallelVerseKey( {}, {} )").format( forGroupCode, mainVerseKey.getShortText() ) )
+        print( ex("mapParallelVerseKey( {}, {} )").format( forGroupCode, mainVerseKey.getShortText() ) )
     groupIndex = BIBLE_GROUP_CODES.index( forGroupCode ) - 1
     parallelVerseKeyDict = {
         SimpleVerseKey('MAT','3','13'): (SimpleVerseKey('MRK','1','9'), SimpleVerseKey('LUK','3','21'), SimpleVerseKey('JHN','1','31') )
@@ -135,7 +136,7 @@ def mapReferencesVerseKey( mainVerseKey ):
     """
     global loadedReferences
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( t("mapReferencesVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+        print( ex("mapReferencesVerseKey( {} )").format( mainVerseKey.getShortText() ) )
     if loadedReferences is None:
         loadedReferences = BibleReferencesLinks()
         loadedReferences.loadData()
@@ -170,7 +171,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
