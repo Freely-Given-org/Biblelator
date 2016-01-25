@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-09' # by RJH
+LastModifiedDate = '2016-01-25' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.29'
@@ -59,7 +59,7 @@ import BibleOrgSysGlobals
 
 
 
-def ex( messageString ):
+def exp( messageString ):
     """
     Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
@@ -71,7 +71,7 @@ def ex( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
-# end of ex
+# end of exp
 
 
 
@@ -83,7 +83,7 @@ class ChildBox():
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ChildBox.__init__( {} )").format( parentApp ) )
+            print( exp("ChildBox.__init__( {} )").format( parentApp ) )
             assert( parentApp )
         self.parentApp = parentApp
 
@@ -96,7 +96,7 @@ class ChildBox():
         """
         Called from createStandardKeyboardBindings to do the actual work.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
         try: kBD = self.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
         assert( (name,kBD[name][0],) not in self.myKeyboardBindingsList )
@@ -116,7 +116,7 @@ class ChildBox():
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ChildBox.createStandardKeyboardBindings()") )
+            print( exp("ChildBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doFind), ('Refind',self.doRefind),
                              ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
@@ -135,7 +135,7 @@ class ChildBox():
         Copy the selected text onto the clipboard.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ChildBox.doCopy()") )
+            print( exp("ChildBox.doCopy()") )
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
             showerror( self, APP_NAME, 'No text selected')
@@ -152,7 +152,7 @@ class ChildBox():
         Select all the text in the text box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ChildBox.doSelectAll()") )
+            print( exp("ChildBox.doSelectAll()") )
         self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
         self.textBox.see( tk.INSERT )                      # scroll to top
@@ -163,7 +163,7 @@ class ChildBox():
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ChildBox.doGotoLine()") )
+            print( exp("ChildBox.doGotoLine()") )
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
         self.textBox.focus()
@@ -213,7 +213,7 @@ class ChildBox():
         character: translate to next multiple of 8 to match visual?
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ChildBox.doShowInfo()") )
+            print( exp("ChildBox.doShowInfo()") )
         text  = self.getAllText()
         numChars = len( text )
         numLines = len( text.split('\n') )
@@ -296,7 +296,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             but the more specific winType is set later by the subclass.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ChildWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+            print( exp("ChildWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
             assert( parentApp )
             assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor',) )
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
@@ -346,9 +346,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
 
     def createMenuBar( self ):
-        logging.critical( ex("PROGRAMMING ERROR: This 'createMenuBar' method MUST be overridden!") )
+        logging.critical( exp("PROGRAMMING ERROR: This 'createMenuBar' method MUST be overridden!") )
         if BibleOrgSysGlobals.debugFlag:
-            print( ex("This 'createMenuBar' method MUST be overridden!") )
+            print( exp("This 'createMenuBar' method MUST be overridden!") )
             halt
 
 
@@ -380,7 +380,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         Designed to be overridden.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( ex("This 'createToolBar' method can be overridden!") )
+            #print( exp("This 'createToolBar' method can be overridden!") )
         pass
     # end of ChildWindow.createToolBar
 
@@ -389,7 +389,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildWindow.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindow.doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -405,7 +405,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindow.doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -427,13 +427,13 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Called to finally and irreversibly remove this window from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildWindow.closeChildWindow()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindow.closeChildWindow()") )
         if self in self.parentApp.childWindows:
             self.parentApp.childWindows.remove( self )
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( ex("ChildWindow.closeChildWindow() for {} wasn't in list").format( self.winType ) )
+                print( exp("ChildWindow.closeChildWindow() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource window" )
@@ -452,7 +452,7 @@ class ChildWindows( list ):
 
 
     def iconifyAll( self, childWindowType=None ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildWindows.iconifyAll( {} )").format( childWindowType ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindows.iconifyAll( {} )").format( childWindowType ) )
         for appWin in self:
             if childWindowType is None or childWindowType in appWin.genericWindowType:
                 appWin.iconify()
@@ -460,7 +460,7 @@ class ChildWindows( list ):
 
 
     #def iconifyAllResources( self ):
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildWindows.iconifyAllResources()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindows.iconifyAllResources()") )
         #for appWin in self:
             #if 'Resource' in appWin.genericWindowType:
                 #appWin.iconify()
@@ -468,7 +468,7 @@ class ChildWindows( list ):
 
 
     def deiconifyAll( self, childWindowType=None ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildWindows.deiconifyAll( {} )").format( childWindowType ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindows.deiconifyAll( {} )").format( childWindowType ) )
         for appWin in self:
             if childWindowType is None or childWindowType in appWin.genericWindowType:
                 appWin.deiconify()
@@ -477,7 +477,7 @@ class ChildWindows( list ):
 
 
     #def deiconifyAllResources( self ):
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ChildWindows.deiconifyAllResources()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindows.deiconifyAllResources()") )
         #for appWin in self:
             #if 'Resource' in appWin.genericWindowType:
                 #appWin.iconify()
@@ -491,7 +491,7 @@ class ChildWindows( list ):
         Note that this new verse key is in the reference versification system.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( ex("ChildWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
+            print( exp("ChildWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.BCVUpdateType==DEFAULT and appWin.groupCode==groupCode:
@@ -517,7 +517,7 @@ class ChildWindows( list ):
         Called when we probably need to update some resource windows with a new word.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( ex("ChildWindows.updateLexicons( {} )").format( newLexiconWord ) )
+            print( exp("ChildWindows.updateLexicons( {} )").format( newLexiconWord ) )
         for appWin in self:
             #print( "gwT", appWin.genericWindowType )
             if appWin.genericWindowType == 'LexiconResource':
@@ -536,7 +536,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("HTMLWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
+            print( exp("HTMLWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
             assert( parentWindow )
         self.parentWindow, self.initialFilename = parentWindow, filename
         tk.Toplevel.__init__( self, self.parentWindow )
@@ -603,7 +603,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.createMenuBar()") )
         try: kBD = self.parentWindow.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentApp.keyBindingDict
 
@@ -697,7 +697,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Designed to be overridden.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( ex("This 'createToolBar' method can be overridden!") )
+            #print( exp("This 'createToolBar' method can be overridden!") )
         pass
     # end of HTMLWindow.createToolBar
 
@@ -706,7 +706,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("createStatusBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("createStatusBar()") )
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
         Style().configure( 'StatusBar.TLabel', background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
@@ -734,7 +734,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Set (or clear) the status bar text.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("setStatus( {} )").format( repr(newStatusText) ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("setStatus( {} )").format( repr(newStatusText) ) )
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget['state'] = tk.NORMAL
@@ -752,7 +752,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #Set the status bar text and change the cursor to the wait/hourglass cursor.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( ex("setWaitStatus( {} )").format( repr(newStatusText) ) )
+            #print( exp("setWaitStatus( {} )").format( repr(newStatusText) ) )
         ##self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
         #self.setStatus( newStatusText )
         #self.update()
@@ -771,7 +771,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Display or hide the status bar.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("doToggleStatusBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doToggleStatusBar()") )
         if self._showStatusBarVar.get():
             self.createStatusBar()
         else:
@@ -784,7 +784,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.load( {} )").format( filepath ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.load( {} )").format( filepath ) )
         self.folderPath, self.filename = os.path.split( filepath )
         with open( filepath, 'rt' ) as HTMLFile:
             fileContents = HTMLFile.read()
@@ -805,7 +805,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.gotoLink( {} )").format( link ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.gotoLink( {} )").format( link ) )
         if not os.path.isabs( link ): # relative filepath
             link = os.path.join( self.folderPath, link )
         self.load( link )
@@ -819,7 +819,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.overLink( {} )").format( link ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.overLink( {} )").format( link ) )
         self.setStatus( link ) # Display it
     # end of HTMLWindow.overLink
 
@@ -827,7 +827,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
     def leaveLink( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.leaveLink()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.leaveLink()") )
         self.setStatus() # Clear it
     # end of HTMLWindow.leaveLink
 
@@ -854,7 +854,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -870,7 +870,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -892,7 +892,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Called to finally and irreversibly remove this window from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("HTMLWindow.closeHTMLWindow()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.closeHTMLWindow()") )
         try: cWs = self.parentWindow.parentApp.childWindows
         except AttributeError: cWs = self.parentApp.childWindows
         if self in cWs:
@@ -900,7 +900,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( ex("HTMLWindow.closeHTMLWindow() for {} wasn't in list").format( self.winType ) )
+                print( exp("HTMLWindow.closeHTMLWindow() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )
@@ -918,7 +918,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

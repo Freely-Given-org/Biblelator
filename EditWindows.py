@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-20' # by RJH
+LastModifiedDate = '2016-01-25' # by RJH
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
 ProgVersion = '0.29'
@@ -50,7 +50,7 @@ from tkinter.ttk import Style, Frame
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM, BIBLE_GROUP_CODES
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog, GetBibleBookRangeDialog
-from BiblelatorHelpers import createEmptyUSFMBook, mapReferenceVerseKey, mapParallelVerseKey
+from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, mapReferenceVerseKey, mapParallelVerseKey
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow, HTMLWindow
 from BibleResourceWindows import BibleBox, BibleResourceWindow
@@ -64,7 +64,7 @@ from BibleWriter import setDefaultControlFolder
 
 
 
-def ex( messageString ):
+def exp( messageString ):
     """
     Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
@@ -76,13 +76,13 @@ def ex( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
-# end of ex
+# end of exp
 
 
 
 class TextEditWindow( ChildWindow ):
     def __init__( self, parentApp, folderPath=None, filename=None ):
-        if BibleOrgSysGlobals.debugFlag: print( ex("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
+        if BibleOrgSysGlobals.debugFlag: print( exp("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
 
         # Set some dummy values required soon (esp. by refreshTitle)
@@ -118,7 +118,7 @@ class TextEditWindow( ChildWindow ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.createEditorKeyboardBindings()") )
+            print( exp("TextEditWindow.createEditorKeyboardBindings()") )
         for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
                              ('Undo',self.doUndo), ('Redo',self.doRedo),
                              ('Save',self.doSave), ):
@@ -142,7 +142,7 @@ class TextEditWindow( ChildWindow ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("TextEditWindow.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("TextEditWindow.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
@@ -229,7 +229,7 @@ class TextEditWindow( ChildWindow ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.createContextMenu()") )
+            print( exp("TextEditWindow.createContextMenu()") )
         self.contextMenu = tk.Menu( self, tearoff=False )
         self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict['Cut'][0] )
         self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
@@ -292,7 +292,7 @@ class TextEditWindow( ChildWindow ):
 
     def doUndo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doUndo()") )
+            print( exp("TextEditWindow.doUndo()") )
         try: self.textBox.edit_undo()
         except tk.TclError: showinfo( self, APP_NAME, 'Nothing to undo' )
         self.textBox.update() # force refresh
@@ -301,7 +301,7 @@ class TextEditWindow( ChildWindow ):
 
     def doRedo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doRedo()") )
+            print( exp("TextEditWindow.doRedo()") )
         try: self.textBox.edit_redo()
         except tk.TclError: showinfo( self, APP_NAME, 'Nothing to redo' )
         self.textBox.update() # force refresh
@@ -310,7 +310,7 @@ class TextEditWindow( ChildWindow ):
 
     def doDelete( self, event=None ):                         # delete selected text, no save
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doDelete()") )
+            print( exp("TextEditWindow.doDelete()") )
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, 'No text selected')
         else:
@@ -320,7 +320,7 @@ class TextEditWindow( ChildWindow ):
 
     def doCut( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doCut()") )
+            print( exp("TextEditWindow.doCut()") )
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, 'No text selected')
         else:
@@ -331,7 +331,7 @@ class TextEditWindow( ChildWindow ):
 
     def doPaste( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doPaste()") )
+            print( exp("TextEditWindow.doPaste()") )
         try:
             text = self.selection_get( selection='CLIPBOARD')
         except tk.TclError:
@@ -437,7 +437,7 @@ class TextEditWindow( ChildWindow ):
         We're still waiting for the filename.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.setFolderPath( {} )").format( repr(newFolderPath) ) )
+            print( exp("TextEditWindow.setFolderPath( {} )").format( repr(newFolderPath) ) )
             assert( self.filename is None )
             assert( self.filepath is None )
         self.folderPath = newFolderPath
@@ -454,7 +454,7 @@ class TextEditWindow( ChildWindow ):
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.setFilename( {} )").format( repr(filename) ) )
+            print( exp("TextEditWindow.setFilename( {} )").format( repr(filename) ) )
             assert( self.folderPath )
         self.filename = filename
         self.filepath = os.path.join( self.folderPath, self.filename )
@@ -474,7 +474,7 @@ class TextEditWindow( ChildWindow ):
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.setPathAndFile( {}, {} )").format( repr(folderPath), repr(filename) ) )
+            print( exp("TextEditWindow.setPathAndFile( {}, {} )").format( repr(folderPath), repr(filename) ) )
         self.folderPath, self.filename = folderPath, filename
         self.filepath = os.path.join( self.folderPath, self.filename )
         return self._checkFilepath()
@@ -489,7 +489,7 @@ class TextEditWindow( ChildWindow ):
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.setFilepath( {} )").format( repr(newFilePath) ) )
+            print( exp("TextEditWindow.setFilepath( {} )").format( repr(newFilePath) ) )
         self.filepath = newFilePath
         self.folderPath, self.filename = os.path.split( newFilePath )
         return self._checkFilepath()
@@ -504,7 +504,7 @@ class TextEditWindow( ChildWindow ):
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow._checkFilepath()") )
+            print( exp("TextEditWindow._checkFilepath()") )
 
         if not os.path.isfile( self.filepath ):
             showerror( self, APP_NAME, 'No such file path: {}'.format( repr(self.filepath) ) )
@@ -541,7 +541,7 @@ class TextEditWindow( ChildWindow ):
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.loadText()") )
+            print( exp("TextEditWindow.loadText()") )
 
         text = open( self.filepath, 'rt', encoding='utf-8' ).read()
         if text == None:
@@ -558,7 +558,7 @@ class TextEditWindow( ChildWindow ):
         Called if the user requests a saveAs from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doSaveAs()") )
+            print( exp("TextEditWindow.doSaveAs()") )
         if self.modified():
             saveAsFilepath = asksaveasfilename()
             #print( "saveAsFilepath", repr(saveAsFilepath) )
@@ -572,11 +572,11 @@ class TextEditWindow( ChildWindow ):
         Called if the user requests a save from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doSave()") )
+            print( exp("TextEditWindow.doSave()") )
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
-                allText = self.getAllText()
+                allText = self.getAllText() # from the displayed edit window
                 with open( filepath, mode='wt' ) as theFile:
                     theFile.write( allText )
                 self.rememberFileTimeAndSize()
@@ -594,7 +594,7 @@ class TextEditWindow( ChildWindow ):
         Sets up another call.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doAutosave()") )
+            print( exp("TextEditWindow.doAutosave()") )
         if self.modified():
             self.doSave()
             self.after( self.autosaveTime, self.doAutosave )
@@ -608,7 +608,7 @@ class TextEditWindow( ChildWindow ):
         Called if the user requests a close from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.doCloseEditor()") )
+            print( exp("TextEditWindow.doCloseEditor()") )
         self.onCloseEditor()
     # end of TextEditWindow.closeEditor
 
@@ -617,7 +617,7 @@ class TextEditWindow( ChildWindow ):
         Called if the window is about to be destroyed.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("TextEditWindow.onCloseEditor()") )
+            print( exp("TextEditWindow.onCloseEditor()") )
         if self.modified():
             if self.folderPath and self.filename:
                 self.doSave()
@@ -636,12 +636,15 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     """
     self.genericWindowType will be BibleEditor
     self.winType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
+    
+    Even though it contains a link to an USFMBible (InternalBible) object,
+        this class always works directly with the USFM (text) files.
     """
     def __init__( self, parentApp, USFMBible, editMode=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "USFMEditWindow.__init__( {}, {} )".format( parentApp, USFMBible ) )
+            print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
         self.parentApp, self.internalBible = parentApp, USFMBible
-        self.USFMFolder = self.internalBible.sourceFolder
+        #self.USFMFolder = self.internalBible.sourceFolder
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
@@ -678,7 +681,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         #self.textBox.bind( '<1>', self.onTextChange )
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
-        self.bookText = None # The current text for this book
+        self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.exportFolderPathname = None
 
         #self.currentVerseKey = None
@@ -712,7 +715,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("USFMEditWindow.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
@@ -795,10 +798,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
 
-        viewMenu.entryconfigure( 'Before and after...', state=tk.DISABLED )
-        viewMenu.entryconfigure( 'One section', state=tk.DISABLED )
-        viewMenu.entryconfigure( 'Single verse', state=tk.DISABLED )
-        viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
+        #viewMenu.entryconfigure( 'Before and after...', state=tk.DISABLED )
+        #viewMenu.entryconfigure( 'One section', state=tk.DISABLED )
+        #viewMenu.entryconfigure( 'Single verse', state=tk.DISABLED )
+        #viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
@@ -862,8 +865,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( ex("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -905,6 +908,34 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                 #if mark6!=mark5:
                     #print( "mark6", mark6 )
 
+            
+        
+        if self.textBox.edit_modified(): # check the text for USFM errors
+            editedText = self.getAllText()
+            
+            # Check counts of USFM chapter and verse markers
+            numChaps = editedText.count( '\\c ' )
+            numVerses = editedText.count( '\\v ' )
+            BBB, C, V = self.currentVerseKey.getBCV()
+            #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+            maxChapterMarkers = self.getNumChapters( BBB ) if self.contextViewMode=='ByBook' else 1
+
+            if self.contextViewMode == 'BeforeAndAfter':
+                maxVerseMarkers = 3
+            elif self.contextViewMode == 'ByVerse':
+                maxVerseMarkers = 1
+            elif self.contextViewMode == 'BySection':
+                maxVerseMarkers = 10
+            elif self.contextViewMode == 'ByBook':
+                maxVerseMarkers = self.numTotalVerses
+            elif self.contextViewMode == 'ByChapter':
+                maxVerseMarkers = self.getNumVerses( BBB, C )
+            else: halt
+            if numChaps > maxChapterMarkers:
+                print( "Too many USFM chapter markers (max of {} expected)".format( maxChapterMarkers ) )
+            if numVerses > maxVerseMarkers:
+                print( "Too many USFM verse markers (max of {} expected)".format( maxVerseMarkers ) )
+                
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
         #       sometimes we get a 'current' mark and sometimes an 'anchor1'
@@ -932,8 +963,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         character: translate to next multiple of 8 to match visual?
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.doShowInfo()") )
-        text  = self.getAllText()
+            print( exp("USFMEditWindow.doShowInfo()") )
+        text  = self.getAllBookText()
         numChars = len( text )
         numLines = len( text.split( '\n' ) )
         numWords = len( text.split() )
@@ -968,7 +999,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             and returning the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.getBookDataFromDisk( {} ) was {}").format( BBB, self.lastBBB ) )
+            print( exp("USFMEditWindow.getBookDataFromDisk( {} ) was {}").format( BBB, self.lastBBB ) )
         if BBB != self.lastBBB:
             #self.bookText = None
             #self.bookTextModified = False
@@ -982,7 +1013,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                             BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation(BBB) )
             self.bookFilepath = os.path.join( self.internalBible.sourceFolder, self.bookFilename )
             if self.setFilepath( self.bookFilepath ): # For title displays, etc.
-                #print( ex('gVD'), BBB, repr(self.bookFilepath), repr(self.internalBible.encoding) )
+                #print( exp('gVD'), BBB, repr(self.bookFilepath), repr(self.internalBible.encoding) )
                 bookText = open( self.bookFilepath, 'rt', encoding=self.internalBible.encoding ).read()
                 if bookText == None:
                     showerror( self, APP_NAME, 'Could not decode and open file ' + self.bookFilepath + ' with encoding ' + self.internalBible.encoding )
@@ -998,9 +1029,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             and adds the CV marks at the same time for navigation.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( ex("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey,
+            #try: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey,
                        #'None' if verseDataString is None else verseDataString.replace('\n','NL'), currentVerse )
-            #except UnicodeEncodeError: print( ex("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+            #except UnicodeEncodeError: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
         BBB, C, V = verseKey.getBCV()
         markName = 'C{}V{}'.format( C, V )
@@ -1009,7 +1040,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         lastCharWasSpace = haveTextFlag = not firstFlag
 
         if verseDataString is None:
-            if C!='0': print( "  ", ex("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
         elif self.viewMode == DEFAULT:
             for line in verseDataString.split( '\n' ):
@@ -1096,9 +1127,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                     self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
                     haveTextFlag = True
                 else:
-                    logging.critical( ex("USFMEditWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataString ) )
+                    logging.critical( exp("USFMEditWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataString ) )
         else:
-            logging.critical( ex("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+            logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
     # end of USFMEditWindow.displayAppendVerse
 
 
@@ -1107,7 +1138,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         Returns the requested verse, the previous verse, and the next n verses.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( ex("USFMEditWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            print( exp("USFMEditWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
 
         BBB, C, V = newVerseKey.getBCV()
@@ -1124,7 +1155,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                 try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
                 except KeyError:
                     if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( ex("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                        logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
                     failed = True
                 #if not failed:
                     #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
@@ -1167,7 +1198,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             so it appends duplicate entries.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( ex("USFMEditWindow.cacheBook( {} )").format( BBB ) )
+            print( exp("USFMEditWindow.cacheBook( {} )").format( BBB ) )
             assert( isinstance( BBB, str ) )
 
         def addCacheEntry( BBB, C, V, data ):
@@ -1222,7 +1253,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         Returns the requested verse from our cache if it's there,
             otherwise returns None.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("getCachedVerseData( {} )").format( verseKey ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getCachedVerseData( {} )").format( verseKey ) )
         try: return self.verseCache[verseKey.makeHash()]
         except KeyError: return None
     # end of USFMEditWindow.getCachedVerseData
@@ -1258,6 +1289,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             newVerseKey = SimpleVerseKey( newBBB, C, V, S )
             self.setCurrentVerseKey( newVerseKey )
             #if newBBB == 'PSA': halt
+            if newBBB != oldBBB: self.numTotalVerses = calculateTotalVersesForBook( newBBB, self.getNumChapters, self.getNumVerses )
 
         if self.textBox.edit_modified(): # we need to extract the changes into self.bookText
             logging.critical( "We need to extract the changes into self.bookText for {}".format( oldBBB ) )
@@ -1275,12 +1307,6 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                     #for verseKey,nextVerseData in nextVerses:
                         #self.displayAppendVerse( False, verseKey, nextVerseData )
 
-            elif self.contextViewMode == 'ByVerse':
-                print( "\n\nWe need to extract the ByVerse changes into self.bookText!!!\n\n")
-                halt
-                C, V = self.currentVerseKey.getCV()
-                #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-
             elif self.contextViewMode == 'BySection':
                 print( "\n\nWe need to extract the BySection changes into self.bookText!!!\n\n")
                 halt
@@ -1297,6 +1323,12 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                         #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
                                                 #currentVerse=thisC==intC and thisV==intV )
                         #startingFlag = False
+
+            elif self.contextViewMode == 'ByVerse':
+                print( "\n\nWe need to extract the ByVerse changes into self.bookText!!!\n\n")
+                halt
+                C, V = self.currentVerseKey.getCV()
+                #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
 
             elif self.contextViewMode == 'ByBook':
                 print( 'USFMEditWindow.updateShownBCV', 'ByBook1' )
@@ -1320,7 +1352,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                     #startingFlag = False
 
             else:
-                logging.critical( ex("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+                logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
                 if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
             self.bookTextModified = True
 
@@ -1338,7 +1370,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
 
         # Safety-check since editor code not finished yet for all modes
         if self.contextViewMode in ('BeforeAndAfter','BySection','ByVerse','ByChapter',):
-            print( ex("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
+            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
             self._viewRadioVar.set( 4 ) # ByBook
             self.changeBibleContextView()
 
@@ -1350,13 +1382,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             if self.bookTextModified: self.doSave() # resets bookTextModified flag
             self.bookText = self.getBookDataFromDisk( newBBB )
             if self.bookText is None:
-                showerror( self, _("USFM Editor"), _("We need to create the book: {} in {}").format( newBBB, self.USFMFolder ) )
+                showerror( self, _("USFM Editor"), _("We need to create the book: {} in {}").format( newBBB, self.internalBible.sourceFolder ) )
                 #ocd = OkCancelDialog( self, _("We need to create the book: {}".format( newBBB ) ), title=_('Create?') )
                 #print( "ocdResult", repr(ocd.result) )
                 #if ocd.result == True: # Ok was chosen
                 self.setFilename( '{}-{}.USFM'.format( BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber(newBBB),
                             BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation(newBBB) ), createFile=True )
-                self.bookText = createEmptyUSFMBook( newBBB, self.getNumChapters, self.getNumVerses )
+                self.bookText = createEmptyUSFMBookText( newBBB, self.getNumChapters, self.getNumVerses )
                 #markAsUnmodified = False
                 self.bookTextModified = True
                 #self.doSave() # Save the chapter/verse markers (blank book outline) ## Doesn't work -- saves a blank file
@@ -1427,7 +1459,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                     startingFlag = False
 
             else:
-                logging.critical( ex("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+                logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
                 if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
         self.textBox.edit_reset() # clear undo/redo stks
@@ -1438,7 +1470,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
         try: self.textBox.see( desiredMark )
-        except tk.TclError: print( ex("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
+        except tk.TclError: print( exp("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
         self.lastCVMark = desiredMark
 
         # Put the cursor back where it was (if necessary)
@@ -1457,7 +1489,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
 
         Leaves the wait cursor displayed.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("USFMEditWindow._prepareInternalBible()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow._prepareInternalBible()") )
         if self.modified(): self.doSave()
         if self.internalBible is not None:
             self.parentApp.setWaitStatus( _("Preparing internal Bible...") )
@@ -1468,7 +1500,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         """
         Prepare to do some of the exports available in BibleOrgSys.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("USFMEditWindow.prepareForExports()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.prepareForExports()") )
         self._prepareInternalBible()
         if self.internalBible is not None:
             self.parentApp.setWaitStatus( _("Preparing for export...") )
@@ -1488,7 +1520,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         Do most of the quicker exports available in BibleOrgSys.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.doMostExports()") )
+            print( exp("USFMEditWindow.doMostExports()") )
         self._prepareForExports()
         self.internalBible.doAllExports( self.exportFolderPathname )
         self.parentApp.setReadyStatus()
@@ -1499,7 +1531,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         Do the BibleOrgSys PhotoBible export.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.doPhotoBibleExport()") )
+            print( exp("USFMEditWindow.doPhotoBibleExport()") )
         self._prepareForExports()
         self.internalBible.toPhotoBible( os.path.join( self.exportFolderPathname, 'BOS_PhotoBible_Export/' ) )
         self.parentApp.setReadyStatus()
@@ -1510,7 +1542,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         Do the BibleOrgSys ODFsExport export.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.doODFsExport()") )
+            print( exp("USFMEditWindow.doODFsExport()") )
         self._prepareForExports()
         self.internalBible.toODF( os.path.join( self.exportFolderPathname, 'BOS_ODF_Export/' ) )
         self.parentApp.setReadyStatus()
@@ -1520,7 +1552,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         """
         Do the BibleOrgSys PDFsExport export.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("USFMEditWindow.doPDFsExport()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.doPDFsExport()") )
         self._prepareForExports()
         self.internalBible.toTeX( os.path.join( self.exportFolderPathname, 'BOS_PDF(TeX)_Export/' ) )
         self.parentApp.setReadyStatus()
@@ -1530,7 +1562,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         """
         Do all exports available in BibleOrgSys.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("USFMEditWindow.doAllExports()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.doAllExports()") )
         self._prepareForExports()
         self.internalBible.doAllExports( self.exportFolderPathname, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
         self.parentApp.setReadyStatus()
@@ -1541,7 +1573,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         """
         Run the BibleOrgSys checks on the project.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("USFMEditWindow.doCheckProject()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.doCheckProject()") )
         #self._prepareInternalBible()
         currentBBB = self.currentVerseKey.getBBB()
         gBBRD = GetBibleBookRangeDialog( self, self.internalBible, currentBBB, title=_('Books to be checked') )
@@ -1570,6 +1602,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     # end of USFMEditWindow.doCheckProject
 
 
+    def getAllBookText( self ):
+        """
+        Gets the displayed text and adds it to the surrounding text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.getAllBookText()") )
+        boxText = self.getAllText() # from the edit window
+        allBookText = self.bookTextBefore + boxText + self.bookTextAfter
+        return allBookText
+    # end of USFMEditWindow.getAllBookText
+
+
     def doSave( self, event=None ):
         """
         Called if the user requests a save from the GUI.
@@ -1578,14 +1622,15 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             has a bit more housekeeping to do
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.doSave()") )
+            print( exp("USFMEditWindow.doSave()") )
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
-                allText = self.getAllText()
+                allBookText = self.getAllBookText()
                 with open( filepath, mode='wt' ) as theFile:
-                    theFile.write( allText )
+                    theFile.write( allBookText )
                 self.rememberFileTimeAndSize()
+                self.internalBible.bookNeedsReloading[self.currentVerseKey.getBBB()] = True
                 #self.textBox.edit_modified( tk.FALSE ) # clear modified flag
                 self.bookTextModified = False
                 #self.internalBible.unloadBooks() # coz they're now out of date
@@ -1601,7 +1646,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             and then link A->B to show OT references from the NT (etc.)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.startReferenceMode()") )
+            print( exp("USFMEditWindow.startReferenceMode()") )
         if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
             ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
             #print( "yndResult", repr(ynd.result) )
@@ -1630,7 +1675,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             and then link A->BCD to show synoptic gospel parallels (etc.)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.startParallelMode()") )
+            print( exp("USFMEditWindow.startParallelMode()") )
         if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
             ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
             #print( "yndResult", repr(ynd.result) )
@@ -1660,7 +1705,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             and then link A->B to show OT references from the NT (etc.)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("USFMEditWindow.startReferencesMode()") )
+            print( exp("USFMEditWindow.startReferencesMode()") )
         if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
             ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
             #print( "yndResult", repr(ynd.result) )
@@ -1686,7 +1731,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     def xxcloseEditor( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("USFMEditWindow.closeEditor()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.closeEditor()") )
         if self.modified():
             pass # refuse to close yet (temp.........)
         else: self.closeChildWindow()
@@ -1708,7 +1753,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )

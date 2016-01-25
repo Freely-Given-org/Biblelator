@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-09' # by RJH
+LastModifiedDate = '2016-01-25' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.29'
@@ -51,7 +51,7 @@ from BibleReferencesLinks import BibleReferencesLinks
 
 
 
-def ex( messageString ):
+def exp( messageString ):
     """
     Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
@@ -63,16 +63,17 @@ def ex( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
-# end of ex
+# end of exp
 
 
 
-def createEmptyUSFMBook( BBB, getNumChapters, getNumVerses ):
+def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
     """
+    Give it the functions for getting the number of chapters and the number of verses
     Returns a string that is the text of a blank USFM book.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( ex("createEmptyUSFMBook( {} )").format( BBB ) )
+        print( exp("createEmptyUSFMBookText( {} )").format( BBB ) )
     USFMAbbreviation = BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation( BBB )
     USFMNumber = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber( BBB )
     bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME_VERSION )
@@ -84,7 +85,22 @@ def createEmptyUSFMBook( BBB, getNumChapters, getNumVerses ):
         for V in range( 1, getNumVerses(BBB,C)+1 ):
             bookText += '\\v {} \n'.format( V )
     return bookText
-# end of BiblelatorHelpers.createEmptyUSFMBook
+# end of BiblelatorHelpers.createEmptyUSFMBookText
+
+
+
+def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
+    """
+    Give it the functions for getting the number of chapters and number of verses
+    Returns the total number of verses in the book
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("calculateTotalVersesForBook( {} )").format( BBB ) )
+    totalVerses = 0
+    for C in range( 1, getNumChapters(BBB)+1 ):
+        totalVerses += getNumVerses( BBB, C )
+    return totalVerses
+# end of BiblelatorHelpers.calculateTotalVersesForBook
 
 
 
@@ -95,7 +111,7 @@ def mapReferenceVerseKey( mainVerseKey ):
     Returns None if we don't have a mapping.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( ex("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+        print( exp("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
     referenceVerseKeyDict = {
         SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
         SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
@@ -114,7 +130,7 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
     Returns None if we don't have a mapping.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( ex("mapParallelVerseKey( {}, {} )").format( forGroupCode, mainVerseKey.getShortText() ) )
+        print( exp("mapParallelVerseKey( {}, {} )").format( forGroupCode, mainVerseKey.getShortText() ) )
     groupIndex = BIBLE_GROUP_CODES.index( forGroupCode ) - 1
     parallelVerseKeyDict = {
         SimpleVerseKey('MAT','3','13'): (SimpleVerseKey('MRK','1','9'), SimpleVerseKey('LUK','3','21'), SimpleVerseKey('JHN','1','31') )
@@ -136,7 +152,7 @@ def mapReferencesVerseKey( mainVerseKey ):
     """
     global loadedReferences
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( ex("mapReferencesVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+        print( exp("mapReferencesVerseKey( {} )").format( mainVerseKey.getShortText() ) )
     if loadedReferences is None:
         loadedReferences = BibleReferencesLinks()
         loadedReferences.loadData()
@@ -171,7 +187,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

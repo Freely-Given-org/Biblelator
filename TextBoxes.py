@@ -5,7 +5,7 @@
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2014 Robert Hunt
+# Copyright (C) 2013-2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2014-12-10'
+LastModifiedDate = '2016-01-25' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.27'
+ProgVersion = '0.29'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -47,15 +47,15 @@ import tkinter as tk
 from BiblelatorGlobals import APP_NAME, START, DEFAULT
 
 # BibleOrgSys imports
-sourceFolder = "../BibleOrgSys/"
-sys.path.append( sourceFolder )
+sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from BibleStylesheets import DEFAULT_FONTNAME
 
 
 
-def t( messageString ):
+def exp( messageString ):
     """
+    Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
         if we are in debug mode.
     Returns the new string.
@@ -65,6 +65,7 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
+# end of exp
 
 
 

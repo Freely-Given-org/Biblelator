@@ -5,7 +5,7 @@
 #
 # Main program for Biblelator Bible display/editing
 #
-# Copyright (C) 2014 Robert Hunt
+# Copyright (C) 2014-2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,12 +28,12 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = "2014-11-23"
+LastModifiedDate = '2016-01-25' # by RJH
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = "0.26"
-ProgNameVersion = "{} v{}".format( ProgName, ProgVersion )
-ProgNameVersionDate = "{} {} {}".format( ProgNameVersion, _("last modified"), LastModifiedDate )
+ProgVersion = '0.29'
+ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
+ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
@@ -46,23 +46,24 @@ from tkinter.ttk import Button
 
 from BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE, parseWindowSize, centreWindowOnWindow
 
-sourceFolder = "../BibleOrgSys/"
-sys.path.append( sourceFolder )
+sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
 
-def t( messageString ):
-    """
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+#def exp( messageString ):
+    #"""
+    #Expands the message string in debug mode.
+    #Prepends the module name to a error or warning message string
+        #if we are in debug mode.
+    #Returns the new string.
+    #"""
+    #try: nameBit, errorBit = messageString.split( ': ', 1 )
+    #except ValueError: nameBit, errorBit = '', messageString
+    #if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+        #nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
+    #return '{}{}'.format( nameBit, _(errorBit) )
+## end of exp
 
 
 

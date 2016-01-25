@@ -5,7 +5,7 @@
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2015 Robert Hunt
+# Copyright (C) 2014-2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,10 +32,10 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2015-02-08' # by RJH
+LastModifiedDate = '2016-01-25' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.28'
+ProgVersion = '0.29'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -57,8 +57,7 @@ from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResource
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 
 # BibleOrgSys imports
-sourceFolder = "../BibleOrgSys/"
-sys.path.append( sourceFolder )
+sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 #from USFMFile import splitMarkerText
@@ -72,8 +71,9 @@ MAX_CACHED_VERSES = 30 # Per Bible resource window
 
 
 
-def t( messageString ):
+def exp( messageString ):
     """
+    Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
         if we are in debug mode.
     Returns the new string.
@@ -83,7 +83,7 @@ def t( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, _(errorBit) )
-# end of BibleResourceCollection.t
+# end of exp
 
 
 
@@ -92,7 +92,7 @@ class BibleResourceBox( Frame, BibleBox ):
     The superclass must provide a getContextVerseData function.
     """
     def __init__( self, parentWindow, boxType, moduleID ):
-        if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceBox.__init__( {}, {}, {} )").format( parentWindow, boxType, moduleID ) )
+        if BibleOrgSysGlobals.debugFlag: print( exp("BibleResourceBox.__init__( {}, {}, {} )").format( parentWindow, boxType, moduleID ) )
         self.parentWindow, self.boxType, self.moduleID = parentWindow, boxType, moduleID
         self.parentApp = self.parentWindow.parentApp
         Frame.__init__( self, parentWindow )
@@ -168,7 +168,7 @@ class BibleResourceBox( Frame, BibleBox ):
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("BibleResourceBox.createStandardKeyboardBindings()") )
+            print( exp("BibleResourceBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doFind), ('Refind',self.doRefind),
                              ('Info',self.doShowInfo), ('Close',self.doClose) ):
@@ -180,7 +180,7 @@ class BibleResourceBox( Frame, BibleBox ):
         """
 
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("BibleResourceBox.gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag: print( exp("BibleResourceBox.gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentWindow.gotoGroupBCV( self.groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -188,7 +188,7 @@ class BibleResourceBox( Frame, BibleBox ):
 
 
     def getSwordVerseKey( self, verseKey ):
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getSwordVerseKey( {} )").format( verseKey ) )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getSwordVerseKey( {} )").format( verseKey ) )
             BBB, C, V = verseKey.getBCV()
             return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceBox.getSwordVerseKey
@@ -202,10 +202,10 @@ class BibleResourceBox( Frame, BibleBox ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("getCachedVerseData( {} )").format( verseKey ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getCachedVerseData( {} )").format( verseKey ) )
         verseKeyHash = verseKey.makeHash()
         if verseKeyHash in self.verseCache:
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + t("Retrieved from BibleResourceBox cache") )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + exp("Retrieved from BibleResourceBox cache") )
             self.verseCache.move_to_end( verseKeyHash )
             return self.verseCache[verseKeyHash]
         verseContextData = self.getContextVerseData( verseKey )
@@ -225,8 +225,8 @@ class BibleResourceBox( Frame, BibleBox ):
             and adds the CV marks at the same time for navigation.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( t("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
-            #except UnicodeEncodeError: print( t("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+            #try: print( exp("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
+            #except UnicodeEncodeError: print( exp("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
         BBB, C, V = verseKey.getBCV()
         markName = 'C{}V{}'.format( C, V )
@@ -251,7 +251,7 @@ class BibleResourceBox( Frame, BibleBox ):
             haveTextFlag = True
 
         if verseDataList is None:
-            if C!='0': print( "  ", t("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
         elif self.viewMode == DEFAULT:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
@@ -320,7 +320,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
                     haveTextFlag = True
                 else:
-                    logging.critical( t("BibleResourceBox.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
+                    logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
             if self.contextViewMode == 'ByVerse' and endMarkers:
                 print( "endMarkers", endMarkers )
                 self.textBox.insert( tk.END, " End context:", 'contextHeader' )
@@ -331,7 +331,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     firstMarker = False
                 self.textBox.insert( tk.END, contextString, 'context' )
         else:
-            logging.critical( t("BibleResourceBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+            logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
     # end of BibleResourceBox.displayAppendVerse
 
 
@@ -340,7 +340,7 @@ class BibleResourceBox( Frame, BibleBox ):
         Returns the requested verse, the previous verse, and the next n verses.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("BibleResourceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            print( exp("BibleResourceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
 
         BBB, C, V = newVerseKey.getBCV()
@@ -357,7 +357,7 @@ class BibleResourceBox( Frame, BibleBox ):
                 try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
                 except KeyError:
                     if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( t("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                        logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
                     failed = True
                 #if not failed:
                     #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
@@ -400,7 +400,7 @@ class BibleResourceBox( Frame, BibleBox ):
         Called to set the current verse key.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("BibleResourceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
+            print( exp("BibleResourceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
             self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
             assert( isinstance( newVerseKey, SimpleVerseKey ) )
         self.currentVerseKey = newVerseKey
@@ -434,7 +434,7 @@ class BibleResourceBox( Frame, BibleBox ):
 
         # Safety-check in case they edited the settings file
         if 'DBP' in self.boxType and self.contextViewMode in ('ByBook','ByChapter',):
-            print( t("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
+            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
             self._viewRadioVar.set( 3 ) # ByVerse
             self.changeBibleContextView()
 
@@ -492,7 +492,7 @@ class BibleResourceBox( Frame, BibleBox ):
                 startingFlag = False
 
         else:
-            logging.critical( t("BibleResourceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+            logging.critical( exp("BibleResourceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
             if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
         self.textBox['state'] = tk.DISABLED # Don't allow editing
@@ -500,7 +500,7 @@ class BibleResourceBox( Frame, BibleBox ):
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
         try: self.textBox.see( desiredMark )
-        except tk.TclError: print( t("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
+        except tk.TclError: print( exp("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
         self.lastCVMark = desiredMark
     # end of BibleResourceBox.updateShownBCV
 
@@ -518,13 +518,13 @@ class BibleResourceBox( Frame, BibleBox ):
         """
         Called to finally and irreversibly remove this box from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceBox.closeResourceBox()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleResourceBox.closeResourceBox()") )
         if self in self.parentWindow.resourceBoxes:
             self.parentWindow.resourceBoxes.remove( self )
             self.destroy()
         else: # we might not have finished making our box yet
             if BibleOrgSysGlobals.debugFlag:
-                print( t("BibleResourceBox.closeResourceBox() for {} wasn't in list").format( self.winType ) )
+                print( exp("BibleResourceBox.closeResourceBox() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource box" )
@@ -543,7 +543,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
         self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
         if self.SwordModule is None:
-            logging.error( t("SwordBibleResourceBox.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
+            logging.error( exp("SwordBibleResourceBox.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
     # end of SwordBibleResourceBox.__init__
 
@@ -553,7 +553,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
         Fetches and returns the internal Bible data for the given reference.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( t("SwordBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
+            #print( exp("SwordBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
@@ -591,10 +591,10 @@ class DBPBibleResourceBox( BibleResourceBox ):
 
         try: self.DBPModule = DBPBible( self.moduleAbbreviation )
         except FileNotFoundError:
-            logging.error( t("DBPBibleResourceBox.__init__ Unable to find a key to connect to Digital Bible Platform") )
+            logging.error( exp("DBPBibleResourceBox.__init__ Unable to find a key to connect to Digital Bible Platform") )
             self.DBPModule = None
         except ConnectionError:
-            logging.error( t("DBPBibleResourceBox.__init__ Unable to connect to Digital Bible Platform") )
+            logging.error( exp("DBPBibleResourceBox.__init__ Unable to connect to Digital Bible Platform") )
             self.DBPModule = None
     # end of DBPBibleResourceBox.__init__
 
@@ -604,7 +604,7 @@ class DBPBibleResourceBox( BibleResourceBox ):
         Fetches and returns the internal Bible data for the given reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("DBPBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
+            print( exp("DBPBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
         if self.DBPModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 return self.DBPModule.getContextVerseData( verseKey )
@@ -628,7 +628,7 @@ class InternalBibleResourceBox( BibleResourceBox ):
 
         try: self.UnknownBible = UnknownBible( self.modulePath )
         except FileNotFoundError:
-            logging.error( t("InternalBibleResourceBox.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
+            logging.error( exp("InternalBibleResourceBox.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
             self.UnknownBible = None
         if self.UnknownBible:
             result = self.UnknownBible.search( autoLoadAlways=True )
@@ -647,11 +647,11 @@ class InternalBibleResourceBox( BibleResourceBox ):
         Fetches and returns the internal Bible data for the given reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("InternalBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
+            print( exp("InternalBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError:
-                logging.critical( t("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
+                logging.critical( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.boxType, verseKey ) )
     # end of InternalBibleResourceBox.getContextVerseData
 # end of InternalBibleResourceBox class
@@ -698,7 +698,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceBox.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleResourceBox.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
@@ -800,7 +800,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
     def doRename( self ):
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doRename()") )
+            print( exp("doRename()") )
             self.parentApp.setDebugText( "doRename..." )
         existingNames = []
         for cw in self.parentApp.childWindows:
@@ -819,7 +819,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         currentViewNumber = self._viewRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
+            print( exp("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
             assert( currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 ) )
         previousContextViewMode = self.contextViewMode
         if 'Bible' in self.genericWindowType:
@@ -846,7 +846,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         previousGroupCode = self.groupCode
         newGroupCode = self._groupRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
+            print( exp("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
             assert( newGroupCode in BIBLE_GROUP_CODES )
         assert( 'Bible' in self.genericWindowType )
         if 'Bible' in self.genericWindowType: # do we really need this test?
@@ -866,7 +866,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
+            print( exp("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoPreviousBook..." )
         newBBB = self.getPreviousBookCode( BBB )
         if newBBB is None: self.gotoBCV( BBB, '0', '0' )
@@ -883,7 +883,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextBook..." )
         newBBB = self.getNextBookCode( BBB )
         if newBBB is None: pass # stay just where we are
@@ -899,7 +899,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoPreviousChapter..." )
         intC, intV = int( C ), int( V )
         if intC > 0: self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
@@ -912,7 +912,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextChapter..." )
         intC = int( C )
         if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
@@ -925,7 +925,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoPreviousVerse..." )
         intC, intV = int( C ), int( V )
         if intV > 0: self.gotoBCV( BBB, C, intV-1 )
@@ -939,7 +939,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextVerse..." )
         intV = int( V )
         if intV < self.maxVerses: self.gotoBCV( BBB, C, intV+1 )
@@ -952,7 +952,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGoForward() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGoForward() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGoForward..." )
         self.notWrittenYet()
     # end of BibleResourceCollectionWindow.doGoForward
@@ -963,7 +963,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGoBackward..." )
         self.notWrittenYet()
     # end of BibleResourceCollectionWindow.doGoBackward
@@ -974,7 +974,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoPreviousListItem() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoPreviousListItem() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoPreviousListItem..." )
         self.notWrittenYet()
     # end of BibleResourceCollectionWindow.doGotoPreviousListItem
@@ -985,7 +985,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoNextListItem() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoNextListItem() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextListItem..." )
         self.notWrittenYet()
     # end of BibleResourceCollectionWindow.doGotoNextListItem
@@ -996,7 +996,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doGotoBook() from {} {}:{}").format( BBB, C, V ) )
+            print( exp("doGotoBook() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoBook..." )
         self.notWrittenYet()
     # end of BibleResourceCollectionWindow.doGotoBook
@@ -1009,7 +1009,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Requests a version name from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("doOpenDBPBibleResource()") )
+            print( exp("doOpenDBPBibleResource()") )
             self.parentApp.setDebugText( "doOpenDBPBibleResource..." )
         self.parentApp.setWaitStatus( "doOpenDBPBibleResource..." )
         if self.parentApp.DBPInterface is None:
@@ -1024,9 +1024,9 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
                         self.openDBPBibleResourceBox( entry[1] )
                     #self.acceptNewBnCV()
                     #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-                elif BibleOrgSysGlobals.debugFlag: print( t("doOpenDBPBibleResource: no resource selected!") )
+                elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenDBPBibleResource: no resource selected!") )
             else:
-                logging.critical( t("doOpenDBPBibleResource: no volumes available") )
+                logging.critical( exp("doOpenDBPBibleResource: no volumes available") )
                 self.parentApp.setStatus( "Digital Bible Platform unavailable (offline?)" )
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished doOpenDBPBibleResource" )
     # end of BibleResourceCollectionWindow.doOpenDBPBibleResource
@@ -1038,14 +1038,14 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Returns the new DBPBibleResourceBox object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("openDBPBibleResourceBox()") )
+            print( exp("openDBPBibleResourceBox()") )
             self.parentApp.setDebugText( "openDBPBibleResourceBox..." )
             assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
         #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         dBRB = DBPBibleResourceBox( self, moduleAbbreviation )
         if windowGeometry: halt; dBRB.geometry( windowGeometry )
         if dBRB.DBPModule is None:
-            logging.critical( t("Application.openDBPBibleResourceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
+            logging.critical( exp("Application.openDBPBibleResourceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRB.destroy()
             showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleResourceBox" )
@@ -1067,13 +1067,13 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Requests a module abbreviation from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("openSwordResource()") )
+            print( exp("openSwordResource()") )
             self.parentApp.setDebugText( "doOpenSwordResource..." )
         self.parentApp.setStatus( "doOpenSwordResource..." )
         if self.parentApp.SwordInterface is None and SwordType is not None:
             self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
         if self.parentApp.SwordInterface is None: # still
-            logging.critical( t("doOpenSwordResource: no Sword interface available") )
+            logging.critical( exp("doOpenSwordResource: no Sword interface available") )
             showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
         availableModules = self.parentApp.SwordInterface.library
@@ -1091,9 +1091,9 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
                     self.openSwordBibleResourceBox( entry )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-            elif BibleOrgSysGlobals.debugFlag: print( t("doOpenSwordResource: no resource selected!") )
+            elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResource: no resource selected!") )
         else:
-            logging.critical( t("doOpenSwordResource: no list available") )
+            logging.critical( exp("doOpenSwordResource: no list available") )
             showerror( self, APP_NAME, _("No Sword resources discovered") )
         #self.acceptNewBnCV()
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
@@ -1106,7 +1106,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Returns the new SwordBibleResourceBox object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("openSwordBibleResourceBox()") )
+            print( exp("openSwordBibleResourceBox()") )
             self.parentApp.setDebugText( "openSwordBibleResourceBox..." )
         if self.parentApp.SwordInterface is None:
             self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
@@ -1128,7 +1128,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Requests a folder from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("openInternalBibleResource()") )
+            print( exp("openInternalBibleResource()") )
             self.parentApp.setDebugText( "doOpenInternalBibleResource..." )
         self.parentApp.setStatus( "doOpenInternalBibleResource..." )
         #requestedFolder = askdirectory()
@@ -1148,13 +1148,13 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         Returns the new InternalBibleResourceBox object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( t("openInternalBibleResourceBox()") )
+            print( exp("openInternalBibleResourceBox()") )
             self.parentApp.setDebugText( "openInternalBibleResourceBox..." )
         #tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         iBRB = InternalBibleResourceBox( self, modulePath )
         if windowGeometry: halt; iBRB.geometry( windowGeometry )
         if iBRB.internalBible is None:
-            logging.critical( t("Application.openInternalBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
+            logging.critical( exp("Application.openInternalBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
             iBRB.destroy()
             showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleResourceBox" )
@@ -1209,7 +1209,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceCollectionWindow.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleResourceCollectionWindow.doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -1225,7 +1225,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("BibleResourceCollectionWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleResourceCollectionWindow.doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -1244,7 +1244,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
