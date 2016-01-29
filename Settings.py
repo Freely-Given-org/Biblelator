@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-09' # by RJH
+LastModifiedDate = '2016-01-29' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
 ProgVersion = '0.29'
@@ -48,7 +48,7 @@ import BibleOrgSysGlobals
 
 
 
-def ex( messageString ):
+def exp( messageString ):
     """
     Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
@@ -59,8 +59,8 @@ def ex( messageString ):
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
-# end of ex
+    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+# end of exp
 
 
 
@@ -108,7 +108,7 @@ class Settings:
         """
         Load the settings file (if we found it).
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ApplicationSettings.load()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ApplicationSettings.load()") )
         self.reset() # Creates self.data
         assert( self.data )
         if self.settingsFilepath and os.path.isfile( self.settingsFilepath ) and os.access( self.settingsFilepath, os.R_OK ):
@@ -124,7 +124,7 @@ class Settings:
         Save all of the program settings to disk.
             They must have already been saved into self.data.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("ApplicationSettings.save()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ApplicationSettings.save()") )
         assert( self.data )
         assert( self.settingsFilepath )
         with open( self.settingsFilepath, 'wt') as settingsFile: # It may or may not have previously existed
@@ -140,7 +140,7 @@ class ApplicationSettings( Settings ):
         Try to find where the settings file might be (if anywhere).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ApplicationSettings.__init__( {}, {}, {}, {} )").format( repr(homeFolderName), repr(dataFolderName), repr(settingsFolderName), repr(settingsFilename) ) )
+            print( exp("ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )").format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
         self.objectNameString = "Application Settings object"
         self.objectTypeString = "ApplicationSettings"
@@ -153,29 +153,29 @@ class ApplicationSettings( Settings ):
         if os.path.isdir( ourFolderPath1 ) and os.access( ourFolderPath1, os.W_OK ):
             self.dataFolderPath = ourFolderPath1
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( ex("Found dataFolderPath = "), self.dataFolderPath )
+                print( exp("Found dataFolderPath = "), self.dataFolderPath )
             ourFolderPath2 = os.path.join( self.dataFolderPath, settingsFolderName )
             if os.path.isdir( ourFolderPath2 ) and os.access( ourFolderPath2, os.W_OK ):
                 self.settingsFolder = ourFolderPath2
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( ex("Found settingsFolder = "), self.settingsFolder )
+                    print( exp("Found settingsFolder = "), self.settingsFolder )
                 ourFilepath = os.path.join( ourFolderPath2, self.settingsFilename )
                 if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
                     self.settingsFilepath = ourFilepath
                     if BibleOrgSysGlobals.verbosityLevel > 2 or BibleOrgSysGlobals.debugFlag:
-                        print( ex("Found settingsFilepath = "), self.settingsFilepath )
+                        print( exp("Found settingsFilepath = "), self.settingsFilepath )
 
         # Create new data and settings folders if necessary
         if not self.dataFolderPath:
-            logging.info( ex("No data folder found") )
+            logging.info( exp("No data folder found") )
             if os.path.isdir( homeFolderName ) and os.access( homeFolderName, os.W_OK ):
-                logging.info( ex("Creating our data folder in {}").format( repr(homeFolderName) ) )
+                logging.info( exp("Creating our data folder in {!r}").format( homeFolderName ) )
                 self.dataFolderPath = os.path.join( homeFolderName, dataFolderName )
                 os.mkdir( self.dataFolderPath )
         if not self.settingsFolder:
-            logging.info( ex("No settings folder found") )
+            logging.info( exp("No settings folder found") )
             if os.path.isdir( self.dataFolderPath ) and os.access( self.dataFolderPath, os.W_OK ):
-                logging.info( ex("Creating our settings folder in {}").format( repr(self.dataFolderPath) ) )
+                logging.info( exp("Creating our settings folder in {!r}").format( self.dataFolderPath ) )
                 self.settingsFolder = os.path.join( self.dataFolderPath, settingsFolderName )
                 os.mkdir( self.settingsFolder )
         if not self.settingsFilepath:
@@ -191,7 +191,7 @@ class ProjectSettings( Settings ):
         Try to find where the settings file might be (if anywhere).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ProjectSettings.__init__( {} )").format( repr(projectFolderPath) ) )
+            print( exp("ProjectSettings.__init__( {!r} )").format( projectFolderPath ) )
         self.projectFolderPath = projectFolderPath
         self.objectNameString = "Project Settings object"
         self.objectTypeString = "ProjectSettings"
@@ -200,7 +200,7 @@ class ProjectSettings( Settings ):
 
         self.settingsFilepath = os.path.join( projectFolderPath, self.settingsFilename )
         if not os.path.isdir( self.projectFolderPath ):
-            logging.critical( ex("Project folder {} doesn't exist -- try creating it!").format( self.projectFolderPath ) )
+            logging.critical( exp("Project folder {} doesn't exist -- try creating it!").format( self.projectFolderPath ) )
             os.mkdir( self.projectFolderPath )
         self.containingFolderPath, self.folderName = os.path.split( self.projectFolderPath )
     # end of ProjectSettings.__init__
@@ -210,7 +210,7 @@ class ProjectSettings( Settings ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ProjectSettings.saveNameAndAbbreviation( {}, {} )").format( repr(projectName), repr(projectAbbreviation) ) )
+            print( exp("ProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )").format( projectName, projectAbbreviation ) )
             assert( self.data is None )
 
         self.reset() # Create new settings in self.data
@@ -222,21 +222,36 @@ class ProjectSettings( Settings ):
     # end of ProjectSettings.saveNameAndAbbreviation
 
 
+    def saveNewBookSettings( self, detailsDict ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ProjectSettings.saveNewBookSettings( {} )").format( detailsDict ) )
+            assert( self.data is not None )
+
+        self.data['NewBooks'] = {}
+        newBooks = self.data['NewBooks']
+        for someKey,someValue in detailsDict.items():
+            newBooks[someKey] = someValue
+        self.save() # Write the added data
+    # end of ProjectSettings.saveNewBookSettings
+
+
     def loadUSFMMetadataInto( self, theUSFMBible ):
         """
         Using metadata from the project settings file,
             load the information into the given USFMBible object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( ex("ProjectSettings.loadUSFMMetadataInto( {} )").format( theUSFMBible ) )
+            print( exp("ProjectSettings.loadUSFMMetadataInto( {} )").format( theUSFMBible ) )
 
         self.load() # Load the project settings into self.data
 
         main = self.data['Project']
         try: theUSFMBible.name = main['Name']
-        except KeyError: logging.critical( "Missing {} field in {} project settings".format( "'Name'", repr(self.folderName) ) )
+        except KeyError: logging.critical( "Missing {} field in {!r} project settings".format( "'Name'", self.folderName ) )
         try: theUSFMBible.abbreviation = main['Abbreviation']
-        except KeyError: logging.critical( "Missing {} field in {} project settings".format( "'Abbreviation'", repr(self.folderName) ) )
+        except KeyError: logging.critical( "Missing {} field in {!r} project settings".format( "'Abbreviation'", self.folderName ) )
     # end of ProjectSettings.loadUSFMMetadataInto
 # end of class ProjectSettings
 
@@ -251,7 +266,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    print( ex("Running {} demo...").format( ProgName ) )
+    print( exp("Running {} demo...").format( ProgName ) )
 
     tkRootWindow = Tk()
     # Calls to the window manager class (wm in Tk)

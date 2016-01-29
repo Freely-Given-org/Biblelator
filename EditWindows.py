@@ -1434,6 +1434,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
 
             elif self.contextViewMode == 'ByBook':
                 print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
+                self.bookTextBefore = self.bookTextAfter = ''
                 BBB, C, V = newVerseKey.getBCV()
                 intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):

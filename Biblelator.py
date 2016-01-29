@@ -1111,7 +1111,7 @@ class Application( Frame ):
             self.setDebugText( "doOpenInternalBibleResource..." )
         self.setStatus( "doOpenInternalBibleResource..." )
         #requestedFolder = askdirectory()
-        openDialog = Directory( initialdir=self.lastInternalBibleDir )
+        openDialog = Directory( title=_("Select Bible folder"), initialdir=self.lastInternalBibleDir )
         requestedFolder = openDialog.show()
         if requestedFolder:
             self.lastInternalBibleDir = requestedFolder
@@ -1376,7 +1376,8 @@ class Application( Frame ):
             projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
             newFolderPath = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME, projAbbrev )
             if os.path.isdir( newFolderPath ):
-                showerror( self, _("New Project"), _("Sorry, we already have a {} project folder").format( projAbbrev ) )
+                showerror( self, _("New Project"), _("Sorry, we already have a {!r} project folder in {}") \
+                                            .format( projAbbrev, os.path.join( self.homeFolderPath, DATA_FOLDER_NAME ) ) )
                 return None
             os.mkdir( newFolderPath )
 
@@ -1406,6 +1407,7 @@ class Application( Frame ):
             uEW.setFolderPath( newFolderPath )
             uEW.settings = ProjectSettings( newFolderPath )
             uEW.settings.saveNameAndAbbreviation( projName, projAbbrev )
+            if cnpf.result: uEW.settings.saveNewBookSettings( cnpf.result )
             uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
             self.childWindows.append( uEW )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doStartNewProject" )
