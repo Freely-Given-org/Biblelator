@@ -23,12 +23,16 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow editing of USFM Bibles using Python3 and Tkinter.
+    createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses )
+    createEmptyUSFMBooks( folderPath, BBB, availableVersifications, availableVersions, requestDict )
+    calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses )
+    mapReferenceVerseKey( mainVerseKey )
+    mapParallelVerseKey( forGroupCode, mainVerseKey )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-01-29' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.29'
@@ -38,7 +42,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys
+import sys, os.path
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
@@ -62,7 +66,7 @@ def exp( messageString ):
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
 # end of exp
 
 
@@ -86,6 +90,115 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
             bookText += '\\v {} \n'.format( V )
     return bookText
 # end of BiblelatorHelpers.createEmptyUSFMBookText
+
+
+
+def createEmptyUSFMBooks( folderPath, currentBBB, requestDict ):
+    """
+    Create empty USFM books or CV shells in the given folderPath
+        as requested by the dictionary parameters:
+            Books: 'OT'
+            Fill: 'Versification'
+            Versification: 'KJV'
+            Version: 'KJV1611'
+    """
+    from BibleVersificationSystems import BibleVersificationSystem
+    from InternalBible import OT39_BOOKLIST, NT27_BOOKLIST
+    from InternalBibleInternals import BOS_ALL_ADDED_MARKERS
+    from USFMBible import USFMBible
+
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("createEmptyUSFMBooks( {}, {}, {} )").format( folderPath, currentBBB, requestDict ) )
+
+
+    versificationObject = BibleVersificationSystem( requestDict['Versification'] ) \
+                            if requestDict['Fill']=='Versification' else None
+    print( 'versificationObject', versificationObject )
+    if versificationObject is not None:
+        getNumChapters, getNumVerses = versificationObject.getNumChapters, versificationObject.getNumVerses
+
+    if requestDict['Fill'] == 'Version':
+        #ALL_CHAR_MARKERS = BibleOrgSysGlobals.USFMMarkers.getCharacterMarkersList( expandNumberableMarkers=True )
+        uB = USFMBible( requestDict['Version'] ) # Get the Bible object
+        print( "Fill Bible1", uB )
+        uB.preload()
+        print( "Fill Bible2", uB )
+        #uB.loadBooks()
+        #print( "Fill Bible3", uB )
+
+    if requestDict['Books'] == 'None': booklist = []
+    elif requestDict['Books'] == 'Current': booklist = [ currentBBB ]
+    elif requestDict['Books'] == 'All': booklist = OT39_BOOKLIST + NT27_BOOKLIST
+    elif requestDict['Books'] == 'OT': booklist = OT39_BOOKLIST
+    elif requestDict['Books'] == 'NT': booklist = NT27_BOOKLIST
+    else: halt # programming error
+
+    count = 0
+    skippedBooklist = []
+    for BBB in booklist:
+        if requestDict['Fill'] == 'Versification' \
+        and versificationObject is not None \
+        and BBB not in versificationObject:
+            skippedBooklist.append( BBB )
+            continue
+        #if requestDict['Fill'] == 'Version' \
+        #and uB is not None \
+        #and BBB not in uB:
+            #skippedBooklist.append( BBB )
+            #continue
+
+        USFMAbbreviation = BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation( BBB )
+        USFMNumber = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber( BBB )
+
+        if requestDict['Fill'] == 'None': bookText = ''
+        elif requestDict['Fill'] == 'Basic':
+            bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME_VERSION )
+            bookText += '\\ide UTF-8\n'
+            bookText += '\\h Bookname\n'
+            bookText += '\\mt Book Title\n'
+            bookText += '\\c 1\n'
+        elif requestDict['Fill'] == 'Versification':
+            bookText = createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses )
+        elif requestDict['Fill'] == 'Version':
+            try: uB.loadBook( BBB )
+            except FileNotFoundError:
+                skippedBooklist.append( BBB )
+                continue
+            uBB = uB[BBB] # Get the Bible book object
+            bookText = ''
+            for verseDataEntry in uBB._processedLines:
+                pseudoMarker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
+                #print( BBB, pseudoMarker, repr(cleanText) )
+                if '¬' in pseudoMarker or pseudoMarker in BOS_ALL_ADDED_MARKERS or pseudoMarker in ('c#','vp#',):
+                    continue # Just ignore added markers -- not needed here
+                #if pseudoMarker in ('v','f','fr','x','xo',): # These fields should always end with a space but the processing will have removed them
+                    #pseudoMarker += ' ' # Append a space since it didn't have one
+                #if pseudoMarker in ALL_CHAR_MARKERS: # Character markers to be closed
+                    #print( "CHAR MARKER" )
+                    #pass
+                    ##if (USFM[-2]=='\\' or USFM[-3]=='\\') and USFM[-1]!=' ':
+                    #if bookText[-1] != ' ':
+                        #bookText += ' ' # Separate markers by a space e.g., \p\bk Revelation
+                        #if BibleOrgSysGlobals.debugFlag: print( "toUSFM: Added space to {!r} before {!r}".format( bookText[-2], pseudoMarker ) )
+                    #adjValue += '\\{}*'.format( pseudoMarker ) # Do a close marker
+                #elif pseudoMarker in ('f','x',): inField = pseudoMarker # Remember these so we can close them later
+                #elif pseudoMarker in ('fr','fq','ft','xo',): USFM += ' ' # These go on the same line just separated by spaces and don't get closed
+                if bookText: bookText += '\n' # paragraph markers go on a new line
+                if not cleanText: bookText += '\\{}'.format( pseudoMarker )
+                elif pseudoMarker == 'c': bookText += '\\c {}'.format( cleanText )
+                elif pseudoMarker == 'v': bookText += '\\v {} '.format( cleanText )
+                else: bookText += '\\{} '.format( pseudoMarker )
+                #print( pseudoMarker, USFM[-200:] )
+        else: halt # programming error
+
+        # Write the actual file
+        filename = '{}-{}.USFM'.format( USFMNumber, USFMAbbreviation )
+        with open( os.path.join( folderPath, filename ), mode='wt' ) as theFile:
+            theFile.write( bookText )
+        count += 1
+    print( len(skippedBooklist), "books skipped:", skippedBooklist ) # Should warn the user here
+    print( count, "books created" )
+# end of BiblelatorHelpers.createEmptyUSFMBooks
 
 
 

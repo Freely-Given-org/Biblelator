@@ -36,6 +36,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class DeleteWindowNameDialog( ModalDialog )
     class SelectResourceBoxDialog( ModalDialog )
     class GetNewProjectNameDialog( ModalDialog )
+    class CreateNewProjectFilesDialog( ModalDialog )
     class GetNewCollectionNameDialog( ModalDialog )
     class RenameResourceCollectionDialog( ModalDialog )
     class GetBibleBookRangeDialog( ModalDialog )
@@ -43,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-09'
+LastModifiedDate = '2016-01-29'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.29'
@@ -57,7 +58,7 @@ import sys, logging
 
 import tkinter as tk
 import tkinter.messagebox as tkmb
-from tkinter.ttk import Label, Combobox, Entry
+from tkinter.ttk import Label, Combobox, Entry, Radiobutton
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME
@@ -70,7 +71,7 @@ import BibleOrgSysGlobals
 
 
 
-def ex( messageString ):
+def exp( messageString ):
     """
     Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
@@ -81,15 +82,15 @@ def ex( messageString ):
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
-# end of ex
+    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+# end of exp
 
 
 
 def errorBeep():
     """
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( ex("errorBeep()") )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("errorBeep()") )
     #import sys
     #from subprocess import call
     #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
@@ -101,7 +102,7 @@ def errorBeep():
 def showerror( parent, title, errorText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( ex("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
+    if BibleOrgSysGlobals.debugFlag: print( exp("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
     logging.error( '{}: {}'.format( title, errorText ) )
     parent.parentApp.setStatus( _("Waiting for user input after error...") )
     tkmb.showerror( title, errorText )
@@ -112,7 +113,7 @@ def showerror( parent, title, errorText ):
 def showwarning( parent, title, warningText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( ex("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
+    if BibleOrgSysGlobals.debugFlag: print( exp("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
     logging.warning( '{}: {}'.format( title, warningText ) )
     parent.parentApp.setStatus( _("Waiting for user input after warning...") )
     tkmb.showwarning( title, warningText )
@@ -123,7 +124,7 @@ def showwarning( parent, title, warningText ):
 def showinfo( parent, title, infoText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( ex("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
+    if BibleOrgSysGlobals.debugFlag: print( exp("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
     logging.info( '{}: {}'.format( title, infoText ) )
     parent.parentApp.setStatus( _("Waiting for user input after info...") )
     tkmb.showinfo( title, infoText )
@@ -229,7 +230,7 @@ class SaveWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        print( ex("New window set-up name is: {}").format( repr(self.result) ) )
+        print( exp("New window set-up name is: {}").format( repr(self.result) ) )
     # end of SaveWindowNameDialog.apply
 # end of class SaveWindowNameDialog
 
@@ -273,7 +274,7 @@ class DeleteWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        print( ex("Requested window set-up name is: {}").format( repr(self.result) ) )
+        print( exp("Requested window set-up name is: {}").format( repr(self.result) ) )
     # end of DeleteWindowNameDialog.apply
 # end of class DeleteWindowNameDialog
 
@@ -327,7 +328,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         items = self.lb.curselection()
         print( "items", repr(items) ) # a tuple
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
-        print( ex("Requested resource(s) is/are: {}").format( repr(self.result) ) )
+        print( exp("Requested resource(s) is/are: {}").format( repr(self.result) ) )
     # end of SelectResourceBoxDialog.apply
 # end of class SelectResourceBoxDialog
 
@@ -335,6 +336,7 @@ class SelectResourceBoxDialog( ModalDialog ):
 
 class GetNewProjectNameDialog( ModalDialog ):
     """
+    Get the name and an abbreviation for a new Biblelator project.
     """
     def __init__( self, parent, title ):
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewProjectNameDialog..." )
@@ -368,15 +370,15 @@ class GetNewProjectNameDialog( ModalDialog ):
         lenF = len( fullname )
         abbreviation = self.e2.get()
         lenA = len( abbreviation )
-        if lenF < 3: showwarning( self, APP_NAME, _("Full name is too short!") ); return False
-        if lenF > 30: showwarning( self, APP_NAME, _("Full name is too long!") ); return False
-        if lenA < 3: showwarning( self, APP_NAME, _("Abbreviation is too short!") ); return False
-        if lenA > 8: showwarning( self, APP_NAME, _("Abbreviation is too long!") ); return False
-        if ' ' in abbreviation: showwarning( self, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
-        if '.' in abbreviation: showwarning( self, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
+        if lenF < 3: showwarning( self.parent, APP_NAME, _("Full name is too short!") ); return False
+        if lenF > 30: showwarning( self.parent, APP_NAME, _("Full name is too long!") ); return False
+        if lenA < 3: showwarning( self.parent, APP_NAME, _("Abbreviation is too short!") ); return False
+        if lenA > 8: showwarning( self.parent, APP_NAME, _("Abbreviation is too long!") ); return False
+        if ' ' in abbreviation: showwarning( self.parent, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
+        if '.' in abbreviation: showwarning( self.parent, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
         for illegalChar in ':;"@#=/\\{}':
             if illegalChar in fullname or illegalChar in abbreviation:
-                showwarning( self, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showwarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         return True
     # end of GetNewProjectNameDialog.validate
 
@@ -388,9 +390,107 @@ class GetNewProjectNameDialog( ModalDialog ):
         """
         fullname = self.e1.get()
         abbreviation = self.e2.get()
-        self.result = {'Name':fullname, 'Abbreviation':abbreviation}
+        self.result = { 'Name':fullname, 'Abbreviation':abbreviation }
     # end of GetNewProjectNameDialog.apply
 # end of class GetNewProjectNameDialog
+
+
+
+class CreateNewProjectFilesDialog( ModalDialog ):
+    """
+    File if they want blank files created for a new Biblelator project.
+    """
+    def __init__( self, parent, title, currentBBB, availableVersifications ): #, availableVersions ):
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "CreateNewProjectFilesDialog..." )
+        #self.currentBBB, self.availableVersifications, self.availableVersions = currentBBB, availableVersifications, availableVersions
+        self.currentBBB, self.availableVersifications = currentBBB, availableVersifications
+        ModalDialog.__init__( self, parent, title )
+    # end of CreateNewProjectFilesDialog.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        Label( master, text=_("Create book files:") ).grid( row=0 )
+        self.selectVariable1 = tk.IntVar()
+
+        self.rb1a = Radiobutton( master, text=_("Current book ({})").format( self.currentBBB ), variable=self.selectVariable1, value=1 )
+        self.rb1a.grid( row=0, column=1, sticky=tk.W )
+        self.rb1b = Radiobutton( master, text=_("All books"), variable=self.selectVariable1, value=2 )
+        self.rb1b.grid( row=1, column=1, sticky=tk.W )
+        self.rb1c = Radiobutton( master, text=_("OT books"), variable=self.selectVariable1, value=3 )
+        self.rb1c.grid( row=2, column=1, sticky=tk.W )
+        self.rb1d = Radiobutton( master, text=_("NT books"), variable=self.selectVariable1, value=4 )
+        self.rb1d.grid( row=3, column=1, sticky=tk.W )
+        self.rb1e = Radiobutton( master, text=_("No books (not advised)"), variable=self.selectVariable1, value=5 )
+        self.rb1e.grid( row=4, column=1, sticky=tk.W )
+
+        Label( master, text=_("Files will contain:") ).grid( row=6, sticky=tk.W )
+        self.selectVariable2 = tk.IntVar()
+
+        self.rb2a = Radiobutton( master, text=_("CV markers from versification"), variable=self.selectVariable2, value=1,
+                                state = tk.NORMAL if self.availableVersifications else tk.DISABLED )
+        self.rb2a.grid( row=7, column=0, sticky=tk.W )
+        self.rb2b = Radiobutton( master, text=_("All markers from a USFM version"), variable=self.selectVariable2, value=2 )
+                                #state = tk.NORMAL if self.availableVersions else tk.DISABLED )
+        self.rb2b.grid( row=8, column=0, sticky=tk.W )
+        self.rb2c = Radiobutton( master, text=_("Only basic header lines (not advised)"), variable=self.selectVariable2, value=3 )
+        self.rb2c.grid( row=9, column=0, sticky=tk.W )
+        self.rb2d = Radiobutton( master, text=_("Nothing at all (not advised)"), variable=self.selectVariable2, value=4 )
+        self.rb2d.grid( row=10, column=0, sticky=tk.W )
+
+        #cb1Values = ["test1a","test1b","test1c"]
+        self.cb1 = Combobox( master, values=self.availableVersifications,
+                                state = 'readonly' if self.availableVersifications else tk.DISABLED )
+        #self.cb.current( 0 )
+        self.cb1.grid( row=7, column=1 )
+
+        ##cb2Values = ["test2a","test2b","test2c"]
+        #self.cb2 = Combobox( master, values=self.availableVersions,
+                                #state = 'readonly' if self.availableVersions else tk.DISABLED )
+        ##self.cb.current( 0 )
+        #self.cb2.grid( row=8, column=1 )
+
+        return self.rb1a # initial focus
+    # end of CreateNewProjectFilesDialog.apply
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+        """
+        result1Number, result2Number = self.selectVariable1.get(), self.selectVariable2.get() # ints
+        #cb1result, cb2result = self.cb1.get(), self.cb2.get() # strings
+        cb1result = self.cb1.get() # string
+
+        if result1Number<1 or result1Number>5 or result2Number<1 or result2Number>5: return False
+
+        if result2Number==1 and not cb1result:
+             showwarning( self.parent, APP_NAME, _("Need a versification scheme name!") ); return False
+        #if result2Number==2 and not cb2result:
+             #showwarning( self.parent, APP_NAME, _("Need a version name!") ); return False
+        return True
+    # end of CreateNewProjectFilesDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+        """
+        result1Number, result2Number = self.selectVariable1.get(), self.selectVariable2.get() # ints
+        #cb1result, cb2result = self.cb1.get(), self.cb2.get() # strings
+        cb1result = self.cb1.get() # string
+        bookResult = [None,'Current','All','OT','NT','None']
+        fillResult = [None,'Versification','Version','Basic','None']
+        self.result = { 'Books':bookResult[result1Number], 'Fill':fillResult[result2Number],
+                       #'Versification':cb1result, 'Version':cb2result }
+                       'Versification':cb1result }
+    # end of CreateNewProjectFilesDialog.apply
+# end of class CreateNewProjectFilesDialog
 
 
 
@@ -424,13 +524,13 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         name = self.e1.get()
         lenN = len( name )
-        if lenN < 3: showwarning( self, APP_NAME, _("Name is too short!") ); return False
-        if lenN > 30: showwarning( self, APP_NAME, _("Name is too long!") ); return False
+        if lenN < 3: showwarning( self.parent, APP_NAME, _("Name is too short!") ); return False
+        if lenN > 30: showwarning( self.parent, APP_NAME, _("Name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in name:
-                showwarning( self, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showwarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if name.upper() in self.existingNames:
-            showwarning( self, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showwarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of GetNewCollectionNameDialog.validate
 
@@ -479,13 +579,13 @@ class RenameResourceCollectionDialog( ModalDialog ):
         """
         newName = self.e1.get()
         lenName = len( newName )
-        if lenName < 3: showwarning( self, APP_NAME, _("New name is too short!") ); return False
-        if lenName > 30: showwarning( self, APP_NAME, _("New name is too long!") ); return False
+        if lenName < 3: showwarning( self.parent, APP_NAME, _("New name is too short!") ); return False
+        if lenName > 30: showwarning( self.parent, APP_NAME, _("New name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in newName:
-                showwarning( self, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showwarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if newName.upper() in self.existingNames:
-            showwarning( self, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showwarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of RenameResourceCollectionDialog.validate
 
@@ -520,16 +620,16 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         self.selectVariable = tk.IntVar()
 
-        self.rb1 = tk.Radiobutton( master, text=_("Current book")+" ({})".format( self.currentBBB ), variable=self.selectVariable, value=1 )
+        self.rb1 = Radiobutton( master, text=_("Current book")+" ({})".format( self.currentBBB ), variable=self.selectVariable, value=1 )
         self.rb1.grid( row=0, column=0, sticky=tk.W )
         allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
-        self.rb2 = tk.Radiobutton( master, text=allText, variable=self.selectVariable, value=2 )
+        self.rb2 = Radiobutton( master, text=allText, variable=self.selectVariable, value=2 )
         self.rb2.grid( row=1, column=0, sticky=tk.W )
-        self.rb3 = tk.Radiobutton( master, text=_("OT books"), variable=self.selectVariable, value=3 )
+        self.rb3 = Radiobutton( master, text=_("OT books"), variable=self.selectVariable, value=3 )
         self.rb3.grid( row=2, column=0, sticky=tk.W )
-        self.rb4 = tk.Radiobutton( master, text=_("NT books"), variable=self.selectVariable, value=4 )
+        self.rb4 = Radiobutton( master, text=_("NT books"), variable=self.selectVariable, value=4 )
         self.rb4.grid( row=3, column=0, sticky=tk.W )
-        self.rb5 = tk.Radiobutton( master, text=_("DC books"), variable=self.selectVariable, value=5 )
+        self.rb5 = Radiobutton( master, text=_("DC books"), variable=self.selectVariable, value=5 )
         self.rb5.grid( row=4, column=0, sticky=tk.W )
 
         return self.rb1 # initial focus
@@ -572,7 +672,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

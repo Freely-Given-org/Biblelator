@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-01-29' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.29'
@@ -56,8 +56,9 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME
         EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, parseWindowGeometry, parseWindowSize, assembleWindowGeometryFromList, assembleWindowSize, centreWindow
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
-        SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBoxDialog, GetNewProjectNameDialog, GetNewCollectionNameDialog
-from BiblelatorHelpers import mapReferencesVerseKey
+        SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBoxDialog, \
+        GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
 from Settings import ApplicationSettings, ProjectSettings
 from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
@@ -68,8 +69,10 @@ from EditWindows import TextEditWindow, USFMEditWindow, ESFMEditWindow
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
+print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
+from BibleVersificationSystems import BibleVersificationSystems
 from DigitalBiblePlatform import DBPBibles
 from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
@@ -93,7 +96,7 @@ def exp( messageString ):
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
 # end of exp
 
 
@@ -1362,7 +1365,8 @@ class Application( Frame ):
     def doStartNewProject( self ):
         """
         Asks the user for a project name and abbreviation,
-            creates the new folder
+            creates the new folder,
+            offers to create blank books,
         and then opens an editor window.
         """
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( exp("doStartNewProject()") )
@@ -1375,6 +1379,25 @@ class Application( Frame ):
                 showerror( self, _("New Project"), _("Sorry, we already have a {} project folder").format( projAbbrev ) )
                 return None
             os.mkdir( newFolderPath )
+
+            #availableVersifications = ['KJV',]
+            bvss = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
+            availableVersifications = bvss.getAvailableVersificationSystemNames()
+            thisBBB = self.getVerseKey( BIBLE_GROUP_CODES[0] ).getBBB() # New windows start in group 0
+            cnpf = CreateNewProjectFilesDialog( self, _("Create blank {} files").format( projAbbrev ),
+                                thisBBB, availableVersifications )
+            #if not cnpf.result: return
+            if cnpf.result: # This is a dictionary
+                print( "Dialog results:", cnpf.result )
+                if cnpf.result['Fill'] == 'Version': # Need to find a USFM project to copy
+                    openDialog = Directory( title=_("Select USFM folder"), initialdir=self.lastInternalBibleDir )
+                    requestedFolder = openDialog.show()
+                    if requestedFolder:
+                        self.lastInternalBibleDir = requestedFolder
+                        cnpf.result['Version'] = requestedFolder
+                    #else: return
+                createEmptyUSFMBooks( newFolderPath, thisBBB, cnpf.result )
+
             uB = USFMBible( newFolderPath ) # Get a blank object
             uB.name, uB.abbreviation = projName, projAbbrev
             uEW = USFMEditWindow( self, uB )
@@ -2422,7 +2445,7 @@ def demo():
 
     Which windows open depends on the saved settings from the last use.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag:
@@ -2458,7 +2481,7 @@ def main( homeFolderPath, loggingFolderPath ):
     """
     Main program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag:

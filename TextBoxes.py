@@ -29,7 +29,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-01-28' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.29'
@@ -90,7 +90,7 @@ class HTMLText( tk.Text ):
     """
     def __init__( self, *args, **kwargs ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( t("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
+            print( exp("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
 
         standardFont = DEFAULT_FONTNAME + ' 12'
@@ -169,10 +169,10 @@ class HTMLText( tk.Text ):
 
     def insert( self, point, iText ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( t("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
-            #except UnicodeEncodeError: print( t("HTMLText.insert( {}, {} )").format( repr(point), len(iText) ) )
+            #try: print( exp("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
+            #except UnicodeEncodeError: print( exp("HTMLText.insert( {}, {} )").format( repr(point), len(iText) ) )
         if point != tk.END:
-            logging.critical( t("HTMLText.insert doesn't know how to insert at {}").format( repr(point) ) )
+            logging.critical( exp("HTMLText.insert doesn't know how to insert at {}").format( repr(point) ) )
             tk.Text.insert( self, point, iText )
             return
 
@@ -235,7 +235,7 @@ class HTMLText( tk.Text ):
                 #print( "ixEnd", ixEnd, "ixNext", ixNext )
                 if ixEnd == -1 \
                 or (ixEnd!=-1 and ixNext!=-1 and ixEnd>ixNext): # no tag close or wrong tag closed
-                    logging.critical( t("HTMLText.insert: Missing close bracket") )
+                    logging.critical( exp("HTMLText.insert: Missing close bracket") )
                     tk.Text.insert( self, point, remainingText, currentFormatTags )
                     remainingText = ""
                     break
@@ -246,7 +246,7 @@ class HTMLText( tk.Text ):
                     #try: print( "after marker", remainingText[0] )
                     #except UnicodeEncodeError: pass
                 if not fullHTMLTag:
-                    logging.critical( t("HTMLText.insert: Unexpected empty HTML tags") )
+                    logging.critical( exp("HTMLText.insert: Unexpected empty HTML tags") )
                     continue
                 selfClosing = fullHTMLTag[-1] == '/'
                 if selfClosing:
@@ -274,7 +274,7 @@ class HTMLText( tk.Text ):
                     assert( len(fullHTMLTagBits) == 1 ) # shouldn't have any attributes on a closing tag
                     assert( not selfClosing )
                     HTMLTag = HTMLTag[1:]
-                    #print( t("Got HTML {} close tag").format( repr(HTMLTag) ) )
+                    #print( exp("Got HTML {} close tag").format( repr(HTMLTag) ) )
                     #print( "cHT1", currentHTMLTags )
                     #print( "cFT1", currentFormatTags )
                     if currentHTMLTags and HTMLTag == currentHTMLTags[-1]: # all good
@@ -282,14 +282,14 @@ class HTMLText( tk.Text ):
                         if HTMLTag not in NON_FORMATTING_TAGS:
                             currentFormatTags.pop()
                     elif currentHTMLTags:
-                        logging.critical( t("HTMLText.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
+                        logging.critical( exp("HTMLText.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
                     else:
-                        logging.critical( t("HTMLText.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
+                        logging.critical( exp("HTMLText.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
                     #print( "cHT2", currentHTMLTags )
                     #print( "cFT2", currentFormatTags )
                 else: # it's not a close tag so must be an open tag
                     if HTMLTag not in KNOWN_HTML_TAGS:
-                        logging.critical( t("HTMLText doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
+                        logging.critical( exp("HTMLText doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
                         #currentHTMLTags.append( HTMLTag ) # remember it anyway in case it's closed later
                         continue
                     if HTMLTag in ('h1','h2','h3','p','li','table','tr',):
@@ -315,9 +315,9 @@ class HTMLText( tk.Text ):
                             if HTMLTag not in NON_FORMATTING_TAGS:
                                 currentFormatTags.append( formatTag )
         if currentHTMLTags:
-            logging.critical( t("HTMLText.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
+            logging.critical( exp("HTMLText.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
         if currentFormatTags:
-            logging.critical( t("HTMLText.insert: Left-over format tags: {}").format( currentFormatTags ) )
+            logging.critical( exp("HTMLText.insert: Left-over format tags: {}").format( currentFormatTags ) )
     # end of HTMLText.insert
 
 
@@ -345,7 +345,7 @@ class HTMLText( tk.Text ):
         """
         Handle a click on a hyperlink.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLText.openHyperlink()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLText.openHyperlink()") )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -367,7 +367,7 @@ class HTMLText( tk.Text ):
         """
         Handle a mouseover on a hyperlink.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLText.overHyperlink()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLText.overHyperlink()") )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -388,7 +388,7 @@ class HTMLText( tk.Text ):
         """
         Handle a mouseover on a hyperlink.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( t("HTMLText.leaveHyperlink()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLText.leaveHyperlink()") )
         self.master.leaveLink()
     # end of HTMLText.leaveHyperlink
 # end of HTMLText class
@@ -402,7 +402,7 @@ class CustomText( tk.Text ):
     Adapted from http://stackoverflow.com/questions/13835207/binding-to-cursor-movement-doesnt-change-insert-mark
     """
     def __init__( self, *args, **kwargs ):
-        if BibleOrgSysGlobals.debugFlag: print( t("CustomText.__init__( ... )") )
+        if BibleOrgSysGlobals.debugFlag: print( exp("CustomText.__init__( ... )") )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
 
         # All widget changes happen via an internal Tcl command with the same name as the widget:
@@ -476,7 +476,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( t("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersionDate if BibleOrgSysGlobals.debugFlag else ProgNameVersion )

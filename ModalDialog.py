@@ -30,7 +30,7 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-01-28' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
 ProgVersion = '0.26'
@@ -114,7 +114,7 @@ class ModalDialog( tk.Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("This 'body' method must be overridden!") ); halt
+        if BibleOrgSysGlobals.debugFlag: print( exp("This 'body' method must be overridden!") ); halt
     # end of ModalDialog.body
 
 
@@ -167,7 +167,7 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("This 'validate' method can be overridden!") )
+        if BibleOrgSysGlobals.debugFlag: print( exp("This 'validate' method can be overridden!") )
         return True # override
     # end of ModalDialog.validate
 
@@ -179,7 +179,7 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        if BibleOrgSysGlobals.debugFlag: print( t("This 'apply' method should be overridden!") )
+        if BibleOrgSysGlobals.debugFlag: print( exp("This 'apply' method should be overridden!") )
         self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog

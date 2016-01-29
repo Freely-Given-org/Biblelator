@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-01-29' # by RJH
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
 ProgVersion = '0.29'
@@ -75,7 +75,7 @@ def exp( messageString ):
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
 # end of exp
 
 
@@ -636,7 +636,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     """
     self.genericWindowType will be BibleEditor
     self.winType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
-    
+
     Even though it contains a link to an USFMBible (InternalBible) object,
         this class always works directly with the USFM (text) files.
     """
@@ -908,11 +908,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                 #if mark6!=mark5:
                     #print( "mark6", mark6 )
 
-            
-        
+
+
         if self.textBox.edit_modified(): # check the text for USFM errors
             editedText = self.getAllText()
-            
+
             # Check counts of USFM chapter and verse markers
             numChaps = editedText.count( '\\c ' )
             numVerses = editedText.count( '\\v ' )
@@ -935,7 +935,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                 print( "Too many USFM chapter markers (max of {} expected)".format( maxChapterMarkers ) )
             if numVerses > maxVerseMarkers:
                 print( "Too many USFM verse markers (max of {} expected)".format( maxVerseMarkers ) )
-                
+
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
         #       sometimes we get a 'current' mark and sometimes an 'anchor1'
