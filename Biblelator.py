@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-29' # by RJH
+LastModifiedDate = '2016-01-31' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.29'
@@ -78,6 +78,7 @@ from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
+from PTXBible import PTXBible, loadPTXSSFData
 
 
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
@@ -173,7 +174,8 @@ class Application( Frame ):
             self.lastParatextFileDir = 'C:\\My Paratext Projects\\'
             self.lastInternalBibleDir = 'C:\\My Paratext Projects\\'
         elif sys.platform == 'linux': # temp.........................................
-            self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/'
+            #self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/'
+            self.lastParatextFileDir = '../../../../../Data/Work/Matigsalug/Bible/'
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
 
         self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
@@ -1483,31 +1485,36 @@ class Application( Frame ):
         if not os.path.isfile( SSFFilepath ):
             showerror( self, APP_NAME, 'Could not open file ' + SSFFilepath )
             return
-        uB = USFMBible( None ) # Create a blank USFM Bible object
-        uB.loadSSFData( SSFFilepath )
-##        print( "ssf" )
-##        for something in uB.suppliedMetadata:
-##            try: print( "  ", something, uB.suppliedMetadata[something] )
-##            except UnicodeEncodeError: print( "   (skipped)" )
-        try: uBName = uB.suppliedMetadata['Name']
+        ptxBible = PTXBible( None ) # Create a blank Paratext Bible object
+        #ptxBible.loadSSFData( SSFFilepath )
+        SSFDict = loadPTXSSFData( ptxBible, SSFFilepath )
+        if SSFDict:
+            if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
+            if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
+            ptxBible.suppliedMetadata['PTX']['SSF'] = SSFDict
+            ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to ptxBible.settingsDict
+        #print( "ptx/ssf" )
+        #for something in ptxBible.suppliedMetadata['PTX']['SSF']:
+            #print( "  ", something, repr(ptxBible.suppliedMetadata['PTX']['SSF'][something]) )
+        try: ptxBibleName = ptxBible.suppliedMetadata['PTX']['SSF']['Name']
         except KeyError:
-            showerror( self, APP_NAME, 'Could not find name in ' + SSFFilepath )
-        try: uBFullName = uB.suppliedMetadata['FullName']
+            showerror( self, APP_NAME, "Could not find 'Name' in " + SSFFilepath )
+        try: ptxBibleFullName = ptxBible.suppliedMetadata['PTX']['SSF']['FullName']
         except KeyError:
-            showerror( self, APP_NAME, 'Could not find full name in ' + SSFFilepath )
-        if 'Editable' in uB.suppliedMetadata and uB.suppliedMetadata['Editable'] != 'T':
-            showerror( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( uBName, uBFullName ) )
+            showerror( self, APP_NAME, "Could not find 'FullName' in " + SSFFilepath )
+        if 'Editable' in ptxBible.suppliedMetadata and ptxBible.suppliedMetadata['Editable'] != 'T':
+            showerror( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptxBibleName, ptxBibleFullName ) )
             return
 
         # Find the correct folder that contains the actual USFM files
-        if 'Directory' in uB.suppliedMetadata:
-            ssfDirectory = uB.suppliedMetadata['Directory']
+        if 'Directory' in ptxBible.suppliedMetadata['PTX']['SSF']:
+            ssfDirectory = ptxBible.suppliedMetadata['PTX']['SSF']['Directory']
         else:
-            showerror( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( uBName, uBFullName ) )
+            showerror( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( ptxBibleName, ptxBibleFullName ) )
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if ssfDirectory is not None:
-                showwarning( self, APP_NAME, 'SSF project {} ({}) folder {} not found on this system -- trying folder below SSF instead'.format( uBName, uBFullName, repr(ssfDirectory) ) )
+                showwarning( self, APP_NAME, 'SSF project {} ({}) folder {} not found on this system -- trying folder below SSF instead'.format( ptxBibleName, ptxBibleFullName, repr(ssfDirectory) ) )
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 print( "doOpenParatextProject: Not windows" )
                 print( 'doOpenParatextProject: ssD1', repr(ssfDirectory) )
@@ -1518,19 +1525,19 @@ class Application( Frame ):
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     print( 'doOpenParatextProject: ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
-                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
+                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
                         return
         self.openParatextBibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
 
-        ##print( "uB1", uB )
-        #uB.preload( ssfDirectory )
-        ##print( "uB2", uB )
+        ##print( "ptxBible1", ptxBible )
+        #ptxBible.preload( ssfDirectory )
+        ##print( "ptxBible2", ptxBible )
 ###        ssfText = open( SSFFilepath, 'rt', encoding='utf-8' ).read()
 ###        if ssfText == None:
 ###            showerror( self, APP_NAME, 'Could not decode and open file ' + SSFFilepath )
 ###        else:
 
-        #uEW = USFMEditWindow( self, uB )
+        #uEW = USFMEditWindow( self, ptxBible )
         #uEW.winType = 'ParatextUSFMBibleEditWindow' # override the default
         #uEW.setFilepath( SSFFilepath )
 ###            tEW.setAllText( ssfText )
@@ -1554,16 +1561,16 @@ class Application( Frame ):
             self.setDebugText( "openParatextBibleEditWindow..." )
             assert( os.path.isfile( SSFFilepath ) )
 
-        uB = USFMBible( None ) # Create a blank USFM Bible object
-        SSFDict = loadPTXSSFData( uB, SSFFilepath )
+        ptxBible = PTXBible( None ) # Create a blank Paratext Bible object
+        SSFDict = loadPTXSSFData( ptxBible, SSFFilepath )
         if SSFDict:
-            if uB.suppliedMetadata is None: uB.suppliedMetadata = {}
-            if 'PTX' not in uB.suppliedMetadata: uB.suppliedMetadata['PTX'] = {}
-            uB.suppliedMetadata['PTX']['SSF'] = SSFDict
-            uB.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
+            if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
+            if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
+            ptxBible.suppliedMetadata['PTX']['SSF'] = SSFDict
+            ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
 
-        if 'Directory' in uB.suppliedMetadata['PTX']['SSF']:
-            ssfDirectory = uB.suppliedMetadata['PTX']['SSF']['Directory']
+        if 'Directory' in ptxBible.suppliedMetadata['PTX']['SSF']:
+            ssfDirectory = ptxBible.suppliedMetadata['PTX']['SSF']['Directory']
         else:
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
@@ -1577,12 +1584,12 @@ class Application( Frame ):
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     print( 'ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
-                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( uBName ) )
+                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
                         return
-        uB.sourceFolder = ssfDirectory
-        uB.preload()
+        ptxBible.sourceFolder = ssfDirectory
+        ptxBible.preload()
 
-        uEW = USFMEditWindow( self, uB, editMode=editMode )
+        uEW = USFMEditWindow( self, ptxBible, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
         uEW.winType = 'ParatextUSFMBibleEditWindow' # override the default
         uEW.moduleID = SSFFilepath

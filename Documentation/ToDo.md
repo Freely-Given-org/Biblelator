@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2014-12-03 RJH
+Last updated: 2016-01-31 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,18 +14,22 @@ Things nearer the top of the list are higher in priority.
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking
 * Fix intro/text section checking
-* Handle nested USFM markers
+* Fully handle nested USFM markers (USFM 2.4)
+* Handle USFM 3.0 (when released)
+* Update ESFM spec (when USFM 3 is released)
 * Learn to read BCV files
+* Expand testing functions
 
 Biblelator stuff
+* Handle keyboard sequences, e.g., << >> (PTX AutoCorrect.txt)
 * Autosave edited files
-* Synchronise with other Bible programs (esp. on Windows)
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Get Sword commentaries displaying
 * Create backup files when editing
-* Get some different views working on the edit window
 * Release version 0.3
+* Get some different views working on the edit window
+* Synchronise with other Bible programs (esp. on Windows)
 * Display footnotes and xrefs in resources
 * Work on user stylesheets
 * Make a full project properties dialog and do project setting properly
@@ -46,7 +50,11 @@ Biblelator stuff
 * Release version 0.5
 * Allow users to "log-on"
 * Project sharing (Hg vs Git)
-* Project backup to the cloud (Freely-Given.org server)
+* Write spell-checking routines
+* Write autocompletion routines
+* Write syntax colouring routines
+* Project backup to the cloud (secure Freely-Given.org server)
+* Handle automatic (background) USFM syntax checking
 * Improve Strongs (lexicon) HTML display
 * Allow handling of non-English DBP resources
 * Think more about use of colour for distinguishing windows
@@ -56,11 +64,11 @@ Biblelator stuff
 * Investigate integrating more online resources
 * Improve the about page(s)
 * Learn how to install Biblelator on OS X
+* Allow more settings to be edited within the program (full settings editor)
 * Allow the short-cut keys to be edited within the program
 * Get full multiprocessing working
 * Add progress bars for slow tasks
 * Create an intelligent installer
-* Full settings editor
 * Allow for automatic program updates (choice of stable and development branches)
 * Work on automated GUI testing
 * Release version 1.0 (BibleOrgSys versification systems have to be working first)
