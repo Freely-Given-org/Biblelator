@@ -1528,24 +1528,6 @@ class Application( Frame ):
                         showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
                         return
         self.openParatextBibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
-
-        ##print( "ptxBible1", ptxBible )
-        #ptxBible.preload( ssfDirectory )
-        ##print( "ptxBible2", ptxBible )
-###        ssfText = open( SSFFilepath, 'rt', encoding='utf-8' ).read()
-###        if ssfText == None:
-###            showerror( self, APP_NAME, 'Could not decode and open file ' + SSFFilepath )
-###        else:
-
-        #uEW = USFMEditWindow( self, ptxBible )
-        #uEW.winType = 'ParatextUSFMBibleEditWindow' # override the default
-        #uEW.setFilepath( SSFFilepath )
-###            tEW.setAllText( ssfText )
-###            #if windowGeometry: tEW.geometry( windowGeometry )
-        #self.childWindows.append( uEW )
-        #uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
-        #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenParatextProject" )
-        #self.setReadyStatus()
     # end of Application.doOpenParatextProject
 
     def openParatextBibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
@@ -1554,8 +1536,6 @@ class Application( Frame ):
 
         Returns the new USFMEditWindow object.
         """
-        from PTXBible import loadPTXSSFData
-
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openParatextBibleEditWindow( {} )").format( repr(SSFFilepath) ) )
             self.setDebugText( "openParatextBibleEditWindow..." )
@@ -1586,7 +1566,7 @@ class Application( Frame ):
                     if not os.path.exists( ssfDirectory ):
                         showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
                         return
-        ptxBible.sourceFolder = ssfDirectory
+        ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
         ptxBible.preload()
 
         uEW = USFMEditWindow( self, ptxBible, editMode=editMode )

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-29' # by RJH
+LastModifiedDate = '2016-02-01' # by RJH
 ShortProgName = "EditWindows"
 ProgName = "Biblelator Edit Windows"
 ProgVersion = '0.29'
@@ -105,6 +105,24 @@ class TextEditWindow( ChildWindow ):
 
         self.lastFiletime = self.lastFilesize = None
         self.clearText()
+
+        self.autocorrectEntries = []
+        # Temporarily include these default autocorrect values
+        self.autocorrectEntries.append( ('<<','“') ) # Cycle through quotes with angle brackets
+        self.autocorrectEntries.append( ('“<','‘') )
+        self.autocorrectEntries.append( ('‘<',"'") )
+        self.autocorrectEntries.append( ("'<",'<') )
+        self.autocorrectEntries.append( ('>>','”') )
+        self.autocorrectEntries.append( ('”>','’') )
+        self.autocorrectEntries.append( ('’>',"'") )
+        self.autocorrectEntries.append( ("'>",'>') )
+        self.autocorrectEntries.append( ('--','–') ) # Cycle through en-dash/em-dash with hyphens
+        self.autocorrectEntries.append( ('–-','—') )
+        self.autocorrectEntries.append( ('—-','-') )
+        # This next bit needs to be done whenever the autocorrect entries are changed
+        self.maxAutocorrectLength = 0
+        for inChars,outChars in self.autocorrectEntries:
+            self.maxAutocorrectLength = max( len(inChars), self.maxAutocorrectLength )
 
         self.autosaveTime = 3*60*1000 # msecs (zero is no autosaves)
         self.autosaveScheduled = False
@@ -319,6 +337,8 @@ class TextEditWindow( ChildWindow ):
 
 
     def doCut( self, event=None ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doCut()") )
         if not self.textBox.tag_ranges( tk.SEL ):
@@ -330,6 +350,8 @@ class TextEditWindow( ChildWindow ):
 
 
     def doPaste( self, event=None ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doPaste()") )
         try:
@@ -339,9 +361,22 @@ class TextEditWindow( ChildWindow ):
             return
         self.textBox.insert( tk.INSERT, text)          # add at current insert cursor
         self.textBox.tag_remove( tk.SEL, START, tk.END )
-        self.textBox.tag_add( tk.SEL, tk.INSERT+'-%dc' % len(text), tk.INSERT )
+        self.textBox.tag_add( tk.SEL, tk.INSERT+'-{}c'.format( len(text) ), tk.INSERT )
         self.textBox.see( tk.INSERT )                   # select it, so it can be cut
     # end of TextEditWindow.doPaste
+
+
+    def getCharactersBeforeCursor( self, charCount=1 ):
+        """
+        Needed for auto-correct functions.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("TextEditWindow.getCharactersBeforeCursor( {} )").format( charCount ) )
+
+        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( charCount ), tk.INSERT )
+        #print( "previousText", repr(previousText) )
+        return previousText
+    # end of TextEditWindow.getCharactersBeforeCursor
 
 
     ############################################################################
@@ -910,7 +945,19 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
 
 
 
-        if self.textBox.edit_modified(): # check the text for USFM errors
+        if self.textBox.edit_modified():
+             # Handle auto-correct
+            if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
+                #print( "Handle autocorrect" )
+                previousText = self.getCharactersBeforeCursor( self.maxAutocorrectLength )
+                #print( "got", repr(previousText) )
+                for inChars,outChars in self.autocorrectEntries:
+                    if previousText.endswith( inChars ):
+                        #print( "Going to replace {!r} with {!r}".format( inChars, outChars ) )
+                        self.textBox.delete( tk.INSERT+'-{}c'.format( len(inChars) ), tk.INSERT )
+                        self.textBox.insert( tk.INSERT, outChars )
+
+            # Check the text for USFM errors
             editedText = self.getAllText()
 
             # Check counts of USFM chapter and verse markers

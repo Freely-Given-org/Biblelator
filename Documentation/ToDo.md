@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-01-31 RJH
+Last updated: 2016-02-01 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -21,6 +21,7 @@ BOS improvements for Biblelator
 * Expand testing functions
 
 Biblelator stuff
+* New Paratext project window didn't seem to know its own position
 * Handle keyboard sequences, e.g., << >> (PTX AutoCorrect.txt)
 * Autosave edited files
 * Don't allow two projects with the same name
@@ -77,3 +78,4 @@ Biblelator stuff
 * Work on scripting/macro language
 * Do NT/OT reference mode (Groups A/B work together)
 * Do synoptic gospel mode (Groups A/B/C/D work together)
+* Make a child window mode (all windows stay within the main window)
