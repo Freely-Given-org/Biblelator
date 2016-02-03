@@ -119,10 +119,17 @@ class TextEditWindow( ChildWindow ):
         self.autocorrectEntries.append( ('--','–') ) # Cycle through en-dash/em-dash with hyphens
         self.autocorrectEntries.append( ('–-','—') )
         self.autocorrectEntries.append( ('—-','-') )
+        self.autocorrectEntries.append( ('(in','(incl)') )
+        self.autocorrectEntries.append( ('(ex','(excl)') )
         # This next bit needs to be done whenever the autocorrect entries are changed
         self.maxAutocorrectLength = 0
         for inChars,outChars in self.autocorrectEntries:
             self.maxAutocorrectLength = max( len(inChars), self.maxAutocorrectLength )
+
+        self.autocompleteWords = []
+        self.autocompleteLength = 2 # Show the window after this many characters have been typed
+        # Temporarily put some words in
+        self.autocompleteWords = ['bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity']
 
         self.autosaveTime = 3*60*1000 # msecs (zero is no autosaves)
         self.autosaveScheduled = False

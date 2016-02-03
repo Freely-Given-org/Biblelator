@@ -21,8 +21,7 @@ BOS improvements for Biblelator
 * Expand testing functions
 
 Biblelator stuff
-* New Paratext project window didn't seem to know its own position
-* Handle keyboard sequences, e.g., << >> (PTX AutoCorrect.txt)
+* New Paratext project window didn't seem to know its own position the first time
 * Autosave edited files
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
@@ -30,6 +29,7 @@ Biblelator stuff
 * Create backup files when editing
 * Release version 0.3
 * Get some different views working on the edit window
+* Write autocompletion settings load/edit routines
 * Synchronise with other Bible programs (esp. on Windows)
 * Display footnotes and xrefs in resources
 * Work on user stylesheets
@@ -52,7 +52,6 @@ Biblelator stuff
 * Allow users to "log-on"
 * Project sharing (Hg vs Git)
 * Write spell-checking routines
-* Write autocompletion routines
 * Write syntax colouring routines
 * Project backup to the cloud (secure Freely-Given.org server)
 * Handle automatic (background) USFM syntax checking
