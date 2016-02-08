@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-02-01 RJH
+Last updated: 2016-02-05 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -21,12 +21,11 @@ BOS improvements for Biblelator
 * Expand testing functions
 
 Biblelator stuff
+* Create backup files when editing
 * New Paratext project window didn't seem to know its own position the first time
-* Autosave edited files
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Get Sword commentaries displaying
-* Create backup files when editing
 * Release version 0.3
 * Get some different views working on the edit window
 * Write autocompletion settings load/edit routines
@@ -63,6 +62,7 @@ Biblelator stuff
 * Handle interlinear display (for original language resources)
 * Investigate integrating more online resources
 * Improve the about page(s)
+* Turn chapter/verse spin buttons 90 degrees
 * Learn how to install Biblelator on OS X
 * Allow more settings to be edited within the program (full settings editor)
 * Allow the short-cut keys to be edited within the program

@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-29' # by RJH
+LastModifiedDate = '2016-02-05' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
 ProgVersion = '0.29'
@@ -108,7 +108,9 @@ class Settings:
         """
         Load the settings file (if we found it).
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ApplicationSettings.load()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ApplicationSettings.load()") )
+            
         self.reset() # Creates self.data
         assert( self.data )
         if self.settingsFilepath and os.path.isfile( self.settingsFilepath ) and os.access( self.settingsFilepath, os.R_OK ):
@@ -124,7 +126,9 @@ class Settings:
         Save all of the program settings to disk.
             They must have already been saved into self.data.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ApplicationSettings.save()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ApplicationSettings.save()") )
+            
         assert( self.data )
         assert( self.settingsFilepath )
         with open( self.settingsFilepath, 'wt') as settingsFile: # It may or may not have previously existed
