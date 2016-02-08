@@ -138,8 +138,10 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteWords = []
         self.autocompleteWordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
         # Note: I guess we could have used non-word chars instead (to stop the backwards word search)
-        self.autocompleteMinLength = 2 # Show the window after this many characters have been typed
-        self.autocompleteMaxLength = 6 # Remove window after this many characters have been typed
+        self.autocompleteMinLength = 3 # Show the window after this many characters have been typed
+        self.autocompleteMaxLength = 12 # Remove window after this many characters have been typed
+        self.existingAutocompleteWordText = ''
+
         # Temporarily put some words in
         self.useAutocomplete = True
         self.setAutocompleteWords( ('bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
@@ -324,8 +326,8 @@ class TextEditWindow( ChildWindow ):
 
         If it has, and the user hasn't yet made any changes, offer to reload.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.checkForDiskChanges()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("TextEditWindow.checkForDiskChanges()") )
 
         if ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
         or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ):
@@ -374,7 +376,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doCut()") )
-            
+
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, 'No text selected')
         else:
@@ -645,17 +647,17 @@ class TextEditWindow( ChildWindow ):
         """
         Given a word list, set the entries into the autocomplete words
             and then do necessary house-keeping.
-            
+
         Note that the original word order is preserved (if the wordList has an order)
             so that more common/likely words can appear at the top of the list if desired.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.setAutocompleteWords( {} )").format( wordList, append ) )
-            #print( exp("TextEditWindow.setAutocompleteWords()") )
+            #print( exp("TextEditWindow.setAutocompleteWords( {} )").format( wordList, append ) )
+            print( exp("TextEditWindow.setAutocompleteWords()") )
             assert( self.useAutocomplete == True )
-            
+
         if not append: self.autocompleteWords = []
-        
+
         for word in wordList:
             self.autocompleteWords.append( word )
             for char in word:
@@ -684,7 +686,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doSave()") )
-            
+
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
@@ -701,20 +703,26 @@ class TextEditWindow( ChildWindow ):
 
     def doAutosave( self ):
         """
-        Called if the user requests a save from the GUI.
+        Called on a timer to save a copy of the file in a separate location
+            if it's been modified.
 
-        Sets up another call.
+        Schedules another call.
+
+        Doesn't use a hidden folder for the autosave files so the user can find them:
+            If a save has been done, an AutoSave folder is created in the save folder,
+            if not, the AutoSave folder is created in the home folder.
+                (Yes, this can result in old AutoSave files in the home folder.)
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doAutosave()") )
-            
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("TextEditWindow.doAutosave()") )
+
         if self.modified():
             partialAutosaveFolderPath = self.folderPath if self.folderPath else self.parentApp.homeFolderPath
             # NOTE: Don't use a hidden folder coz user might not be able to find it
             autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' )
             if not os.path.exists( autosaveFolderPath ): os.mkdir( autosaveFolderPath )
             autosaveFilename = self.filename if self.filename else 'Autosave.txt'
-            print( 'autosaveFolderPath', repr(autosaveFolderPath), 'autosaveFilename', repr(autosaveFilename) )
+            #print( 'autosaveFolderPath', repr(autosaveFolderPath), 'autosaveFilename', repr(autosaveFilename) )
             allText = self.getAllText() # from the displayed edit window
             with open( os.path.join( autosaveFolderPath, autosaveFilename ), mode='wt' ) as theFile:
                 theFile.write( allText )
@@ -798,7 +806,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             self.textBox['selectbackground'] = 'red'
             self.textBox['highlightbackground'] = 'orange'
             self.textBox['inactiveselectbackground'] = 'green'
-            
+
+            # Find words used in the Bible to fill the autocomplete mechanism
+            # NOTE: This list should theoretically be updated as the user enters new words!
             self.useAutocomplete = True
             self.internalBible.loadBooks()
             self.internalBible.discover()
@@ -808,10 +818,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             for BBB in self.internalBible.discoveryResults:
                 if BBB != 'All':
                     try:
+                        # Sort the word-list for the book to put the most common words first
                         #print( 'discoveryResults', BBB, self.internalBible.discoveryResults[BBB] )
-                        for word in self.internalBible.discoveryResults[BBB]['mainTextWordCounts']:
-                            if word not in autocompleteWords: autocompleteWords.append( word )
-                    except KeyError: pass
+                        #print( BBB, 'mTWC', self.internalBible.discoveryResults[BBB]['mainTextWordCounts'] )
+                        #qqq = sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(), key=lambda c: -c[1] )
+                        #print( 'qqq', qqq )
+                        for word,count in sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(),
+                                                key=lambda duple: -duple[1] ):
+                            if len(word) >= self.autocompleteMinLength \
+                            and word not in autocompleteWords: # just in case we had some (common) words in there already
+                                autocompleteWords.append( word )
+                    except KeyError: pass # Nothing for this book
+            #print( 'acW', autocompleteWords )
             self.setAutocompleteWords( autocompleteWords )
 
         #self.textBox.bind( '<1>', self.onTextChange )
@@ -996,90 +1014,70 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     def OnAutocompleteChar( self, event ):
         """
         Used by autocomplete routines in onTextChange.
+
+        Handles key presses entered into the pop-up word selection (list) box.
         """
-        import re
-        
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.OnAutocompleteChar( {!r}, {!r} )").format( event.char, event.keysym ) )
             print( exp("USFMEditWindow.OnAutocompleteChar()") )
-        assert( self.autocompleteBox is not None )
-        key = event.char
-        
-        if re.match("[_a-zA-Z0-9]", key):
-            if 1 or self.active == True:
-                #self.record += key.upper()
-                #self.count = len(self.record)
-                self.textBox.insert( tk.INSERT, key)
-                #self.FilterInput()
-        elif event.keysym == 'BackSpace':
-            if (1 or self.active == True) and self.count > -1:
-                row, column = self.textBox.index(tk.INSERT).split('.')
-                column = str( int(column) - 1 )
-                self.textBox.delete( row + '.' + column, tk.INSERT )
-                #self.record = self.record[:-1]
-                #self.count -= 1
-                #if self.count == -1:
-                    #self.DestroyGUI()
-                    #return
-                #self.FilterInput()
-            #else:
-                #if 1 or self.active == True:
-                    #row, column = self.textBox.index(tk.INSERT).split('.')
-                    #column = str( int(column) - 1 )
-                    #self.textBox.delete(row + '.' + column, tk.INSERT)
-                    #self.DestroyGUI()
-                    #return "break"
-                #else:
-                    #return
-        elif event.keysym == "Return":
-            if 1 or self.active == True:
-                self.acceptAutocompleteSelection()
-                #length = len(self.record)
-                #row, column = self.textBox.index(tk.INSERT).split('.')
-                #column = str( int(column) - length )
-                #self.textBox.delete(row + '.' + column, tk.INSERT)
-                #self.textBox.insert(tk.INSERT, self.listbox.get("active"))
-                #self.DestroyGUI()
-        elif event.keysym in ( "Up", "Down", "Shift_R", "Shift_L",
-                              "Control_L", "Control_R", "Alt_L",
-                              "Alt_R", "parenleft", "parenright"):
-            return
-        else:
-            if 1 or self.active == True:
-                self.removeAutocompleteBox()
+            #print( 'char', repr(event.char), 'keysym', repr(event.keysym) )
+            assert( self.autocompleteBox is not None )
+
+        #if event.keysym == 'ESC':
+        #if event.char==' ' or event.char in self.autocompleteWordChars:
+            #self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
+        if event.keysym == 'BackSpace':
+            row, column = self.textBox.index(tk.INSERT).split('.')
+            column = str( int(column) - 1 )
+            self.textBox.delete( row + '.' + column, tk.INSERT )
+        elif event.keysym == 'Return':
+            self.acceptAutocompleteSelection()
+        #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
+                              #'Control_L', 'Control_R', 'Alt_L',
+                              #'Alt_R', 'parenleft', 'parenright'):
+            #pass
+        elif event.keysym == 'Escape':
+            self.removeAutocompleteBox()
+        elif event.char:
+            self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
     # end of USFMEditWindow.OnAutocompleteChar
-    
+
 
     def acceptAutocompleteSelection( self, event=None ):
         """
         Used by autocomplete routines in onTextChange.
+
+        Gets the chosen word and inserts the end of it into the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.acceptAutocompleteSelection()") )
+            assert( self.autocompleteBox is not None )
 
         result = self.autocompleteBox.get( tk.ACTIVE )
         print( 'result', result )
         self.removeAutocompleteBox()
-        
+
         # Autocomplete by inserting the rest of the selected word plus a space
-        #   Note: if the space isn't wanted, can be backspaced to delete
-        self.textBox.insert( tk.INSERT, result[len(self.existingAutocompleteWordText):]+ ' ' ) 
+        # NOTE: The user has to backspace over the space if they don't want it (e.g., to put a period)
+        # NOTE: The box reappears with the current code if we don't append the space -- would need to add a flag
+        self.textBox.insert( tk.INSERT, result[len(self.existingAutocompleteWordText):] + ' ' )
     # end of USFMEditWindow.acceptAutocompleteSelection
-    
+
 
     def removeAutocompleteBox( self ):
         """
+        Remove the pop-up Listbox (in a Frame in a Toplevel) when it's no longer required.
         Used by autocomplete routines in onTextChange.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.removeAutocompleteBox()") )
-            
-        assert( self.autocompleteBox is not None )
-        
+            assert( self.autocompleteBox is not None )
+
+        self.textBox.focus()
         self.autocompleteBox.master.master.destroy() # master is Frame, master.master is Toplevel
         self.autocompleteBox = None
-        #self.textBox.focus()
     # end of USFMEditWindow.removeAutocompleteBox
-    
+
 
     def onTextChange( self, result, *args ):
         """
@@ -1135,67 +1133,82 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
 
         if self.textBox.edit_modified():
             # Handle auto-correct
-            if self.autocorrectEntries and args[0]==tk.INSERT and args[1]==tk.INSERT:
-                #print( "Handle autocorrect" )
+            if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
+                print( "Handle autocorrect" )
                 previousText = self.getCharactersBeforeCursor( self.maxAutocorrectLength )
-                #print( "got", repr(previousText) )
+                #print( "previousText", repr(previousText) )
                 for inChars,outChars in self.autocorrectEntries:
                     if previousText.endswith( inChars ):
                         #print( "Going to replace {!r} with {!r}".format( inChars, outChars ) )
+                        # Delete the typed character(s) and replace with the new one(s)
                         self.textBox.delete( tk.INSERT+'-{}c'.format( len(inChars) ), tk.INSERT )
                         self.textBox.insert( tk.INSERT, outChars )
             # end of auto-correct section
-            
-                        
-            # Handle auto-complete
-            if self.useAutocomplete==True and self.autocompleteWords and args[0] in (tk.INSERT,'delete',):
-                self.existingAutocompleteWordText = self.getWordCharactersBeforeCursor( self.autocompleteMaxLength )
-                if len(self.existingAutocompleteWordText) >= self.autocompleteMinLength:
-                    #pattern = re.compile( '.*' + self.existingAutocompleteWordText + '.*' )
-                    #possibleWords = [word for word in self.autocompleteWords if re.match(pattern, word)]
-                    possibleWords = [word for word in self.autocompleteWords if word.startswith( self.existingAutocompleteWordText )]
-                    print( 'possibleWords', possibleWords )
-                    if possibleWords:
-                        if self.autocompleteBox is None:
-                            print( 'create listbox' )
-                            x, y, cx, cy = self.textBox.bbox( tk.INSERT )
-                            topLevel = tk.Toplevel( self.textBox.master )
-                            topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
-                            topLevel.wm_geometry( '+{}+{}' \
-                                .format( x + self.textBox.winfo_rootx() + 2, y + cy + self.textBox.winfo_rooty() ) )
-                            frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
-                            frame.pack( fill=tk.BOTH, expand=tk.YES )
-                            scrollBar = tk.Scrollbar( frame, highlightthickness=0 )
-                            scrollBar.pack( side=tk.RIGHT, fill='y' )
-                            self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
-                                                        relief="flat",
-                                                        yscrollcommand=scrollBar.set,
-                                                        height=6 )
-                            #else: # old code
-                                #self.autocompleteBox = tk.Listbox( self.textBox )
-                                #self.autocompleteBox.bind( '<Double-Button-1>', self.acceptAutocompleteSelection )
-                                #self.autocompleteBox.bind( '<Right>', self.acceptAutocompleteSelection )
-                                #self.autocompleteBox.place( x=self.winfo_x(), y=self.winfo_y()+self.winfo_height() )
-                        else: self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
-                        for word in possibleWords:
-                            if BibleOrgSysGlobals.debugFlag: assert( possibleWords.count( word ) == 1 )
-                            self.autocompleteBox.insert( tk.END, word )
-                            
-                            self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
-                            self.autocompleteBox.select_set( '0' )
-                            scrollBar.config( command=self.autocompleteBox.yview )
-                            self.autocompleteBox.focus()
-                            self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
-                            self.autocompleteBox.bind( '<Double-1>', self.acceptAutocompleteSelection )
 
+
+            # Handle auto-complete
+            #print( 'args[0]', repr(args[0]) )
+            if self.useAutocomplete==True and self.autocompleteWords and args[0] in ('insert','delete',):
+                print( "Handle autocomplete1" )
+                lastAutocompleteWordText = self.existingAutocompleteWordText
+                self.existingAutocompleteWordText = self.getWordCharactersBeforeCursor( self.autocompleteMaxLength )
+                if self.existingAutocompleteWordText != lastAutocompleteWordText:
+                    # we've had an actual change in the entered text
+                    if len(self.existingAutocompleteWordText) >= self.autocompleteMinLength:
+                        possibleWords = [word for word in self.autocompleteWords \
+                                                                if word.startswith( self.existingAutocompleteWordText )]
+                        print( 'possibleWords', possibleWords )
+                        if possibleWords:
+                            print( "Handle autocomplete2" )
+                            if self.autocompleteBox is None:
+                                print( 'create listbox' )
+                                x, y, cx, cy = self.textBox.bbox( tk.INSERT )
+                                topLevel = tk.Toplevel( self.textBox.master )
+                                topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
+                                topLevel.wm_geometry( '+{}+{}' \
+                                    .format( x + self.textBox.winfo_rootx() + 2, y + cy + self.textBox.winfo_rooty() ) )
+                                frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
+                                frame.pack( fill=tk.BOTH, expand=tk.YES )
+                                autocompleteScrollBar = tk.Scrollbar( frame, highlightthickness=0 )
+                                autocompleteScrollBar.pack( side=tk.RIGHT, fill='y' )
+                                self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
+                                                            relief="flat",
+                                                            yscrollcommand=autocompleteScrollBar.set,
+                                                            height=6 )
+                                autocompleteScrollBar.config( command=self.autocompleteBox.yview )
+                                self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
+                                #self.autocompleteBox.select_set( '0' )
+                                #self.autocompleteBox.focus()
+                                self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
+                                self.autocompleteBox.bind( '<Double-1>', self.acceptAutocompleteSelection )
+                                #else: # old code
+                                    #self.autocompleteBox = tk.Listbox( self.textBox )
+                                    #self.autocompleteBox.bind( '<Double-Button-1>', self.acceptAutocompleteSelection )
+                                    #self.autocompleteBox.bind( '<Right>', self.acceptAutocompleteSelection )
+                                    #self.autocompleteBox.place( x=self.winfo_x(), y=self.winfo_y()+self.winfo_height() )
+                            else: # the Listbox is already made -- just empty it
+                                print( 'empty listbox' )
+                                self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
+                            # Now fill the Listbox
+                            print( 'fill listbox' )
+                            for word in possibleWords:
+                                if BibleOrgSysGlobals.debugFlag: assert( possibleWords.count( word ) == 1 )
+                                self.autocompleteBox.insert( tk.END, word )
+                            # Do a bit more set-up
+                            #self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
+                            self.autocompleteBox.select_set( '0' )
+                            self.autocompleteBox.focus()
+                            #self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
+                            #self.autocompleteBox.bind( '<Double-1>', self.acceptAutocompleteSelection )
+
+                        elif self.autocompleteBox is not None:
+                            print( 'destroy1 autocomplete listbox -- no possible words' )
+                            self.removeAutocompleteBox()
                     elif self.autocompleteBox is not None:
-                        print( 'destroy1 autocomplete listbox' )
+                        print( 'destroy2 autocomplete listbox -- not enough typed yet' )
                         self.removeAutocompleteBox()
-                elif self.autocompleteBox is not None:
-                    print( 'destroy2 autocomplete listbox' )
-                    self.removeAutocompleteBox()
             elif self.autocompleteBox is not None:
-                print( 'destroy3 autocomplete listbox' )
+                print( 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
                 self.removeAutocompleteBox()
             # end of auto-complete section
 
