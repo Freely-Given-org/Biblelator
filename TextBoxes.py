@@ -25,14 +25,26 @@
 """
 Base widgets to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
+
+class HTMLText( tk.Text )
+    __init__( self, *args, **kwargs )
+    insert( self, point, iText )
+    _getURL( self, event )
+    openHyperlink( self, event )
+    overHyperlink( self, event )
+    leaveHyperlink( self, event )
+
+class CustomText( tk.Text ):
+    __init__( self, *args, **kwargs )
+    setTextChangeCallback( self, callableFunction )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-28' # by RJH
+LastModifiedDate = '2016-02-14' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.29'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -156,9 +168,9 @@ class HTMLText( tk.Text ):
 
         aTags = ('a','p_a','small_p_a','h1_a')
         for tag in self.styleDict:
-            if tag.endswith( '_a' ): assert( tag in aTags )
+            if tag.endswith( '_a' ): assert tag in aTags
         for tag in aTags:
-            assert( tag in self.styleDict )
+            assert tag in self.styleDict
             self.tag_bind( tag, "<Button-1>", self.openHyperlink )
             #self.tag_bind( tag, "<Enter>", self.overHyperlink )
             #self.tag_bind( tag, "<Leave>", self.leaveHyperlink )
@@ -271,8 +283,8 @@ class HTMLText( tk.Text ):
                 #print( "HTMLTag", repr(HTMLTag) )
 
                 if HTMLTag and HTMLTag[0] == '/': # it's a close tag
-                    assert( len(fullHTMLTagBits) == 1 ) # shouldn't have any attributes on a closing tag
-                    assert( not selfClosing )
+                    assert len(fullHTMLTagBits) == 1 # shouldn't have any attributes on a closing tag
+                    assert not selfClosing
                     HTMLTag = HTMLTag[1:]
                     #print( exp("Got HTML {} close tag").format( repr(HTMLTag) ) )
                     #print( "cHT1", currentHTMLTags )
@@ -452,16 +464,16 @@ class CustomText( tk.Text ):
         This little function does the actual call of the user routine
             to handle when the CustomText changes.
         """
-        self.callback( result, *args )
+        self.callbackFunction( result, *args )
     # end of CustomText._callback
 
 
-    def setTextChangeCallback( self, callable ):
+    def setTextChangeCallback( self, callableFunction ):
         """
         Just a little function to remember the routine to call
             when the CustomText changes.
         """
-        self.callback = callable
+        self.callbackFunction = callableFunction
     # end of CustomText.setTextChangeCallback
 # end of CustomText class
 

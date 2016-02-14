@@ -44,10 +44,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-29'
+LastModifiedDate = '2016-02-13'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.29'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -287,7 +287,7 @@ class SelectResourceBoxDialog( ModalDialog ):
     def __init__( self, parent, availableSettingsList, title ):
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog..." )
         print( "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
-        if BibleOrgSysGlobals.debugFlag: assert( isinstance( availableSettingsList, list ) )
+        if BibleOrgSysGlobals.debugFlag: assert isinstance( availableSettingsList, list )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parent, title )
     # end of SelectResourceBoxDialog.__init__
@@ -607,7 +607,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
     """
     def __init__( self, parent, givenBible, currentBBB, title ):
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetBibleBookRangeDialog..." )
-        #assert( currentBBB in givenBible ) -- no, it might not be loaded yet!
+        #assert currentBBB in givenBible -- no, it might not be loaded yet!
         self.givenBible, self.currentBBB = givenBible, currentBBB
         ModalDialog.__init__( self, parent, title )
     # end of GetBibleBookRangeDialog.__init__

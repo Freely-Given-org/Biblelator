@@ -32,10 +32,10 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-02-13' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.29'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -115,7 +115,7 @@ class BibleResourceBox( Frame, BibleBox ):
         # Try to get the title width somewhere near correct (if moduleID is a long path)
         adjModuleID = moduleID
         self.update() # so we can get the geometry
-        width = parseWindowSize( self.parentWindow.geometry() )[0] - 60 # Allow for above button
+        width = parseWindowSize( self.parentWindow.winfo_geometry() )[0] - 60 # Allow for above button
         if len(adjModuleID)*10 > width: # Note: this doesn't adjust if the window size is changed
             print( "BRB here1", len(adjModuleID), width, repr(adjModuleID) )
             x = len(adjModuleID)*100/width # not perfect (too small) for narrow windows
@@ -261,7 +261,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     marker, cleanText = entry[0], entry[3]
                 else: marker, cleanText = entry.getMarker(), entry.getCleanText()
                 #print( "  ", haveTextFlag, marker, repr(cleanText) )
-                if BibleOrgSysGlobals.debugFlag: assert( marker )
+                if BibleOrgSysGlobals.debugFlag: assert marker
 
                 if marker.startswith( '¬' ):
                     if marker != '¬v': endMarkers.append( marker )  # Don't want end-verse markers
@@ -341,7 +341,7 @@ class BibleResourceBox( Frame, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("BibleResourceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
-            assert( isinstance( newVerseKey, SimpleVerseKey ) )
+            assert isinstance( newVerseKey, SimpleVerseKey )
 
         BBB, C, V = newVerseKey.getBCV()
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
@@ -370,7 +370,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
             if not failed and prevIntV is not None:
                 #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
-                assert( prevBBB and isinstance(prevBBB, str) )
+                assert prevBBB and isinstance(prevBBB, str)
                 previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
                 previousVerseData = self.getCachedVerseData( previousVerseKey )
                 if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
@@ -402,7 +402,7 @@ class BibleResourceBox( Frame, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleResourceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
             self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
-            assert( isinstance( newVerseKey, SimpleVerseKey ) )
+            assert isinstance( newVerseKey, SimpleVerseKey )
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()
@@ -422,7 +422,7 @@ class BibleResourceBox( Frame, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleResourceBox.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
+            assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
         refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
         BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
@@ -582,7 +582,7 @@ class DBPBibleResourceBox( BibleResourceBox ):
     def __init__( self, parentWindow, moduleAbbreviation ):
         if BibleOrgSysGlobals.debugFlag:
             print( "DBPBibleResourceBox.__init__( {}, {} )".format( parentWindow, moduleAbbreviation ) )
-            assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
+            assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
         self.parentWindow, self.moduleAbbreviation = parentWindow, moduleAbbreviation
 
         self.DBPModule = None # (for refreshTitle called from the base class)
@@ -820,7 +820,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         currentViewNumber = self._viewRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
-            assert( currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 ) )
+            assert currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 )
         previousContextViewMode = self.contextViewMode
         if 'Bible' in self.genericWindowType:
             if currentViewNumber == 1: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
@@ -847,8 +847,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         newGroupCode = self._groupRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
-            assert( newGroupCode in BIBLE_GROUP_CODES )
-        assert( 'Bible' in self.genericWindowType )
+            assert newGroupCode in BIBLE_GROUP_CODES
+        assert 'Bible' in self.genericWindowType
         if 'Bible' in self.genericWindowType: # do we really need this test?
             self.groupCode = newGroupCode
         else: halt # window type view mode not handled yet
@@ -1040,7 +1040,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openDBPBibleResourceBox()") )
             self.parentApp.setDebugText( "openDBPBibleResourceBox..." )
-            assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
+            assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
         #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         dBRB = DBPBibleResourceBox( self, moduleAbbreviation )
         if windowGeometry: halt; dBRB.geometry( windowGeometry )
@@ -1191,7 +1191,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleResourceCollectionWindow.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
+            assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
         #refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
         #BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )

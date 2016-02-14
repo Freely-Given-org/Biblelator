@@ -28,10 +28,10 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-09' # by RJH
+LastModifiedDate = '2016-02-10' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.29'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -188,7 +188,7 @@ def centreWindow( self, width=400, height=250 ):
 def centreWindowOnWindow( self, parentWindow, width=400, height=250 ):
     """
     """
-    parentWidth, parentHeight, parentXOffset, parentYOffset = parseWindowGeometry( parentWindow.geometry() )
+    parentWidth, parentHeight, parentXOffset, parentYOffset = parseWindowGeometry( parentWindow.winfo_geometry() )
     #print( "centreWindowOnWindow parent is", "w =",parentWidth, "h =",parentHeight, "x =",parentXOffset, "y =",parentYOffset )
 
     x = parentXOffset + (parentWidth - width) // 2

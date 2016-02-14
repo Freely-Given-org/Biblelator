@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-02-05 RJH
+Last updated: 2016-02-12 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -19,16 +19,17 @@ BOS improvements for Biblelator
 * Update ESFM spec (when USFM 3 is released)
 * Learn to read BCV files
 * Expand testing functions
+* Refactor to be more modular
+* Increased multiprocessing
+* Investigate plug-ins
 
 Biblelator stuff
-* Create backup files when editing
-* New Paratext project window didn't seem to know its own position the first time
+* Create backup files when editing (and autosaving???)
+* Divide autocompletion words by the first letter (in order to handle bigger dictionaries)
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
-* Get Sword commentaries displaying
 * Release version 0.3
 * Get some different views working on the edit window
-* Write autocompletion settings load/edit routines
 * Synchronise with other Bible programs (esp. on Windows)
 * Display footnotes and xrefs in resources
 * Work on user stylesheets
@@ -44,17 +45,20 @@ Biblelator stuff
 * Design the default short-cut keys for verse/chapter navigation
 * Work with someone as a test user
 * Work out how the help system will work and start implementing some content
-* Improve Sword Bible module display
+* Improve Sword module display (Bibles and Commentaries)
+* Improve Strongs (lexicon) HTML display
 * Look at doing some windows updates in idle time
 * Design an icon
 * Release version 0.5
 * Allow users to "log-on"
-* Project sharing (Hg vs Git)
+* Make logging more useful (including ability to automatically email latest log???)
+* Project sharing (Hg vs Git) -- requires server set-up
+* Write autocompletion settings load/edit routines
+* Allow autocomplete to use: Bible or Bible book, current text file, only spell-checked words, external dictionary for language, external file, etc.
 * Write spell-checking routines
 * Write syntax colouring routines
 * Project backup to the cloud (secure Freely-Given.org server)
 * Handle automatic (background) USFM syntax checking
-* Improve Strongs (lexicon) HTML display
 * Allow handling of non-English DBP resources
 * Think more about use of colour for distinguishing windows
 * Think more about window arranging
@@ -67,12 +71,16 @@ Biblelator stuff
 * Allow more settings to be edited within the program (full settings editor)
 * Allow the short-cut keys to be edited within the program
 * Get full multiprocessing working
+* Make autocompletion aware of previous work and so adjust for context
 * Add progress bars for slow tasks
 * Create an intelligent installer
-* Allow for automatic program updates (choice of stable and development branches)
+* Allow for secure automatic program updates (choice of stable and development branches)
 * Work on automated GUI testing
 * Release version 1.0 (BibleOrgSys versification systems have to be working first)
+* Handle team / collaborative issues
 * Think more about fonts and writing systems, special Unicode characters, etc.
+* Handle hyphenation
+* Handle draft printing / typesetting
 * Get it usable as a ESFM Bible editor
 * Work on scripting/macro language
 * Do NT/OT reference mode (Groups A/B work together)

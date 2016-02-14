@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-02-13' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.29'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -114,7 +114,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         ## Try to get the title width somewhere near correct (if moduleID is a long path)
         #adjModuleID = moduleID
         #self.update() # so we can get the geometry
-        #width = parseWindowSize( self.parentWindow.geometry() )[0] - 60 # Allow for above button
+        #width = parseWindowSize( self.parentWindow.winfo_geometry() )[0] - 60 # Allow for above button
         #if len(adjModuleID)*10 > width: # Note: this doesn't adjust if the window size is changed
             #print( "BRB here1", len(adjModuleID), width, repr(adjModuleID) )
             #x = len(adjModuleID)*100/width # not perfect (too small) for narrow windows
@@ -240,7 +240,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("BibleReferenceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
-            assert( isinstance( newVerseKey, SimpleVerseKey ) )
+            assert isinstance( newVerseKey, SimpleVerseKey )
 
         BBB, C, V = newVerseKey.getBCV()
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
@@ -269,7 +269,7 @@ class BibleReferenceBox( Frame, BibleBox ):
                     if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
             if not failed and prevIntV is not None:
                 #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
-                assert( prevBBB and isinstance(prevBBB, str) )
+                assert prevBBB and isinstance(prevBBB, str)
                 previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
                 previousVerseData = self.getCachedVerseData( previousVerseKey )
                 if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
@@ -301,7 +301,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleReferenceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
             self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
-            assert( isinstance( newVerseKey, SimpleVerseKey ) )
+            assert isinstance( newVerseKey, SimpleVerseKey )
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()
@@ -323,11 +323,11 @@ class BibleReferenceBox( Frame, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceBox.updateShownReferences( {} ) for {}".format( newReferenceObject, self.internalBible.name ) )
-            assert( isinstance( newReferenceObject, SimpleVerseKey ) or isinstance( newReferenceObject, SimpleVersesKey ) or isinstance( newReferenceObject, VerseRangeKey ))
+            assert isinstance( newReferenceObject, SimpleVerseKey ) or isinstance( newReferenceObject, SimpleVersesKey ) or isinstance( newReferenceObject, VerseRangeKey )
 
         for j, referenceVerse in enumerate( newReferenceObject ):
             #print( "  refVerse", j, referenceVerse )
-            assert( isinstance( referenceVerse, SimpleVerseKey ) )
+            assert isinstance( referenceVerse, SimpleVerseKey )
 
             refBBB, refC, refV, refS = referenceVerse.getBCVS()
             BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
@@ -543,8 +543,8 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleReferenceCollectionWindow.setFolderPath( {} )").format( repr(newFolderPath) ) )
-            assert( self.filename is None )
-            assert( self.filepath is None )
+            assert self.filename is None
+            assert self.filepath is None
         self.folderPath = newFolderPath
     # end of BibleReferenceCollectionWindow.setFolderPath
 
@@ -660,7 +660,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         #if BibleOrgSysGlobals.debugFlag:
             #print( exp("openDBPBibleReferenceBox()") )
             #self.parentApp.setDebugText( "openDBPBibleReferenceBox..." )
-            #assert( moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6 )
+            #assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
         ##tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         #dBRB = DBPBibleReferenceBox( self, moduleAbbreviation )
         #if windowGeometry: halt; dBRB.geometry( windowGeometry )
@@ -724,7 +724,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownBCV( {} ) for".format( newReferenceVerseKey ), self.moduleID )
-            assert( isinstance( newReferenceVerseKey, SimpleVerseKey ) )
+            assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
         refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
         BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
@@ -745,7 +745,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownReferences( {}) for".format( newReferencesVerseKeys ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
-            assert( isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None )
+            assert isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None
 
         # Remove any previous resource boxes
         for referenceBox in self.referenceBoxes:
@@ -753,9 +753,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.referenceBoxes = BibleReferenceBoxes( self )
 
         if newReferencesVerseKeys is not None: # open new resource boxes
-            assert( isinstance( newReferencesVerseKeys, list ) )
+            assert isinstance( newReferencesVerseKeys, list )
             for newReferencesVerseKey in newReferencesVerseKeys:
-                assert( isinstance( newReferencesVerseKey, FlexibleVersesKey ) )
+                assert isinstance( newReferencesVerseKey, FlexibleVersesKey )
                 for verseKeyObject in newReferencesVerseKey:
                     #print( "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
                     referenceBox = BibleReferenceBox( self.frame, self.parentApp, self.internalBible, verseKeyObject )

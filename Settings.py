@@ -23,15 +23,31 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow editing of USFM Bibles using Python3 and Tkinter.
+Settings class
+    __init__()
+    __str__()
+    __repr__()
+    reset()
+    load()
+    save()
+
+ApplicationSettings class (Settings)
+    __init__( homeFolderName, dataFolderName, settingsFolderName, settingsFilename )
+
+
+ProjectSettings class (Settings)
+    __init__( projectFolderPath )
+    saveNameAndAbbreviation( projectName, projectAbbreviation )
+    saveNewBookSettings( detailsDict )
+    loadUSFMMetadataInto( theUSFMBible )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-05' # by RJH
+LastModifiedDate = '2016-02-13' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = '0.29'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -72,6 +88,8 @@ class Settings:
     Biblelator settings are designed to be human readable (and therefore easily hackable).
         For this reason, the "Windows ini" type format was chosen
             over more complex and less readable formats like XML.
+
+    Super class must set self.settingsFilepath
     """
     def __init__( self ):
         """
@@ -109,10 +127,10 @@ class Settings:
         Load the settings file (if we found it).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ApplicationSettings.load()") )
-            
+            print( exp("ApplicationSettings.load() from {!r}").format( self.settingsFilepath ) )
+
         self.reset() # Creates self.data
-        assert( self.data )
+        assert self.data
         if self.settingsFilepath and os.path.isfile( self.settingsFilepath ) and os.access( self.settingsFilepath, os.R_OK ):
             self.data.read( self.settingsFilepath )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -127,10 +145,10 @@ class Settings:
             They must have already been saved into self.data.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ApplicationSettings.save()") )
-            
-        assert( self.data )
-        assert( self.settingsFilepath )
+            print( exp("ApplicationSettings.save() in {!r}").format( self.settingsFilepath ) )
+
+        assert self.data
+        assert self.settingsFilepath
         with open( self.settingsFilepath, 'wt') as settingsFile: # It may or may not have previously existed
             self.data.write( settingsFile )
     # end of Settings.save
@@ -141,7 +159,9 @@ class Settings:
 class ApplicationSettings( Settings ):
     def __init__( self, homeFolderName, dataFolderName, settingsFolderName, settingsFilename ):
         """
-        Try to find where the settings file might be (if anywhere).
+        This class is used before the main program starts.
+
+        Try to find where the main settings file might be (if anywhere).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )").format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
@@ -190,6 +210,9 @@ class ApplicationSettings( Settings ):
 
 
 class ProjectSettings( Settings ):
+    """
+    Settings class for USFM edit windows.
+    """
     def __init__( self, projectFolderPath ):
         """
         Try to find where the settings file might be (if anywhere).
@@ -215,7 +238,7 @@ class ProjectSettings( Settings ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )").format( projectName, projectAbbreviation ) )
-            assert( self.data is None )
+            assert self.data is None
 
         self.reset() # Create new settings in self.data
         self.data['Project'] = {}
@@ -231,7 +254,7 @@ class ProjectSettings( Settings ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ProjectSettings.saveNewBookSettings( {} )").format( detailsDict ) )
-            assert( self.data is not None )
+            assert self.data is not None
 
         self.data['NewBooks'] = {}
         newBooks = self.data['NewBooks']
@@ -279,7 +302,7 @@ def demo():
     tkRootWindow.minsize( 300, 50 )
     tkRootWindow.maxsize( 400, 200 )
 
-    geometryMap = parseWindowGeometry( tkRootWindow.geometry() )
+    geometryMap = parseWindowGeometry( tkRootWindow.winfo_geometry() )
     print( "geometry", geometryMap )
     for something in geometryMap:
         print( repr(something) )

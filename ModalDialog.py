@@ -30,7 +30,7 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-28' # by RJH
+LastModifiedDate = '2016-02-13' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
 ProgVersion = '0.26'
@@ -40,7 +40,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os.path, logging
+import sys
 
 import tkinter as tk
 from tkinter.ttk import Frame, Button
@@ -247,6 +247,9 @@ def demo():
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.parentApp = tkRootWindow
+    def ss( a ): pass
+    tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
     print( "Result is:", repr(md.result) )
 

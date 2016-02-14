@@ -29,10 +29,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-02-13' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.29'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -84,7 +84,7 @@ class ChildBox():
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.__init__( {} )").format( parentApp ) )
-            assert( parentApp )
+            assert parentApp
         self.parentApp = parentApp
 
         self.myKeyboardBindingsList = []
@@ -99,13 +99,13 @@ class ChildBox():
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
         try: kBD = self.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
-        assert( (name,kBD[name][0],) not in self.myKeyboardBindingsList )
+        assert (name,kBD[name][0],) not in self.myKeyboardBindingsList
         if name in kBD:
             for keyCode in kBD[name][1:]:
                 #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                 self.textBox.bind( keyCode, command )
                 if BibleOrgSysGlobals.debugFlag:
-                    assert( keyCode not in self.myKeyboardShortcutsList )
+                    assert keyCode not in self.myKeyboardShortcutsList
                     self.myKeyboardShortcutsList.append( keyCode )
             self.myKeyboardBindingsList.append( (name,kBD[name][0],) )
         else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
@@ -297,8 +297,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
-            assert( parentApp )
-            assert( genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor',) )
+            assert parentApp
+            assert genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor',)
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
         ChildBox.__init__( self, self.parentApp )
@@ -537,7 +537,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HTMLWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
-            assert( parentWindow )
+            assert parentWindow
         self.parentWindow, self.initialFilename = parentWindow, filename
         tk.Toplevel.__init__( self, self.parentWindow )
         ChildBox.__init__( self, self.parentWindow )
