@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-14' # by RJH
+LastModifiedDate = '2016-02-15' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -57,12 +57,13 @@ from TextBoxes import CustomText
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 #from BibleReferenceCollection import BibleReferenceCollectionWindow
 from TextEditWindow import TextEditWindow, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
+from AutocompleteFunctions import loadBibleAutocompleteWords
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
-#from BibleWriter import setDefaultControlFolder
+from BibleWriter import setDefaultControlFolder
 
 
 
@@ -128,39 +129,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             self.textBox['highlightbackground'] = 'orange'
             self.textBox['inactiveselectbackground'] = 'green'
 
-            # Find words used in the Bible to fill the autocomplete mechanism
-            # NOTE: This list should theoretically be updated as the user enters new words!
-            self.internalBible.loadBooks()
-            self.internalBible.discover()
-            #print( 'discoveryResults', self.internalBible.discoveryResults )
-            autocompleteWords = []
-            # Would be nice to load current book first, but we don't know it yet
-            for BBB in self.internalBible.discoveryResults:
-                if BBB != 'All':
-                    try:
-                        # Sort the word-list for the book to put the most common words first
-                        #print( 'discoveryResults', BBB, self.internalBible.discoveryResults[BBB] )
-                        #print( BBB, 'mTWC', self.internalBible.discoveryResults[BBB]['mainTextWordCounts'] )
-                        #qqq = sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(), key=lambda c: -c[1] )
-                        #print( 'qqq', qqq )
-                        for word,count in sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(),
-                                                key=lambda duple: -duple[1] ):
-                            if len(word) >= self.autocompleteMinLength \
-                            and word not in autocompleteWords: # just in case we had some (common) words in there already
-                                autocompleteWords.append( word )
-                    except KeyError: pass # Nothing for this book
-            #print( 'acW', autocompleteWords )
-            self.setAutocompleteWords( autocompleteWords )
-            self.autocompleteType = 'Bible'
+            loadBibleAutocompleteWords( self ) # Find words used in the Bible to fill the autocomplete mechanism
 
         #self.textBox.bind( '<1>', self.onTextChange )
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.exportFolderPathname = None
-
-        #self.currentVerseKey = None
-        #self.loading = True
     # end of USFMEditWindow.__init__
 
 
