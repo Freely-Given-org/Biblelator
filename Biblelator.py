@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-13' # by RJH
+LastModifiedDate = '2016-02-22' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -54,13 +54,15 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME
         INITIAL_MAIN_SIZE, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, \
         BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
         EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolderPath, parseWindowGeometry, parseWindowSize, assembleWindowGeometryFromList, assembleWindowSize, centreWindow
+        findHomeFolderPath, parseWindowGeometry, parseWindowSize, assembleWindowGeometryFromList, \
+            assembleWindowSize, centreWindow
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
         SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
 from Settings import ApplicationSettings, ProjectSettings
-from BiblelatorSettingsFunctions import parseAndApplySettings, saveNewWindowSetup, doDeleteExistingWindowSetup, doViewSettings, writeSettingsFile
+from BiblelatorSettingsFunctions import parseAndApplySettings, saveNewWindowSetup, doDeleteExistingWindowSetup, \
+                                        doViewSettings, writeSettingsFile
 from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from BibleResourceCollection import BibleResourceCollectionWindow
@@ -69,6 +71,8 @@ from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
 from USFMEditWindow import USFMEditWindow
 from ESFMEditWindow import ESFMEditWindow
+from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
+                                    loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -1619,8 +1623,17 @@ class Application( Frame ):
         uEW.setFilepath( SSFFilepath )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
         self.childWindows.append( uEW )
+
+        # Choose ONE of the following options
+        loadBibleAutocompleteWords( uEW ) # Find words used in the Bible to fill the autocomplete mechanism
+        #loadBibleBookAutocompleteWords( uEW ) # Find words used in this Bible book to fill the autocomplete mechanism
+        #loadHunspellAutocompleteWords( uEW, '/usr/share/hunspell/en_AU.dic', 'iso8859-15' )
+        #loadILEXAutocompleteWords( uEW, '../../../MyPrograms/TED_Dictionary/EnglishDict.db', ('ENG','BRI',) )
+
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatextBibleEditWindow" )
         self.setReadyStatus()
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("openParatextBibleEditWindow finished.") )
         return uEW
     # end of Application.openParatextBibleEditWindow
 

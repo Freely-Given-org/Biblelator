@@ -54,10 +54,10 @@ from BiblelatorGlobals import DEFAULT
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, mapReferenceVerseKey, mapParallelVerseKey
 from TextBoxes import CustomText
 #from ChildWindows import ChildWindow, HTMLWindow
-from BibleResourceWindows import BibleBox, BibleResourceWindow
+from BibleResourceWindows import BibleResourceWindow #, BibleBox
 #from BibleReferenceCollection import BibleReferenceCollectionWindow
 from TextEditWindow import TextEditWindow, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
-from AutocompleteFunctions import loadBibleAutocompleteWords
+#from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, loadHunspellAutocompleteWords
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -83,7 +83,7 @@ def exp( messageString ):
 
 
 
-class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
+class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     """
     self.genericWindowType will be BibleEditor
     self.winType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
@@ -102,7 +102,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         self.bookTextModified = False
         BibleResourceWindow.__init__( self, parentApp, 'USFMBibleEditWindow', None )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
-        BibleBox.__init__( self, parentApp )
+        #BibleBox.__init__( self, parentApp )
         self.viewMode = 'Unformatted'
 
         # Make our own textBox
@@ -129,13 +129,14 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
             self.textBox['highlightbackground'] = 'orange'
             self.textBox['inactiveselectbackground'] = 'green'
 
-            loadBibleAutocompleteWords( self ) # Find words used in the Bible to fill the autocomplete mechanism
-
         #self.textBox.bind( '<1>', self.onTextChange )
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.exportFolderPathname = None
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.__init__ finished.") )
     # end of USFMEditWindow.__init__
 
 
@@ -174,7 +175,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.createMenuBar()") )
+
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
@@ -1084,6 +1087,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.doSave()") )
+
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
@@ -1092,7 +1096,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow, BibleBox ):
                     theFile.write( allBookText )
                 self.rememberFileTimeAndSize()
                 self.internalBible.bookNeedsReloading[self.currentVerseKey.getBBB()] = True
-                #self.textBox.edit_modified( tk.FALSE ) # clear modified flag
+                self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
                 self.bookTextModified = False
                 #self.internalBible.unloadBooks() # coz they're now out of date
                 #self.internalBible.reloadBook( self.currentVerseKey.getBBB() ) # coz it's now out of date -- what? why?

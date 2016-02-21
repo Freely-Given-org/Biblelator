@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-13' # by RJH
+LastModifiedDate = '2016-02-15' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -523,6 +523,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.maxChapters, self.maxVerses = 150, 150 # temp
 
         self.verseCache = OrderedDict()
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.__init__ finished.") )
     # end of BibleResourceWindow.__init__
 
 
@@ -628,6 +631,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         Called when  a Bible context view is changed from the menus/GUI.
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.changeBibleContextView()") )
+
         currentViewNumber = self._viewRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
@@ -655,6 +661,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         Called when  a Bible group code is changed from the menus/GUI.
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.changeBibleGroupCode()") )
+
         previousGroupCode = self.groupCode
         newGroupCode = self._groupRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
@@ -676,6 +685,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     def doGotoPreviousBook( self, gotoEnd=False ):
         """
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.doGotoPreviousBook()") )
+
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
@@ -693,6 +705,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     def doGotoNextBook( self ):
         """
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.doGotoNextBook()") )
+
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
@@ -709,6 +724,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     def doGotoPreviousChapter( self, gotoEnd=False ):
         """
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.doGotoPreviousChapter()") )
+
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
@@ -722,6 +740,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     def doGotoNextChapter( self ):
         """
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.doGotoNextChapter()") )
+
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
@@ -818,7 +839,8 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
 
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentApp.gotoGroupBCV( self.groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -826,7 +848,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
 
     def getSwordVerseKey( self, verseKey ):
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getSwordVerseKey( {} )").format( verseKey ) )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                #print( exp("getSwordVerseKey( {} )").format( verseKey ) )
+
             BBB, C, V = verseKey.getBCV()
             return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceWindow.getSwordVerseKey
@@ -840,7 +864,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getCachedVerseData( {} )").format( verseKey ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("getCachedVerseData( {} )").format( verseKey ) )
+
         verseKeyHash = verseKey.makeHash()
         if verseKeyHash in self.verseCache:
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + exp("Retrieved from BibleResourceWindow cache") )
@@ -1202,7 +1228,11 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
 
 class SwordBibleResourceWindow( BibleResourceWindow ):
+    """
+    """
     def __init__( self, parentApp, moduleAbbreviation ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: print( "SwordBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
         BibleResourceWindow.__init__( self, self.parentApp, 'SwordBibleResourceWindow', self.moduleAbbreviation )
@@ -1217,6 +1247,11 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
 
 
     def refreshTitle( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("SwordBibleResourceWindow.refreshTitle()") )
+
         self.title( "[{}] {} ({}) {} {}:{} [{}]".format( self.groupCode,
                                     self.moduleAbbreviation, 'Sw' if SwordType=="CrosswireLibrary" else 'SwM',
                                     self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber(),
@@ -1255,7 +1290,11 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
 
 
 class DBPBibleResourceWindow( BibleResourceWindow ):
+    """
+    """
     def __init__( self, parentApp, moduleAbbreviation ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag:
             print( "DBPBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
             assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
@@ -1280,6 +1319,11 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
 
 
     def refreshTitle( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("DBPBibleResourceWindow.refreshTitle()") )
+
         self.title( "[{}] {}.{}{} {} {}:{} [{}]".format( self.groupCode,
                                         self.moduleAbbreviation[:3], self.moduleAbbreviation[3:],
                                         ' (online)' if self.DBPModule else ' (offline)',
@@ -1303,6 +1347,8 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
 
 
 class InternalBibleResourceWindow( BibleResourceWindow ):
+    """
+    """
     def __init__( self, parentApp, modulePath ):
         """
         Given a folder, try to open an UnknownBible.
@@ -1332,6 +1378,11 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
 
 
     def refreshTitle( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.refreshTitle()") )
+
         self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self.groupCode,
                         self.modulePath if self.internalBible is None else self.internalBible.name,
                         ' NOT FOUND' if self.internalBible is None else '',

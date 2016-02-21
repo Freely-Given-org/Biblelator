@@ -29,14 +29,14 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-13' # by RJH
+LastModifiedDate = '2016-02-15' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import sys, os.path, logging, re
@@ -89,6 +89,9 @@ class ChildBox():
 
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildBox.__init__ finished.") )
     # end of ChildBox.__init__
 
 
@@ -336,6 +339,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.optionsDict['caseinsens'] = True
 
         self.refreshTitle() # Must be in superclass
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.__init__ finished.") )
     # end of ChildWindow.__init__
 
 
@@ -492,6 +498,7 @@ class ChildWindows( list ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("ChildWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
+
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.BCVUpdateType==DEFAULT and appWin.groupCode==groupCode:

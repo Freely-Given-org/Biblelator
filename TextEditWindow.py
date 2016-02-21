@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-15' # by RJH
+LastModifiedDate = '2016-02-21' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -150,7 +150,8 @@ class TextEditWindow( ChildWindow ):
         self.existingAutocompleteWordText = ''
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # temporarily put some words in
-            self.setAutocompleteWords( ('bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
+            from AutocompleteFunctions import setAutocompleteWords
+            setAutocompleteWords( self, ('a','an','ate','apple','bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
             self.autocompleteType = 'GivenList'
 
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
@@ -159,6 +160,9 @@ class TextEditWindow( ChildWindow ):
         self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
         #self.after( REFRESH_TITLE_TIME, self.refreshTitle )
         self.loading = False
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.__init__ finished.") )
     # end of TextEditWindow.__init__
 
 
@@ -868,28 +872,28 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.loadText
 
 
-    def setAutocompleteWords( self, wordList, append=False ):
-        """
-        Given a word list, set the entries into the autocomplete words
-            and then do necessary house-keeping.
+    #def setAutocompleteWords( self, wordList, append=False ):
+        #"""
+        #Given a word list, set the entries into the autocomplete words
+            #and then do necessary house-keeping.
 
-        Note that the original word order is preserved (if the wordList has an order)
-            so that more common/likely words can appear at the top of the list if desired.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.setAutocompleteWords( {} )").format( wordList, append ) )
-            print( exp("TextEditWindow.setAutocompleteWords()") )
+        #Note that the original word order is preserved (if the wordList has an order)
+            #so that more common/likely words can appear at the top of the list if desired.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            ##print( exp("TextEditWindow.setAutocompleteWords( {} )").format( wordList, append ) )
+            #print( exp("TextEditWindow.setAutocompleteWords()") )
 
-        if not append: self.autocompleteWords = {}
+        #if not append: self.autocompleteWords = {}
 
-        for word in wordList:
-            firstLetter, remainder = word[0], word[1:]
-            if firstLetter not in self.autocompleteWords: self.autocompleteWords[firstLetter] = []
-            self.autocompleteWords[firstLetter].append( remainder )
-            for char in word:
-                if char not in self.autocompleteWordChars:
-                    self.autocompleteWordChars += char
-    # end of TextEditWindow.setAutocompleteWords
+        #for word in wordList:
+            #firstLetter, remainder = word[0], word[1:]
+            #if firstLetter not in self.autocompleteWords: self.autocompleteWords[firstLetter] = []
+            #self.autocompleteWords[firstLetter].append( remainder )
+            #for char in word:
+                #if char not in self.autocompleteWordChars:
+                    #self.autocompleteWordChars += char
+    ## end of TextEditWindow.setAutocompleteWords
 
 
     def doSaveAs( self, event=None ):
@@ -920,8 +924,8 @@ class TextEditWindow( ChildWindow ):
                 with open( filepath, mode='wt' ) as theFile:
                     theFile.write( allText )
                 self.rememberFileTimeAndSize()
-                self.textBox.edit_modified( tk.FALSE ) # clear modified flag
-                self.bookTextModified = False
+                self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
+                #self.bookTextModified = False
                 self.refreshTitle()
             else: self.doSaveAs()
     # end of TextEditWindow.doSave
