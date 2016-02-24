@@ -44,7 +44,7 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-13' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
 ProgVersion = '0.30'
@@ -166,6 +166,7 @@ class ApplicationSettings( Settings ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )").format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
+        # NOTE: Settings.__init__ is NOT called -- not needed
         self.objectNameString = "Application Settings object"
         self.objectTypeString = "ApplicationSettings"
         self.data = None
@@ -302,10 +303,10 @@ def demo():
     tkRootWindow.minsize( 300, 50 )
     tkRootWindow.maxsize( 400, 200 )
 
-    geometryMap = parseWindowGeometry( tkRootWindow.winfo_geometry() )
-    print( "geometry", geometryMap )
-    for something in geometryMap:
-        print( repr(something) )
+    #geometryMap = parseWindowGeometry( tkRootWindow.winfo_geometry() )
+    #print( "geometry", geometryMap )
+    #for something in geometryMap:
+        #print( repr(something) )
 
 
     settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )

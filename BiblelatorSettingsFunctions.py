@@ -30,7 +30,7 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-14' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.30'
@@ -44,21 +44,21 @@ debuggingThisModule = True
 import sys, os, logging
 #import multiprocessing
 
-#import tkinter as tk
 #from tkinter.filedialog import Open, Directory #, SaveAs
 #from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, \
+from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
+    MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
-    parseWindowSize, assembleWindowSize
-#DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, , \
+    findHomeFolderPath, parseWindowSize, assembleWindowSize
         #INITIAL_MAIN_SIZE, , , \
         #,  \
         #EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
         #findHomeFolderPath, parseWindowGeometry, , assembleWindowGeometryFromList, , centreWindow
-#from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
-        #SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBoxDialog, \
+from BiblelatorDialogs import showerror, SaveWindowNameDialog, DeleteWindowNameDialog
+#, showwarning, showinfo, \
+         #, SelectResourceBoxDialog, \
         #GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog
 #from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
 #from Settings import ApplicationSettings, ProjectSettings
@@ -67,7 +67,7 @@ from BiblelatorGlobals import APP_NAME, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MA
 #from BibleResourceCollection import BibleResourceCollectionWindow
 #from BibleReferenceCollection import BibleReferenceCollectionWindow
 #from LexiconResourceWindows import BibleLexiconResourceWindow
-#from TextEditWindow import TextEditWindow
+from TextEditWindow import TextEditWindow
 #from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
 
@@ -347,57 +347,57 @@ def getCurrentChildWindowSettings( self ):
     if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
     self.windowsSettingsDict['Current'] = {}
     for j, appWin in enumerate( self.childWindows ):
-            if appWin.winType == 'HTMLWindow':
-                continue # We don't save these
+        if appWin.winType == 'HTMLWindow':
+            continue # We don't save these
 
-            winNumber = "window{}".format( j+1 )
-            self.windowsSettingsDict['Current'][winNumber] = {}
-            thisOne = self.windowsSettingsDict['Current'][winNumber]
-            thisOne['Type'] = appWin.winType #.replace( 'Window', 'Window' )
-            #print( "child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
-            #print( "child x", appWin.winfo_x(), "child rootx", appWin.winfo_rootx() )
-            #print( "child y", appWin.winfo_y(), "child rooty", appWin.winfo_rooty() )
-            #print( "child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
-            #print( "child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
-            thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
-            if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
-                thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
-            thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
-            thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
+        winNumber = "window{}".format( j+1 )
+        self.windowsSettingsDict['Current'][winNumber] = {}
+        thisOne = self.windowsSettingsDict['Current'][winNumber]
+        thisOne['Type'] = appWin.winType #.replace( 'Window', 'Window' )
+        #print( "child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
+        #print( "child x", appWin.winfo_x(), "child rootx", appWin.winfo_rootx() )
+        #print( "child y", appWin.winfo_y(), "child rooty", appWin.winfo_rooty() )
+        #print( "child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
+        #print( "child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
+        thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
+        if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
+            thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
+        thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
+        thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
 
-            if appWin.winType == 'SwordBibleResourceWindow':
-                thisOne['ModuleAbbreviation'] = appWin.moduleID
-            elif appWin.winType == 'DBPBibleResourceWindow':
-                thisOne['ModuleAbbreviation'] = appWin.moduleID
-            elif appWin.winType == 'InternalBibleResourceWindow':
-                thisOne['BibleFolderPath'] = appWin.moduleID
+        if appWin.winType == 'SwordBibleResourceWindow':
+            thisOne['ModuleAbbreviation'] = appWin.moduleID
+        elif appWin.winType == 'DBPBibleResourceWindow':
+            thisOne['ModuleAbbreviation'] = appWin.moduleID
+        elif appWin.winType == 'InternalBibleResourceWindow':
+            thisOne['BibleFolderPath'] = appWin.moduleID
 
-            elif appWin.winType == 'BibleLexiconResourceWindow':
-                thisOne['BibleLexiconPath'] = appWin.moduleID
+        elif appWin.winType == 'BibleLexiconResourceWindow':
+            thisOne['BibleLexiconPath'] = appWin.moduleID
 
-            elif appWin.winType == 'BibleResourceCollectionWindow':
-                thisOne['CollectionName'] = appWin.moduleID
+        elif appWin.winType == 'BibleResourceCollectionWindow':
+            thisOne['CollectionName'] = appWin.moduleID
 
-            elif appWin.winType == 'PlainTextEditWindow':
-                try: thisOne['TextFilepath'] = appWin.filepath
-                except AttributeError: pass # It's possible to have a blank new text edit window open
+        elif appWin.winType == 'PlainTextEditWindow':
+            try: thisOne['TextFilepath'] = appWin.filepath
+            except AttributeError: pass # It's possible to have a blank new text edit window open
 
-            elif appWin.winType == 'BiblelatorUSFMBibleEditWindow':
-                thisOne['ProjectFolderPath'] = appWin.moduleID
-                thisOne['EditMode'] = appWin.editMode
-            elif appWin.winType == 'ParatextUSFMBibleEditWindow':
-                thisOne['SSFFilepath'] = appWin.moduleID
-                thisOne['EditMode'] = appWin.editMode
+        elif appWin.winType == 'BiblelatorUSFMBibleEditWindow':
+            thisOne['ProjectFolderPath'] = appWin.moduleID
+            thisOne['EditMode'] = appWin.editMode
+        elif appWin.winType == 'ParatextUSFMBibleEditWindow':
+            thisOne['SSFFilepath'] = appWin.moduleID
+            thisOne['EditMode'] = appWin.editMode
 
-            else:
-                logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
-                if BibleOrgSysGlobals.debugFlag: halt
+        else:
+            logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
+            if BibleOrgSysGlobals.debugFlag: halt
 
-            if 'Bible' in appWin.genericWindowType:
-                try: thisOne['GroupCode'] = appWin.groupCode
-                except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
-                try: thisOne['ContextViewMode'] = appWin.contextViewMode
-                except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.winType ) )
+        if 'Bible' in appWin.genericWindowType:
+            try: thisOne['GroupCode'] = appWin.groupCode
+            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
+            try: thisOne['ContextViewMode'] = appWin.contextViewMode
+            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.winType ) )
 # end of getCurrentChildWindowSettings
 
 
@@ -468,17 +468,17 @@ def writeSettingsFile( self ):
     self.settings.reset()
 
     self.settings.data[APP_NAME] = {}
-    main = self.settings.data[APP_NAME]
-    main['settingsVersion'] = SettingsVersion
-    main['progVersion'] = ProgVersion
-    main['themeName'] = self.themeName
+    mainStuff = self.settings.data[APP_NAME]
+    mainStuff['settingsVersion'] = SettingsVersion
+    mainStuff['progVersion'] = ProgVersion
+    mainStuff['themeName'] = self.themeName
     #print( "root geometry", self.rootWindow.geometry(), "root winfo_geometry", self.rootWindow.winfo_geometry() )
     #print( "root x", self.rootWindow.winfo_x(), "root rootx", self.rootWindow.winfo_rootx() )
     #print( "root y", self.rootWindow.winfo_y(), "root rooty", self.rootWindow.winfo_rooty() )
-    main['windowSize'], main['windowPosition'] = self.rootWindow.geometry().split( '+', 1 )
+    mainStuff['windowSize'], mainStuff['windowPosition'] = self.rootWindow.geometry().split( '+', 1 )
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
-    main['minimumSize'] = self.minimumSize
-    main['maximumSize'] = self.maximumSize
+    mainStuff['minimumSize'] = self.minimumSize
+    mainStuff['maximumSize'] = self.maximumSize
 
     # Save the Internet access controls
     self.settings.data['Internet'] = {}
@@ -567,6 +567,8 @@ def demo():
 
     Which windows open depends on the saved settings from the last use.
     """
+    import tkinter as tk
+
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
@@ -603,6 +605,8 @@ def main( homeFolderPath, loggingFolderPath ):
     """
     Main program to handle command line parameters and then run what they want.
     """
+    import tkinter as tk
+
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 

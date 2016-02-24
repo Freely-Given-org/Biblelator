@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-13' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.30'
@@ -46,11 +46,11 @@ import sys, logging
 from collections import OrderedDict
 
 import tkinter as tk
-from tkinter.filedialog import Open, Directory #, SaveAs
+from tkinter.filedialog import Directory #, SaveAs
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
 from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog #, showwarning, showinfo, errorBeep
@@ -188,9 +188,11 @@ class BibleResourceBox( Frame, BibleBox ):
 
 
     def getSwordVerseKey( self, verseKey ):
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getSwordVerseKey( {} )").format( verseKey ) )
-            BBB, C, V = verseKey.getBCV()
-            return self.parentApp.SwordInterface.makeKey( BBB, C, V )
+        """
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getSwordVerseKey( {} )").format( verseKey ) )
+        BBB, C, V = verseKey.getBCV()
+        return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceBox.getSwordVerseKey
 
 

@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-21' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.35'
@@ -36,11 +36,8 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 
 debuggingThisModule = True
 
-import sys #, os.path, logging #, re
-#from collections import OrderedDict
-#import multiprocessing
+import sys, logging
 
-#import tkinter as tk
 #from tkinter.simpledialog import askstring, askinteger
 #from tkinter.filedialog import asksaveasfilename
 #from tkinter.colorchooser import askcolor
@@ -226,7 +223,7 @@ def loadBibleBookAutocompleteWords( self ):
                 autocompleteWords.append( word )
     except KeyError:
         print( "Why did {} have no words???".format( BBB ) )
-        pass # Nothing for this book
+        #pass # Nothing for this book
     #print( 'acW', autocompleteWords )
     setAutocompleteWords( self, autocompleteWords )
     self.autocompleteType = 'BibleBook'
@@ -254,7 +251,7 @@ def loadHunspellAutocompleteWords( self, dictionaryFilepath, encoding='utf-8' ):
         for line in dictionaryFile:
             lineCount += 1
             if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF or \ufeff
-                logging.info( "loadHunspellAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( sfm_filename ) )
+                logging.info( "loadHunspellAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                 line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
             if line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
@@ -445,7 +442,7 @@ def loadILEXAutocompleteWords( self, dictionaryFilepath, lgCodes=None ):
         for line in dictionaryFile:
             lineCount += 1
             if lineCount==1 and line[0]==chr(65279): #U+FEFF or \ufeff
-                logging.info( "loadILEXAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( sfm_filename ) )
+                logging.info( "loadILEXAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                 line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
             if line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
@@ -484,6 +481,8 @@ def demo():
     """
     Demo program to handle command line parameters and then run what they want.
     """
+    import tkinter as tk
+
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
@@ -493,8 +492,7 @@ def demo():
     tkRootWindow.title( ProgNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
-    tEW = TextEditWindow( tkRootWindow )
-    uEW = AutocompleteFunctions( tkRootWindow, None )
+    #uEW = AutocompleteFunctions( tkRootWindow, None )
 
     # Start the program running
     tkRootWindow.mainloop()
@@ -512,13 +510,13 @@ if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
 
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #from tkinter import TclVersion, TkVersion
-        from tkinter import tix
-        print( "TclVersion is", tk.TclVersion )
-        print( "TkVersion is", tk.TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
+    #if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        ##from tkinter import TclVersion, TkVersion
+        #from tkinter import tix
+        #print( "TclVersion is", tk.TclVersion )
+        #print( "TkVersion is", tk.TkVersion )
+        #print( "tix TclVersion is", tix.TclVersion )
+        #print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-13'
+LastModifiedDate = '2016-02-24'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.30'
@@ -469,9 +469,9 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         if result1Number<1 or result1Number>5 or result2Number<1 or result2Number>5: return False
 
         if result2Number==1 and not cb1result:
-             showwarning( self.parent, APP_NAME, _("Need a versification scheme name!") ); return False
+            showwarning( self.parent, APP_NAME, _("Need a versification scheme name!") ); return False
         #if result2Number==2 and not cb2result:
-             #showwarning( self.parent, APP_NAME, _("Need a version name!") ); return False
+            #showwarning( self.parent, APP_NAME, _("Need a version name!") ); return False
         return True
     # end of CreateNewProjectFilesDialog.validate
 
@@ -668,20 +668,19 @@ def demo():
     """
     Main program to handle command line parameters and then run what they want.
     """
-    from tkinter import Tk
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
 
-    tkRootWindow = Tk()
+    tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
 
     #swnd = SaveWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
     #print( "swndResult", swnd.result )
     #dwnd = DeleteWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
     #print( "dwndResult", dwnd.result )
-    srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
+    srb = SelectResourceBoxDialog( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
     print( "srbResult", srb.result )
 
     #tkRootWindow.quit()

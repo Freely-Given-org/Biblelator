@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "About"
 ProgName = "About Box"
 ProgVersion = '0.30'
@@ -44,7 +44,8 @@ import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
 
-from BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE, parseWindowSize, centreWindowOnWindow
+from BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE, MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, \
+                                parseWindowSize, centreWindowOnWindow
 
 sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals

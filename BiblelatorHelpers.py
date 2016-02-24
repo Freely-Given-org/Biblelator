@@ -32,7 +32,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-29' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.30'
@@ -50,7 +50,7 @@ from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-from VerseReferences import SimpleVerseKey, FlexibleVersesKey
+from VerseReferences import SimpleVerseKey #, FlexibleVersesKey
 from BibleReferencesLinks import BibleReferencesLinks
 
 

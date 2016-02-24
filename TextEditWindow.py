@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-21' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -42,20 +42,16 @@ import sys, os.path, logging #, re
 #import multiprocessing
 
 import tkinter as tk
-#from tkinter.simpledialog import askstring, askinteger
-#from tkinter.filedialog import asksaveasfilename
+from tkinter.simpledialog import askstring, askinteger
+from tkinter.filedialog import asksaveasfilename
 #from tkinter.colorchooser import askcolor
-#from tkinter.ttk import Style, Frame
+from tkinter.ttk import Button, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT
-#APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM, BIBLE_GROUP_CODES
-#from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog, GetBibleBookRangeDialog
-#from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, mapReferenceVerseKey, mapParallelVerseKey
+from BiblelatorGlobals import APP_NAME, START, DEFAULT
+from BiblelatorDialogs import showerror, showinfo, YesNoDialog
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow #, HTMLWindow
-#from BibleResourceWindows import BibleBox, BibleResourceWindow
-#from BibleReferenceCollection import BibleReferenceCollectionWindow
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -711,14 +707,14 @@ class TextEditWindow( ChildWindow ):
         Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
         """
-        newPopupWindow = Toplevel( self )
+        newPopupWindow = tk.Toplevel( self )
         newPopupWindow.title( '{} - change'.format( APP_NAME ) )
-        Label( newPopupWindow, text='Find text?', relief=RIDGE, width=15).grid( row=0, column=0 )
-        Label( newPopupWindow, text='Change to?', relief=RIDGE, width=15).grid( row=1, column=0 )
+        Label( newPopupWindow, text='Find text?', relief=tk.RIDGE, width=15).grid( row=0, column=0 )
+        Label( newPopupWindow, text='Change to?', relief=tk.RIDGE, width=15).grid( row=1, column=0 )
         entry1 = Entry( newPopupWindow )
         entry2 = Entry( newPopupWindow )
-        entry1.grid( row=0, column=1, sticky=EW )
-        entry2.grid( row=1, column=1, sticky=EW )
+        entry1.grid( row=0, column=1, sticky=tk.EW )
+        entry2.grid( row=1, column=1, sticky=tk.EW )
 
         def doFind():                         # use my entry in enclosing scope
             self.doFind( entry1.get() )         # runs normal find dialog callback
@@ -726,14 +722,16 @@ class TextEditWindow( ChildWindow ):
         def onApply():
             self.onDoChange( entry1.get(), entry2.get() )
 
-        Button( newPopupWindow, text='Find',  command=doFind ).grid(row=0, column=2, sticky=EW )
-        Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=EW )
+        Button( newPopupWindow, text='Find',  command=doFind ).grid(row=0, column=2, sticky=tk.EW )
+        Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=tk.EW )
         newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
     # end of TextEditWindow.doFindReplace
 
 
     def onDoChange( self, findtext, changeto):
-        # on Apply in change dialog: change and refind
+        """
+        on Apply in change dialog: change and refind
+        """
         if self.textBox.tag_ranges( tk.SEL ):                      # must find first
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
             self.textBox.insert( tk.INSERT, changeto)             # deletes if empty
@@ -1005,7 +1003,6 @@ def demo():
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     tEW = TextEditWindow( tkRootWindow )
-    uEW = USFMEditWindow( tkRootWindow, None )
 
     # Start the program running
     tkRootWindow.mainloop()

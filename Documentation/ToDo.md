@@ -25,7 +25,6 @@ BOS improvements for Biblelator
 
 Biblelator stuff
 * Create backup files when editing (and autosaving???)
-* Divide autocompletion words by the first letter (in order to handle bigger dictionaries)
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Release version 0.3
@@ -50,7 +49,8 @@ Biblelator stuff
 * Look at doing some windows updates in idle time
 * Design an icon
 * Release version 0.5
-* Allow users to "log-on"
+* Allow users to "log-on" with usernames (passwords?)
+* Allow setting of roles (administrator/project leader/superintendent/overseer, translator, consultant/reviewer/archivist/typesetter, contributor/friend/critic/observer)
 * Make logging more useful (including ability to automatically email latest log???)
 * Project sharing (Hg vs Git) -- requires server set-up
 * Write autocompletion settings load/edit routines
@@ -79,6 +79,7 @@ Biblelator stuff
 * Release version 1.0 (BibleOrgSys versification systems have to be working first)
 * Handle team / collaborative issues
 * Think more about fonts and writing systems, special Unicode characters, etc.
+* Make checklists including all original verses containing numbers/people's names/locations/flora/fauna, etc.
 * Handle hyphenation
 * Handle draft printing / typesetting
 * Get it usable as a ESFM Bible editor

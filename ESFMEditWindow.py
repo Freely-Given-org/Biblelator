@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-14' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "ESFMEditWindow"
 ProgName = "Biblelator ESFM Edit Window"
 ProgVersion = '0.30'
@@ -37,11 +37,11 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 
 debuggingThisModule = True
 
-import sys, os.path, logging #, re
+import sys #, os.path, logging #, re
 #from collections import OrderedDict
 #import multiprocessing
 
-#import tkinter as tk
+import tkinter as tk
 #from tkinter.simpledialog import askstring, askinteger
 #from tkinter.filedialog import asksaveasfilename
 #from tkinter.colorchooser import askcolor
@@ -100,8 +100,7 @@ def demo():
     tkRootWindow.title( ProgNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
-    tEW = TextEditWindow( tkRootWindow )
-    uEW = USFMEditWindow( tkRootWindow, None )
+    eEW = ESFMEditWindow( tkRootWindow, None )
 
     # Start the program running
     tkRootWindow.mainloop()

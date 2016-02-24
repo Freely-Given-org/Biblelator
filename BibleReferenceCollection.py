@@ -46,14 +46,14 @@ import sys, logging
 from collections import OrderedDict
 
 import tkinter as tk
-from tkinter.filedialog import Open, Directory #, SaveAs
+#from tkinter.filedialog import Open  #, SaveAs
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, \
                 INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
                 parseWindowSize
-from BiblelatorDialogs import showerror #, showwarning, showinfo, errorBeep
+#from BiblelatorDialogs import showerror #, showwarning, showinfo, errorBeep
 from BiblelatorHelpers import mapReferencesVerseKey
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 
@@ -61,9 +61,9 @@ from BibleResourceWindows import BibleBox, BibleResourceWindow
 sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
-from DigitalBiblePlatform import DBPBibles, DBPBible
-from SwordResources import SwordType, SwordInterface
-from UnknownBible import UnknownBible
+#from DigitalBiblePlatform import DBPBibles, DBPBible
+#from SwordResources import SwordType, SwordInterface
+#from UnknownBible import UnknownBible
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 
 
@@ -203,11 +203,11 @@ class BibleReferenceBox( Frame, BibleBox ):
     # end of BibleReferenceBox.getContextVerseData
 
 
-    def XXXgetSwordVerseKey( self, verseKey ):
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getSwordVerseKey( {} )").format( verseKey ) )
-            BBB, C, V = verseKey.getBCV()
-            return self.parentApp.SwordInterface.makeKey( BBB, C, V )
-    # end of BibleReferenceBox.getSwordVerseKey
+    #def XXXgetSwordVerseKey( self, verseKey ):
+        ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getSwordVerseKey( {} )").format( verseKey ) )
+        #BBB, C, V = verseKey.getBCV()
+        #return self.parentApp.SwordInterface.makeKey( BBB, C, V )
+    ## end of BibleReferenceBox.getSwordVerseKey
 
 
     def getCachedVerseData( self, verseKey ):

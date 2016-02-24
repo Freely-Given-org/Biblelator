@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-15' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -848,11 +848,13 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
 
     def getSwordVerseKey( self, verseKey ):
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                #print( exp("getSwordVerseKey( {} )").format( verseKey ) )
+        """
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("getSwordVerseKey( {} )").format( verseKey ) )
 
-            BBB, C, V = verseKey.getBCV()
-            return self.parentApp.SwordInterface.makeKey( BBB, C, V )
+        BBB, C, V = verseKey.getBCV()
+        return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceWindow.getSwordVerseKey
 
 

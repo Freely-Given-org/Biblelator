@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-15' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -42,22 +42,18 @@ from collections import OrderedDict
 #import multiprocessing
 
 import tkinter as tk
-#from tkinter.simpledialog import askstring, askinteger
-#from tkinter.filedialog import asksaveasfilename
-#from tkinter.colorchooser import askcolor
 #from tkinter.ttk import Style, Frame
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT
-    #APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM, BIBLE_GROUP_CODES
-#from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog, GetBibleBookRangeDialog
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
+    #DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM,
+from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog # OkCancelDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, mapReferenceVerseKey, mapParallelVerseKey
 from TextBoxes import CustomText
-#from ChildWindows import ChildWindow, HTMLWindow
+from ChildWindows import HTMLWindow # ChildWindow
 from BibleResourceWindows import BibleResourceWindow #, BibleBox
-#from BibleReferenceCollection import BibleReferenceCollectionWindow
-from TextEditWindow import TextEditWindow, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
-#from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, loadHunspellAutocompleteWords
+from BibleReferenceCollection import BibleReferenceCollectionWindow
+from TextEditWindow import TextEditWindow #, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -160,16 +156,16 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end if USFMEditWindow.refreshTitle
 
 
-    def xxdoHelp( self ):
-        from Help import HelpBox
-        hb = HelpBox( self.parentApp, ProgName, ProgNameVersion )
-    # end of USFMEditWindow.doHelp
+    #def xxdoHelp( self ):
+        #from Help import HelpBox
+        #hb = HelpBox( self.parentApp, ProgName, ProgNameVersion )
+    ## end of USFMEditWindow.doHelp
 
 
-    def xxdoAbout( self ):
-        from About import AboutBox
-        ab = AboutBox( self.parentApp, ProgName, ProgNameVersion )
-    # end of USFMEditWindow.doAbout
+    #def xxdoAbout( self ):
+        #from About import AboutBox
+        #ab = AboutBox( self.parentApp, ProgName, ProgNameVersion )
+    ## end of USFMEditWindow.doAbout
 
 
     def createMenuBar( self ):
@@ -404,8 +400,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #       sometimes we get a 'current' mark and sometimes an 'anchor1'
         gotCV = False
         # Try to put the most useful methods first (for efficiency)
-        for j, mark in enumerate( (self.textBox.mark_previous(tk.INSERT), self.textBox.mark_previous(tk.INSERT+'-1c'),
-                                   self.textBox.mark_previous(tk.INSERT+' linestart+1c'), self.textBox.mark_previous(tk.INSERT+' linestart'),) ):
+        for mark in (self.textBox.mark_previous(tk.INSERT), self.textBox.mark_previous(tk.INSERT+'-1c'),
+                    self.textBox.mark_previous(tk.INSERT+' linestart+1c'), self.textBox.mark_previous(tk.INSERT+' linestart'),):
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 #print( "  mark", j, mark )
                 if mark is None: print( "    WHY is mark NONE?" )
@@ -1193,14 +1189,14 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.startReferencesMode
 
 
-    def xxcloseEditor( self ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.closeEditor()") )
-        if self.modified():
-            pass # refuse to close yet (temp.........)
-        else: self.closeChildWindow()
-    # end of USFMEditWindow.closeEditor
+    #def xxcloseEditor( self ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.closeEditor()") )
+        #if self.modified():
+            #pass # refuse to close yet (temp.........)
+        #else: self.closeChildWindow()
+    ## end of USFMEditWindow.closeEditor
 # end of USFMEditWindow class
 
 
@@ -1218,7 +1214,6 @@ def demo():
     tkRootWindow.title( ProgNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
-    tEW = TextEditWindow( tkRootWindow )
     uEW = USFMEditWindow( tkRootWindow, None )
 
     # Start the program running

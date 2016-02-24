@@ -31,11 +31,11 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-22' # by RJH
+LastModifiedDate = '2016-02-24' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
-SettingsVersion = '0.30' # Only need to change this if the settings format has changed
+SettingsVersion = '0.30' # Only need to change this if the settings format has changed and now incompatible
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -46,23 +46,26 @@ import sys, os, logging
 import multiprocessing
 
 import tkinter as tk
-from tkinter.filedialog import Open, Directory #, SaveAs
+from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, MAX_WINDOWS, \
-        INITIAL_MAIN_SIZE, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, \
-        BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
-        EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolderPath, parseWindowGeometry, parseWindowSize, assembleWindowGeometryFromList, \
-            assembleWindowSize, centreWindow
+from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
+        INITIAL_MAIN_SIZE, \
+        BIBLE_GROUP_CODES, \
+        DEFAULT_KEY_BINDING_DICT, \
+        findHomeFolderPath, parseWindowGeometry, assembleWindowGeometryFromList, \
+            centreWindow
+# BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
+# assembleWindowSize, parseWindowSize,
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
-        SaveWindowNameDialog, DeleteWindowNameDialog, SelectResourceBoxDialog, \
+        SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog
+# DeleteWindowNameDialog, SaveWindowNameDialog,
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
 from Settings import ApplicationSettings, ProjectSettings
-from BiblelatorSettingsFunctions import parseAndApplySettings, saveNewWindowSetup, doDeleteExistingWindowSetup, \
-                                        doViewSettings, writeSettingsFile
+from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile
+# saveNewWindowSetup, doViewSettings, doDeleteExistingWindowSetup,
 from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from BibleResourceCollection import BibleResourceCollectionWindow
@@ -70,7 +73,7 @@ from BibleReferenceCollection import BibleReferenceCollectionWindow
 from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
 from USFMEditWindow import USFMEditWindow
-from ESFMEditWindow import ESFMEditWindow
+#from ESFMEditWindow import ESFMEditWindow
 from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
@@ -865,40 +868,44 @@ class Application( Frame ):
 
     def doCheckForDeveloperMessages( self, event=None ):
         """
-        Display an about box.
+        Check if there's any new messages on the website from the developer.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doCheckForDeveloperMessages()") )
 
         import requests
+        # NOTE: needs to be https!!!
         try: ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
-        except Exception as err:
+        except requests.exceptions.InvalidSchema as err:
             logging.critical( exp("doCheckForDeveloperMessages: Unable to check for developer messages") )
             logging.info( exp("doCheckForDeveloperMessages: {}").format( err ) )
             showerror( self, 'Check for Developer Messages Error', err )
             return
-        #print( 'Status', repr(ri.status_code) )
-        #print( 'Headers',  repr(ri.headers) )
-        #print( 'Content', repr(ri.content) )
-        #print( 'Encoding',  repr(ri.encoding) )
-        #print( 'Text',  repr(ri.text) )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( 'doCheckForDeveloperMessages Status', repr(ri.status_code) )
+            #print( 'Headers',  repr(ri.headers) )
+            #print( 'Content', repr(ri.content) )
+            #print( 'Encoding',  repr(ri.encoding) )
+            #print( 'Text',  repr(ri.text) )
+
         if ri.status_code == 200: # successful
             fetchedText = ri.text
             while fetchedText.endswith( '\n' ): result = result[:-1] # Removing trailing line feeds
             n,ext = fetchedText.split( '.', 1 )
             ni = int( n )
             #print( ni, ext )
-        if ni > self.lastMessageNumberRead:
-            rq = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}".format( self.lastMessageNumberRead+1, ext ) )
-            if rq.status_code == 200: # successful
-                #print( r.text )
+            if ni > self.lastMessageNumberRead:
+                rq = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}".format( self.lastMessageNumberRead+1, ext ) )
+                if rq.status_code == 200: # successful
+                    #print( r.text )
 
-                from About import AboutBox
-                aboutInfo = ProgNameVersion + " Developer Message #{}".format( self.lastMessageNumberRead )
-                aboutInfo += '\n  from Freely-Given.org'
-                aboutInfo += '\n\n' + rq.text
-                ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+                    from About import AboutBox
+                    aboutInfo = ProgNameVersion + " Developer Message #{}".format( self.lastMessageNumberRead )
+                    aboutInfo += '\n  from Freely-Given.org'
+                    aboutInfo += '\n\n' + rq.text
+                    ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
 
-                self.lastMessageNumberRead += 1
+                    self.lastMessageNumberRead += 1
     # end of Application.doCheckForDeveloperMessages
 
 
@@ -2144,11 +2151,11 @@ class Application( Frame ):
         comma, try each one for every file, without open loadEncode?
         """
         #from tkinter import Toplevel, StringVar, X, RIDGE, tk.SUNKEN
-        from tkinter.ttk import Label, Entry, Button
+        #from tkinter.ttk import Label, Entry, Button
         def makeFormRow( parent, label, width=15, browse=True, extend=False ):
             var = tk.StringVar()
             row = Frame(parent)
-            lab = Label( row, text=label + '?', relief=RIDGE, width=width)
+            lab = Label( row, text=label + '?', relief=tk.RIDGE, width=width)
             ent = Entry( row, textvariable=var) # relief=tk.SUNKEN
             row.pack( fill=tk.X )                                  # uses packed row frames
             lab.pack( side=tk.LEFT )                               # and fixed-width labels
@@ -2166,7 +2173,7 @@ class Application( Frame ):
         # end of makeFormRow
 
         # nonmodal dialog: get dirnname, filenamepatt, grepkey
-        popup = Toplevel()
+        popup = tk.Toplevel()
         popup.title( 'PyEdit - grep')
         var1 = makeFormRow( popup, label='Directory root',   width=18, browse=False)
         var2 = makeFormRow( popup, label='Filename pattern', width=18, browse=False)
@@ -2186,7 +2193,7 @@ class Application( Frame ):
         tbd: should producer thread be daemon so it dies with app?
         """
         #from tkinter import Tk
-        from tkinter.ttk import Label
+        #from tkinter.ttk import Label
         import threading, queue
 
         # make non-modal un-closeable dialog
@@ -2215,7 +2222,7 @@ class Application( Frame ):
         sys.getfilesystemencoding() if not None?  see also Chapter6
         footnote issue: 3.1 fnmatch always converts bytes per Latin-1;
         """
-        import fnmatch, os
+        import fnmatch
 
         def find(pattern, startdir=os.curdir):
             for (thisDir, subsHere, filesHere) in os.walk(startdir):
@@ -2287,18 +2294,18 @@ class Application( Frame ):
                                                                    # or get(tk.ACTIVE)
             def makeWidgets(self, options):
                 sbar = Scrollbar(self)
-                list = tk.Listbox(self, relief=tk.SUNKEN)
-                sbar.config(command=list.yview)                    # xlink sbar and list
-                list.config(yscrollcommand=sbar.set)               # move one moves other
+                matchBox = tk.Listbox(self, relief=tk.SUNKEN)
+                sbar.config(command=matchBox.yview)                    # xlink sbar and list
+                matchBox.config(yscrollcommand=sbar.set)               # move one moves other
                 sbar.pack( side=tk.RIGHT, fill=tk.Y )                      # pack first=clip last
-                list.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )        # list clipped first
+                matchBox.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )        # list clipped first
                 pos = 0
                 for label in options:                              # add to tk.Listbox
-                    list.insert(pos, label)                        # or insert(tk.END,label)
+                    matchBox.insert(pos, label)                        # or insert(tk.END,label)
                     pos += 1                                       # or enumerate(options)
                #list.config(selectmode=SINGLE, setgrid=1)          # select,resize modes
-                list.bind('<Double-1>', self.handleList)           # set event handler
-                self.tk.Listbox = list
+                matchBox.bind('<Double-1>', self.handleList)           # set event handler
+                self.tk.Listbox = matchBox
 
             def runCommand(self, selection):                       # redefine me lower
                 print('You selected:', selection)
@@ -2316,7 +2323,7 @@ class Application( Frame ):
                 editor.text.focus_force()   # no, really
 
         # new non-modal widnow
-        popup = Tk()
+        popup = tk.Tk()
         popup.title( 'PyEdit - grep matches: %r (%s)' % (grepkey, encoding))
         ScrolledFilenames(parent=popup, options=matches)
     # end of Application.grepMatchesList
