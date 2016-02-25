@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-02-25' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -735,6 +735,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             print( "USFMEditWindow.updateShownBCV( {} from {} ) for".format( newReferenceVerseKey, self.currentVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
 
+        if 0:# Safety-check since editor code not finished yet for all modes
+            if self.contextViewMode in ('BeforeAndAfter','BySection','ByVerse','ByChapter',):
+                print( exp("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
+                showinfo( self, "Safety-check", "Converted {} contextViewMode for edit window (unfinished code)".format( repr(self.contextViewMode) ) )
+                self._viewRadioVar.set( 4 ) # ByBook
+                self.changeBibleContextView()
+
         oldVerseKey = self.currentVerseKey
         oldBBB = None if oldVerseKey is None else oldVerseKey.getBBB()
 
@@ -827,12 +834,6 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         savedCursorPosition = self.textBox.index( tk.INSERT ) # Something like 55.6 for line 55, before column 6
         print( "savedCursorPosition", savedCursorPosition )   #   Beginning of file is 1.0
 
-        # Safety-check since editor code not finished yet for all modes
-        if self.contextViewMode in ('BeforeAndAfter','BySection','ByVerse','ByChapter',):
-            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
-            self._viewRadioVar.set( 4 ) # ByBook
-            self.changeBibleContextView()
-
         # Now check if the book they're viewing has changed since last time
         #       If so, save the old book if necessary
         #       then either load or create the new book
@@ -860,22 +861,45 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             startingFlag = True
 
             if self.contextViewMode == 'BeforeAndAfter':
-                halt
-                bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
-                if bibleData:
-                    verseData, previousVerses, nextVerses = bibleData
-                    for verseKey,previousVerseData in previousVerses:
-                        self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
-                        startingFlag = False
-                    self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
-                    for verseKey,nextVerseData in nextVerses:
-                        self.displayAppendVerse( False, verseKey, nextVerseData )
+                print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
+                BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+                self.bookTextBefore = self.bookTextAfter = ''
+                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                    try: numVerses = self.getNumVerses( BBB, thisC )
+                    except KeyError: numVerses = 0
+                    for thisV in range( 0, numVerses+1 ):
+                        thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                        thisVerseData = self.getCachedVerseData( thisVerseKey )
+                        if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''
+                        elif thisC > intC: self.bookTextAfter += thisVerseData if thisVerseData else ''
+                        elif thisV < intV-1: self.bookTextBefore += thisVerseData if thisVerseData else ''
+                        elif thisV > intV+1: self.bookTextAfter += thisVerseData if thisVerseData else ''
+                        else:
+                            self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                                currentVerse=thisC==intC and thisV==intV )
+                            startingFlag = False
 
             elif self.contextViewMode == 'ByVerse':
-                halt
-                self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+                print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
+                BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+                self.bookTextBefore = self.bookTextAfter = ''
+                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                    try: numVerses = self.getNumVerses( BBB, thisC )
+                    except KeyError: numVerses = 0
+                    for thisV in range( 0, numVerses+1 ):
+                        thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                        thisVerseData = self.getCachedVerseData( thisVerseKey )
+                        if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''
+                        elif thisC > intC: self.bookTextAfter += thisVerseData if thisVerseData else ''
+                        elif thisV < intV: self.bookTextBefore += thisVerseData if thisVerseData else ''
+                        elif thisV > intV: self.bookTextAfter += thisVerseData if thisVerseData else ''
+                        else:
+                            self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                                currentVerse=thisC==intC and thisV==intV )
 
             elif self.contextViewMode == 'BySection':
+                print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
+                self.bookTextBefore = self.bookTextAfter = ''
                 halt
                 self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
                 BBB, C, V = newVerseKey.getBCV()
@@ -894,29 +918,34 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             elif self.contextViewMode == 'ByBook':
                 print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
-                BBB, C, V = newVerseKey.getBCV()
-                intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+                BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
+                        print( 'tVD', repr(thisVerseData) )
                         self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
                                                 currentVerse=thisC==intC and thisV==intV )
                         startingFlag = False
 
             elif self.contextViewMode == 'ByChapter':
-                halt
-                BBB, C, V = newVerseKey.getBCV()
-                intV = newVerseKey.getVerseNumberInt()
-                try: numVerses = self.getNumVerses( BBB, C )
-                except KeyError: numVerses = 0
-                for thisV in range( 0, numVerses ):
-                    thisVerseKey = SimpleVerseKey( BBB, C, thisV )
-                    thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
-                    startingFlag = False
+                print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
+                BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+                self.bookTextBefore = self.bookTextAfter = ''
+                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                    try: numVerses = self.getNumVerses( BBB, thisC )
+                    except KeyError: numVerses = 0
+                    for thisV in range( 0, numVerses+1 ):
+                        thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                        thisVerseData = self.getCachedVerseData( thisVerseKey )
+                        if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''
+                        elif thisC > intC: self.bookTextAfter += thisVerseData if thisVerseData else ''
+                        else:
+                            self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                                currentVerse=thisC==intC and thisV==intV )
+                            startingFlag = False
 
             else:
                 logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )

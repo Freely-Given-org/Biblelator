@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-02-25' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -512,7 +512,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         # Set-up our Bible system and our callables
         self.BibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: 99 if b=='UNK' or c=='0' or c==0 else self.BibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
@@ -1271,6 +1271,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
                 rawInternalBibleContextData = self.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
+                if rawInternalBibleContextData is None: return '', ''
                 rawInternalBibleData, context = rawInternalBibleContextData
                 # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
                 #from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
