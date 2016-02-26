@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-25' # by RJH
+LastModifiedDate = '2016-02-26' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -46,6 +46,7 @@ import tkinter as tk
 # Biblelator imports
 from BiblelatorGlobals import START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
 from ChildWindows import ChildBox, ChildWindow
+from BiblelatorHelpers import findCurrentSection
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -1127,19 +1128,22 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
             self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
 
         elif self.contextViewMode == 'BySection':
-            self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-            BBB, C, V = newVerseKey.getBCV()
-            intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-            #for thisC in range( 0, self.getNumChapters( BBB ) ):
-                #try: numVerses = self.getNumVerses( BBB, thisC )
-                #except KeyError: numVerses = 0
-                #for thisV in range( 0, numVerses ):
-                    #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                    #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            #currentVerse=thisC==intC and thisV==intV )
-                    #startingFlag = False
+            BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+            sectionStart, sectionEnd = findCurrentSection( newVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
+            intC1, intV1 = sectionStart.getChapterNumberInt(), sectionStart.getVerseNumberInt()
+            intC2, intV2 = sectionEnd.getChapterNumberInt(), sectionEnd.getVerseNumberInt()
+            for thisC in range( intC1, intC2+1 ):
+                try: numVerses = self.getNumVerses( BBB, thisC )
+                except KeyError: numVerses = 0
+                startV, endV = 0, numVerses
+                if thisC == intC1: startV = intV1
+                if thisC == intC2: endV = intV2
+                for thisV in range( startV, endV+1 ):
+                    thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                    thisVerseData = self.getCachedVerseData( thisVerseKey )
+                    self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                            currentVerse=thisC==intC and thisV==intV )
+                    startingFlag = False
 
         elif self.contextViewMode == 'ByBook':
             BBB, C, V = newVerseKey.getBCV()

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-02-26' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -309,7 +309,7 @@ class Application( Frame ):
         submenuLexiconResourceType.add_command( label='Bible', underline=0, command=self.doOpenBibleLexiconResource )
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label='Open commentary', underline=5, menu=submenuCommentaryResourceType )
-        resourcesMenu.add_command( label='Open resource collection', underline=5, command=self.doOpenBibleResourceCollection )
+        resourcesMenu.add_command( label='Open resource collection...', underline=5, command=self.doOpenBibleResourceCollection )
         resourcesMenu.add_separator()
         resourcesMenu.add_command( label='Hide all resources', underline=0, command=self.doHideAllResources )
         resourcesMenu.add_command( label='Show all resources', underline=0, command=self.doShowAllResources )

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-25' # by RJH
+LastModifiedDate = '2016-02-26' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -48,7 +48,8 @@ import tkinter as tk
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
     #DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM,
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog # OkCancelDialog
-from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, mapReferenceVerseKey, mapParallelVerseKey
+from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
+                                mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection
 from TextBoxes import CustomText
 from ChildWindows import HTMLWindow # ChildWindow
 from BibleResourceWindows import BibleResourceWindow #, BibleBox
@@ -284,19 +285,19 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.createMenuBar
 
 
-    def xxcreateContextMenu( self ):
-        """
-        """
-        self.contextMenu = tk.Menu( self, tearoff=0 )
-        self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut )
-        self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy )
-        self.contextMenu.add_command( label="Paste", underline=0, command=self.doPaste )
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Close", underline=1, command=self.doCloseEditor )
+    #def xxcreateContextMenu( self ):
+        #"""
+        #"""
+        #self.contextMenu = tk.Menu( self, tearoff=0 )
+        #self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut )
+        #self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy )
+        #self.contextMenu.add_command( label="Paste", underline=0, command=self.doPaste )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label="Close", underline=1, command=self.doCloseEditor )
 
-        self.bind( "<Button-3>", self.showContextMenu ) # right-click
-        #self.pack()
-    # end of USFMEditWindow.createContextMenu
+        #self.bind( "<Button-3>", self.showContextMenu ) # right-click
+        ##self.pack()
+    ## end of USFMEditWindow.createContextMenu
 
 
     #def showContextMenu( self, e):
@@ -899,21 +900,25 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
             elif self.contextViewMode == 'BySection':
                 print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
+                BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+                sectionStart, sectionEnd = findCurrentSection( newVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
+                intC1, intV1 = sectionStart.getChapterNumberInt(), sectionStart.getVerseNumberInt()
+                intC2, intV2 = sectionEnd.getChapterNumberInt(), sectionEnd.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                halt
-                self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-                BBB, C, V = newVerseKey.getBCV()
-                intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                #for thisC in range( 0, self.getNumChapters( BBB ) ):
-                    #try: numVerses = self.getNumVerses( BBB, thisC )
-                    #except KeyError: numVerses = 0
-                    #for thisV in range( 0, numVerses ):
-                        #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                        #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                        #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                #currentVerse=thisC==intC and thisV==intV )
-                        #startingFlag = False
+                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                    try: numVerses = self.getNumVerses( BBB, thisC )
+                    except KeyError: numVerses = 0
+                    for thisV in range( 0, numVerses+1 ):
+                        thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                        thisVerseData = self.getCachedVerseData( thisVerseKey )
+                        if thisC < intC1 or (thisC==intC1 and thisV<intV1):
+                            self.bookTextBefore += thisVerseData if thisVerseData else ''
+                        elif thisC > intC2 or (thisC==intC2 and thisV>intV2):
+                            self.bookTextAfter += thisVerseData if thisVerseData else ''
+                        else: # we're in the section that we're interested in
+                            self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                                    currentVerse=thisC==intC and thisV==intV )
+                            startingFlag = False
 
             elif self.contextViewMode == 'ByBook':
                 print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
@@ -925,7 +930,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                     for thisV in range( 0, numVerses+1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
-                        print( 'tVD', repr(thisVerseData) )
+                        #print( 'tVD', repr(thisVerseData) )
                         self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
                                                 currentVerse=thisC==intC and thisV==intV )
                         startingFlag = False
