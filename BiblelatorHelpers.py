@@ -32,7 +32,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-02-26' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.30'
@@ -300,7 +300,10 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         and a function to get verse data (probably cached),
             find the beginning and end of the current section.
 
-    Returns ???
+    Returns the verseKey for the start of the section
+        and for the end of the section -- well actually the start of the next section.
+        
+    If no sections are found, it goes a maximum of one chapter back or one chapter forward.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("findCurrentSection( {}, ... )").format( currentVerseKey.getShortText() ) )
@@ -313,18 +316,20 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("sectionFoundIn( {!r} )").format( verseData ) )
 
-        if isinstance( verseData, str ):
-            print( "  It's a string!" )
+        if verseData is None: return False
+    
+        elif isinstance( verseData, str ):
+            #print( "  It's a string!" )
             if '\\s ' in thisVerseData or '\\s1' in thisVerseData \
             or '\\s2' in thisVerseData or '\\s3' in thisVerseData:
                 return True
             
         elif isinstance( verseData, tuple ):
-            print( "  It's an InternalBibleEntryList!" )
+            #print( "  It's an InternalBibleEntryList!" )
             assert( len(verseData) == 2 )
             verseDataList, context = verseData
-            print( '   dataList', repr(verseDataList) )
-            print( '    context', repr(context) )
+            #print( '   dataList', repr(verseDataList) )
+            #print( '    context', repr(context) )
             for entry in verseDataList:
                 if isinstance( entry, InternalBibleEntry ):
                     marker, cleanText = entry.getMarker(), entry.getCleanText()
@@ -342,6 +347,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
                     else:
                         marker, cleanText = None, entry
                 elif BibleOrgSysGlobals.debugFlag: halt
+                if marker in ( 's','s1','s2','s3','s4' ): return True
 
         else:
             print( 'Ooops', repr(verseData) )
@@ -351,14 +357,15 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         return False
     # end of sectionFoundIn
     
+    # Start of main section of findCurrentSection
     BBB, C, V = currentVerseKey.getBCV()
     intC, intV = currentVerseKey.getChapterNumberInt(), currentVerseKey.getVerseNumberInt()
-    print( 'fCS at', BBB, C, intC, V, intV )
+    #print( 'fCS at', BBB, C, intC, V, intV )
 
     # First let's find the beginning of the section
     #  which could be in the current verse/chapter,
     #   or in the previous chapter (at most we assume)
-    print( 'fCS finding start...' )
+    #print( 'fCS finding start...' )
     firstC = max( intC-1, 0 )
     found = False
     for thisC in reversed( range( firstC, intC+1 ) ): # Look backwards
@@ -369,10 +376,6 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
             thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
             thisVerseData = getVerseData( thisVerseKey )
             print( ' ', thisC, thisV, repr(thisVerseData) )
-            #previousCV = thisC, thisV
-            #if thisVerseData \
-            #and ( '\\s ' in thisVerseData or '\\s1' in thisVerseData \
-            #or '\\s2' in thisVerseData or '\\s3' in thisVerseData ):
             if sectionFoundIn( thisVerseData ):
                 found = thisC, thisV; break
         if found: break
@@ -381,9 +384,8 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
     # Now let's find the end of the section
     #  which could be in the current chapter, or in the next chapter (at most we assume)
-    print( 'fCS finding end...' )
+    #print( 'fCS finding end...' )
     lastC = min( intC+1, getNumChapters( BBB ) )
-    #previousCV = intC, intV
     found = False
     for thisC in range( intC, lastC+1 ):
         numVerses = getNumVerses( BBB, thisC )
@@ -393,16 +395,12 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
             thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
             thisVerseData = getVerseData( thisVerseKey )
             print( ' ', thisC, thisV, repr(thisVerseData) )
-            #previousCV = thisC, thisV
-            #if thisVerseData \
-            #and ( '\\s ' in thisVerseData or '\\s1' in thisVerseData \
-            #or '\\s2' in thisVerseData or '\\s3' in thisVerseData ):
             if sectionFoundIn( thisVerseData ):
                 found = thisC, thisV; break
         if found: break
     if not found: found = lastC, numVerses
     endKey = SimpleVerseKey( BBB, found[0], found[1] )
-    print( "fCS returning", startKey.getShortText(), endKey.getShortText() )
+    #print( "fCS returning", startKey.getShortText(), endKey.getShortText() )
     return startKey, endKey
 # end of BiblelatorHelpers.findCurrentSection
 
