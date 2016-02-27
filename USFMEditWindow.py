@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-26' # by RJH
+LastModifiedDate = '2016-02-27' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -736,13 +736,6 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             print( "USFMEditWindow.updateShownBCV( {} from {} ) for".format( newReferenceVerseKey, self.currentVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
 
-        if 0:# Safety-check since editor code not finished yet for all modes
-            if self.contextViewMode in ('BeforeAndAfter','BySection','ByVerse','ByChapter',):
-                print( exp("updateShownBCV: Safety-check converted {} contextViewMode for edit window").format( repr(self.contextViewMode) ) )
-                showinfo( self, "Safety-check", "Converted {} contextViewMode for edit window (unfinished code)".format( repr(self.contextViewMode) ) )
-                self._viewRadioVar.set( 4 ) # ByBook
-                self.changeBibleContextView()
-
         oldVerseKey = self.currentVerseKey
         oldBBB = None if oldVerseKey is None else oldVerseKey.getBBB()
 
@@ -763,7 +756,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             editedText = self.getAllText()
             if self.contextViewMode == 'BeforeAndAfter':
                 print( "\n\nWe need to extract the BeforeAndAfter changes into self.bookText!!!\n\n")
-                halt
+                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                if newBBB == oldBBB: # We haven't changed books
+                    self.verseCache = OrderedDict()
+                    self.cacheBook( oldBBB )
                 #bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
                 #if bibleData:
                     #verseData, previousVerses, nextVerses = bibleData
@@ -776,11 +772,14 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
             elif self.contextViewMode == 'BySection':
                 print( "\n\nWe need to extract the BySection changes into self.bookText!!!\n\n")
-                halt
-                self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-                BBB, C, V = newVerseKey.getBCV()
-                intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                if newBBB == oldBBB: # We haven't changed books
+                    self.verseCache = OrderedDict()
+                    self.cacheBook( oldBBB )
+                #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+                #BBB, C, V = newVerseKey.getBCV()
+                #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+                #print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
                 #for thisC in range( 0, self.getNumChapters( BBB ) ):
                     #try: numVerses = self.getNumVerses( BBB, thisC )
                     #except KeyError: numVerses = 0
@@ -793,8 +792,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
             elif self.contextViewMode == 'ByVerse':
                 print( "\n\nWe need to extract the ByVerse changes into self.bookText!!!\n\n")
-                halt
-                C, V = self.currentVerseKey.getCV()
+                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                if newBBB == oldBBB: # We haven't changed books
+                    self.verseCache = OrderedDict()
+                    self.cacheBook( oldBBB )
+                #C, V = self.currentVerseKey.getCV()
                 #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
 
             elif self.contextViewMode == 'ByBook':
@@ -806,8 +808,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
             elif self.contextViewMode == 'ByChapter':
                 print( "\n\nWe need to extract the ByChapter changes into self.bookText!!!\n\n")
-                halt
-                C = self.currentVerseKey.getChapterNumber()
+                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                if newBBB == oldBBB: # We haven't changed books
+                    self.verseCache = OrderedDict()
+                    self.cacheBook( oldBBB )
+                #C = self.currentVerseKey.getChapterNumber()
                 #BBB, C, V = newVerseKey.getBCV()
                 #intV = newVerseKey.getVerseNumberInt()
                 #try: numVerses = self.getNumVerses( BBB, C )

@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-26' # by RJH
+LastModifiedDate = '2016-02-27' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -574,8 +574,8 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         gotoMenu.add_command( label='Next book', underline=-1, command=self.doGotoNextBook )
         gotoMenu.add_command( label='Previous chapter', underline=-1, command=self.doGotoPreviousChapter )
         gotoMenu.add_command( label='Next chapter', underline=-1, command=self.doGotoNextChapter )
-        gotoMenu.add_command( label='Previous section', underline=-1, command=self.notWrittenYet )
-        gotoMenu.add_command( label='Next section', underline=-1, command=self.notWrittenYet )
+        gotoMenu.add_command( label='Previous section', underline=-1, command=self.doGotoPreviousSection )
+        gotoMenu.add_command( label='Next section', underline=-1, command=self.doGotoNextSection )
         gotoMenu.add_command( label='Previous verse', underline=-1, command=self.doGotoPreviousVerse )
         gotoMenu.add_command( label='Next verse', underline=-1, command=self.doGotoNextVerse )
         gotoMenu.add_separator()
@@ -752,6 +752,58 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
         else: self.doGotoNextBook()
     # end of BibleResourceWindow.doGotoNextChapter
+
+
+    def doGotoPreviousSection( self, gotoEnd=False ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.doGotoPreviousSection()") )
+
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoPreviousSection() from {} {}:{}").format( BBB, C, V ) )
+            self.parentApp.setDebugText( "BRW doGotoPreviousSection..." )
+        # First the start of the current section
+        sectionStart1, sectionEnd1 = findCurrentSection( self.currentVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
+        print( "section1 Start/End", sectionStart1, sectionEnd1 )
+        intC1, intV1 = sectionStart1.getChapterNumberInt(), sectionStart1.getVerseNumberInt()
+        # Go back one verse from the start of the current section
+        if intV1 == 0:
+            if intC1 == 0:
+                self.doGotoPreviousBook( gotoEnd=True )
+                return
+            else:
+                intC1 -= 1
+                intV1 = self.getNumVerses( BBB, C1)
+        else: intV1 -= 1
+        # Now find the start of this previous section
+        sectionStart2, sectionEnd2 = findCurrentSection( SimpleVerseKey( BBB, intC1, intV1), self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
+        print( "section2 Start/End", sectionStart2, sectionEnd2 )
+        BBB2, C2, V2 = sectionStart2.getBCV()
+        self.gotoBCV( BBB2, C2, V2 )
+    # end of BibleResourceWindow.doGotoPreviousSection
+
+
+    def doGotoNextSection( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.doGotoNextSection()") )
+
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoNextSection() from {} {}:{}").format( BBB, C, V ) )
+            self.parentApp.setDebugText( "BRW doGotoNextSection..." )
+        # Find the end of the current section (which is the first verse of the next section)
+        sectionStart, sectionEnd = findCurrentSection( self.currentVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
+        print( "section Start/End", sectionStart, sectionEnd )
+        intC2, intV2 = sectionEnd.getChapterNumberInt(), sectionEnd.getVerseNumberInt()
+        if intC2 < self.maxChapters \
+        or (intC2==self.maxChapters and intV2< self.getNumVerses( BBB, intC2) ):
+            self.gotoBCV( BBB, intC2, intV2 )
+        else: self.doGotoNextBook()
+    # end of BibleResourceWindow.doGotoNextSection
 
 
     def doGotoPreviousVerse( self ):
