@@ -27,10 +27,10 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-02-29' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.35'
+ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -449,14 +449,14 @@ def loadILEXAutocompleteWords( self, dictionaryFilepath, lgCodes=None ):
             #print( "line", lineCount, repr(line) )
 
             # wd, lg, ps, and sc are the four compulsory fields in each record
-            if line.startswith( '\wd ' ):
+            if line.startswith( '\\wd ' ):
                 word = line[4:]
                 if '*' in word and word[-2] == '*' and word[-1].isdigit(): # It has a subscript
                     word = word[:-2]
-            elif line.startswith( '\lg ' ):
+            elif line.startswith( '\\lg ' ):
                 lgCode = line[4:]
                 assert len(lgCode) == 3
-            elif line.startswith( '\ps ' ):
+            elif line.startswith( '\\ps ' ):
                 POS = line[4:]
 
                 if lgCodes is None or lgCode in lgCodes:

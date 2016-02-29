@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-02-25 RJH
+Last updated: 2016-02-28 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,7 +12,7 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
-* Can't undo Bible edit once moved cursor
+* Can't undo USFM Bible edit once moved cursor
 
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking

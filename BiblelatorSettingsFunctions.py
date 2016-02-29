@@ -30,7 +30,7 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-02-28' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.30'
@@ -49,7 +49,7 @@ import sys, os, logging
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-    MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, \
+    MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
     findHomeFolderPath, parseWindowSize, assembleWindowSize
         #INITIAL_MAIN_SIZE, , , \
@@ -123,7 +123,7 @@ def parseAndApplySettings( self ):
             self.setDebugText( "retrieveWindowsSettings..." )
         windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
         resultDict = {}
-        for j in range( 1, MAX_WINDOWS ):
+        for j in range( 1, MAX_WINDOWS+1 ):
             winNumber = 'window{}'.format( j )
             for keyName in windowsSettingsFields:
                 if keyName.startswith( winNumber ):
@@ -196,6 +196,21 @@ def parseAndApplySettings( self ):
     except KeyError: pass # use program default
     try: self.lastInternalBibleDir = self.settings.data['Paths']['lastInternalBibleDir']
     except KeyError: pass # use program default
+
+    # Recent files
+    assert not self.recentFiles
+    try: recentFields = self.settings.data['RecentFiles']
+    except KeyError: recentFields = None
+    if recentFields: # in settings file
+        for j in range( 1, MAX_RECENT_FILES+1 ):
+            recentName = 'Recent{}'.format( j )
+            for keyName in recentFields:
+                if keyName.startswith( recentName ):
+                    filename = self.settings.data['RecentFiles']['Recent{}Filename'].format( j )
+                    folder = self.settings.data['RecentFiles']['Recent{}Folder'].format( j )
+                    winType = self.settings.data['RecentFiles']['Recent{}Type'].format( j )
+                    self.recentFiles.append( (filename,folder,winType) )
+                    assert( len(self.recentFiles) == j )
 
     # Users
     try: self.currentUser = self.settings.data['Users']['currentUser']
@@ -498,6 +513,15 @@ def writeSettingsFile( self ):
     paths['lastBiblelatorFileDir'] = self.lastBiblelatorFileDir
     paths['lastParatextFileDir'] = self.lastParatextFileDir
     paths['lastInternalBibleDir'] = self.lastInternalBibleDir
+
+    # Save the recent files
+    self.settings.data['RecentFiles'] = {}
+    recent = self.settings.data['RecentFiles']
+    for j, (filename,folder,winType) in enumerate( self.recentFiles ):
+        recentName = 'Recent{}'.format( j )
+        recent[recentName+'Filename'] = filename
+        recent[recentName+'Folder'] = Folder
+        recent[recentName+'Type'] = winType
 
     # Save the user information
     self.settings.data['Users'] = {}

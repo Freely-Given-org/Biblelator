@@ -28,7 +28,7 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-10' # by RJH
+LastModifiedDate = '2016-02-29' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.30'
@@ -75,6 +75,7 @@ START = '1.0' # constant for tkinter
 
 
 MAX_WINDOWS = 20
+MAX_RECENT_FILES = 9
 
 
 # Default window size settings (Note: X=width, Y=height)

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-02-29' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -52,6 +52,7 @@ from BiblelatorGlobals import APP_NAME, START, DEFAULT
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow #, HTMLWindow
+from AutocorrectFunctions import setAutocorrectEntries, setDefaultAutocorrectEntries
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -118,24 +119,9 @@ class TextEditWindow( ChildWindow ):
         self.clearText()
 
         self.autocorrectEntries = []
-        # Temporarily include these default autocorrect values
-        self.autocorrectEntries.append( ('<<','“') ) # Cycle through quotes with angle brackets
-        self.autocorrectEntries.append( ('“<','‘') )
-        self.autocorrectEntries.append( ('‘<',"'") )
-        self.autocorrectEntries.append( ("'<",'<') )
-        self.autocorrectEntries.append( ('>>','”') )
-        self.autocorrectEntries.append( ('”>','’') )
-        self.autocorrectEntries.append( ('’>',"'") )
-        self.autocorrectEntries.append( ("'>",'>') )
-        self.autocorrectEntries.append( ('--','–') ) # Cycle through en-dash/em-dash with hyphens
-        self.autocorrectEntries.append( ('–-','—') )
-        self.autocorrectEntries.append( ('—-','-') )
-        self.autocorrectEntries.append( ('(in','(incl)') )
-        self.autocorrectEntries.append( ('(ex','(excl)') )
-        # This next bit needs to be done whenever the autocorrect entries are changed
-        self.maxAutocorrectLength = 0
-        for inChars,outChars in self.autocorrectEntries:
-            self.maxAutocorrectLength = max( len(inChars), self.maxAutocorrectLength )
+        # Temporarily include some default autocorrect values
+        setDefaultAutocorrectEntries( self )
+        #setAutocorrectEntries( self, ourAutocorrectEntries )
 
         self.autocompleteBox = self.autocompleteType = None
         self.autocompleteWords = {}

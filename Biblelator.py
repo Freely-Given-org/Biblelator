@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-26' # by RJH
+LastModifiedDate = '2016-02-29' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -51,7 +51,7 @@ from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-        INITIAL_MAIN_SIZE, \
+        INITIAL_MAIN_SIZE, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, parseWindowGeometry, assembleWindowGeometryFromList, \
@@ -94,6 +94,7 @@ from PTXBible import PTXBible, loadPTXSSFData
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
 BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
 PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+
 
 
 def exp( messageString ):
@@ -192,6 +193,7 @@ class Application( Frame ):
 
         self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
         self.myKeyboardBindingsList = []
+        self.recentFiles = []
 
         # Read and apply the saved settings
         parseAndApplySettings( self )
@@ -245,6 +247,11 @@ class Application( Frame ):
         fileNewSubmenu.add_command( label='Text file', underline=0, command=self.doOpenNewTextEditWindow )
         fileOpenSubmenu = tk.Menu( fileMenu, tearoff=False )
         fileMenu.add_cascade( label='Open', underline=0, menu=fileOpenSubmenu )
+        fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
+        fileOpenSubmenu.add_cascade( label='Recent', underline=0, menu=fileRecentOpenSubmenu )
+        for j, (filename, folder, winType) in enumerate( self.recentFiles ):
+            fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
+        fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label='Text file...', underline=0, command=self.doOpenFileTextEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label='Save all...', underline=0, command=self.notWrittenYet )
@@ -527,6 +534,19 @@ class Application( Frame ):
                     self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+    # end of Application.createMainKeyboardBindings()
+
+
+    def addRecentFile( self, threeTuple ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("addRecentFile( {} )").format( threeTuple ) )
+        assert len(threeTuple) == 3
+
+        self.recentFiles.append( threeTuple )
+        if len(self.recentFiles)>MAX_RECENT_FILES: self.recentFiles.pop( 0 )
+        self.createMenuBar()
     # end of Application.createMainKeyboardBindings()
 
 
@@ -1012,6 +1032,20 @@ class Application( Frame ):
     ## end of Application.doDeleteExistingWindowSetup
 
 
+    def doOpenRecent( self, recentIndex ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doOpenRecent( {} )").format( recentIndex ) )
+            self.setDebugText( "doOpenRecent..." )
+        assert recentIndex < len(self.recentFiles)
+
+        filename, folder, winType = self.recentFiles[recentIndex]
+        print( "Need to open", filename, folder, winType )
+        print( "NOT WRITTEN YET" )
+    # end of Application.doOpenRecent
+
+
     def doOpenDBPBibleResource( self ):
         """
         Open an online DigitalBiblePlatform Bible (called from a menu/GUI action).
@@ -1034,6 +1068,7 @@ class Application( Frame ):
                     if srb.result:
                         for entry in srb.result:
                             self.openDBPBibleResourceWindow( entry[1] )
+                            self.addRecentFile( (entry[1],'','DBPBibleResourceWindow') )
                         #self.acceptNewBnCV()
                         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
                     elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenDBPBibleResource: no resource selected!") )
@@ -1105,6 +1140,7 @@ class Application( Frame ):
                     requestedModuleName, rest = entryString.split( ' (', 1 )
                     self.setWaitStatus( _("Loading {} Sword module...").format( repr(requestedModuleName) ) )
                     self.openSwordBibleResourceWindow( requestedModuleName )
+                    self.addRecentFile( (requestedModuleName,'','SwordBibleResourceWindow') )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
             elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResource: no resource selected!") )
@@ -1152,6 +1188,7 @@ class Application( Frame ):
         if requestedFolder:
             self.lastInternalBibleDir = requestedFolder
             self.openInternalBibleResourceWindow( requestedFolder )
+            self.addRecentFile( (requestedFolder,requestedFolder,'InternalBibleResourceWindow') )
             #self.acceptNewBnCV()
             #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doOpenInternalBibleResource
@@ -1197,6 +1234,7 @@ class Application( Frame ):
         #if requestedFolder:
         requestedFolder = None
         self.openBibleLexiconResourceWindow( requestedFolder )
+        self.addRecentFile( (requestedFolder,requestedFolder,'BibleLexiconResourceWindow') )
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doOpenBibleLexiconResource
 
@@ -1240,7 +1278,9 @@ class Application( Frame ):
         for cw in self.childWindows:
             existingNames.append( cw.moduleID.upper() if cw.moduleID else 'Unknown' )
         gncn = GetNewCollectionNameDialog( self, existingNames, title=_("New Collection Name") )
-        if gncn.result: self.openBibleResourceCollectionWindow( gncn.result )
+        if gncn.result:
+            self.openBibleResourceCollectionWindow( gncn.result )
+            self.addRecentFile( (gncn.result,'','BibleResourceCollectionWindow') )
     # end of Application.doOpenBibleResourceCollection
 
     def openBibleResourceCollectionWindow( self, collectionName, windowGeometry=None ):
@@ -1282,7 +1322,9 @@ class Application( Frame ):
         for cw in self.childWindows:
             existingNames.append( cw.moduleID.upper() )
         gncn = GetNewCollectionNameDialog( self, existingNames, title=_("New Collection Name") )
-        if gncn.result: self.openBibleReferenceCollectionWindow( gncn.result )
+        if gncn.result:
+            self.openBibleReferenceCollectionWindow( gncn.result )
+            self.addRecentFile( (gncn.result,'','BibleReferenceCollectionWindow') )
     # end of Application.doOpenBibleReferenceCollection
 
     def openBibleReferenceCollectionWindow( self, collectionName, windowGeometry=None ):
@@ -1369,6 +1411,7 @@ class Application( Frame ):
                 tEW.setAllText( text )
                 if windowGeometry: tEW.geometry( windowGeometry )
                 self.childWindows.append( tEW )
+                self.addRecentFile( (filepath,'','TextEditWindow') )
 
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openFileTextEditWindow" )
         self.setReadyStatus()
@@ -1485,6 +1528,7 @@ class Application( Frame ):
         containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
         if BibleOrgSysGlobals.debugFlag: assert settingsFilename == 'ProjectSettings.ini'
         self.openBiblelatorBibleEditWindow( containingFolderPath )
+        self.addRecentFile( (containingFolderPath,containingFolderPath,'BiblelatorBibleEditWindow') )
     # end of Application.doOpenBiblelatorProject
 
     def openBiblelatorBibleEditWindow( self, projectFolderPath, editMode=None, windowGeometry=None ):
@@ -1582,6 +1626,7 @@ class Application( Frame ):
                         showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
                         return
         self.openParatextBibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
+        self.addRecentFile( (SSFFilepath,SSFFilepath,'ParatextBibleEditWindow') )
     # end of Application.doOpenParatextProject
 
     def openParatextBibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
