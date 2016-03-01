@@ -27,6 +27,9 @@ BOS improvements for Biblelator
 * Investigate plug-ins
 
 Biblelator stuff
+* Have clicking problems in USFM editor
+* USFM editor down-arrow messes up
+* Make command-line flag to select ini file
 * Create backup files when editing (and autosaving???)
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)

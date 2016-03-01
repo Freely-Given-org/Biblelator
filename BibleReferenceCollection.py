@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-13' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.30'
@@ -42,7 +42,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, logging
+import logging
 from collections import OrderedDict
 
 import tkinter as tk
@@ -58,7 +58,7 @@ from BiblelatorHelpers import mapReferencesVerseKey
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
 #from DigitalBiblePlatform import DBPBibles, DBPBible

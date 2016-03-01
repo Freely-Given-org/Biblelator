@@ -32,7 +32,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-26' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.30'
@@ -42,13 +42,13 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os.path
+import os.path
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey #, FlexibleVersesKey
 from BibleReferencesLinks import BibleReferencesLinks
@@ -302,7 +302,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
     Returns the verseKey for the start of the section
         and for the end of the section -- well actually the start of the next section.
-        
+
     If no sections are found, it goes a maximum of one chapter back or one chapter forward.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -317,13 +317,13 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
             print( exp("sectionFoundIn( {!r} )").format( verseData ) )
 
         if verseData is None: return False
-    
+
         elif isinstance( verseData, str ):
             #print( "  It's a string!" )
             if '\\s ' in thisVerseData or '\\s1' in thisVerseData \
             or '\\s2' in thisVerseData or '\\s3' in thisVerseData:
                 return True
-            
+
         elif isinstance( verseData, tuple ):
             #print( "  It's an InternalBibleEntryList!" )
             assert( len(verseData) == 2 )
@@ -353,10 +353,10 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
             print( 'Ooops', repr(verseData) )
             print( verseData.__type__ )
             halt # Programming error
-        
+
         return False
     # end of sectionFoundIn
-    
+
     # Start of main section of findCurrentSection
     BBB, C, V = currentVerseKey.getBCV()
     intC, intV = currentVerseKey.getChapterNumberInt(), currentVerseKey.getVerseNumberInt()

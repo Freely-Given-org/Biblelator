@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-29' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "AutocorrectFunctions"
 ProgName = "Biblelator Autocorrect Functions"
 ProgVersion = '0.30'
@@ -36,10 +36,10 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 
 debuggingThisModule = True
 
-import sys
+#import sys
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 

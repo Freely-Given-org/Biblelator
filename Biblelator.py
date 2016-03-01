@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-29' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -79,7 +79,7 @@ from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutoc
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
-print( 'sys.path = ', sys.path )
+if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 from BibleVersificationSystems import BibleVersificationSystems
@@ -510,6 +510,8 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("createStatusBar()") )
         Style().configure( 'StatusBar.TLabel', background='pink' )
+        Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
+        Style().configure( 'StatusBar.TLabel', background='forest green' )
 
         self.statusTextVariable = tk.StringVar()
         self.statusTextLabel = Label( self.rootWindow, relief=tk.SUNKEN,
@@ -579,6 +581,7 @@ class Application( Frame ):
                 #self.statusBarTextWidget.insert( '1.0', newStatusText )
             #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
             #self.statusText = newStatusText
+            Style().configure( 'StatusBar.TLabel', background='purple' )
             self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
     # end of Application.setStatus
@@ -590,7 +593,9 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setWaitStatus( {} )").format( repr(newStatusText) ) )
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
+        Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
         self.update()
     # end of Application.setWaitStatus
 
@@ -599,7 +604,9 @@ class Application( Frame ):
         Sets the status line to "Ready"
             and sets the cursor to the normal cursor.
         """
+        #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
         self.setStatus( _("Ready") )
+        Style().configure( 'StatusBar.TLabel', background='forest green' )
         self.config( cursor='' )
     # end of Application.setReadyStatus
 

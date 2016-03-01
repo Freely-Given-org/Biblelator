@@ -28,7 +28,7 @@ Global variables for program to allow editing of USFM Bibles using Python3 and T
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-29' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.30'
@@ -38,10 +38,10 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = False
 
 
-import sys, os, re
+import os, re
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 

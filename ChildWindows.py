@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-15' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -39,7 +39,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os.path, logging, re
+import os.path, logging, re
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
@@ -54,7 +54,7 @@ from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapRe
 from TextBoxes import HTMLText
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 

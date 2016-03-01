@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-29' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
@@ -36,7 +36,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 
 debuggingThisModule = True
 
-import sys, logging
+import logging
 
 #from tkinter.simpledialog import askstring, askinteger
 #from tkinter.filedialog import asksaveasfilename
@@ -55,7 +55,7 @@ import sys, logging
 #from TextEditWindow import TextEditWindow, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 #from VerseReferences import SimpleVerseKey
 #from BibleWriter import setDefaultControlFolder
@@ -93,11 +93,15 @@ def setAutocompleteWords( self, wordList, append=False ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #print( exp("AutocompleteFunctions.setAutocompleteWords( {} )").format( wordList, append ) )
         print( exp("AutocompleteFunctions.setAutocompleteWords( {}.., {} )").format( len(wordList), append ) )
+        self.parentApp.setDebugText( "setAutocompleteWords..." )
 
+    self.parentApp.setWaitStatus( "Setting autocomplete words..." )
     if not append: self.autocompleteWords = {}
 
     for word in wordList:
         if "'" not in word and '1' not in word:
+            if '(' in word and ')' not in word: # perhaps something like we(excl
+                word = word + ')' # append a matching/final parenthesis
             if len(word) >= self.autocompleteMinLength:
                 firstLetter, remainder = word[0], word[1:]
                 if firstLetter not in self.autocompleteWords: self.autocompleteWords[firstLetter] = []
@@ -142,6 +146,8 @@ def setAutocompleteWords( self, wordList, append=False ):
                     .format( firstLetter, total, '' if total>19 else ' '+str(self.autocompleteWords[firstLetter]) ) )
             grandtotal += total
         print( "  autocomplete total words loaded = {:,}".format( grandtotal ) )
+
+    self.parentApp.setReadyStatus()
 # end of AutocompleteFunctions.setAutocompleteWords
 
 
@@ -159,28 +165,44 @@ def loadBibleAutocompleteWords( self ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
+        self.parentApp.setDebugText( "loadBibleAutocompleteWords..." )
 
+    self.parentApp.setWaitStatus( "Loading Bible words..." )
     self.internalBible.loadBooks()
-    self.internalBible.discover()
+    self.internalBible.discover() # NOTE: Do we have to do ALL of this ???
     #print( 'discoveryResults', self.internalBible.discoveryResults )
 
     # Would be nice to load current book first, but we don't know it yet
     autocompleteWords = []
-    for BBB in self.internalBible.discoveryResults:
-        if BBB != 'All':
-            try:
-                # Sort the word-list for the book to put the most common words first
-                #print( 'discoveryResults', BBB, self.internalBible.discoveryResults[BBB] )
-                #print( BBB, 'mTWC', self.internalBible.discoveryResults[BBB]['mainTextWordCounts'] )
-                #qqq = sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(), key=lambda c: -c[1] )
-                #print( 'qqq', qqq )
-                for word,count in sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(),
-                                        key=lambda duple: -duple[1] ):
-                    if len(word) >= self.autocompleteMinLength \
-                    and word not in autocompleteWords: # just in case we had some (common) words in there already
-                        autocompleteWords.append( word )
-            except KeyError: pass # Nothing for this book
+    if 1: # new code
+        autocompleteCounts = {}
+        for BBB in self.internalBible.discoveryResults: # combine word counts for all books
+            if BBB != 'All':
+                try:
+                    for word, count in self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items():
+                        if len(word) >= self.autocompleteMinLength:
+                            if word in autocompleteCounts: autocompleteCounts[word] += count
+                            else: autocompleteCounts[word] = count
+                except KeyError: pass # Nothing for this book
+        for word,count in sorted( autocompleteCounts.items(), key=lambda duple: -duple[1] ):
+            autocompleteWords.append( word ) # Append the most common words first
+    else: # old code
+        for BBB in self.internalBible.discoveryResults:
+            if BBB != 'All':
+                try:
+                    # Sort the word-list for the book to put the most common words first
+                    #print( 'discoveryResults', BBB, self.internalBible.discoveryResults[BBB] )
+                    #print( BBB, 'mTWC', self.internalBible.discoveryResults[BBB]['mainTextWordCounts'] )
+                    #qqq = sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(), key=lambda c: -c[1] )
+                    #print( 'qqq', qqq )
+                    for word,count in sorted( self.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(),
+                                            key=lambda duple: -duple[1] ):
+                        if len(word) >= self.autocompleteMinLength \
+                        and word not in autocompleteWords: # just in case we had some (common) words in there already
+                            autocompleteWords.append( word )
+                except KeyError: pass # Nothing for this book
     #print( 'acW', autocompleteWords )
+
     setAutocompleteWords( self, autocompleteWords )
     self.autocompleteType = 'Bible'
 # end of AutocompleteFunctions.loadBibleAutocompleteWords
@@ -198,7 +220,9 @@ def loadBibleBookAutocompleteWords( self ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadBibleBookAutocompleteWords()") )
+        self.parentApp.setDebugText( "loadBibleBookAutocompleteWords..." )
 
+    self.parentApp.setWaitStatus( "Loading Bible book words..." )
     BBB = self.currentVerseKey.getBBB()
     print( "  got BBB", repr(BBB) )
     if BBB == 'UNK': return # UNKnown book -- no use here
@@ -243,7 +267,9 @@ def loadHunspellAutocompleteWords( self, dictionaryFilepath, encoding='utf-8' ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
+        self.parentApp.setDebugText( "loadHunspellAutocompleteWords..." )
 
+    self.parentApp.setWaitStatus( "Loading dictionary..." )
     internalCount = None
     autocompleteWords = []
     lineCount = 0
@@ -435,7 +461,9 @@ def loadILEXAutocompleteWords( self, dictionaryFilepath, lgCodes=None ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
+        self.parentApp.setDebugText( "loadILEXAutocompleteWords..." )
 
+    self.parentApp.setWaitStatus( "Loading dictionary..." )
     autocompleteWords = []
     lineCount = 0
     with open( dictionaryFilepath, 'rt' ) as dictionaryFile:

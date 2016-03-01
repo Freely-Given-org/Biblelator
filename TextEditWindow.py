@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-29' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -37,7 +37,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 
 debuggingThisModule = True
 
-import sys, os.path, logging #, re
+import os.path, logging #, re
 #from collections import OrderedDict
 #import multiprocessing
 
@@ -55,7 +55,7 @@ from ChildWindows import ChildWindow #, HTMLWindow
 from AutocorrectFunctions import setAutocorrectEntries, setDefaultAutocorrectEntries
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
@@ -332,8 +332,6 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.OnAutocompleteChar( {!r}, {!r} )").format( event.char, event.keysym ) )
-            print( exp("TextEditWindow.OnAutocompleteChar()") )
-            #print( 'char', repr(event.char), 'keysym', repr(event.keysym) )
             assert self.autocompleteBox is not None
 
         #if event.keysym == 'ESC':
@@ -344,7 +342,7 @@ class TextEditWindow( ChildWindow ):
             column = str( int(column) - 1 )
             self.textBox.delete( row + '.' + column, tk.INSERT )
         elif event.keysym == 'Return':
-            self.acceptAutocompleteSelection()
+            self.acceptAutocompleteSelection( includeSpace=True )
         #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
                               #'Control_L', 'Control_R', 'Alt_L',
                               #'Alt_R', 'parenleft', 'parenright'):
@@ -352,28 +350,45 @@ class TextEditWindow( ChildWindow ):
         elif event.keysym == 'Escape':
             self.removeAutocompleteBox()
         elif event.char:
-            self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
+            if event.char in '.,': self.acceptAutocompleteSelection( includeSpace=False )
+            self.textBox.insert( tk.INSERT, event.char \
+                                    + (' ' if event.char in ',' else '') ) # Causes onTextChange which reassesses
     # end of TextEditWindow.OnAutocompleteChar
 
 
-    def acceptAutocompleteSelection( self, event=None ):
+    def doAcceptAutocompleteSelection( self, event=None ):
         """
         Used by autocomplete routines in onTextChange.
 
         Gets the chosen word and inserts the end of it into the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.acceptAutocompleteSelection()") )
+            print( exp("TextEditWindow.doAcceptAutocompleteSelection({} )").format( event ) )
+            assert self.autocompleteBox is not None
+
+        self.acceptAutocompleteSelection( includeSpace=True )
+    # end of TextEditWindow.doAcceptAutocompleteSelection
+
+
+    def acceptAutocompleteSelection( self, includeSpace ):
+        """
+        Used by autocomplete routines in onTextChange.
+
+        Gets the chosen word and inserts the end of it into the text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.acceptAutocompleteSelection( {} )").format( includeSpace ) )
             assert self.autocompleteBox is not None
 
         result = self.autocompleteBox.get( tk.ACTIVE )
-        print( 'result', result )
+        #print( '  autocompleteBox result', result )
         self.removeAutocompleteBox()
 
         # Autocomplete by inserting the rest of the selected word plus a space
         # NOTE: The user has to backspace over the space if they don't want it (e.g., to put a period)
         # NOTE: The box reappears with the current code if we don't append the space -- would need to add a flag
-        self.textBox.insert( tk.INSERT, result[len(self.existingAutocompleteWordText):] + ' ' )
+        self.textBox.insert( tk.INSERT, result[len(self.existingAutocompleteWordText):] \
+                                        + (' ' if includeSpace else '') )
     # end of TextEditWindow.acceptAutocompleteSelection
 
 
@@ -495,7 +510,7 @@ class TextEditWindow( ChildWindow ):
                                 #self.autocompleteBox.select_set( '0' )
                                 #self.autocompleteBox.focus()
                                 self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
-                                self.autocompleteBox.bind( '<Double-1>', self.acceptAutocompleteSelection )
+                                self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
                                 #else: # old code
                                     #self.autocompleteBox = tk.Listbox( self.textBox )
                                     #self.autocompleteBox.bind( '<Double-Button-1>', self.acceptAutocompleteSelection )

@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-01-25' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
 ProgVersion = '0.30'
@@ -39,7 +39,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os.path, logging
+import os.path, logging
 
 import tkinter as tk
 
@@ -48,7 +48,7 @@ from TextBoxes import HTMLText
 from ChildWindows import ChildWindow
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from BibleLexicon import BibleLexicon
 #import Hebrew

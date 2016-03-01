@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "ESFMEditWindow"
 ProgName = "Biblelator ESFM Edit Window"
 ProgVersion = '0.30'
@@ -37,7 +37,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 
 debuggingThisModule = True
 
-import sys #, os.path, logging #, re
+#import sys #, os.path, logging #, re
 #from collections import OrderedDict
 #import multiprocessing
 
@@ -58,7 +58,7 @@ import tkinter as tk
 from USFMEditWindow import USFMEditWindow
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 #from VerseReferences import SimpleVerseKey
 #from BibleWriter import setDefaultControlFolder

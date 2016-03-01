@@ -41,7 +41,7 @@ class CustomText( tk.Text ):
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.30'
@@ -51,7 +51,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, logging
+import logging
 
 import tkinter as tk
 
@@ -59,7 +59,7 @@ import tkinter as tk
 #from BiblelatorGlobals import APP_NAME, START, DEFAULT
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from BibleStylesheets import DEFAULT_FONTNAME
 

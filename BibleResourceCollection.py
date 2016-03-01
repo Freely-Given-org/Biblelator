@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.30'
@@ -42,7 +42,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, logging
+import logging
 from collections import OrderedDict
 
 import tkinter as tk
@@ -57,7 +57,7 @@ from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResource
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 #from USFMFile import splitMarkerText

@@ -44,7 +44,7 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-24' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
 ProgVersion = '0.30'
@@ -54,12 +54,12 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os.path, configparser, logging
+import os.path, configparser, logging
 
 # Biblelator imports
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 

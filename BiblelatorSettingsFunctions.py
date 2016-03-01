@@ -30,7 +30,7 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-02-28' # by RJH
+LastModifiedDate = '2016-03-01' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.30'
@@ -41,7 +41,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os, logging
+import os, logging
 #import multiprocessing
 
 #from tkinter.filedialog import Open, Directory #, SaveAs
@@ -72,7 +72,7 @@ from TextEditWindow import TextEditWindow
 #from ESFMEditWindow import ESFMEditWindow
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 #from BibleOrganizationalSystems import BibleOrganizationalSystem
 #from BibleVersificationSystems import BibleVersificationSystems
@@ -520,7 +520,7 @@ def writeSettingsFile( self ):
     for j, (filename,folder,winType) in enumerate( self.recentFiles ):
         recentName = 'Recent{}'.format( j )
         recent[recentName+'Filename'] = filename
-        recent[recentName+'Folder'] = Folder
+        recent[recentName+'Folder'] = folder
         recent[recentName+'Type'] = winType
 
     # Save the user information
