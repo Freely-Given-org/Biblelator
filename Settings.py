@@ -44,7 +44,7 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-02' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
 ProgVersion = '0.30'
@@ -93,7 +93,6 @@ class Settings:
     """
     def __init__( self ):
         """
-        Try to find where the settings file might be (if anywhere).
         """
         self.objectNameString = "Settings object"
         self.objectTypeString = "Settings"
@@ -171,7 +170,7 @@ class ApplicationSettings( Settings ):
         self.objectTypeString = "ApplicationSettings"
         self.data = None
 
-        if not self.settingsFilename.endswith( '.ini' ):
+        if not self.settingsFilename.lower().endswith( '.ini' ):
             self.settingsFilename = self.settingsFilename + '.ini'
         self.dataFolderPath = self.settingsFolder = self.settingsFilepath = None
         ourFolderPath1 = os.path.join( homeFolderName, dataFolderName )

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-02' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -581,7 +581,7 @@ class Application( Frame ):
                 #self.statusBarTextWidget.insert( '1.0', newStatusText )
             #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
             #self.statusText = newStatusText
-            Style().configure( 'StatusBar.TLabel', background='purple' )
+            Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
     # end of Application.setStatus
@@ -595,7 +595,7 @@ class Application( Frame ):
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
+        Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
     # end of Application.setWaitStatus
 
@@ -606,7 +606,7 @@ class Application( Frame ):
         """
         #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
         self.setStatus( _("Ready") )
-        Style().configure( 'StatusBar.TLabel', background='forest green' )
+        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
         self.config( cursor='' )
     # end of Application.setReadyStatus
 
@@ -2616,7 +2616,8 @@ def main( homeFolderPath, loggingFolderPath ):
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( ProgNameVersion )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
+    INIname = APP_NAME if BibleOrgSysGlobals.commandLineArguments.override is None else BibleOrgSysGlobals.commandLineArguments.override
+    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
     settings.load()
 
     application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
@@ -2636,7 +2637,9 @@ if __name__ == '__main__':
     homeFolderPath = findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
+    parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     addStandardOptionsAndProcess( parser )
+    #print( BibleOrgSysGlobals.commandLineArguments ); halt
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 

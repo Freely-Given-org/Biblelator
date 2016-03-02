@@ -12,7 +12,9 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
+* Editor loses end of last verse in chapter
 * Can't undo USFM Bible edit once moved cursor
+* Have clicking problems in USFM editor
 
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking
@@ -27,10 +29,8 @@ BOS improvements for Biblelator
 * Investigate plug-ins
 
 Biblelator stuff
-* Have clicking problems in USFM editor
-* USFM editor down-arrow messes up
-* Make command-line flag to select ini file
-* Create backup files when editing (and autosaving???)
+* Speed up initial Bible word counting for Bible autocomplete
+* Create backup files (each new day?) when editing (and autosaving???)
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Release version 0.3

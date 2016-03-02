@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-02' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -973,10 +973,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.lastCVMark = desiredMark
 
         # Put the cursor back where it was (if necessary)
-        if self.contextViewMode == 'ByBook':
-            self.loading = True # Turns off USFMEditWindow onTextChange notifications for now
-            self.textBox.mark_set( tk.INSERT, savedCursorPosition )
-            self.loading = False # Turns onTextChange notifications back on
+        self.loading = True # Turns off USFMEditWindow onTextChange notifications for now
+        self.textBox.mark_set( tk.INSERT, savedCursorPosition )
+        self.loading = False # Turns onTextChange notifications back on
 
         self.refreshTitle()
     # end of USFMEditWindow.updateShownBCV
