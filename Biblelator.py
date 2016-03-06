@@ -74,8 +74,6 @@ from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
 from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
-from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
-                                    loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -1682,12 +1680,7 @@ class Application( Frame ):
         uEW.setFilepath( SSFFilepath )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
         self.childWindows.append( uEW )
-
-        # Choose ONE of the following options
-        loadBibleAutocompleteWords( uEW ) # Find words used in the Bible to fill the autocomplete mechanism
-        #loadBibleBookAutocompleteWords( uEW ) # Find words used in this Bible book to fill the autocomplete mechanism
-        #loadHunspellAutocompleteWords( uEW, '/usr/share/hunspell/en_AU.dic', 'iso8859-15' )
-        #loadILEXAutocompleteWords( uEW, '../../../MyPrograms/TED_Dictionary/EnglishDict.db', ('ENG','BRI',) )
+        uEW.prepareAutocomplete()
 
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatextBibleEditWindow" )
         self.setReadyStatus()

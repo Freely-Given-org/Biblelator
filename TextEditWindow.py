@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-02' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -123,7 +123,7 @@ class TextEditWindow( ChildWindow ):
         setDefaultAutocorrectEntries( self )
         #setAutocorrectEntries( self, ourAutocorrectEntries )
 
-        self.autocompleteBox = self.autocompleteType = None
+        self.autocompleteBox = self.autocompleteMode = None
         self.autocompleteWords = {}
         self.autocompleteWordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
         # Note: I guess we could have used non-word chars instead (to stop the backwards word search)
@@ -133,8 +133,8 @@ class TextEditWindow( ChildWindow ):
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # temporarily put some words in
             from AutocompleteFunctions import setAutocompleteWords
+            self.autocompleteMode = 'GivenList'
             setAutocompleteWords( self, ('a','an','ate','apple','bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
-            self.autocompleteType = 'GivenList'
 
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
         self.autosaveScheduled = False
@@ -476,7 +476,7 @@ class TextEditWindow( ChildWindow ):
 
             # Handle auto-complete
             #print( 'args[0]', repr(args[0]) )
-            if self.autocompleteType is not None and self.autocompleteWords and args[0] in ('insert','delete',):
+            if self.autocompleteMode is not None and self.autocompleteWords and args[0] in ('insert','delete',):
                 #print( "Handle autocomplete1" )
                 lastAutocompleteWordText = self.existingAutocompleteWordText
                 self.existingAutocompleteWordText = self.getWordCharactersBeforeCursor( self.autocompleteMaxLength )

@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-04' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
@@ -350,7 +350,6 @@ def loadBibleAutocompleteWords( editWindowObject ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'acW', autocompleteWords )
 
     setAutocompleteWords( editWindowObject, autocompleteWords )
-    editWindowObject.autocompleteType = 'Bible'
     print( "loadBibleAutocompleteWords took", time.time()-startTime )
 # end of AutocompleteFunctions.loadBibleAutocompleteWords
 
@@ -396,7 +395,6 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         #pass # Nothing for this book
     #print( 'acW', autocompleteWords )
     setAutocompleteWords( editWindowObject, autocompleteWords )
-    editWindowObject.autocompleteType = 'BibleBook'
 # end of AutocompleteFunctions.loadBibleBookAutocompleteWords
 
 
@@ -453,7 +451,6 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     ##print( 'acW', autocompleteWords )
 
     #setAutocompleteWords( editWindowObject, autocompleteWords )
-    #editWindowObject.autocompleteType = 'Bible'
 ## end of AutocompleteFunctions.loadBibleAutocompleteWords
 
 
@@ -499,7 +496,6 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         ##pass # Nothing for this book
     ##print( 'acW', autocompleteWords )
     #setAutocompleteWords( editWindowObject, autocompleteWords )
-    #editWindowObject.autocompleteType = 'BibleBook'
 ## end of AutocompleteFunctions.loadBibleBookAutocompleteWords
 
 
@@ -693,7 +689,6 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
         print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
-    editWindowObject.autocompleteType = 'Dictionary'
 # end of AutocompleteFunctions.loadHunspellAutocompleteWords
 
 
@@ -749,7 +744,6 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
         print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
-    editWindowObject.autocompleteType = 'Dictionary'
 # end of AutocompleteFunctions.loadILEXAutocompleteWords
 
 

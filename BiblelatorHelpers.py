@@ -412,8 +412,8 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
     """
     Just logs some info about the recently changed book to a log file for the project.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
+    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
 
     filepath = os.path.join( loggingFolder, \
                         BibleOrgSysGlobals.makeSafeFilename( projectName.replace(' ','_') + '_changes.log' ) )

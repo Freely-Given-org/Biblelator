@@ -56,6 +56,8 @@ from ChildWindows import HTMLWindow # ChildWindow
 from BibleResourceWindows import BibleResourceWindow #, BibleBox
 from BibleReferenceCollection import BibleReferenceCollectionWindow
 from TextEditWindow import TextEditWindow #, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
+from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
+                                    loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
 # BibleOrgSys imports
 #sys.path.append( '../BibleOrgSys/' )
@@ -321,6 +323,22 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #Button( toolbar, text='Show All', command=self.showAll ).pack( side=tk.LEFT )
         #Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=tk.LEFT )
     ## end of USFMEditWindow.createToolBar
+
+
+    def prepareAutocomplete( self ):
+        """
+        """
+        # Choose ONE of the following options
+        if self.autocompleteMode == 'Bible':
+            loadBibleAutocompleteWords( self ) # Find words used in the Bible to fill the autocomplete mechanism
+        elif self.autocompleteMode == 'BibleBook':
+            loadBibleBookAutocompleteWords( self ) # Find words used in this Bible book to fill the autocomplete mechanism
+        elif self.autocompleteMode == 'Dictionary1':
+            loadHunspellAutocompleteWords( self, '/usr/share/hunspell/en_AU.dic', 'iso8859-15' )
+        elif self.autocompleteMode == 'Dictionary2':
+            loadILEXAutocompleteWords( self, '../../../MyPrograms/TED_Dictionary/EnglishDict.db', ('ENG','BRI',) )
+    # end of USFMEditWindow.prepareAutocomplete
+
 
 
     def onTextChange( self, result, *args ):

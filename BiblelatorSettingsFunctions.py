@@ -348,7 +348,13 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                     if BibleOrgSysGlobals.debugFlag: assert contextViewMode in BIBLE_CONTEXT_VIEW_MODES
                     rw.contextViewMode = contextViewMode
                     rw.createMenuBar() # in order to show the correct contextViewMode
+                autocompleteMode = thisStuff['AutocompleteMode'] if 'AutocompleteMode' in thisStuff else None
+                if autocompleteMode:
+                    if BibleOrgSysGlobals.debugFlag: assert winType.endswith( 'EditWindow' )
+                    rw.autocompleteMode = autocompleteMode
+                    rw.prepareAutocomplete()
 # end of applyGivenWindowsSettings
+
 
 
 def getCurrentChildWindowSettings( self ):
@@ -413,6 +419,9 @@ def getCurrentChildWindowSettings( self ):
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
             try: thisOne['ContextViewMode'] = appWin.contextViewMode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.winType ) )
+
+        if appWin.winType.endswith( 'EditWindow' ):
+            thisOne['AutocompleteMode'] = appWin.autocompleteMode
 # end of getCurrentChildWindowSettings
 
 
