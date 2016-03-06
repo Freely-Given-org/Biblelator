@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-02-28 RJH
+Last updated: 2016-03-05 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -15,6 +15,7 @@ Biblelator bugs
 * Editor loses end of last verse in chapter
 * Can't undo USFM Bible edit once moved cursor
 * Have clicking problems in USFM editor
+* Get Ctrl+S working, also pop-up editor save window when quitting program
 
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking
@@ -43,7 +44,7 @@ Biblelator stuff
 * Allow the user to set the containing folder for projects and exports
 * Release version 0.4
 * Consider when the same project/file is opened multiple times
-* Consider toolbars in child windows (and/or hiding the menu)
+* Consider/optimize toolbars in child windows (and/or hiding the menu)
 * Handle multiple overlapping tags in the HTML window
 * Add "Display by Section" for Bibles that have section headings
     Does that mean we have previous/next section navigation also?

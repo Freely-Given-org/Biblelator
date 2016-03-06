@@ -30,7 +30,7 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.30'
@@ -213,7 +213,7 @@ def parseAndApplySettings( self ):
                     assert( len(self.recentFiles) == j )
 
     # Users
-    try: self.currentUser = self.settings.data['Users']['currentUser']
+    try: self.currentUserName = self.settings.data['Users']['currentUserName']
     except KeyError: pass # use program default
 
     # BCV groups
@@ -526,7 +526,7 @@ def writeSettingsFile( self ):
     # Save the user information
     self.settings.data['Users'] = {}
     users = self.settings.data['Users']
-    users['currentUser'] = self.currentUser
+    users['currentUserName'] = self.currentUserName
 
     # Save the referenceGroups A..D
     self.settings.data['BCVGroups'] = {}

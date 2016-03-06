@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-02' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -49,7 +49,8 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
     #DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM,
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog # OkCancelDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
-                                mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection
+                                mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
+                                logChangedFile
 from TextBoxes import CustomText
 from ChildWindows import HTMLWindow # ChildWindow
 from BibleResourceWindows import BibleResourceWindow #, BibleBox
@@ -93,6 +94,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
         self.parentApp, self.internalBible = parentApp, USFMBible
         #self.USFMFolder = self.internalBible.sourceFolder
+
+        if self.internalBible is None:
+            self.projectName = 'NoProjectName'
+        else:
+            self.projectName = self.internalBible.shortName if self.internalBible.shortName else self.internalBible.givenName
+            if not self.projectName:
+                self.projectName = self.internalBible.name if self.internalBible.name else self.internalBible.abbreviation
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
@@ -149,8 +157,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         referenceBit = '' if self.currentVerseKey is None else '{} {}:{} ' \
             .format( self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber() )
         self.title( '{}[{}] {} {}({}) Editable {}'.format( '*' if self.modified() else '',
-                                    self.groupCode,
-                                    self.internalBible.name if self.internalBible is not None else 'None',
+                                    self.groupCode, self.projectName,
                                     '' if self.currentVerseKey is None else referenceBit,
                                     self.editMode, self.contextViewMode ) )
         self.refreshTitleContinue()
@@ -1135,6 +1142,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 #self.internalBible.unloadBooks() # coz they're now out of date
                 #self.internalBible.reloadBook( self.currentVerseKey.getBBB() ) # coz it's now out of date -- what? why?
                 self.refreshTitle()
+                logChangedFile( self.parentApp.currentUserName, self.parentApp.loggingFolderPath, self.projectName, self.currentVerseKey.getBBB(), len(allBookText) )
             else: self.doSaveAs()
     # end of USFMEditWindow.doSave
 

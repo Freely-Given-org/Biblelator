@@ -28,11 +28,12 @@
     calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses )
     mapReferenceVerseKey( mainVerseKey )
     mapParallelVerseKey( forGroupCode, mainVerseKey )
+    logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.30'
@@ -43,6 +44,7 @@ debuggingThisModule = True
 
 
 import os.path
+from datetime import datetime
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
@@ -403,6 +405,27 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
     #print( "fCS returning", startKey.getShortText(), endKey.getShortText() )
     return startKey, endKey
 # end of BiblelatorHelpers.findCurrentSection
+
+
+
+def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength ):
+    """
+    Just logs some info about the recently changed book to a log file for the project.
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
+
+    filepath = os.path.join( loggingFolder, \
+                        BibleOrgSysGlobals.makeSafeFilename( projectName.replace(' ','_') + '_changes.log' ) )
+
+    try: logText = open( filepath, 'rt' ).read()
+    except FileNotFoundError: logText = ''
+
+    logText += '{} {} {:,} characters saved by {}\n'.format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                                                            savedBBB, textLength, userName )
+    with open( filepath, 'wt' ) as logFile:
+        logFile.write( logText )
+# end of BiblelatorHelpers.logChangedFile
 
 
 

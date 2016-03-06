@@ -23,12 +23,24 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Global variables for program to allow editing of USFM Bibles using Python3 and Tkinter.
+Global variables and functions for program
+  to allow editing of USFM Bibles using Python3 with Tkinter.
+
+    findHomeFolderPath()
+    findUsername()
+    assembleWindowGeometry( width, height, xOffset, yOffset )
+    assembleWindowSize( width, height )
+    assembleWindowGeometryFromList( geometryValues )
+    assembleWindowSizeFromList( geometryValues )
+    parseWindowGeometry( geometry )
+    parseWindowSize( geometry )
+    centreWindow( self, width=400, height=250 )
+    centreWindowOnWindow( self, parentWindow, width=400, height=250 )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.30'
@@ -39,6 +51,10 @@ debuggingThisModule = False
 
 
 import os, re
+try: import pwd
+except ImportError:
+    pwd = None
+    import getpass
 
 # BibleOrgSys imports
 import sys; sys.path.append( '../BibleOrgSys/' )
@@ -119,6 +135,17 @@ def findHomeFolderPath():
         if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
             return folder
 # end of BiblelatorGlobals.findHomeFolderPath
+
+
+def findUsername():
+    """
+    Attempt to find the current user name and return it.
+    """
+    if pwd:
+        return pwd.getpwuid(os.geteuid()).pw_name
+    else:
+        return getpass.getuser()
+# end of BiblelatorGlobals.findUsername
 
 
 def assembleWindowGeometry( width, height, xOffset, yOffset ):

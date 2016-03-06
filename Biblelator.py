@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-02' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -54,8 +54,8 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME
         INITIAL_MAIN_SIZE, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, \
         DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolderPath, parseWindowGeometry, assembleWindowGeometryFromList, \
-            centreWindow
+        findHomeFolderPath, findUsername, \
+        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
 # assembleWindowSize, parseWindowSize,
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
@@ -176,7 +176,7 @@ class Application( Frame ):
         #print( exp("Preload the Sword library...") )
         #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
-        self.currentUser = 'Unknown'
+        self.currentUserName = findUsername().title()
 
         # Set default folders
         self.lastFileDir = '.'
@@ -755,7 +755,7 @@ class Application( Frame ):
         #except KeyError: pass # use program default
 
         ## Users
-        #try: self.currentUser = self.settings.data['Users']['currentUser']
+        #try: self.currentUserName = self.settings.data['Users']['currentUserName']
         #except KeyError: pass # use program default
 
         ## BCV groups
@@ -2484,7 +2484,7 @@ class Application( Frame ):
         ## Save the user information
         #self.settings.data['Users'] = {}
         #users = self.settings.data['Users']
-        #users['currentUser'] = self.currentUser
+        #users['currentUserName'] = self.currentUserName
 
         ## Save the referenceGroups A..D
         #self.settings.data['BCVGroups'] = {}
