@@ -191,7 +191,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
         fileMenu.add_command( label='Save', underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict['Save'][0] )
-        fileMenu.add_command( label='Save as...', underline=5, command=self.doSaveAs )
+        fileMenu.add_command( label='Save as…', underline=5, command=self.doSaveAs )
         fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu, tearoff=False )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
@@ -205,7 +205,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         subfileMenuExport.add_command( label='All exports', underline=0, command=self.doAllExports )
         fileMenu.add_cascade( label='Export', underline=1, menu=subfileMenuExport )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo )
+        fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo )
         fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doCloseEditor )
 
@@ -223,11 +223,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine )
+        searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.doFind )
+        searchMenu.add_command( label='Find…', underline=0, command=self.doFind )
         searchMenu.add_command( label='Find again', underline=5, command=self.doRefind )
-        searchMenu.add_command( label='Replace...', underline=0, command=self.doFindReplace )
+        searchMenu.add_command( label='Replace…', underline=0, command=self.doFindReplace )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
@@ -260,22 +260,22 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         elif self.contextViewMode == 'ByBook': self._viewRadioVar.set( 4 )
         elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
 
-        viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label='Before and after…', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
 
-        #viewMenu.entryconfigure( 'Before and after...', state=tk.DISABLED )
+        #viewMenu.entryconfigure( 'Before and after…', state=tk.DISABLED )
         #viewMenu.entryconfigure( 'One section', state=tk.DISABLED )
         #viewMenu.entryconfigure( 'Single verse', state=tk.DISABLED )
         #viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Check project...', underline=0, command=self.doCheckProject )
+        toolsMenu.add_command( label='Check project…', underline=0, command=self.doCheckProject )
         toolsMenu.add_separator()
-        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
@@ -288,9 +288,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp )
+        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout )
+        helpMenu.add_command( label='About…', underline=0, command=self.doAbout )
     # end of USFMEditWindow.createMenuBar
 
 
@@ -1015,7 +1015,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow._prepareInternalBible()") )
         if self.modified(): self.doSave()
         if self.internalBible is not None:
-            self.parentApp.setWaitStatus( _("Preparing internal Bible...") )
+            self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
             self.internalBible.load()
     # end of USFMEditWindow._prepareInternalBible
 
@@ -1026,7 +1026,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.prepareForExports()") )
         self._prepareInternalBible()
         if self.internalBible is not None:
-            self.parentApp.setWaitStatus( _("Preparing for export...") )
+            self.parentApp.setWaitStatus( _("Preparing for export…") )
             if self.exportFolderPathname is None:
                 fp = self.folderPath
                 if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
@@ -1035,7 +1035,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if not os.path.exists( self.exportFolderPathname ):
                     os.mkdir( self.exportFolderPathname )
             setDefaultControlFolder( '../BibleOrgSys/ControlFiles/' )
-            self.parentApp.setStatus( _("Export in process...") )
+            self.parentApp.setStatus( _("Export in process…") )
     # end of USFMEditWindow._prepareForExports
 
     def doMostExports( self ):
@@ -1109,7 +1109,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 self.internalBible.loadBookIfNecessary( currentBBB )
             else: # load all books
                 self._prepareInternalBible()
-            self.parentApp.setWaitStatus( _("Doing Bible checks...") )
+            self.parentApp.setWaitStatus( _("Doing Bible checks…") )
             self.internalBible.check( gBBRD.result )
             displayExternally = False
             if displayExternally: # Call up a browser window

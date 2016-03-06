@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.30'
@@ -300,7 +300,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleReferenceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
-            self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
+            self.parentApp.setDebugText( "BRW setCurrentVerseKey…" )
             assert isinstance( newVerseKey, SimpleVerseKey )
         self.currentVerseKey = newVerseKey
 
@@ -559,7 +559,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        #fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
+        #fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         #fileMenu.add_separator()
         #fileMenu.add_command( label='Rename', underline=0, command=self.doRename )
         #fileMenu.add_separator()
@@ -574,9 +574,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
             searchMenu = tk.Menu( self.menubar )
             self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-            searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+            searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
             searchMenu.add_separator()
-            searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+            searchMenu.add_command( label='Find…', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
             searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
 
         gotoMenu = tk.Menu( self.menubar )
@@ -613,7 +613,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         #elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
         else: print( self.contextViewMode ); halt
 
-        self.viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Before and after…', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
@@ -625,13 +625,13 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
         #resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         #self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
-        #resourcesMenu.add_command( label='Online (DBP)...', underline=0, command=self.doOpenDBPBibleResource )
-        #resourcesMenu.add_command( label='Sword module...', underline=0, command=self.doOpenSwordResource )
-        #resourcesMenu.add_command( label='Other (local)...', underline=1, command=self.doOpenInternalBibleResource )
+        #resourcesMenu.add_command( label='Online (DBP)…', underline=0, command=self.doOpenDBPBibleResource )
+        #resourcesMenu.add_command( label='Sword module…', underline=0, command=self.doOpenSwordResource )
+        #resourcesMenu.add_command( label='Other (local)…', underline=1, command=self.doOpenInternalBibleResource )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
@@ -639,9 +639,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
+        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
+        helpMenu.add_command( label='About…', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
     # end of BibleReferenceCollectionWindow.createMenuBar
 
 
@@ -659,7 +659,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         #"""
         #if BibleOrgSysGlobals.debugFlag:
             #print( exp("openDBPBibleReferenceBox()") )
-            #self.parentApp.setDebugText( "openDBPBibleReferenceBox..." )
+            #self.parentApp.setDebugText( "openDBPBibleReferenceBox…" )
             #assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
         ##tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         #dBRB = DBPBibleReferenceBox( self, moduleAbbreviation )
@@ -688,7 +688,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         #"""
         #if BibleOrgSysGlobals.debugFlag:
             #print( exp("openInternalBibleReferenceBox()") )
-            #self.parentApp.setDebugText( "openInternalBibleReferenceBox..." )
+            #self.parentApp.setDebugText( "openInternalBibleReferenceBox…" )
         ##tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         #iBRB = InternalBibleReferenceBox( self, modulePath )
         #if windowGeometry: halt; iBRB.geometry( windowGeometry )

@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -540,8 +540,8 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='New…', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='Open…', underline=0, command=self.notWrittenYet )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
@@ -551,7 +551,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
+        fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
 
@@ -563,9 +563,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+        searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+        searchMenu.add_command( label='Find…', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
         searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
 
         gotoMenu = tk.Menu( self.menubar )
@@ -602,7 +602,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
         else: print( self.contextViewMode ); halt
 
-        self.viewMenu.add_radiobutton( label='Before and after...', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label='Before and after…', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
@@ -614,7 +614,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
@@ -622,9 +622,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
+        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
+        helpMenu.add_command( label='About…', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
     # end of BibleResourceWindow.createMenuBar
 
 
@@ -692,7 +692,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoPreviousBook..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousBook…" )
         newBBB = self.getPreviousBookCode( BBB )
         if newBBB is None: self.gotoBCV( BBB, '0', '0' )
         else:
@@ -712,7 +712,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoNextBook..." )
+            self.parentApp.setDebugText( "BRW doGotoNextBook…" )
         newBBB = self.getNextBookCode( BBB )
         if newBBB is None: pass # stay just where we are
         else:
@@ -731,7 +731,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoPreviousChapter..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousChapter…" )
         intC, intV = int( C ), int( V )
         if intC > 0: self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
         else: self.doGotoPreviousBook( gotoEnd=True )
@@ -747,7 +747,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoNextChapter..." )
+            self.parentApp.setDebugText( "BRW doGotoNextChapter…" )
         intC = int( C )
         if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
         else: self.doGotoNextBook()
@@ -763,7 +763,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousSection() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoPreviousSection..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousSection…" )
         # First the start of the current section
         sectionStart1, sectionEnd1 = findCurrentSection( self.currentVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
         print( "section1 Start/End", sectionStart1, sectionEnd1 )
@@ -794,7 +794,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextSection() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoNextSection..." )
+            self.parentApp.setDebugText( "BRW doGotoNextSection…" )
         # Find the end of the current section (which is the first verse of the next section)
         sectionStart, sectionEnd = findCurrentSection( self.currentVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
         print( "section Start/End", sectionStart, sectionEnd )
@@ -812,7 +812,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoPreviousVerse..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousVerse…" )
         intC, intV = int( C ), int( V )
         if intV > 0: self.gotoBCV( BBB, C, intV-1 )
         elif intC > 0: self.doGotoPreviousChapter( gotoEnd=True )
@@ -826,7 +826,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoNextVerse..." )
+            self.parentApp.setDebugText( "BRW doGotoNextVerse…" )
         intV = int( V )
         if intV < self.maxVerses: self.gotoBCV( BBB, C, intV+1 )
         else: self.doGotoNextChapter()
@@ -839,7 +839,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGoForward() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGoForward..." )
+            self.parentApp.setDebugText( "BRW doGoForward…" )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGoForward
 
@@ -850,7 +850,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGoBackward..." )
+            self.parentApp.setDebugText( "BRW doGoBackward…" )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGoBackward
 
@@ -861,7 +861,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousListItem() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoPreviousListItem..." )
+            self.parentApp.setDebugText( "BRW doGotoPreviousListItem…" )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGotoPreviousListItem
 
@@ -872,7 +872,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextListItem() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoNextListItem..." )
+            self.parentApp.setDebugText( "BRW doGotoNextListItem…" )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGotoNextListItem
 
@@ -883,7 +883,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoBook() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "BRW doGotoBook..." )
+            self.parentApp.setDebugText( "BRW doGotoBook…" )
         self.notWrittenYet()
     # end of BibleResourceWindow.doGotoBook
 
@@ -1121,7 +1121,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setCurrentVerseKey( {} )").format( newVerseKey ) )
-            self.parentApp.setDebugText( "BRW setCurrentVerseKey..." )
+            self.parentApp.setDebugText( "BRW setCurrentVerseKey…" )
 
         if newVerseKey is None:
             self.currentVerseKey = None

@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -367,7 +367,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label="Select all", underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Find...", underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+        self.contextMenu.add_command( label="Find…", underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label="Close", underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] )
 
@@ -620,8 +620,8 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='New…', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='Open…', underline=0, command=self.notWrittenYet )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
@@ -631,7 +631,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=kBD['Info'][0] )
+        fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo, accelerator=kBD['Info'][0] )
         fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=kBD['Close'][0] ) # close this window
 
@@ -643,9 +643,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=kBD['Line'][0] )
+        searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine, accelerator=kBD['Line'][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=kBD['Find'][0] )
+        searchMenu.add_command( label='Find…', underline=0, command=self.doFind, accelerator=kBD['Find'][0] )
         searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=kBD['Refind'][0] )
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
@@ -659,7 +659,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
@@ -667,9 +667,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=kBD['Help'][0] )
+        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=kBD['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=kBD['About'][0] )
+        helpMenu.add_command( label='About…', underline=0, command=self.doAbout, accelerator=kBD['About'][0] )
     # end of HTMLWindow.createMenuBar
 
 
@@ -685,7 +685,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label="Select all", underline=7, command=self.doSelectAll, accelerator=kBD['SelectAll'][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label="Find...", underline=0, command=self.doFind, accelerator=kBD['Find'][0] )
+        self.contextMenu.add_command( label="Find…", underline=0, command=self.doFind, accelerator=kBD['Find'][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label="Close", underline=1, command=self.doClose, accelerator=kBD['Close'][0] )
 

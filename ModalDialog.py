@@ -30,7 +30,7 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
 ProgVersion = '0.30'
@@ -101,7 +101,7 @@ class ModalDialog( tk.Toplevel ):
 
         self.geometry( "+{}+{}".format(parent.winfo_rootx()+50, parent.winfo_rooty()+50) )
 
-        self.parent.parentApp.setStatus( _("Waiting for user input...") )
+        self.parent.parentApp.setStatus( _("Waiting for user input…") )
         self.initial_focus.focus_set()
         self.wait_window( self )
     # end of ModalDialog.__init__

@@ -120,7 +120,7 @@ def parseAndApplySettings( self ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("retrieveWindowsSettings( {} )").format( repr(windowsSettingsName) ) )
-            self.setDebugText( "retrieveWindowsSettings..." )
+            self.setDebugText( "retrieveWindowsSettings…" )
         windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
         resultDict = {}
         for j in range( 1, MAX_WINDOWS+1 ):
@@ -136,7 +136,7 @@ def parseAndApplySettings( self ):
 
     if BibleOrgSysGlobals.debugFlag:
         print( exp("parseAndApplySettings()") )
-        self.setDebugText( "parseAndApplySettings..." )
+        self.setDebugText( "parseAndApplySettings…" )
     try: self.minimumSize = self.settings.data[APP_NAME]['minimumSize']
     except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
     self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
@@ -253,7 +253,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
-        self.setDebugText( "applyGivenWindowsSettings..." )
+        self.setDebugText( "applyGivenWindowsSettings…" )
     windowsSettingsFields = self.windowsSettingsDict[givenWindowsSettingsName]
     for j in range( 1, MAX_WINDOWS ):
         winNumber = 'window{}'.format( j )
@@ -431,7 +431,7 @@ def saveNewWindowSetup( self ):
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("saveNewWindowSetup()") )
-        self.setDebugText( "saveNewWindowSetup..." )
+        self.setDebugText( "saveNewWindowSetup…" )
     swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
     if BibleOrgSysGlobals.debugFlag: print( "swndResult", repr(swnd.result) )
     if swnd.result:
@@ -449,7 +449,7 @@ def doDeleteExistingWindowSetup( self ):
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("doDeleteExistingWindowSetup()") )
-        self.setDebugText( "doDeleteExistingWindowSetup..." )
+        self.setDebugText( "doDeleteExistingWindowSetup…" )
     assert self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict)
     dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
     if BibleOrgSysGlobals.debugFlag: print( "dwndResult", repr(dwnd.result) )
@@ -468,7 +468,7 @@ def doViewSettings( self ):
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("doViewSettings()") )
-        self.setDebugText( "doViewSettings..." )
+        self.setDebugText( "doViewSettings…" )
     tEW = TextEditWindow( self )
     #if windowGeometry: tEW.geometry( windowGeometry )
     if not tEW.setFilepath( self.settings.settingsFilepath ) \

@@ -184,7 +184,7 @@ class TextEditWindow( ChildWindow ):
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
         fileMenu.add_command( label='Save', underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict['Save'][0] )
-        fileMenu.add_command( label='Save as...', underline=5, command=self.doSaveAs )
+        fileMenu.add_command( label='Save as…', underline=5, command=self.doSaveAs )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu, tearoff=False )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
@@ -194,7 +194,7 @@ class TextEditWindow( ChildWindow ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
+        fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doCloseEditor, accelerator=self.parentApp.keyBindingDict['Close'][0] )
 
@@ -212,13 +212,13 @@ class TextEditWindow( ChildWindow ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+        searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+        searchMenu.add_command( label='Find…', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
         searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
-        searchMenu.add_command( label='Replace...', underline=0, command=self.doFindReplace )
+        searchMenu.add_command( label='Replace…', underline=0, command=self.doFindReplace )
         #searchMenu.add_separator()
-        #searchMenu.add_command( label='Grep...', underline=0, command=self.onGrep )
+        #searchMenu.add_command( label='Grep…', underline=0, command=self.onGrep )
 
 ##        gotoMenu = tk.Menu( self.menubar )
 ##        self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
@@ -245,7 +245,7 @@ class TextEditWindow( ChildWindow ):
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
@@ -253,9 +253,9 @@ class TextEditWindow( ChildWindow ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
+        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
+        helpMenu.add_command( label='About…', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
     # end of TextEditWindow.createMenuBar
 
 

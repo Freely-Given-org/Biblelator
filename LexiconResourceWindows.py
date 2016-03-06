@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-06' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
 ProgVersion = '0.30'
@@ -120,8 +120,8 @@ class BibleLexiconResourceWindow( ChildWindow ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        #fileMenu.add_command( label='New...', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_command( label='Open...', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='New…', underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label='Open…', underline=0, command=self.notWrittenYet )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
@@ -131,7 +131,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Info...', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
+        fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
         fileMenu.add_separator()
         fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
 
@@ -143,9 +143,9 @@ class BibleLexiconResourceWindow( ChildWindow ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line...', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+        searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find...', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
+        searchMenu.add_command( label='Find…', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
         searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
 
         gotoMenu = tk.Menu( self.menubar )
@@ -155,7 +155,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Options...', underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
@@ -163,9 +163,9 @@ class BibleLexiconResourceWindow( ChildWindow ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        helpMenu.add_command( label='Help...', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
+        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About...', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
+        helpMenu.add_command( label='About…', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
     # end of BibleLexiconResourceWindow.createMenuBar
 
 
@@ -174,7 +174,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousEntry() from {}").format( repr(self.lexiconWord) ) )
-            #self.setDebugText( "doGotoPreviousEntry..." )
+            #self.setDebugText( "doGotoPreviousEntry…" )
         if (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) and self.lexiconWord[1:].isdigit():
             number = int( self.lexiconWord[1:] )
             self.updateLexiconWord( self.lexiconWord[0] + str( number-1 ) )
@@ -187,7 +187,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextEntry() from {}").format( repr(self.lexiconWord) ) )
-            #self.setDebugText( "doGotoNextEntry..." )
+            #self.setDebugText( "doGotoNextEntry…" )
         if (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) and self.lexiconWord[1:].isdigit():
             number = int( self.lexiconWord[1:] )
             self.updateLexiconWord( self.lexiconWord[0] + str( number+1 ) )

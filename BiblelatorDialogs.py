@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01'
+LastModifiedDate = '2016-03-06'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.30'
@@ -104,7 +104,7 @@ def showerror( parent, title, errorText ):
     """
     if BibleOrgSysGlobals.debugFlag: print( exp("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
     logging.error( '{}: {}'.format( title, errorText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after error...") )
+    parent.parentApp.setStatus( _("Waiting for user input after error…") )
     tkmb.showerror( title, errorText )
     parent.parentApp.setReadyStatus()
 # end of showerror
@@ -115,7 +115,7 @@ def showwarning( parent, title, warningText ):
     """
     if BibleOrgSysGlobals.debugFlag: print( exp("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
     logging.warning( '{}: {}'.format( title, warningText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after warning...") )
+    parent.parentApp.setStatus( _("Waiting for user input after warning…") )
     tkmb.showwarning( title, warningText )
     parent.parentApp.setReadyStatus()
 # end of showwarning
@@ -126,7 +126,7 @@ def showinfo( parent, title, infoText ):
     """
     if BibleOrgSysGlobals.debugFlag: print( exp("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
     logging.info( '{}: {}'.format( title, infoText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after info...") )
+    parent.parentApp.setStatus( _("Waiting for user input after info…") )
     tkmb.showinfo( title, infoText )
     parent.parentApp.setReadyStatus()
 # end of showinfo
@@ -192,7 +192,7 @@ class SaveWindowNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, existingSettings, title ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SaveWindowNameDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SaveWindowNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parent, title )
@@ -240,7 +240,7 @@ class DeleteWindowNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, existingSettings, title ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "DeleteWindowNameDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "DeleteWindowNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parent, title, _("Delete") )
@@ -285,7 +285,7 @@ class SelectResourceBoxDialog( ModalDialog ):
     Given a list of available resources, select one and return the list item.
     """
     def __init__( self, parent, availableSettingsList, title ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog…" )
         print( "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
         if BibleOrgSysGlobals.debugFlag: assert isinstance( availableSettingsList, list )
         self.availableSettingsList = availableSettingsList
@@ -339,7 +339,7 @@ class GetNewProjectNameDialog( ModalDialog ):
     Get the name and an abbreviation for a new Biblelator project.
     """
     def __init__( self, parent, title ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewProjectNameDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewProjectNameDialog…" )
         ModalDialog.__init__( self, parent, title )
     # end of GetNewProjectNameDialog.__init__
 
@@ -401,7 +401,7 @@ class CreateNewProjectFilesDialog( ModalDialog ):
     File if they want blank files created for a new Biblelator project.
     """
     def __init__( self, parent, title, currentBBB, availableVersifications ): #, availableVersions ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "CreateNewProjectFilesDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "CreateNewProjectFilesDialog…" )
         #self.currentBBB, self.availableVersifications, self.availableVersions = currentBBB, availableVersifications, availableVersions
         self.currentBBB, self.availableVersifications = currentBBB, availableVersifications
         ModalDialog.__init__( self, parent, title )
@@ -498,7 +498,7 @@ class GetNewCollectionNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, existingNames, title ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
         print( "eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
@@ -551,7 +551,7 @@ class RenameResourceCollectionDialog( ModalDialog ):
     Get the new name for a resource collection.
     """
     def __init__( self, parent, existingName, existingNames, title ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "RenameResourceCollectionDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "RenameResourceCollectionDialog…" )
         self.existingName, self.existingNames = existingName, existingNames
         print( "eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
@@ -606,7 +606,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
     Get the new name for a resource collection.
     """
     def __init__( self, parent, givenBible, currentBBB, title ):
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetBibleBookRangeDialog..." )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetBibleBookRangeDialog…" )
         #assert currentBBB in givenBible -- no, it might not be loaded yet!
         self.givenBible, self.currentBBB = givenBible, currentBBB
         ModalDialog.__init__( self, parent, title )

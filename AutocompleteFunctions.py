@@ -98,9 +98,9 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #print( exp("AutocompleteFunctions.setAutocompleteWords( {} )").format( wordList, append ) )
         print( exp("AutocompleteFunctions.setAutocompleteWords( {}.., {} )").format( len(wordList), append ) )
-        editWindowObject.parentApp.setDebugText( "setAutocompleteWords..." )
+        editWindowObject.parentApp.setDebugText( "setAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Setting autocomplete words..." )
+    editWindowObject.parentApp.setWaitStatus( "Setting autocomplete words…" )
     if not append: editWindowObject.autocompleteWords = {}
 
     for word in wordList:
@@ -334,9 +334,9 @@ def loadBibleAutocompleteWords( editWindowObject ):
     startTime = time.time()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
-        editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords..." )
+        editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading Bible words..." )
+    editWindowObject.parentApp.setWaitStatus( "Loading Bible words…" )
     BBB = editWindowObject.currentVerseKey.getBBB()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(BBB) )
     editWindowObject.internalBible.loadBooks()
@@ -366,9 +366,9 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadBibleBookAutocompleteWords()") )
-        editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords..." )
+        editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading Bible book words..." )
+    editWindowObject.parentApp.setWaitStatus( "Loading Bible book words…" )
     BBB = editWindowObject.currentVerseKey.getBBB()
     print( "  got BBB", repr(BBB) )
     if BBB == 'UNK': return # UNKnown book -- no use here
@@ -412,9 +412,9 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     #"""
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
-        #editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords..." )
+        #editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
-    #editWindowObject.parentApp.setWaitStatus( "Loading Bible words..." )
+    #editWindowObject.parentApp.setWaitStatus( "Loading Bible words…" )
     #editWindowObject.internalBible.loadBooks()
     #editWindowObject.internalBible.discover() # NOTE: Do we have to do ALL of this ???
     ##print( 'discoveryResults', editWindowObject.internalBible.discoveryResults )
@@ -466,9 +466,9 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     #"""
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #print( exp("AutocompleteFunctions.loadBibleBookAutocompleteWords()") )
-        #editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords..." )
+        #editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
-    #editWindowObject.parentApp.setWaitStatus( "Loading Bible book words..." )
+    #editWindowObject.parentApp.setWaitStatus( "Loading Bible book words…" )
     #BBB = editWindowObject.currentVerseKey.getBBB()
     #print( "  got BBB", repr(BBB) )
     #if BBB == 'UNK': return # UNKnown book -- no use here
@@ -512,9 +512,9 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
-        editWindowObject.parentApp.setDebugText( "loadHunspellAutocompleteWords..." )
+        editWindowObject.parentApp.setDebugText( "loadHunspellAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading dictionary..." )
+    editWindowObject.parentApp.setWaitStatus( "Loading dictionary…" )
     internalCount = None
     autocompleteWords = []
     lineCount = 0
@@ -705,9 +705,9 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("AutocompleteFunctions.loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
-        editWindowObject.parentApp.setDebugText( "loadILEXAutocompleteWords..." )
+        editWindowObject.parentApp.setDebugText( "loadILEXAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading dictionary..." )
+    editWindowObject.parentApp.setWaitStatus( "Loading dictionary…" )
     autocompleteWords = []
     lineCount = 0
     with open( dictionaryFilepath, 'rt' ) as dictionaryFile:
