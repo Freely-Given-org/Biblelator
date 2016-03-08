@@ -44,14 +44,14 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-02' # by RJH
+LastModifiedDate = '2016-03-07' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
 ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os.path, configparser, logging
@@ -74,8 +74,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
 
@@ -293,7 +293,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    print( exp("Running {} demo...").format( ProgName ) )
+    print( exp("Running {} demo…").format( ProgName ) )
 
     tkRootWindow = Tk()
     # Calls to the window manager class (wm in Tk)

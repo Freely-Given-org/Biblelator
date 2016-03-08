@@ -29,14 +29,14 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-07' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
 ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os.path, logging
@@ -70,8 +70,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit, errorBit )
 # end of exp
 
 
@@ -222,7 +222,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )

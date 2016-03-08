@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-07' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -69,8 +69,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit, errorBit )
 # end of exp
 
 
@@ -490,28 +490,28 @@ class ChildWindows( list ):
     ##end of ChildWindows.deiconifyAllResources
 
 
-    def updateThisBibleGroup( self, groupCode, newVerseKey ):
+    def updateThisBibleGroup( self, groupCode, newVerseKey, originator=None ):
         """
         Called when we probably need to update some resource windows with a new Bible reference.
 
         Note that this new verse key is in the reference versification system.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("ChildWindows.updateThisBibleGroup( {}, {} )").format( groupCode, newVerseKey ) )
+            print( exp("ChildWindows.updateThisBibleGroup( {}, {}, {} )").format( groupCode, newVerseKey, originator ) )
 
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
                 if appWin.BCVUpdateType==DEFAULT and appWin.groupCode==groupCode:
                     # The following line doesn't work coz it only updates ONE window
                     #self.ChildWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
-                    appWin.updateShownBCV( newVerseKey )
+                    appWin.updateShownBCV( newVerseKey, originator=originator )
                     #print( '  Normal', appWin.groupCode, newVerseKey, appWin.moduleID )
                 elif groupCode == BIBLE_GROUP_CODES[0]:
                     if appWin.BCVUpdateType=='ReferenceMode' and appWin.groupCode==BIBLE_GROUP_CODES[1]:
-                        appWin.updateShownBCV( mapReferenceVerseKey( newVerseKey ) )
+                        appWin.updateShownBCV( mapReferenceVerseKey( newVerseKey ), originator=originator )
                         #print( '  Reference', appWin.groupCode, mapReferenceVerseKey( newVerseKey ), appWin.moduleID )
                     elif appWin.BCVUpdateType=='ParallelMode' and appWin.groupCode!=BIBLE_GROUP_CODES[0]:
-                        appWin.updateShownBCV( mapParallelVerseKey( appWin.groupCode, newVerseKey ) )
+                        appWin.updateShownBCV( mapParallelVerseKey( appWin.groupCode, newVerseKey ), originator=originator )
                         #print( '  Parallel', appWin.groupCode, mapParallelVerseKey( appWin.groupCode, newVerseKey ), appWin.moduleID )
                     #elif appWin.BCVUpdateType=='ReferencesMode':
                         #appWin.updateShownReferences( mapReferencesVerseKey( newVerseKey ) )
@@ -925,7 +925,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

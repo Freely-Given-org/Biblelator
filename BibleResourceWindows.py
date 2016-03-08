@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-08' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -74,8 +74,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
 
@@ -92,7 +92,7 @@ class BibleBox( ChildBox ):
             and adds the CV marks at the same time for navigation.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("BibleBox.displayAppendVerse( {}, {}, ..., {} )").format( firstFlag, verseKey, currentVerse ) )
+            #print( exp("BibleBox.displayAppendVerse( {}, {}, …, {} )").format( firstFlag, verseKey, currentVerse ) )
             ##try: print( exp("BibleBox.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerse ) )
             ##except UnicodeEncodeError: print( exp("BibleBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
@@ -632,13 +632,11 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         Called when  a Bible context view is changed from the menus/GUI.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleResourceWindow.changeBibleContextView()") )
-
         currentViewNumber = self._viewRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
             assert currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 )
+
         previousContextViewMode = self.contextViewMode
         if 'Bible' in self.genericWindowType:
             if currentViewNumber == 1: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
@@ -662,15 +660,13 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         Called when  a Bible group code is changed from the menus/GUI.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleResourceWindow.changeBibleGroupCode()") )
-
         previousGroupCode = self.groupCode
         newGroupCode = self._groupRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
             print( exp("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
             assert newGroupCode in BIBLE_GROUP_CODES
-        assert 'Bible' in self.genericWindowType
+            assert 'Bible' in self.genericWindowType
+
         if 'Bible' in self.genericWindowType: # do we really need this test?
             self.groupCode = newGroupCode
         else: halt # window type view mode not handled yet
@@ -1138,7 +1134,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     # end of BibleResourceWindow.setCurrentVerseKey
 
 
-    def updateShownBCV( self, newReferenceVerseKey ):
+    def updateShownBCV( self, newReferenceVerseKey, originator=None ):
         """
         Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
 
@@ -1147,7 +1143,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         Leaves the textbox in the disabled state.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleResourceWindow.updateShownBCV( {}) for".format( newReferenceVerseKey ), self.moduleID )
+            print( "BibleResourceWindow.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
@@ -1474,7 +1470,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-05 RJH
+Last updated: 2016-03-08 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,10 +12,12 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
-* Editor loses end of last verse in chapter
+* Editor loses text if change view mode after editing
+* Editor loses text if go back to pprevious chapter
+* Editor loses end of last verse in chapter -- fixed???
 * Can't undo USFM Bible edit once moved cursor
-* Have clicking problems in USFM editor
 * Get Ctrl+S working, also pop-up editor save window when quitting program
+* Resource windows display section heading before verse, edit window considers it part of previous verse
 
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking
@@ -30,10 +32,11 @@ BOS improvements for Biblelator
 * Investigate plug-ins
 
 Biblelator stuff
+* Send verse links to Paratext
 * Speed up initial Bible word counting for Bible autocomplete
-* Create backup files (each new day?) when editing (and autosaving???)
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
+* Add debug menu to edit windows to display settings/log
 * Release version 0.3
 * Get some different views working on the edit window
 * Synchronise with other Bible programs (esp. on Windows)

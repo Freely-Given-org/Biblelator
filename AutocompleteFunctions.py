@@ -27,14 +27,14 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-07' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 import logging
 import multiprocessing
@@ -81,8 +81,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
 
@@ -129,7 +129,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
                 #print( "    setAutocompleteWords discarded {!r} as unwanted".format( word ) )
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule: # write wordlist
-        print( "  setAutocompleteWords: Writing autocomplete words to file..." )
+        print( "  setAutocompleteWords: Writing autocomplete words to file…" )
         sortedKeys = sorted( editWindowObject.autocompleteWords.keys() )
         with open( 'autocompleteWordList.txt', 'wt', encoding='utf-8' ) as wordFile:
             wordCount = 0
@@ -173,15 +173,15 @@ def countBibleWords( BibleObject ):
     #import pickle
     #folder = os.path.join( os.path.dirname(__file__), "DataFiles/", "ScrapedFiles/" ) # Relative to module, not cwd
     #filepath = os.path.join( folder, "AddedUnitData.pickle" )
-    #if BibleOrgSysGlobals.verbosityLevel > 3: print( exp("Importing from {}...").format( filepath ) )
+    #if BibleOrgSysGlobals.verbosityLevel > 3: print( exp("Importing from {}…").format( filepath ) )
     #with open( filepath, 'rb' ) as pickleFile:
     #    typicalAddedUnits = pickle.load( pickleFile ) # The protocol version used is detected automatically, so we do not have to specify it
 
-    if BibleOrgSysGlobals.verbosityLevel > 2: print( exp("Running countBibleWords on {}...").format( BibleObject.name ) )
+    if BibleOrgSysGlobals.verbosityLevel > 2: print( exp("Running countBibleWords on {}…").format( BibleObject.name ) )
     # TODO: Work out why multiprocessing is slower here!
     if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
         if BibleOrgSysGlobals.verbosityLevel > 1:
-            print( exp("Prechecking {} books using {} CPUs...").format( len(BibleObject.books), BibleOrgSysGlobals.maxProcesses ) )
+            print( exp("Prechecking {} books using {} CPUs…").format( len(BibleObject.books), BibleOrgSysGlobals.maxProcesses ) )
             print( "  NOTE: Outputs (including error and warning messages) from scanning various books may be interspersed." )
         with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
             results = pool.map( countBookWords, [BibleObject.books[BBB] for BBB in BibleObject.books if BBB not in AVOID_BOOKS] ) # have the pool do our loads
@@ -194,13 +194,13 @@ def countBibleWords( BibleObject ):
     else: # Just single threaded
         for BBB in BibleObject.books: # Do individual book prechecks
             if BBB not in AVOID_BOOKS:
-                if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("countBookWords (single-threaded) for {}...").format( BBB ) )
+                if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("countBookWords (single-threaded) for {}…").format( BBB ) )
                 wordCountResults[BBB] = countBookWords( BibleObject.books[BBB] )
 
     summaryWordCountResults = {}
     for BBB in BibleObject.books: # Do individual book prechecks
         if BBB not in AVOID_BOOKS:
-            if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("totalBookWords for {}...").format( BBB ) )
+            if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("totalBookWords for {}…").format( BBB ) )
             #print( wordCountResults[BBB]['mainTextWordCounts'].keys() )
             for word,count in wordCountResults[BBB].items():
                 if word in summaryWordCountResults: summaryWordCountResults[word] += count
@@ -217,7 +217,7 @@ def countBookWords( BibleBookObject ):
     Returns a dictionary containing the results for the book.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "countBookWords( {} )...".format( BibleBookObject.BBB ) )
+        print( "countBookWords( {} )…".format( BibleBookObject.BBB ) )
     if not BibleBookObject._processedFlag:
         print( "countBookWords: processing lines from 'countBookWords'" )
         BibleBookObject.processLines()
@@ -757,7 +757,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )

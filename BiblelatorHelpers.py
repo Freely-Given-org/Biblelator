@@ -33,14 +33,14 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-07' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os.path
@@ -68,8 +68,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
 
@@ -308,7 +308,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
     If no sections are found, it goes a maximum of one chapter back or one chapter forward.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("findCurrentSection( {}, ... )").format( currentVerseKey.getShortText() ) )
+        print( exp("findCurrentSection( {}, … )").format( currentVerseKey.getShortText() ) )
 
     def sectionFoundIn( verseData ):
         """
@@ -367,7 +367,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
     # First let's find the beginning of the section
     #  which could be in the current verse/chapter,
     #   or in the previous chapter (at most we assume)
-    #print( 'fCS finding start...' )
+    #print( 'fCS finding start…' )
     firstC = max( intC-1, 0 )
     found = False
     for thisC in reversed( range( firstC, intC+1 ) ): # Look backwards
@@ -386,7 +386,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
     # Now let's find the end of the section
     #  which could be in the current chapter, or in the next chapter (at most we assume)
-    #print( 'fCS finding end...' )
+    #print( 'fCS finding end…' )
     lastC = min( intC+1, getNumChapters( BBB ) )
     found = False
     for thisC in range( intC, lastC+1 ):
@@ -408,6 +408,13 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
 
 
+def getChangeLogFilepath( loggingFolder, projectName ):
+    """
+    """
+    return os.path.join( loggingFolder, \
+                        BibleOrgSysGlobals.makeSafeFilename( projectName.replace(' ','_') + '_changes.log' ) )
+# end of BiblelatorHelpers.getChangeLogFilepath
+
 def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength ):
     """
     Just logs some info about the recently changed book to a log file for the project.
@@ -415,9 +422,7 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
 
-    filepath = os.path.join( loggingFolder, \
-                        BibleOrgSysGlobals.makeSafeFilename( projectName.replace(' ','_') + '_changes.log' ) )
-
+    filepath = getChangeLogFilepath( loggingFolder, projectName )
     try: logText = open( filepath, 'rt' ).read()
     except FileNotFoundError: logText = ''
 
@@ -437,7 +442,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

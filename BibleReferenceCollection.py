@@ -3,7 +3,7 @@
 #
 # BibleReferenceCollection.py
 #
-# Bible resource collection for Biblelator Bible display/editing
+# Bible reference collection for Biblelator Bible display/editing
 #
 # Copyright (C) 2015-2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-08' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.30'
@@ -81,8 +81,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit, errorBit )
 # end of exp
 
 
@@ -719,11 +719,11 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
     ## end of BibleReferenceCollectionWindow.openBox
 
 
-    def updateShownBCV( self, newReferenceVerseKey ):
+    def updateShownBCV( self, newReferenceVerseKey, originator=None ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleReferenceCollectionWindow.updateShownBCV( {} ) for".format( newReferenceVerseKey ), self.moduleID )
+            print( "BibleReferenceCollectionWindow.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
         refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
@@ -743,7 +743,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         Leaves the textbox in the disabled state.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleReferenceCollectionWindow.updateShownReferences( {}) for".format( newReferencesVerseKeys ), self.moduleID )
+            print( "BibleReferenceCollectionWindow.updateShownReferences( {} ) for".format( newReferencesVerseKeys ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
             assert isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None
 
@@ -805,7 +805,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )

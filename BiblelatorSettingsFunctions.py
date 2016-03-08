@@ -30,7 +30,7 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-08' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.30'
@@ -38,7 +38,7 @@ SettingsVersion = '0.30' # Only need to change this if the settings format has c
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os, logging
@@ -99,8 +99,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
 
@@ -438,18 +438,18 @@ def saveNewWindowSetup( self ):
         getCurrentChildWindowSettings( self )
         self.windowsSettingsDict[swnd.result] = self.windowsSettingsDict['Current'] # swnd.result is the new window name
         print( "swS", self.windowsSettingsDict )
-        self.writeSettingsFile() # Save file now in case we crash
+        writeSettingsFile( self ) # Save file now in case we crash
         self.createMenuBar() # refresh
 # end of saveNewWindowSetup
 
 
-def doDeleteExistingWindowSetup( self ):
+def deleteExistingWindowSetup( self ):
     """
     Gets the name of an existing window setting and deletes the setting.
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("doDeleteExistingWindowSetup()") )
-        self.setDebugText( "doDeleteExistingWindowSetup…" )
+        print( exp("deleteExistingWindowSetup()") )
+        self.setDebugText( "deleteExistingWindowSetup" )
     assert self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict)
     dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
     if BibleOrgSysGlobals.debugFlag: print( "dwndResult", repr(dwnd.result) )
@@ -457,30 +457,30 @@ def doDeleteExistingWindowSetup( self ):
         if BibleOrgSysGlobals.debugFlag:
             assert dwnd.result in self.windowsSettingsDict
         del self.windowsSettingsDict[dwnd.result]
-        #self.settings.save() # Save file now in case we crash -- don't worry -- it's easy to delete one
+        self.settings.save() # Save file now in case we crash ###-- don't worry -- it's easy to delete one
         self.createMenuBar() # refresh
-# end of doDeleteExistingWindowSetup
+# end of deleteExistingWindowSetup
 
 
-def doViewSettings( self ):
+def viewSettings( self ):
     """
     Open a pop-up text window with the current settings displayed.
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("doViewSettings()") )
-        self.setDebugText( "doViewSettings…" )
+        print( exp("viewSettings()") )
+        self.setDebugText( "viewSettings" )
     tEW = TextEditWindow( self )
     #if windowGeometry: tEW.geometry( windowGeometry )
     if not tEW.setFilepath( self.settings.settingsFilepath ) \
     or not tEW.loadText():
         tEW.closeChildWindow()
         showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewSettings" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed viewSettings" )
     else:
         self.childWindows.append( tEW )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewSettings" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished viewSettings" )
     self.setReadyStatus()
-# end of doViewSettings
+# end of viewSettings
 
 
 def writeSettingsFile( self ):
@@ -560,7 +560,7 @@ def writeSettingsFile( self ):
     if self.lexiconWord: lexicon['currentWord'] = self.lexiconWord
 
     # Save any open Bible resource collections
-    print( "save collection data..." )
+    if debuggingThisModule: print( "save collection data…" )
     for appWin in self.childWindows:
         #print( "  gT", appWin.genericWindowType )
         #print( "  wT", appWin.winType )
@@ -580,7 +580,8 @@ def writeSettingsFile( self ):
     getCurrentChildWindowSettings( self )
     # Save all the various window set-ups including both the named ones and the current one
     for windowsSettingName in self.windowsSettingsDict:
-        if BibleOrgSysGlobals.debugFlag: print( exp("Saving windows set-up {}").format( repr(windowsSettingName) ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Saving windows set-up {}").format( repr(windowsSettingName) ) )
         try: # Just in case something goes wrong with characters in a settings name
             self.settings.data['WindowSetting'+windowsSettingName] = {}
             thisOne = self.settings.data['WindowSetting'+windowsSettingName]
@@ -609,7 +610,7 @@ def demo():
         print( exp("Platform is"), sys.platform ) # e.g., "win32"
         print( exp("OS name is"), os.name ) # e.g., "nt"
         if sys.platform == "linux": print( exp("OS uname is"), os.uname() )
-        print( exp("Running main...") )
+        print( exp("Running main…") )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
@@ -647,7 +648,7 @@ def main( homeFolderPath, loggingFolderPath ):
         print( exp("Platform is"), sys.platform ) # e.g., "win32"
         print( exp("OS name is"), os.name ) # e.g., "nt"
         if sys.platform == "linux": print( exp("OS uname is"), os.uname() )
-        print( exp("Running main...") )
+        print( exp("Running main…") )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:

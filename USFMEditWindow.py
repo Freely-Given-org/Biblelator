@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-08' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -42,7 +42,7 @@ from collections import OrderedDict
 #import multiprocessing
 
 import tkinter as tk
-#from tkinter.ttk import Style, Frame
+from tkinter.ttk import Style
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
@@ -50,7 +50,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog # OkCancelDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
-                                logChangedFile
+                                getChangeLogFilepath, logChangedFile
 from TextBoxes import CustomText
 from ChildWindows import HTMLWindow # ChildWindow
 from BibleResourceWindows import BibleResourceWindow #, BibleBox
@@ -77,8 +77,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
 
@@ -119,7 +119,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.textBox['wrap'] = 'word'
         self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
-        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+
+        Style().configure( 'USFM.Vertical.TScrollbar', background='green' )
+        self.vScrollbar.config( command=self.textBox.yview, style='USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
         #self.createStandardKeyboardBindings()
         #self.createEditorKeyboardBindings()
 
@@ -162,7 +164,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                                     self.groupCode, self.projectName,
                                     '' if self.currentVerseKey is None else referenceBit,
                                     self.editMode, self.contextViewMode ) )
-        self.refreshTitleContinue()
+        Style().configure( 'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
+        self.refreshTitleContinue() # handle Autosave
     # end if USFMEditWindow.refreshTitle
 
 
@@ -286,6 +289,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         windowMenu.add_separator()
         windowMenu.add_command( label='Start references mode (A->)', underline=0, command=self.startReferencesMode )
 
+        if BibleOrgSysGlobals.debugFlag:
+            debugMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=debugMenu, label='Debug', underline=0 )
+            #debugMenu.add_command( label='View settings…', underline=5, command=self.doViewSettings )
+            #debugMenu.add_separator()
+            debugMenu.add_command( label='View log…', underline=5, command=self.doViewLog )
+
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
         helpMenu.add_command( label='Help…', underline=0, command=self.doHelp )
@@ -328,6 +338,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     def prepareAutocomplete( self ):
         """
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("prepareAutocomplete()") )
+            self.parentApp.setDebugText( "prepareAutocomplete…" )
+        self.parentApp.setWaitStatus( "Preparing autocomplete words…" )
+
         # Choose ONE of the following options
         if self.autocompleteMode == 'Bible':
             loadBibleAutocompleteWords( self ) # Find words used in the Bible to fill the autocomplete mechanism
@@ -349,8 +364,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -395,6 +410,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         TextEditWindow.onTextChange( self, result, *args ) # Handles autocorrect and autocomplete
 
         if self.textBox.edit_modified():
+            self.bookTextModified = True
+
             # Check the text for USFM errors
             editedText = self.getAllText()
 
@@ -416,10 +433,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             elif self.contextViewMode == 'ByChapter':
                 maxVerseMarkers = self.getNumVerses( BBB, C )
             else: halt
+
+            warningMessage = None
             if numChaps > maxChapterMarkers:
-                print( "Too many USFM chapter markers (max of {} expected)".format( maxChapterMarkers ) )
+                warningMessage = "Too many USFM chapter markers (max of {} expected)".format( maxChapterMarkers )
+                print( warningMessage )
             if numVerses > maxVerseMarkers:
-                print( "Too many USFM verse markers (max of {} expected)".format( maxVerseMarkers ) )
+                warningMessage = "Too many USFM verse markers (max of {} expected)".format( maxVerseMarkers )
+                print( warningMessage )
+            if warningMessage:
+                self.parentApp.setErrorStatus( warningMessage )
+                self.hadTextWarning = True
+            elif self.hadTextWarning: self.parentApp.setReadyStatus()
 
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
@@ -437,7 +462,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             self.lastCVMark = mark
             C, V = mark[1:].split( 'V', 1 )
             #self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V )
-            self.after_idle( lambda: self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V ) )
+            self.after_idle( lambda: self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V, originator=self ) )
     # end of USFMEditWindow.onTextChange
 
 
@@ -449,7 +474,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.doShowInfo()") )
-        text  = self.getAllBookText()
+        text  = self.getEntireText()
         numChars = len( text )
         numLines = len( text.split( '\n' ) )
         numWords = len( text.split() )
@@ -506,172 +531,172 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.getBookDataFromDisk
 
 
-    def USFMEditWindowXXXdisplayAppendVerse( self, firstFlag, verseKey, verseDataString, currentVerse=False ):
-        """
-        Add the requested verse to the end of self.textBox.
+    #def USFMEditWindowXXXdisplayAppendVerse( self, firstFlag, verseKey, verseDataString, currentVerse=False ):
+        #"""
+        #Add the requested verse to the end of self.textBox.
 
-        It connects the USFM markers as stylenames while it's doing it
-            and adds the CV marks at the same time for navigation.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey,
-                       #'None' if verseDataString is None else verseDataString.replace('\n','NL'), currentVerse )
-            #except UnicodeEncodeError: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+        #It connects the USFM markers as stylenames while it's doing it
+            #and adds the CV marks at the same time for navigation.
+        #"""
+        ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            ##try: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey,
+                       ##'None' if verseDataString is None else verseDataString.replace('\n','NL'), currentVerse )
+            ##except UnicodeEncodeError: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
-        BBB, C, V = verseKey.getBCV()
-        markName = 'C{}V{}'.format( C, V )
-        self.textBox.mark_set( markName, tk.INSERT )
-        self.textBox.mark_gravity( markName, tk.LEFT )
-        lastCharWasSpace = haveTextFlag = not firstFlag
+        #BBB, C, V = verseKey.getBCV()
+        #markName = 'C{}V{}'.format( C, V )
+        #self.textBox.mark_set( markName, tk.INSERT )
+        #self.textBox.mark_gravity( markName, tk.LEFT )
+        #lastCharWasSpace = haveTextFlag = not firstFlag
 
-        if verseDataString is None:
-            if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
-            #self.textBox.insert( tk.END, '--' )
-        elif self.viewMode == DEFAULT:
-            for line in verseDataString.split( '\n' ):
-                if line=='': continue
-                line += '\n'
-                if line[0]=='\\':
-                    marker = ''
-                    for char in line[1:]:
-                        if char!='¬' and not char.isalnum(): break
-                        marker += char
-                    cleanText = line[len(marker)+1:].lstrip()
-                else:
-                    marker, cleanText = None, line
-                if marker and marker[0]=='¬': pass # Ignore end markers for now
-                elif marker in ('chapters',): pass # Ignore added markers for now
-                else: self.textBox.insert( tk.END, line, marker )
-        elif self.viewMode == 'Formatted':
-            # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
-            for line in verseDataString.split( '\n' ):
-                if line=='': continue
-                line += '\n'
-                if line[0]=='\\':
-                    marker = ''
-                    for char in line[1:]:
-                        if char!='¬' and not char.isalnum(): break
-                        marker += char
-                    cleanText = line[len(marker)+1:].lstrip()
-                else:
-                    marker, cleanText = None, line
-                #if isinstance( entry, tuple ):
-                    #marker, cleanText = entry[0], entry[3]
-                #else: marker, cleanText = entry.getMarker(), entry.getCleanText()
-                #print( "  ", haveTextFlag, marker, repr(cleanText) )
-                if marker and marker[0]=='¬': pass # Ignore end markers for now
-                elif marker in ('chapters',): pass # Ignore added markers for now
-                elif marker == 'id':
-                    self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('ide','rem',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'c': # Don't want to display this (original) c marker
-                    #if not firstFlag: haveC = cleanText
-                    #else: print( "   Ignore C={}".format( cleanText ) )
-                    pass
-                elif marker == 'c#': # Might want to display this (added) c marker
-                    if cleanText != verseKey.getBBB():
-                        if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
-                        self.textBox.insert( tk.END, cleanText, 'c#' )
-                        lastCharWasSpace = False
-                elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('s1','s2','s3','s4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'r':
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('p','ip',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
-                    pass # Just ignore these for now
-                elif marker in ('q1','q2','q3','q4',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'm': pass
-                elif marker == 'v':
-                    if haveTextFlag:
-                        self.textBox.insert( tk.END, ' ', 'v-' )
-                    self.textBox.insert( tk.END, cleanText, marker )
-                    self.textBox.insert( tk.END, ' ', 'v+' )
-                    lastCharWasSpace = haveTextFlag = True
-                elif marker in ('v~','p~'):
-                    self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
-                    haveTextFlag = True
-                else:
-                    logging.critical( exp("USFMEditWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataString ) )
-        else:
-            logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
-    # end of USFMEditWindow.displayAppendVerse
+        #if verseDataString is None:
+            #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            ##self.textBox.insert( tk.END, '--' )
+        #elif self.viewMode == DEFAULT:
+            #for line in verseDataString.split( '\n' ):
+                #if line=='': continue
+                #line += '\n'
+                #if line[0]=='\\':
+                    #marker = ''
+                    #for char in line[1:]:
+                        #if char!='¬' and not char.isalnum(): break
+                        #marker += char
+                    #cleanText = line[len(marker)+1:].lstrip()
+                #else:
+                    #marker, cleanText = None, line
+                #if marker and marker[0]=='¬': pass # Ignore end markers for now
+                #elif marker in ('chapters',): pass # Ignore added markers for now
+                #else: self.textBox.insert( tk.END, line, marker )
+        #elif self.viewMode == 'Formatted':
+            ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
+            #for line in verseDataString.split( '\n' ):
+                #if line=='': continue
+                #line += '\n'
+                #if line[0]=='\\':
+                    #marker = ''
+                    #for char in line[1:]:
+                        #if char!='¬' and not char.isalnum(): break
+                        #marker += char
+                    #cleanText = line[len(marker)+1:].lstrip()
+                #else:
+                    #marker, cleanText = None, line
+                ##if isinstance( entry, tuple ):
+                    ##marker, cleanText = entry[0], entry[3]
+                ##else: marker, cleanText = entry.getMarker(), entry.getCleanText()
+                ##print( "  ", haveTextFlag, marker, repr(cleanText) )
+                #if marker and marker[0]=='¬': pass # Ignore end markers for now
+                #elif marker in ('chapters',): pass # Ignore added markers for now
+                #elif marker == 'id':
+                    #self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('ide','rem',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'c': # Don't want to display this (original) c marker
+                    ##if not firstFlag: haveC = cleanText
+                    ##else: print( "   Ignore C={}".format( cleanText ) )
+                    #pass
+                #elif marker == 'c#': # Might want to display this (added) c marker
+                    #if cleanText != verseKey.getBBB():
+                        #if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
+                        #self.textBox.insert( tk.END, cleanText, 'c#' )
+                        #lastCharWasSpace = False
+                #elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('s1','s2','s3','s4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'r':
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('p','ip',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
+                    #pass # Just ignore these for now
+                #elif marker in ('q1','q2','q3','q4',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'm': pass
+                #elif marker == 'v':
+                    #if haveTextFlag:
+                        #self.textBox.insert( tk.END, ' ', 'v-' )
+                    #self.textBox.insert( tk.END, cleanText, marker )
+                    #self.textBox.insert( tk.END, ' ', 'v+' )
+                    #lastCharWasSpace = haveTextFlag = True
+                #elif marker in ('v~','p~'):
+                    #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
+                    #haveTextFlag = True
+                #else:
+                    #logging.critical( exp("USFMEditWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataString ) )
+        #else:
+            #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+    ## end of USFMEditWindow.displayAppendVerse
 
 
-    def xxxgetBeforeAndAfterBibleData( self, newVerseKey ):
-        """
-        Returns the requested verse, the previous verse, and the next n verses.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("USFMEditWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
-            assert isinstance( newVerseKey, SimpleVerseKey )
+    #def xxxgetBeforeAndAfterBibleData( self, newVerseKey ):
+        #"""
+        #Returns the requested verse, the previous verse, and the next n verses.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( exp("USFMEditWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            #assert isinstance( newVerseKey, SimpleVerseKey )
 
-        BBB, C, V = newVerseKey.getBCV()
-        intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+        #BBB, C, V = newVerseKey.getBCV()
+        #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
 
-        prevBBB, prevIntC, prevIntV = BBB, intC, intV
-        previousVersesData = []
-        for n in range( -self.parentApp.viewVersesBefore, 0 ):
-            failed = False
-            #print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
-            if prevIntV > 0: prevIntV -= 1
-            elif prevIntC > 0:
-                prevIntC -= 1
-                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                except KeyError:
-                    if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
-                    failed = True
-                #if not failed:
-                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
-            else:
-                prevBBB = self.parentApp.genericBibleOrganisationalSystem.getPreviousBookCode( BBB )
-                prevIntC = self.getNumChapters( prevBBB )
-                prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
-            if not failed:
-                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
-                previousVerseData = self.getContextVerseData( previousVerseKey )
-                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
+        #prevBBB, prevIntC, prevIntV = BBB, intC, intV
+        #previousVersesData = []
+        #for n in range( -self.parentApp.viewVersesBefore, 0 ):
+            #failed = False
+            ##print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
+            #if prevIntV > 0: prevIntV -= 1
+            #elif prevIntC > 0:
+                #prevIntC -= 1
+                #try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                #except KeyError:
+                    #if prevIntC != 0: # we can expect an error for chapter zero
+                        #logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                    #failed = True
+                ##if not failed:
+                    ##if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+            #else:
+                #prevBBB = self.parentApp.genericBibleOrganisationalSystem.getPreviousBookCode( BBB )
+                #prevIntC = self.getNumChapters( prevBBB )
+                #prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+            #if not failed:
+                #previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
+                #previousVerseData = self.getContextVerseData( previousVerseKey )
+                #if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
 
-        # Determine the next valid verse numbers
-        nextBBB, nextIntC, nextIntV = BBB, intC, intV
-        nextVersesData = []
-        for n in range( 0, self.parentApp.viewVersesAfter ):
-            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
-            except KeyError: numVerses = 0
-            nextIntV += 1
-            if nextIntV > numVerses:
-                nextIntV = 1
-                nextIntC += 1 # Need to check................................
-            nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
-            nextVerseData = self.getContextVerseData( nextVerseKey )
-            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
+        ## Determine the next valid verse numbers
+        #nextBBB, nextIntC, nextIntV = BBB, intC, intV
+        #nextVersesData = []
+        #for n in range( 0, self.parentApp.viewVersesAfter ):
+            #try: numVerses = self.getNumVerses( nextBBB, nextIntC )
+            #except KeyError: numVerses = 0
+            #nextIntV += 1
+            #if nextIntV > numVerses:
+                #nextIntV = 1
+                #nextIntC += 1 # Need to check................................
+            #nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
+            #nextVerseData = self.getContextVerseData( nextVerseKey )
+            #if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
 
-        verseData = self.getContextVerseData( newVerseKey )
+        #verseData = self.getContextVerseData( newVerseKey )
 
-        return verseData, previousVersesData, nextVersesData
-    # end of USFMEditWindow.getBeforeAndAfterBibleData
+        #return verseData, previousVersesData, nextVersesData
+    ## end of USFMEditWindow.getBeforeAndAfterBibleData
 
 
     def cacheBook( self, BBB ):
@@ -744,7 +769,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.getCachedVerseData
 
 
-    def updateShownBCV( self, newReferenceVerseKey ):
+    def updateShownBCV( self, newReferenceVerseKey, originator=None ):
         """
         Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
 
@@ -758,7 +783,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             3/ Load the appropriate verses into the editor according to the contextViewMode.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "USFMEditWindow.updateShownBCV( {} from {} ) for".format( newReferenceVerseKey, self.currentVerseKey ), self.moduleID )
+            print( "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
 
         oldVerseKey = self.currentVerseKey
@@ -776,82 +801,93 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             #if newBBB == 'PSA': halt
             if newBBB != oldBBB: self.numTotalVerses = calculateTotalVersesForBook( newBBB, self.getNumChapters, self.getNumVerses )
 
+        if originator is self: # We initiated this by clicking in our own edit window
+            # Don't do everything below because that makes the window contents move around annoyingly when clicked
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Seems to be called from self--not much to do here" )
+            self.refreshTitle()
+            return
+
         if self.textBox.edit_modified(): # we need to extract the changes into self.bookText
-            logging.critical( "We need to extract the changes into self.bookText for {}".format( oldBBB ) )
-            editedText = self.getAllText()
-            if self.contextViewMode == 'BeforeAndAfter':
-                print( "\n\nWe need to extract the BeforeAndAfter changes into self.bookText!!!\n\n")
-                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                if newBBB == oldBBB: # We haven't changed books
-                    self.verseCache = OrderedDict()
-                    self.cacheBook( oldBBB )
-                #bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
-                #if bibleData:
-                    #verseData, previousVerses, nextVerses = bibleData
-                    #for verseKey,previousVerseData in previousVerses:
-                        #self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
-                        #startingFlag = False
-                    #self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
-                    #for verseKey,nextVerseData in nextVerses:
-                        #self.displayAppendVerse( False, verseKey, nextVerseData )
+            assert self.bookTextModified
+            self.bookText = self.getEntireText()
+            if newBBB == oldBBB: # We haven't changed books -- update our book cache
+                self.verseCache = OrderedDict()
+                self.cacheBook( newBBB )
 
-            elif self.contextViewMode == 'BySection':
-                print( "\n\nWe need to extract the BySection changes into self.bookText!!!\n\n")
-                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                if newBBB == oldBBB: # We haven't changed books
-                    self.verseCache = OrderedDict()
-                    self.cacheBook( oldBBB )
-                #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-                #BBB, C, V = newVerseKey.getBCV()
-                #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                #print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                #for thisC in range( 0, self.getNumChapters( BBB ) ):
-                    #try: numVerses = self.getNumVerses( BBB, thisC )
-                    #except KeyError: numVerses = 0
-                    #for thisV in range( 0, numVerses ):
-                        #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                        #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                        #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                #currentVerse=thisC==intC and thisV==intV )
-                        #startingFlag = False
+            #editedText = self.getAllText()
+            #if self.contextViewMode == 'BeforeAndAfter':
+                #print( "We need to extract the BeforeAndAfter changes into self.bookText!!!")
+                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                #if newBBB == oldBBB: # We haven't changed books
+                    #self.verseCache = OrderedDict()
+                    #self.cacheBook( oldBBB )
+                ##bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
+                ##if bibleData:
+                    ##verseData, previousVerses, nextVerses = bibleData
+                    ##for verseKey,previousVerseData in previousVerses:
+                        ##self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
+                        ##startingFlag = False
+                    ##self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
+                    ##for verseKey,nextVerseData in nextVerses:
+                        ##self.displayAppendVerse( False, verseKey, nextVerseData )
 
-            elif self.contextViewMode == 'ByVerse':
-                print( "\n\nWe need to extract the ByVerse changes into self.bookText!!!\n\n")
-                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                if newBBB == oldBBB: # We haven't changed books
-                    self.verseCache = OrderedDict()
-                    self.cacheBook( oldBBB )
-                #C, V = self.currentVerseKey.getCV()
-                #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+            #elif self.contextViewMode == 'BySection':
+                #print( "We need to extract the BySection changes into self.bookText!!!")
+                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                #if newBBB == oldBBB: # We haven't changed books
+                    #self.verseCache = OrderedDict()
+                    #self.cacheBook( oldBBB )
+                ##self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+                ##BBB, C, V = newVerseKey.getBCV()
+                ##intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+                ##print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                ##for thisC in range( 0, self.getNumChapters( BBB ) ):
+                    ##try: numVerses = self.getNumVerses( BBB, thisC )
+                    ##except KeyError: numVerses = 0
+                    ##for thisV in range( 0, numVerses ):
+                        ##thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
+                        ##thisVerseData = self.getCachedVerseData( thisVerseKey )
+                        ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
+                                                ##currentVerse=thisC==intC and thisV==intV )
+                        ##startingFlag = False
 
-            elif self.contextViewMode == 'ByBook':
-                print( 'USFMEditWindow.updateShownBCV', 'ByBook1' )
-                self.bookText = editedText
-                if newBBB == oldBBB: # We haven't changed books
-                    self.verseCache = OrderedDict()
-                    self.cacheBook( oldBBB )
+            #elif self.contextViewMode == 'ByVerse':
+                #print( "We need to extract the ByVerse changes into self.bookText!!!")
+                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                #if newBBB == oldBBB: # We haven't changed books
+                    #self.verseCache = OrderedDict()
+                    #self.cacheBook( oldBBB )
+                ##C, V = self.currentVerseKey.getCV()
+                ##self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
 
-            elif self.contextViewMode == 'ByChapter':
-                print( "\n\nWe need to extract the ByChapter changes into self.bookText!!!\n\n")
-                self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                if newBBB == oldBBB: # We haven't changed books
-                    self.verseCache = OrderedDict()
-                    self.cacheBook( oldBBB )
-                #C = self.currentVerseKey.getChapterNumber()
-                #BBB, C, V = newVerseKey.getBCV()
-                #intV = newVerseKey.getVerseNumberInt()
-                #try: numVerses = self.getNumVerses( BBB, C )
-                #except KeyError: numVerses = 0
-                #for thisV in range( 0, numVerses ):
-                    #thisVerseKey = SimpleVerseKey( BBB, C, thisV )
-                    #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
-                    #startingFlag = False
+            #elif self.contextViewMode == 'ByBook':
+                #print( 'USFMEditWindow.updateShownBCV', 'ByBook1' )
+                #self.bookText = editedText
+                #if newBBB == oldBBB: # We haven't changed books
+                    #self.verseCache = OrderedDict()
+                    #self.cacheBook( oldBBB )
 
-            else:
-                logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
-                if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
-            self.bookTextModified = True
+            #elif self.contextViewMode == 'ByChapter':
+                #print( "We need to extract the ByChapter changes into self.bookText!!!")
+                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
+                #if newBBB == oldBBB: # We haven't changed books
+                    #self.verseCache = OrderedDict()
+                    #self.cacheBook( oldBBB )
+                ##C = self.currentVerseKey.getChapterNumber()
+                ##BBB, C, V = newVerseKey.getBCV()
+                ##intV = newVerseKey.getVerseNumberInt()
+                ##try: numVerses = self.getNumVerses( BBB, C )
+                ##except KeyError: numVerses = 0
+                ##for thisV in range( 0, numVerses ):
+                    ##thisVerseKey = SimpleVerseKey( BBB, C, thisV )
+                    ##thisVerseData = self.getCachedVerseData( thisVerseKey )
+                    ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
+                    ##startingFlag = False
+
+            #else:
+                #logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+                #if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
+            #self.bookTextModified = True
 
         if newReferenceVerseKey is None:
             if oldVerseKey is not None:
@@ -863,7 +899,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             return
 
         savedCursorPosition = self.textBox.index( tk.INSERT ) # Something like 55.6 for line 55, before column 6
-        print( "savedCursorPosition", savedCursorPosition )   #   Beginning of file is 1.0
+        #print( "savedCursorPosition", savedCursorPosition )   #   Beginning of file is 1.0
 
         # Now check if the book they're viewing has changed since last time
         #       If so, save the old book if necessary
@@ -892,7 +928,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             startingFlag = True
 
             if self.contextViewMode == 'BeforeAndAfter':
-                print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
+                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
@@ -911,7 +947,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                             startingFlag = False
 
             elif self.contextViewMode == 'ByVerse':
-                print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
+                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
@@ -929,7 +965,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                                                 currentVerse=thisC==intC and thisV==intV )
 
             elif self.contextViewMode == 'BySection':
-                print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
+                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 sectionStart, sectionEnd = findCurrentSection( newVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
                 intC1, intV1 = sectionStart.getChapterNumberInt(), sectionStart.getVerseNumberInt()
@@ -951,7 +987,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                             startingFlag = False
 
             elif self.contextViewMode == 'ByBook':
-                print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
+                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
@@ -966,7 +1002,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                         startingFlag = False
 
             elif self.contextViewMode == 'ByChapter':
-                print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
+                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
@@ -1125,16 +1161,17 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.doCheckProject
 
 
-    def getAllBookText( self ):
+    def getEntireText( self ):
         """
         Gets the displayed text and adds it to the surrounding text.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.getAllBookText()") )
-        boxText = self.getAllText() # from the edit window
-        allBookText = self.bookTextBefore + boxText + self.bookTextAfter
-        return allBookText
-    # end of USFMEditWindow.getAllBookText
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("USFMEditWindow.getEntireText()") )
+
+        editBoxText = self.getAllText() # from the edit window
+        entireText = self.bookTextBefore + editBoxText + self.bookTextAfter
+        return entireText
+    # end of USFMEditWindow.getEntireText
 
 
     def doSave( self, event=None ):
@@ -1150,7 +1187,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
-                allBookText = self.getAllBookText()
+                allBookText = self.getEntireText()
                 with open( filepath, mode='wt' ) as theFile:
                     theFile.write( allBookText )
                 self.rememberFileTimeAndSize()
@@ -1253,6 +1290,50 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.startReferencesMode
 
 
+    def doViewSettings( self ):
+        """
+        Open a pop-up text window with the current settings displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doViewSettings()") )
+            self.parentApp.setDebugText( "doViewSettings…" )
+
+        tEW = TextEditWindow( self.parentApp )
+        #if windowGeometry: tEW.geometry( windowGeometry )
+        if not tEW.setFilepath( self.settings.settingsFilepath ) \
+        or not tEW.loadText():
+            tEW.closeChildWindow()
+            showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewSettings" )
+        else:
+            self.parentApp.childWindows.append( tEW )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished doViewSettings" )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doViewSettings
+
+
+    def doViewLog( self ):
+        """
+        Open a pop-up text window with the current log displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("doViewLog()") )
+            self.parentApp.setDebugText( "doViewLog…" )
+
+        tEW = TextEditWindow( self.parentApp )
+        #if windowGeometry: tEW.geometry( windowGeometry )
+        if not tEW.setFilepath( getChangeLogFilepath( self.parentApp.loggingFolderPath, self.projectName ) ) \
+        or not tEW.loadText():
+            tEW.closeChildWindow()
+            showerror( self, APP_NAME, _("Sorry, unable to open log file") )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewLog" )
+        else:
+            self.parentApp.childWindows.append( tEW )
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doViewLog
+
+
     #def xxcloseEditor( self ):
         #"""
         #"""
@@ -1272,7 +1353,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )

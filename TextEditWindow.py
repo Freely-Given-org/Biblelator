@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-06' # by RJH
+LastModifiedDate = '2016-03-08' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -37,7 +37,8 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 
 debuggingThisModule = True
 
-import os.path, logging #, re
+import os.path, logging, shutil #, re
+from datetime import datetime
 #from collections import OrderedDict
 #import multiprocessing
 
@@ -75,8 +76,8 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}: '.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', _(errorBit) )
+        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
 
@@ -87,6 +88,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
+
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
 
         # Set some dummy values required soon (esp. by refreshTitle)
@@ -111,6 +113,7 @@ class TextEditWindow( ChildWindow ):
         self.textBox['wrap'] = 'word'
         self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.textBox.setTextChangeCallback( self.onTextChange )
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
@@ -141,7 +144,7 @@ class TextEditWindow( ChildWindow ):
 
         self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
         #self.after( REFRESH_TITLE_TIME, self.refreshTitle )
-        self.loading = False
+        self.loading = self.hadTextWarning = False
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.__init__ finished.") )
@@ -153,6 +156,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.createEditorKeyboardBindings()") )
+
         for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
                              ('Undo',self.doUndo), ('Redo',self.doRedo),
                              ('Save',self.doSave), ):
@@ -176,7 +180,9 @@ class TextEditWindow( ChildWindow ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("TextEditWindow.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.createMenuBar()") )
+
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.config( menu=self.menubar ) # alternative
@@ -251,6 +257,13 @@ class TextEditWindow( ChildWindow ):
         self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
         windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
 
+        if BibleOrgSysGlobals.debugFlag:
+            debugMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=debugMenu, label='Debug', underline=0 )
+            #debugMenu.add_command( label='View settings…', underline=5, command=self.doViewSettings )
+            #debugMenu.add_separator()
+            debugMenu.add_command( label='View log…', underline=5, command=self.doViewLog )
+
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label='Help', underline=0 )
         helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
@@ -264,6 +277,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.createContextMenu()") )
+
         self.contextMenu = tk.Menu( self, tearoff=False )
         self.contextMenu.add_command( label="Cut", underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict['Cut'][0] )
         self.contextMenu.add_command( label="Copy", underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
@@ -415,8 +429,8 @@ class TextEditWindow( ChildWindow ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -462,7 +476,7 @@ class TextEditWindow( ChildWindow ):
         if self.textBox.edit_modified():
             # Handle auto-correct
             if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
-                print( "Handle autocorrect" )
+                #print( "Handle autocorrect" )
                 previousText = self.getCharactersBeforeCursor( self.maxAutocorrectLength )
                 #print( "previousText", repr(previousText) )
                 for inChars,outChars in self.autocorrectEntries:
@@ -487,11 +501,11 @@ class TextEditWindow( ChildWindow ):
                         try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
                                                                 if thisBit.startswith(remainder) and thisBit != remainder]
                         except KeyError: possibleWords = None
-                        print( 'possibleWords', possibleWords )
+                        #print( 'possibleWords', possibleWords )
                         if possibleWords:
                             #print( "Handle autocomplete2" )
                             if self.autocompleteBox is None:
-                                print( 'create listbox' )
+                                #print( 'create listbox' )
                                 x, y, cx, cy = self.textBox.bbox( tk.INSERT )
                                 topLevel = tk.Toplevel( self.textBox.master )
                                 topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
@@ -517,10 +531,10 @@ class TextEditWindow( ChildWindow ):
                                     #self.autocompleteBox.bind( '<Right>', self.acceptAutocompleteSelection )
                                     #self.autocompleteBox.place( x=self.winfo_x(), y=self.winfo_y()+self.winfo_height() )
                             else: # the Listbox is already made -- just empty it
-                                print( 'empty listbox' )
+                                #print( 'empty listbox' )
                                 self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
                             # Now fill the Listbox
-                            print( 'fill listbox' )
+                            #print( 'fill listbox' )
                             for word in possibleWords:
                                 if BibleOrgSysGlobals.debugFlag: assert possibleWords.count( word ) == 1
                                 self.autocompleteBox.insert( tk.END, word )
@@ -532,13 +546,13 @@ class TextEditWindow( ChildWindow ):
                             #self.autocompleteBox.bind( '<Double-1>', self.acceptAutocompleteSelection )
 
                         elif self.autocompleteBox is not None:
-                            print( 'destroy1 autocomplete listbox -- no possible words' )
+                            #print( 'destroy1 autocomplete listbox -- no possible words' )
                             self.removeAutocompleteBox()
                     elif self.autocompleteBox is not None:
-                        print( 'destroy2 autocomplete listbox -- not enough typed yet' )
+                        #print( 'destroy2 autocomplete listbox -- not enough typed yet' )
                         self.removeAutocompleteBox()
             elif self.autocompleteBox is not None:
-                print( 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
+                #print( 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
                 self.removeAutocompleteBox()
             # end of auto-complete section
     # end of TextEditWindow.onTextChange
@@ -570,6 +584,7 @@ class TextEditWindow( ChildWindow ):
     def doUndo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doUndo()") )
+
         try: self.textBox.edit_undo()
         except tk.TclError: showinfo( self, APP_NAME, 'Nothing to undo' )
         self.textBox.update() # force refresh
@@ -579,6 +594,7 @@ class TextEditWindow( ChildWindow ):
     def doRedo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doRedo()") )
+
         try: self.textBox.edit_redo()
         except tk.TclError: showinfo( self, APP_NAME, 'Nothing to redo' )
         self.textBox.update() # force refresh
@@ -588,6 +604,7 @@ class TextEditWindow( ChildWindow ):
     def doDelete( self, event=None ):                         # delete selected text, no save
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doDelete()") )
+
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, 'No text selected')
         else:
@@ -614,6 +631,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doPaste()") )
+
         try:
             text = self.selection_get( selection='CLIPBOARD')
         except tk.TclError:
@@ -643,17 +661,17 @@ class TextEditWindow( ChildWindow ):
         """
         Needed for auto-complete functions.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.getCharactersBeforeCursor( {} )").format( maxCount ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("TextEditWindow.getWordCharactersBeforeCursor( {} )").format( maxCount ) )
 
         previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-        print( "previousText", repr(previousText) )
+        #print( "previousText", repr(previousText) )
         wordText = ''
         for previousChar in reversed( previousText ):
             if previousChar in self.autocompleteWordChars:
                 wordText = previousChar + wordText
             else: break
-        print( 'wordText', repr(wordText) )
+        #print( 'wordText', repr(wordText) )
         return wordText
     # end of TextEditWindow.getWordCharactersBeforeCursor
 
@@ -756,6 +774,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.setFolderPath( {} )").format( repr(newFolderPath) ) )
             assert self.filename is None
             assert self.filepath is None
+
         self.folderPath = newFolderPath
     # end of TextEditWindow.setFolderPath
 
@@ -772,6 +791,7 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.setFilename( {} )").format( repr(filename) ) )
             assert self.folderPath
+
         self.filename = filename
         self.filepath = os.path.join( self.folderPath, self.filename )
         if createFile: # Create a blank file
@@ -791,6 +811,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.setPathAndFile( {}, {} )").format( repr(folderPath), repr(filename) ) )
+
         self.folderPath, self.filename = folderPath, filename
         self.filepath = os.path.join( self.folderPath, self.filename )
         return self._checkFilepath()
@@ -806,6 +827,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.setFilepath( {} )").format( repr(newFilePath) ) )
+
         self.filepath = newFilePath
         self.folderPath, self.filename = os.path.split( newFilePath )
         return self._checkFilepath()
@@ -871,6 +893,18 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.loadText
 
 
+    def getEntireText( self ):
+        """
+        This function can be overloaded in super classes
+            (where the edit window might not display the entire text).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.getEntireText()") )
+
+        return self.getAllText()
+    # end of TextEditWindow.getEntireText
+
+
     #def setAutocompleteWords( self, wordList, append=False ):
         #"""
         #Given a word list, set the entries into the autocomplete words
@@ -901,6 +935,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doSaveAs()") )
+
         if self.modified():
             saveAsFilepath = asksaveasfilename()
             #print( "saveAsFilepath", repr(saveAsFilepath) )
@@ -919,7 +954,7 @@ class TextEditWindow( ChildWindow ):
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
-                allText = self.getAllText() # from the displayed edit window
+                allText = self.getEntireText() # from the displayed edit window
                 with open( filepath, mode='wt' ) as theFile:
                     theFile.write( allText )
                 self.rememberFileTimeAndSize()
@@ -934,6 +969,8 @@ class TextEditWindow( ChildWindow ):
         """
         Called on a timer to save a copy of the file in a separate location
             if it's been modified.
+
+        Also saves a daily copy of the file into a sub-folder.
 
         Schedules another call.
 
@@ -950,15 +987,73 @@ class TextEditWindow( ChildWindow ):
             # NOTE: Don't use a hidden folder coz user might not be able to find it
             autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' )
             if not os.path.exists( autosaveFolderPath ): os.mkdir( autosaveFolderPath )
+            autosaveFolderPath2 = os.path.join( autosaveFolderPath, 'LastDay/' )
+            if not os.path.exists( autosaveFolderPath2 ): os.mkdir( autosaveFolderPath2 )
+
             autosaveFilename = self.filename if self.filename else 'Autosave.txt'
             #print( 'autosaveFolderPath', repr(autosaveFolderPath), 'autosaveFilename', repr(autosaveFilename) )
-            allText = self.getAllText() # from the displayed edit window
-            with open( os.path.join( autosaveFolderPath, autosaveFilename ), mode='wt' ) as theFile:
+            autosaveFilepath = os.path.join( autosaveFolderPath, autosaveFilename )
+            autosaveFilepath2 = os.path.join( autosaveFolderPath2, autosaveFilename )
+
+            # Check if we need a daily save
+            if os.path.isfile( autosaveFilepath ) \
+            and ( not os.path.isfile( autosaveFilepath2 ) \
+            or datetime.fromtimestamp( os.stat( self.filepath ).st_mtime ).date() != datetime.today().date() ):
+                print( "doAutosave: saving daily file", autosaveFilepath2 )
+                shutil.copyfile( autosaveFilepath, autosaveFilepath2 )
+
+            # Now save this updated file
+            allText = self.getEntireText() # from the displayed edit window and/or elsewhere
+            with open( autosaveFilepath, mode='wt' ) as theFile:
                 theFile.write( allText )
             self.after( self.autosaveTime, self.doAutosave )
         else:
             self.autosaveScheduled = False # Will be set again by refreshTitle
     # end of TextEditWindow.doAutosave
+
+
+    def doViewSettings( self ):
+        """
+        Open a pop-up text window with the current settings displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doViewSettings()") )
+            self.parentApp.setDebugText( "doViewSettings…" )
+        tEW = TextEditWindow( self.parentApp )
+        #if windowGeometry: tEW.geometry( windowGeometry )
+        if not tEW.setFilepath( self.settings.settingsFilepath ) \
+        or not tEW.loadText():
+            tEW.closeChildWindow()
+            showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewSettings" )
+        else:
+            self.parentApp.childWindows.append( tEW )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished doViewSettings" )
+        self.parentApp.setReadyStatus()
+    # end of TextEditWindow.doViewSettings
+
+
+    def doViewLog( self ):
+        """
+        Open a pop-up text window with the current log displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("doViewLog()") )
+            self.parentApp.setDebugText( "doViewLog…" )
+
+        filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        tEW = TextEditWindow( self.parentApp )
+        #if windowGeometry: tEW.geometry( windowGeometry )
+        if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
+        or not tEW.loadText():
+            tEW.closeChildWindow()
+            showerror( self, APP_NAME, _("Sorry, unable to open log file") )
+            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewLog" )
+        else:
+            self.parentApp.childWindows.append( tEW )
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+        self.parentApp.setReadyStatus()
+    # end of TextEditWindow.doViewLog
 
 
     def doCloseEditor( self, event=None ):
@@ -967,6 +1062,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doCloseEditor()") )
+
         self.onCloseEditor()
     # end of TextEditWindow.closeEditor
 
@@ -976,6 +1072,7 @@ class TextEditWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.onCloseEditor()") )
+
         if self.modified():
             if self.folderPath and self.filename:
                 self.doSave()
@@ -997,7 +1094,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
