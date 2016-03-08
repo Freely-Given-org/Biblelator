@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-08' # by RJH
+LastModifiedDate = '2016-03-09' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -101,8 +101,10 @@ class TextEditWindow( ChildWindow ):
         self.loading = True
 
         # Make our own custom textBox which allows a callback function
-        #   Delete these two lines and the callback line if you don't need either autocorrect or autocomplete
+        #   Delete these four lines and the callback line if you don't need either autocorrect or autocomplete
         self.textBox.destroy()
+        self.myKeyboardBindingsList = []
+        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
 
         self.textBox['background'] = "white"
@@ -139,6 +141,7 @@ class TextEditWindow( ChildWindow ):
             self.autocompleteMode = 'GivenList'
             setAutocompleteWords( self, ('a','an','ate','apple','bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
 
+        self.saveChangesAutomatically = False # different from AutoSave (which is in different files)
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
         self.autosaveScheduled = False
 

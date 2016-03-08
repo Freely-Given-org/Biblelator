@@ -548,7 +548,7 @@ class Application( Frame ):
         self.recentFiles.append( threeTuple )
         if len(self.recentFiles)>MAX_RECENT_FILES: self.recentFiles.pop( 0 )
         self.createMenuBar()
-    # end of Application.createMainKeyboardBindings()
+    # end of Application.addRecentFile()
 
 
     def notWrittenYet( self ):

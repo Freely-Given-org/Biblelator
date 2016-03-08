@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-07' # by RJH
+LastModifiedDate = '2016-03-08' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -88,7 +88,7 @@ class ChildBox():
         self.parentApp = parentApp
 
         self.myKeyboardBindingsList = []
-        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
+        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = [] # Just for catching setting of duplicates
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.__init__ finished.") )

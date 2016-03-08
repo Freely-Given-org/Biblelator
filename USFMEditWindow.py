@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-08' # by RJH
+LastModifiedDate = '2016-03-09' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -112,8 +112,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #BibleBox.__init__( self, parentApp )
         self.viewMode = 'Unformatted'
 
-        # Make our own textBox
+        # Make our own custom textBox which allows callbacks
         self.textBox.destroy()
+        self.myKeyboardBindingsList = []
+        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
         self.textBox.setTextChangeCallback( self.onTextChange )
         self.textBox['wrap'] = 'word'
@@ -123,7 +125,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         Style().configure( 'USFM.Vertical.TScrollbar', background='green' )
         self.vScrollbar.config( command=self.textBox.yview, style='USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
         #self.createStandardKeyboardBindings()
-        #self.createEditorKeyboardBindings()
+        self.createEditorKeyboardBindings()
 
         # Now we need to override a few critical variables
         self.genericWindowType = 'BibleEditor'
@@ -143,6 +145,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.lastBBB = None
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.exportFolderPathname = None
+
+        self.saveChangesAutomatically = True # different from AutoSave (which is in different files)
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.__init__ finished.") )
