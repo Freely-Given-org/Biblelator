@@ -50,7 +50,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog # OkCancelDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
-                                getChangeLogFilepath, logChangedFile
+                                handleInternalBibles, getChangeLogFilepath, logChangedFile
 from TextBoxes import CustomText
 from ChildWindows import HTMLWindow # ChildWindow
 from BibleResourceWindows import BibleResourceWindow #, BibleBox
@@ -94,8 +94,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     def __init__( self, parentApp, USFMBible, editMode=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
-        self.parentApp, self.internalBible = parentApp, USFMBible
-        #self.USFMFolder = self.internalBible.sourceFolder
+        self.parentApp = parentApp
+        self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
 
         if self.internalBible is None:
             self.projectName = 'NoProjectName'
@@ -791,7 +791,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             #print( "contextViewMode", self.contextViewMode )
 
         oldVerseKey = self.currentVerseKey
-        oldBBB = None if oldVerseKey is None else oldVerseKey.getBBB()
+        oldBBB, oldC, oldV = (None,None,None) if oldVerseKey is None else oldVerseKey.getBCV()
 
         if newReferenceVerseKey is None:
             newBBB = None
@@ -804,6 +804,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             self.setCurrentVerseKey( newVerseKey )
             #if newBBB == 'PSA': halt
             if newBBB != oldBBB: self.numTotalVerses = calculateTotalVersesForBook( newBBB, self.getNumChapters, self.getNumVerses )
+            if C != oldC and self.saveChangesAutomatically and self.modified(): self.doSave( 'Auto from chapter change' )
 
         if originator is self: # We initiated this by clicking in our own edit window
             # Don't do everything below because that makes the window contents move around annoyingly when clicked
@@ -1186,7 +1187,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             has a bit more housekeeping to do
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doSave()") )
+            print( exp("USFMEditWindow.doSave( {} )").format( event ) )
 
         if self.modified():
             if self.folderPath and self.filename:

@@ -545,6 +545,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HTMLWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
             assert parentWindow
+
         self.parentWindow, self.initialFilename = parentWindow, filename
         tk.Toplevel.__init__( self, self.parentWindow )
         ChildBox.__init__( self, self.parentWindow )
@@ -610,7 +611,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.createMenuBar()") )
+
         try: kBD = self.parentWindow.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentApp.keyBindingDict
 
@@ -713,7 +716,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("createStatusBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.createStatusBar()") )
+
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
         Style().configure( 'StatusBar.TLabel', background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
@@ -737,11 +742,14 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.setStatus() # Clear it
     # end of HTMLWindow.createStatusBar
 
+
     def setStatus( self, newStatusText='' ):
         """
         Set (or clear) the status bar text.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("setStatus( {} )").format( repr(newStatusText) ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.setStatus( {} )").format( repr(newStatusText) ) )
+
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget['state'] = tk.NORMAL
@@ -754,6 +762,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             if self._showStatusBarVar.get(): self.statusTextLabel.update()
     # end of HTMLWindow.setStatus
 
+
     #def setWaitStatus( self, newStatusText ):
         #"""
         #Set the status bar text and change the cursor to the wait/hourglass cursor.
@@ -765,6 +774,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #self.update()
     ## end of HTMLWindow.setWaitStatus
 
+
     def setReadyStatus( self ):
         """
         Sets the status line to "Ready"
@@ -774,11 +784,12 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #self.config( cursor='' )
     # end of HTMLWindow.setReadyStatus
 
+
     def doToggleStatusBar( self ):
         """
         Display or hide the status bar.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doToggleStatusBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.doToggleStatusBar()") )
         if self._showStatusBarVar.get():
             self.createStatusBar()
         else:
@@ -791,7 +802,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.load( {} )").format( filepath ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.load( {} )").format( filepath ) )
+
         self.folderPath, self.filename = os.path.split( filepath )
         with open( filepath, 'rt' ) as HTMLFile:
             fileContents = HTMLFile.read()

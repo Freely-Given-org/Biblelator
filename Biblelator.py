@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-08' # by RJH
+LastModifiedDate = '2016-03-09' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -192,6 +192,7 @@ class Application( Frame ):
         self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
         self.myKeyboardBindingsList = []
         self.recentFiles = []
+        self.internalBibles = []
 
         # Read and apply the saved settings
         parseAndApplySettings( self )
@@ -1159,8 +1160,9 @@ class Application( Frame ):
         Returns the new SwordBibleResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("openSwordBibleResourceWindow()") )
+            print( exp("openSwordBibleResourceWindow( {}, {} )").format( moduleAbbreviation, windowGeometry ) )
             self.setDebugText( "openSwordBibleResourceWindow…" )
+
         if self.SwordInterface is None:
             self.SwordInterface = SwordInterface() # Load the Sword library
         swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
@@ -1385,6 +1387,7 @@ class Application( Frame ):
             showerror( self, APP_NAME, 'Could not open file ' + fileResult )
             return
         folderPath = os.path.split( fileResult )[0]
+        print( '\n\n\nFP doOpenFileTextEditWindow', repr(folderPath) )
         self.lastFileDir = folderPath
 
         self.openFileTextEditWindow( fileResult )
@@ -1476,6 +1479,7 @@ class Application( Frame ):
         if gnpn.result: # This is a dictionary
             projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
             newFolderPath = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME, projAbbrev )
+            print( '\n\n\nFP doStartNewProject', repr(folderPath) )
             if os.path.isdir( newFolderPath ):
                 showerror( self, _("New Project"), _("Sorry, we already have a {!r} project folder in {}") \
                                             .format( projAbbrev, os.path.join( self.homeFolderPath, DATA_FOLDER_NAME ) ) )
@@ -1528,6 +1532,7 @@ class Application( Frame ):
             showerror( self, APP_NAME, 'Could not open file ' + projectSettingsFilepath )
             return
         containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
+        print( '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
         if BibleOrgSysGlobals.debugFlag: assert settingsFilename == 'ProjectSettings.ini'
         self.openBiblelatorBibleEditWindow( containingFolderPath )
         self.addRecentFile( (containingFolderPath,containingFolderPath,'BiblelatorBibleEditWindow') )
@@ -2453,7 +2458,9 @@ class Application( Frame ):
         haveModifications = False
         for appWin in self.childWindows:
             if 'Editor' in appWin.genericWindowType and appWin.modified():
-                haveModifications = True; break
+                if appWin.saveChangesAutomatically: appWin.doSave( 'Auto from app close' )
+                if appWin.modified(): # still???
+                    haveModifications = True; break
         if haveModifications:
             showerror( self, _("Save files"), _("You need to save or close your work first.") )
         else:
@@ -2509,6 +2516,8 @@ def main( homeFolderPath, loggingFolderPath ):
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
+    #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
+
     if BibleOrgSysGlobals.debugFlag:
         print( exp("Platform is"), sys.platform ) # e.g., "win32"
         print( exp("OS name is"), os.name ) # e.g., "nt"
@@ -2538,6 +2547,7 @@ if __name__ == '__main__':
 
     # Configure basic set-up
     homeFolderPath = findHomeFolderPath()
+    if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )

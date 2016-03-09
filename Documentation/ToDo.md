@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-08 RJH
+Last updated: 2016-03-09 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,11 +12,11 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
+* Check if the program's already running
 * Editor loses text if change view mode after editing
 * Editor loses text if go back to pprevious chapter
 * Editor loses end of last verse in chapter -- fixed???
 * Can't undo USFM Bible edit once moved cursor
-* Get Ctrl+S working, also pop-up editor save window when quitting program
 * Resource windows display section heading before verse, edit window considers it part of previous verse
 
 BOS improvements for Biblelator

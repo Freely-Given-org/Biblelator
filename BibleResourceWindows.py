@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-08' # by RJH
+LastModifiedDate = '2016-03-09' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -46,7 +46,7 @@ import tkinter as tk
 # Biblelator imports
 from BiblelatorGlobals import START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
 from ChildWindows import ChildBox, ChildWindow
-from BiblelatorHelpers import findCurrentSection
+from BiblelatorHelpers import findCurrentSection, handleInternalBibles
 
 # BibleOrgSys imports
 #sys.path.append( '../BibleOrgSys/' )
@@ -226,7 +226,9 @@ class BibleBox( ChildBox ):
                     logging.critical( exp("BibleBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
-            if lastFlag and self.contextViewMode == 'ByVerse' and endMarkers:
+            try: cVM = self.contextViewMode
+            except AttributeError: cVM = self.parentWindow.contextViewMode
+            if lastFlag and cVM=='ByVerse' and endMarkers:
                 #print( "endMarkers", endMarkers )
                 self.textBox.insert( tk.END, " End context:", 'contextHeader' )
                 contextString, firstMarker = "", True
@@ -238,236 +240,236 @@ class BibleBox( ChildBox ):
     # end of BibleBox.displayAppendVerse
 
 
-    def BibleResourceBoxXXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
-        """
-        Add the requested verse to the end of self.textBox.
+    #def BibleResourceBoxXXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
+        #"""
+        #Add the requested verse to the end of self.textBox.
 
-        It connects the USFM markers as stylenames while it's doing it
-            and adds the CV marks at the same time for navigation.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( exp("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
-            #except UnicodeEncodeError: print( exp("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+        #It connects the USFM markers as stylenames while it's doing it
+            #and adds the CV marks at the same time for navigation.
+        #"""
+        ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            ##try: print( exp("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
+            ##except UnicodeEncodeError: print( exp("BibleResourceBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
-        BBB, C, V = verseKey.getBCV()
-        markName = 'C{}V{}'.format( C, V )
-        self.textBox.mark_set( markName, tk.INSERT )
-        self.textBox.mark_gravity( markName, tk.LEFT )
-        lastCharWasSpace = haveTextFlag = not firstFlag
+        #BBB, C, V = verseKey.getBCV()
+        #markName = 'C{}V{}'.format( C, V )
+        #self.textBox.mark_set( markName, tk.INSERT )
+        #self.textBox.mark_gravity( markName, tk.LEFT )
+        #lastCharWasSpace = haveTextFlag = not firstFlag
 
-        if verseContextData is None: verseDataList = context = None
-        else: verseDataList, context = verseContextData
+        #if verseContextData is None: verseDataList = context = None
+        #else: verseDataList, context = verseContextData
 
-        # Display the context preceding the first verse
-        if firstFlag and context:
-            #print( "context", context )
-            self.textBox.insert( tk.END, "Context:", 'contextHeader' )
-            contextString, firstMarker = "", True
-            for someMarker in context:
-                #print( "  someMarker", someMarker )
-                if someMarker != 'chapters':
-                    contextString += (' ' if firstMarker else ', ') + someMarker
-                    firstMarker = False
-            self.textBox.insert( tk.END, contextString, 'context' )
-            haveTextFlag = True
+        ## Display the context preceding the first verse
+        #if firstFlag and context:
+            ##print( "context", context )
+            #self.textBox.insert( tk.END, "Context:", 'contextHeader' )
+            #contextString, firstMarker = "", True
+            #for someMarker in context:
+                ##print( "  someMarker", someMarker )
+                #if someMarker != 'chapters':
+                    #contextString += (' ' if firstMarker else ', ') + someMarker
+                    #firstMarker = False
+            #self.textBox.insert( tk.END, contextString, 'context' )
+            #haveTextFlag = True
 
-        if verseDataList is None:
-            if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
-            #self.textBox.insert( tk.END, '--' )
-        elif self.viewMode == DEFAULT:
-            # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
-            endMarkers = []
-            for entry in verseDataList:
-                if isinstance( entry, tuple ):
-                    marker, cleanText = entry[0], entry[3]
-                else: marker, cleanText = entry.getMarker(), entry.getCleanText()
-                #print( "  ", haveTextFlag, marker, repr(cleanText) )
-                if BibleOrgSysGlobals.debugFlag: assert marker
-
-                if marker.startswith( '¬' ):
-                    if marker != '¬v': endMarkers.append( marker )  # Don't want end-verse markers
-                else: endMarkers = [] # Reset when we have normal markers
-
-                if marker.startswith( '¬' ): pass # Ignore end markers for now
-                elif marker in ('chapters',): pass # Ignore added markers for now
-                elif marker == 'id':
-                    self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('ide','rem',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'c': # Don't want to display this (original) c marker
-                    #if not firstFlag: haveC = cleanText
-                    #else: print( "   Ignore C={}".format( cleanText ) )
-                    pass
-                elif marker == 'c#': # Might want to display this (added) c marker
-                    if cleanText != verseKey.getBBB():
-                        if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
-                        self.textBox.insert( tk.END, cleanText, 'c#' )
-                        lastCharWasSpace = False
-                elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('s1','s2','s3','s4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'r':
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('p','ip',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'p#' and self.boxType=='DBPBibleResourceBox':
-                    pass # Just ignore these for now
-                elif marker in ('q1','q2','q3','q4',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'm': pass
-                elif marker == 'v':
-                    if haveTextFlag:
-                        self.textBox.insert( tk.END, ' ', 'v-' )
-                    self.textBox.insert( tk.END, cleanText, marker )
-                    self.textBox.insert( tk.END, ' ', 'v+' )
-                    lastCharWasSpace = haveTextFlag = True
-                elif marker in ('v~','p~'):
-                    self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
-                    haveTextFlag = True
-                else:
-                    logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
-            if self.contextViewMode == 'ByVerse' and endMarkers:
-                print( "endMarkers", endMarkers )
-                self.textBox.insert( tk.END, " End context:", 'contextHeader' )
-                contextString, firstMarker = "", True
-                for someMarker in endMarkers:
-                    #print( "  someMarker", someMarker )
-                    contextString += (' ' if firstMarker else ', ') + someMarker
-                    firstMarker = False
-                self.textBox.insert( tk.END, contextString, 'context' )
-        else:
-            logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
-    # end of BibleResourceBox.displayAppendVerse
-
-
-    def EditWindowsXXXdisplayAppendVerse( self, firstFlag, verseKey, verseDataString, currentVerse=False ):
-        """
-        Add the requested verse to the end of self.textBox.
-
-        It connects the USFM markers as stylenames while it's doing it
-            and adds the CV marks at the same time for navigation.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey,
-                       #'None' if verseDataString is None else verseDataString.replace('\n','NL'), currentVerse )
-            #except UnicodeEncodeError: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
-
-        BBB, C, V = verseKey.getBCV()
-        markName = 'C{}V{}'.format( C, V )
-        self.textBox.mark_set( markName, tk.INSERT )
-        self.textBox.mark_gravity( markName, tk.LEFT )
-        lastCharWasSpace = haveTextFlag = not firstFlag
-
-        if verseDataString is None:
-            if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
-            #self.textBox.insert( tk.END, '--' )
-        elif self.viewMode == DEFAULT:
-            for line in verseDataString.split( '\n' ):
-                if line=='': continue
-                line += '\n'
-                if line[0]=='\\':
-                    marker = ''
-                    for char in line[1:]:
-                        if char!='¬' and not char.isalnum(): break
-                        marker += char
-                    cleanText = line[len(marker)+1:].lstrip()
-                else:
-                    marker, cleanText = None, line
-                if marker and marker[0]=='¬': pass # Ignore end markers for now
-                elif marker in ('chapters',): pass # Ignore added markers for now
-                else: self.textBox.insert( tk.END, line, marker )
-        elif self.viewMode == 'Formatted':
-            # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
-            for line in verseDataString.split( '\n' ):
-                if line=='': continue
-                line += '\n'
-                if line[0]=='\\':
-                    marker = ''
-                    for char in line[1:]:
-                        if char!='¬' and not char.isalnum(): break
-                        marker += char
-                    cleanText = line[len(marker)+1:].lstrip()
-                else:
-                    marker, cleanText = None, line
+        #if verseDataList is None:
+            #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            ##self.textBox.insert( tk.END, '--' )
+        #elif self.viewMode == DEFAULT:
+            ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
+            #endMarkers = []
+            #for entry in verseDataList:
                 #if isinstance( entry, tuple ):
                     #marker, cleanText = entry[0], entry[3]
                 #else: marker, cleanText = entry.getMarker(), entry.getCleanText()
-                #print( "  ", haveTextFlag, marker, repr(cleanText) )
-                if marker and marker[0]=='¬': pass # Ignore end markers for now
-                elif marker in ('chapters',): pass # Ignore added markers for now
-                elif marker == 'id':
-                    self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('ide','rem',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'c': # Don't want to display this (original) c marker
-                    #if not firstFlag: haveC = cleanText
-                    #else: print( "   Ignore C={}".format( cleanText ) )
-                    pass
-                elif marker == 'c#': # Might want to display this (added) c marker
-                    if cleanText != verseKey.getBBB():
-                        if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
-                        self.textBox.insert( tk.END, cleanText, 'c#' )
-                        lastCharWasSpace = False
-                elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('s1','s2','s3','s4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'r':
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('p','ip',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
-                    pass # Just ignore these for now
-                elif marker in ('q1','q2','q3','q4',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'v':
-                    if haveTextFlag:
-                        self.textBox.insert( tk.END, ' ', 'v-' )
-                    self.textBox.insert( tk.END, cleanText, marker )
-                    self.textBox.insert( tk.END, ' ', 'v+' )
-                    lastCharWasSpace = haveTextFlag = True
-                elif marker in ('v~','p~'):
-                    self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
-                    haveTextFlag = True
-                elif marker == 'm': pass
-                #elif marker == 'b':
-                    #self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
-                else:
-                    logging.critical( exp("USFMEditWindow.displayAppendVerse: Unknown marker {!r} {} from {}").format( marker, cleanText, verseDataString ) )
-        else:
-            logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
-    # end of USFMEditWindow.displayAppendVerse
+                ##print( "  ", haveTextFlag, marker, repr(cleanText) )
+                #if BibleOrgSysGlobals.debugFlag: assert marker
+
+                #if marker.startswith( '¬' ):
+                    #if marker != '¬v': endMarkers.append( marker )  # Don't want end-verse markers
+                #else: endMarkers = [] # Reset when we have normal markers
+
+                #if marker.startswith( '¬' ): pass # Ignore end markers for now
+                #elif marker in ('chapters',): pass # Ignore added markers for now
+                #elif marker == 'id':
+                    #self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('ide','rem',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'c': # Don't want to display this (original) c marker
+                    ##if not firstFlag: haveC = cleanText
+                    ##else: print( "   Ignore C={}".format( cleanText ) )
+                    #pass
+                #elif marker == 'c#': # Might want to display this (added) c marker
+                    #if cleanText != verseKey.getBBB():
+                        #if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
+                        #self.textBox.insert( tk.END, cleanText, 'c#' )
+                        #lastCharWasSpace = False
+                #elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('s1','s2','s3','s4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'r':
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('p','ip',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'p#' and self.boxType=='DBPBibleResourceBox':
+                    #pass # Just ignore these for now
+                #elif marker in ('q1','q2','q3','q4',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'm': pass
+                #elif marker == 'v':
+                    #if haveTextFlag:
+                        #self.textBox.insert( tk.END, ' ', 'v-' )
+                    #self.textBox.insert( tk.END, cleanText, marker )
+                    #self.textBox.insert( tk.END, ' ', 'v+' )
+                    #lastCharWasSpace = haveTextFlag = True
+                #elif marker in ('v~','p~'):
+                    #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
+                    #haveTextFlag = True
+                #else:
+                    #logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
+            #if self.contextViewMode == 'ByVerse' and endMarkers:
+                #print( "endMarkers", endMarkers )
+                #self.textBox.insert( tk.END, " End context:", 'contextHeader' )
+                #contextString, firstMarker = "", True
+                #for someMarker in endMarkers:
+                    ##print( "  someMarker", someMarker )
+                    #contextString += (' ' if firstMarker else ', ') + someMarker
+                    #firstMarker = False
+                #self.textBox.insert( tk.END, contextString, 'context' )
+        #else:
+            #logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+    ## end of BibleResourceBox.displayAppendVerse
+
+
+    #def EditWindowsXXXdisplayAppendVerse( self, firstFlag, verseKey, verseDataString, currentVerse=False ):
+        #"""
+        #Add the requested verse to the end of self.textBox.
+
+        #It connects the USFM markers as stylenames while it's doing it
+            #and adds the CV marks at the same time for navigation.
+        #"""
+        ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            ##try: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey,
+                       ##'None' if verseDataString is None else verseDataString.replace('\n','NL'), currentVerse )
+            ##except UnicodeEncodeError: print( exp("USFMEditWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+
+        #BBB, C, V = verseKey.getBCV()
+        #markName = 'C{}V{}'.format( C, V )
+        #self.textBox.mark_set( markName, tk.INSERT )
+        #self.textBox.mark_gravity( markName, tk.LEFT )
+        #lastCharWasSpace = haveTextFlag = not firstFlag
+
+        #if verseDataString is None:
+            #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            ##self.textBox.insert( tk.END, '--' )
+        #elif self.viewMode == DEFAULT:
+            #for line in verseDataString.split( '\n' ):
+                #if line=='': continue
+                #line += '\n'
+                #if line[0]=='\\':
+                    #marker = ''
+                    #for char in line[1:]:
+                        #if char!='¬' and not char.isalnum(): break
+                        #marker += char
+                    #cleanText = line[len(marker)+1:].lstrip()
+                #else:
+                    #marker, cleanText = None, line
+                #if marker and marker[0]=='¬': pass # Ignore end markers for now
+                #elif marker in ('chapters',): pass # Ignore added markers for now
+                #else: self.textBox.insert( tk.END, line, marker )
+        #elif self.viewMode == 'Formatted':
+            ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
+            #for line in verseDataString.split( '\n' ):
+                #if line=='': continue
+                #line += '\n'
+                #if line[0]=='\\':
+                    #marker = ''
+                    #for char in line[1:]:
+                        #if char!='¬' and not char.isalnum(): break
+                        #marker += char
+                    #cleanText = line[len(marker)+1:].lstrip()
+                #else:
+                    #marker, cleanText = None, line
+                ##if isinstance( entry, tuple ):
+                    ##marker, cleanText = entry[0], entry[3]
+                ##else: marker, cleanText = entry.getMarker(), entry.getCleanText()
+                ##print( "  ", haveTextFlag, marker, repr(cleanText) )
+                #if marker and marker[0]=='¬': pass # Ignore end markers for now
+                #elif marker in ('chapters',): pass # Ignore added markers for now
+                #elif marker == 'id':
+                    #self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('ide','rem',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'c': # Don't want to display this (original) c marker
+                    ##if not firstFlag: haveC = cleanText
+                    ##else: print( "   Ignore C={}".format( cleanText ) )
+                    #pass
+                #elif marker == 'c#': # Might want to display this (added) c marker
+                    #if cleanText != verseKey.getBBB():
+                        #if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
+                        #self.textBox.insert( tk.END, cleanText, 'c#' )
+                        #lastCharWasSpace = False
+                #elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('s1','s2','s3','s4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'r':
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('p','ip',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
+                    #pass # Just ignore these for now
+                #elif marker in ('q1','q2','q3','q4',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'v':
+                    #if haveTextFlag:
+                        #self.textBox.insert( tk.END, ' ', 'v-' )
+                    #self.textBox.insert( tk.END, cleanText, marker )
+                    #self.textBox.insert( tk.END, ' ', 'v+' )
+                    #lastCharWasSpace = haveTextFlag = True
+                #elif marker in ('v~','p~'):
+                    #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
+                    #haveTextFlag = True
+                #elif marker == 'm': pass
+                ##elif marker == 'b':
+                    ##self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
+                #else:
+                    #logging.critical( exp("USFMEditWindow.displayAppendVerse: Unknown marker {!r} {} from {}").format( marker, cleanText, verseDataString ) )
+        #else:
+            #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+    ## end of USFMEditWindow.displayAppendVerse
 # end of class BibleBox
 
 
@@ -634,8 +636,11 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         currentViewNumber = self._viewRadioVar.get()
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
+            print( exp("BibleResourceWindow.changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
             assert currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 )
+
+        if 'Editor' in self.genericWindowType and self.saveChangesAutomatically and self.modified():
+            self.doSave( 'Auto from change contextView' )
 
         previousContextViewMode = self.contextViewMode
         if 'Bible' in self.genericWindowType:
@@ -1425,7 +1430,8 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
             if isinstance( result, str ):
                 print( "Unknown Bible returned: {}".format( repr(result) ) )
                 self.internalBible = None
-            else: self.internalBible = result
+            else:
+                self.internalBible = handleInternalBibles( self.parentApp, result, self )
         if self.internalBible is not None: # Define which functions we use by default
             self.getNumVerses = self.internalBible.getNumVerses
             self.getNumChapters = self.internalBible.getNumChapters

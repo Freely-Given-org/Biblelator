@@ -408,6 +408,51 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
 
 
+def handleInternalBibles( self, internalBible, controllingWindow ):
+    """
+    Try to only have one copy of internal Bibles
+        even if it's open in multiple windows.
+
+    Note that Biblelator never directly changes InternalBible objects --
+        they are effectively 'read-only'.
+
+    Returns an internal Bible object.
+    """
+    if BibleOrgSysGlobals.debugFlag:
+        print( exp("handleInternalBibles( {} )").format( internalBible ) )
+        self.setDebugText( "handleInternalBibles" )
+
+    result = internalBible
+    #if internalBible is None:
+        #print( "  Got None" )
+    if internalBible is not None:
+        foundControllingWindowList = None
+        for iB,cWs in self.internalBibles:
+            # Some of these variables will be None but they'll still match
+            #and internalBible.sourceFilepath == iB.sourceFilepath \ # PTX Bible sets sourceFilepath but others don't!
+            if internalBible.name == iB.name \
+            and internalBible.sourceFolder == iB.sourceFolder \
+            and internalBible.sourceFilename == iB.sourceFilename \
+            and internalBible.encoding == iB.encoding: # Let's assume they're the same
+                #print( "  Got a match!" )
+                foundControllingWindowList, result = cWs, iB
+                break
+
+        if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
+        else: foundControllingWindowList.append( controllingWindow )
+
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( "Internal Bibles now:" )
+        for j,(iB,cWs) in enumerate( self.internalBibles ):
+            print( "  {}/ {} in {}".format( j+1, iB.getAName(), cWs ) )
+            print( "      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation ) )
+            print( "      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension ) )
+            print( "      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding ) )
+
+    return result
+# end of BiblelatorHelpers.handleInternalBibles
+
+
 def getChangeLogFilepath( loggingFolder, projectName ):
     """
     """

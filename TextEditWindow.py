@@ -397,15 +397,20 @@ class TextEditWindow( ChildWindow ):
             #print( exp("TextEditWindow.acceptAutocompleteSelection( {} )").format( includeTrailingSpace ) )
             assert self.autocompleteBox is not None
 
-        result = self.autocompleteBox.get( tk.ACTIVE )
-        #print( '  autocompleteBox result', result )
+        currentWord = self.autocompleteBox.get( tk.ACTIVE )
+        #print( '  autocompleteBox currentWord', currentWord )
         self.removeAutocompleteBox()
 
         # Autocomplete by inserting the rest of the selected word plus a space
         # NOTE: The user has to backspace over the space if they don't want it (e.g., to put a period)
         # NOTE: The box reappears with the current code if we don't append the space -- would need to add a flag
-        self.textBox.insert( tk.INSERT, result[len(self.existingAutocompleteWordText):] \
+        self.textBox.insert( tk.INSERT, currentWord[len(self.existingAutocompleteWordText):] \
                                         + (' ' if includeTrailingSpace else '') )
+
+        # Put this word at the beginning of the list so it comes up on top next time
+        firstLetter, remainder = currentWord[0], currentWord[1:]
+        self.autocompleteWords[firstLetter].remove( remainder )
+        self.autocompleteWords[firstLetter].insert( 0, remainder )
     # end of TextEditWindow.acceptAutocompleteSelection
 
 

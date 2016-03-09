@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-07' # by RJH
+LastModifiedDate = '2016-03-09' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
@@ -117,8 +117,8 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
                 editWindowObject.autocompleteWords[firstLetter].append( remainder )
                 for char in word:
                     if char not in editWindowObject.autocompleteWordChars:
-                        if BibleOrgSysGlobals.debugFlag: assert char not in ' \n\r'
-                        if char not in '.':
+                        if BibleOrgSysGlobals.debugFlag: assert char not in '\n\r'
+                        if char not in ' .':
                             editWindowObject.autocompleteWordChars += char
                             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                                 print( "    setAutocompleteWords added {!r} as new wordChar".format( char ) )
@@ -128,7 +128,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
             #if "'" not in word:
                 #print( "    setAutocompleteWords discarded {!r} as unwanted".format( word ) )
 
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule: # write wordlist
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # write wordlist
         print( "  setAutocompleteWords: Writing autocomplete words to file…" )
         sortedKeys = sorted( editWindowObject.autocompleteWords.keys() )
         with open( 'autocompleteWordList.txt', 'wt', encoding='utf-8' ) as wordFile:
@@ -344,6 +344,8 @@ def loadBibleAutocompleteWords( editWindowObject ):
 
     # Would be nice to load current book first, but we don't know it yet
     autocompleteWords = []
+    if BibleOrgSysGlobals.debugFlag:
+        autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
     autocompleteCounts = {}
     for word,count in sorted( BibleWordCountResults.items(), key=lambda duple: -duple[1] ):
         autocompleteWords.append( word ) # Append the most common words first
@@ -379,6 +381,8 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
 
     # Would be nice to load current book first, but we don't know it yet
     autocompleteWords = []
+    if BibleOrgSysGlobals.debugFlag:
+        autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
     try:
         # Sort the word-list for the book to put the most common words first
         #print( 'wordCountResults', BBB, discoveryResults )
