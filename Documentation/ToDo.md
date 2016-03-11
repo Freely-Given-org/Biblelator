@@ -12,7 +12,6 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
-* Check if the program's already running
 * Editor loses text if change view mode after editing
 * Editor loses text if go back to pprevious chapter
 * Editor loses end of last verse in chapter -- fixed???
@@ -32,12 +31,13 @@ BOS improvements for Biblelator
 * Investigate plug-ins
 
 Biblelator stuff
-* Send verse links to Paratext
 * Speed up initial Bible word counting for Bible autocomplete
+* Add multiple autocomplete words
+* Release version 0.3
+* Send verse links to Paratext
 * Don't allow two projects with the same name
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Add debug menu to edit windows to display settings/log
-* Release version 0.3
 * Get some different views working on the edit window
 * Synchronise with other Bible programs (esp. on Windows)
 * Display footnotes and xrefs in resources

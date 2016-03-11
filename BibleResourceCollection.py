@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-09' # by RJH
+LastModifiedDate = '2016-03-10' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.30'
@@ -107,7 +107,7 @@ class BibleResourceBox( Frame, BibleBox ):
         self._viewRadioVar, self._groupRadioVar = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         #self.contextViewMode = DEFAULT
-        self.viewMode = DEFAULT
+        self.formatViewMode = DEFAULT
         self.currentVerseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
 
         #if self.contextViewMode == DEFAULT:
@@ -260,7 +260,7 @@ class BibleResourceBox( Frame, BibleBox ):
         #if verseDataList is None:
             #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             ##self.textBox.insert( tk.END, '--' )
-        #elif self.viewMode == DEFAULT:
+        #elif self.formatViewMode == DEFAULT:
             ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             #endMarkers = []
             #for entry in verseDataList:
@@ -338,7 +338,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     #firstMarker = False
                 #self.textBox.insert( tk.END, contextString, 'context' )
         #else:
-            #logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+            #logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
     ## end of BibleResourceBox.displayAppendVerse
 
 
@@ -711,7 +711,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.vScrollbar.destroy()
         self.textBox.destroy()
 
-        self.viewVersesBefore, self.viewVersesAfter = 1, 2
+        self.viewVersesBefore, self.viewVersesAfter = 1, 1
 
         self.resourceBoxes = BibleResourceBoxes( self )
     # end of BibleResourceCollectionWindow.__init__

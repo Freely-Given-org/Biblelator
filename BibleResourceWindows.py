@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-09' # by RJH
+LastModifiedDate = '2016-03-10' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -83,6 +83,7 @@ def exp( messageString ):
 class BibleBox( ChildBox ):
     """
     A set of functions that work for any Bible frame or window that has a member: self.textBox
+        and uses verseKeys
     """
     def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False ):
         """
@@ -153,12 +154,12 @@ class BibleBox( ChildBox ):
                 elif BibleOrgSysGlobals.debugFlag: halt
                 #print( "  displayAppendVerse", haveTextFlag, marker, repr(cleanText) )
 
-                if self.viewMode == 'Unformatted':
+                if self.formatViewMode == 'Unformatted':
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
                     elif marker in ('chapters',): pass # Ignore added markers for now
                     else: self.textBox.insert( tk.END, entry, marker )
 
-                elif self.viewMode == DEFAULT:
+                elif self.formatViewMode == DEFAULT:
                     if marker.startswith( '¬' ):
                         if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
                     else: endMarkers = [] # Reset when we have normal markers
@@ -223,7 +224,7 @@ class BibleBox( ChildBox ):
                         else:
                             logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r}").format( marker, cleanText ) )
                 else:
-                    logging.critical( exp("BibleBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+                    logging.critical( exp("BibleBox.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
             try: cVM = self.contextViewMode
@@ -276,7 +277,7 @@ class BibleBox( ChildBox ):
         #if verseDataList is None:
             #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             ##self.textBox.insert( tk.END, '--' )
-        #elif self.viewMode == DEFAULT:
+        #elif self.formatViewMode == DEFAULT:
             ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             #endMarkers = []
             #for entry in verseDataList:
@@ -354,7 +355,7 @@ class BibleBox( ChildBox ):
                     #firstMarker = False
                 #self.textBox.insert( tk.END, contextString, 'context' )
         #else:
-            #logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+            #logging.critical( exp("BibleResourceBox.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
     ## end of BibleResourceBox.displayAppendVerse
 
 
@@ -379,7 +380,7 @@ class BibleBox( ChildBox ):
         #if verseDataString is None:
             #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             ##self.textBox.insert( tk.END, '--' )
-        #elif self.viewMode == DEFAULT:
+        #elif self.formatViewMode == DEFAULT:
             #for line in verseDataString.split( '\n' ):
                 #if line=='': continue
                 #line += '\n'
@@ -394,7 +395,7 @@ class BibleBox( ChildBox ):
                 #if marker and marker[0]=='¬': pass # Ignore end markers for now
                 #elif marker in ('chapters',): pass # Ignore added markers for now
                 #else: self.textBox.insert( tk.END, line, marker )
-        #elif self.viewMode == 'Formatted':
+        #elif self.formatViewMode == 'Formatted':
             ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             #for line in verseDataString.split( '\n' ):
                 #if line=='': continue
@@ -468,7 +469,7 @@ class BibleBox( ChildBox ):
                 #else:
                     #logging.critical( exp("USFMEditWindow.displayAppendVerse: Unknown marker {!r} {} from {}").format( marker, cleanText, verseDataString ) )
         #else:
-            #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+            #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
     ## end of USFMEditWindow.displayAppendVerse
 # end of class BibleBox
 
@@ -973,7 +974,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         if verseDataList is None:
             if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
-        elif self.viewMode == DEFAULT:
+        elif self.formatViewMode == DEFAULT:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             endMarkers = []
             for entry in verseDataList:
@@ -1050,7 +1051,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
                     firstMarker = False
                 self.textBox.insert( tk.END, contextString, 'context' )
         else:
-            logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+            logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
     # end of BibleResourceWindow.displayAppendVerse
 
 

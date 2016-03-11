@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-09' # by RJH
+LastModifiedDate = '2016-03-11' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -42,7 +42,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os, logging
+import sys, os, logging, subprocess
 import multiprocessing
 
 import tkinter as tk
@@ -175,6 +175,8 @@ class Application( Frame ):
         #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
         self.currentUserName = findUsername().title()
+        self.currentUserRole = 'Translator'
+        self.currentUserAssignments = 'ALL'
 
         # Set default folders
         self.lastFileDir = '.'
@@ -2519,14 +2521,50 @@ def main( homeFolderPath, loggingFolderPath ):
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
 
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("Platform is"), sys.platform ) # e.g., "win32"
-        print( exp("OS name is"), os.name ) # e.g., "nt"
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() )
+        print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
+        print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
+        if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
         print( exp("Running main…") )
+
+    numInstancesFound = 0
+    if sys.platform == 'linux':
+        myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+        programOutputBytes, programErrorOutputBytes = myProcess.communicate()
+        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #returnCode = myProcess.returncode
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
+        #print( 'processes', repr(programOutputString) )
+        for line in programOutputString.split( '\n' ):
+            if ProgName+'.py' in line:
+                print( 'Found in ps xa:', repr(line) )
+                numInstancesFound += 1
+        if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
+    elif sys.platform in ( 'win32', 'win64', ):
+        myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+        programOutputBytes, programErrorOutputBytes = myProcess.communicate()
+        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #returnCode = myProcess.returncode
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
+        #print( 'processes', repr(programOutputString) )
+        for line in programOutputString.split( '\n' ):
+            if ProgName+'.py' in line:
+                print( line )
+                numInstancesFound += 1
+        if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
+    else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
+    if numInstancesFound > 1:
+        import easygui
+        logging.critical( "Found {} instances of {} running.".format( numInstancesFound, ProgName ) )
+        result = easygui.ynbox('Seems {} might be already running: Continue?'.format( ProgName), ProgNameVersion, ('Yes', 'No'))
+        if not result:
+            logging.info( "Exiting as user requested." )
+            sys.exit()
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
     INIname = APP_NAME if BibleOrgSysGlobals.commandLineArguments.override is None else BibleOrgSysGlobals.commandLineArguments.override
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )

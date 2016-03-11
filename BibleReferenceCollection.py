@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-09' # by RJH
+LastModifiedDate = '2016-03-10' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.30'
@@ -102,7 +102,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         self._viewRadioVar, self._groupRadioVar = tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = DEFAULT
-        self.viewMode = DEFAULT
+        self.formatViewMode = DEFAULT
         self.currentVerseKey = SimpleVerseKey( 'UNK','1','1' ) # Unknown book
 
         if self.contextViewMode == DEFAULT:

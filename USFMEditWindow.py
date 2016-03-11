@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-09' # by RJH
+LastModifiedDate = '2016-03-10' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -110,7 +110,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         BibleResourceWindow.__init__( self, parentApp, 'USFMBibleEditWindow', None )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
         #BibleBox.__init__( self, parentApp )
-        self.viewMode = 'Unformatted'
+        self.formatViewMode = 'Unformatted'
 
         # Make our own custom textBox which allows callbacks
         self.textBox.destroy()
@@ -556,7 +556,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #if verseDataString is None:
             #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             ##self.textBox.insert( tk.END, '--' )
-        #elif self.viewMode == DEFAULT:
+        #elif self.formatViewMode == DEFAULT:
             #for line in verseDataString.split( '\n' ):
                 #if line=='': continue
                 #line += '\n'
@@ -571,7 +571,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 #if marker and marker[0]=='¬': pass # Ignore end markers for now
                 #elif marker in ('chapters',): pass # Ignore added markers for now
                 #else: self.textBox.insert( tk.END, line, marker )
-        #elif self.viewMode == 'Formatted':
+        #elif self.formatViewMode == 'Formatted':
             ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             #for line in verseDataString.split( '\n' ):
                 #if line=='': continue
@@ -643,7 +643,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 #else:
                     #logging.critical( exp("USFMEditWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataString ) )
         #else:
-            #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} view mode").format( repr(self.viewMode) ) )
+            #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
     ## end of USFMEditWindow.displayAppendVerse
 
 

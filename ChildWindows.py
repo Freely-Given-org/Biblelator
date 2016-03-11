@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-08' # by RJH
+LastModifiedDate = '2016-03-10' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -316,7 +316,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.createToolBar()
         self.createContextMenu()
 
-        self.viewMode = DEFAULT
+        self.formatViewMode = DEFAULT
         self.settings = None
 
         # Create a scroll bar to fill the right-hand side of the window
@@ -570,7 +570,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.createContextMenu()
         if self._showStatusBarVar.get(): self.createStatusBar()
 
-        self.viewMode = DEFAULT
+        self.formatViewMode = DEFAULT
         self.settings = None
 
         # Create a scroll bar to fill the right-hand side of the window
