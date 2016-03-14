@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-10' # by RJH
+LastModifiedDate = '2016-03-14' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -91,16 +91,34 @@ class BibleBox( ChildBox ):
 
         It connects the USFM markers as stylenames while it's doing it
             and adds the CV marks at the same time for navigation.
+
+        Usually called from updateShownBCV from the subclass.
         """
+        try: cVM = self.contextViewMode
+        except AttributeError: cVM = self.parentWindow.contextViewMode
+        fVM = self.formatViewMode
+
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("BibleBox.displayAppendVerse( {}, {}, …, {} )").format( firstFlag, verseKey, currentVerse ) )
+            #print( exp("BibleBox.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerse, fVM, cVM ) )
             ##try: print( exp("BibleBox.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerse ) )
             ##except UnicodeEncodeError: print( exp("BibleBox.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
         BBB, C, V = verseKey.getBCV()
-        markName = 'C{}V{}'.format( C, V )
-        self.textBox.mark_set( markName, tk.INSERT )
-        self.textBox.mark_gravity( markName, tk.LEFT )
+        C, V = int(C), int(V)
+        #C1 = C2 = int(C); V1 = V2 = int(V)
+        #if V1 > 0: V1 -= 1
+        #elif C1 > 0:
+            #C1 -= 1
+            #V1 = self.getNumVerses( BBB, C1 )
+        #if V2 < self.getNumVerses( BBB, C2 ): V2 += 1
+        #elif C2 < self.getNumChapters( BBB):
+            #C2 += 1
+            #V2 = 0
+        #previousMarkName = 'C{}V{}'.format( C1, V1 )
+        currentMarkName = 'C{}V{}'.format( C, V )
+        #nextMarkName = 'C{}V{}'.format( C2, V2 )
+        #print( "Marks", previousMarkName, currentMarkName, nextMarkName )
+
         lastCharWasSpace = haveTextFlag = not firstFlag
 
         if verseContextData is None:
@@ -119,6 +137,9 @@ class BibleBox( ChildBox ):
         # Display the context preceding the first verse
         if firstFlag and context:
             #print( "context", context )
+            #print( "  Setting context mark to {}".format( previousMarkName ) )
+            #self.textBox.mark_set( previousMarkName, tk.INSERT )
+            #self.textBox.mark_gravity( previousMarkName, tk.LEFT )
             self.textBox.insert( tk.END, "Context:", 'contextHeader' )
             contextString, firstMarker = "", True
             for someMarker in context:
@@ -129,11 +150,16 @@ class BibleBox( ChildBox ):
             self.textBox.insert( tk.END, contextString, 'context' )
             haveTextFlag = True
 
+        #print( "  Setting mark to {}".format( currentMarkName ) )
+        self.textBox.mark_set( currentMarkName, tk.INSERT )
+        self.textBox.mark_gravity( currentMarkName, tk.LEFT )
+
         if verseDataList is None:
             if C!='0': print( "  ", exp("BibleBox.displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
         else:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
+            #hadVerseText = False
             endMarkers = []
             for entry in verseDataList:
                 if isinstance( entry, InternalBibleEntry ):
@@ -157,7 +183,14 @@ class BibleBox( ChildBox ):
                 if self.formatViewMode == 'Unformatted':
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
                     elif marker in ('chapters',): pass # Ignore added markers for now
-                    else: self.textBox.insert( tk.END, entry, marker )
+                    else:
+                        #if hadVerseText and marker in ( 's', 's1', 's2', 's3' ):
+                            #print( "  Setting s mark to {}".format( nextMarkName ) )
+                            #self.textBox.mark_set( nextMarkName, tk.INSERT )
+                            #self.textBox.mark_gravity( nextMarkName, tk.LEFT )
+                        #print( "  Inserting ({}): {!r}".format( marker, entry ) )
+                        self.textBox.insert( tk.END, entry, marker )
+                        #hadVerseText = True
 
                 elif self.formatViewMode == DEFAULT:
                     if marker.startswith( '¬' ):
@@ -239,6 +272,66 @@ class BibleBox( ChildBox ):
                     firstMarker = False
                 self.textBox.insert( tk.END, contextString, 'context' )
     # end of BibleBox.displayAppendVerse
+
+
+    def getBeforeAndAfterBibleData( self, newVerseKey ):
+        """
+        Returns the requested verse, the previous verse, and the next n verses.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("BibleBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            assert isinstance( newVerseKey, SimpleVerseKey )
+
+        BBB, C, V = newVerseKey.getBCV()
+        intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+
+        prevBBB, prevIntC, prevIntV = BBB, intC, intV
+        previousVersesData = []
+        for n in range( -self.parentApp.viewVersesBefore, 0 ):
+            failed = False
+            #print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
+            if prevIntV > 0: prevIntV -= 1
+            elif prevIntC > 0:
+                prevIntC -= 1
+                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                except KeyError:
+                    if prevIntC != 0: # we can expect an error for chapter zero
+                        logging.critical( exp("BibleBox.getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                    failed = True
+                #if not failed:
+                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+            else:
+                prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                if prevBBB is None: failed = True
+                else:
+                    prevIntC = self.getNumChapters( prevBBB )
+                    prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+            if not failed and prevIntV is not None:
+                #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
+                assert prevBBB and isinstance(prevBBB, str)
+                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
+                previousVerseData = self.getCachedVerseData( previousVerseKey )
+                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
+
+        # Determine the next valid verse numbers
+        nextBBB, nextIntC, nextIntV = BBB, intC, intV
+        nextVersesData = []
+        for n in range( 0, self.parentApp.viewVersesAfter ):
+            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
+            except KeyError: numVerses = None # for an invalid BBB
+            nextIntV += 1
+            if numVerses is None or nextIntV > numVerses:
+                nextIntV = 1
+                nextIntC += 1 # Need to check................................
+            nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
+            nextVerseData = self.getCachedVerseData( nextVerseKey )
+            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
+
+        verseData = self.getCachedVerseData( newVerseKey )
+
+        return verseData, previousVersesData, nextVersesData
+    # end of BibleBox.getBeforeAndAfterBibleData
 
 
     #def BibleResourceBoxXXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
@@ -938,181 +1031,181 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     # end of BibleResourceWindow.getCachedVerseData
 
 
-    def XXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
-        """
-        Add the requested verse to the end of self.textBox.
+    #def XXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False ):
+        #"""
+        #Add the requested verse to the end of self.textBox.
 
-        It connects the USFM markers as stylenames while it's doing it
-            and adds the CV marks at the same time for navigation.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #try: print( exp("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
-            #except UnicodeEncodeError: print( exp("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+        #It connects the USFM markers as stylenames while it's doing it
+            #and adds the CV marks at the same time for navigation.
+        #"""
+        ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            ##try: print( exp("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, verseContextData, currentVerse )
+            ##except UnicodeEncodeError: print( exp("BibleResourceWindow.displayAppendVerse"), firstFlag, verseKey, currentVerse )
 
-        BBB, C, V = verseKey.getBCV()
-        markName = 'C{}V{}'.format( C, V )
-        self.textBox.mark_set( markName, tk.INSERT )
-        self.textBox.mark_gravity( markName, tk.LEFT )
-        lastCharWasSpace = haveTextFlag = not firstFlag
+        #BBB, C, V = verseKey.getBCV()
+        #markName = 'C{}V{}'.format( C, V )
+        #self.textBox.mark_set( markName, tk.INSERT )
+        #self.textBox.mark_gravity( markName, tk.LEFT )
+        #lastCharWasSpace = haveTextFlag = not firstFlag
 
-        if verseContextData is None: verseDataList = context = None
-        else: verseDataList, context = verseContextData
+        #if verseContextData is None: verseDataList = context = None
+        #else: verseDataList, context = verseContextData
 
-        # Display the context preceding the first verse
-        if firstFlag and context:
-            #print( "context", context )
-            self.textBox.insert( tk.END, "Context:", 'contextHeader' )
-            contextString, firstMarker = "", True
-            for someMarker in context:
-                #print( "  someMarker", someMarker )
-                if someMarker != 'chapters':
-                    contextString += (' ' if firstMarker else ', ') + someMarker
-                    firstMarker = False
-            self.textBox.insert( tk.END, contextString, 'context' )
-            haveTextFlag = True
+        ## Display the context preceding the first verse
+        #if firstFlag and context:
+            ##print( "context", context )
+            #self.textBox.insert( tk.END, "Context:", 'contextHeader' )
+            #contextString, firstMarker = "", True
+            #for someMarker in context:
+                ##print( "  someMarker", someMarker )
+                #if someMarker != 'chapters':
+                    #contextString += (' ' if firstMarker else ', ') + someMarker
+                    #firstMarker = False
+            #self.textBox.insert( tk.END, contextString, 'context' )
+            #haveTextFlag = True
 
-        if verseDataList is None:
-            if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
-            #self.textBox.insert( tk.END, '--' )
-        elif self.formatViewMode == DEFAULT:
-            # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
-            endMarkers = []
-            for entry in verseDataList:
-                if isinstance( entry, tuple ):
-                    marker, cleanText = entry[0], entry[3]
-                else: marker, cleanText = entry.getMarker(), entry.getCleanText()
-                #print( "  ", haveTextFlag, marker, repr(cleanText) )
+        #if verseDataList is None:
+            #if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            ##self.textBox.insert( tk.END, '--' )
+        #elif self.formatViewMode == DEFAULT:
+            ## This needs fixing -- indents, etc. should be in stylesheet not hard-coded
+            #endMarkers = []
+            #for entry in verseDataList:
+                #if isinstance( entry, tuple ):
+                    #marker, cleanText = entry[0], entry[3]
+                #else: marker, cleanText = entry.getMarker(), entry.getCleanText()
+                ##print( "  ", haveTextFlag, marker, repr(cleanText) )
 
-                if marker.startswith( '¬' ):
-                    if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
-                else: endMarkers = [] # Reset when we have normal markers
+                #if marker.startswith( '¬' ):
+                    #if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
+                #else: endMarkers = [] # Reset when we have normal markers
 
-                if marker.startswith( '¬' ): pass # Ignore end markers for now
-                elif marker in ('chapters',): pass # Ignore added markers for now
-                elif marker == 'id':
-                    self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('ide','rem',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'c': # Don't want to display this (original) c marker
-                    #if not firstFlag: haveC = cleanText
-                    #else: print( "   Ignore C={}".format( cleanText ) )
-                    pass
-                elif marker == 'c#': # Might want to display this (added) c marker
-                    if cleanText != verseKey.getBBB():
-                        if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
-                        self.textBox.insert( tk.END, cleanText, 'c#' )
-                        lastCharWasSpace = False
-                elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('s1','s2','s3','s4',):
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker == 'r':
-                    self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
-                    haveTextFlag = True
-                elif marker in ('p','ip',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
-                    pass # Just ignore these for now
-                elif marker in ('q1','q2','q3','q4',):
-                    self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                    lastCharWasSpace = True
-                    if cleanText:
-                        self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
-                        lastCharWasSpace = False
-                    haveTextFlag = True
-                elif marker == 'm': pass
-                elif marker == 'v':
-                    if haveTextFlag:
-                        self.textBox.insert( tk.END, ' ', 'v-' )
-                    self.textBox.insert( tk.END, cleanText, marker )
-                    self.textBox.insert( tk.END, ' ', 'v+' )
-                    lastCharWasSpace = haveTextFlag = True
-                elif marker in ('v~','p~'):
-                    self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
-                    haveTextFlag = True
-                else:
-                    logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
-            if self.contextViewMode == 'ByVerse' and endMarkers:
-                #print( "endMarkers", endMarkers )
-                self.textBox.insert( tk.END, " End context:", 'contextHeader' )
-                contextString, firstMarker = "", True
-                for someMarker in endMarkers:
-                    #print( "  someMarker", someMarker )
-                    contextString += (' ' if firstMarker else ', ') + someMarker
-                    firstMarker = False
-                self.textBox.insert( tk.END, contextString, 'context' )
-        else:
-            logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
-    # end of BibleResourceWindow.displayAppendVerse
+                #if marker.startswith( '¬' ): pass # Ignore end markers for now
+                #elif marker in ('chapters',): pass # Ignore added markers for now
+                #elif marker == 'id':
+                    #self.textBox.insert( tk.END, ('\n\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('ide','rem',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'c': # Don't want to display this (original) c marker
+                    ##if not firstFlag: haveC = cleanText
+                    ##else: print( "   Ignore C={}".format( cleanText ) )
+                    #pass
+                #elif marker == 'c#': # Might want to display this (added) c marker
+                    #if cleanText != verseKey.getBBB():
+                        #if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
+                        #self.textBox.insert( tk.END, cleanText, 'c#' )
+                        #lastCharWasSpace = False
+                #elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('s1','s2','s3','s4',):
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker == 'r':
+                    #self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                    #haveTextFlag = True
+                #elif marker in ('p','ip',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
+                    #pass # Just ignore these for now
+                #elif marker in ('q1','q2','q3','q4',):
+                    #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                    #lastCharWasSpace = True
+                    #if cleanText:
+                        #self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                        #lastCharWasSpace = False
+                    #haveTextFlag = True
+                #elif marker == 'm': pass
+                #elif marker == 'v':
+                    #if haveTextFlag:
+                        #self.textBox.insert( tk.END, ' ', 'v-' )
+                    #self.textBox.insert( tk.END, cleanText, marker )
+                    #self.textBox.insert( tk.END, ' ', 'v+' )
+                    #lastCharWasSpace = haveTextFlag = True
+                #elif marker in ('v~','p~'):
+                    #self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
+                    #haveTextFlag = True
+                #else:
+                    #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown marker {} {} from {}").format( marker, cleanText, verseDataList ) )
+            #if self.contextViewMode == 'ByVerse' and endMarkers:
+                ##print( "endMarkers", endMarkers )
+                #self.textBox.insert( tk.END, " End context:", 'contextHeader' )
+                #contextString, firstMarker = "", True
+                #for someMarker in endMarkers:
+                    ##print( "  someMarker", someMarker )
+                    #contextString += (' ' if firstMarker else ', ') + someMarker
+                    #firstMarker = False
+                #self.textBox.insert( tk.END, contextString, 'context' )
+        #else:
+            #logging.critical( exp("BibleResourceWindow.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
+    ## end of BibleResourceWindow.displayAppendVerse
 
 
-    def getBeforeAndAfterBibleData( self, newVerseKey ):
-        """
-        Returns the requested verse, the previous verse, and the next n verses.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("BibleResourceWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
-            assert isinstance( newVerseKey, SimpleVerseKey )
+    #def getBeforeAndAfterBibleData( self, newVerseKey ):
+        #"""
+        #Returns the requested verse, the previous verse, and the next n verses.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( exp("BibleResourceWindow.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            #assert isinstance( newVerseKey, SimpleVerseKey )
 
-        BBB, C, V = newVerseKey.getBCV()
-        intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+        #BBB, C, V = newVerseKey.getBCV()
+        #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
 
-        prevBBB, prevIntC, prevIntV = BBB, intC, intV
-        previousVersesData = []
-        for n in range( -self.parentApp.viewVersesBefore, 0 ):
-            failed = False
-            #print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
-            if prevIntV > 0: prevIntV -= 1
-            elif prevIntC > 0:
-                prevIntC -= 1
-                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                except KeyError:
-                    if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
-                    failed = True
-                #if not failed:
-                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
-            else:
-                prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
-                if prevBBB is None: failed = True
-                else:
-                    prevIntC = self.getNumChapters( prevBBB )
-                    prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
-            if not failed and prevIntV is not None:
-                #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
-                assert prevBBB and isinstance(prevBBB, str)
-                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
-                previousVerseData = self.getCachedVerseData( previousVerseKey )
-                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
+        #prevBBB, prevIntC, prevIntV = BBB, intC, intV
+        #previousVersesData = []
+        #for n in range( -self.parentApp.viewVersesBefore, 0 ):
+            #failed = False
+            ##print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
+            #if prevIntV > 0: prevIntV -= 1
+            #elif prevIntC > 0:
+                #prevIntC -= 1
+                #try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                #except KeyError:
+                    #if prevIntC != 0: # we can expect an error for chapter zero
+                        #logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                    #failed = True
+                ##if not failed:
+                    ##if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+            #else:
+                #prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                #if prevBBB is None: failed = True
+                #else:
+                    #prevIntC = self.getNumChapters( prevBBB )
+                    #prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+            #if not failed and prevIntV is not None:
+                ##print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
+                #assert prevBBB and isinstance(prevBBB, str)
+                #previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
+                #previousVerseData = self.getCachedVerseData( previousVerseKey )
+                #if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
 
-        # Determine the next valid verse numbers
-        nextBBB, nextIntC, nextIntV = BBB, intC, intV
-        nextVersesData = []
-        for n in range( 0, self.parentApp.viewVersesAfter ):
-            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
-            except KeyError: numVerses = None # for an invalid BBB
-            nextIntV += 1
-            if numVerses is None or nextIntV > numVerses:
-                nextIntV = 1
-                nextIntC += 1 # Need to check................................
-            nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
-            nextVerseData = self.getCachedVerseData( nextVerseKey )
-            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
+        ## Determine the next valid verse numbers
+        #nextBBB, nextIntC, nextIntV = BBB, intC, intV
+        #nextVersesData = []
+        #for n in range( 0, self.parentApp.viewVersesAfter ):
+            #try: numVerses = self.getNumVerses( nextBBB, nextIntC )
+            #except KeyError: numVerses = None # for an invalid BBB
+            #nextIntV += 1
+            #if numVerses is None or nextIntV > numVerses:
+                #nextIntV = 1
+                #nextIntC += 1 # Need to check................................
+            #nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
+            #nextVerseData = self.getCachedVerseData( nextVerseKey )
+            #if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
 
-        verseData = self.getCachedVerseData( newVerseKey )
+        #verseData = self.getCachedVerseData( newVerseKey )
 
-        return verseData, previousVersesData, nextVersesData
-    # end of BibleResourceWindow.getBeforeAndAfterBibleData
+        #return verseData, previousVersesData, nextVersesData
+    ## end of BibleResourceWindow.getBeforeAndAfterBibleData
 
 
     def setCurrentVerseKey( self, newVerseKey ):
@@ -1239,50 +1332,53 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     # end of BibleResourceWindow.updateShownBCV
 
 
-    def setAllText( self, newBibleText ): #, markAsUnmodified=True ):
-        """
-        Sets the textBox (assumed to be enabled) to the given Bible text.
+    #def setAllText( self, newBibleText ): #, markAsUnmodified=True ):
+        #"""
+        #Sets the textBox (assumed to be enabled) to the given Bible text.
 
-        Inserts BCV marks as it does it.
+        #Inserts BCV marks as it does it.
 
-        Doesn't position the cursor as it assumes a follow-up call will navigate to the current verse.
+        #Doesn't position the cursor as it assumes a follow-up call will navigate to the current verse.
 
-        caller: call self.update() first if just packed, else the
-        initial position may be at line 2, not line 1 (2.1; Tk bug?)
-        """
-        self.textBox.delete( START, tk.END ) # clear any existing text
-        self.textBox.mark_set( 'C0V0', START )
-        C = V = '0'
-        for line in newBibleText.split( '\n' ):
-            #print( "line", repr(line) )
-            if not line: self.textBox.insert( tk.END, '\n' ); continue
-            marker, text = splitMarkerText( line )
-            #print( "m,t", repr(marker), repr(text) )
-            if marker == 'c':
-                C, V = text, '0' # Doesn't handle footnotes, etc.
-                markName = 'C{}V0'.format( C )
-                self.textBox.mark_set( markName, tk.INSERT )
-                self.textBox.mark_gravity( markName, tk.LEFT )
-            elif marker == 'v':
-                V = text.split()[0] # Doesn't handle footnotes, etc.
-                markName = 'C{}V{}'.format( C, V )
-                self.textBox.mark_set( markName, tk.INSERT )
-                self.textBox.mark_gravity( markName, tk.LEFT )
-            elif C == '0': # marker each line
-                markName = 'C0V{}'.format( V )
-                self.textBox.mark_set( markName, tk.INSERT )
-                self.textBox.mark_gravity( markName, tk.LEFT )
-                V = str( int(V) + 1 )
-            self.textBox.insert( tk.END, line+'\n', marker ) # This will ensure a \n at the end of the file
+        #caller: call self.update() first if just packed, else the
+        #initial position may be at line 2, not line 1 (2.1; Tk bug?)
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("BibleResourceWindow.setAllText( {!r} )").format( newBibleText ) )
 
-        # Not needed here hopefully
-        #self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
-        #self.textBox.see( tk.INSERT ) # scroll to top, insert is set
+        #self.textBox.delete( START, tk.END ) # clear any existing text
+        #self.textBox.mark_set( 'C0V0', START )
+        #C = V = '0'
+        #for line in newBibleText.split( '\n' ):
+            ##print( "line", repr(line) )
+            #if not line: self.textBox.insert( tk.END, '\n' ); continue
+            #marker, text = splitMarkerText( line )
+            ##print( "m,t", repr(marker), repr(text) )
+            #if marker == 'c':
+                #C, V = text, '0' # Doesn't handle footnotes, etc.
+                #markName = 'C{}V0'.format( C )
+                #self.textBox.mark_set( markName, tk.INSERT )
+                #self.textBox.mark_gravity( markName, tk.LEFT )
+            #elif marker == 'v':
+                #V = text.split()[0] # Doesn't handle footnotes, etc.
+                #markName = 'C{}V{}'.format( C, V )
+                #self.textBox.mark_set( markName, tk.INSERT )
+                #self.textBox.mark_gravity( markName, tk.LEFT )
+            #elif C == '0': # marker each line
+                #markName = 'C0V{}'.format( V )
+                #self.textBox.mark_set( markName, tk.INSERT )
+                #self.textBox.mark_gravity( markName, tk.LEFT )
+                #V = str( int(V) + 1 )
+            #self.textBox.insert( tk.END, line+'\n', marker ) # This will ensure a \n at the end of the file
 
-        #if markAsUnmodified:
-        self.textBox.edit_reset() # clear undo/redo stks
-        self.textBox.edit_modified( False ) # clear modified flag
-    # end of BibleResourceWindow.setAllText
+        ## Not needed here hopefully
+        ##self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        ##self.textBox.see( tk.INSERT ) # scroll to top, insert is set
+
+        ##if markAsUnmodified:
+        #self.textBox.edit_reset() # clear undo/redo stks
+        #self.textBox.edit_modified( False ) # clear modified flag
+    ## end of BibleResourceWindow.setAllText
 # end of BibleResourceWindow class
 
 

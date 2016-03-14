@@ -27,14 +27,14 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-11' # by RJH
+LastModifiedDate = '2016-03-14' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os, logging
@@ -248,8 +248,25 @@ def countBookWords( BBB, folder, filename ):
                 textLine = textLine.replace( iMarker+' ',' ' ).replace( iMarker+'*',' ' )
                 if not '\\' in textLine: break
             #print( "  NOW", marker, textLine )
-        for word in textLine.replace('—',' ').replace('–',' ').split(): # Treat em-dash and en-dash as word break characters
+        words = textLine.replace('—','— ').replace('–','– ').split() # Treat em-dash and en-dash as word break characters
+
+        # Now look for (and count) single and possibly double and triple word sequences
+        for wx,word in enumerate( words ):
+            if not word: continue
             if len(word) > 2: wordCounts[word] += 1
+            if word[-1] not in '—.–':
+                if wx < len(words)-1:
+                    doubleWord = ( word+' '+words[wx+1] )
+                    #print( 'doubleWord', repr(doubleWord) )
+                    wordCounts[doubleWord] += 1
+                    if wx < len(words)-2:
+                        tripleWord = ( doubleWord+' '+words[wx+2] )
+                        #print( 'tripleWord', repr(tripleWord) )
+                        wordCounts[tripleWord] += 1
+                        if wx < len(words)-3:
+                            quadWord = ( tripleWord+' '+words[wx+3] )
+                            #print( 'quadWord', repr(quadWord) )
+                            wordCounts[quadWord] += 1
     # end of countWords
 
     # main code for countBookWords
@@ -363,12 +380,12 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         if BBB2 == BBB: foundFilename = filename; break
 
     wordCountResults = countBookWords( BBB, editWindowObject.internalBible.sourceFolder, foundFilename )
-    #print( 'wordCountResults', wordCountResults )
+    print( 'wordCountResults', len(wordCountResults) )
 
     # Would be nice to load current book first, but we don't know it yet
     autocompleteWords = []
-    if BibleOrgSysGlobals.debugFlag:
-        autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
+    #if BibleOrgSysGlobals.debugFlag:
+        #autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
     try:
         # Sort the word-list for the book to put the most common words first
         #print( 'wordCountResults', BBB, discoveryResults )
@@ -379,11 +396,13 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
                                 key=lambda duple: -duple[1] ):
             if len(word) >= editWindowObject.autocompleteMinLength \
             and word not in autocompleteWords: # just in case we had some (common) words in there already
-                autocompleteWords.append( word )
+                if ' ' not in word or count > 4:
+                    autocompleteWords.append( word )
+                #else: print( 'loadBibleBookAutocompleteWords discarding', repr(word) )
     except KeyError:
         print( "Why did {} have no words???".format( BBB ) )
         #pass # Nothing for this book
-    #print( 'acW', autocompleteWords )
+    print( 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
 # end of AutocompleteFunctions.loadBibleBookAutocompleteWords
 
@@ -446,12 +465,17 @@ def loadBibleAutocompleteWords( editWindowObject ):
 
     # Now make our list sorted with most common words first
     autocompleteWords = []
-    if BibleOrgSysGlobals.debugFlag: # add some multi-word entries just for testing
-        autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
+    #if BibleOrgSysGlobals.debugFlag: # add some multi-word entries just for testing
+        #autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
     for word,count in sorted( autocompleteCounts.items(), key=lambda duple: -duple[1] ):
-        autocompleteWords.append( word ) # Append the most common words first
+        if ' ' not in word or count > 8:
+            autocompleteWords.append( word )
+        #else:
+            #print( 'loadBibleAutocompleteWords discarding', repr(word) )
+            #if ' ' not in word: halt
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'acW', autocompleteWords )
 
+    print( 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
     print( "loadBibleAutocompleteWords took", time.time()-startTime )
 # end of AutocompleteFunctions.loadBibleAutocompleteWords

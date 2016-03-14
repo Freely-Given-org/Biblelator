@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-10' # by RJH
+LastModifiedDate = '2016-03-14' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -168,7 +168,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                                     self.groupCode, self.projectName,
                                     '' if self.currentVerseKey is None else referenceBit,
                                     self.editMode, self.contextViewMode ) )
-        Style().configure( 'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
+        # Can't change the style coz that affects ALL windows
+        #Style().configure( 'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
         self.refreshTitleContinue() # handle Autosave
     # end if USFMEditWindow.refreshTitle
 
@@ -727,10 +728,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             self.verseCache[verseKeyHash] = data.replace( '\n\n', '\n' ) # Weed out blank lines
         # end of add_cascade
 
+        # Main code for cacheBook
         C = V = '0'
+        startedEarly = False
         currentEntry = ''
         for line in self.bookText.split( '\n' ):
-            if line.startswith( '\\c ' ) or line.startswith( '\\C ' ):
+            if line and line[0] == '\\':
+                try: marker, text = line[1:].split( None, 1 )
+                except ValueError: marker, text = line[1:].split( None, 1 )[0], ''
+            else: marker, text = None, line
+            print( "cacheBook line", repr(marker), repr(text) )
+
+            if marker in ( 'c', 'C' ):
                 newC = ''
                 for char in line[3:]:
                     if char.isdigit(): newC += char
@@ -740,16 +749,22 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                         addCacheEntry( BBB, C, V, currentEntry )
                         currentEntry = ''
                     C, V = newC, '0'
-            elif line.startswith( '\\v ' ) or line.startswith( '\\V ' ):
+            elif marker in ( 's', 's1', 's2', 's3', 's4', ):
+                if currentEntry:
+                    addCacheEntry( BBB, C, V, currentEntry )
+                    currentEntry = ''
+                    startedEarly = True
+            elif marker in ( 'v', 'V' ):
                 newV = ''
                 for char in line[3:]:
                     if char.isdigit(): newV += char
                     else: break
                 if newV:
-                    if currentEntry:
+                    if currentEntry and not startedEarly:
                         addCacheEntry( BBB, C, V, currentEntry )
                         currentEntry = ''
                     V = newV
+                    startedEarly = False
             elif C=='0' and line.startswith( '\\' ):
                 if currentEntry:
                     addCacheEntry( BBB, C, V, currentEntry )

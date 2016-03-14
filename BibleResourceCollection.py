@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-10' # by RJH
+LastModifiedDate = '2016-03-14' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.30'
@@ -342,64 +342,64 @@ class BibleResourceBox( Frame, BibleBox ):
     ## end of BibleResourceBox.displayAppendVerse
 
 
-    def getBeforeAndAfterBibleData( self, newVerseKey ):
-        """
-        Returns the requested verse, the previous verse, and the next n verses.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("BibleResourceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
-            assert isinstance( newVerseKey, SimpleVerseKey )
+    #def getBeforeAndAfterBibleData( self, newVerseKey ):
+        #"""
+        #Returns the requested verse, the previous verse, and the next n verses.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( exp("BibleResourceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            #assert isinstance( newVerseKey, SimpleVerseKey )
 
-        BBB, C, V = newVerseKey.getBCV()
-        intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+        #BBB, C, V = newVerseKey.getBCV()
+        #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
 
-        prevBBB, prevIntC, prevIntV = BBB, intC, intV
-        previousVersesData = []
-        for n in range( -self.parentWindow.viewVersesBefore, 0 ):
-            failed = False
-            #print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
-            if prevIntV > 0: prevIntV -= 1
-            elif prevIntC > 0:
-                prevIntC -= 1
-                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                except KeyError:
-                    if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
-                    failed = True
-                #if not failed:
-                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
-            else:
-                prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
-                if prevBBB is None: failed = True
-                else:
-                    prevIntC = self.getNumChapters( prevBBB )
-                    prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
-            if not failed and prevIntV is not None:
-                #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
-                assert prevBBB and isinstance(prevBBB, str)
-                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
-                previousVerseData = self.getCachedVerseData( previousVerseKey )
-                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
+        #prevBBB, prevIntC, prevIntV = BBB, intC, intV
+        #previousVersesData = []
+        #for n in range( -self.parentWindow.viewVersesBefore, 0 ):
+            #failed = False
+            ##print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
+            #if prevIntV > 0: prevIntV -= 1
+            #elif prevIntC > 0:
+                #prevIntC -= 1
+                #try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                #except KeyError:
+                    #if prevIntC != 0: # we can expect an error for chapter zero
+                        #logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                    #failed = True
+                ##if not failed:
+                    ##if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+            #else:
+                #prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                #if prevBBB is None: failed = True
+                #else:
+                    #prevIntC = self.getNumChapters( prevBBB )
+                    #prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+            #if not failed and prevIntV is not None:
+                ##print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
+                #assert prevBBB and isinstance(prevBBB, str)
+                #previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
+                #previousVerseData = self.getCachedVerseData( previousVerseKey )
+                #if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
 
-        # Determine the next valid verse numbers
-        nextBBB, nextIntC, nextIntV = BBB, intC, intV
-        nextVersesData = []
-        for n in range( 0, self.parentWindow.viewVersesAfter ):
-            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
-            except KeyError: numVerses = None # for an invalid BBB
-            nextIntV += 1
-            if numVerses is None or nextIntV > numVerses:
-                nextIntV = 1
-                nextIntC += 1 # Need to check................................
-            nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
-            nextVerseData = self.getCachedVerseData( nextVerseKey )
-            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
+        ## Determine the next valid verse numbers
+        #nextBBB, nextIntC, nextIntV = BBB, intC, intV
+        #nextVersesData = []
+        #for n in range( 0, self.parentWindow.viewVersesAfter ):
+            #try: numVerses = self.getNumVerses( nextBBB, nextIntC )
+            #except KeyError: numVerses = None # for an invalid BBB
+            #nextIntV += 1
+            #if numVerses is None or nextIntV > numVerses:
+                #nextIntV = 1
+                #nextIntC += 1 # Need to check................................
+            #nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
+            #nextVerseData = self.getCachedVerseData( nextVerseKey )
+            #if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
 
-        verseData = self.getCachedVerseData( newVerseKey )
+        #verseData = self.getCachedVerseData( newVerseKey )
 
-        return verseData, previousVersesData, nextVersesData
-    # end of BibleResourceBox.getBeforeAndAfterBibleData
+        #return verseData, previousVersesData, nextVersesData
+    ## end of BibleResourceBox.getBeforeAndAfterBibleData
 
 
     def setCurrentVerseKey( self, newVerseKey ):

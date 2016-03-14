@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-10' # by RJH
+LastModifiedDate = '2016-03-14' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -138,7 +138,8 @@ class ChildBox():
         Copy the selected text onto the clipboard.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doCopy()") )
+            print( exp("ChildBox.doCopy( {} )").format( event ) )
+
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
             showerror( self, APP_NAME, 'No text selected')
@@ -155,7 +156,8 @@ class ChildBox():
         Select all the text in the text box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doSelectAll()") )
+            print( exp("ChildBox.doSelectAll( {} )").format( event ) )
+
         self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
         self.textBox.see( tk.INSERT )                      # scroll to top
@@ -267,6 +269,9 @@ class ChildBox():
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildBox.setAllText( {!r} )").format( newText ) )
+
         self.textBox['state'] = tk.NORMAL
         self.textBox.delete( START, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
