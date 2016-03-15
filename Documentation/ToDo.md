@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-14 RJH
+Last updated: 2016-03-15 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,10 +12,12 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
-* Editor loses text if change view mode after editing
-* Editor loses text if go back to pprevious chapter
+* Editor loses text if change context view mode after editing
+* Editor loses text if go back to previous chapter
 * Editor loses end of last verse in chapter -- fixed???
 * Can't undo USFM Bible edit once moved cursor
+* Ctrl+V seems to paste double in text edit windows (paste from menu only does it once)
+* Can't close text window without saving file (or undoing everything) -- needs a pop-up window
 
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking
@@ -31,6 +33,8 @@ BOS improvements for Biblelator
 
 Biblelator stuff
 * Release version 0.3
+* Can't double-click to select a word
+* Paste doesn't replace the selection
 * Send BCV updates from HTML window
 * Send verse links to Paratext
 * Fix flashing SSF open window for Open / Paratext project
@@ -77,6 +81,7 @@ Biblelator stuff
 * Improve the about page(s)
 * Turn chapter/verse spin buttons 90 degrees
 * Learn how to install Biblelator on OS X
+* Create back-translation windows with special features
 * Allow more settings to be edited within the program (full settings editor)
 * Allow the short-cut keys to be edited within the program
 * Get full multiprocessing working

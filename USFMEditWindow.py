@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-14' # by RJH
+LastModifiedDate = '2016-03-15' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -122,8 +122,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
 
-        Style().configure( 'USFM.Vertical.TScrollbar', background='green' )
-        self.vScrollbar.config( command=self.textBox.yview, style='USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
+        Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='green' )
+        self.vScrollbar.config( command=self.textBox.yview, style=self.projectName+'USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
 
@@ -168,8 +168,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                                     self.groupCode, self.projectName,
                                     '' if self.currentVerseKey is None else referenceBit,
                                     self.editMode, self.contextViewMode ) )
-        # Can't change the style coz that affects ALL windows
-        #Style().configure( 'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
+        Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
         self.refreshTitleContinue() # handle Autosave
     # end if USFMEditWindow.refreshTitle
 
@@ -730,7 +729,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         # Main code for cacheBook
         C = V = '0'
-        startedEarly = False
+        startedVerseEarly = False
         currentEntry = ''
         for line in self.bookText.split( '\n' ):
             if line and line[0] == '\\':
@@ -753,18 +752,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if currentEntry:
                     addCacheEntry( BBB, C, V, currentEntry )
                     currentEntry = ''
-                    startedEarly = True
+                    startedVerseEarly = True
             elif marker in ( 'v', 'V' ):
                 newV = ''
                 for char in line[3:]:
                     if char.isdigit(): newV += char
                     else: break
                 if newV:
-                    if currentEntry and not startedEarly:
+                    if currentEntry and not startedVerseEarly:
                         addCacheEntry( BBB, C, V, currentEntry )
                         currentEntry = ''
                     V = newV
-                    startedEarly = False
+                    startedVerseEarly = False
             elif C=='0' and line.startswith( '\\' ):
                 if currentEntry:
                     addCacheEntry( BBB, C, V, currentEntry )
