@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-11' # by RJH
+LastModifiedDate = '2016-03-16' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -2456,11 +2456,19 @@ class Application( Frame ):
         """
         Save files first, and then end the application.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doCloseMe()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doCloseMe()") )
+
+        for appWin in self.childWindows:
+            if 'Editor' in appWin.genericWindowType and appWin.modified():
+                appWin.onCloseEditor()
+                #if appWin.saveChangesAutomatically: appWin.doSave( 'Auto from app close' )
+                #else: appWin.onCloseEditor()
+
+        # See if they saved/closed them all
         haveModifications = False
         for appWin in self.childWindows:
             if 'Editor' in appWin.genericWindowType and appWin.modified():
-                if appWin.saveChangesAutomatically: appWin.doSave( 'Auto from app close' )
                 if appWin.modified(): # still???
                     haveModifications = True; break
         if haveModifications:

@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-10' # by RJH
+LastModifiedDate = '2016-03-16' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.30'
@@ -531,7 +531,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
     # end of BibleReferenceCollectionWindow.__init__
 
 
-    def OnFrameConfigure(self, event):
+    def OnFrameConfigure( self, event ):
         '''Reset the scroll region to encompass the inner frame'''
         self.canvas.configure( scrollregion=self.canvas.bbox("all") )
 

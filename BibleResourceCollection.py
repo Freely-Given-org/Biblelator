@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-14' # by RJH
+LastModifiedDate = '2016-03-16' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.30'
@@ -1234,7 +1234,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleResourceCollectionWindow.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceCollectionWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -1250,7 +1251,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleResourceCollectionWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceCollectionWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion

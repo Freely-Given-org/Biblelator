@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-14' # by RJH
+LastModifiedDate = '2016-03-16' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -168,7 +168,7 @@ class ChildBox():
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doGotoLine()") )
+            print( exp("ChildBox.doGotoLine( {}, {} )").format( event, forceline ) )
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
         self.textBox.focus()
@@ -218,7 +218,7 @@ class ChildBox():
         character: translate to next multiple of 8 to match visual?
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doShowInfo()") )
+            print( exp("ChildBox.doShowInfo( {} )").format( event ) )
         text  = self.getAllText()
         numChars = len( text )
         numLines = len( text.split('\n') )
@@ -400,7 +400,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindow.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -416,7 +417,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -879,7 +881,8 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -895,7 +898,8 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion

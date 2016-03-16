@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-09' # by RJH
+LastModifiedDate = '2016-03-16' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -50,7 +50,7 @@ from tkinter.ttk import Button, Label, Entry
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT
-from BiblelatorDialogs import showerror, showinfo, YesNoDialog
+from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow #, HTMLWindow
 from AutocorrectFunctions import setAutocorrectEntries, setDefaultAutocorrectEntries
@@ -591,7 +591,7 @@ class TextEditWindow( ChildWindow ):
 
     def doUndo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doUndo()") )
+            print( exp("TextEditWindow.doUndo( {} )").format( event ) )
 
         try: self.textBox.edit_undo()
         except tk.TclError: showinfo( self, APP_NAME, 'Nothing to undo' )
@@ -601,7 +601,7 @@ class TextEditWindow( ChildWindow ):
 
     def doRedo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doRedo()") )
+            print( exp("TextEditWindow.doRedo( {} )").format( event ) )
 
         try: self.textBox.edit_redo()
         except tk.TclError: showinfo( self, APP_NAME, 'Nothing to redo' )
@@ -611,7 +611,7 @@ class TextEditWindow( ChildWindow ):
 
     def doDelete( self, event=None ):                         # delete selected text, no save
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doDelete()") )
+            print( exp("TextEditWindow.doDelete( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, 'No text selected')
@@ -624,7 +624,7 @@ class TextEditWindow( ChildWindow ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doCut()") )
+            print( exp("TextEditWindow.doCut( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, 'No text selected')
@@ -638,7 +638,7 @@ class TextEditWindow( ChildWindow ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doPaste()") )
+            print( exp("TextEditWindow.doPaste( {} )").format( event ) )
 
         try:
             text = self.selection_get( selection='CLIPBOARD')
@@ -942,10 +942,10 @@ class TextEditWindow( ChildWindow ):
         Called if the user requests a saveAs from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doSaveAs()") )
+            print( exp("TextEditWindow.doSaveAs( {} )").format( event ) )
 
         if self.modified():
-            saveAsFilepath = asksaveasfilename()
+            saveAsFilepath = asksaveasfilename( parent=self )
             #print( "saveAsFilepath", repr(saveAsFilepath) )
             if saveAsFilepath:
                 if self.setFilepath( saveAsFilepath ):
@@ -957,7 +957,7 @@ class TextEditWindow( ChildWindow ):
         Called if the user requests a save from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doSave()") )
+            print( exp("TextEditWindow.doSave( {} )").format( event ) )
 
         if self.modified():
             if self.folderPath and self.filename:
@@ -1006,6 +1006,7 @@ class TextEditWindow( ChildWindow ):
             # Check if we need a daily save
             if os.path.isfile( autosaveFilepath ) \
             and ( not os.path.isfile( autosaveFilepath2 ) \
+            or not self.filepath \
             or datetime.fromtimestamp( os.stat( self.filepath ).st_mtime ).date() != datetime.today().date() ):
                 print( "doAutosave: saving daily file", autosaveFilepath2 )
                 shutil.copyfile( autosaveFilepath, autosaveFilepath2 )
@@ -1069,7 +1070,7 @@ class TextEditWindow( ChildWindow ):
         Called if the user requests a close from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doCloseEditor()") )
+            print( exp("TextEditWindow.doCloseEditor( {} )").format( event ) )
 
         self.onCloseEditor()
     # end of TextEditWindow.closeEditor
@@ -1077,16 +1078,37 @@ class TextEditWindow( ChildWindow ):
     def onCloseEditor( self ):
         """
         Called if the window is about to be destroyed.
+
+        Determines if we want/need to save any changes.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.onCloseEditor()") )
 
         if self.modified():
-            if self.folderPath and self.filename:
+            saveWork = False
+            if self.saveChangesAutomatically and self.folderPath and self.filename:
+                #self.doSave( 'Auto from win close' )
+                #self.closeChildWindow()
+                saveWork = True
+            else:
+                #if self.folderPath and self.filename:
+                    #self.doSave()
+                    #self.closeChildWindow()
+                #else: # we need to ask where to save it
+                place = 'in {}'.format( self.filename) if self.folderPath and self.filename else ''
+                ocd = OkCancelDialog( self, _('Do you want to save your work{}?').format( place ), title=_('Save work?') )
+                #print( "ocdResult", repr(ocd.result) )
+                if ocd.result == True: # Yes was chosen
+                    saveWork = True
+                else:
+                    place = 'to {}'.format( self.filename) if self.folderPath and self.filename else ''
+                    ynd = YesNoDialog( self, _('Are you sure you want to lose your changes?').format( place ), title=_('Lose changes?') )
+                    #print( "yndResult", repr(ynd.result) )
+                    if ynd.result == True: # Yes was chosen
+                        self.closeChildWindow()
+                    #else: saveWork = True
+            if saveWork:
                 self.doSave()
-                self.closeChildWindow()
-            else: # we need to ask where to save it
-                self.doSaveAs()
                 if self.folderPath and self.filename: # assume we saved it
                     self.closeChildWindow()
         else: self.closeChildWindow()

@@ -17,7 +17,6 @@ Biblelator bugs
 * Editor loses end of last verse in chapter -- fixed???
 * Can't undo USFM Bible edit once moved cursor
 * Ctrl+V seems to paste double in text edit windows (paste from menu only does it once)
-* Can't close text window without saving file (or undoing everything) -- needs a pop-up window
 
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking
