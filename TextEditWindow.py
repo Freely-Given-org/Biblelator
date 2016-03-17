@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-16' # by RJH
+LastModifiedDate = '2016-03-17' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -991,10 +991,13 @@ class TextEditWindow( ChildWindow ):
             #print( exp("TextEditWindow.doAutosave()") )
 
         if self.modified():
+            print( "winfo_id", repr(self.winfo_id()) )
+            print( "winfo_name", repr(self.winfo_name()) )
+            print( "str win", repr(str(self)) )
             partialAutosaveFolderPath = self.folderPath if self.folderPath else self.parentApp.homeFolderPath
             # NOTE: Don't use a hidden folder coz user might not be able to find it
-            autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' )
-            if not os.path.exists( autosaveFolderPath ): os.mkdir( autosaveFolderPath )
+            autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' ) if APP_NAME in partialAutosaveFolderPath else os.path.join( partialAutosaveFolderPath, APP_NAME+'/', 'AutoSave/' )
+            if not os.path.exists( autosaveFolderPath ): os.makedirs( autosaveFolderPath )
             autosaveFolderPath2 = os.path.join( autosaveFolderPath, 'LastDay/' )
             if not os.path.exists( autosaveFolderPath2 ): os.mkdir( autosaveFolderPath2 )
 
@@ -1075,14 +1078,14 @@ class TextEditWindow( ChildWindow ):
         self.onCloseEditor()
     # end of TextEditWindow.closeEditor
 
-    def onCloseEditor( self ):
+    def onCloseEditor( self, terminate=True ):
         """
         Called if the window is about to be destroyed.
 
         Determines if we want/need to save any changes.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.onCloseEditor()") )
+            print( exp("TextEditWindow.onCloseEditor( {} )").format( terminate ) )
 
         if self.modified():
             saveWork = False
@@ -1105,13 +1108,18 @@ class TextEditWindow( ChildWindow ):
                     ynd = YesNoDialog( self, _('Are you sure you want to lose your changes?').format( place ), title=_('Lose changes?') )
                     #print( "yndResult", repr(ynd.result) )
                     if ynd.result == True: # Yes was chosen
-                        self.closeChildWindow()
+                        self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
+                        self.bookTextModified = False
                     #else: saveWork = True
             if saveWork:
                 self.doSave()
-                if self.folderPath and self.filename: # assume we saved it
+                if terminate and self.folderPath and self.filename: # assume we saved it
                     self.closeChildWindow()
-        else: self.closeChildWindow()
+                    return
+
+        if terminate and not self.modified():
+            print( "HEREEEEEEEEE" )
+            self.closeChildWindow()
     # end of TextEditWindow.onCloseEditor
 # end of TextEditWindow class
 

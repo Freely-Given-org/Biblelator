@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-16' # by RJH
+LastModifiedDate = '2016-03-17' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -146,7 +146,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.exportFolderPathname = None
 
-        self.saveChangesAutomatically = True # different from AutoSave (which is in different files)
+        self.saveChangesAutomatically = False # different from AutoSave (which is in different files)
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.__init__ finished.") )
@@ -513,7 +513,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and returning the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.getBookDataFromDisk( {} ) was {}").format( BBB, self.lastBBB ) )
+            print( exp("USFMEditWindow.getBookDataFromDisk( {} ) was {} for {}").format( BBB, self.lastBBB, self.projectName ) )
+
         if BBB != self.lastBBB:
             #self.bookText = None
             #self.bookTextModified = False
@@ -703,17 +704,21 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     ## end of USFMEditWindow.getBeforeAndAfterBibleData
 
 
-    def cacheBook( self, BBB ):
+    def cacheBook( self, BBB, clearFirst=True ):
         """
         Puts the book data from self.bookText into the self.verseCache dictionary
             accessible by verse key.
 
-        Doesn't clear the cache before starting,
-            so it appends duplicate entries.
+        Normally clears the cache before starting,
+            to prevent duplicate entries.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("USFMEditWindow.cacheBook( {} )").format( BBB ) )
+            print( exp("USFMEditWindow.cacheBook( {}, {} ) for {}").format( BBB, clearFirst, self.projectName ) )
             assert isinstance( BBB, str )
+
+        if clearFirst:
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  Clearing cache first!" )
+            self.verseCache = OrderedDict()
 
         def addCacheEntry( BBB, C, V, data ):
             """
@@ -722,8 +727,12 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             assert BBB and C and V and data
             verseKeyHash = SimpleVerseKey( BBB, C, V ).makeHash()
             if verseKeyHash in self.verseCache: # Oh, how come we already have this key???
-                logging.critical( "cacheBook: We have a duplicate {} -- appending {} to {}".format( verseKeyHash, repr(data), repr(self.verseCache[verseKeyHash]) ) )
-                data = self.verseCache[verseKeyHash] + '\n' + data
+                if data == self.verseCache[verseKeyHash]:
+                    logging.critical( "cacheBook: We have an identical duplicate {}: {!r}".format( verseKeyHash, data ) )
+                else:
+                    logging.critical( "cacheBook: We have a duplicate {} -- appending {!r} to {!r}" \
+                                    .format( verseKeyHash, data, self.verseCache[verseKeyHash] ) )
+                    data = self.verseCache[verseKeyHash] + '\n' + data
             self.verseCache[verseKeyHash] = data.replace( '\n\n', '\n' ) # Weed out blank lines
         # end of add_cascade
 
@@ -736,7 +745,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 try: marker, text = line[1:].split( None, 1 )
                 except ValueError: marker, text = line[1:].split( None, 1 )[0], ''
             else: marker, text = None, line
-            print( "cacheBook line", repr(marker), repr(text) )
+            #print( "cacheBook line", repr(marker), repr(text) )
 
             if marker in ( 'c', 'C' ):
                 newC = ''
@@ -830,7 +839,6 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             assert self.bookTextModified
             self.bookText = self.getEntireText()
             if newBBB == oldBBB: # We haven't changed books -- update our book cache
-                self.verseCache = OrderedDict()
                 self.cacheBook( newBBB )
 
             #editedText = self.getAllText()
@@ -1206,17 +1214,19 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if self.modified():
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
-                allBookText = self.getEntireText()
+                self.bookText = self.getEntireText()
                 with open( filepath, mode='wt' ) as theFile:
-                    theFile.write( allBookText )
+                    theFile.write( self.bookText )
                 self.rememberFileTimeAndSize()
-                self.internalBible.bookNeedsReloading[self.currentVerseKey.getBBB()] = True
+                BBB = self.currentVerseKey.getBBB()
+                self.internalBible.bookNeedsReloading[BBB] = True
                 self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
                 self.bookTextModified = False
                 #self.internalBible.unloadBooks() # coz they're now out of date
                 #self.internalBible.reloadBook( self.currentVerseKey.getBBB() ) # coz it's now out of date -- what? why?
+                self.cacheBook( BBB ) # Wasted if we're closing the window/program, but important if we're continuing to edit
                 self.refreshTitle()
-                logChangedFile( self.parentApp.currentUserName, self.parentApp.loggingFolderPath, self.projectName, self.currentVerseKey.getBBB(), len(allBookText) )
+                logChangedFile( self.parentApp.currentUserName, self.parentApp.loggingFolderPath, self.projectName, BBB, len(self.bookText) )
             else: self.doSaveAs()
     # end of USFMEditWindow.doSave
 

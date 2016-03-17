@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-14' # by RJH
+LastModifiedDate = '2016-03-17' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -257,7 +257,7 @@ class BibleBox( ChildBox ):
                         else:
                             logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r}").format( marker, cleanText ) )
                 else:
-                    logging.critical( exp("BibleBox.displayAppendVerse: Unknown {} format view mode").format( repr(self.formatViewMode) ) )
+                    logging.critical( exp("BibleBox.displayAppendVerse: Unknown {!r} format view mode").format( self.formatViewMode ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
             try: cVM = self.contextViewMode
@@ -729,8 +729,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         Called when  a Bible context view is changed from the menus/GUI.
         """
         currentViewNumber = self._viewRadioVar.get()
+
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("BibleResourceWindow.changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
+            print( exp("BibleResourceWindow.changeBibleContextView( {!r} ) from {!r}").format( currentViewNumber, self.contextViewMode ) )
             assert currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 )
 
         if 'Editor' in self.genericWindowType and self.saveChangesAutomatically and self.modified():
@@ -761,8 +762,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         previousGroupCode = self.groupCode
         newGroupCode = self._groupRadioVar.get()
+
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
+            print( exp("changeBibleGroupCode( {!r} ) from {!r}").format( newGroupCode, previousGroupCode ) )
             assert newGroupCode in BIBLE_GROUP_CODES
             assert 'Bible' in self.genericWindowType
 
@@ -782,7 +784,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleResourceWindow.doGotoPreviousBook()") )
+            print( exp("BibleResourceWindow.doGotoPreviousBook()").format( gotoEnd ) )
 
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
@@ -1256,7 +1258,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         # Safety-check in case they edited the settings file
         if 'DBP' in self.winType and self.contextViewMode in ('ByBook','ByChapter',):
-            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
+            print( exp("updateShownBCV: Safety-check converted {!r} contextViewMode for DBP").format( self.contextViewMode ) )
             self._viewRadioVar.set( 3 ) # ByVerse
             self.changeBibleContextView()
 
@@ -1325,7 +1327,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
         try: self.textBox.see( desiredMark )
-        except tk.TclError: print( exp("BibleResourceWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
+        except tk.TclError: print( exp("BibleResourceWindow.updateShownBCV couldn't find {!r}").format( desiredMark ) )
         self.lastCVMark = desiredMark
 
         self.refreshTitle()
@@ -1520,12 +1522,12 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
 
         try: self.UnknownBible = UnknownBible( self.modulePath )
         except FileNotFoundError:
-            logging.error( exp("InternalBibleResourceWindow.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
+            logging.error( exp("InternalBibleResourceWindow.__init__ Unable to find module path: {!r}").format( self.modulePath ) )
             self.UnknownBible = None
         if self.UnknownBible:
             result = self.UnknownBible.search( autoLoadAlways=True )
             if isinstance( result, str ):
-                print( "Unknown Bible returned: {}".format( repr(result) ) )
+                print( "Unknown Bible returned: {!r}".format( result ) )
                 self.internalBible = None
             else:
                 self.internalBible = handleInternalBibles( self.parentApp, result, self )

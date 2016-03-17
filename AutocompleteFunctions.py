@@ -23,11 +23,17 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+Autocomplete is the ability to pop-up a little window of suggested word completions
+    as the user is typing. The user can then accept a suggestion with ENTER, or
+    close the window with ESC, or just to continue typing.
+
+This module contains most of the helper functions for loading the autocomplete
+    words (which may be from a Bible or from a dictionary, etc.)
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-14' # by RJH
+LastModifiedDate = '2016-03-17' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
@@ -42,29 +48,11 @@ import multiprocessing
 import time
 from collections import defaultdict
 
-#from tkinter.simpledialog import askstring, askinteger
-#from tkinter.filedialog import asksaveasfilename
-#from tkinter.colorchooser import askcolor
-#from tkinter.ttk import Style, Frame
-
-# Biblelator imports
-#from BiblelatorGlobals import DEFAULT
-    ##APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM, BIBLE_GROUP_CODES
-##from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog, GetBibleBookRangeDialog
-#from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, mapReferenceVerseKey, mapParallelVerseKey
-#from TextBoxes import CustomText
-##from ChildWindows import ChildWindow, HTMLWindow
-#from BibleResourceWindows import BibleBox, BibleResourceWindow
-##from BibleReferenceCollection import BibleReferenceCollectionWindow
-#from TextEditWindow import TextEditWindow, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
-
 # BibleOrgSys imports
 if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from InternalBibleBook import INTERNAL_SFMS_TO_REMOVE
 from InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
-#from VerseReferences import SimpleVerseKey
-#from BibleWriter import setDefaultControlFolder
 from USFMMarkers import USFM_PRINTABLE_MARKERS
 
 
@@ -147,70 +135,23 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
         sortedKeys = sorted( editWindowObject.autocompleteWords.keys() )
         if debuggingThisModule: print( "  autocomplete first letters", len(editWindowObject.autocompleteWords), sortedKeys )
         grandtotal = 0
+        wordNumTotals = defaultdict( int )
         for firstLetter in sortedKeys:
             total = len(editWindowObject.autocompleteWords[firstLetter])
+            for wordRemainder in editWindowObject.autocompleteWords[firstLetter]:
+                wordNumTotals[wordRemainder.count(' ')] += 1
             if debuggingThisModule:
                 print( "    {!r} {:,}{}" \
                     .format( firstLetter, total, '' if total>19 else ' '+str(editWindowObject.autocompleteWords[firstLetter]) ) )
             grandtotal += total
         #if BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel > 1:
         print( "  autocomplete total words loaded = {:,}".format( grandtotal ) )
+        if debuggingThisModule:
+            for spaceCount in wordNumTotals:
+                print( "    {} words: {}".format( spaceCount+1, wordNumTotals[spaceCount] ) )
 
     editWindowObject.parentApp.setReadyStatus()
 # end of AutocompleteFunctions.setAutocompleteWords
-
-
-
-#def countBibleWords( BibleObject ):
-    #"""
-    #Runs a series of checks and count on each book of the Bible
-        #in order to try to determine what are the normal standards.
-    #"""
-    #if BibleOrgSysGlobals.verbosityLevel > 0: print( "InternalBible:countBibleWords()" )
-    #if BibleOrgSysGlobals.debugFlag and 'discoveryResults' in dir(BibleObject):
-        #logging.warning( exp("countBibleWords: We had done this already!") ) # We've already called this once
-        #halt
-
-    #wordCountResults = {}
-
-    ## Get our recommendations for added units -- only load this once per Bible
-    ##import pickle
-    ##folder = os.path.join( os.path.dirname(__file__), "DataFiles/", "ScrapedFiles/" ) # Relative to module, not cwd
-    ##filepath = os.path.join( folder, "AddedUnitData.pickle" )
-    ##if BibleOrgSysGlobals.verbosityLevel > 3: print( exp("Importing from {}…").format( filepath ) )
-    ##with open( filepath, 'rb' ) as pickleFile:
-    ##    typicalAddedUnits = pickle.load( pickleFile ) # The protocol version used is detected automatically, so we do not have to specify it
-
-    #if BibleOrgSysGlobals.verbosityLevel > 2: print( exp("Running countBibleWords on {}…").format( BibleObject.name ) )
-    ## TODO: Work out why multiprocessing is slower here!
-    #if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
-        #if BibleOrgSysGlobals.verbosityLevel > 1:
-            #print( exp("Prechecking {} books using {} CPUs…").format( len(BibleObject.books), BibleOrgSysGlobals.maxProcesses ) )
-            #print( "  NOTE: Outputs (including error and warning messages) from scanning various books may be interspersed." )
-        #with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
-            #results = pool.map( countBookWords, [BibleObject.books[BBB] for BBB in BibleObject.books if BBB not in AVOID_BOOKS] ) # have the pool do our loads
-            #assert len(results) <= len(BibleObject.books)
-            #j = 0
-            #for BBB in BibleObject.books:
-                #if BBB not in AVOID_BOOKS:
-                    #wordCountResults[BBB] = results[j] # Saves them in the correct order
-                    #j += 1
-    #else: # Just single threaded
-        #for BBB in BibleObject.books: # Do individual book prechecks
-            #if BBB not in AVOID_BOOKS:
-                #if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("countBookWords (single-threaded) for {}…").format( BBB ) )
-                #wordCountResults[BBB] = countBookWords( BibleObject.books[BBB] )
-
-    #summaryWordCountResults = {}
-    #for BBB in BibleObject.books: # Do individual book prechecks
-        #if BBB not in AVOID_BOOKS:
-            #if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("totalBookWords for {}…").format( BBB ) )
-            ##print( wordCountResults[BBB]['mainTextWordCounts'].keys() )
-            #for word,count in wordCountResults[BBB].items():
-                #if word in summaryWordCountResults: summaryWordCountResults[word] += count
-                #else: summaryWordCountResults[word] = count
-    #return summaryWordCountResults
-## end of InternalBible.countBibleWords
 
 
 
@@ -250,7 +191,7 @@ def countBookWords( BBB, folder, filename ):
             #print( "  NOW", marker, textLine )
         words = textLine.replace('—','— ').replace('–','– ').split() # Treat em-dash and en-dash as word break characters
 
-        # Now look for (and count) single and possibly double and triple word sequences
+        # Now look for (and count) single and some multiple word sequences
         for wx,word in enumerate( words ):
             if not word: continue
             if len(word) > 2: wordCounts[word] += 1
@@ -267,6 +208,10 @@ def countBookWords( BBB, folder, filename ):
                             quadWord = ( tripleWord+' '+words[wx+3] )
                             #print( 'quadWord', repr(quadWord) )
                             wordCounts[quadWord] += 1
+                            if wx < len(words)-4:
+                                quinWord = ( quadWord+' '+words[wx+3] )
+                                #print( 'quinWord', repr(quinWord) )
+                                wordCounts[quinWord] += 1
     # end of countWords
 
     # main code for countBookWords
@@ -371,7 +316,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
 
     editWindowObject.parentApp.setWaitStatus( "Loading Bible book words…" )
     BBB = editWindowObject.currentVerseKey.getBBB()
-    print( "  got BBB", repr(BBB) )
+    #print( "  got BBB", repr(BBB) )
     if BBB == 'UNK': return # UNKnown book -- no use here
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
@@ -380,7 +325,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         if BBB2 == BBB: foundFilename = filename; break
 
     wordCountResults = countBookWords( BBB, editWindowObject.internalBible.sourceFolder, foundFilename )
-    print( 'wordCountResults', len(wordCountResults) )
+    #print( 'wordCountResults', len(wordCountResults) )
 
     # Would be nice to load current book first, but we don't know it yet
     autocompleteWords = []
@@ -402,7 +347,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     except KeyError:
         print( "Why did {} have no words???".format( BBB ) )
         #pass # Nothing for this book
-    print( 'autocompleteWords', len(autocompleteWords) )
+    #print( 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
 # end of AutocompleteFunctions.loadBibleBookAutocompleteWords
 
@@ -468,7 +413,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     #if BibleOrgSysGlobals.debugFlag: # add some multi-word entries just for testing
         #autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
     for word,count in sorted( autocompleteCounts.items(), key=lambda duple: -duple[1] ):
-        if ' ' not in word or count > 8:
+        if ' ' not in word or count > 9:
             autocompleteWords.append( word )
         #else:
             #print( 'loadBibleAutocompleteWords discarding', repr(word) )
@@ -479,356 +424,6 @@ def loadBibleAutocompleteWords( editWindowObject ):
     setAutocompleteWords( editWindowObject, autocompleteWords )
     print( "loadBibleAutocompleteWords took", time.time()-startTime )
 # end of AutocompleteFunctions.loadBibleAutocompleteWords
-
-
-
-# Second attempt
-#def countBibleWords( BibleObject ):
-    #"""
-    #Runs a series of checks and count on each book of the Bible
-        #in order to try to determine what are the normal standards.
-    #"""
-    #if BibleOrgSysGlobals.verbosityLevel > 0: print( "InternalBible:countBibleWords()" )
-    #if BibleOrgSysGlobals.debugFlag and 'discoveryResults' in dir(BibleObject):
-        #logging.warning( exp("countBibleWords: We had done this already!") ) # We've already called this once
-        #halt
-
-    #wordCountResults = {}
-
-    ## Get our recommendations for added units -- only load this once per Bible
-    ##import pickle
-    ##folder = os.path.join( os.path.dirname(__file__), "DataFiles/", "ScrapedFiles/" ) # Relative to module, not cwd
-    ##filepath = os.path.join( folder, "AddedUnitData.pickle" )
-    ##if BibleOrgSysGlobals.verbosityLevel > 3: print( exp("Importing from {}…").format( filepath ) )
-    ##with open( filepath, 'rb' ) as pickleFile:
-    ##    typicalAddedUnits = pickle.load( pickleFile ) # The protocol version used is detected automatically, so we do not have to specify it
-
-    #if BibleOrgSysGlobals.verbosityLevel > 2: print( exp("Running countBibleWords on {}…").format( BibleObject.name ) )
-    ## TODO: Work out why multiprocessing is slower here!
-    #if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
-        #if BibleOrgSysGlobals.verbosityLevel > 1:
-            #print( exp("Prechecking {} books using {} CPUs…").format( len(BibleObject.books), BibleOrgSysGlobals.maxProcesses ) )
-            #print( "  NOTE: Outputs (including error and warning messages) from scanning various books may be interspersed." )
-        #with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
-            #results = pool.map( countBookWords, [BibleObject.books[BBB] for BBB in BibleObject.books if BBB not in AVOID_BOOKS] ) # have the pool do our loads
-            #assert len(results) <= len(BibleObject.books)
-            #j = 0
-            #for BBB in BibleObject.books:
-                #if BBB not in AVOID_BOOKS:
-                    #wordCountResults[BBB] = results[j] # Saves them in the correct order
-                    #j += 1
-    #else: # Just single threaded
-        #for BBB in BibleObject.books: # Do individual book prechecks
-            #if BBB not in AVOID_BOOKS:
-                #if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("countBookWords (single-threaded) for {}…").format( BBB ) )
-                #wordCountResults[BBB] = countBookWords( BibleObject.books[BBB] )
-
-    #summaryWordCountResults = {}
-    #for BBB in BibleObject.books: # Do individual book prechecks
-        #if BBB not in AVOID_BOOKS:
-            #if BibleOrgSysGlobals.verbosityLevel > 3: print( "  " + exp("totalBookWords for {}…").format( BBB ) )
-            ##print( wordCountResults[BBB]['mainTextWordCounts'].keys() )
-            #for word,count in wordCountResults[BBB].items():
-                #if word in summaryWordCountResults: summaryWordCountResults[word] += count
-                #else: summaryWordCountResults[word] = count
-    #return summaryWordCountResults
-## end of InternalBible.countBibleWords
-
-
-
-#def countBookWords( BibleBookObject ):
-    #"""
-    #Find all the words in the Bible book and their usage counts.
-
-    #Returns a dictionary containing the results for the book.
-    #"""
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "countBookWords( {} )…".format( BibleBookObject.BBB ) )
-    #if not BibleBookObject._processedFlag:
-        #print( "countBookWords: processing lines from 'countBookWords'" )
-        #BibleBookObject.processLines()
-    #if BibleOrgSysGlobals.debugFlag: assert BibleBookObject._processedLines
-
-    ## Initialise all our word counters
-    #bkDict = {}
-    #bkDict['wordCount'] = 0 #bkDict['uniqueWordCount'] = 0
-    #bkDict['allWordCounts'], bkDict['allCaseInsensitiveWordCounts'] = {}, {}
-    #bkDict['mainTextWordCounts'], bkDict['mainTextCaseInsensitiveWordCounts'] = {}, {}
-
-
-    #def countWords( marker, segment, location ):
-        #"""
-        #Breaks the segment into words and counts them.
-        #"""
-        ##def stripWordPunctuation( word ):
-            ##"""Removes leading and trailing punctuation from a word.
-                ##Returns the "clean" word."""
-            ##while word and word[0] in BibleOrgSysGlobals.LEADING_WORD_PUNCT_CHARS:
-                ##word = word[1:] # Remove leading punctuation
-            ##while word and word[-1] in BibleOrgSysGlobals.TRAILING_WORD_PUNCT_CHARS:
-                ##word = word[:-1] # Remove trailing punctuation
-            ##if  '<' in word or '>' in word or '"' in word: print( "InternalBibleBook.discover: Need to escape HTML chars here 3s42", BibleBookObject.BBB, C, V, repr(word) )
-            ##return word
-        ### end of stripWordPunctuation
-
-        ## countWords() main code
-        #words = segment.replace('—',' ').replace('–',' ').split() # Treat em-dash and en-dash as word break characters
-        #for j,rawWord in enumerate(words):
-            #if marker=='c' or marker=='v' and j==1 and rawWord.isdigit(): continue # Ignore the chapter and verse numbers (except ones like 6a)
-            #word = rawWord
-            #for internalMarker in INTERNAL_SFMS_TO_REMOVE: word = word.replace( internalMarker, '' )
-            #word = BibleOrgSysGlobals.stripWordPunctuation( word )
-            #if word and not word[0].isalnum():
-                ##print( word, BibleOrgSysGlobals.stripWordPunctuation( word ) )
-                #if len(word) > 1:
-                    #if 0 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                        #print( "countBookWords: {} {}:{} ".format( BibleBookObject.BBB, C, V ) \
-                                            #+ _("Have unexpected character starting word {!r}").format( word ) )
-                    #word = word[1:]
-            #if word: # There's still some characters remaining after all that stripping
-                #if BibleOrgSysGlobals.verbosityLevel > 3: # why???
-                    #for k,char in enumerate(word):
-                        #if not char.isalnum() and (k==0 or k==len(word)-1 or char not in BibleOrgSysGlobals.MEDIAL_WORD_PUNCT_CHARS):
-                            #if 0 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                                #print( "countBookWords: {} {}:{} ".format( BibleBookObject.BBB, C, V ) + _("Have unexpected {!r} in word {!r}").format( char, word ) )
-                #lcWord = word.lower()
-                #isAReferenceOrNumber = True
-                #for char in word:
-                    #if not char.isdigit() and char not in ':-,.': isAReferenceOrNumber = False; break
-                #if not isAReferenceOrNumber:
-                    #bkDict['wordCount'] += 1
-                    ##if word not in bkDict['allWordCounts']:
-                        ##bkDict['uniqueWordCount'] += 1
-                        ##bkDict['allWordCounts'][word] = 1
-                    ##else: bkDict['allWordCounts'][word] += 1
-                    #bkDict['allWordCounts'][word] = 1 if word not in bkDict['allWordCounts'] else bkDict['allWordCounts'][word] + 1
-                    #bkDict['allCaseInsensitiveWordCounts'][lcWord] = 1 if lcWord not in bkDict['allCaseInsensitiveWordCounts'] else bkDict['allCaseInsensitiveWordCounts'][lcWord] + 1
-                    #if location == "main":
-                        #bkDict['mainTextWordCounts'][word] = 1 if word not in bkDict['mainTextWordCounts'] else bkDict['mainTextWordCounts'][word] + 1
-                        #bkDict['mainTextCaseInsensitiveWordCounts'][lcWord] = 1 if lcWord not in bkDict['mainTextCaseInsensitiveWordCounts'] else bkDict['mainTextCaseInsensitiveWordCounts'][lcWord] + 1
-                ##else: print( "excluded reference or number", word )
-    ## end of countWords
-
-
-    ## countBookWords() main code
-    #C = V = '0'
-    #for entry in BibleBookObject._processedLines:
-        #marker = entry.getMarker()
-        #if '¬' in marker: continue # Just ignore end markers -- not needed here
-        #text, cleanText, extras = entry.getText(), entry.getCleanText(), entry.getExtras()
-
-        ## Keep track of where we are for more helpful error messages
-        #if marker=='c' and text:
-            #C, V = text.split()[0], '0'
-        #elif marker=='v' and text:
-            #V = text.split()[0]
-
-        #if text and marker in BOS_PRINTABLE_MARKERS: # process this main text
-            #countWords( marker, cleanText, "main" )
-        ##elif text: print( "Ignoring {} {}:{} {}={}".format( BibleBookObject.BBB, C, V, marker, repr(text) ) )
-
-        #if extras:
-            #for extraType, extraIndex, extraText, cleanExtraText in extras:
-                #if BibleOrgSysGlobals.debugFlag:
-                    #assert extraText # Shouldn't be blank
-                    ##assert extraText[0] != '\\' # Shouldn't start with backslash code
-                    #assert extraText[-1] != '\\' # Shouldn't end with backslash code
-                    ##print( extraType, extraIndex, len(text), "'"+extraText+"'", "'"+cleanExtraText+"'" )
-                    #assert extraIndex >= 0
-                    ##assert 0 <= extraIndex <= len(text)+3
-                    #assert extraType in BOS_EXTRA_TYPES
-                #countWords( extraType, cleanExtraText, "notes" )
-    ##print( 'wordCount', BibleBookObject.BBB, bkDict['wordCount'] )
-    ##print( 'uniqueWordCount', BibleBookObject.BBB, bkDict['uniqueWordCount'] )
-    #bkDict['uniqueWordCount'] = len( bkDict['allWordCounts'] )
-
-    #return bkDict['mainTextWordCounts']
-## end of InternalBibleBook.countBookWords
-
-
-#def loadBibleAutocompleteWords( editWindowObject ):
-    #"""
-    #Load all the existing words in a USFM or Paratext Bible Project
-        #to fill the autocomplete mechanism.
-
-    #This is rather slow because of course, the entire Bible has to be read and processed first.
-
-    #editWindowObject here is a USFM or ESFM edit window.
-
-    #NOTE: This list should theoretically be updated as the user enters new words!
-    #"""
-    #startTime = time.time()
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
-        #editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
-
-    #editWindowObject.parentApp.setWaitStatus( "Loading Bible words…" )
-    #BBB = editWindowObject.currentVerseKey.getBBB()
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(BBB) )
-    #editWindowObject.internalBible.loadBooks()
-    #BibleWordCountResults = countBibleWords( editWindowObject.internalBible )
-
-    ## Would be nice to load current book first, but we don't know it yet
-    #autocompleteWords = []
-    #if BibleOrgSysGlobals.debugFlag:
-        #autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
-    #autocompleteCounts = {}
-    #for word,count in sorted( BibleWordCountResults.items(), key=lambda duple: -duple[1] ):
-        #autocompleteWords.append( word ) # Append the most common words first
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'acW', autocompleteWords )
-
-    #setAutocompleteWords( editWindowObject, autocompleteWords )
-    #print( "loadBibleAutocompleteWords took", time.time()-startTime )
-    #halt
-## end of AutocompleteFunctions.loadBibleAutocompleteWords
-
-
-
-#def loadBibleBookAutocompleteWords( editWindowObject ):
-    #"""
-    #Load all the existing words in a USFM or Paratext Bible book
-        #to fill the autocomplete mechanism
-
-    #editWindowObject here is a USFM or ESFM edit window.
-
-    #NOTE: This list should theoretically be updated as the user enters new words!
-    #"""
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.loadBibleBookAutocompleteWords()") )
-        #editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
-
-    #editWindowObject.parentApp.setWaitStatus( "Loading Bible book words…" )
-    #BBB = editWindowObject.currentVerseKey.getBBB()
-    #print( "  got BBB", repr(BBB) )
-    #if BBB == 'UNK': return # UNKnown book -- no use here
-
-    #editWindowObject.internalBible.loadBookIfNecessary( editWindowObject.currentVerseKey.getBBB() )
-    #wordCountResults = countBookWords( editWindowObject.internalBible.books[BBB] )
-    ##print( 'wordCountResults', wordCountResults )
-
-    ## Would be nice to load current book first, but we don't know it yet
-    #autocompleteWords = []
-    #if BibleOrgSysGlobals.debugFlag:
-        #autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
-    #try:
-        ## Sort the word-list for the book to put the most common words first
-        ##print( 'wordCountResults', BBB, discoveryResults )
-        ##print( BBB, 'mTWC', discoveryResults['mainTextWordCounts'] )
-        ##qqq = sorted( discoveryResults['mainTextWordCounts'].items(), key=lambda c: -c[1] )
-        ##print( 'qqq', qqq )
-        #for word,count in sorted( wordCountResults.items(),
-                                #key=lambda duple: -duple[1] ):
-            #if len(word) >= editWindowObject.autocompleteMinLength \
-            #and word not in autocompleteWords: # just in case we had some (common) words in there already
-                #autocompleteWords.append( word )
-    #except KeyError:
-        #print( "Why did {} have no words???".format( BBB ) )
-        ##pass # Nothing for this book
-    ##print( 'acW', autocompleteWords )
-    #setAutocompleteWords( editWindowObject, autocompleteWords )
-## end of AutocompleteFunctions.loadBibleBookAutocompleteWords
-
-
-
-# First attempt
-#def XXXloadBibleAutocompleteWords( editWindowObject ):
-    #"""
-    #Load all the existing words in a USFM or Paratext Bible Project
-        #to fill the autocomplete mechanism.
-
-    #This is rather slow because of course, the entire Bible has to be read and processed first.
-
-    #editWindowObject here is a USFM or ESFM edit window.
-
-    #NOTE: This list should theoretically be updated as the user enters new words!
-    #"""
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
-        #editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
-
-    #editWindowObject.parentApp.setWaitStatus( "Loading Bible words…" )
-    #editWindowObject.internalBible.loadBooks()
-    #editWindowObject.internalBible.discover() # NOTE: Do we have to do ALL of this ???
-    ##print( 'discoveryResults', editWindowObject.internalBible.discoveryResults )
-
-    ## Would be nice to load current book first, but we don't know it yet
-    #autocompleteWords = []
-    #if 1: # new code
-        #autocompleteCounts = {}
-        #for BBB in editWindowObject.internalBible.discoveryResults: # combine word counts for all books
-            #if BBB != 'All':
-                #try:
-                    #for word, count in editWindowObject.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items():
-                        #if len(word) >= editWindowObject.autocompleteMinLength:
-                            #if word in autocompleteCounts: autocompleteCounts[word] += count
-                            #else: autocompleteCounts[word] = count
-                #except KeyError: pass # Nothing for this book
-        #for word,count in sorted( autocompleteCounts.items(), key=lambda duple: -duple[1] ):
-            #autocompleteWords.append( word ) # Append the most common words first
-    #else: # old code
-        #for BBB in editWindowObject.internalBible.discoveryResults:
-            #if BBB != 'All':
-                #try:
-                    ## Sort the word-list for the book to put the most common words first
-                    ##print( 'discoveryResults', BBB, editWindowObject.internalBible.discoveryResults[BBB] )
-                    ##print( BBB, 'mTWC', editWindowObject.internalBible.discoveryResults[BBB]['mainTextWordCounts'] )
-                    ##qqq = sorted( editWindowObject.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(), key=lambda c: -c[1] )
-                    ##print( 'qqq', qqq )
-                    #for word,count in sorted( editWindowObject.internalBible.discoveryResults[BBB]['mainTextWordCounts'].items(),
-                                            #key=lambda duple: -duple[1] ):
-                        #if len(word) >= editWindowObject.autocompleteMinLength \
-                        #and word not in autocompleteWords: # just in case we had some (common) words in there already
-                            #autocompleteWords.append( word )
-                #except KeyError: pass # Nothing for this book
-    ##print( 'acW', autocompleteWords )
-
-    #setAutocompleteWords( editWindowObject, autocompleteWords )
-## end of AutocompleteFunctions.loadBibleAutocompleteWords
-
-
-
-#def XXXloadBibleBookAutocompleteWords( editWindowObject ):
-    #"""
-    #Load all the existing words in a USFM or Paratext Bible book
-        #to fill the autocomplete mechanism
-
-    #editWindowObject here is a USFM or ESFM edit window.
-
-    #NOTE: This list should theoretically be updated as the user enters new words!
-    #"""
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.loadBibleBookAutocompleteWords()") )
-        #editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
-
-    #editWindowObject.parentApp.setWaitStatus( "Loading Bible book words…" )
-    #BBB = editWindowObject.currentVerseKey.getBBB()
-    #print( "  got BBB", repr(BBB) )
-    #if BBB == 'UNK': return # UNKnown book -- no use here
-
-    #editWindowObject.internalBible.loadBookIfNecessary( editWindowObject.currentVerseKey.getBBB() )
-    ##editWindowObject.internalBible.discoveryResults = OrderedDict()
-    #discoveryResults = editWindowObject.internalBible.books[BBB]._discover()
-    ##print( 'discoveryResults', discoveryResults )
-
-    ## Would be nice to load current book first, but we don't know it yet
-    #autocompleteWords = []
-    #try:
-        ## Sort the word-list for the book to put the most common words first
-        ##print( 'discoveryResults', BBB, discoveryResults )
-        ##print( BBB, 'mTWC', discoveryResults['mainTextWordCounts'] )
-        ##qqq = sorted( discoveryResults['mainTextWordCounts'].items(), key=lambda c: -c[1] )
-        ##print( 'qqq', qqq )
-        #for word,count in sorted( discoveryResults['mainTextWordCounts'].items(),
-                                #key=lambda duple: -duple[1] ):
-            #if len(word) >= editWindowObject.autocompleteMinLength \
-            #and word not in autocompleteWords: # just in case we had some (common) words in there already
-                #autocompleteWords.append( word )
-    #except KeyError:
-        #print( "Why did {} have no words???".format( BBB ) )
-        ##pass # Nothing for this book
-    ##print( 'acW', autocompleteWords )
-    #setAutocompleteWords( editWindowObject, autocompleteWords )
-## end of AutocompleteFunctions.loadBibleBookAutocompleteWords
 
 
 

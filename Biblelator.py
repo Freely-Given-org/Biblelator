@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-16' # by RJH
+LastModifiedDate = '2016-03-18' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -42,7 +42,7 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os, logging, subprocess
+import io, sys, os, logging, subprocess
 import multiprocessing
 
 import tkinter as tk
@@ -537,19 +537,22 @@ class Application( Frame ):
                     #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
-            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+            else: logging.critical( 'No key binding available for {!r}'.format( name ) )
     # end of Application.createMainKeyboardBindings()
 
 
     def addRecentFile( self, threeTuple ):
         """
+        Puts most recent first
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("addRecentFile( {} )").format( threeTuple ) )
-        assert len(threeTuple) == 3
+            assert len(threeTuple) == 3
 
-        self.recentFiles.append( threeTuple )
-        if len(self.recentFiles)>MAX_RECENT_FILES: self.recentFiles.pop( 0 )
+        try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
+        except ValueError: pass
+        self.recentFiles.insert( 0, threeTuple ) # Put this one at the beginning of the lis
+        if len(self.recentFiles)>MAX_RECENT_FILES: self.recentFiles.pop() # Remove the last one if necessary
         self.createMenuBar()
     # end of Application.addRecentFile()
 
@@ -575,7 +578,7 @@ class Application( Frame ):
         Set (or clear) the status bar text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setStatus( {} )").format( repr(newStatusText) ) )
+            print( exp("setStatus( {!r} )").format( newStatusText ) )
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
@@ -595,7 +598,7 @@ class Application( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setErrorStatus( {} )").format( repr(newStatusText) ) )
+            print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
@@ -609,7 +612,7 @@ class Application( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setWaitStatus( {} )").format( repr(newStatusText) ) )
+            print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
@@ -633,7 +636,7 @@ class Application( Frame ):
     def setDebugText( self, newMessage=None ):
         """
         """
-        print( exp("setDebugText( {} )").format( repr(newMessage) ) )
+        print( exp("setDebugText( {!r} )").format( newMessage ) )
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
         assert BibleOrgSysGlobals.debugFlag
         self.debugTextBox['state'] = tk.NORMAL # Allow editing
@@ -670,246 +673,15 @@ class Application( Frame ):
         Set the window theme to the given scheme.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doChangeTheme( {} )").format( repr(newThemeName) ) )
+            print( exp("doChangeTheme( {!r} )").format( newThemeName ) )
             assert newThemeName
-            self.setDebugText( 'Set theme to {}'.format( repr(newThemeName) ) )
+            self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
         self.themeName = newThemeName
         try:
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
             showerror( self, 'Error', err )
     # end of Application.doChangeTheme
-
-
-    #def parseAndApplySettings( self ):
-        #"""
-        #Parse the settings out of the .INI file.
-        #"""
-        #def retrieveWindowsSettings( self, windowsSettingsName ):
-            #"""
-            #Gets a certain windows settings from the settings (INI) file information
-                #and puts it into a dictionary.
-
-            #Returns the dictionary.
-
-            #Called from parseAndApplySettings().
-            #"""
-            #if BibleOrgSysGlobals.debugFlag:
-                #print( exp("retrieveWindowsSettings( {} )").format( repr(windowsSettingsName) ) )
-                #self.setDebugText( "retrieveWindowsSettings…" )
-            #windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
-            #resultDict = {}
-            #for j in range( 1, MAX_WINDOWS ):
-                #winNumber = 'window{}'.format( j )
-                #for keyName in windowsSettingsFields:
-                    #if keyName.startswith( winNumber ):
-                        #if winNumber not in resultDict: resultDict[winNumber] = {}
-                        #resultDict[winNumber][keyName[len(winNumber):]] = windowsSettingsFields[keyName]
-            ##print( exp("retrieveWindowsSettings"), resultDict )
-            #return resultDict
-        ## end of retrieveWindowsSettings
-
-
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("parseAndApplySettings()") )
-            #self.setDebugText( "parseAndApplySettings…" )
-        #try: self.minimumSize = self.settings.data[ProgName]['minimumSize']
-        #except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
-        #self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
-        #try: self.maximumSize = self.settings.data[ProgName]['maximumSize']
-        #except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
-        #self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
-        ##try: self.rootWindow.geometry( self.settings.data[ProgName]['windowGeometry'] )
-        ##except KeyError: print( "KeyError1" ) # we had no geometry set
-        ##except tk.TclError: logging.critical( exp("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[ProgName]['windowGeometry'] ) )
-        #try:
-            #windowSize = self.settings.data[ProgName]['windowSize'] if 'windowSize' in self.settings.data[ProgName] else None
-            #windowPosition = self.settings.data[ProgName]['windowPosition'] if 'windowPosition' in self.settings.data[ProgName] else None
-            ##print( "ws", repr(windowSize), "wp", repr(windowPosition) )
-            #if windowSize and windowPosition: self.rootWindow.geometry( windowSize + '+' + windowPosition )
-            #else: logging.warning( "Settings.KeyError: no windowSize & windowPosition" )
-        #except KeyError: pass # no [ProgName] entries
-
-        #try: self.doChangeTheme( self.settings.data[ProgName]['themeName'] )
-        #except KeyError: logging.warning( "Settings.KeyError: no themeName" )
-
-        ## Internet stuff
-        #try:
-            #internetAccessString = self.settings.data['Internet']['internetAccess']
-            #self.internetAccessEnabled = internetAccessString == 'Enabled'
-        #except KeyError: self.internetAccessEnabled = False # default
-        #try:
-            #checkForMessagesString = self.settings.data['Internet']['checkForMessages']
-            #self.checkForMessagesEnabled = checkForMessagesString == 'Enabled'
-        #except KeyError: self.checkForMessagesEnabled = True # default
-        #try:
-            #lastMessageNumberString = self.settings.data['Internet']['lastMessageNumberRead']
-            #self.lastMessageNumberRead = int( lastMessageNumberString )
-        #except (KeyError, ValueError): self.lastMessageNumberRead = -1
-        #try:
-            #sendUsageStatisticsString = self.settings.data['Internet']['sendUsageStatistics']
-            #self.sendUsageStatisticsEnabled = sendUsageStatisticsString == 'Enabled'
-        #except KeyError: self.sendUsageStatisticsEnabled = True # default
-        #try:
-            #automaticUpdatesString = self.settings.data['Internet']['automaticUpdates']
-            #self.automaticUpdatesEnabled = automaticUpdatesString == 'Enabled'
-        #except KeyError: self.automaticUpdatesEnabled = True # default
-        #try:
-            #useDevelopmentVersionsString = self.settings.data['Internet']['useDevelopmentVersions']
-            #self.useDevelopmentVersionsEnabled = useDevelopmentVersionsString == 'Enabled'
-        #except KeyError: self.useDevelopmentVersionsEnabled = False # default
-        #try:
-            #cloudBackupsString = self.settings.data['Internet']['cloudBackups']
-            #self.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
-        #except KeyError: self.cloudBackupsEnabled = True # default
-
-        ## Paths
-        #try: self.lastFileDir = self.settings.data['Paths']['lastFileDir']
-        #except KeyError: pass # use program default
-        #try: self.lastBiblelatorFileDir = self.settings.data['Paths']['lastBiblelatorFileDir']
-        #except KeyError: pass # use program default
-        #try: self.lastParatextFileDir = self.settings.data['Paths']['lastParatextFileDir']
-        #except KeyError: pass # use program default
-        #try: self.lastInternalBibleDir = self.settings.data['Paths']['lastInternalBibleDir']
-        #except KeyError: pass # use program default
-
-        ## Users
-        #try: self.currentUserName = self.settings.data['Users']['currentUserName']
-        #except KeyError: pass # use program default
-
-        ## BCV groups
-        #try: self.currentVerseKeyGroup = self.settings.data['BCVGroups']['currentGroup']
-        #except KeyError: self.currentVerseKeyGroup = 'A'
-        #try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
-        #except KeyError: self.GroupA_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
-        #try: self.GroupB_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
-        #except KeyError: self.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
-        #try: self.GroupC_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['C-Book'],self.settings.data['BCVGroups']['C-Chapter'],self.settings.data['BCVGroups']['C-Verse'])
-        #except KeyError: self.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
-        #try: self.GroupD_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
-        #except KeyError: self.GroupD_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
-
-        #try: self.lexiconWord = self.settings.data['Lexicon']['currentWord']
-        #except KeyError: self.lexiconWord = None
-
-        ## We keep our copy of all the windows settings in self.windowsSettingsDict
-        #windowsSettingsNamesList = []
-        #for name in self.settings.data:
-            #if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
-        #if BibleOrgSysGlobals.debugFlag: print( exp("Available windows settings are: {}").format( windowsSettingsNamesList ) )
-        #if windowsSettingsNamesList: assert 'Current' in windowsSettingsNamesList
-        #self.windowsSettingsDict = {}
-        #for windowsSettingsName in windowsSettingsNamesList:
-            #self.windowsSettingsDict[windowsSettingsName] = retrieveWindowsSettings( self, windowsSettingsName )
-        #if 'Current' in windowsSettingsNamesList: self.applyGivenWindowsSettings( 'Current' )
-        #else: logging.critical( exp("Application.parseAndApplySettings: No current window settings available") )
-    ## end of Application.parseAndApplySettings
-
-
-    #def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
-        #"""
-        #Given the name of windows settings,
-            #find the settings in our dictionary
-            #and then apply it by creating the windows.
-        #"""
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
-            #self.setDebugText( "applyGivenWindowsSettings…" )
-        #windowsSettingsFields = self.windowsSettingsDict[givenWindowsSettingsName]
-        #for j in range( 1, MAX_WINDOWS ):
-            #winNumber = 'window{}'.format( j )
-            #if winNumber in windowsSettingsFields:
-                #thisStuff = windowsSettingsFields[winNumber]
-                #winType = thisStuff['Type']
-                ##windowGeometry = thisStuff['Geometry'] if 'Geometry' in thisStuff else None
-                #windowSize = thisStuff['Size'] if 'Size' in thisStuff else None
-                #windowPosition = thisStuff['Position'] if 'Position' in thisStuff else None
-                #windowGeometry = windowSize+'+'+windowPosition if windowSize and windowPosition else None
-                ##print( winType, windowGeometry )
-                #if winType == 'SwordBibleResourceWindow':
-                    #rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
-                    ##except: logging.critical( "Unable to read all SwordBibleResourceWindow {} settings".format( j ) )
-                #elif winType == 'DBPBibleResourceWindow':
-                    #rw = self.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
-                    ##except: logging.critical( "Unable to read all DBPBibleResourceWindow {} settings".format( j ) )
-                #elif winType == 'InternalBibleResourceWindow':
-                    #rw = self.openInternalBibleResourceWindow( thisStuff['BibleFolderPath'], windowGeometry )
-                    ##except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
-
-                ##elif winType == 'HebrewLexiconResourceWindow':
-                    ##self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
-                    ###except: logging.critical( "Unable to read all HebrewLexiconResourceWindow {} settings".format( j ) )
-                ##elif winType == 'GreekLexiconResourceWindow':
-                    ##self.openGreekLexiconResourceWindow( thisStuff['GreekLexiconPath'], windowGeometry )
-                    ###except: logging.critical( "Unable to read all GreekLexiconResourceWindow {} settings".format( j ) )
-                #elif winType == 'BibleLexiconResourceWindow':
-                    #rw = self.openBibleLexiconResourceWindow( thisStuff['BibleLexiconPath'], windowGeometry )
-                    ##except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
-
-                #elif winType == 'BibleResourceCollectionWindow':
-                    #collectionName = thisStuff['CollectionName']
-                    #rw = self.openBibleResourceCollectionWindow( collectionName, windowGeometry )
-                    ##except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
-                    #if 'BibleResourceCollection'+collectionName in self.settings.data:
-                        #collectionSettingsFields = self.settings.data['BibleResourceCollection'+collectionName]
-                        #for k in range( 1, MAX_WINDOWS ):
-                            #boxNumber = 'box{}'.format( k )
-                            #boxType = boxSource = None
-                            #for keyname in collectionSettingsFields:
-                                #if keyname.startswith( boxNumber ):
-                                    ##print( "found", keyname, "setting for", collectionName, "collection" )
-                                    #if keyname == boxNumber+'Type': boxType = collectionSettingsFields[keyname]
-                                    #elif keyname == boxNumber+'Source': boxSource = collectionSettingsFields[keyname]
-                                    #else:
-                                        #print( "Unknown {} collection key: {} = {}".format( repr(collectionName), keyname, collectionSettingsFields[keyname] ) )
-                                        #if BibleOrgSysGlobals.debugFlag: halt
-                            #if boxType and boxSource: rw.openBox( boxType, boxSource )
-
-                #elif winType == 'BibleReferenceCollectionWindow':
-                    #xyz = "JustTesting!"
-                    #rw = self.openBibleReferenceCollectionWindow( xyz, windowGeometry )
-                    ##except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
-
-                #elif winType == 'PlainTextEditWindow':
-                    #try: filepath = thisStuff['TextFilepath']
-                    #except KeyError: filepath = None
-                    #rw = self.openFileTextEditWindow( filepath, windowGeometry )
-                    ##except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
-                #elif winType == 'BiblelatorUSFMBibleEditWindow':
-                    #rw = self.openBiblelatorBibleEditWindow( thisStuff['ProjectFolderPath'], thisStuff['EditMode'], windowGeometry )
-                    ##except: logging.critical( "Unable to read all BiblelatorUSFMBibleEditWindow {} settings".format( j ) )
-                #elif winType == 'ParatextUSFMBibleEditWindow':
-                    #rw = self.openParatextBibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
-                    ##except: logging.critical( "Unable to read all ParatextUSFMBibleEditWindow {} settings".format( j ) )
-                #elif winType == 'ESFMEditWindow':
-                    #rw = self.openESFMEditWindow( thisStuff['ESFMFolder'], thisStuff['EditMode'], windowGeometry )
-                    ##except: logging.critical( "Unable to read all ESFMEditWindow {} settings".format( j ) )
-
-                #else:
-                    #logging.critical( exp("Application.__init__: Unknown {} window type").format( repr(winType) ) )
-                    #if BibleOrgSysGlobals.debugFlag: halt
-
-                #if rw is None:
-                    #logging.critical( exp("Application.__init__: Failed to reopen {} window type!!! How did this happen?").format( repr(winType) ) )
-                #else: # we've opened our child window -- now customize it a bit more
-                    #minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
-                    #if minimumSize:
-                        #if BibleOrgSysGlobals.debugFlag: assert 'x' in minimumSize
-                        #rw.minsize( *parseWindowSize( minimumSize ) )
-                    #maximumSize = thisStuff['MaximumSize'] if 'MaximumSize' in thisStuff else None
-                    #if maximumSize:
-                        #if BibleOrgSysGlobals.debugFlag: assert 'x' in maximumSize
-                        #rw.maxsize( *parseWindowSize( maximumSize ) )
-                    #groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
-                    #if groupCode:
-                        #if BibleOrgSysGlobals.debugFlag: assert groupCode in BIBLE_GROUP_CODES
-                        #rw.groupCode = groupCode
-                    #contextViewMode = thisStuff['ContextViewMode'] if 'ContextViewMode' in thisStuff else None
-                    #if contextViewMode:
-                        #if BibleOrgSysGlobals.debugFlag: assert contextViewMode in BIBLE_CONTEXT_VIEW_MODES
-                        #rw.contextViewMode = contextViewMode
-                        #rw.createMenuBar() # in order to show the correct contextViewMode
-    ## end of Application.applyGivenWindowsSettings
 
 
     def doCheckForDeveloperMessages( self, event=None ):
@@ -953,71 +725,6 @@ class Application( Frame ):
 
                     self.lastMessageNumberRead += 1
     # end of Application.doCheckForDeveloperMessages
-
-
-    #def getCurrentChildWindowSettings( self ):
-        #"""
-        #Go through the currently open windows and get their settings data
-            #and save it in self.windowsSettingsDict['Current'].
-        #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("getCurrentChildWindowSettings()") )
-
-        #if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
-        #self.windowsSettingsDict['Current'] = {}
-        #for j, appWin in enumerate( self.childWindows ):
-                #if appWin.winType == 'HTMLWindow':
-                    #continue # We don't save these
-
-                #winNumber = "window{}".format( j+1 )
-                #self.windowsSettingsDict['Current'][winNumber] = {}
-                #thisOne = self.windowsSettingsDict['Current'][winNumber]
-                #thisOne['Type'] = appWin.winType #.replace( 'Window', 'Window' )
-                ##print( "child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
-                ##print( "child x", appWin.winfo_x(), "child rootx", appWin.winfo_rootx() )
-                ##print( "child y", appWin.winfo_y(), "child rooty", appWin.winfo_rooty() )
-                ##print( "child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
-                ##print( "child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
-                #thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
-                #if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
-                    #thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
-                #thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
-                #thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
-
-                #if appWin.winType == 'SwordBibleResourceWindow':
-                    #thisOne['ModuleAbbreviation'] = appWin.moduleID
-                #elif appWin.winType == 'DBPBibleResourceWindow':
-                    #thisOne['ModuleAbbreviation'] = appWin.moduleID
-                #elif appWin.winType == 'InternalBibleResourceWindow':
-                    #thisOne['BibleFolderPath'] = appWin.moduleID
-
-                #elif appWin.winType == 'BibleLexiconResourceWindow':
-                    #thisOne['BibleLexiconPath'] = appWin.moduleID
-
-                #elif appWin.winType == 'BibleResourceCollectionWindow':
-                    #thisOne['CollectionName'] = appWin.moduleID
-
-                #elif appWin.winType == 'PlainTextEditWindow':
-                    #try: thisOne['TextFilepath'] = appWin.filepath
-                    #except AttributeError: pass # It's possible to have a blank new text edit window open
-
-                #elif appWin.winType == 'BiblelatorUSFMBibleEditWindow':
-                    #thisOne['ProjectFolderPath'] = appWin.moduleID
-                    #thisOne['EditMode'] = appWin.editMode
-                #elif appWin.winType == 'ParatextUSFMBibleEditWindow':
-                    #thisOne['SSFFilepath'] = appWin.moduleID
-                    #thisOne['EditMode'] = appWin.editMode
-
-                #else:
-                    #logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
-                    #if BibleOrgSysGlobals.debugFlag: halt
-
-                #if 'Bible' in appWin.genericWindowType:
-                    #try: thisOne['GroupCode'] = appWin.groupCode
-                    #except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
-                    #try: thisOne['ContextViewMode'] = appWin.contextViewMode
-                    #except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.winType ) )
-    ## end of Application.getCurrentChildWindowSettings
 
 
     def doSaveNewWindowSetup( self ):
@@ -1099,7 +806,7 @@ class Application( Frame ):
         dBRW = DBPBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: dBRW.geometry( windowGeometry )
         if dBRW.DBPModule is None:
-            logging.critical( exp("Application.openDBPBibleResourceWindow: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
+            logging.critical( exp("Application.openDBPBibleResourceWindow: Unable to open resource {!r}").format( moduleAbbreviation ) )
             dBRW.closeChildWindow()
             showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openDBPBibleResourceWindow" )
@@ -1142,7 +849,7 @@ class Application( Frame ):
             if srb.result:
                 for entryString in srb.result:
                     requestedModuleName, rest = entryString.split( ' (', 1 )
-                    self.setWaitStatus( _("Loading {} Sword module…").format( repr(requestedModuleName) ) )
+                    self.setWaitStatus( _("Loading {!r} Sword module…").format( requestedModuleName ) )
                     self.openSwordBibleResourceWindow( requestedModuleName )
                     self.addRecentFile( (requestedModuleName,'','SwordBibleResourceWindow') )
                 #self.acceptNewBnCV()
@@ -1210,7 +917,7 @@ class Application( Frame ):
         iBRW = InternalBibleResourceWindow( self, modulePath )
         if windowGeometry: iBRW.geometry( windowGeometry )
         if iBRW.internalBible is None:
-            logging.critical( exp("Application.openInternalBibleResourceWindow: Unable to open resource {}").format( repr(modulePath) ) )
+            logging.critical( exp("Application.openInternalBibleResourceWindow: Unable to open resource {!r}").format( modulePath ) )
             iBRW.closeChildWindow()
             showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleResourceWindow" )
@@ -1256,7 +963,7 @@ class Application( Frame ):
         bLRW = BibleLexiconResourceWindow( self, lexiconPath )
         if windowGeometry: bLRW.geometry( windowGeometry )
         if bLRW.BibleLexicon is None:
-            logging.critical( exp("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {}").format( repr(lexiconPath) ) )
+            logging.critical( exp("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {!r}").format( lexiconPath ) )
             bLRW.closeChildWindow()
             showerror( self, APP_NAME, _("Sorry, unable to open Bible lexicon resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openBibleLexiconResourceWindow" )
@@ -1295,7 +1002,7 @@ class Application( Frame ):
         Returns the new BibleCollectionWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("openBibleResourceCollectionWindow( {} )").format( repr(collectionName) ) )
+            print( exp("openBibleResourceCollectionWindow( {!r} )").format( collectionName ) )
             self.setDebugText( "openBibleResourceCollectionWindow…" )
         BRC = BibleResourceCollectionWindow( self, collectionName )
         if windowGeometry: BRC.geometry( windowGeometry )
@@ -1339,7 +1046,7 @@ class Application( Frame ):
         Returns the new BibleCollectionWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("openBibleReferenceCollectionWindow( {} )").format( repr(collectionName) ) )
+            print( exp("openBibleReferenceCollectionWindow( {!r} )").format( collectionName ) )
             self.setDebugText( "openBibleReferenceCollectionWindow…" )
         BRC = BibleReferenceCollectionWindow( self, collectionName )
         if windowGeometry: BRC.geometry( windowGeometry )
@@ -1621,7 +1328,7 @@ class Application( Frame ):
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if ssfDirectory is not None:
-                showwarning( self, APP_NAME, 'SSF project {} ({}) folder {} not found on this system -- trying folder below SSF instead'.format( ptxBibleName, ptxBibleFullName, repr(ssfDirectory) ) )
+                showwarning( self, APP_NAME, 'SSF project {} ({}) folder {!r} not found on this system -- trying folder below SSF instead'.format( ptxBibleName, ptxBibleFullName, ssfDirectory ) )
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                     print( "doOpenParatextProject: Not MS-Windows" )
@@ -1646,7 +1353,7 @@ class Application( Frame ):
         Returns the new USFMEditWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("openParatextBibleEditWindow( {} )").format( repr(SSFFilepath) ) )
+            print( exp("openParatextBibleEditWindow( {!r} )").format( SSFFilepath ) )
             self.setDebugText( "openParatextBibleEditWindow…" )
             assert os.path.isfile( SSFFilepath )
 
@@ -2461,7 +2168,7 @@ class Application( Frame ):
 
         for appWin in self.childWindows:
             if 'Editor' in appWin.genericWindowType and appWin.modified():
-                appWin.onCloseEditor()
+                appWin.onCloseEditor( terminate=False )
                 #if appWin.saveChangesAutomatically: appWin.doSave( 'Auto from app close' )
                 #else: appWin.onCloseEditor()
 
@@ -2489,12 +2196,6 @@ def demo():
     """
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
-
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("Platform is"), sys.platform ) # e.g., "win32"
-        print( exp("OS name is"), os.name ) # e.g., "nt"
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() )
-        print( exp("Running main…") )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
@@ -2527,12 +2228,6 @@ def main( homeFolderPath, loggingFolderPath ):
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
-
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
-        print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
-        print( exp("Running main…") )
 
     numInstancesFound = 0
     if sys.platform == 'linux':
@@ -2601,6 +2296,15 @@ if __name__ == '__main__':
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+
+    if 'win' in sys.platform:
+        sys.stdout = io.TextIOWrapper(sys.stdout.detach(), sys.stdout.encoding, 'replace')
+
+    if BibleOrgSysGlobals.debugFlag:
+        print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
+        print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
+        if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
+        print( exp("Running main…") )
 
     main( homeFolderPath, loggingFolderPath )
 

@@ -30,7 +30,7 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-10' # by RJH
+LastModifiedDate = '2016-03-17' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.30'
@@ -38,7 +38,7 @@ SettingsVersion = '0.30' # Only need to change this if the settings format has c
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import os, logging
@@ -213,13 +213,14 @@ def parseAndApplySettings( self ):
         for j in range( 1, MAX_RECENT_FILES+1 ):
             recentName = 'Recent{}'.format( j )
             for keyName in recentFields:
-                if keyName.startswith( recentName ):
-                    filename = self.settings.data['RecentFiles']['Recent{}Filename'].format( j )
-                    folder = self.settings.data['RecentFiles']['Recent{}Folder'].format( j )
-                    if folder[-1] not in '/\\': folder += '/'
-                    winType = self.settings.data['RecentFiles']['Recent{}Type'].format( j )
+                if keyName.startswith( recentName ): # This index number (j) is present
+                    filename = self.settings.data['RecentFiles']['Recent{}Filename'.format( j )]
+                    folder = self.settings.data['RecentFiles']['Recent{}Folder'.format( j )]
+                    if folder and folder[-1] not in '/\\': folder += '/'
+                    winType = self.settings.data['RecentFiles']['Recent{}Type'.format( j )]
                     self.recentFiles.append( (filename,folder,winType) )
                     assert( len(self.recentFiles) == j )
+                    break # go to next j
 
     # Users
     try: self.currentUserName = self.settings.data['Users']['currentUserName']
@@ -549,7 +550,7 @@ def writeSettingsFile( self ):
     self.settings.data['RecentFiles'] = {}
     recent = self.settings.data['RecentFiles']
     for j, (filename,folder,winType) in enumerate( self.recentFiles ):
-        recentName = 'Recent{}'.format( j )
+        recentName = 'Recent{}'.format( j+1 )
         recent[recentName+'Filename'] = filename
         recent[recentName+'Folder'] = folder
         recent[recentName+'Type'] = winType

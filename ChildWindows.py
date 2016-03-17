@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-16' # by RJH
+LastModifiedDate = '2016-03-17' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -440,7 +440,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Called to finally and irreversibly remove this window from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindow.closeChildWindow()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.closeChildWindow()") )
+
         if self in self.parentApp.childWindows:
             self.parentApp.childWindows.remove( self )
             self.destroy()
@@ -449,7 +451,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
                 print( exp("ChildWindow.closeChildWindow() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
-        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource window" )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed child window" )
     # end of ChildWindow.closeChildWindow
 # end of class ChildWindow
 
