@@ -1,7 +1,7 @@
 Biblelator Development Principles
 =================================
 
-Last updated: 2016-02-12 RJH
+Last updated: 2016-03-21 RJH
 
 
 The following are some of the reasons behind some of the major development decisions
@@ -12,7 +12,7 @@ The following are some of the reasons behind some of the major development decis
 
     Python is not as fast and efficient as C or C++, but it is nevertheless an elegant, well-designed
     computer language that runs quite satisfactorily on most modern computer hardware. Also, it can
-    be relatively readable by a non Python programmer.
+    be relatively readable even by a non Python programmer.
 
     Another reason for choosing Python is that the source code to the software is usually provided
     and that it can be easier to read by novices than some other computer languages. This is
@@ -30,9 +30,9 @@ The following are some of the reasons behind some of the major development decis
     destined to be obsoleted (even though many libraries hadn't yet been updated at the time).
 
 
-3. TKinter as the widget set
+3. Tkinter as the widget set
 
-    TKinter is not the most beautiful or advanced widget set, but it is an intrinsic part
+    Tkinter is not the most beautiful or advanced widget set, but it is an intrinsic part
     of regular Python distributions. So it was chosen for its universality rather than
     trying to choose one of quite a number of competing toolkits (e.g., QT, wxWidgets, etc.)
     which require extra installation complexities and which may not work well (or at all)
@@ -40,58 +40,85 @@ The following are some of the reasons behind some of the major development decis
     some cross-platform behaviours have been found to be inconsistent.
 
 
-4. Internationalised
+4. Internationalisation
 
     Like the Bible Organisational System (BibleOrgSys) that Biblelator is based on top of, this
     Bible editor is designed to (eventually) be flexible enough to handle different versification
     systems, different combinations and orders for Bible books, etc.
 
+    Some preparation work has already been done in the program to allow translations of menus,
+    etc., to match your Operating System locale/language, but no translations have been
+    started yet.
 
-5. Downplaying chapters and verses
+    No attempts have beem made yet to handle complex fonts or right-to-left languages.
 
-    I don't like the over-emphasis of chapters and verses. I'm much more interested in semantic
-    structure such as phrases, clauses, sentences, and paragraphs. So Biblelator is designed
-    to downplay chapter and verse boundaries as much as possible (yet keep them available for
-    those who do value them).
+
+5. More control of child window placement
+
+    Biblelator tries to allow the user to place the main window and child windows anywhere on
+    a multi-screen system, but with tools to easily find child windows if they get covered.
 
 
 6. Use of colour
 
     Biblelator tries to use colour effectively to help distinguish the various different types
-    of windows, as well as to distinguish various kinds of fields within documents.
+    of windows, as well as to distinguish various kinds of fields within documents. (Much more
+    use of colour and stylesheets is expected in future versions.)
 
 
 7. Use of autocompletion and autocorrection
 
     Biblelator tries to use autocompletion of words and other modern helps to assist the
-    translation to work more efficiently.
+    translators to work more efficiently.
 
 
-8. Including book introductions
+8. Use of keyboard shortcuts
+
+    Biblelator aims to (eventually) make it very efficient for users to edit Bibles if they
+    are prepared to invest a little time and energy into learning keyboard shortcuts for
+    navigating around Bibles and around the most commonly used menu entries. (Keyboard
+    shortcuts will eventually be customisable by the user.)
+
+
+9. Downplaying chapters and verses
+
+    I don't like the over-emphasis of chapters and verses in Bibles. I'm much more interested
+    in semantic structure such as phrases, clauses, sentences, paragraphs, and sections. So
+    Biblelator is designed to downplay chapter and verse boundaries as much as possible (yet
+    keep them available for those who do value them).
+
+
+10. Including book introductions
 
     Biblelator considers a book introduction as chapter "zero", and considers anything before
     verse one in a chapter (e.g., a section heading), as verse "zero". It should be as easy and
     convenient to edit introductions as actual Bible text.
 
 
-9. Including other front and back matter
+11. Including other front and back matter
 
     Biblelator is aware of front and back matter (e.g., Bible introduction, glossary, etc.)
     and knows to treat them differently than books containing chapters and verses.
 
 
-10. More control of child window placement
+12. Protecting your work
 
-    Biblelator tries to allow the user to place the main window and child windows anywhere on
-    a multi-screen system, but with tools to easily find child windows if they get covered.
+    We currently use AutoSave to save regular copies of your Bible editing and plan to use
+    (optional of course) remote storage in the cloud in the future to provide assurance
+    that program bugs or power or computer failures won't lose lots of work.
+
+    WARNING: Of course, being an early tester increases the risk that you'll be the one to
+    discover a new bug, but the developer is currently using Biblelator for his own Bible
+    translation work.
 
 
-11. Prototype implementation
+13. Prototype implementation
 
     All of the existing code is considered as "prototype/proof-of-concept", i.e., it has not
     been optimised for speed and software simplicity (refactoring), but rather to get the
     program working. Note that not all settings can be adjusted from the menus in the
-    prototypes -- some must be adjusted by editing settings files or changing program code.
+    prototypes -- some must be still be adjusted by editing settings files or changing program
+    code.
 
     After version one is released, only then will time and resources be spent on getting it
     working more efficiently. Also, after version one, new versions will provide a path to
@@ -100,13 +127,23 @@ The following are some of the reasons behind some of the major development decis
     again).
 
 
-12. User-requested priorities
+14. User-requested priorities
 
     As far as fixing deficiencies and adding new features, we will try to prioritise what actual
     users find important for their workflow, including the developer of course.
 
 
-13. ESFM (Enhanced Standard Format Markers) aware
+15. ESFM (Enhanced Standard Format Markers) aware
 
     Biblelator is intended to become an ESFM Bible editor. This allows more links and other
     information to be included in source Bibles (especially those intended for online display.)
+
+    NOTE: ESFM development is currently on hold, awaiting the release of the USFM v3
+    specifications.
+
+
+16. No hidden folders
+
+    Settings files, log files, autosave files, etc. are all saved in non-hidden folders.
+    While this might irritate some tidyness freaks, it's in line with our "hackable"
+    goals to make everything obvious and accessible.

@@ -29,7 +29,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-20' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.30'
@@ -219,17 +219,18 @@ class ChildBox():
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doShowInfo( {} )").format( event ) )
+
         text  = self.getAllText()
         numChars = len( text )
         numLines = len( text.split('\n') )
         numWords = len( text.split() )
         index = self.textBox.index( tk.INSERT )
         atLine, atColumn = index.split('.')
-        showinfo( self, 'Window Information',
-                 'Current location:\n' +
-                 '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) +
-                 '\nFile text statistics:\n' +
-                 '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}\n'.format( numChars, numLines, numWords ) )
+        infoString = 'Current location:\n' \
+                 + '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) \
+                 + '\nFile text statistics:\n' \
+                 + '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}\n'.format( numChars, numLines, numWords )
+        showinfo( self, 'Window Information', infoString )
     # end of ChildBox.doShowInfo
 
 

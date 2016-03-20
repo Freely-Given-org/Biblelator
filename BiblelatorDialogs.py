@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-18'
+LastModifiedDate = '2016-03-21'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.30'
@@ -90,7 +90,11 @@ def exp( messageString ):
 def errorBeep():
     """
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("errorBeep()") )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("errorBeep()") )
+
+    # Does nothing yet :-(
+
     #import sys
     #from subprocess import call
     #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
@@ -102,7 +106,9 @@ def errorBeep():
 def showerror( parent, title, errorText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( exp("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
+    if BibleOrgSysGlobals.debugFlag:
+        print( exp("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
+
     logging.error( '{}: {}'.format( title, errorText ) )
     parent.parentApp.setStatus( _("Waiting for user input after error…") )
     tkmb.showerror( title, errorText )
@@ -113,7 +119,9 @@ def showerror( parent, title, errorText ):
 def showwarning( parent, title, warningText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( exp("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
+    if BibleOrgSysGlobals.debugFlag:
+        print( exp("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
+
     logging.warning( '{}: {}'.format( title, warningText ) )
     parent.parentApp.setStatus( _("Waiting for user input after warning…") )
     tkmb.showwarning( title, warningText )
@@ -124,7 +132,14 @@ def showwarning( parent, title, warningText ):
 def showinfo( parent, title, infoText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag: print( exp("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
+    if BibleOrgSysGlobals.debugFlag:
+        print( exp("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
+        for j, (configKey, configTuple)  in enumerate( sorted(parent.config().items()) ): # Append the parent window config info
+            if debuggingThisModule or len(configTuple)>2: # don't append alternative names like, bg for background
+                # Don't display the last field if it just duplicates the previous one
+                infoText += '{}\n{}: {!r}{}'.format( '\n' if j==0 else '', configTuple[2], configTuple[3],
+                                            '' if configTuple[4]==configTuple[3] else ', {!r}'.format( configTuple[4] ) )
+
     logging.info( '{}: {}'.format( title, infoText ) )
     parent.parentApp.setStatus( _("Waiting for user input after info…") )
     tkmb.showinfo( title, infoText )
@@ -400,7 +415,7 @@ class GetNewProjectNameDialog( ModalDialog ):
 
 class CreateNewProjectFilesDialog( ModalDialog ):
     """
-    File if they want blank files created for a new Biblelator project.
+    Find if they want blank files created for a new Biblelator project.
     """
     def __init__( self, parent, title, currentBBB, availableVersifications ): #, availableVersions ):
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "CreateNewProjectFilesDialog…" )

@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2014-11-23 RJH
+Last updated: 2016-03-21 RJH
 
 
 Please see the document Development.md for information about the design decisions behind
@@ -111,8 +111,10 @@ version of Biblelator onto your computer.
                 cd \Users\Public\Documents\Biblelator\Biblelator (a Windows example).
     On Linux, type ".\Biblelator.py --version" (without the quotes), or
     on Windows, the command is something like:
-            "C:\Python34\python.exe Biblelator.py --version" (without the quotes)
-        depending on your Python3 version number.
+            "Biblelator.py --version" (without the quotes)
+        or if that doesn't work, you might need something like
+            "C:\Python35\python.exe Biblelator.py --version" (without the quotes)
+        depending on your Python3 version number and how it was installed.
     This test run of the program should just display the Biblelator version number
         and then exit immediately.
     If you see the error "ImportError: No module named tkinter", check in case you are
@@ -123,15 +125,17 @@ version of Biblelator onto your computer.
 
 10. Try starting the Biblelator program in debug mode.
     Using a command similar to what worked in the previous step,
-        replace "--version" with "--debug" to actual run the program
+        replace "--version" with "--debug" to actually run the program
             but with extra debugging information displayed in the command window
             so we can more easily track issues if there's an installation program.
     This command should open the Biblelator main window
         (with an extra Debug menu and extra debug information inside the main window).
     Aside from displaying these extras, plus extra debug information displayed in the command window,
         you should be able to access all (working) Biblelator functions as usual.
-    The debug mode has a HALT button, which unlike the QUIT button,
-        exits immediately without saving any files or settings, so use it with caution.
+
+    WARNING: The debug mode has a HALT button, which unlike the QUIT button,
+        exits immediately WITHOUT SAVING any files or settings, so use it with caution.
+
     If the program does not run, please copy the contents of the command window,
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
     Note that a BiblelatorData folder should be created in your home folder when you exit the program,
@@ -175,6 +179,7 @@ version of Biblelator onto your computer.
 	the free ImageMagick package. For Linux, this can usually be installed from your package
 	manager, and for Windows, the exe installation files can be downloaded from
 	http://www.imagemagick.org/download/binaries.
+
 
 16. Program updates
     If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each

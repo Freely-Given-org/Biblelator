@@ -372,8 +372,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )

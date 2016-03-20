@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-18' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
@@ -317,7 +317,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         print( exp("AutocompleteFunctions.loadBibleBookAutocompleteWords()") )
         editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading Bible book words…" )
+    editWindowObject.parentApp.setWaitStatus( "Loading {} Bible book words…".format( editWindowObject.projectName ) )
     BBB = editWindowObject.currentVerseKey.getBBB()
     #print( "  got BBB", repr(BBB) )
     if BBB == 'UNK': return # UNKnown book -- no use here
@@ -372,7 +372,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
         print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
         editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading Bible words…" )
+    editWindowObject.parentApp.setWaitStatus( "Loading {} Bible words…".format( editWindowObject.projectName ) )
     BBB = editWindowObject.currentVerseKey.getBBB()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(BBB) )
 

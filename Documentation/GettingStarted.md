@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2015-02-10 RJH
+Last updated: 2016-03-21 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -31,6 +31,11 @@ For an overview of the program design philosophy, see Development.md.
     reuse them) and Biblelator will now ignore those settings when starting up. (This might
     also be necessary if a bug causes Biblelator to freeze or malfunction.)
 
+    ADVANCED: Biblelator can also be started with the --override flag to override the
+    normal Biblelator.ini settings file with your own file, e.g.,
+        Biblelator.py --override Test.ini
+    will use Test.ini rather than Biblelator.ini for loading/saving program settings.
+
 
 2. Logging
 
@@ -48,7 +53,7 @@ For an overview of the program design philosophy, see Development.md.
     The main window can usually be kept fairly small and be placed in the most convenient
         part of the screen. However, if Biblelator is started in debug mode (with the
         --debug flag on the command line), the main window may need to be made larger
-        in order to properly display the additional logging information.
+        in order to properly display the additional debug logging information.
 
 
 4. Resource Windows

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-20' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -77,7 +77,7 @@ from USFMEditWindow import USFMEditWindow
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
-if debuggingThisModule: print( 'sys.path = ', sys.path )
+#if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 from BibleVersificationSystems import BibleVersificationSystems
