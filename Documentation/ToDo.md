@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-18 RJH
+Last updated: 2016-03-19 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -16,7 +16,7 @@ Biblelator bugs
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu only does it once)
-* Text file open window flashes
+* Text file, Biblelator project open window flashes
 
 BOS improvements for Biblelator
 * Fix speech mark / quotation checking
@@ -32,6 +32,9 @@ BOS improvements for Biblelator
 
 Biblelator stuff
 * Release version 0.3
+* Investigate tix widgets
+* Need keyboard shortcuts for verse up/down
+* Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
 * Paste doesn't replace the selection
 * Send BCV updates from HTML window
 * Send verse links to Paratext
@@ -85,6 +88,7 @@ Biblelator stuff
 * Get full multiprocessing working
 * Make autocompletion aware of previous work and so adjust for context
 * Add progress bars for slow tasks
+* Add tooltips
 * Create an intelligent installer
 * Allow for secure automatic program updates (choice of stable and development branches)
 * Work on automated GUI testing

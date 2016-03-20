@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # BibleResourceCollection.py
@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-16' # by RJH
+LastModifiedDate = '2016-03-18' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.30'
@@ -1100,27 +1100,51 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             logging.critical( exp("doOpenSwordResource: no Sword interface available") )
             showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
-        availableModules = self.parentApp.SwordInterface.library
-        #print( "aM1", availableModules )
-        ourList = None
-        if availableModules is not None:
-            ourList = availableModules.getAvailableModuleCodes()
+
+        givenList = self.parentApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
+        #print( 'givenList', givenList )
+        genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
+        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenList]
+        if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
         #print( "ourList", ourList )
         if ourList:
             srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
-            #print( "srbResult", repr(srb.result) )
+            print( "srbResult", repr(srb.result) )
             if srb.result:
-                for entry in srb.result:
-                    self.parentApp.setWaitStatus( _("Loading {} Sword module…").format( repr(entry) ) )
-                    self.openSwordBibleResourceBox( entry )
+                for entryString in srb.result:
+                    requestedModuleName, rest = entryString.split( ' (', 1 )
+                    self.parentApp.setWaitStatus( _("Loading {!r} Sword module…").format( requestedModuleName ) )
+                    self.openSwordBibleResourceBox( requestedModuleName )
+                    self.parentApp.addRecentFile( (requestedModuleName,'','SwordBibleResourceBox') )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
             elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResource: no resource selected!") )
         else:
             logging.critical( exp("doOpenSwordResource: no list available") )
             showerror( self, APP_NAME, _("No Sword resources discovered") )
-        #self.acceptNewBnCV()
-        #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+
+        ## Old code
+        #availableModules = self.parentApp.SwordInterface.library
+        ##print( "aM1", availableModules )
+        #ourList = None
+        #if availableModules is not None:
+            #ourList = availableModules.getAvailableModuleCodes()
+        ##print( "ourList", ourList )
+        #if ourList:
+            #srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
+            ##print( "srbResult", repr(srb.result) )
+            #if srb.result:
+                #for entry in srb.result:
+                    #self.parentApp.setWaitStatus( _("Loading {} Sword module…").format( repr(entry) ) )
+                    #self.openSwordBibleResourceBox( entry )
+                ##self.acceptNewBnCV()
+                ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+            #elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResource: no resource selected!") )
+        #else:
+            #logging.critical( exp("doOpenSwordResource: no list available") )
+            #showerror( self, APP_NAME, _("No Sword resources discovered") )
+        ##self.acceptNewBnCV()
+        ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of BibleResourceCollectionWindow.doOpenSwordResource
 
     def openSwordBibleResourceBox( self, moduleAbbreviation, windowGeometry=None ):

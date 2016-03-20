@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # BiblelatorDialogs.py
@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-07'
+LastModifiedDate = '2016-03-18'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.30'
@@ -286,8 +286,10 @@ class SelectResourceBoxDialog( ModalDialog ):
     """
     def __init__( self, parent, availableSettingsList, title ):
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog…" )
-        print( "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
-        if BibleOrgSysGlobals.debugFlag: assert isinstance( availableSettingsList, list )
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule:
+                print( "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
+            assert isinstance( availableSettingsList, list )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parent, title )
     # end of SelectResourceBoxDialog.__init__

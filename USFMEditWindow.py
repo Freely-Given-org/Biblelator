@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # USFMEditWindow.py
@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-17' # by RJH
+LastModifiedDate = '2016-03-20' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.30'
@@ -97,12 +97,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.parentApp = parentApp
         self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
 
-        if self.internalBible is None:
-            self.projectName = 'NoProjectName'
-        else:
+        if self.internalBible is not None:
             self.projectName = self.internalBible.shortName if self.internalBible.shortName else self.internalBible.givenName
             if not self.projectName:
                 self.projectName = self.internalBible.name if self.internalBible.name else self.internalBible.abbreviation
+        #try: print( "\n\n\n\nUEW settings for {}:".format( self.projectName ), self.settings )
+        #except: print( "\n\n\n\nUEW has no settings!" )
+        if not self.projectName: self.projectName = 'NoProjectName'
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
@@ -133,9 +134,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.verseCache = OrderedDict()
         if editMode is not None: self.editMode = editMode
 
+        self.defaultBackgroundColour = 'plum1'
         if self.internalBible is None: self.editMode = None
         else:
-            self.textBox['background'] = 'white'
+            self.textBox['background'] = self.defaultBackgroundColour
             self.textBox['selectbackground'] = 'red'
             self.textBox['highlightbackground'] = 'orange'
             self.textBox['inactiveselectbackground'] = 'green'
@@ -146,7 +148,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.exportFolderPathname = None
 
-        self.saveChangesAutomatically = False # different from AutoSave (which is in different files)
+        self.saveChangesAutomatically = True # different from AutoSave (which is in different files in different folders)
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.__init__ finished.") )
@@ -238,12 +240,14 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
-        gotoMenu.add_command( label='Previous book', underline=0, command=self.notWrittenYet )
-        gotoMenu.add_command( label='Next book', underline=0, command=self.notWrittenYet )
+        gotoMenu.add_command( label='Previous book', underline=0, command=self.doGotoPreviousBook )
+        gotoMenu.add_command( label='Next book', underline=0, command=self.doGotoNextBook )
         gotoMenu.add_command( label='Previous chapter', underline=0, command=self.doGotoPreviousChapter )
         gotoMenu.add_command( label='Next chapter', underline=0, command=self.doGotoNextChapter )
-        gotoMenu.add_command( label='Previous verse', underline=0, command=self.notWrittenYet )
-        gotoMenu.add_command( label='Next verse', underline=0, command=self.notWrittenYet )
+        gotoMenu.add_command( label='Previous section', underline=0, command=self.doGotoPreviousSection )
+        gotoMenu.add_command( label='Next section', underline=0, command=self.doGotoNextSection )
+        gotoMenu.add_command( label='Previous verse', underline=0, command=self.doGotoPreviousVerse )
+        gotoMenu.add_command( label='Next verse', underline=0, command=self.doGotoNextVerse )
         gotoMenu.add_separator()
         gotoMenu.add_command( label='Forward', underline=0, command=self.notWrittenYet )
         gotoMenu.add_command( label='Backward', underline=0, command=self.notWrittenYet )
@@ -368,8 +372,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -429,6 +433,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             if self.contextViewMode == 'BeforeAndAfter':
                 maxVerseMarkers = 3
             elif self.contextViewMode == 'ByVerse':
+                maxChapterMarkers = 1 if V=='0' else 0
                 maxVerseMarkers = 1
             elif self.contextViewMode == 'BySection':
                 maxVerseMarkers = 10
@@ -438,17 +443,31 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 maxVerseMarkers = self.getNumVerses( BBB, C )
             else: halt
 
-            warningMessage = None
+            errorMessage = warningMessage = None
             if numChaps > maxChapterMarkers:
-                warningMessage = "Too many USFM chapter markers (max of {} expected)".format( maxChapterMarkers )
+                errorMessage = _("Too many USFM chapter markers (max of {} expected)").format( maxChapterMarkers )
+                print( errorMessage )
+            elif numChaps < maxChapterMarkers:
+                warningMessage = _("May have missing USFM chapter markers (expected {}, found {})").format( maxChapterMarkers, numChaps )
                 print( warningMessage )
             if numVerses > maxVerseMarkers:
-                warningMessage = "Too many USFM verse markers (max of {} expected)".format( maxVerseMarkers )
+                errorMessage = _("Too many USFM verse markers (max of {} expected)").format( maxVerseMarkers )
+                print( errorMessage )
+            elif numVerses < maxVerseMarkers:
+                warningMessage = _("May have missing USFM verse markers (expected {}, found {})").format( maxVerseMarkers, numVerses )
                 print( warningMessage )
-            if warningMessage:
-                self.parentApp.setErrorStatus( warningMessage )
+
+            if errorMessage:
+                self.parentApp.setErrorStatus( errorMessage )
+                self.textBox['background'] = 'firebrick1'
                 self.hadTextWarning = True
-            elif self.hadTextWarning: self.parentApp.setReadyStatus()
+            elif warningMessage:
+                self.parentApp.setErrorStatus( warningMessage )
+                self.textBox['background'] = 'chocolate1'
+                self.hadTextWarning = True
+            elif self.hadTextWarning:
+                self.textBox['background'] = self.defaultBackgroundColour
+                self.parentApp.setReadyStatus()
 
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
@@ -955,7 +974,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             startingFlag = True
 
             if self.contextViewMode == 'BeforeAndAfter':
-                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
@@ -974,7 +993,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                             startingFlag = False
 
             elif self.contextViewMode == 'ByVerse':
-                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
@@ -992,7 +1011,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                                                 currentVerse=thisC==intC and thisV==intV )
 
             elif self.contextViewMode == 'BySection':
-                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 sectionStart, sectionEnd = findCurrentSection( newVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
                 intC1, intV1 = sectionStart.getChapterNumberInt(), sectionStart.getVerseNumberInt()
@@ -1014,7 +1033,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                             startingFlag = False
 
             elif self.contextViewMode == 'ByBook':
-                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):
@@ -1029,7 +1048,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                         startingFlag = False
 
             elif self.contextViewMode == 'ByChapter':
-                if debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 for thisC in range( 0, self.getNumChapters( BBB )+1 ):

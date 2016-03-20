@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # AutocompleteFunctions.py
@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-17' # by RJH
+LastModifiedDate = '2016-03-18' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.30'
@@ -194,24 +194,27 @@ def countBookWords( BBB, folder, filename ):
         # Now look for (and count) single and some multiple word sequences
         for wx,word in enumerate( words ):
             if not word: continue
-            if len(word) > 2: wordCounts[word] += 1
-            if word[-1] not in '—.–':
-                if wx < len(words)-1:
-                    doubleWord = ( word+' '+words[wx+1] )
-                    #print( 'doubleWord', repr(doubleWord) )
-                    wordCounts[doubleWord] += 1
-                    if wx < len(words)-2:
-                        tripleWord = ( doubleWord+' '+words[wx+2] )
-                        #print( 'tripleWord', repr(tripleWord) )
-                        wordCounts[tripleWord] += 1
-                        if wx < len(words)-3:
-                            quadWord = ( tripleWord+' '+words[wx+3] )
-                            #print( 'quadWord', repr(quadWord) )
-                            wordCounts[quadWord] += 1
-                            if wx < len(words)-4:
-                                quinWord = ( quadWord+' '+words[wx+3] )
-                                #print( 'quinWord', repr(quinWord) )
-                                wordCounts[quinWord] += 1
+            singleWord = word
+            while singleWord and singleWord[-1] in ',—.–!”:': singleWord = singleWord[:-1] # Remove certain final punctuation
+            if len(singleWord) > 2: wordCounts[singleWord] += 1
+
+            #if word[-1] not in '—.–':
+            if wx < len(words)-1:
+                doubleWord = ( word+' '+words[wx+1] )
+                #print( 'doubleWord', repr(doubleWord) )
+                wordCounts[doubleWord] += 1
+                if wx < len(words)-2:
+                    tripleWord = ( doubleWord+' '+words[wx+2] )
+                    #print( 'tripleWord', repr(tripleWord) )
+                    wordCounts[tripleWord] += 1
+                    if wx < len(words)-3:
+                        quadWord = ( tripleWord+' '+words[wx+3] )
+                        #print( 'quadWord', repr(quadWord) )
+                        wordCounts[quadWord] += 1
+                        if wx < len(words)-4:
+                            quinWord = ( quadWord+' '+words[wx+4] )
+                            #print( 'quinWord', repr(quinWord) )
+                            wordCounts[quinWord] += 1
     # end of countWords
 
     # main code for countBookWords
@@ -379,8 +382,8 @@ def loadBibleAutocompleteWords( editWindowObject ):
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
             parameters = [(BBB,editWindowObject.internalBible.sourceFolder,filename) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
             if BibleOrgSysGlobals.verbosityLevel > 1:
-                print( exp("Loading {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
-                print( "  NOTE: Outputs (including error and warning messages) from loading various books may be interspersed." )
+                print( exp("Loading up to {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
+                print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
             with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
                 results = pool.map( countBookWordsHelper, parameters ) # have the pool do our loads
                 assert len(results) == len(editWindowObject.internalBible.maximumPossibleFilenameTuples)
@@ -406,7 +409,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
                 if len(word) >= editWindowObject.autocompleteMinLength:
                     if word in autocompleteCounts: autocompleteCounts[word] += count
                     else: autocompleteCounts[word] = count
-    print( "there", len(autocompleteCounts) )
+    #print( "there", len(autocompleteCounts) )
 
     # Now make our list sorted with most common words first
     autocompleteWords = []
@@ -420,9 +423,10 @@ def loadBibleAutocompleteWords( editWindowObject ):
             #if ' ' not in word: halt
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'acW', autocompleteWords )
 
-    print( 'autocompleteWords', len(autocompleteWords) )
+    #print( 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
-    print( "loadBibleAutocompleteWords took", time.time()-startTime )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( "loadBibleAutocompleteWords took", time.time()-startTime )
 # end of AutocompleteFunctions.loadBibleAutocompleteWords
 
 

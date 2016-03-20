@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # AutocorrectFunctions.py
@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-01' # by RJH
+LastModifiedDate = '2016-03-18' # by RJH
 ShortProgName = "AutocorrectFunctions"
 ProgName = "Biblelator Autocorrect Functions"
 ProgVersion = '0.30'
@@ -80,7 +80,8 @@ def setAutocorrectEntries( self, entryList, append=False ):
     for inChars,outChars in self.autocorrectEntries:
         self.maxAutocorrectLength = max( len(inChars), self.maxAutocorrectLength )
 
-    print( "  autocorrect total entries loaded = {:,}".format( len(self.autocorrectEntries) ) )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( "  autocorrect total entries loaded = {:,}".format( len(self.autocorrectEntries) ) )
 # end of AutocorrectFunctions.setAutocorrectEntries
 
 

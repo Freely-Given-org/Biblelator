@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # BibleResourceWindows.py
@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-17' # by RJH
+LastModifiedDate = '2016-03-18' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -122,7 +122,8 @@ class BibleBox( ChildBox ):
         lastCharWasSpace = haveTextFlag = not firstFlag
 
         if verseContextData is None:
-            if C!='0': print( "  ", exp("displayAppendVerse"), "has no data for", verseKey )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!='0' and V!='0':
+                print( "  ", exp("displayAppendVerse"), "has no data for", verseKey )
             verseDataList = context = None
         elif isinstance( verseContextData, tuple ):
             assert len(verseContextData) == 2
@@ -155,7 +156,8 @@ class BibleBox( ChildBox ):
         self.textBox.mark_gravity( currentMarkName, tk.LEFT )
 
         if verseDataList is None:
-            if C!='0': print( "  ", exp("BibleBox.displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!='0' and V!='0':
+                print( "  ", exp("BibleBox.displayAppendVerse"), "has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
         else:
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # TextEditWindow.py
@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-17' # by RJH
+LastModifiedDate = '2016-03-20' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.30'
@@ -107,10 +107,11 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
 
-        self.textBox['background'] = "white"
-        self.textBox['selectbackground'] = "red"
-        self.textBox['highlightbackground'] = "orange"
-        self.textBox['inactiveselectbackground'] = "green"
+        self.defaultBackgroundColour = 'gold2'
+        self.textBox['background'] = self.defaultBackgroundColour
+        self.textBox['selectbackground'] = 'red'
+        self.textBox['highlightbackground'] = 'orange'
+        self.textBox['inactiveselectbackground'] = 'green'
 
         self.textBox['wrap'] = 'word'
         self.textBox.config( undo=True, autoseparators=True )
@@ -128,18 +129,17 @@ class TextEditWindow( ChildWindow ):
         setDefaultAutocorrectEntries( self )
         #setAutocorrectEntries( self, ourAutocorrectEntries )
 
-        self.autocompleteBox = self.autocompleteMode = None
-        self.autocompleteWords = {}
+        self.autocompleteBox, self.autocompleteWords, self.existingAutocompleteWordText = None, {}, ''
         self.autocompleteWordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
         # Note: I guess we could have used non-word chars instead (to stop the backwards word search)
         self.autocompleteMinLength = 3 # Show the window after this many characters have been typed
         self.autocompleteMaxLength = 12 # Remove window after this many characters have been typed
-        self.existingAutocompleteWordText = ''
+        self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
 
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # temporarily put some words in
-            from AutocompleteFunctions import setAutocompleteWords
-            self.autocompleteMode = 'GivenList'
-            setAutocompleteWords( self, ('a','an','ate','apple','bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # temporarily put some words in
+            #from AutocompleteFunctions import setAutocompleteWords
+            #self.autocompleteMode = 'GivenList'
+            #setAutocompleteWords( self, ('a','an','ate','apple','bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
 
         self.saveChangesAutomatically = False # different from AutoSave (which is in different files)
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
@@ -337,7 +337,8 @@ class TextEditWindow( ChildWindow ):
                 self.after( self.autosaveTime, self.doAutosave ) # Redo it so we can put up the asterisk if the text is changed
                 self.autosaveScheduled = True
         except AttributeError:
-            print( "Autosave not set-up properly yet" )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "Autosave not set-up properly yet" )
     # end if TextEditWindow.refreshTitleContinue
 
 
@@ -437,8 +438,8 @@ class TextEditWindow( ChildWindow ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -526,7 +527,7 @@ class TextEditWindow( ChildWindow ):
                                 self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
                                                             relief="flat",
                                                             yscrollcommand=autocompleteScrollBar.set,
-                                                            height=6 )
+                                                            width=20, height=6 )
                                 autocompleteScrollBar.config( command=self.autocompleteBox.yview )
                                 self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
                                 #self.autocompleteBox.select_set( '0' )
@@ -871,10 +872,13 @@ class TextEditWindow( ChildWindow ):
 
     def rememberFileTimeAndSize( self ):
         """
+        Just record the file modification time and size in bytes
+            so that we can check later if it's changed on-disk.
         """
         self.lastFiletime = os.stat( self.filepath ).st_mtime
         self.lastFilesize = os.stat( self.filepath ).st_size
-        print( " rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( " rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
     # end of TextEditWindow.rememberFileTimeAndSize
 
 
@@ -991,9 +995,9 @@ class TextEditWindow( ChildWindow ):
             #print( exp("TextEditWindow.doAutosave()") )
 
         if self.modified():
-            print( "winfo_id", repr(self.winfo_id()) )
-            print( "winfo_name", repr(self.winfo_name()) )
-            print( "str win", repr(str(self)) )
+            #print( "winfo_id", repr(self.winfo_id()) )
+            #print( "winfo_name", repr(self.winfo_name()) )
+            #print( "str win", repr(str(self)) )
             partialAutosaveFolderPath = self.folderPath if self.folderPath else self.parentApp.homeFolderPath
             # NOTE: Don't use a hidden folder coz user might not be able to find it
             autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' ) if APP_NAME in partialAutosaveFolderPath else os.path.join( partialAutosaveFolderPath, APP_NAME+'/', 'AutoSave/' )
@@ -1118,7 +1122,7 @@ class TextEditWindow( ChildWindow ):
                     return
 
         if terminate and not self.modified():
-            print( "HEREEEEEEEEE" )
+            #print( "HEREEEEEEEEE" )
             self.closeChildWindow()
     # end of TextEditWindow.onCloseEditor
 # end of TextEditWindow class

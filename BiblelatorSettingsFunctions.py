@@ -30,7 +30,7 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-17' # by RJH
+LastModifiedDate = '2016-03-18' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.30'
@@ -510,7 +510,10 @@ def writeSettingsFile( self ):
     """
     Update our program settings and save them.
     """
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( exp("writeSettingsFile()") )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("writeSettingsFile()") )
+    elif BibleOrgSysGlobals.verbosityLevel > 0:
+        print( _("  Saving program settings…") )
+
     if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'writeSettingsFile' )
     self.settings.reset()
 
@@ -585,7 +588,7 @@ def writeSettingsFile( self ):
     if self.lexiconWord: lexicon['currentWord'] = self.lexiconWord
 
     # Save any open Bible resource collections
-    if debuggingThisModule: print( "save collection data…" )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "save collection data…" )
     for appWin in self.childWindows:
         #print( "  gT", appWin.genericWindowType )
         #print( "  wT", appWin.winType )

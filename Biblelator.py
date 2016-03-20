@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-18' # by RJH
+LastModifiedDate = '2016-03-19' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.30'
@@ -636,9 +636,11 @@ class Application( Frame ):
     def setDebugText( self, newMessage=None ):
         """
         """
-        print( exp("setDebugText( {!r} )").format( newMessage ) )
+        if debuggingThisModule:
+            #print( exp("setDebugText( {!r} )").format( newMessage ) )
+            assert BibleOrgSysGlobals.debugFlag
+
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        assert BibleOrgSysGlobals.debugFlag
         self.debugTextBox['state'] = tk.NORMAL # Allow editing
         self.debugTextBox.delete( '1.0', tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
@@ -749,7 +751,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doOpenRecent( {} )").format( recentIndex ) )
             self.setDebugText( "doOpenRecent…" )
-        assert recentIndex < len(self.recentFiles)
+            assert recentIndex < len(self.recentFiles)
 
         filename, folder, winType = self.recentFiles[recentIndex]
         print( "Need to open", filename, folder, winType )
@@ -803,6 +805,8 @@ class Application( Frame ):
             print( exp("openDBPBibleResourceWindow()") )
             self.setDebugText( "openDBPBibleResourceWindow…" )
             assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
+
+        self.setWaitStatus( "openDBPBibleResourceWindow…" )
         dBRW = DBPBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: dBRW.geometry( windowGeometry )
         if dBRW.DBPModule is None:
@@ -830,14 +834,16 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openSwordResource()") )
             self.setDebugText( "doOpenSwordResource…" )
-        self.setStatus( "doOpenSwordResource…" )
+
+        self.setWaitStatus( "doOpenSwordResource…" )
         if self.SwordInterface is None and SwordType is not None:
             self.SwordInterface = SwordInterface() # Load the Sword library
         if self.SwordInterface is None: # still
             logging.critical( exp("doOpenSwordResource: no Sword interface available") )
             showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
+            self.setReadyStatus()
             return
-        givenList = self.SwordInterface.getAvailableModuleCodeTuples( ['Biblical Texts','Commentaries'] )
+        givenList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
         #print( 'givenList', givenList )
         genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
         ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenList]
@@ -872,6 +878,7 @@ class Application( Frame ):
             print( exp("openSwordBibleResourceWindow( {}, {} )").format( moduleAbbreviation, windowGeometry ) )
             self.setDebugText( "openSwordBibleResourceWindow…" )
 
+        self.setWaitStatus( "openSwordBibleResourceWindow…" )
         if self.SwordInterface is None:
             self.SwordInterface = SwordInterface() # Load the Sword library
         swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
@@ -893,7 +900,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openInternalBibleResource()") )
             self.setDebugText( "doOpenInternalBibleResource…" )
-        self.setStatus( "doOpenInternalBibleResource…" )
+
+        self.setWaitStatus( "doOpenInternalBibleResource…" )
         #requestedFolder = askdirectory()
         openDialog = Directory( title=_("Select Bible folder"), initialdir=self.lastInternalBibleDir )
         requestedFolder = openDialog.show()
@@ -914,6 +922,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openInternalBibleResourceWindow()") )
             self.setDebugText( "openInternalBibleResourceWindow…" )
+
+        self.setWaitStatus( "openInternalBibleResourceWindow…" )
         iBRW = InternalBibleResourceWindow( self, modulePath )
         if windowGeometry: iBRW.geometry( windowGeometry )
         if iBRW.internalBible is None:
@@ -941,6 +951,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doOpenBibleLexiconResource()") )
             self.setDebugText( "doOpenBibleLexiconResource…" )
+
         self.setWaitStatus( "doOpenBibleLexiconResource…" )
         #requestedFolder = askdirectory()
         #if requestedFolder:
@@ -959,6 +970,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openBibleLexiconResourceWindow()") )
             self.setDebugText( "openBibleLexiconResourceWindow…" )
+
+        self.setWaitStatus( "openBibleLexiconResourceWindow…" )
         if lexiconPath is None: lexiconPath = "../"
         bLRW = BibleLexiconResourceWindow( self, lexiconPath )
         if windowGeometry: bLRW.geometry( windowGeometry )
@@ -985,7 +998,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doOpenBibleResourceCollection()") )
             self.setDebugText( "doOpenBibleResourceCollection…" )
-        self.setStatus( "doOpenBibleResourceCollection…" )
+
+        self.setWaitStatus( "doOpenBibleResourceCollection…" )
         existingNames = []
         for cw in self.childWindows:
             existingNames.append( cw.moduleID.upper() if cw.moduleID else 'Unknown' )
@@ -1004,6 +1018,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openBibleResourceCollectionWindow( {!r} )").format( collectionName ) )
             self.setDebugText( "openBibleResourceCollectionWindow…" )
+
+        self.setWaitStatus( "openBibleResourceCollectionWindow…" )
         BRC = BibleResourceCollectionWindow( self, collectionName )
         if windowGeometry: BRC.geometry( windowGeometry )
         #if BRC.internalBible is None:
@@ -1029,6 +1045,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doOpenBibleReferenceCollection()") )
             self.setDebugText( "doOpenBibleReferenceCollection…" )
+
         self.setStatus( "doOpenBibleReferenceCollection…" )
         existingNames = []
         for cw in self.childWindows:
@@ -1048,6 +1065,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openBibleReferenceCollectionWindow( {!r} )").format( collectionName ) )
             self.setDebugText( "openBibleReferenceCollectionWindow…" )
+
+        self.setWaitStatus( "openBibleReferenceCollectionWindow…" )
         BRC = BibleReferenceCollectionWindow( self, collectionName )
         if windowGeometry: BRC.geometry( windowGeometry )
         #if BRC.internalBible is None:
@@ -1072,6 +1091,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doOpenNewTextEditWindow()") )
             self.setDebugText( "doOpenNewTextEditWindow…" )
+
+        self.setWaitStatus( "doOpenNewTextEditWindow…" )
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
         self.childWindows.append( tEW )
@@ -1089,12 +1110,18 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doOpenFileTextEditWindow()") )
             self.setDebugText( "doOpenFileTextEditWindow…" )
-        openDialog = Open( initialdir=self.lastFileDir, filetypes=TEXT_FILETYPES )
+
+        self.setWaitStatus( "doOpenFileTextEditWindow…" )
+        openDialog = Open( title=_("Select text file"), initialdir=self.lastFileDir, filetypes=TEXT_FILETYPES )
         fileResult = openDialog.show()
-        if not fileResult: return
+        if not fileResult:
+            self.setReadyStatus()
+            return
         if not os.path.isfile( fileResult ):
             showerror( self, APP_NAME, 'Could not open file ' + fileResult )
+            self.setReadyStatus()
             return
+
         folderPath = os.path.split( fileResult )[0]
         print( '\n\n\nFP doOpenFileTextEditWindow', repr(folderPath) )
         self.lastFileDir = folderPath
@@ -1110,6 +1137,7 @@ class Application( Frame ):
             if debuggingThisModule: print( exp("openFileTextEditWindow( {} )").format( filepath ) )
             self.setDebugText( "openFileTextEditWindow…" )
 
+        self.setWaitStatus( "openFileTextEditWindow…" )
         if filepath is None: # it's a blank window
             tEW = TextEditWindow( self )
             if windowGeometry: tEW.geometry( windowGeometry )
@@ -1160,6 +1188,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule: print( exp("doViewLog()") )
             self.setDebugText( "doViewLog…" )
+
+        self.setWaitStatus( "doViewLog…" )
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1182,16 +1212,22 @@ class Application( Frame ):
             offers to create blank books,
         and then opens an editor window.
         """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( exp("doStartNewProject()") )
+        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+            print( exp("doStartNewProject()") )
+
+        self.setWaitStatus( "doStartNewProject…" )
         gnpn = GetNewProjectNameDialog( self, title=_("New Project Name") )
-        if not gnpn.result: return
+        if not gnpn.result:
+            self.setReadyStatus()
+            return
         if gnpn.result: # This is a dictionary
             projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
             newFolderPath = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME, projAbbrev )
-            print( '\n\n\nFP doStartNewProject', repr(folderPath) )
+            print( '\n\n\nFP doStartNewProject', repr(newFolderPath) )
             if os.path.isdir( newFolderPath ):
                 showerror( self, _("New Project"), _("Sorry, we already have a {!r} project folder in {}") \
                                             .format( projAbbrev, os.path.join( self.homeFolderPath, DATA_FOLDER_NAME ) ) )
+                self.setReadyStatus()
                 return None
             os.mkdir( newFolderPath )
 
@@ -1233,12 +1269,19 @@ class Application( Frame ):
     def doOpenBiblelatorProject( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( exp("doOpenBiblelatorProject()") )
-        openDialog = Open( initialdir=self.lastBiblelatorFileDir, filetypes=BIBLELATOR_PROJECT_FILETYPES )
+        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+            print( exp("doOpenBiblelatorProject()") )
+            self.setDebugText( "doOpenBiblelatorProject…" )
+
+        self.setWaitStatus( "doOpenBiblelatorProject…" )
+        openDialog = Open( title=_("Select project settings file"), initialdir=self.lastBiblelatorFileDir, filetypes=BIBLELATOR_PROJECT_FILETYPES )
         projectSettingsFilepath = openDialog.show()
-        if not projectSettingsFilepath: return
+        if not projectSettingsFilepath:
+            self.setReadyStatus()
+            return
         if not os.path.isfile( projectSettingsFilepath ):
             showerror( self, APP_NAME, 'Could not open file ' + projectSettingsFilepath )
+            self.setReadyStatus()
             return
         containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
         print( '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
@@ -1258,6 +1301,7 @@ class Application( Frame ):
             self.setDebugText( "openBiblelatorBibleEditWindow…" )
             assert os.path.isdir( projectFolderPath )
 
+        self.setWaitStatus( "openBiblelatorBibleEditWindow…" )
         uB = USFMBible( projectFolderPath )
         uEW = USFMEditWindow( self, uB, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
@@ -1292,12 +1336,17 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
             print( exp("doOpenParatextProject()") )
             self.setDebugText( "doOpenParatextProject…" )
+
+        self.setWaitStatus( "doOpenParatextProject…" )
         #if not self.openDialog:
-        openDialog = Open( initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
+        openDialog = Open( title=_("Select project SSF file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
         SSFFilepath = openDialog.show()
-        if not SSFFilepath: return
+        if not SSFFilepath:
+            self.setReadyStatus()
+            return
         if not os.path.isfile( SSFFilepath ):
             showerror( self, APP_NAME, 'Could not open file ' + SSFFilepath )
+            self.setReadyStatus()
             return
         ptxBible = PTXBible( None ) # Create a blank Paratext Bible object
         #ptxBible.loadSSFData( SSFFilepath )
@@ -1313,11 +1362,13 @@ class Application( Frame ):
         try: ptxBibleName = ptxBible.suppliedMetadata['PTX']['SSF']['Name']
         except KeyError:
             showerror( self, APP_NAME, "Could not find 'Name' in " + SSFFilepath )
+            self.setReadyStatus()
         try: ptxBibleFullName = ptxBible.suppliedMetadata['PTX']['SSF']['FullName']
         except KeyError:
             showerror( self, APP_NAME, "Could not find 'FullName' in " + SSFFilepath )
         if 'Editable' in ptxBible.suppliedMetadata and ptxBible.suppliedMetadata['Editable'] != 'T':
             showerror( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptxBibleName, ptxBibleFullName ) )
+            self.setReadyStatus()
             return
 
         # Find the correct folder that contains the actual USFM files
@@ -1352,11 +1403,12 @@ class Application( Frame ):
 
         Returns the new USFMEditWindow object.
         """
-        if BibleOrgSysGlobals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("openParatextBibleEditWindow( {!r} )").format( SSFFilepath ) )
             self.setDebugText( "openParatextBibleEditWindow…" )
             assert os.path.isfile( SSFFilepath )
 
+        self.setWaitStatus( "openParatextBibleEditWindow…" )
         ptxBible = PTXBible( None ) # Create a blank Paratext Bible object
         SSFDict = loadPTXSSFData( ptxBible, SSFFilepath )
         if SSFDict:
@@ -1371,16 +1423,18 @@ class Application( Frame ):
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
-                print( "openParatextBibleEditWindow: Not windows" )
-                print( 'openParatextBibleEditWindow: ssD1', repr(ssfDirectory) )
+                #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                    #print( "openParatextBibleEditWindow: Not windows" )
+                    #print( 'openParatextBibleEditWindow: ssD1', repr(ssfDirectory) )
                 slash = '\\' if '\\' in ssfDirectory else '/'
                 if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
                 ix = ssfDirectory.rfind( slash ) # Find the last slash
                 if ix!= -1:
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
-                    print( 'ssD2', repr(ssfDirectory) )
+                    #print( 'ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
                         showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
+                        self.setReadyStatus()
                         return
         ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
         ptxBible.preload()
@@ -1655,7 +1709,8 @@ class Application( Frame ):
         """
         Handle a new book setting from the GUI dropbox.
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("spinToNewBook( {} )").format( event ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("spinToNewBook( {} )").format( event ) )
         #print( dir(event) )
 
         self.chapterNumberVar.set( '1' )
@@ -1668,7 +1723,8 @@ class Application( Frame ):
         """
         Handle a new chapter setting from the GUI spinbox.
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("spinToNewChapter( {} )").format( event ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("spinToNewChapter( {} )").format( event ) )
         #print( dir(event) )
 
         #self.chapterNumberVar.set( '1' )
@@ -1679,9 +1735,10 @@ class Application( Frame ):
 
     def acceptNewBnCV( self, event=None ):
         """
-        Handle a new book, chapter, verse setting from the GUI spinboxes.
+        Handle a new bookname, chapter, verse setting from the GUI spinboxes.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("acceptNewBnCV( {} )").format( event ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("acceptNewBnCV( {} )").format( event ) )
         #print( dir(event) )
 
         bn = self.bookNameVar.get()
@@ -1747,7 +1804,7 @@ class Application( Frame ):
         Called from child windows.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("gotoGroupBCV( {} {}:{} {} )").format( BBB, C, V, originator ) )
+            print( exp("gotoGroupBCV( {}, {} {}:{} {} )").format( groupCode, BBB, C, V, originator ) )
             assert groupCode in BIBLE_GROUP_CODES
 
         newVerseKey = SimpleVerseKey( BBB, C, V )
@@ -2165,6 +2222,8 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCloseMe()") )
+        elif BibleOrgSysGlobals.verbosityLevel > 0:
+            print( _("{} is closing down…").format( APP_NAME ) )
 
         for appWin in self.childWindows:
             if 'Editor' in appWin.genericWindowType and appWin.modified():
@@ -2240,7 +2299,7 @@ def main( homeFolderPath, loggingFolderPath ):
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if ProgName+'.py' in line:
-                print( 'Found in ps xa:', repr(line) )
+                #print( 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
@@ -2297,7 +2356,7 @@ if __name__ == '__main__':
 
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    if 'win' in sys.platform:
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         sys.stdout = io.TextIOWrapper(sys.stdout.detach(), sys.stdout.encoding, 'replace')
 
     if BibleOrgSysGlobals.debugFlag:
