@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-18' # by RJH
+LastModifiedDate = '2016-03-20' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.30'
@@ -637,62 +637,62 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.config( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        #fileMenu.add_command( label='New…', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_command( label='Open…', underline=0, command=self.notWrittenYet )
+        self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
+        #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label=_('Open…'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
-        #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
+        #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
         #subfileMenuExport = tk.Menu( fileMenu )
-        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
+        #subfileMenuExport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #subfileMenuExport.add_command( label=_('HTML'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Export'), underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
+        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] ) # close this window
 
         editMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
-        editMenu.add_command( label='Copy', underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
+        self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
+        editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
         editMenu.add_separator()
-        editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
+        editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
 
         searchMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+        self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find…', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
-        searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
-        gotoMenu.add_command( label='Previous book', underline=-1, command=self.doGotoPreviousBook )
-        gotoMenu.add_command( label='Next book', underline=-1, command=self.doGotoNextBook )
-        gotoMenu.add_command( label='Previous chapter', underline=-1, command=self.doGotoPreviousChapter )
-        gotoMenu.add_command( label='Next chapter', underline=-1, command=self.doGotoNextChapter )
-        gotoMenu.add_command( label='Previous section', underline=-1, command=self.doGotoPreviousSection )
-        gotoMenu.add_command( label='Next section', underline=-1, command=self.doGotoNextSection )
-        gotoMenu.add_command( label='Previous verse', underline=-1, command=self.doGotoPreviousVerse )
-        gotoMenu.add_command( label='Next verse', underline=-1, command=self.doGotoNextVerse )
+        self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
+        gotoMenu.add_command( label=_('Previous book'), underline=-1, command=self.doGotoPreviousBook )
+        gotoMenu.add_command( label=_('Next book'), underline=-1, command=self.doGotoNextBook )
+        gotoMenu.add_command( label=_('Previous chapter'), underline=-1, command=self.doGotoPreviousChapter )
+        gotoMenu.add_command( label=_('Next chapter'), underline=-1, command=self.doGotoNextChapter )
+        gotoMenu.add_command( label=_('Previous section'), underline=-1, command=self.doGotoPreviousSection )
+        gotoMenu.add_command( label=_('Next section'), underline=-1, command=self.doGotoNextSection )
+        gotoMenu.add_command( label=_('Previous verse'), underline=-1, command=self.doGotoPreviousVerse )
+        gotoMenu.add_command( label=_('Next verse'), underline=-1, command=self.doGotoNextVerse )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Forward', underline=0, command=self.doGoForward )
-        gotoMenu.add_command( label='Backward', underline=0, command=self.doGoBackward )
+        gotoMenu.add_command( label=_('Forward'), underline=0, command=self.doGoForward )
+        gotoMenu.add_command( label=_('Backward'), underline=0, command=self.doGoBackward )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Previous list item', underline=0, state=tk.DISABLED, command=self.doGotoPreviousListItem )
-        gotoMenu.add_command( label='Next list item', underline=0, state=tk.DISABLED, command=self.doGotoNextListItem )
+        gotoMenu.add_command( label=_('Previous list item'), underline=0, state=tk.DISABLED, command=self.doGotoPreviousListItem )
+        gotoMenu.add_command( label=_('Next list item'), underline=0, state=tk.DISABLED, command=self.doGotoNextListItem )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label='Book', underline=0, command=self.doGotoBook )
+        gotoMenu.add_command( label=_('Book'), underline=0, command=self.doGotoBook )
         gotoMenu.add_separator()
         self._groupRadioVar.set( self.groupCode )
-        gotoMenu.add_radiobutton( label='Group A', underline=6, value='A', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group B', underline=6, value='B', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group C', underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
-        gotoMenu.add_radiobutton( label='Group D', underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label=_('Group A'), underline=6, value='A', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label=_('Group B'), underline=6, value='B', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
         self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
-        self.menubar.add_cascade( menu=self.viewMenu, label='View', underline=0 )
+        self.menubar.add_cascade( menu=self.viewMenu, label=_('View'), underline=0 )
         if   self.contextViewMode == 'BeforeAndAfter': self._viewRadioVar.set( 1 )
         elif self.contextViewMode == 'BySection': self._viewRadioVar.set( 2 )
         elif self.contextViewMode == 'ByVerse': self._viewRadioVar.set( 3 )
@@ -700,29 +700,29 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
         else: print( self.contextViewMode ); halt
 
-        self.viewMenu.add_radiobutton( label='Before and after…', underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='One section', underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Single verse', underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Whole book', underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label='Whole chapter', underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
 
         if 'DBP' in self.winType: # disable excessive online use
             self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
             self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
+        self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
+        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
-        windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
+        self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
+        windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
-        self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
+        self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About…', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict[_('About')][0] )
     # end of BibleResourceWindow.createMenuBar
 
 

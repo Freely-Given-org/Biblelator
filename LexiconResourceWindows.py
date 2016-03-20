@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-07' # by RJH
+LastModifiedDate = '2016-03-20' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
 ProgVersion = '0.30'
@@ -119,53 +119,53 @@ class BibleLexiconResourceWindow( ChildWindow ):
         self.config( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=fileMenu, label='File', underline=0 )
-        #fileMenu.add_command( label='New…', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_command( label='Open…', underline=0, command=self.notWrittenYet )
+        self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
+        #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label=_('Open…'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
-        #subfileMenuImport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Import', underline=0, menu=subfileMenuImport )
+        #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
         #subfileMenuExport = tk.Menu( fileMenu )
-        #subfileMenuExport.add_command( label='USX', underline=0, command=self.notWrittenYet )
-        #subfileMenuExport.add_command( label='HTML', underline=0, command=self.notWrittenYet )
-        #fileMenu.add_cascade( label='Export', underline=0, menu=subfileMenuExport )
+        #subfileMenuExport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #subfileMenuExport.add_command( label=_('HTML'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Export'), underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label='Info…', underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict['Info'][0] )
+        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label='Close', underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict['Close'][0] ) # close this window
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] ) # close this window
 
         editMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=editMenu, label='Edit', underline=0 )
-        editMenu.add_command( label='Copy', underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict['Copy'][0] )
+        self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
+        editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
         editMenu.add_separator()
-        editMenu.add_command( label='Select all', underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict['SelectAll'][0] )
+        editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
 
         searchMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=searchMenu, label='Search', underline=0 )
-        searchMenu.add_command( label='Goto line…', underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict['Line'][0] )
+        self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label='Find…', underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict['Find'][0] )
-        searchMenu.add_command( label='Find again', underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict['Refind'][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=gotoMenu, label='Goto', underline=0 )
-        gotoMenu.add_command( label='Previous entry', underline=0, command=self.doGotoPreviousEntry )
-        gotoMenu.add_command( label='Next entry', underline=0, command=self.doGotoNextEntry )
+        self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
+        gotoMenu.add_command( label=_('Previous entry'), underline=0, command=self.doGotoPreviousEntry )
+        gotoMenu.add_command( label=_('Next entry'), underline=0, command=self.doGotoNextEntry )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=toolsMenu, label='Tools', underline=0 )
-        toolsMenu.add_command( label='Options…', underline=0, command=self.notWrittenYet )
+        self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
+        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=windowMenu, label='Window', underline=0 )
-        windowMenu.add_command( label='Bring in', underline=0, command=self.notWrittenYet )
+        self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
+        windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
-        self.menubar.add_cascade( menu=helpMenu, underline=0, label='Help' )
-        helpMenu.add_command( label='Help…', underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict['Help'][0] )
+        self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label='About…', underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict['About'][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict[_('About')][0] )
     # end of BibleLexiconResourceWindow.createMenuBar
 
 

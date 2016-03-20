@@ -12,7 +12,6 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
-* Editor loses text if change context view mode after editing
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu only does it once)

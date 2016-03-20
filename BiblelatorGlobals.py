@@ -40,7 +40,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-07' # by RJH
+LastModifiedDate = '2016-03-20' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.30'
@@ -113,14 +113,31 @@ EDIT_MODE_NORMAL = 'Edit'
 EDIT_MODE_USFM = 'USFM Edit'
 
 
+# DEFAULT_KEY_BINDING_DICT is a dictionary where
+#   the index is a menu word like 'Save'
+#   and the entry is a tuple where
+#       the first entry is the keyboard description of the shortcut
+#       followed by all (i.e., one or more) TKinter values which should be bound to that shortcut.
+#
 # Not all of these are used for all windows
-DEFAULT_KEY_BINDING_DICT = { 'Cut':('Ctrl+x','<Control-X>','<Control-x>'), 'Copy':('Ctrl+c','<Control-C>','<Control-c>'),
-        'Paste':('Ctrl+v','<Control-V>','<Control-v>'), 'SelectAll':('Ctrl+a','<Control-A>','<Control-a>'),
-        'Find':('Ctrl+f','<Control-F>','<Control-f>'), 'Refind':('F3/Ctrl+g','<Control-G>','<Control-g>','<F3>'),
-        'Undo':('Ctrl+z','<Control-Z>','<Control-z>'), 'Redo':('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
-        'Line':('Ctrl+l','<Control-L>','<Control-l>'), 'Save':('Ctrl+s','<Control-S>','<Control-s>'),
-        'Help':('F1','<F1>'), 'Info':('F11','<F11>'), 'About':('F12','<F12>'),
-        'Close':('Ctrl+F4','<Control-F4>'), 'Quit':('Alt+F4','<Alt-F4>'), }
+#
+DEFAULT_KEY_BINDING_DICT = {
+    _('Cut'):('Ctrl+x','<Control-X>','<Control-x>'),
+    _('Copy'):('Ctrl+c','<Control-C>','<Control-c>'),
+    _('Paste'):('Ctrl+v','<Control-V>','<Control-v>'),
+    _('SelectAll'):('Ctrl+a','<Control-A>','<Control-a>'),
+    _('Find'):('Ctrl+f','<Control-F>','<Control-f>'),
+    _('Refind'):('F3/Ctrl+g','<Control-G>','<Control-g>','<F3>'),
+    _('Undo'):('Ctrl+z','<Control-Z>','<Control-z>'),
+    _('Redo'):('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
+    _('Line'):('Ctrl+l','<Control-L>','<Control-l>'),
+    _('Save'):('Ctrl+s','<Control-S>','<Control-s>'),
+    _('Help'):('F1','<F1>'),
+    _('Info'):('F11','<F11>'),
+    _('About'):('F12','<F12>'),
+    _('Close'):('Ctrl+F4','<Control-F4>'),
+    _('Quit'):('Alt+F4','<Alt-F4>'), }
+#print( DEFAULT_KEY_BINDING_DICT ); halt
 
 
 
