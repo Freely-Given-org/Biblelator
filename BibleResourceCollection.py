@@ -32,10 +32,10 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-20' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.30'
+ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1101,10 +1101,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
 
-        givenList = self.parentApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
-        #print( 'givenList', givenList )
+        givenDupleList = self.parentApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
+        #print( 'givenDupleList', givenDupleList )
         genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
-        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenList]
+        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
         if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
         #print( "ourList", ourList )
         if ourList:
@@ -1314,14 +1314,13 @@ def demo():
 
 
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
-    import multiprocessing
+    from multiprocessing import freeze_support
+    freeze_support() # Multiprocessing support for frozen Windows executables
+
 
     # Configure basic set-up
-    parser = setup( ProgName, ProgVersion )
-    addStandardOptionsAndProcess( parser )
-
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -1334,5 +1333,5 @@ if __name__ == '__main__':
 
     demo()
 
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of BibleResourceCollection.py

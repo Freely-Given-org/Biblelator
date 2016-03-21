@@ -20,6 +20,13 @@ The following are some of the reasons behind some of the major development decis
     of the Bible might have a chance of making a small change to the program in order to handle
     a specific need that he/she might have (or if not, to hire someone else to make the change).
 
+    According to Wikipedia: "Python is a widely used high-level, general-purpose, interpreted,
+    dynamic programming language. Its design philosophy emphasizes code readability, and its syntax
+    allows programmers to express concepts in fewer lines of code than would be possible in languages
+    such as C++ or Java. The language provides constructs intended to enable clear programs on both
+    a small and large scale." These are exactly some of the reasons that Python was chosen.
+    (From https://en.wikipedia.org/wiki/Python_(programming_language) )
+
 
 2. Python3 versus Python2
 

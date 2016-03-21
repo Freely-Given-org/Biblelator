@@ -40,10 +40,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-20' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.30'
+ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -278,14 +278,13 @@ def demo():
 
 
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
-    import multiprocessing
+    from multiprocessing import freeze_support
+    freeze_support() # Multiprocessing support for frozen Windows executables
+
 
     # Configure basic set-up
-    parser = setup( ProgName, ProgVersion )
-    addStandardOptionsAndProcess( parser )
-
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -298,5 +297,5 @@ if __name__ == '__main__':
 
     demo()
 
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of BiblelatorGlobals.py

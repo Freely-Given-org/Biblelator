@@ -96,6 +96,21 @@ For an overview of the program design philosophy, see Development.md.
     Projects are Bibles in the process of being translated, so they have a full edit window.
 
 
+8a. Biblelator Project Windows
+
+    If Biblelator is you only Bible editor, you can use our native Bible projects. At this
+    stage, you simply give a Bible name and abbreviation, e.g., "My special Bible", "MSB".
+    The project files are saved as UTF-8 files in your BiblelatorSettings folder.
+
+
+8b. Paratext Project Windows
+
+    If you already have a Paratext project, Biblelator can also be used as an editor/checker
+    (but of course you're likely to lose work if you edit using both programs on the same
+    files at the same time so we suggest only having one of these programs open at a time).
+    You point Biblelator at the .SSF file to open an existing Paratext project in Biblelator.
+
+
 9. Bible Groups
 
     Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All

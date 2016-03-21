@@ -35,14 +35,13 @@ LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.31'
-SettingsVersion = '0.31' # Only need to change this if the settings format has changed and now incompatible
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
-import io, sys, os, logging, subprocess
+import sys, os, logging, subprocess
 import multiprocessing
 
 import tkinter as tk
@@ -843,10 +842,10 @@ class Application( Frame ):
             showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             self.setReadyStatus()
             return
-        givenList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
-        #print( 'givenList', givenList )
+        givenDupleList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
+        #print( 'givenDupleList', givenDupleList )
         genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
-        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenList]
+        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
         if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
         #print( "ourList", ourList )
         if ourList:
@@ -1156,6 +1155,7 @@ class Application( Frame ):
 
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openFileTextEditWindow" )
         self.setReadyStatus()
+        return tEW
     # end of Application.openFileTextEditWindow
 
 
@@ -1212,7 +1212,7 @@ class Application( Frame ):
             offers to create blank books,
         and then opens an editor window.
         """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doStartNewProject()") )
 
         self.setWaitStatus( "doStartNewProject…" )
@@ -1269,7 +1269,7 @@ class Application( Frame ):
     def doOpenBiblelatorProject( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doOpenBiblelatorProject()") )
             self.setDebugText( "doOpenBiblelatorProject…" )
 
@@ -1322,7 +1322,7 @@ class Application( Frame ):
     #def doOpenBibleditProject( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( exp("doOpenBibleditProject()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doOpenBibleditProject()") )
         #self.notWrittenYet()
     ## end of Application.doOpenBibleditProject
 
@@ -1333,7 +1333,7 @@ class Application( Frame ):
 
         Requests a SSF file from the user.
         """
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doOpenParatextProject()") )
             self.setDebugText( "doOpenParatextProject…" )
 
@@ -1446,7 +1446,7 @@ class Application( Frame ):
         uEW.setFilepath( SSFFilepath )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
         self.childWindows.append( uEW )
-        uEW.prepareAutocomplete()
+        if uEW.autocompleteMode: uEW.prepareAutocomplete()
 
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatextBibleEditWindow" )
         self.setReadyStatus()
@@ -2203,7 +2203,7 @@ class Application( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag or debuggingThisModule: print( exp("doProjectClose()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doProjectClose()") )
         #self.notWrittenYet()
     ## end of Application.doProjectClose
 
@@ -2343,21 +2343,20 @@ def main( homeFolderPath, loggingFolderPath ):
 
 
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
+    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+
+    from io import TextIOWrapper
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        sys.stdout = TextIOWrapper(sys.stdout.detach(), sys.stdout.encoding, 'replace')
 
     # Configure basic set-up
     homeFolderPath = findHomeFolderPath()
     if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    parser = setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
-    addStandardOptionsAndProcess( parser )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
-
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
-
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        sys.stdout = io.TextIOWrapper(sys.stdout.detach(), sys.stdout.encoding, 'replace')
 
     if BibleOrgSysGlobals.debugFlag:
         print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
@@ -2367,5 +2366,5 @@ if __name__ == '__main__':
 
     main( homeFolderPath, loggingFolderPath )
 
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of Biblelator.py

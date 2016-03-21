@@ -30,11 +30,11 @@ self refers to a Biblelator Applicaton instance.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-18' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.30'
-SettingsVersion = '0.30' # Only need to change this if the settings format has changed
+ProgVersion = '0.31'
+SettingsVersion = '0.31' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -42,46 +42,19 @@ debuggingThisModule = True
 
 
 import os, logging
-#import multiprocessing
-
-#from tkinter.filedialog import Open, Directory #, SaveAs
-#from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
     findHomeFolderPath, parseWindowSize, assembleWindowSize
-        #INITIAL_MAIN_SIZE, , , \
-        #,  \
-        #EDIT_MODE_NORMAL, DEFAULT_KEY_BINDING_DICT, \
-        #findHomeFolderPath, parseWindowGeometry, , assembleWindowGeometryFromList, , centreWindow
 from BiblelatorDialogs import showerror, SaveWindowNameDialog, DeleteWindowNameDialog
-#, showwarning, showinfo, \
-         #, SelectResourceBoxDialog, \
-        #GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog
-#from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
-#from Settings import ApplicationSettings, ProjectSettings
-#from ChildWindows import ChildWindows
-#from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
-#from BibleResourceCollection import BibleResourceCollectionWindow
-#from BibleReferenceCollection import BibleReferenceCollectionWindow
-#from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
-#from USFMEditWindow import USFMEditWindow
-#from ESFMEditWindow import ESFMEditWindow
 
 # BibleOrgSys imports
 #sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-#from BibleOrganizationalSystems import BibleOrganizationalSystem
-#from BibleVersificationSystems import BibleVersificationSystems
-#from DigitalBiblePlatform import DBPBibles
 from VerseReferences import SimpleVerseKey
-#from BibleStylesheets import BibleStylesheet
-#from SwordResources import SwordType, SwordInterface
-#from USFMBible import USFMBible
-#from PTXBible import PTXBible, loadPTXSSFData
 
 
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
@@ -219,7 +192,7 @@ def parseAndApplySettings( self ):
                     if folder and folder[-1] not in '/\\': folder += '/'
                     winType = self.settings.data['RecentFiles']['Recent{}Type'.format( j )]
                     self.recentFiles.append( (filename,folder,winType) )
-                    assert( len(self.recentFiles) == j )
+                    assert len(self.recentFiles) == j
                     break # go to next j
 
     # Users
@@ -268,6 +241,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
     if BibleOrgSysGlobals.debugFlag:
         print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
         self.setDebugText( "applyGivenWindowsSettings…" )
+
     windowsSettingsFields = self.windowsSettingsDict[givenWindowsSettingsName]
     for j in range( 1, MAX_WINDOWS ):
         winNumber = 'window{}'.format( j )
@@ -348,11 +322,11 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 #except: logging.critical( "Unable to read all ESFMEditWindow {} settings".format( j ) )
 
             else:
-                logging.critical( exp("Application.__init__: Unknown {} window type").format( repr(winType) ) )
+                logging.critical( exp("applyGivenWindowsSettings: Unknown {} window type").format( repr(winType) ) )
                 if BibleOrgSysGlobals.debugFlag: halt
 
             if rw is None:
-                logging.critical( exp("Application.__init__: Failed to reopen {} window type!!! How did this happen?").format( repr(winType) ) )
+                logging.critical( exp("applyGivenWindowsSettings: Failed to reopen {} window type!!! How did this happen?").format( repr(winType) ) )
             else: # we've opened our child window -- now customize it a bit more
                 minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
                 if minimumSize:
@@ -372,6 +346,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                     rw.contextViewMode = contextViewMode
                     rw.createMenuBar() # in order to show the correct contextViewMode
                 autocompleteMode = thisStuff['AutocompleteMode'] if 'AutocompleteMode' in thisStuff else None
+                if autocompleteMode == 'None': autocompleteMode = None
                 if autocompleteMode:
                     if BibleOrgSysGlobals.debugFlag: assert winType.endswith( 'EditWindow' )
                     rw.autocompleteMode = autocompleteMode
@@ -616,7 +591,7 @@ def writeSettingsFile( self ):
             for windowNumber,winDict in sorted( self.windowsSettingsDict[windowsSettingName].items() ):
                 #print( "  ", repr(windowNumber), repr(winDict) )
                 for windowSettingName,value in sorted( winDict.items() ):
-                    thisOne[windowNumber+windowSettingName] = value
+                    thisOne[windowNumber+windowSettingName] = 'None' if value is None else value
         except UnicodeEncodeError: logging.error( exp("writeSettingsFile: unable to write {} windows set-up").format( repr(windowsSettingName) ) )
     self.settings.save()
 # end of writeSettingsFile
@@ -629,7 +604,7 @@ def demo():
 
     Which windows open depends on the saved settings from the last use.
     """
-    import tkinter as tk
+    import sys, tkinter as tk
 
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
@@ -663,50 +638,16 @@ def demo():
 # end of Biblelator.demo
 
 
-def main( homeFolderPath, loggingFolderPath ):
-    """
-    Main program to handle command line parameters and then run what they want.
-    """
-    import tkinter as tk
-
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
-    #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
-
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("Platform is"), sys.platform ) # e.g., "win32"
-        print( exp("OS name is"), os.name ) # e.g., "nt"
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() )
-        print( exp("Running main…") )
-
-    tkRootWindow = tk.Tk()
-    if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( ProgNameVersion )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
-    settings.load()
-
-    application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
-    # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
-    #application.master.minsize( application.minimumXSize, application.minimumYSize )
-
-    # Start the program running
-    tkRootWindow.mainloop()
-# end of Biblelator.main
-
-
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
+    from multiprocessing import freeze_support
+    freeze_support() # Multiprocessing support for frozen Windows executables
+
 
     # Configure basic set-up
-    homeFolderPath = findHomeFolderPath()
-    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    parser = setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
-    addStandardOptionsAndProcess( parser )
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+    demo()
 
-    main( homeFolderPath, loggingFolderPath )
-
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of BiblelatorSettingsFunctions.py

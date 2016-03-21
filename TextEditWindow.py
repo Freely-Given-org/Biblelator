@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-20' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.30'
+ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -39,13 +39,10 @@ debuggingThisModule = True
 
 import os.path, logging, shutil #, re
 from datetime import datetime
-#from collections import OrderedDict
-#import multiprocessing
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
 from tkinter.filedialog import asksaveasfilename
-#from tkinter.colorchooser import askcolor
 from tkinter.ttk import Button, Label, Entry
 
 # Biblelator imports
@@ -53,7 +50,7 @@ from BiblelatorGlobals import APP_NAME, START, DEFAULT
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog
 from TextBoxes import CustomText
 from ChildWindows import ChildWindow #, HTMLWindow
-from AutocorrectFunctions import setAutocorrectEntries, setDefaultAutocorrectEntries
+from AutocorrectFunctions import setDefaultAutocorrectEntries # setAutocorrectEntries
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -590,6 +587,36 @@ class TextEditWindow( ChildWindow ):
     # end if TextEditWindow.checkForDiskChanges
 
 
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog giving text statistics and cursor location;
+        caveat (2.1): Tk insert position column counts a tab as one
+        character: translate to next multiple of 8 to match visual?
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.doShowInfo( {} )").format( event ) )
+
+        text  = self.getEntireText()
+        numChars = len( text )
+        numLines = len( text.split( '\n' ) )
+        numWords = len( text.split() )
+        index = self.textBox.index( tk.INSERT )
+        atLine, atColumn = index.split('.')
+
+        infoString = 'Current location:\n' \
+            + '  Line, Column:\t{}, {}\n'.format( atLine, atColumn ) \
+            + '\nFile text statistics:\n' \
+            + '  Chars:\t{:,}\n  Lines:\t{:,}\n  Words:\t{:,}\n'.format( numChars, numLines, numWords ) \
+            + '\nFile info:\n' \
+            + '  Name:\t{}\n'.format( self.filename ) \
+            + '  Folder:\t{}\n'.format( self.folderPath ) \
+            + '\nSettings:\n' \
+            + '  Autocorrect entries:\t{:,}\n  Autocomplete:\t{}\n  Autosave time:\t{} secs\n  Save changes automatically:\t{}'.format( len(self.autocorrectEntries), self.autocompleteMode, round(self.autosaveTime/1000), self.saveChangesAutomatically )
+
+        showinfo( self, 'Window Information', infoString )
+    # end of TextEditWindow.doShowInfo
+
+
     def doUndo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doUndo( {} )").format( event ) )
@@ -1002,21 +1029,22 @@ class TextEditWindow( ChildWindow ):
             # NOTE: Don't use a hidden folder coz user might not be able to find it
             autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' ) if APP_NAME in partialAutosaveFolderPath else os.path.join( partialAutosaveFolderPath, APP_NAME+'/', 'AutoSave/' )
             if not os.path.exists( autosaveFolderPath ): os.makedirs( autosaveFolderPath )
-            autosaveFolderPath2 = os.path.join( autosaveFolderPath, 'LastDay/' )
-            if not os.path.exists( autosaveFolderPath2 ): os.mkdir( autosaveFolderPath2 )
+            lastDayFolderPath = os.path.join( autosaveFolderPath, 'LastDay/' )
+            if not os.path.exists( lastDayFolderPath ): os.mkdir( lastDayFolderPath )
 
             autosaveFilename = self.filename if self.filename else 'Autosave.txt'
             #print( 'autosaveFolderPath', repr(autosaveFolderPath), 'autosaveFilename', repr(autosaveFilename) )
             autosaveFilepath = os.path.join( autosaveFolderPath, autosaveFilename )
-            autosaveFilepath2 = os.path.join( autosaveFolderPath2, autosaveFilename )
+            lastDayFilepath = os.path.join( lastDayFolderPath, autosaveFilename )
 
             # Check if we need a daily save
-            if os.path.isfile( autosaveFilepath ) \
-            and ( not os.path.isfile( autosaveFilepath2 ) \
-            or not self.filepath \
-            or datetime.fromtimestamp( os.stat( self.filepath ).st_mtime ).date() != datetime.today().date() ):
-                print( "doAutosave: saving daily file", autosaveFilepath2 )
-                shutil.copyfile( autosaveFilepath, autosaveFilepath2 )
+            #if os.path.isfile( autosaveFilepath ) \
+            #and ( not os.path.isfile( lastDayFilepath ) \
+            #and datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date() ) \
+            #or not self.filepath \
+            if datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date():
+                print( "doAutosave: saving daily file", lastDayFilepath )
+                shutil.copyfile( autosaveFilepath, lastDayFilepath )
 
             # Now save this updated file
             allText = self.getEntireText() # from the displayed edit window and/or elsewhere
@@ -1060,7 +1088,7 @@ class TextEditWindow( ChildWindow ):
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self.parentApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
+        if not tEW.setPathAndFile( self.parentApp.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
             showerror( self, APP_NAME, _("Sorry, unable to open log file") )
@@ -1150,14 +1178,13 @@ def demo():
 
 
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
     import multiprocessing
+    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+
 
     # Configure basic set-up
-    parser = setup( ProgName, ProgVersion )
-    addStandardOptionsAndProcess( parser )
-
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -1170,5 +1197,5 @@ if __name__ == '__main__':
 
     demo()
 
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of TextEditWindow.py

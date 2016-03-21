@@ -36,7 +36,7 @@ from gettext import gettext as _
 LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.30'
+ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -58,6 +58,7 @@ from USFMMarkers import USFM_PRINTABLE_MARKERS
 
 
 AVOID_BOOKS = ( 'FRT', 'BAK', 'GLS', 'XXA', 'XXB', 'XXC', 'XXD', 'XXE', 'XXF', 'NDX', 'UNK', )
+END_CHARS_TO_REMOVE = ',—.–!?”:;'
 HUNSPELL_DICTIONARY_FOLDERS = ( '/usr/share/hunspell/', )
 
 
@@ -162,7 +163,7 @@ internalMarkers = ['\\'+marker for marker in internalMarkers]
 
 DUMMY_VALUE = 999999 # Some number bigger than the number of characters in a line
 
-def countBookWords( BBB, folder, filename ):
+def countBookWords( BBB, folder, filename, isCurrentBook ):
     """
     Find all the words in the Bible book and their usage counts.
 
@@ -171,6 +172,10 @@ def countBookWords( BBB, folder, filename ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "countBookWords( {}, {}, {} )".format( BBB, folder, filename ) )
     if BBB in AVOID_BOOKS: return
+
+    countIncrement = 3 if isCurrentBook else 1 # Each word in current book counts higher so appears higher in the list
+    # NOTE: This idea fails as soon as they change books in the edit window
+    #       as the word lists are only loaded once at startup. (A reasonable compromise I think.)
 
     encoding = None
     if encoding is None: encoding = 'utf-8'
@@ -195,26 +200,34 @@ def countBookWords( BBB, folder, filename ):
         for wx,word in enumerate( words ):
             if not word: continue
             singleWord = word
-            while singleWord and singleWord[-1] in ',—.–!”:': singleWord = singleWord[:-1] # Remove certain final punctuation
-            if len(singleWord) > 2: wordCounts[singleWord] += 1
+            while singleWord and singleWord[-1] in END_CHARS_TO_REMOVE: singleWord = singleWord[:-1] # Remove certain final punctuation
+            if len(singleWord) > 2: wordCounts[singleWord] += countIncrement
 
             #if word[-1] not in '—.–':
             if wx < len(words)-1:
-                doubleWord = ( word+' '+words[wx+1] )
+                doubleWord = word+' '+words[wx+1]
                 #print( 'doubleWord', repr(doubleWord) )
-                wordCounts[doubleWord] += 1
+                adjustedDoubleWord = doubleWord[:-1] if doubleWord[-1] in END_CHARS_TO_REMOVE else doubleWord
+                if '. ' not in adjustedDoubleWord: # don't go across sentence boundaries
+                    wordCounts[adjustedDoubleWord] += countIncrement
                 if wx < len(words)-2:
-                    tripleWord = ( doubleWord+' '+words[wx+2] )
+                    tripleWord = doubleWord+' '+words[wx+2]
                     #print( 'tripleWord', repr(tripleWord) )
-                    wordCounts[tripleWord] += 1
+                    adjustedTripleWord = tripleWord[:-1] if tripleWord[-1] in END_CHARS_TO_REMOVE else tripleWord
+                    if '. ' not in adjustedTripleWord: # don't go across sentence boundaries
+                        wordCounts[adjustedTripleWord] += countIncrement
                     if wx < len(words)-3:
-                        quadWord = ( tripleWord+' '+words[wx+3] )
+                        quadWord = tripleWord+' '+words[wx+3]
                         #print( 'quadWord', repr(quadWord) )
-                        wordCounts[quadWord] += 1
+                        adjustedQuadWord = quadWord[:-1] if quadWord[-1] in END_CHARS_TO_REMOVE else quadWord
+                        if '. ' not in adjustedQuadWord: # don't go across sentence boundaries
+                            wordCounts[adjustedQuadWord] += countIncrement
                         if wx < len(words)-4:
-                            quinWord = ( quadWord+' '+words[wx+4] )
+                            quinWord = quadWord+' '+words[wx+4]
                             #print( 'quinWord', repr(quinWord) )
-                            wordCounts[quinWord] += 1
+                            adjustedQuinWord = quinWord[:-1] if quinWord[-1] in END_CHARS_TO_REMOVE else quinWord
+                            if '. ' not in adjustedQuinWord: # don't go across sentence boundaries
+                                wordCounts[adjustedQuinWord] += countIncrement
     # end of countWords
 
     # main code for countBookWords
@@ -298,7 +311,7 @@ def countBookWords( BBB, folder, filename ):
 
 def countBookWordsHelper( parameters ):
     """
-    Parameter parameters is a 3-tuple containing the BBB, folder, and filename
+    Parameter parameters is a 4-tuple containing the BBB, folder, filename, and currentBook flag
     """
     return countBookWords( *parameters )
 # end of AutocompleteFunctions.countBookWordsHelper
@@ -318,16 +331,16 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( "Loading {} Bible book words…".format( editWindowObject.projectName ) )
-    BBB = editWindowObject.currentVerseKey.getBBB()
+    currentBBB = editWindowObject.currentVerseKey.getBBB()
     #print( "  got BBB", repr(BBB) )
-    if BBB == 'UNK': return # UNKnown book -- no use here
+    if currentBBB == 'UNK': return # UNKnown book -- no use here
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
     foundFilename = None
     for BBB2,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
-        if BBB2 == BBB: foundFilename = filename; break
+        if BBB2 == currentBBB: foundFilename = filename; break
 
-    wordCountResults = countBookWords( BBB, editWindowObject.internalBible.sourceFolder, foundFilename )
+    wordCountResults = countBookWords( currentBBB, editWindowObject.internalBible.sourceFolder, foundFilename, False )
     #print( 'wordCountResults', len(wordCountResults) )
 
     # Would be nice to load current book first, but we don't know it yet
@@ -336,8 +349,8 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         #autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
     try:
         # Sort the word-list for the book to put the most common words first
-        #print( 'wordCountResults', BBB, discoveryResults )
-        #print( BBB, 'mTWC', discoveryResults['mainTextWordCounts'] )
+        #print( 'wordCountResults', currentBBB, discoveryResults )
+        #print( currentBBB, 'mTWC', discoveryResults['mainTextWordCounts'] )
         #qqq = sorted( discoveryResults['mainTextWordCounts'].items(), key=lambda c: -c[1] )
         #print( 'qqq', qqq )
         for word,count in sorted( wordCountResults.items(),
@@ -348,7 +361,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
                     autocompleteWords.append( word )
                 #else: print( 'loadBibleBookAutocompleteWords discarding', repr(word) )
     except KeyError:
-        print( "Why did {} have no words???".format( BBB ) )
+        print( "Why did {} have no words???".format( currentBBB ) )
         #pass # Nothing for this book
     #print( 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
@@ -373,14 +386,14 @@ def loadBibleAutocompleteWords( editWindowObject ):
         editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( "Loading {} Bible words…".format( editWindowObject.projectName ) )
-    BBB = editWindowObject.currentVerseKey.getBBB()
+    currentBBB = editWindowObject.currentVerseKey.getBBB()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(BBB) )
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
     bookWordCounts = {}
     if editWindowObject.internalBible.maximumPossibleFilenameTuples:
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
-            parameters = [(BBB,editWindowObject.internalBible.sourceFolder,filename) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
+            parameters = [(BBB,editWindowObject.internalBible.sourceFolder,filename,BBB==currentBBB) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
             if BibleOrgSysGlobals.verbosityLevel > 1:
                 print( exp("Loading up to {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
                 print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
@@ -395,7 +408,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
             for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
                 #if BibleOrgSysGlobals.verbosityLevel>1 or BibleOrgSysGlobals.debugFlag:
                     #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.name, editWindowObject.internalBible.sourceFolder ) )
-                bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible.sourceFolder, filename ) # also saves it
+                bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible.sourceFolder, filename, BBB==currentBBB ) # also saves it
     else:
         logging.critical( exp("No books to load in {}!").format( editWindowObject.internalBible.sourceFolder ) )
 
@@ -702,14 +715,13 @@ def demo():
 
 
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
-    import multiprocessing
+    from multiprocessing import freeze_support
+    freeze_support() # Multiprocessing support for frozen Windows executables
+
 
     # Configure basic set-up
-    parser = setup( ProgName, ProgVersion )
-    addStandardOptionsAndProcess( parser )
-
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
 
     #if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -722,5 +734,5 @@ if __name__ == '__main__':
 
     demo()
 
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of AutocompleteFunctions.py

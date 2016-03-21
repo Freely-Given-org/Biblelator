@@ -47,7 +47,7 @@ from gettext import gettext as _
 LastModifiedDate = '2016-03-21'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.30'
+ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -111,7 +111,7 @@ def showerror( parent, title, errorText ):
 
     logging.error( '{}: {}'.format( title, errorText ) )
     parent.parentApp.setStatus( _("Waiting for user input after error…") )
-    tkmb.showerror( title, errorText )
+    tkmb.showerror( title, errorText, parent=parent )
     parent.parentApp.setReadyStatus()
 # end of showerror
 
@@ -124,7 +124,7 @@ def showwarning( parent, title, warningText ):
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     parent.parentApp.setStatus( _("Waiting for user input after warning…") )
-    tkmb.showwarning( title, warningText )
+    tkmb.showwarning( title, warningText, parent=parent )
     parent.parentApp.setReadyStatus()
 # end of showwarning
 
@@ -134,15 +134,16 @@ def showinfo( parent, title, infoText ):
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
-        for j, (configKey, configTuple)  in enumerate( sorted(parent.config().items()) ): # Append the parent window config info
+        infoText += '\n\nWindow parameters:\n'
+        for configKey, configTuple  in sorted(parent.config().items()): # Append the parent window config info
             if debuggingThisModule or len(configTuple)>2: # don't append alternative names like, bg for background
                 # Don't display the last field if it just duplicates the previous one
-                infoText += '{}\n{}: {!r}{}'.format( '\n' if j==0 else '', configTuple[2], configTuple[3],
+                infoText += '  {}: {!r}{}\n'.format( configTuple[2], configTuple[3],
                                             '' if configTuple[4]==configTuple[3] else ', {!r}'.format( configTuple[4] ) )
 
     logging.info( '{}: {}'.format( title, infoText ) )
     parent.parentApp.setStatus( _("Waiting for user input after info…") )
-    tkmb.showinfo( title, infoText )
+    tkmb.showinfo( title, infoText, parent=parent )
     parent.parentApp.setReadyStatus()
 # end of showinfo
 
@@ -708,14 +709,13 @@ def demo():
 
 
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
-    import multiprocessing
+    from multiprocessing import freeze_support
+    freeze_support() # Multiprocessing support for frozen Windows executables
+
 
     # Configure basic set-up
-    parser = setup( ProgName, ProgVersion )
-    addStandardOptionsAndProcess( parser )
-
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -728,5 +728,5 @@ if __name__ == '__main__':
 
     demo()
 
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of BiblelatorDialogs.py

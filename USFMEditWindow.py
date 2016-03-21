@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-20' # by RJH
+LastModifiedDate = '2016-03-21' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.30'
+ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -46,7 +46,6 @@ from tkinter.ttk import Style
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
-    #DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM,
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog # OkCancelDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
@@ -360,6 +359,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             loadHunspellAutocompleteWords( self, '/usr/share/hunspell/en_AU.dic', 'iso8859-15' )
         elif self.autocompleteMode == 'Dictionary2':
             loadILEXAutocompleteWords( self, '../../../MyPrograms/TED_Dictionary/EnglishDict.db', ('ENG','BRI',) )
+        elif BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( repr(self.autocompleteMode) ); halt # Programming error
     # end of USFMEditWindow.prepareAutocomplete
 
 
@@ -497,26 +497,30 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.doShowInfo( {} )").format( event ) )
+
         text  = self.getEntireText()
         numChars = len( text )
         numLines = len( text.split( '\n' ) )
         numWords = len( text.split() )
         index = self.textBox.index( tk.INSERT )
         atLine, atColumn = index.split('.')
+
         BBB, C, V = self.currentVerseKey.getBCV()
         numChaps = text.count( '\\c ' )
         numVerses = text.count( '\\v ' )
         numSectionHeadings = text.count('\\s ')+text.count('\\s1 ')+text.count('\\s2 ')+text.count('\\s3 ')+text.count('\\s4 ')
-        showinfo( self, '{} Window Information'.format( BBB ),
-                 'Current location:\n' +
-                 '  Chap:\t{}\n  Verse:\t{}\n'.format( C, V ) +
-                 '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) +
-                 '\nFile text statistics:\n' +
-                 '  Chapts:\t{}\n  Verses:\t{}\n  Sections:\t{}\n'.format( numChaps, numVerses, numSectionHeadings ) +
-                 '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}\n'.format( numChars, numLines, numWords ) +
-                 '\nFile info:\n' +
-                 '  Name:\t{}\n  Folder:\t{}\n  BookFN:\t{}\n  SourceFldr:\t{}\n'.format( self.filename, self.filepath, self.bookFilename, self.internalBible.sourceFolder )
-                 )
+
+        infoString = 'Current location:\n' \
+            + '  BCV:\t{} {}:{}\n'.format( BBB, C, V ) \
+            + '  Line, Column:\t{}, {}\n'.format( atLine, atColumn ) \
+            + '\nFile text statistics:\n' \
+            + '  Chapts:\t{:,}\n  Verses:\t{:,}\n  Sections:\t{:,}\n'.format( numChaps, numVerses, numSectionHeadings ) \
+            + '  Chars:\t{:,}\n  Lines:\t{:,}\n  Words:\t{:,}\n'.format( numChars, numLines, numWords ) \
+            + '\nFile info:\n' \
+            + '  Name:\t{}\n  Folder:\t{}\n  BookFN:\t{}\n  SourceFldr:\t{}\n'.format( self.filename, self.filepath, self.bookFilename, self.internalBible.sourceFolder ) \
+            + '\nSettings:\n' \
+            + '  Autocorrect entries:\t{:,}\n  Autocomplete:\t{}\n  Autosave time:\t{} secs\n  Save changes automatically:\t{}'.format( len(self.autocorrectEntries), self.autocompleteMode, round(self.autosaveTime/1000), self.saveChangesAutomatically )
+        showinfo( self, '{} Window Information'.format( BBB ), infoString )
     # end of USFMEditWindow.doShowInfo
 
 
@@ -1090,7 +1094,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
     def _prepareInternalBible( self ):
         """
-        Prepare to do some of the exports or checks available in BibleOrgSys.
+        Prepare to do some of the exports or checks available in BibleOrgSysGlobals.
 
         Leaves the wait cursor displayed.
         """
@@ -1103,7 +1107,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
     def _prepareForExports( self ):
         """
-        Prepare to do some of the exports available in BibleOrgSys.
+        Prepare to do some of the exports available in BibleOrgSysGlobals.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.prepareForExports()") )
         self._prepareInternalBible()
@@ -1122,7 +1126,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
     def doMostExports( self ):
         """
-        Do most of the quicker exports available in BibleOrgSys.
+        Do most of the quicker exports available in BibleOrgSysGlobals.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.doMostExports()") )
@@ -1165,7 +1169,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
     def doAllExports( self ):
         """
-        Do all exports available in BibleOrgSys.
+        Do all exports available in BibleOrgSysGlobals.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.doAllExports()") )
         self._prepareForExports()
@@ -1226,6 +1230,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         Same as TextEditWindow.doSave except
             has a bit more housekeeping to do
+        plus we always save with Windows newline endings.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.doSave( {} )").format( event ) )
@@ -1234,7 +1239,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
                 self.bookText = self.getEntireText()
-                with open( filepath, mode='wt' ) as theFile:
+                with open( filepath, mode='wt', newline='\r\n' ) as theFile:
                     theFile.write( self.bookText )
                 self.rememberFileTimeAndSize()
                 BBB = self.currentVerseKey.getBBB()
@@ -1415,14 +1420,13 @@ def demo():
 
 
 if __name__ == '__main__':
-    from BibleOrgSysGlobals import setup, addStandardOptionsAndProcess, closedown
-    import multiprocessing
+    from multiprocessing import freeze_support
+    freeze_support() # Multiprocessing support for frozen Windows executables
+
 
     # Configure basic set-up
-    parser = setup( ProgName, ProgVersion )
-    addStandardOptionsAndProcess( parser )
-
-    multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
+    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -1435,5 +1439,5 @@ if __name__ == '__main__':
 
     demo()
 
-    closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
 # end of USFMEditWindow.py
