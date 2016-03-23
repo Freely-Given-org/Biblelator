@@ -25,12 +25,20 @@
 """
 Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
-self refers to a Biblelator Applicaton instance.
+"self" refers to a Biblelator Application instance.
+    parseAndApplySettings( self )
+    applyGivenWindowsSettings( self, givenWindowsSettingsName )
+    getCurrentChildWindowSettings( self )
+    saveNewWindowSetup( self )
+    deleteExistingWindowSetup( self )
+    viewSettings( self )
+    writeSettingsFile( self )
+    demo()
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-23' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.31'
@@ -232,6 +240,7 @@ def parseAndApplySettings( self ):
 # end of parseAndApplySettings
 
 
+
 def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
     """
     Given the name of windows settings,
@@ -241,6 +250,8 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
     if BibleOrgSysGlobals.debugFlag:
         print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
         self.setDebugText( "applyGivenWindowsSettings…" )
+
+    self.doCloseMyChildWindows()
 
     windowsSettingsFields = self.windowsSettingsDict[givenWindowsSettingsName]
     for j in range( 1, MAX_WINDOWS ):
@@ -305,6 +316,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
             elif winType == 'PlainTextEditWindow':
                 try: filepath = thisStuff['TextFilepath']
                 except KeyError: filepath = None
+                if filepath == 'None': filepath = None
                 rw = self.openFileTextEditWindow( filepath, windowGeometry )
                 #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
             elif winType == 'BiblelatorUSFMBibleEditWindow':
@@ -423,6 +435,7 @@ def getCurrentChildWindowSettings( self ):
 # end of getCurrentChildWindowSettings
 
 
+
 def saveNewWindowSetup( self ):
     """
     Gets the name for the new window setup and saves the information.
@@ -430,15 +443,17 @@ def saveNewWindowSetup( self ):
     if BibleOrgSysGlobals.debugFlag:
         print( exp("saveNewWindowSetup()") )
         self.setDebugText( "saveNewWindowSetup…" )
+
     swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
     if BibleOrgSysGlobals.debugFlag: print( "swndResult", repr(swnd.result) )
     if swnd.result:
         getCurrentChildWindowSettings( self )
         self.windowsSettingsDict[swnd.result] = self.windowsSettingsDict['Current'] # swnd.result is the new window name
-        print( "swS", self.windowsSettingsDict )
+        #print( "swS", self.windowsSettingsDict )
         writeSettingsFile( self ) # Save file now in case we crash
         self.createMenuBar() # refresh
 # end of saveNewWindowSetup
+
 
 
 def deleteExistingWindowSetup( self ):
@@ -448,7 +463,8 @@ def deleteExistingWindowSetup( self ):
     if BibleOrgSysGlobals.debugFlag:
         print( exp("deleteExistingWindowSetup()") )
         self.setDebugText( "deleteExistingWindowSetup" )
-    assert self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict)
+        assert self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict)
+
     dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
     if BibleOrgSysGlobals.debugFlag: print( "dwndResult", repr(dwnd.result) )
     if dwnd.result:
@@ -460,6 +476,7 @@ def deleteExistingWindowSetup( self ):
 # end of deleteExistingWindowSetup
 
 
+
 def viewSettings( self ):
     """
     Open a pop-up text window with the current settings displayed.
@@ -467,6 +484,7 @@ def viewSettings( self ):
     if BibleOrgSysGlobals.debugFlag:
         print( exp("viewSettings()") )
         self.setDebugText( "viewSettings" )
+
     tEW = TextEditWindow( self )
     #if windowGeometry: tEW.geometry( windowGeometry )
     if not tEW.setFilepath( self.settings.settingsFilepath ) \
@@ -582,7 +600,7 @@ def writeSettingsFile( self ):
     # Get the current child window settings
     getCurrentChildWindowSettings( self )
     # Save all the various window set-ups including both the named ones and the current one
-    for windowsSettingName in self.windowsSettingsDict:
+    for windowsSettingName in sorted( self.windowsSettingsDict ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Saving windows set-up {}").format( repr(windowsSettingName) ) )
         try: # Just in case something goes wrong with characters in a settings name

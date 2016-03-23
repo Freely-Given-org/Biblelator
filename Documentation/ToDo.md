@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-19 RJH
+Last updated: 2016-03-23 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -30,11 +30,18 @@ BOS improvements for Biblelator
 * Investigate plug-ins
 
 Biblelator stuff
-* Release version 0.3
+* Make an icon
+* Make bridged versed show for EACH of those verse numbers
+* Save iconification state of windows
+* Get Sword resources displaying nicer
 * Investigate tix widgets
 * Need keyboard shortcuts for verse up/down
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
 * Paste doesn't replace the selection
+* Remove double-spaces at either end of a paste
+* Need to be able to type letters into bookname box (maybe this works already???)
+* Need spin buttons on bookname box
+* Allow windows to lock together
 * Send BCV updates from HTML window
 * Send verse links to Paratext
 * Fix flashing SSF open window for Open / Paratext project

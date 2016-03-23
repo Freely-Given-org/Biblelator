@@ -27,16 +27,15 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-23' # by RJH
 ShortProgName = "AutocorrectFunctions"
 ProgName = "Biblelator Autocorrect Functions"
 ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
-#import sys
 
 # BibleOrgSys imports
 if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -111,9 +110,9 @@ def setDefaultAutocorrectEntries( self ):
     ourAutocorrectEntries.append( ('—-','-') )
 
     # Add trailing spaces on these ones so that autocomplete doesn't kick in as well
-    ourAutocorrectEntries.append( ('(in','(incl) ') )
-    ourAutocorrectEntries.append( ('(ex','(excl) ') )
-    ourAutocorrectEntries.append( ('tlg','the Lord God ') )
+    #ourAutocorrectEntries.append( ('(in','(incl) ') )
+    #ourAutocorrectEntries.append( ('(ex','(excl) ') )
+    #ourAutocorrectEntries.append( ('tlg','the Lord God ') )
 
     setAutocorrectEntries( self, ourAutocorrectEntries )
 # end of AutocorrectFunctions.setDefaultAutocorrectEntries

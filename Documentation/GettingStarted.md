@@ -56,14 +56,25 @@ For an overview of the program design philosophy, see Development.md.
         in order to properly display the additional debug logging information.
 
 
-4. Resource Windows
+4. Resource texts
 
     Resources are texts which are opened read-only for study or reference purposes as you
-        translate in a project window. This includes Bibles, commentaries, and lexicons.
-    The Resource menu in the main window is used to launch new resource windows.
+        translate in a project window. This includes most unencrypted Bibles, commentaries,
+        and some lexicons. These might be other USFM Bibles that you have been given by
+        colleagues in other nearby languages, or perhaps mainstream translations that have
+        been installed on your computer by other Bible display programs or that you have
+        downloaded.
+    Depending on the type of resource you are opening, you might be required to select
+        either a folder or a file to open the resource.
 
 
-5. Resource Collection Windows
+5. Resource Windows
+
+    The Resource menu in the main window is used to launch new resource windows which can
+    be moved anywhere on your screen(s).
+
+
+6. Resource Collection Windows
 
     Resources are texts which are opened read-only for study or reference purposes as you
         translate in a project window. This includes Bibles, commentaries, and lexicons.
@@ -76,7 +87,7 @@ For an overview of the program design philosophy, see Development.md.
         new window.
 
 
-6. Reference Collection Windows
+7. Reference Collection Windows
 
     Reference collection windows display read-only cross-references all in the same version.
     They display individual verses, groups of verses, or ranges of verses.
@@ -84,26 +95,26 @@ For an overview of the program design philosophy, see Development.md.
         and the references will automatically show in that same version.
 
 
-7. Lexicon Windows
+8. Lexicon Windows
 
     There is a Bible lexicon window, but it's not yet automatically linked to Bible resources.
     At this stage, you can use the text box to the right of the verse number in the main
     window in order to enter Hebrew or Greek Strong's codes such as H123 or G1026.
 
 
-8. Project Windows
+9. Project Windows
 
     Projects are Bibles in the process of being translated, so they have a full edit window.
 
 
-8a. Biblelator Project Windows
+9a. Biblelator Project Windows
 
     If Biblelator is you only Bible editor, you can use our native Bible projects. At this
     stage, you simply give a Bible name and abbreviation, e.g., "My special Bible", "MSB".
     The project files are saved as UTF-8 files in your BiblelatorSettings folder.
 
 
-8b. Paratext Project Windows
+9b. Paratext Project Windows
 
     If you already have a Paratext project, Biblelator can also be used as an editor/checker
     (but of course you're likely to lose work if you edit using both programs on the same
@@ -111,7 +122,7 @@ For an overview of the program design philosophy, see Development.md.
     You point Biblelator at the .SSF file to open an existing Paratext project in Biblelator.
 
 
-9. Bible Groups
+10. Bible Groups
 
     Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All
     new windows are assigned to group A by default but this can be easily changed. Each

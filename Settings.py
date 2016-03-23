@@ -44,7 +44,7 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-23' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
 ProgVersion = '0.31'
@@ -94,8 +94,8 @@ class Settings:
     def __init__( self ):
         """
         """
-        self.objectNameString = "Settings object"
-        self.objectTypeString = "Settings"
+        self.objectNameString = 'Settings object'
+        self.objectTypeString = 'Settings'
         self.data = None
     # end of Settings.__init__
 
@@ -166,8 +166,8 @@ class ApplicationSettings( Settings ):
             print( exp("ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )").format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
         # NOTE: Settings.__init__ is NOT called -- not needed
-        self.objectNameString = "Application Settings object"
-        self.objectTypeString = "ApplicationSettings"
+        self.objectNameString = 'Application Settings object'
+        self.objectTypeString = 'ApplicationSettings'
         self.data = None
 
         if not self.settingsFilename.lower().endswith( '.ini' ):
@@ -220,9 +220,9 @@ class ProjectSettings( Settings ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ProjectSettings.__init__( {!r} )").format( projectFolderPath ) )
         self.projectFolderPath = projectFolderPath
-        self.objectNameString = "Project Settings object"
-        self.objectTypeString = "ProjectSettings"
-        self.settingsFilename = "ProjectSettings.ini"
+        self.objectNameString = 'Project Settings object'
+        self.objectTypeString = 'ProjectSettings'
+        self.settingsFilename = 'ProjectSettings.ini'
         self.data = None
 
         self.settingsFilepath = os.path.join( projectFolderPath, self.settingsFilename )

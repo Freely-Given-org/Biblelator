@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-23' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.31'
@@ -92,6 +92,8 @@ class BibleResourceBox( Frame, BibleBox ):
     """
     A base class to provide the boxes for a BibleResourceCollectionWindow
 
+    The moduleID can be a name, abbreviation or folder (depending on the boxType)
+
     The subclass must provide a getContextVerseData function.
     """
     def __init__( self, parentWindow, boxType, moduleID ):
@@ -122,10 +124,10 @@ class BibleResourceBox( Frame, BibleBox ):
         self.update() # so we can get the geometry
         width = parseWindowSize( self.parentWindow.winfo_geometry() )[0] - 60 # Allow for above button
         if len(adjModuleID)*10 > width: # Note: this doesn't adjust if the window size is changed
-            print( "BRB here1", len(adjModuleID), width, repr(adjModuleID) )
+            #print( "BRB here1", len(adjModuleID), width, repr(adjModuleID) )
             x = len(adjModuleID)*100/width # not perfect (too small) for narrow windows
             adjModuleID = '…' + adjModuleID[int(x):]
-            print( "BRB here2", len(adjModuleID), x, repr(adjModuleID) )
+            #print( "BRB here2", len(adjModuleID), x, repr(adjModuleID) )
         titleText = '{} ({})'.format( adjModuleID, boxType.replace( 'BibleResourceBox', '' ) )
         self.titleLabel = tk.Label( titleBar, text=titleText )
         self.titleLabel.pack( side=tk.TOP, fill=tk.X )
@@ -633,22 +635,23 @@ class InternalBibleResourceBox( BibleResourceBox ):
     """
     def __init__( self, parentWindow, modulePath ):
         """
-        Given a filepath, try to open an UnknownBible.
+        Given a folderpath or filepath, try to open an UnknownBible.
 
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        if BibleOrgSysGlobals.debugFlag: print( "InternalBibleResourceBox.__init__( {}, {} )".format( parentWindow, modulePath ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( "InternalBibleResourceBox.__init__( {}, {!r} )".format( parentWindow, modulePath ) )
+
         self.parentWindow, self.modulePath = parentWindow, modulePath
 
         self.internalBible = None
         BibleResourceBox.__init__( self, self.parentWindow, 'InternalBibleResourceBox', self.modulePath )
-        #self.boxType = 'InternalBibleResourceBox'
 
         try: self.UnknownBible = UnknownBible( self.modulePath )
         except FileNotFoundError:
             logging.error( exp("InternalBibleResourceBox.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
             self.UnknownBible = None
-        if self.UnknownBible:
+        if self.UnknownBible is not None:
             result = self.UnknownBible.search( autoLoadAlways=True )
             if isinstance( result, str ):
                 print( "Unknown Bible returned: {}".format( repr(result) ) )
@@ -668,7 +671,7 @@ class InternalBibleResourceBox( BibleResourceBox ):
             print( exp("InternalBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
-            except KeyError:
+            except KeyError: # Could be after a verse-bridge ???
                 logging.critical( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.boxType, verseKey ) )
     # end of InternalBibleResourceBox.getContextVerseData
@@ -1181,7 +1184,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.parentApp.setStatus( "doOpenInternalBibleResource…" )
 
         #requestedFolder = askdirectory()
-        openDialog = Directory( initialdir=self.parentApp.lastInternalBibleDir )
+        openDialog = Directory( initialdir=self.parentApp.lastInternalBibleDir, parent=self )
         requestedFolder = openDialog.show()
         if requestedFolder:
             self.parentApp.lastInternalBibleDir = requestedFolder
@@ -1199,6 +1202,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openInternalBibleResourceBox()") )
             self.parentApp.setDebugText( "openInternalBibleResourceBox…" )
+
         #tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         iBRB = InternalBibleResourceBox( self, modulePath )
         if windowGeometry: halt; iBRB.geometry( windowGeometry )

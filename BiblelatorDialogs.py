@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21'
+LastModifiedDate = '2016-03-23'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.31'
@@ -246,7 +246,7 @@ class SaveWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        print( exp("New window set-up name is: {}").format( repr(self.result) ) )
+        #print( exp("New window set-up name is: {}").format( repr(self.result) ) )
     # end of SaveWindowNameDialog.apply
 # end of class SaveWindowNameDialog
 

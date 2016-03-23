@@ -29,14 +29,14 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-23' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.31'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import os.path, logging, re
@@ -99,7 +99,9 @@ class ChildBox():
         """
         Called from createStandardKeyboardBindings to do the actual work.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
+
         try: kBD = self.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
         assert (name,kBD[name][0],) not in self.myKeyboardBindingsList
@@ -288,8 +290,11 @@ class ChildBox():
         """
         Called from the GUI.
 
-        Can be overridden.
+        Can be overridden if an edit box needs to save files first.
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildBox.doClose( {} )").format( event ) )
+
         self.destroy()
     # end of ChildWindow.doClose
 # end of ChildBox class
@@ -311,7 +316,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
         ChildBox.__init__( self, self.parentApp )
-        self.protocol( "WM_DELETE_WINDOW", self.closeChildWindow )
+        self.protocol( "WM_DELETE_WINDOW", self.doClose )
 
         self.geometry( INITIAL_RESOURCE_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
@@ -430,30 +435,21 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
     def doClose( self, event=None ):
         """
-        Called from the GUI.
-
-        Can be overridden.
-        """
-        self.closeChildWindow()
-    # end of ChildWindow.doClose
-
-    def closeChildWindow( self ):
-        """
         Called to finally and irreversibly remove this window from our list and close it.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.closeChildWindow()") )
+            print( exp("ChildWindow.doClose( {} )").format( event ) )
 
         if self in self.parentApp.childWindows:
             self.parentApp.childWindows.remove( self )
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("ChildWindow.closeChildWindow() for {} wasn't in list").format( self.winType ) )
+                print( exp("ChildWindow.doClose() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed child window" )
-    # end of ChildWindow.closeChildWindow
+    # end of ChildWindow.doClose
 # end of class ChildWindow
 
 
@@ -917,14 +913,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         Can be overridden.
         """
-        self.closeHTMLWindow()
-    # end of HTMLWindow.doClose
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.doClose( {} )").format( event ) )
 
-    def closeHTMLWindow( self ):
-        """
-        Called to finally and irreversibly remove this window from our list and close it.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.closeHTMLWindow()") )
         try: cWs = self.parentWindow.parentApp.childWindows
         except AttributeError: cWs = self.parentApp.childWindows
         if self in cWs:
@@ -932,11 +923,11 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("HTMLWindow.closeHTMLWindow() for {} wasn't in list").format( self.winType ) )
+                print( exp("HTMLWindow.doClose() for {} wasn't in list").format( self.winType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )
-    # end of HTMLWindow.closeHTMLWindow
+    # end of HTMLWindow.doClose
 # end of class HTMLWindow
 
 

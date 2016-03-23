@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-23' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.31'
@@ -87,13 +87,14 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
 
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
+        self.filepath = os.path.join( folderPath, filename ) if folderPath and filename else None
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
         ChildWindow.__init__( self, self.parentApp, 'TextEditor' ) # calls refreshTitle
         self.moduleID = None
         self.winType = 'PlainTextEditWindow'
-        self.protocol( "WM_DELETE_WINDOW", self.onCloseEditor ) # Catch when window is closed
+        self.protocol( "WM_DELETE_WINDOW", self.doClose ) # Catch when window is closed
 
         self.loading = True
 
@@ -202,7 +203,7 @@ class TextEditWindow( ChildWindow ):
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Close'), underline=0, command=self.doCloseEditor, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
         editMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
@@ -285,7 +286,7 @@ class TextEditWindow( ChildWindow ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doCloseEditor, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
     # end of TextEditWindow.createContextMenu
@@ -573,8 +574,9 @@ class TextEditWindow( ChildWindow ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("TextEditWindow.checkForDiskChanges()") )
 
-        if ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
-        or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ):
+        if self.filepath and os.path.isfile( self.filepath ) \
+        and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
+          or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
             if self.modified():
                 showerror( self, APP_NAME, _('File {} has also changed on disk').format( repr(self.filename) ) )
             else: # We haven't modified the file since loading it
@@ -862,7 +864,7 @@ class TextEditWindow( ChildWindow ):
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.setFilepath( {} )").format( repr(newFilePath) ) )
+            print( exp("TextEditWindow.setFilepath( {!r} )").format( newFilePath ) )
 
         self.filepath = newFilePath
         self.folderPath, self.filename = os.path.split( newFilePath )
@@ -881,13 +883,13 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow._checkFilepath()") )
 
         if not os.path.isfile( self.filepath ):
-            showerror( self, APP_NAME, 'No such file path: {}'.format( repr(self.filepath) ) )
+            showerror( self, APP_NAME, 'No such file path: {!r}'.format( self.filepath ) )
             return False
         if not os.access( self.filepath, os.R_OK ):
-            showerror( self, APP_NAME, 'No permission to read {} in {}'.format( repr(self.filename), repr(self.folderPath) ) )
+            showerror( self, APP_NAME, 'No permission to read {!r} in {!r}'.format( self.filename, self.folderPath ) )
             return False
         if not os.access( self.filepath, os.W_OK ):
-            showerror( self, APP_NAME, 'No permission to write {} in {}'.format( repr(self.filename), repr(self.folderPath) ) )
+            showerror( self, APP_NAME, 'No permission to write {!r} in {!r}'.format( self.filename, self.folderPath ) )
             return False
 
         self.rememberFileTimeAndSize()
@@ -1022,12 +1024,11 @@ class TextEditWindow( ChildWindow ):
             #print( exp("TextEditWindow.doAutosave()") )
 
         if self.modified():
-            #print( "winfo_id", repr(self.winfo_id()) )
-            #print( "winfo_name", repr(self.winfo_name()) )
-            #print( "str win", repr(str(self)) )
             partialAutosaveFolderPath = self.folderPath if self.folderPath else self.parentApp.homeFolderPath
             # NOTE: Don't use a hidden folder coz user might not be able to find it
-            autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' ) if APP_NAME in partialAutosaveFolderPath else os.path.join( partialAutosaveFolderPath, APP_NAME+'/', 'AutoSave/' )
+            autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' ) \
+                                    if APP_NAME in partialAutosaveFolderPath \
+                                    else os.path.join( partialAutosaveFolderPath, APP_NAME+'/', 'AutoSave/' )
             if not os.path.exists( autosaveFolderPath ): os.makedirs( autosaveFolderPath )
             lastDayFolderPath = os.path.join( autosaveFolderPath, 'LastDay/' )
             if not os.path.exists( lastDayFolderPath ): os.mkdir( lastDayFolderPath )
@@ -1038,13 +1039,12 @@ class TextEditWindow( ChildWindow ):
             lastDayFilepath = os.path.join( lastDayFolderPath, autosaveFilename )
 
             # Check if we need a daily save
-            #if os.path.isfile( autosaveFilepath ) \
-            #and ( not os.path.isfile( lastDayFilepath ) \
-            #and datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date() ) \
+            if os.path.isfile( autosaveFilepath ) \
+            and ( not os.path.isfile( lastDayFilepath ) \
+            or datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date() ):
             #or not self.filepath \
-            if datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date():
                 print( "doAutosave: saving daily file", lastDayFilepath )
-                shutil.copyfile( autosaveFilepath, lastDayFilepath )
+                shutil.copyfile( autosaveFilepath, lastDayFilepath ) # We save a copy of the PREVIOUS autosaved file
 
             # Now save this updated file
             allText = self.getEntireText() # from the displayed edit window and/or elsewhere
@@ -1100,24 +1100,24 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.doViewLog
 
 
-    def doCloseEditor( self, event=None ):
-        """
-        Called if the user requests a close from the GUI.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.doCloseEditor( {} )").format( event ) )
+    #def doCloseEditor( self, event=None ):
+        #"""
+        #Called if the user requests a close from the GUI.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("TextEditWindow.doCloseEditor( {} )").format( event ) )
 
-        self.onCloseEditor()
-    # end of TextEditWindow.closeEditor
+        #self.onCloseEditor()
+    ## end of TextEditWindow.closeEditor
 
-    def onCloseEditor( self, terminate=True ):
+    def doClose( self, event=None ):
         """
         Called if the window is about to be destroyed.
 
         Determines if we want/need to save any changes.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.onCloseEditor( {} )").format( terminate ) )
+            print( exp("TextEditWindow.doClose( {} )").format( event ) )
 
         if self.modified():
             saveWork = False
@@ -1145,14 +1145,14 @@ class TextEditWindow( ChildWindow ):
                     #else: saveWork = True
             if saveWork:
                 self.doSave()
-                if terminate and self.folderPath and self.filename: # assume we saved it
-                    self.closeChildWindow()
+                if self.folderPath and self.filename: # assume we saved it
+                    ChildWindow.doClose( self )
                     return
 
-        if terminate and not self.modified():
+        if not self.modified():
             #print( "HEREEEEEEEEE" )
-            self.closeChildWindow()
-    # end of TextEditWindow.onCloseEditor
+            ChildWindow.doClose( self )
+    # end of TextEditWindow.doClose
 # end of TextEditWindow class
 
 
