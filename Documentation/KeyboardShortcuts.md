@@ -1,8 +1,19 @@
 Biblelator Keyboard Shortcuts
 =============================
 
-Last updated: 2016-03-21 RJH
+Last updated: 2016-03-24 RJH
 
 
-Biblelator only has a few working keyboard shortcuts
-    Ctrl+S  Save file
+Biblelator still only has a few working keyboard shortcuts
+
+Navigation
+==========
+    Alt+Up  Next verse      From anywhere
+    Alt+Dwn Previous verse  From anywhere
+
+Files
+=====
+    Ctrl+S  Save file       From an edit window
+
+    
+Eventually we hope to make these keyboard shortcuts adjustable by the user.

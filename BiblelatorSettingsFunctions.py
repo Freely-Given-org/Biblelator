@@ -38,11 +38,11 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-03-24' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.31'
-SettingsVersion = '0.31' # Only need to change this if the settings format has changed
+ProgVersion = '0.32'
+SettingsVersion = '0.32' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -60,7 +60,6 @@ from BiblelatorDialogs import showerror, SaveWindowNameDialog, DeleteWindowNameD
 from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 

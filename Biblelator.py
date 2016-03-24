@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-03-24' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 

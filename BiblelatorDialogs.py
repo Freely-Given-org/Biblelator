@@ -44,10 +44,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23'
+LastModifiedDate = '2016-03-24'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -66,7 +66,6 @@ from ModalDialog import ModalDialog
 from TextBoxes import HTMLText
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
