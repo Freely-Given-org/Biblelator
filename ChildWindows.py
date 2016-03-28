@@ -25,14 +25,19 @@
 """
 Base windows to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
+    
+    class ChildBox
+    class ChildWindow
+    class ChildWindows
+    class HTMLWindow
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-03-27' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -349,6 +354,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.optionsDict = {}
         self.optionsDict['caseinsens'] = True
 
+        self.parentApp.rootWindow.tk.call( 'wm', 'iconphoto', self._w, self.parentApp.iconImage )
         self.refreshTitle() # Must be in superclass
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:

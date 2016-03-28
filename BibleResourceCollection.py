@@ -32,10 +32,10 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-03-27' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1040,7 +1040,11 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.parentApp.setDebugText( "doOpenDBPBibleResource…" )
         self.parentApp.setWaitStatus( "doOpenDBPBibleResource…" )
         if self.parentApp.DBPInterface is None:
-            self.parentApp.DBPInterface = DBPBibles()
+            try: self.parentApp.DBPInterface = DBPBibles()
+            except FileNotFoundError: # probably the key file wasn't found
+                showerror( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
+                return
+                
             availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
             #print( "aV1", repr(availableVolumes) )
             if availableVolumes:
@@ -1105,9 +1109,11 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             return
 
         givenDupleList = self.parentApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
+        
         #print( 'givenDupleList', givenDupleList )
         genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
-        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
+        try: ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
+        except TypeError: ourList = None
         if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
         #print( "ourList", ourList )
         if ourList:

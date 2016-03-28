@@ -1,7 +1,7 @@
 Biblelator Development Principles
 =================================
 
-Last updated: 2016-03-21 RJH
+Last updated: 2016-03-28 RJH
 
 
 The following are some of the reasons behind some of the major development decisions
@@ -11,14 +11,14 @@ The following are some of the reasons behind some of the major development decis
 1. Python as the language
 
     Python is not as fast and efficient as C or C++, but it is nevertheless an elegant, well-designed
-    computer language that runs quite satisfactorily on most modern computer hardware. Also, it can
-    be relatively readable even by a non Python programmer.
+    computer language that runs quite satisfactorily on most modern computer hardware.
 
     Another reason for choosing Python is that the source code to the software is usually provided
-    and that it can be easier to read by novices than some other computer languages. This is
-    important to us, because Biblelator is designed to be hackable, i.e., a creator or translator
-    of the Bible might have a chance of making a small change to the program in order to handle
-    a specific need that he/she might have (or if not, to hire someone else to make the change).
+    and that it can be easier to read by novices/non-programmers than some other computer languages.
+    This is important to us, because Biblelator is designed to be hackable, i.e., a creator or
+    translator of the Bible might have a chance of making a small change to the program in order
+    to handle a specific need that he/she might have (or if not, to hire someone else to make the
+    change).
 
     According to Wikipedia: "Python is a widely used high-level, general-purpose, interpreted,
     dynamic programming language. Its design philosophy emphasizes code readability, and its syntax
@@ -35,6 +35,9 @@ The following are some of the reasons behind some of the major development decis
     obvious then that Python2 would eventually stop being developed, and so there didn't seem to
     be any point in creating a new piece of software based on a language version already
     destined to be obsoleted (even though many libraries hadn't yet been updated at the time).
+    
+    Also Python3 was Unicode compatible from the beginning and this is important for a Bible
+    editor that's expected to be used to handle many non-Roman based character sets.
 
 
 3. Tkinter as the widget set
@@ -57,13 +60,16 @@ The following are some of the reasons behind some of the major development decis
     etc., to match your Operating System locale/language, but no translations have been
     started yet.
 
-    No attempts have beem made yet to handle complex fonts or right-to-left languages.
+    Although all string handling in the BibleOrgSys and Biblelator is Unicode, no attempts
+    have been made yet to test or handle complex fonts or right-to-left languages.
 
 
 5. More control of child window placement
 
     Biblelator tries to allow the user to place the main window and child windows anywhere on
     a multi-screen system, but with tools to easily find child windows if they get covered.
+    
+    Possibly a future option will allow windows to be constrained within the main window.
 
 
 6. Use of colour
@@ -83,8 +89,8 @@ The following are some of the reasons behind some of the major development decis
 
     Biblelator aims to (eventually) make it very efficient for users to edit Bibles if they
     are prepared to invest a little time and energy into learning keyboard shortcuts for
-    navigating around Bibles and around the most commonly used menu entries. (Keyboard
-    shortcuts will eventually be customisable by the user.)
+    navigating around Bibles and around the most commonly used menu entries. (It's planned
+    that keyboard shortcuts will eventually be customisable by the user.)
 
 
 9. Downplaying chapters and verses
@@ -98,7 +104,7 @@ The following are some of the reasons behind some of the major development decis
 10. Including book introductions
 
     Biblelator considers a book introduction as chapter "zero", and considers anything before
-    verse one in a chapter (e.g., a section heading), as verse "zero". It should be as easy and
+    verse one in a chapter (e.g., a chapter heading), as verse "zero". It should be as easy and
     convenient to edit introductions as actual Bible text.
 
 
@@ -146,11 +152,12 @@ The following are some of the reasons behind some of the major development decis
     information to be included in source Bibles (especially those intended for online display.)
 
     NOTE: ESFM development is currently on hold, awaiting the release of the USFM v3
-    specifications.
+    specifications. See http://Freely-Given.org/Software/BibleDropBox/ESFMBibles.html
+    for more info.
 
 
 16. No hidden folders
 
     Settings files, log files, autosave files, etc. are all saved in non-hidden folders.
     While this might irritate some tidyness freaks, it's in line with our "hackable"
-    goals to make everything obvious and accessible.
+    goals to make everything about Biblelator obvious and accessible.

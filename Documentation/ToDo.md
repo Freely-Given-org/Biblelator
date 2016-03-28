@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-23 RJH
+Last updated: 2016-03-28 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,12 +12,15 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
+* Investigate menu labels: ResourceS/ToolS (but others aren't plural)
+* Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu only does it once)
 * Text file, Biblelator project open window flashes
 
 BOS improvements for Biblelator
+* Fix paths in Sword modules for Windows
 * Fix speech mark / quotation checking
 * Fix intro/text section checking
 * Fully handle nested USFM markers (USFM 2.4)
@@ -30,7 +33,7 @@ BOS improvements for Biblelator
 * Investigate plug-ins
 
 Biblelator stuff
-* Make an icon
+* Make a proper icon
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
 * Get Sword resources displaying nicer

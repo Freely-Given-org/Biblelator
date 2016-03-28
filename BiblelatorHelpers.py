@@ -33,10 +33,10 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-27' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -377,7 +377,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         for thisV in reversed( range( startV, endV+1 ) ):
             thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
             thisVerseData = getVerseData( thisVerseKey )
-            print( ' ', thisC, thisV, repr(thisVerseData) )
+            if debuggingThisModule: ( ' ', thisC, thisV, repr(thisVerseData) )
             if sectionFoundIn( thisVerseData ):
                 found = thisC, thisV; break
         if found: break
@@ -396,7 +396,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         for thisV in range( startV, endV+1 ):
             thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
             thisVerseData = getVerseData( thisVerseKey )
-            print( ' ', thisC, thisV, repr(thisVerseData) )
+            if debuggingThisModule: ( ' ', thisC, thisV, repr(thisVerseData) )
             if sectionFoundIn( thisVerseData ):
                 found = thisC, thisV; break
         if found: break

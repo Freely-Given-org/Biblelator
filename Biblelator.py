@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-24' # by RJH
+LastModifiedDate = '2016-03-27' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.32'
@@ -118,9 +118,14 @@ class Application( Frame ):
         and use that to inform child windows of BCV movements.
     """
     global settings
-    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, settings ):
+    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings ):
+        """
+        Main app initialisation function.
+        
+        Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
+        """
         if BibleOrgSysGlobals.debugFlag: print( exp("Application.__init__( {}, … )").format( rootWindow ) )
-        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.settings = rootWindow, homeFolderPath, loggingFolderPath, settings
+        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage, self.settings = rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
 
         self.themeName = 'default'
@@ -886,7 +891,7 @@ class Application( Frame ):
             elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResource: no resource selected!") )
         else:
             logging.critical( exp("doOpenSwordResource: no list available") )
-            showerror( self, APP_NAME, _("No Sword resources discovered") )
+            showerror( self, APP_NAME, _("Sorry, no Sword resources discovered") )
         #self.acceptNewBnCV()
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doOpenSwordResource
@@ -2395,7 +2400,7 @@ def main( homeFolderPath, loggingFolderPath ):
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
     settings.load()
 
-    application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
+    application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
