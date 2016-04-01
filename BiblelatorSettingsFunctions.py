@@ -38,7 +38,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-24' # by RJH
+LastModifiedDate = '2016-04-01' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.32'
@@ -137,7 +137,7 @@ def parseAndApplySettings( self ):
     try: self.doChangeTheme( self.settings.data[APP_NAME]['themeName'] )
     except KeyError: logging.warning( "Settings.KeyError: no themeName" )
 
-    # Internet stuff
+    # Parse Internet stuff
     try:
         internetAccessString = self.settings.data['Internet']['internetAccess']
         self.internetAccessEnabled = internetAccessString == 'Enabled'
@@ -167,7 +167,7 @@ def parseAndApplySettings( self ):
         self.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
     except KeyError: self.cloudBackupsEnabled = True # default
 
-    # Paths
+    # Parse paths
     try: self.lastFileDir = self.settings.data['Paths']['lastFileDir']
     except KeyError: pass # use program default
     finally:
@@ -185,7 +185,7 @@ def parseAndApplySettings( self ):
     finally:
         if self.lastInternalBibleDir[-1] not in '/\\': self.lastInternalBibleDir += '/'
 
-    # Recent files
+    # Parse recent files
     assert not self.recentFiles
     try: recentFields = self.settings.data['RecentFiles']
     except KeyError: recentFields = None
@@ -195,14 +195,16 @@ def parseAndApplySettings( self ):
             for keyName in recentFields:
                 if keyName.startswith( recentName ): # This index number (j) is present
                     filename = self.settings.data['RecentFiles']['Recent{}Filename'.format( j )]
+                    if filename == 'None': filename = None
                     folder = self.settings.data['RecentFiles']['Recent{}Folder'.format( j )]
+                    if folder == 'None': folder = None
                     if folder and folder[-1] not in '/\\': folder += '/'
                     winType = self.settings.data['RecentFiles']['Recent{}Type'.format( j )]
                     self.recentFiles.append( (filename,folder,winType) )
                     assert len(self.recentFiles) == j
                     break # go to next j
 
-    # Users
+    # Parse users
     try: self.currentUserName = self.settings.data['Users']['currentUserName']
     except KeyError: pass # use program default
     try: self.currentUserRole = self.settings.data['Users']['currentUserRole']
@@ -210,7 +212,7 @@ def parseAndApplySettings( self ):
     try: self.currentUserAssignments = self.settings.data['Users']['currentUserAssignments']
     except KeyError: pass # use program default
 
-    # BCV groups
+    # Parse BCV groups
     try: self.currentVerseKeyGroup = self.settings.data['BCVGroups']['currentGroup']
     except KeyError: self.currentVerseKeyGroup = 'A'
     try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
@@ -546,6 +548,8 @@ def writeSettingsFile( self ):
     recent = self.settings.data['RecentFiles']
     for j, (filename,folder,winType) in enumerate( self.recentFiles ):
         recentName = 'Recent{}'.format( j+1 )
+        if filename is None: filename = 'None'
+        if folder is None: folder = 'None'
         recent[recentName+'Filename'] = filename
         recent[recentName+'Folder'] = folder
         recent[recentName+'Type'] = winType
