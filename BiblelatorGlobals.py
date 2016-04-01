@@ -40,10 +40,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-03-30' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -132,6 +132,7 @@ DEFAULT_KEY_BINDING_DICT = {
     _('Redo'):('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
     _('Line'):('Ctrl+l','<Control-L>','<Control-l>'),
     _('Save'):('Ctrl+s','<Control-S>','<Control-s>'),
+    _('ShowMain'):('F2','<F2>'),
     _('Help'):('F1','<F1>'),
     _('Info'):('F11','<F11>'),
     _('About'):('F12','<F12>'),

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-27' # by RJH
+LastModifiedDate = '2016-03-30' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.32'
@@ -121,7 +121,7 @@ class Application( Frame ):
     def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings ):
         """
         Main app initialisation function.
-        
+
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag: print( exp("Application.__init__( {}, … )").format( rootWindow ) )
@@ -199,6 +199,13 @@ class Application( Frame ):
         self.myKeyboardBindingsList = []
         self.recentFiles = []
         self.internalBibles = []
+
+        #logging.critical( "Critical test" )
+        #logging.error( "Error test" )
+        #logging.warning( "Warning test" )
+        #logging.info( "Info test" )
+        #logging.debug( "Debug test" )
+        #halt
 
         # Read and apply the saved settings
         parseAndApplySettings( self )
@@ -416,9 +423,9 @@ class Application( Frame ):
 
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
-        self.maxChapters = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChapters )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=self.maxChapters, textvariable=self.chapterNumberVar )
+        self.maxChaptersThisBook = self.getNumChapters( BBB )
+        #print( "maxChapters", self.maxChaptersThisBook )
+        self.chapterSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
@@ -432,12 +439,12 @@ class Application( Frame ):
 
         self.verseNumberVar = tk.StringVar()
         self.verseNumberVar.set( '1' )
-        #self.maxVersesVar = tk.StringVar()
-        self.maxVerses = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVerses )
-        #self.maxVersesVar.set( str(self.maxVerses) )
+        #self.maxVersesThisChapterVar = tk.StringVar()
+        self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
+        #print( "maxVerses", self.maxVersesThisChapter )
+        #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=1.0+self.maxVerses, textvariable=self.verseNumberVar )
+        self.verseSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
         self.verseSpinbox['width'] = 3
         self.verseSpinbox['command'] = self.acceptNewBnCV
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
@@ -1603,9 +1610,9 @@ class Application( Frame ):
         newBBB = self.getPreviousBookCode( BBB )
         if newBBB is None: self.gotoBCV( BBB, '0', '0' )
         else:
-            self.maxChapters = self.getNumChapters( newBBB )
-            self.maxVerses = self.getNumVerses( newBBB, self.maxChapters )
-            if gotoEnd: self.gotoBCV( newBBB, self.maxChapters, self.maxVerses )
+            self.maxChaptersThisBook = self.getNumChapters( newBBB )
+            self.maxVersesThisChapter = self.getNumVerses( newBBB, self.maxChaptersThisBook )
+            if gotoEnd: self.gotoBCV( newBBB, self.maxChaptersThisBook, self.maxVersesThisChapter )
             else: self.gotoBCV( newBBB, '0', '0' ) # go to the beginning
     # end of Application.doGotoPreviousBook
 
@@ -1620,8 +1627,8 @@ class Application( Frame ):
         newBBB = self.getNextBookCode( BBB )
         if newBBB is None: pass # stay just where we are
         else:
-            self.maxChapters = self.getNumChapters( newBBB )
-            self.maxVerses = self.getNumVerses( newBBB, '0' )
+            self.maxChaptersThisBook = self.getNumChapters( newBBB )
+            self.maxVersesThisChapter = self.getNumVerses( newBBB, '0' )
             self.gotoBCV( newBBB, '0', '0' ) # go to the beginning of the book
     # end of Application.doGotoNextBook
 
@@ -1634,7 +1641,9 @@ class Application( Frame ):
             print( exp("doGotoPreviousChapter( {}, {} ) from {} {}:{}").format( event, gotoEnd, BBB, C, V ) )
             self.setDebugText( "doGotoPreviousChapter…" )
         intC, intV = int( C ), int( V )
-        if intC > 0: self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
+        if intC > 0:
+            self.maxVersesThisChapter = self.getNumVerses( BBB, intC-1 )
+            self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
         else: self.doGotoPreviousBook( gotoEnd=True )
     # end of Application.doGotoPreviousChapter
 
@@ -1647,7 +1656,9 @@ class Application( Frame ):
             print( exp("doGotoNextChapter( {} ) from {} {}:{}").format( event, BBB, C, V ) )
             self.setDebugText( "doGotoNextChapter…" )
         intC = int( C )
-        if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
+        if intC < self.maxChaptersThisBook:
+            self.maxVersesThisChapter = self.getNumVerses( BBB, intC+1 )
+            self.gotoBCV( BBB, intC+1, '0' )
         else: self.doGotoNextBook()
     # end of Application.doGotoNextChapter
 
@@ -1671,10 +1682,11 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doGotoNextVerse( {} ) from {} {}:{}").format( event, BBB, C, V ) )
+            print( exp("doGotoNextVerse( {} ) from {} {}:{} with max {}").format( event, BBB, C, V, self.maxVersesThisChapter ) )
             self.setDebugText( "doGotoNextVerse…" )
+
         intV = int( V )
-        if intV < self.maxVerses: self.gotoBCV( BBB, C, intV+1 )
+        if intV < self.maxVersesThisChapter: self.gotoBCV( BBB, C, intV+1 )
         else: self.doGotoNextChapter()
     # end of Application.doGotoNextVerse
 
@@ -1824,7 +1836,7 @@ class Application( Frame ):
 
     def gotoBCV( self, BBB, C, V, originator=None ):
         """
-
+        Called from acceptNewBnCV.
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("gotoBCV( {} {}:{} {} ) from {}").format( BBB, C, V, originator, self.currentVerseKey ) )
@@ -1883,15 +1895,15 @@ class Application( Frame ):
         elif self.currentVerseKeyGroup == 'D': self.GroupD_VerseKey = self.currentVerseKey
         else: halt
 
-        BBB = self.currentVerseKey.getBBB()
-        self.maxChapters = self.getNumChapters( BBB )
-        self.chapterSpinbox['to'] = self.maxChapters
-        self.maxVerses = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        self.verseSpinbox['to'] = self.maxVerses # + 1???
+        BBB, C, V = self.currentVerseKey.getBCV()
+        self.maxChaptersThisBook = self.getNumChapters( BBB )
+        self.chapterSpinbox['to'] = self.maxChaptersThisBook
+        self.maxVersesThisChapter = self.getNumVerses( BBB, C )
+        self.verseSpinbox['to'] = self.maxVersesThisChapter
 
         self.bookNameVar.set( self.getBookName( BBB ) )
-        self.chapterNumberVar.set( self.currentVerseKey.getChapterNumber() )
-        self.verseNumberVar.set( self.currentVerseKey.getVerseNumber() )
+        self.chapterNumberVar.set( C )
+        self.verseNumberVar.set( V )
 
         if self.currentVerseKey not in self.BCVHistory:
             self.BCVHistoryIndex = len( self.BCVHistory )
@@ -2361,8 +2373,8 @@ def main( homeFolderPath, loggingFolderPath ):
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
-            if ProgName+'.py' in line:
-                #print( 'Found in ps xa:', repr(line) )
+            if 'python' in line and ProgName+'.py' in line:
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
@@ -2375,7 +2387,7 @@ def main( homeFolderPath, loggingFolderPath ):
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if ProgName+'.py' in line:
-                print( line )
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
@@ -2413,9 +2425,9 @@ def main( homeFolderPath, loggingFolderPath ):
 if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    from io import TextIOWrapper
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        sys.stdout = TextIOWrapper(sys.stdout.detach(), sys.stdout.encoding, 'replace')
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
 
     # Configure basic set-up
     homeFolderPath = findHomeFolderPath()

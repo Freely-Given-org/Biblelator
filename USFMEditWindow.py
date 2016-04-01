@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-03-30' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -59,7 +59,6 @@ from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutoc
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 from BibleWriter import setDefaultControlFolder
@@ -295,6 +294,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         windowMenu.add_command( label=_('Start parallel mode (A->B,C,D)'), underline=6, command=self.startParallelMode )
         windowMenu.add_separator()
         windowMenu.add_command( label=_('Start references mode (A->)'), underline=0, command=self.startReferencesMode )
+        windowMenu.add_separator()
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
 
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
@@ -431,19 +432,19 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
             if self.contextViewMode == 'BeforeAndAfter':
                 minChapterMarkers, maxChapterMarkers = 0, 1
-                minVerseMarkers = maxVerseMarkers = 3
+                minVerseMarkers = maxVerseMarkers = 0 if C=='0' else 3
             elif self.contextViewMode == 'ByVerse':
                 minChapterMarkers = maxChapterMarkers = 1 if V=='0' and C!='0' else 0
-                minVerseMarkers = maxVerseMarkers = 1
+                minVerseMarkers = maxVerseMarkers = 0 if C=='0' else 1
             elif self.contextViewMode == 'BySection':
                 minChapterMarkers, maxChapterMarkers = 0, 1
-                minVerseMarkers, maxVerseMarkers = 1, 10
+                minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,10)
             elif self.contextViewMode == 'ByBook':
                 minChapterMarkers = maxChapterMarkers = self.getNumChapters( BBB )
                 minVerseMarkers = maxVerseMarkers = self.numTotalVerses
             elif self.contextViewMode == 'ByChapter':
                 minChapterMarkers = maxChapterMarkers = 0 if C=='0' else 1
-                minVerseMarkers = maxVerseMarkers = self.getNumVerses( BBB, C )
+                minVerseMarkers = maxVerseMarkers = 0 if C=='0' else self.getNumVerses( BBB, C )
             else: halt
 
             errorMessage = warningMessage = None
@@ -1260,11 +1261,13 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #from tkinter import TclVersion, TkVersion

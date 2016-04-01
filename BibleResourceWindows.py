@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-03-31' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -47,9 +47,10 @@ import tkinter as tk
 from BiblelatorGlobals import START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
 from ChildWindows import ChildBox, ChildWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
+from BiblelatorDialogs import showinfo
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
+#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 from USFMFile import splitMarkerText
@@ -217,10 +218,10 @@ class BibleBox( ChildBox ):
                             if not lastCharWasSpace: self.textBox.insert( tk.END, ' ', 'v-' )
                             self.textBox.insert( tk.END, cleanText, 'c#' )
                             lastCharWasSpace = False
-                    elif marker in ('mt1','mt2','mt3','mt4', 'iot','io1','io2','io3','io4',):
+                    elif marker in ('mt1','mt2','mt3','mt4', 'imt1','imt2','imt3','imt4', 'iot','io1','io2','io3','io4',):
                         self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('s1','s2','s3','s4',):
+                    elif marker in ('s1','s2','s3','s4', 'is1','is2','is3','is4',):
                         self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
                     elif marker == 'r':
@@ -388,7 +389,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.getBBB = self.BibleOrganisationalSystem.getBBB
         self.getBookName = self.BibleOrganisationalSystem.getBookName
         self.getBookList = self.BibleOrganisationalSystem.getBookList
-        self.maxChapters, self.maxVerses = 150, 150 # temp
+        self.maxChaptersThisBook, self.maxVersesThisChapter = 150, 150 # temp
 
         self.verseCache = OrderedDict()
 
@@ -486,6 +487,8 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        windowMenu.add_separator()
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
@@ -564,9 +567,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         newBBB = self.getPreviousBookCode( BBB )
         if newBBB is None: self.gotoBCV( BBB, '0', '0' )
         else:
-            self.maxChapters = self.getNumChapters( newBBB )
-            self.maxVerses = self.getNumVerses( newBBB, self.maxChapters )
-            if gotoEnd: self.gotoBCV( newBBB, self.maxChapters, self.maxVerses )
+            self.maxChaptersThisBook = self.getNumChapters( newBBB )
+            self.maxVersesThisChapter = self.getNumVerses( newBBB, self.maxChaptersThisBook )
+            if gotoEnd: self.gotoBCV( newBBB, self.maxChaptersThisBook, self.maxVersesThisChapter )
             else: self.gotoBCV( newBBB, '0', '0' ) # go to the beginning
     # end of BibleResourceWindow.doGotoPreviousBook
 
@@ -584,8 +587,8 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         newBBB = self.getNextBookCode( BBB )
         if newBBB is None: pass # stay just where we are
         else:
-            self.maxChapters = self.getNumChapters( newBBB )
-            self.maxVerses = self.getNumVerses( newBBB, '0' )
+            self.maxChaptersThisBook = self.getNumChapters( newBBB )
+            self.maxVersesThisChapter = self.getNumVerses( newBBB, '0' )
             self.gotoBCV( newBBB, '0', '0' ) # go to the beginning of the book
     # end of BibleResourceWindow.doGotoNextBook
 
@@ -617,7 +620,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
             print( exp("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextChapter…" )
         intC = int( C )
-        if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
+        if intC < self.maxChaptersThisBook: self.gotoBCV( BBB, intC+1, '0' )
         else: self.doGotoNextBook()
     # end of BibleResourceWindow.doGotoNextChapter
 
@@ -667,8 +670,8 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         sectionStart, sectionEnd = findCurrentSection( self.currentVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
         print( "section Start/End", sectionStart, sectionEnd )
         intC2, intV2 = sectionEnd.getChapterNumberInt(), sectionEnd.getVerseNumberInt()
-        if intC2 < self.maxChapters \
-        or (intC2==self.maxChapters and intV2< self.getNumVerses( BBB, intC2) ):
+        if intC2 < self.maxChaptersThisBook \
+        or (intC2==self.maxChaptersThisBook and intV2< self.getNumVerses( BBB, intC2) ):
             self.gotoBCV( BBB, intC2, intV2 )
         else: self.doGotoNextBook()
     # end of BibleResourceWindow.doGotoNextSection
@@ -696,7 +699,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
             print( exp("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextVerse…" )
         intV = int( V )
-        if intV < self.maxVerses: self.gotoBCV( BBB, C, intV+1 )
+        if intV < self.maxVersesThisChapter: self.gotoBCV( BBB, C, intV+1 )
         else: self.doGotoNextChapter()
     # end of BibleResourceWindow.doGotoNextVerse
 
@@ -816,7 +819,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         if newVerseKey is None:
             self.currentVerseKey = None
-            self.maxChapters = self.maxVerses = 0
+            self.maxChaptersThisBook = self.maxVersesThisChapter = 0
             return
 
         # If we get this far, it must be a real verse key
@@ -824,8 +827,8 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()
-        self.maxChapters = self.getNumChapters( BBB )
-        self.maxVerses = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
+        self.maxChaptersThisBook = self.getNumChapters( BBB )
+        self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
     # end of BibleResourceWindow.setCurrentVerseKey
 
 
@@ -926,6 +929,19 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         self.refreshTitle()
     # end of BibleResourceWindow.updateShownBCV
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceWindow.doShowInfo( {} )").format( event ) )
+
+        infoString = '{}:\n'.format( self.winType ) \
+                 + '  Name:\t{}\n'.format( self.moduleID )
+        showinfo( self, 'Window Information', infoString )
+    # end of BibleResourceWindow.doShowInfo
 # end of BibleResourceWindow class
 
 
@@ -1142,11 +1158,13 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion

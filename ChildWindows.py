@@ -25,7 +25,7 @@
 """
 Base windows to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
-    
+
     class ChildBox
     class ChildWindow
     class ChildWindows
@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-27' # by RJH
+LastModifiedDate = '2016-03-31' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.32'
@@ -59,7 +59,7 @@ from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapRe
 from TextBoxes import HTMLText
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
+#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
@@ -130,7 +130,7 @@ class ChildBox():
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doFind), ('Refind',self.doRefind),
                              ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
-                             ('Close',self.doClose) ):
+                             ('Close',self.doClose), ('ShowMain',self.doShowMainWindow), ):
             self.createStandardKeyboardBinding( name, command )
     # end of ChildBox.createStandardKeyboardBindings()
 
@@ -291,6 +291,19 @@ class ChildBox():
     # end of ChildBox.setAllText
 
 
+    def doShowMainWindow( self, event=None ):
+        """
+        Display the main window (it might be minimised or covered).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildBox.doShowMainWindow( {} )").format( event ) )
+
+        self.parentApp.rootWindow.deiconify()
+        self.parentApp.rootWindow.focus_set()
+        self.parentApp.rootWindow.lift() # aboveThis=self )
+    # end of ChildBox.doShowMainWindow
+
+
     def doClose( self, event=None ):
         """
         Called from the GUI.
@@ -368,11 +381,15 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     # end of ChildWindow.notWrittenYet
 
 
-    def createMenuBar( self ):
-        logging.critical( exp("PROGRAMMING ERROR: This 'createMenuBar' method MUST be overridden!") )
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("This 'createMenuBar' method MUST be overridden!") )
-            halt
+    #def createMenuBar( self ):
+        #"""
+        #Should never be called.
+        #"""
+        #logging.critical( exp("PROGRAMMING ERROR: This 'createMenuBar' method MUST be overridden!") )
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( exp("This 'createMenuBar' method MUST be overridden!") )
+            #halt
+    ## end of ChildWindow.createMenuBar
 
 
     def createContextMenu( self ):
@@ -679,6 +696,8 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        windowMenu.add_separator()
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=kBD[_('ShowMain')][0] )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
@@ -968,11 +987,13 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion

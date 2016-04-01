@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-03-30' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.31'
+ProgVersion = '0.32'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -58,7 +58,7 @@ from BiblelatorHelpers import mapReferencesVerseKey
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
+#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
 #from DigitalBiblePlatform import DBPBibles, DBPBible
@@ -158,7 +158,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.getBBB = self.BibleOrganisationalSystem.getBBB
         self.getBookName = self.BibleOrganisationalSystem.getBookName
         self.getBookList = self.BibleOrganisationalSystem.getBookList
-        self.maxChapters, self.maxVerses = 150, 150 # temp
+        self.maxChaptersThisBook, self.maxVersesThisChapter = 150, 150 # temp
 
         self.verseCache = OrderedDict()
 
@@ -306,8 +306,8 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()
-        self.maxChapters = self.getNumChapters( BBB )
-        self.maxVerses = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
+        self.maxChaptersThisBook = self.getNumChapters( BBB )
+        self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
     # end of BibleReferenceBox.setCurrentVerseKey
 
 
@@ -637,6 +637,8 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        windowMenu.add_separator()
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
@@ -828,11 +830,13 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion

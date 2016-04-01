@@ -32,7 +32,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-27' # by RJH
+LastModifiedDate = '2016-03-31' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.32'
@@ -53,15 +53,14 @@ from tkinter.ttk import Frame, Button, Scrollbar
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
-from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog #, showwarning, showinfo, errorBeep
+from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 from BiblelatorHelpers import handleInternalBibles
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
+#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
-#from USFMFile import splitMarkerText
 from DigitalBiblePlatform import DBPBibles, DBPBible
 from SwordResources import SwordType, SwordInterface
 from UnknownBible import UnknownBible
@@ -164,7 +163,7 @@ class BibleResourceBox( Frame, BibleBox ):
         self.getBBB = self.BibleOrganisationalSystem.getBBB
         self.getBookName = self.BibleOrganisationalSystem.getBookName
         self.getBookList = self.BibleOrganisationalSystem.getBookList
-        self.maxChapters, self.maxVerses = 150, 150 # temp
+        self.maxChaptersThisBook, self.maxVersesThisChapter = 150, 150 # temp
 
         self.verseCache = OrderedDict()
     # end of BibleResourceBox.__init__
@@ -178,7 +177,7 @@ class BibleResourceBox( Frame, BibleBox ):
             print( exp("BibleResourceBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doFind), ('Refind',self.doRefind),
-                             ('Info',self.doShowInfo), ('Close',self.doClose) ):
+                             ('Info',self.doShowInfo), ('Close',self.doClose), ):
             self.createStandardKeyboardBinding( name, command )
     # end of BibleResourceBox.createStandardKeyboardBindings()
 
@@ -415,8 +414,8 @@ class BibleResourceBox( Frame, BibleBox ):
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()
-        self.maxChapters = self.getNumChapters( BBB )
-        self.maxVerses = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
+        self.maxChaptersThisBook = self.getNumChapters( BBB )
+        self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
     # end of BibleResourceBox.setCurrentVerseKey
 
 
@@ -692,7 +691,6 @@ class BibleResourceBoxes( list ):
 
 
 class BibleResourceCollectionWindow( BibleResourceWindow ):
-#class BibleResourceCollectionWindow( ChildWindow ):
     """
     """
     def __init__( self, parentApp, collectionName ):
@@ -701,7 +699,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag: print( "BibleResourceCollectionWindow.__init__( {}, {} )".format( parentApp, collectionName ) )
         self.parentApp = parentApp
-        BibleResourceWindow.__init__( self, self.parentApp, 'BibleResourceCollectionWindow', collectionName )
+        BibleResourceWindow.__init__( self, parentApp, 'BibleResourceCollectionWindow', collectionName )
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.winType = 'InternalBibleResourceBox'
 
@@ -730,10 +728,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
-        #fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
-        #fileMenu.add_separator()
         fileMenu.add_command( label=_('Rename'), underline=0, command=self.doRename )
-        #fileMenu.add_separator()
+        fileMenu.add_separator()
+        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
+        fileMenu.add_separator()
         fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] ) # close this window
 
         if 0:
@@ -807,6 +805,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        windowMenu.add_separator()
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
@@ -838,197 +838,6 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
     # end if BibleResourceCollectionWindow.doRename
 
 
-    #def changeBibleContextView( self ):
-        #"""
-        #Called when  a Bible context view is changed from the menus/GUI.
-        #"""
-        #currentViewNumber = self._viewRadioVar.get()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("changeBibleContextView( {} ) from {}").format( repr(currentViewNumber), repr(self.contextViewMode) ) )
-            #assert currentViewNumber in range( 1, len(BIBLE_CONTEXT_VIEW_MODES)+1 )
-
-        #previousContextViewMode = self.contextViewMode
-        #if 'Bible' in self.genericWindowType:
-            #if currentViewNumber == 1: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # 'BeforeAndAfter'
-            ##elif currentViewNumber == 2: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[1] # 'BySection'
-            #elif currentViewNumber == 3: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[2] # 'ByVerse'
-            ##elif currentViewNumber == 4: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[3] # 'ByBook'
-            ##elif currentViewNumber == 5: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[4] # 'ByChapter'
-            #else: halt # unknown Bible view mode
-        #else: halt # window type view mode not handled yet
-        #if self.contextViewMode != previousContextViewMode: # we need to update our view
-            ##if   self.groupCode == 'A': windowVerseKey = self.parentApp.GroupA_VerseKey
-            ##elif self.groupCode == 'B': windowVerseKey = self.parentApp.GroupB_VerseKey
-            ##elif self.groupCode == 'C': windowVerseKey = self.parentApp.GroupC_VerseKey
-            ##elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
-            #self.updateShownBCV( self.currentVerseKey )
-    ## end of BibleResourceCollectionWindow.changeBibleContextView
-
-
-    #def changeBibleGroupCode( self ):
-        #"""
-        #Called when  a Bible group code is changed from the menus/GUI.
-        #"""
-        #previousGroupCode = self.groupCode
-        #newGroupCode = self._groupRadioVar.get()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("changeBibleGroupCode( {} ) from {}").format( repr(newGroupCode), repr(previousGroupCode) ) )
-            #assert newGroupCode in BIBLE_GROUP_CODES
-            #assert 'Bible' in self.genericWindowType
-
-        #if 'Bible' in self.genericWindowType: # do we really need this test?
-            #self.groupCode = newGroupCode
-        #else: halt # window type view mode not handled yet
-        #if self.groupCode != previousGroupCode: # we need to update our view
-            #if   self.groupCode == 'A': windowVerseKey = self.parentApp.GroupA_VerseKey
-            #elif self.groupCode == 'B': windowVerseKey = self.parentApp.GroupB_VerseKey
-            #elif self.groupCode == 'C': windowVerseKey = self.parentApp.GroupC_VerseKey
-            #elif self.groupCode == 'D': windowVerseKey = self.parentApp.GroupD_VerseKey
-            #self.updateShownBCV( windowVerseKey )
-    ## end of BibleResourceCollectionWindow.changeBibleGroupCode
-
-
-    #def doGotoPreviousBook( self, gotoEnd=False ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoPreviousBook…" )
-        #newBBB = self.getPreviousBookCode( BBB )
-        #if newBBB is None: self.gotoBCV( BBB, '0', '0' )
-        #else:
-            #self.maxChapters = self.getNumChapters( newBBB )
-            #self.maxVerses = self.getNumVerses( newBBB, self.maxChapters )
-            #if gotoEnd: self.gotoBCV( newBBB, self.maxChapters, self.maxVerses )
-            #else: self.gotoBCV( newBBB, '0', '0' ) # go to the beginning
-    ## end of BibleResourceCollectionWindow.doGotoPreviousBook
-
-
-    #def doGotoNextBook( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoNextBook…" )
-        #newBBB = self.getNextBookCode( BBB )
-        #if newBBB is None: pass # stay just where we are
-        #else:
-            #self.maxChapters = self.getNumChapters( newBBB )
-            #self.maxVerses = self.getNumVerses( newBBB, '0' )
-            #self.gotoBCV( newBBB, '0', '0' ) # go to the beginning of the book
-    ## end of BibleResourceCollectionWindow.doGotoNextBook
-
-
-    #def doGotoPreviousChapter( self, gotoEnd=False ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoPreviousChapter…" )
-        #intC, intV = int( C ), int( V )
-        #if intC > 0: self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
-        #else: self.doGotoPreviousBook( gotoEnd=True )
-    ## end of BibleResourceCollectionWindow.doGotoPreviousChapter
-
-
-    #def doGotoNextChapter( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoNextChapter…" )
-        #intC = int( C )
-        #if intC < self.maxChapters: self.gotoBCV( BBB, intC+1, '0' )
-        #else: self.doGotoNextBook()
-    ## end of BibleResourceCollectionWindow.doGotoNextChapter
-
-
-    #def doGotoPreviousVerse( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoPreviousVerse…" )
-        #intC, intV = int( C ), int( V )
-        #if intV > 0: self.gotoBCV( BBB, C, intV-1 )
-        #elif intC > 0: self.doGotoPreviousChapter( gotoEnd=True )
-        #else: self.doGotoPreviousBook( gotoEnd=True )
-    ## end of BibleResourceCollectionWindow.doGotoPreviousVerse
-
-
-    #def doGotoNextVerse( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoNextVerse…" )
-        #intV = int( V )
-        #if intV < self.maxVerses: self.gotoBCV( BBB, C, intV+1 )
-        #else: self.doGotoNextChapter()
-    ## end of BibleResourceCollectionWindow.doGotoNextVerse
-
-
-    #def doGoForward( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGoForward() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGoForward…" )
-        #self.notWrittenYet()
-    ## end of BibleResourceCollectionWindow.doGoForward
-
-
-    #def doGoBackward( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGoBackward…" )
-        #self.notWrittenYet()
-    ## end of BibleResourceCollectionWindow.doGoBackward
-
-
-    #def doGotoPreviousListItem( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoPreviousListItem() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoPreviousListItem…" )
-        #self.notWrittenYet()
-    ## end of BibleResourceCollectionWindow.doGotoPreviousListItem
-
-
-    #def doGotoNextListItem( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoNextListItem() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoNextListItem…" )
-        #self.notWrittenYet()
-    ## end of BibleResourceCollectionWindow.doGotoNextListItem
-
-
-    #def doGotoBook( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGotoBook() from {} {}:{}").format( BBB, C, V ) )
-            #self.parentApp.setDebugText( "BRW doGotoBook…" )
-        #self.notWrittenYet()
-    ## end of BibleResourceCollectionWindow.doGotoBook
-
-
     def doOpenDBPBibleResource( self ):
         """
         Open an online DigitalBiblePlatform Bible (called from a menu/GUI action).
@@ -1044,7 +853,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             except FileNotFoundError: # probably the key file wasn't found
                 showerror( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
                 return
-                
+
             availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
             #print( "aV1", repr(availableVolumes) )
             if availableVolumes:
@@ -1109,7 +918,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             return
 
         givenDupleList = self.parentApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
-        
+
         #print( 'givenDupleList', givenDupleList )
         genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
         try: ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
@@ -1327,11 +1136,13 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion

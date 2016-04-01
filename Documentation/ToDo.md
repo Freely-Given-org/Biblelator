@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-28 RJH
+Last updated: 2016-03-31 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,15 +12,25 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
-* Investigate menu labels: ResourceS/ToolS (but others aren't plural)
+* Info box for resource windows doesn't show file name and path
+* New text file (without filename)  causes recent files menu error
+* Pressing DEL at autocomplete box inserts some weird character
+* \p at end of verse really belongs with next verse
+* Sword modules (without Python bindings) have ugly formats
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu only does it once)
-* Text file, Biblelator project open window flashes
+* Text file open and Biblelator project open dialogs flash for a while and then go smaller
+* Seems that Alt up and down do different things if a spinbox or the bookname box is selected
+* Prevent autocomplete if editing in the middle of a word ???
+
+BOS bugs
+* Why do errors and warnings appear on console in Python3.5.1 (and logging file seems not to be created)
 
 BOS improvements for Biblelator
-* Fix paths in Sword modules for Windows
+* How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
+* Make SwordModules for Windows able to load individual books not just entire Bibles
 * Fix speech mark / quotation checking
 * Fix intro/text section checking
 * Fully handle nested USFM markers (USFM 2.4)
@@ -31,8 +41,12 @@ BOS improvements for Biblelator
 * Refactor to be more modular
 * Increased multiprocessing
 * Investigate plug-ins
+* Add check for over-long paragraphs (and sentence length?)
 
 Biblelator stuff
+* Make Biblelator use Paratext autocorrect files for Paratext projects
+* Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
+* Allow a complete reference (e.g., Gen 3:5) to be typed or pasted into the bookname box
 * Make a proper icon
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
@@ -42,9 +56,9 @@ Biblelator stuff
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste
-* Need to be able to type letters into bookname box (maybe this works already???)
+* Need to remove autocorrect settings from code and put into files (with an editor???)
 * Need spin buttons on bookname box
-* Allow windows to lock together
+* Allow windows to lock together (e.g., two or more project edit windows)
 * Send BCV updates from HTML window
 * Send verse links to Paratext
 * Fix flashing SSF open window for Open / Paratext project
@@ -59,6 +73,7 @@ Biblelator stuff
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
 * Release version 0.4
+* Setting max window sizes prevents maximizing -- is this what we really want?
 * Consider when the same project/file is opened multiple times
 * Consider/optimize toolbars in child windows (and/or hiding the menu)
 * Handle multiple overlapping tags in the HTML window
