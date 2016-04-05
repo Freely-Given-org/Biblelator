@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-03-31 RJH
+Last updated: 2016-04-05 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -13,10 +13,8 @@ Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
 * Info box for resource windows doesn't show file name and path
-* New text file (without filename)  causes recent files menu error
 * Pressing DEL at autocomplete box inserts some weird character
 * \p at end of verse really belongs with next verse
-* Sword modules (without Python bindings) have ugly formats
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
@@ -24,13 +22,16 @@ Biblelator bugs
 * Text file open and Biblelator project open dialogs flash for a while and then go smaller
 * Seems that Alt up and down do different things if a spinbox or the bookname box is selected
 * Prevent autocomplete if editing in the middle of a word ???
+* Need wait status/cursor when opening a DBP resource
+* Make opening a 2nd DBP box inside a resource collection not download everything again
+* Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 
 BOS bugs
 * Why do errors and warnings appear on console in Python3.5.1 (and logging file seems not to be created)
 
 BOS improvements for Biblelator
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
-* Make SwordModules for Windows able to load individual books not just entire Bibles
+* Make SwordModules for Windows able to load individual books not just entire Bibles (started)
 * Fix speech mark / quotation checking
 * Fix intro/text section checking
 * Fully handle nested USFM markers (USFM 2.4)

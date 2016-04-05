@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2016-03-30 RJH
+Last updated: 2016-04-05 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -199,8 +199,8 @@ Please see the document GettingStarted.md for help on how the Biblelator resourc
     windows are designed to work.
 
 
-The following describes my attempt (March 2016) to install and run Biblelator on a Windows-7
-laptop:
+The following describes my attempt (March 2016) to install and run Biblelator v0.31 on a
+Windows-7 laptop:
 
 * Opened https://github.com/openscriptures/Biblelator/blob/master/Documentation/Installation.md in a browser
 * Python 3.4.3 was already installed for all users
@@ -208,7 +208,7 @@ laptop:
 * Didn't want to install Git
 * Downloaded zip from https://github.com/openscriptures/BibleOrgSys (15MB) and https://github.com/openscriptures/Biblelator/tree/development
 * Moved two zip files from Downloads folder to C:\Users\Public\Documents
-* Right-clicked the files and choose Extract all...
+* Right-clicked the files and choose Extract all…
 * Had to rename BibleOrgSys-master folder to BibleOrgSys and Biblelator-development to Biblelator
 * Discovered that these folders both had an extra folder inside them, so went into that folder, did Control+A to select all files, Control+X to cut, went back up a level then Control+V to paste and then deleted the now-empty extra folder
 * Now the file Biblelator.py, etc. is in C:\Users\Public\Documents\Biblelator\ and BCVBible.py, etc. is in C:\Users\Public\Documents\BibleOrgSys\

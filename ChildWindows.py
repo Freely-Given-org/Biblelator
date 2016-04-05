@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-31' # by RJH
+LastModifiedDate = '2016-04-03' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.32'
@@ -298,8 +298,11 @@ class ChildBox():
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doShowMainWindow( {} )").format( event ) )
 
+        #self.parentApp.rootWindow.iconify() # Didn't help
+        self.parentApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
+        self.parentApp.rootWindow.update()
         self.parentApp.rootWindow.deiconify()
-        self.parentApp.rootWindow.focus_set()
+        #self.parentApp.rootWindow.focus_set()
         self.parentApp.rootWindow.lift() # aboveThis=self )
     # end of ChildBox.doShowMainWindow
 
@@ -314,7 +317,7 @@ class ChildBox():
             print( exp("ChildBox.doClose( {} )").format( event ) )
 
         self.destroy()
-    # end of ChildWindow.doClose
+    # end of ChildBox.doClose
 # end of ChildBox class
 
 
@@ -461,7 +464,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         Called to finally and irreversibly remove this window from our list and close it.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.doClose( {} )").format( event ) )
+            print( exp("ChildWindow.doClose( {} ) ({})").format( event, self.genericWindowType ) )
 
         if self in self.parentApp.childWindows:
             self.parentApp.childWindows.remove( self )

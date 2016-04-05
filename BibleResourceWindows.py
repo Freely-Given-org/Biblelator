@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-31' # by RJH
+LastModifiedDate = '2016-04-05' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.32'
@@ -234,7 +234,8 @@ class BibleBox( ChildBox ):
                             self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
                             lastCharWasSpace = False
                         haveTextFlag = True
-                    elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
+                    #elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
+                    elif marker == 'p#' and self.boxType=='DBPBibleResourceBox':
                         pass # Just ignore these for now
                     elif marker in ('q1','q2','q3','q4',):
                         self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )

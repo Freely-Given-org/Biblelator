@@ -28,11 +28,50 @@ Boxes, Frames, and Windows to allow display and manipulation of
 
 A Bible resource collection is a collection of different Bible resources
     all displaying the same reference.
+
+class BibleResourceBox( Frame, BibleBox )
+    __init__( self, parentWindow, boxType, moduleID )
+    createStandardKeyboardBindings( self )
+    gotoBCV( self, BBB, C, V )
+    getSwordVerseKey( self, verseKey )
+    getCachedVerseData( self, verseKey )
+    #BibleResourceBoxXXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False )
+    #getBeforeAndAfterBibleData( self, newVerseKey )
+    setCurrentVerseKey( self, newVerseKey )
+    updateShownBCV( self, newReferenceVerseKey, originator=None )
+    doClose( self, event=None )
+    closeResourceBox( self )
+class SwordBibleResourceBox( BibleResourceBox )
+    __init__( self, parentWindow, moduleAbbreviation )
+    getContextVerseData( self, verseKey )
+class DBPBibleResourceBox( BibleResourceBox )
+    __init__( self, parentWindow, moduleAbbreviation )
+    getContextVerseData( self, verseKey )
+class InternalBibleResourceBox( BibleResourceBox )
+    __init__( self, parentWindow, modulePath )
+    getContextVerseData( self, verseKey )
+class BibleResourceBoxes( list )
+    __init__( self, resourceBoxesParent )
+class BibleResourceCollectionWindow( BibleResourceWindow )
+    __init__( self, parentApp, collectionName )
+    createMenuBar( self )
+    refreshTitle( self )
+    doRename( self )
+    doOpenDBPBibleResource( self )
+    openDBPBibleResourceBox( self, moduleAbbreviation, windowGeometry=None )
+    doOpenSwordResource( self )
+    openSwordBibleResourceBox( self, moduleAbbreviation, windowGeometry=None )
+    doOpenInternalBibleResource( self )
+    openInternalBibleResourceBox( self, modulePath, windowGeometry=None )
+    openBox( self, boxType, boxSource )
+    updateShownBCV( self, newReferenceVerseKey, originator=None )
+    doHelp( self, event=None )
+    doAbout( self, event=None )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-31' # by RJH
+LastModifiedDate = '2016-04-05' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.32'
@@ -441,10 +480,10 @@ class BibleResourceBox( Frame, BibleBox ):
         startingFlag = True
 
         # Safety-check in case they edited the settings file
-        if 'DBP' in self.boxType and self.contextViewMode in ('ByBook','ByChapter',):
-            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
-            self._viewRadioVar.set( 3 ) # ByVerse
-            self.changeBibleContextView()
+        if 'DBP' in self.boxType and self.parentWindow.contextViewMode in ('ByBook','ByChapter',):
+            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.parentWindow.contextViewMode) ) )
+            self.parentWindow._viewRadioVar.set( 3 ) # ByVerse
+            self.parentWindow.changeBibleContextView()
 
         if self.parentWindow.contextViewMode == 'BeforeAndAfter':
             bibleData = self.getBeforeAndAfterBibleData( newVerseKey )

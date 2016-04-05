@@ -657,9 +657,13 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     with open( dictionaryFilepath, 'rt' ) as dictionaryFile:
         for line in dictionaryFile:
             lineCount += 1
-            if lineCount==1 and line[0]==chr(65279): #U+FEFF or \ufeff
-                logging.info( "loadILEXAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
-                line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
+            if lineCount==1:
+                if line[0]==chr(65279): #U+FEFF
+                    logging.info( "loadILEXAutocompleteWords1: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
+                    line = line[1:] # Remove the UTF-16 Unicode Byte Order Marker (BOM)
+                elif line[:3] == 'ï»¿': # 0xEF,0xBB,0xBF
+                    logging.info( "loadILEXAutocompleteWords2: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
+                    line = line[3:] # Remove the UTF-8 Unicode Byte Order Marker (BOM)
             if line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
             #print( "line", lineCount, repr(line) )

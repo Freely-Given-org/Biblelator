@@ -94,7 +94,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo...") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
