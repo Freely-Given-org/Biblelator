@@ -581,7 +581,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.parentWindow, self.initialFilename = parentWindow, filename
         tk.Toplevel.__init__( self, self.parentWindow )
         ChildBox.__init__( self, self.parentWindow )
-        self.protocol( "WM_DELETE_WINDOW", self.closeHTMLWindow )
+        self.protocol( "WM_DELETE_WINDOW", self.doClose )
         self.title( 'HTMLWindow' )
         self.genericWindowType = 'HTMLWindow'
         self.winType = 'HTMLWindow'
@@ -823,7 +823,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Display or hide the status bar.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.doToggleStatusBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.doToggleStatusBar()") )
+
         if self._showStatusBarVar.get():
             self.createStatusBar()
         else:
@@ -859,7 +861,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.gotoLink( {} )").format( link ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.gotoLink( {} )").format( link ) )
+
         if not os.path.isabs( link ): # relative filepath
             link = os.path.join( self.folderPath, link )
         self.load( link )
@@ -873,7 +877,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.overLink( {} )").format( link ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.overLink( {} )").format( link ) )
+
         self.setStatus( link ) # Display it
     # end of HTMLWindow.overLink
 
@@ -881,7 +887,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
     def leaveLink( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.leaveLink()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.leaveLink()") )
+
         self.setStatus() # Clear it
     # end of HTMLWindow.leaveLink
 

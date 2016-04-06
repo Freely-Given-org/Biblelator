@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-30' # by RJH
+LastModifiedDate = '2016-04-06' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -199,7 +199,8 @@ class BibleReferenceBox( Frame, BibleBox ):
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError:
-                logging.critical( exp("BibleReferenceBox.getContextVerseData for {} {} got a KeyError!") \
+                if verseKey.getChapterNumber() != '0':
+                    logging.critical( exp("BibleReferenceBox.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.boxType, verseKey ) )
     # end of BibleReferenceBox.getContextVerseData
 

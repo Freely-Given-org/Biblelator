@@ -28,15 +28,17 @@
     calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses )
     mapReferenceVerseKey( mainVerseKey )
     mapParallelVerseKey( forGroupCode, mainVerseKey )
+    findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
     logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
+    parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-27' # by RJH
+LastModifiedDate = '2016-04-06' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -45,6 +47,7 @@ debuggingThisModule = False
 
 import os.path
 from datetime import datetime
+import re
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
@@ -416,16 +419,19 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
     Note that Biblelator never directly changes InternalBible objects --
         they are effectively 'read-only'.
 
+    "self" here is the main Application object.
+
     Returns an internal Bible object.
     """
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("handleInternalBibles( {} )").format( internalBible ) )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("handleInternalBibles( {}, {} )").format( internalBible, controllingWindow ) )
         self.setDebugText( "handleInternalBibles" )
 
     result = internalBible
     #if internalBible is None:
         #print( "  Got None" )
     if internalBible is not None:
+        #print( "  Not None" )
         foundControllingWindowList = None
         for iB,cWs in self.internalBibles:
             # Some of these variables will be None but they'll still match
@@ -435,14 +441,17 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
             and internalBible.sourceFilename == iB.sourceFilename \
             and internalBible.encoding == iB.encoding: # Let's assume they're the same
                 #print( "  Got a match!" )
-                foundControllingWindowList, result = cWs, iB
+                result, foundControllingWindowList = iB, cWs
                 break
 
         if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "Internal Bibles now:" )
+        print( "Internal Bibles ({}) now:".format( len(self.internalBibles) ) )
+        for something in self.internalBibles:
+            print( "  ", something )
+        print( self.internalBibles )
         for j,(iB,cWs) in enumerate( self.internalBibles ):
             print( "  {}/ {} in {}".format( j+1, iB.getAName(), cWs ) )
             print( "      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation ) )
@@ -476,6 +485,32 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
     with open( filepath, 'wt' ) as logFile:
         logFile.write( logText )
 # end of BiblelatorHelpers.logChangedFile
+
+
+
+def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
+    """
+    Checks if the bookName entry is just a book name, or an entire reference (e.g., "Gn 15:2")
+
+    Returns the discovered BBB, C, V
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("parseEnteredBookname( {}, {}, {}, … )").format( bookNameEntry, Centry, Ventry ) )
+
+    # Do a bit of preliminary cleaning-up
+    bookNameEntry = bookNameEntry.strip()
+    while '  ' in bookNameEntry: bookNameEntry.replace( '  ', ' ' )
+
+    if ':' in bookNameEntry:
+        print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) )
+        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
+        if match:
+            print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+            return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
+
+    #else: # assume it's just a book name
+    return BBBfunction( bookNameEntry ), Centry, Ventry
+# end of BiblelatorHelpers.parseEnteredBookname
 
 
 

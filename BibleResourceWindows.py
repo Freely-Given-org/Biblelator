@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-05' # by RJH
+LastModifiedDate = '2016-04-06' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -255,7 +255,12 @@ class BibleBox( ChildBox ):
                         haveTextFlag = True
                     elif marker == 'b':
                         self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
-                    elif marker == 'm': pass
+                    elif marker in ('m','im'):
+                        self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
+                        if cleanText:
+                            self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                            lastCharWasSpace = False
+                            haveTextFlag = True
                     else:
                         if BibleOrgSysGlobals.debugFlag:
                             logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
@@ -1122,7 +1127,8 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError:
-                logging.critical( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
+                if verseKey.getChapterNumber() != '0':
+                    logging.critical( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.winType, verseKey ) )
     # end of InternalBibleResourceWindow.getContextVerseData
 # end of InternalBibleResourceWindow class

@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-30' # by RJH
+LastModifiedDate = '2016-04-06' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -60,7 +60,7 @@ from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
@@ -681,7 +681,7 @@ class Application( Frame ):
             #try: extra = ' ({})'.format( appWin.BCVUpdateType )
             #except AttributeError: extra = ''
             self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} BCV={}" \
-                                    .format( j,
+                                    .format( j+1,
                                         appWin.winType,
                                         #appWin.winType.replace('ChildWindow',''),
                                         appWin.genericWindowType,
@@ -1777,19 +1777,23 @@ class Application( Frame ):
     def acceptNewBnCV( self, event=None ):
         """
         Handle a new bookname, chapter, verse setting from the GUI spinboxes.
+
+        We also allow the user to enter a reference (e.g. "Gn 1:1" into the bookname box).
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("acceptNewBnCV( {} )").format( event ) )
-        #print( dir(event) )
-
         enteredBookname = self.bookNameVar.get()
-        C = self.chapterNumberVar.get()
-        V = self.verseNumberVar.get()
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBookname ) )
+            #print( dir(event) )
 
-        BBB = self.getBBB( enteredBookname )
+        BBB, C, V = parseEnteredBookname( enteredBookname, self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBB )
+        #enteredBookname = self.bookNameVar.get()
+        #C = self.chapterNumberVar.get()
+        #V = self.verseNumberVar.get()
+        #BBB = self.getBBB( enteredBookname )
         #print( "BBB", BBB )
+
         if BBB is None:
-            self.setErrorStatus( "Unable to determine book name" )
+            self.setErrorStatus( _("Unable to determine book name") )
             self.bookNameBox.focus_set()
         else:
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "acceptNewBnCV {} {}:{}".format( enteredBookname, C, V ) )

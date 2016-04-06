@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-05 RJH
+Last updated: 2016-04-06 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -12,7 +12,9 @@ Eventually we will use the issue tracker at Github
 Things nearer the top of the list are higher in priority.
 
 Biblelator bugs
+* When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
 * Info box for resource windows doesn't show file name and path
+* Lexicon key isn't reloaded into main window at startup
 * Pressing DEL at autocomplete box inserts some weird character
 * \p at end of verse really belongs with next verse
 * Ask for a path for Sword modules if none found by automatic search
@@ -24,10 +26,12 @@ Biblelator bugs
 * Prevent autocomplete if editing in the middle of a word ???
 * Need wait status/cursor when opening a DBP resource
 * Make opening a 2nd DBP box inside a resource collection not download everything again
+* Having a DBP window open (and slow Internet) slows all verse navigation
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 
 BOS bugs
-* Why do errors and warnings appear on console in Python3.5.1 (and logging file seems not to be created)
+* Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
+* OSIS (and other containerised) formats should insert end markers when loading
 
 BOS improvements for Biblelator
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
@@ -45,20 +49,22 @@ BOS improvements for Biblelator
 * Add check for over-long paragraphs (and sentence length?)
 
 Biblelator stuff
+* Add Internet fast/slow, expensive/cheap flags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
-* Allow a complete reference (e.g., Gen 3:5) to be typed or pasted into the bookname box
 * Make a proper icon
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
 * Get Sword resources displaying nicer
 * Investigate tix widgets
+* Cache DBP to disk (if have expensive Internet)???
 * Need keyboard shortcuts for verse up/down
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste
 * Need to remove autocorrect settings from code and put into files (with an editor???)
 * Need spin buttons on bookname box
+* Display toolbox dictionary???
 * Allow windows to lock together (e.g., two or more project edit windows)
 * Send BCV updates from HTML window
 * Send verse links to Paratext

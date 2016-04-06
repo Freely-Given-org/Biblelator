@@ -28,18 +28,17 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-30' # by RJH
+LastModifiedDate = '2016-04-06' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
-import os.path, logging #, re
+import os.path, logging
 from collections import OrderedDict
-#import multiprocessing
 
 import tkinter as tk
 from tkinter.ttk import Style
@@ -151,6 +150,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.__init__ finished.") )
     # end of USFMEditWindow.__init__
+
+
+    def __str__(self): return "USFMEditWindow"
+    def __repr__(self): return "USFMEditWindow"
 
 
     def refreshTitle( self ):

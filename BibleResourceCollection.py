@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-05' # by RJH
+LastModifiedDate = '2016-04-06' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -710,7 +710,8 @@ class InternalBibleResourceBox( BibleResourceBox ):
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError: # Could be after a verse-bridge ???
-                logging.critical( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
+                if verseKey.getChapterNumber() != '0':
+                    logging.critical( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.boxType, verseKey ) )
     # end of InternalBibleResourceBox.getContextVerseData
 # end of InternalBibleResourceBox class
