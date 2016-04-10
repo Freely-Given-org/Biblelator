@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-06' # by RJH
+LastModifiedDate = '2016-04-11' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.33'
@@ -143,7 +143,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup("TLabel", "font") )
 
         # Set-up our Bible system and our callables
-        self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" )
+        self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' )
         self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
@@ -2431,7 +2431,7 @@ if __name__ == '__main__':
 
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     homeFolderPath = findHomeFolderPath()

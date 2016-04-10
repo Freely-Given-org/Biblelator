@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-06 RJH
+Last updated: 2016-04-11 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -9,9 +9,12 @@ This is an informal list of things that need to be fixed or are planned to be do
 Eventually we will use the issue tracker at Github
     -- actually, you're welcome to list your issues there already.
 
-Things nearer the top of the list are higher in priority.
+Things nearer the top of the list are higher in priority
+(and due to my situation often only having smallish chunks of time available,
+smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs
+* Need wait status/cursor when opening a DBP resource
 * When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
 * Info box for resource windows doesn't show file name and path
 * Lexicon key isn't reloaded into main window at startup
@@ -24,10 +27,13 @@ Biblelator bugs
 * Text file open and Biblelator project open dialogs flash for a while and then go smaller
 * Seems that Alt up and down do different things if a spinbox or the bookname box is selected
 * Prevent autocomplete if editing in the middle of a word ???
-* Need wait status/cursor when opening a DBP resource
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
+
+Bibelator testing required
+* Systematically work through all menus
+
 
 BOS bugs
 * Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
@@ -47,6 +53,10 @@ BOS improvements for Biblelator
 * Increased multiprocessing
 * Investigate plug-ins
 * Add check for over-long paragraphs (and sentence length?)
+
+BOS testing required
+* Test on more MyBible modules
+
 
 Biblelator stuff
 * Add Internet fast/slow, expensive/cheap flags

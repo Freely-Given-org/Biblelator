@@ -35,7 +35,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-06' # by RJH
+LastModifiedDate = '2016-04-08' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.33'
@@ -84,6 +84,7 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("createEmptyUSFMBookText( {} )").format( BBB ) )
+
     USFMAbbreviation = BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation( BBB )
     USFMNumber = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber( BBB )
     bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME_VERSION )
@@ -331,7 +332,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
         elif isinstance( verseData, tuple ):
             #print( "  It's an InternalBibleEntryList!" )
-            assert( len(verseData) == 2 )
+            assert len(verseData) == 2
             verseDataList, context = verseData
             #print( '   dataList', repr(verseDataList) )
             #print( '    context', repr(context) )
