@@ -44,10 +44,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-24'
+LastModifiedDate = '2016-04-12'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -106,7 +106,7 @@ def showerror( parent, title, errorText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
+        print( exp("showerror( {}, {!r}, {!r} )").format( parent, title, errorText ) )
 
     logging.error( '{}: {}'.format( title, errorText ) )
     parent.parentApp.setStatus( _("Waiting for user input after error…") )
@@ -119,7 +119,7 @@ def showwarning( parent, title, warningText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
+        print( exp("showwarning( {}, {!r}, {!r} )").format( parent, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     parent.parentApp.setStatus( _("Waiting for user input after warning…") )
@@ -132,13 +132,18 @@ def showinfo( parent, title, infoText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
+        print( exp("showinfo( {}, {!r}, {!r} )").format( parent, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parent.config().items()): # Append the parent window config info
-            if debuggingThisModule or len(configTuple)>2: # don't append alternative names like, bg for background
+            if debuggingThisModule:
+                print( "showinfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
+            if len(configTuple)>2: # don't append alternative names like, bg for background
                 # Don't display the last field if it just duplicates the previous one
                 infoText += '  {}: {!r}{}\n'.format( configTuple[2], configTuple[3],
                                             '' if configTuple[4]==configTuple[3] else ', {!r}'.format( configTuple[4] ) )
+            elif debuggingThisModule: # append alternative names like, bg for background
+                # Don't display the last field if it just duplicates the previous one
+                infoText += '  {}={!r}\n'.format( configTuple[0], configTuple[1] )
 
     logging.info( '{}: {}'.format( title, infoText ) )
     parent.parentApp.setStatus( _("Waiting for user input after info…") )
@@ -245,7 +250,7 @@ class SaveWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        #print( exp("New window set-up name is: {}").format( repr(self.result) ) )
+        #print( exp("New window set-up name is: {!r}").format( self.result ) )
     # end of SaveWindowNameDialog.apply
 # end of class SaveWindowNameDialog
 
@@ -289,7 +294,7 @@ class DeleteWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        print( exp("Requested window set-up name is: {}").format( repr(self.result) ) )
+        print( exp("Requested window set-up name is: {!r}").format( self.result ) )
     # end of DeleteWindowNameDialog.apply
 # end of class DeleteWindowNameDialog
 
@@ -345,7 +350,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         items = self.lb.curselection()
         print( "items", repr(items) ) # a tuple
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
-        print( exp("Requested resource(s) is/are: {}").format( repr(self.result) ) )
+        print( exp("Requested resource(s) is/are: {!r}").format( self.result ) )
     # end of SelectResourceBoxDialog.apply
 # end of class SelectResourceBoxDialog
 

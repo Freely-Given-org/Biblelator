@@ -453,8 +453,11 @@ class BibleResourceBox( Frame, BibleBox ):
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
+        try:
+            self.maxChaptersThisBook = self.getNumChapters( BBB )
+            self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
+        except KeyError: # presumably the book doesn't exist
+            self.maxChaptersThisBook = self.maxVersesThisChapter = 1
     # end of BibleResourceBox.setCurrentVerseKey
 
 

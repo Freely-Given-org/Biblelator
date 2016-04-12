@@ -38,7 +38,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-06' # by RJH
+LastModifiedDate = '2016-04-12' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.33'
@@ -88,6 +88,8 @@ def exp( messageString ):
 def parseAndApplySettings( self ):
     """
     Parse the settings out of the .INI file.
+
+    "self" refers to a Biblelator Application instance.
     """
     def retrieveWindowsSettings( self, windowsSettingsName ):
         """

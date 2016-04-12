@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-11' # by RJH
+LastModifiedDate = '2016-04-12' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.33'
@@ -124,9 +124,11 @@ class Application( Frame ):
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("Application.__init__( {}, … )").format( rootWindow ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("Application.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage, self.settings = rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
+        self.starting = True
 
         self.themeName = 'default'
         self.style = Style()
@@ -139,11 +141,13 @@ class Application( Frame ):
         self.lexiconWord = None
         self.currentProject = None
 
-        if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup("TButton", "font") )
-        if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup("TLabel", "font") )
+        if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
+        if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
 
         # Set-up our Bible system and our callables
-        self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' )
+        self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-ENG' )
+        self.genericBookList = self.genericBibleOrganisationalSystem.getBookList()
+        #self.getNumBooks = self.genericBibleOrganisationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
@@ -151,8 +155,21 @@ class Application( Frame ):
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
         self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
         self.getBBB = self.genericBibleOrganisationalSystem.getBBB
-        self.getBookName = self.genericBibleOrganisationalSystem.getBookName
-        self.getBookList = self.genericBibleOrganisationalSystem.getBookList
+        self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
+        #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
+
+        # Make a bookNumber table with GEN as #1
+        #print( self.genericBookList )
+        self.offsetGenesis = self.genericBookList.index( 'GEN' )
+        #print( 'offsetGenesis', self.offsetGenesis )
+        self.bookNumberTable = {}
+        for j,BBB in enumerate(self.genericBookList):
+            k = j + 1 - self.offsetGenesis
+            nBBB = BibleOrgSysGlobals.BibleBooksCodes.getReferenceNumber( BBB )
+            #print( BBB, nBBB )
+            self.bookNumberTable[k] = BBB
+            self.bookNumberTable[BBB] = k
+        #print( self.bookNumberTable )
 
         self.stylesheet = BibleStylesheet().loadDefault()
         Frame.__init__( self, self.rootWindow )
@@ -239,6 +256,7 @@ class Application( Frame ):
 
         self.rootWindow.title( ProgNameVersion + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
+        self.starting = False
         self.setReadyStatus()
     # end of Application.__init__
 
@@ -297,6 +315,8 @@ class Application( Frame ):
         gotoMenu.add_command( label=_('Next list item'), underline=0, state=tk.DISABLED, command=self.doGotoNextListItem )
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Book'), underline=0, command=self.doGotoBook )
+        gotoMenu.add_separator()
+        gotoMenu.add_command( label=_('Info…'), underline=0, command=self.doGotoInfo )
 
         projectMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=projectMenu, label=_('Project'), underline=0 )
@@ -400,23 +420,37 @@ class Application( Frame ):
         self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
         self.nextBCVButton.pack( side=tk.LEFT )
 
-        self.GroupAButton = Button( navigationBar, width=2, text='A', command=self.selectGroupA, state=tk.DISABLED )
-        self.GroupBButton = Button( navigationBar, width=2, text='B', command=self.selectGroupB, state=tk.DISABLED )
-        self.GroupCButton = Button( navigationBar, width=2, text='C', command=self.selectGroupC, state=tk.DISABLED )
-        self.GroupDButton = Button( navigationBar, width=2, text='D', command=self.selectGroupD, state=tk.DISABLED )
+        Style().configure( 'A.TButton', background='lightgreen' )
+        Style().configure( 'B.TButton', background='pink' )
+        Style().configure( 'C.TButton', background='orange' )
+        Style().configure( 'D.TButton', background='brown' )
+        self.GroupAButton = Button( navigationBar, width=2, text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
+        self.GroupBButton = Button( navigationBar, width=2, text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
+        self.GroupCButton = Button( navigationBar, width=2, text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
+        self.GroupDButton = Button( navigationBar, width=2, text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
         self.GroupAButton.pack( side=tk.LEFT )
         self.GroupBButton.pack( side=tk.LEFT )
         self.GroupCButton.pack( side=tk.LEFT )
         self.GroupDButton.pack( side=tk.LEFT )
 
-        self.bookNames = [self.getBookName(BBB) for BBB in self.getBookList()]
-        bookName = self.bookNames[0] # Default to Genesis usually
+        self.bookNumberVar = tk.StringVar()
+        self.bookNumberVar.set( '1' )
+        self.maxBooks = len( self.genericBookList )
+        #print( "maxChapters", self.maxChaptersThisBook )
+        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
+        #self.bookNumberSpinbox['width'] = 3
+        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
+        self.bookNumberSpinbox.pack( side=tk.LEFT )
+
+        self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
+        bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBB( bookName )
-        self.bookNameBox = Combobox( navigationBar, textvariable=self.bookNameVar )
+        self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
-        self.bookNameBox['width'] = len( 'Deuteronomy' )
+        #self.bookNameBox['width'] = len( 'Deuteronomy' )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
         self.bookNameBox.bind( '<Return>', self.spinToNewBook )
         self.bookNameBox.pack( side=tk.LEFT )
@@ -425,8 +459,8 @@ class Application( Frame ):
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        self.chapterSpinbox['width'] = 3
+        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
+        #self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
         self.chapterSpinbox.pack( side=tk.LEFT )
@@ -444,8 +478,8 @@ class Application( Frame ):
         #print( "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        self.verseSpinbox['width'] = 3
+        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
+        #self.verseSpinbox['width'] = 3
         self.verseSpinbox['command'] = self.acceptNewBnCV
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
         self.verseSpinbox.pack( side=tk.LEFT )
@@ -457,8 +491,9 @@ class Application( Frame ):
         #self.verseNumberBox.pack()
 
         self.wordVar = tk.StringVar()
-        self.wordBox = Entry( navigationBar, textvariable=self.wordVar )
-        self.wordBox['width'] = 12
+        if self.lexiconWord: self.wordVar.set( self.lexiconWord )
+        self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
+        #self.wordBox['width'] = 12
         self.wordBox.bind( '<Return>', self.acceptNewWord )
         self.wordBox.pack( side=tk.LEFT )
 
@@ -485,18 +520,21 @@ class Application( Frame ):
 
     def createToolBar( self ):
         """
-        Create a tool bar containing several buttons at the top of the main window.
+        Create a tool bar containing several helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createToolBar()") )
 
-        Style().configure('ToolBar.TFrame', background='green')
-
+        Style().configure( 'ToolBar.TFrame', background='green' )
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
-        Button( toolbar, text='Hide Resources', command=self.doHideAllResources ).pack( side=tk.LEFT, padx=2, pady=2 )
-        Button( toolbar, text='Hide All', command=self.doHideAll ).pack( side=tk.LEFT, padx=2, pady=2 )
-        Button( toolbar, text='Show All', command=self.doShowAll ).pack( side=tk.LEFT, padx=2, pady=2 )
-        Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+
+        Style().configure( 'ShowAll.TButton', background='lightgreen' )
+        Style().configure( 'HideResources.TButton', background='pink' )
+        Style().configure( 'HideAll.TButton', background='orange' )
+        Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ).pack( side=tk.LEFT, padx=2, pady=2 )
+        Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of Application.createToolBar
 
@@ -651,12 +689,16 @@ class Application( Frame ):
     def setReadyStatus( self ):
         """
         Sets the status line to "Ready"
-            and sets the cursor to the normal cursor.
+            and sets the cursor to the normal cursor
+        unless we're still starting
+            (this covers any slow start-up functions that don't yet set helpful statuses)
         """
-        #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
-        self.setStatus( _("Ready") )
-        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
-        self.config( cursor='' )
+        if self.starting: self.setWaitStatus( _("Starting up…") )
+        else: # we really are ready
+            #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
+            self.setStatus( _("Ready") )
+            Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
+            self.config( cursor='' )
     # end of Application.setReadyStatus
 
 
@@ -718,7 +760,8 @@ class Application( Frame ):
         """
         Check if there's any new messages on the website from the developer.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doCheckForDeveloperMessages()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doCheckForDeveloperMessages()") )
 
         import requests
         # NOTE: needs to be https!!!
@@ -1568,7 +1611,7 @@ class Application( Frame ):
         selectedButton.config( state=tk.DISABLED )#, relief=tk.SUNKEN )
         for otherButton in groupButtons:
             otherButton.config( state=tk.NORMAL ) #, relief=tk.RAISED )
-        self.bookNameVar.set( self.getBookName(self.currentVerseKey[0]) )
+        self.bookNameVar.set( self.getGenericBookName(self.currentVerseKey[0]) )
         self.chapterNumberVar.set( self.currentVerseKey[1] )
         self.verseNumberVar.set( self.currentVerseKey[2] )
     # end of Application.updateBCVGroupButtons
@@ -1598,6 +1641,19 @@ class Application( Frame ):
     def selectGroupD( self ):
         self.updateBCVGroup( 'D' )
     # end of Application.selectGroupD
+
+
+    #def getNumVerses( self, BBB, C ):
+        #"""
+        #Find the number of verses in this chapter (in the generic BOS)
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("getNumVerses( {}, {} )").format( BBB, C ) )
+
+        #if C=='0' or C==0: return 99
+        #try: return self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
+        #except KeyError: return 0
+    ## end of Application.getNumVerses
 
 
     def doGotoPreviousBook( self, event=None, gotoEnd=False ):
@@ -1746,6 +1802,26 @@ class Application( Frame ):
     # end of Application.doGotoBook
 
 
+    def doGotoInfo( self, event=None ):
+        """
+        Pop-up dialog giving goto/reference info.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doGotoInfo( {} )").format( event ) )
+
+        infoString = 'Current location:\n' \
+                 + '  {}\n'.format( self.currentVerseKey.getShortText() ) \
+                 + '  {} verses in chapter\n'.format( self.maxVersesThisChapter ) \
+                 + '  {} chapters in book\n'.format( self.maxChaptersThisBook ) \
+                 + '\nCurrent references:\n' \
+                 + '  A: {}\n'.format( self.GroupA_VerseKey.getShortText() ) \
+                 + '  B: {}\n'.format( self.GroupB_VerseKey.getShortText() ) \
+                 + '  C: {}\n'.format( self.GroupC_VerseKey.getShortText() ) \
+                 + '  D: {}'.format( self.GroupD_VerseKey.getShortText() )
+        showinfo( self, 'Goto Information', infoString )
+    # end of Application.doGotoInfo
+
+
     def spinToNewBook( self, event=None ):
         """
         Handle a new book setting from the GUI dropbox.
@@ -1758,6 +1834,24 @@ class Application( Frame ):
         self.verseNumberVar.set( '1' )
         self.acceptNewBnCV()
     # end of Application.spinToNewBook
+
+
+    def spinToNewBookNumber( self, event=None ):
+        """
+        Handle a new book number setting from the GUI dropbox.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("spinToNewBookNumber( {} )").format( event ) )
+        #print( dir(event) )
+
+        nBBB = self.bookNumberVar.get()
+        BBB = self.bookNumberTable[int(nBBB)]
+        print( 'spinToNewBookNumber', repr(nBBB), repr(BBB) )
+        self.bookNameVar.set( BBB ) # Will be used by acceptNewBnCV
+        self.chapterNumberVar.set( '1' )
+        self.verseNumberVar.set( '1' )
+        self.acceptNewBnCV()
+    # end of Application.spinToNewBookNumber
 
 
     def spinToNewChapter( self, event=None ):
@@ -1797,7 +1891,8 @@ class Application( Frame ):
             self.bookNameBox.focus_set()
         else:
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "acceptNewBnCV {} {}:{}".format( enteredBookname, C, V ) )
-            self.bookNameVar.set( self.getBookName(BBB) )
+            self.bookNumberVar.set( self.bookNumberTable[BBB] )
+            self.bookNameVar.set( self.getGenericBookName(BBB) )
             self.gotoBCV( BBB, C, V )
             self.setReadyStatus()
     # end of Application.acceptNewBnCV
@@ -1843,11 +1938,12 @@ class Application( Frame ):
         Called from acceptNewBnCV.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("gotoBCV( {} {}:{} {} ) from {}").format( BBB, C, V, originator, self.currentVerseKey ) )
+            print( exp("gotoBCV( {} {}:{} {} ) = {} from {}").format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
 
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag:
-            assert self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True )
+            if self.bookNumberTable[BBB] > 0: # Preface and stuff might fail this
+                assert self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True )
         if self.haveSwordResourcesOpen():
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
             #print( "swK", self.SwordKey.getText() )
@@ -1905,7 +2001,7 @@ class Application( Frame ):
         self.maxVersesThisChapter = self.getNumVerses( BBB, C )
         self.verseSpinbox['to'] = self.maxVersesThisChapter
 
-        self.bookNameVar.set( self.getBookName( BBB ) )
+        self.bookNameVar.set( self.getGenericBookName( BBB ) )
         self.chapterNumberVar.set( C )
         self.verseNumberVar.set( V )
 

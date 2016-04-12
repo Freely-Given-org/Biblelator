@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-11 RJH
+Last updated: 2016-04-12 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,10 +14,10 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs
+* Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
 * When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
 * Info box for resource windows doesn't show file name and path
-* Lexicon key isn't reloaded into main window at startup
 * Pressing DEL at autocomplete box inserts some weird character
 * \p at end of verse really belongs with next verse
 * Ask for a path for Sword modules if none found by automatic search
@@ -32,10 +32,12 @@ Biblelator bugs
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 
 Bibelator testing required
+* Need to set-up some special .ini files for testing
 * Systematically work through all menus
 
 
 BOS bugs
+* Why do warnings show on Windows console (yet not on Linux)?
 * Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
 * OSIS (and other containerised) formats should insert end markers when loading
 
@@ -55,7 +57,6 @@ BOS improvements for Biblelator
 * Add check for over-long paragraphs (and sentence length?)
 
 BOS testing required
-* Test on more MyBible modules
 
 
 Biblelator stuff
@@ -66,6 +67,7 @@ Biblelator stuff
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
 * Get Sword resources displaying nicer
+* Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
 * Investigate tix widgets
 * Cache DBP to disk (if have expensive Internet)???
 * Need keyboard shortcuts for verse up/down
@@ -73,7 +75,6 @@ Biblelator stuff
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste
 * Need to remove autocorrect settings from code and put into files (with an editor???)
-* Need spin buttons on bookname box
 * Display toolbox dictionary???
 * Allow windows to lock together (e.g., two or more project edit windows)
 * Send BCV updates from HTML window
@@ -120,6 +121,7 @@ Biblelator stuff
 * Make multiple Bible lexicon windows use the same (loaded) lexicon
 * Handle interlinear display (for original language resources)
 * Investigate integrating more online resources
+* From a Bible edit window, have a menu item to view the current chapter/section typeset on a page (pop-up window)
 * Improve the about page(s)
 * Turn chapter/verse spin buttons 90 degrees
 * Learn how to install Biblelator on OS X

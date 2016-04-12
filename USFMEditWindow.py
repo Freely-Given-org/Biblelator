@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-11' # by RJH
+LastModifiedDate = '2016-04-12' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.33'
@@ -152,8 +152,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.__init__
 
 
-    def __str__(self): return "USFMEditWindow"
-    def __repr__(self): return "USFMEditWindow"
+    #def __str__(self): return "USFMEditWindow"
+    #def __repr__(self): return "USFMEditWindow"
 
 
     def refreshTitle( self ):
@@ -1264,6 +1264,7 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    import sys
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         from io import TextIOWrapper
         sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )

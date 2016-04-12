@@ -35,7 +35,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-08' # by RJH
+LastModifiedDate = '2016-04-11' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.33'
@@ -217,9 +217,12 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("calculateTotalVersesForBook( {} )").format( BBB ) )
     totalVerses = 0
-    for C in range( 1, getNumChapters(BBB)+1 ):
-        totalVerses += getNumVerses( BBB, C )
-    return totalVerses
+    try:
+        for C in range( 1, getNumChapters(BBB)+1 ):
+            totalVerses += getNumVerses( BBB, C )
+        return totalVerses
+    except TypeError: # if something is None (i.e., a book without chapters or verses
+        return 1
 # end of BiblelatorHelpers.calculateTotalVersesForBook
 
 
@@ -546,6 +549,10 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    import sys
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )

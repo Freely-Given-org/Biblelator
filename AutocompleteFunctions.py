@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-04-12' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.31'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -82,7 +82,7 @@ def exp( messageString ):
 def setAutocompleteWords( editWindowObject, wordList, append=False ):
     """
     Given a word list, set the entries into the autocomplete words
-        and then do necessary house-keeping.
+        for an edit window and then do necessary house-keeping.
 
     Note that the original word order is preserved (if the wordList has an order)
         so that more common/likely words can appear at the top of the list if desired.
@@ -204,25 +204,25 @@ def countBookWords( BBB, folder, filename, isCurrentBook ):
             if len(singleWord) > 2: wordCounts[singleWord] += countIncrement
 
             #if word[-1] not in '—.–':
-            if wx < len(words)-1:
+            if wx < len(words)-1: # it's not the last word in the line
                 doubleWord = word+' '+words[wx+1]
                 #print( 'doubleWord', repr(doubleWord) )
                 adjustedDoubleWord = doubleWord[:-1] if doubleWord[-1] in END_CHARS_TO_REMOVE else doubleWord
                 if '. ' not in adjustedDoubleWord: # don't go across sentence boundaries
                     wordCounts[adjustedDoubleWord] += countIncrement
-                if wx < len(words)-2:
+                if wx < len(words)-2: # there's still two words after this one
                     tripleWord = doubleWord+' '+words[wx+2]
                     #print( 'tripleWord', repr(tripleWord) )
                     adjustedTripleWord = tripleWord[:-1] if tripleWord[-1] in END_CHARS_TO_REMOVE else tripleWord
                     if '. ' not in adjustedTripleWord: # don't go across sentence boundaries
                         wordCounts[adjustedTripleWord] += countIncrement
-                    if wx < len(words)-3:
+                    if wx < len(words)-3: # there's still three words after this one
                         quadWord = tripleWord+' '+words[wx+3]
                         #print( 'quadWord', repr(quadWord) )
                         adjustedQuadWord = quadWord[:-1] if quadWord[-1] in END_CHARS_TO_REMOVE else quadWord
                         if '. ' not in adjustedQuadWord: # don't go across sentence boundaries
                             wordCounts[adjustedQuadWord] += countIncrement
-                        if wx < len(words)-4:
+                        if wx < len(words)-4: # there's still four words after this one
                             quinWord = quadWord+' '+words[wx+4]
                             #print( 'quinWord', repr(quinWord) )
                             adjustedQuinWord = quinWord[:-1] if quinWord[-1] in END_CHARS_TO_REMOVE else quinWord
@@ -306,7 +306,7 @@ def countBookWords( BBB, folder, filename, isCurrentBook ):
             #raise
 
     return wordCounts
-# end of InternalBibleBook.countBookWords
+# end of AutocompleteFunctions.countBookWords
 
 
 def countBookWordsHelper( parameters ):
