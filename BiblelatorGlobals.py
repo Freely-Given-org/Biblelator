@@ -40,7 +40,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-12' # by RJH
+LastModifiedDate = '2016-04-13' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.33'
@@ -196,7 +196,7 @@ def parseWindowGeometry( geometry ):
     """
     m = re.match("(\d+)x(\d+)\+(-?\d+)\+(-?\d+)", geometry)
     if not m:
-        raise ValueError( "parseWindowGeometry: failed to parse geometry string {}".format( repr(geometry) ) )
+        raise ValueError( "parseWindowGeometry: failed to parse geometry string {!r}".format( geometry ) )
     return [int(digits) for digits in m.groups()]
 # end of BiblelatorGlobals.parseWindowGeometry
 
@@ -209,7 +209,7 @@ def parseWindowSize( geometry ):
     """
     m = re.match("(\d+)x(\d+)", geometry)
     if not m:
-        raise ValueError( "parseWindowSize: failed to parse geometry string {}".format( repr(geometry) ) )
+        raise ValueError( "parseWindowSize: failed to parse geometry string {!r}".format( geometry ) )
     return [int(digits) for digits in m.groups()]
 # end of BiblelatorGlobals.parseWindowSize
 

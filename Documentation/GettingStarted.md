@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2016-03-21 RJH
+Last updated: 2016-04-15 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -36,6 +36,16 @@ For an overview of the program design philosophy, see Development.md.
         Biblelator.py --override Test.ini
     will use Test.ini rather than Biblelator.ini for loading/saving program settings.
 
+    This feature can be used if you regularly switch between a number of different
+    project environments, e.g., you are working on separate English and French translations
+    and have different resources, etc. open in the two different projects. Run Biblelator,
+    set-up your windows for the English project, then exit Biblelator. Go to the settings
+    folder (see above) and rename Biblelator.ini to English.ini. Now do the same for
+    the French translation windows so you get French.ini. Now you can start Biblelator
+    with either of the following:
+        Biblelator.py -o English
+        Biblelator.py -o French
+
 
 2. Logging
 
@@ -54,6 +64,8 @@ For an overview of the program design philosophy, see Development.md.
         part of the screen. However, if Biblelator is started in debug mode (with the
         --debug flag on the command line), the main window may need to be made larger
         in order to properly display the additional debug logging information.
+    In touch-screen mode, Biblelator will display the main window with larger buttons
+    suitable for touching accurately with a fingertip.
 
 
 4. Resource texts

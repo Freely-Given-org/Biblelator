@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-12 RJH
+Last updated: 2016-04-15 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -42,6 +42,7 @@ BOS bugs
 * OSIS (and other containerised) formats should insert end markers when loading
 
 BOS improvements for Biblelator
+* Are we able to read Sword dictionaries?
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
 * Make SwordModules for Windows able to load individual books not just entire Bibles (started)
 * Fix speech mark / quotation checking
@@ -55,6 +56,7 @@ BOS improvements for Biblelator
 * Increased multiprocessing
 * Investigate plug-ins
 * Add check for over-long paragraphs (and sentence length?)
+* Write a GUI for the BOS (esp. to display BOSs)
 
 BOS testing required
 
@@ -91,6 +93,7 @@ Biblelator stuff
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
 * Release version 0.4
+* Include some sample folders and sample ini files
 * Setting max window sizes prevents maximizing -- is this what we really want?
 * Consider when the same project/file is opened multiple times
 * Consider/optimize toolbars in child windows (and/or hiding the menu)
@@ -132,7 +135,7 @@ Biblelator stuff
 * Make autocompletion aware of previous work and so adjust for context
 * Add progress bars for slow tasks
 * Add tooltips
-* Create an intelligent installer
+* Create an intelligent installer (also investigate Snap packaging)
 * Allow for secure automatic program updates (choice of stable and development branches)
 * Work on automated GUI testing
 * Release version 1.0 (BibleOrgSys versification systems have to be working first)

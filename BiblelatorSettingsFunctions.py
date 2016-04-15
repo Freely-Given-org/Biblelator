@@ -38,7 +38,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-12' # by RJH
+LastModifiedDate = '2016-04-15' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.33'
@@ -52,7 +52,8 @@ debuggingThisModule = True
 import os, logging
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, \
+    DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
     findHomeFolderPath, parseWindowSize, assembleWindowSize
@@ -82,6 +83,27 @@ def exp( messageString ):
         nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
+
+
+
+def convertToPython( text ):
+    """
+    Convert text to Python logic values.
+    """
+    if text == 'True': return True
+    if text == 'False': return False
+    if text == 'None': return None
+    if text.lower() == 'true':
+        logging.warning( "Settings: Found {!r} instead of 'True'".format( text ) )
+        return True
+    elif text.lower() == 'false':
+        logging.warning( "Settings: Found {!r} instead of 'False'".format( text ) )
+        return False
+    if text.lower() == 'none':
+        logging.warning( "Settings: Found {!r} instead of 'None'".format( text ) )
+        return None
+    return text
+# end of convertToPython
 
 
 
@@ -116,9 +138,12 @@ def parseAndApplySettings( self ):
     # end of retrieveWindowsSettings
 
 
+    # Main code for parseAndApplySettings()
     if BibleOrgSysGlobals.debugFlag:
         print( exp("parseAndApplySettings()") )
         self.setDebugText( "parseAndApplySettings…" )
+
+    # Parse main app stuff
     try: self.minimumSize = self.settings.data[APP_NAME]['minimumSize']
     except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
     self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
@@ -138,6 +163,18 @@ def parseAndApplySettings( self ):
 
     try: self.doChangeTheme( self.settings.data[APP_NAME]['themeName'] )
     except KeyError: logging.warning( "Settings.KeyError: no themeName" )
+    try: self.interfaceLanguage = self.settings.data[APP_NAME]['interfaceLanguage']
+    except KeyError: self.interfaceLanguage = DEFAULT
+    if BibleOrgSysGlobals.debugFlag: assert self.interfaceLanguage in ( DEFAULT, )
+    try: self.interfaceComplexity = self.settings.data[APP_NAME]['interfaceComplexity']
+    except KeyError: self.interfaceComplexity = DEFAULT
+    if BibleOrgSysGlobals.debugFlag: assert self.interfaceComplexity in ( DEFAULT, 'Basic', 'Advanced', )
+    try: self.touchMode = convertToPython( self.settings.data[APP_NAME]['touchMode'] )
+    except KeyError: self.touchMode = False
+    if BibleOrgSysGlobals.debugFlag: assert self.touchMode in ( False, True )
+    try: self.tabletMode = convertToPython( self.settings.data[APP_NAME]['tabletMode'] )
+    except KeyError: self.tabletMode = False
+    if BibleOrgSysGlobals.debugFlag: assert self.tabletMode in ( False, 1, 2 )
 
     # Parse Internet stuff
     try:
@@ -196,10 +233,10 @@ def parseAndApplySettings( self ):
             recentName = 'Recent{}'.format( j )
             for keyName in recentFields:
                 if keyName.startswith( recentName ): # This index number (j) is present
-                    filename = self.settings.data['RecentFiles']['Recent{}Filename'.format( j )]
-                    if filename == 'None': filename = None
-                    folder = self.settings.data['RecentFiles']['Recent{}Folder'.format( j )]
-                    if folder == 'None': folder = None
+                    filename = convertToPython( self.settings.data['RecentFiles']['Recent{}Filename'.format( j )] )
+                    #if filename == 'None': filename = None
+                    folder = convertToPython( self.settings.data['RecentFiles']['Recent{}Folder'.format( j )] )
+                    #if folder == 'None': folder = None
                     if folder and folder[-1] not in '/\\': folder += '/'
                     winType = self.settings.data['RecentFiles']['Recent{}Type'.format( j )]
                     self.recentFiles.append( (filename,folder,winType) )
@@ -215,8 +252,14 @@ def parseAndApplySettings( self ):
     except KeyError: pass # use program default
 
     # Parse BCV groups
+    try: self.genericBibleOrganisationalSystemName = self.settings.data['BCVGroups']['genericBibleOrganisationalSystemName']
+    #except KeyError: pass # use program default
+    except KeyError: self.genericBibleOrganisationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
+    finally: self.setGenericBibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
+
     try: self.currentVerseKeyGroup = self.settings.data['BCVGroups']['currentGroup']
     except KeyError: self.currentVerseKeyGroup = 'A'
+
     try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
     except KeyError: self.GroupA_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
     try: self.GroupB_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
@@ -317,9 +360,9 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
             elif winType == 'PlainTextEditWindow':
-                try: filepath = thisStuff['TextFilepath']
+                try: filepath = convertToPython( thisStuff['TextFilepath'] )
                 except KeyError: filepath = None
-                if filepath == 'None': filepath = None
+                #if filepath == 'None': filepath = None
                 rw = self.openFileTextEditWindow( filepath, windowGeometry )
                 #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
             elif winType == 'BiblelatorUSFMBibleEditWindow':
@@ -360,8 +403,8 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                     if BibleOrgSysGlobals.debugFlag: assert contextViewMode in BIBLE_CONTEXT_VIEW_MODES
                     rw.contextViewMode = contextViewMode
                     rw.createMenuBar() # in order to show the correct contextViewMode
-                autocompleteMode = thisStuff['AutocompleteMode'] if 'AutocompleteMode' in thisStuff else None
-                if autocompleteMode == 'None': autocompleteMode = None
+                autocompleteMode = convertToPython( thisStuff['AutocompleteMode'] ) if 'AutocompleteMode' in thisStuff else None
+                #if autocompleteMode == 'None': autocompleteMode = None
                 if autocompleteMode:
                     if BibleOrgSysGlobals.debugFlag: assert winType.endswith( 'EditWindow' )
                     rw.autocompleteMode = autocompleteMode
@@ -510,6 +553,17 @@ def writeSettingsFile( self ):
     elif BibleOrgSysGlobals.verbosityLevel > 0:
         print( _("  Saving program settings…") )
 
+    def convertToString( setting ):
+        """
+        Takes special Python values and converts them to strings.
+        """
+        if setting is None: return 'None'
+        if setting == True: return 'True'
+        if setting == False: return 'False'
+        return setting
+    # end of convertToString
+
+    # Main code for writeSettingsFile()
     if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'writeSettingsFile' )
     self.settings.reset()
 
@@ -525,6 +579,11 @@ def writeSettingsFile( self ):
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
     mainStuff['minimumSize'] = self.minimumSize
     mainStuff['maximumSize'] = self.maximumSize
+    mainStuff['interfaceLanguage'] = self.interfaceLanguage
+    mainStuff['interfaceComplexity'] = self.interfaceComplexity
+    mainStuff['touchMode'] = convertToString( self.touchMode )
+    mainStuff['tabletMode'] = convertToString( self.tabletMode )
+
 
     # Save the Internet access controls
     self.settings.data['Internet'] = {}
@@ -550,10 +609,8 @@ def writeSettingsFile( self ):
     recent = self.settings.data['RecentFiles']
     for j, (filename,folder,winType) in enumerate( self.recentFiles ):
         recentName = 'Recent{}'.format( j+1 )
-        if filename is None: filename = 'None'
-        if folder is None: folder = 'None'
-        recent[recentName+'Filename'] = filename
-        recent[recentName+'Folder'] = folder
+        recent[recentName+'Filename'] = convertToString( filename )
+        recent[recentName+'Folder'] = convertToString( folder )
         recent[recentName+'Type'] = winType
 
     # Save the user information
@@ -566,6 +623,7 @@ def writeSettingsFile( self ):
     # Save the referenceGroups A..D
     self.settings.data['BCVGroups'] = {}
     groups = self.settings.data['BCVGroups']
+    groups['genericBibleOrganisationalSystemName'] = self.genericBibleOrganisationalSystemName
     groups['currentGroup'] = self.currentVerseKeyGroup
     groups['A-Book'] = self.GroupA_VerseKey[0]
     groups['A-Chapter'] = self.GroupA_VerseKey[1]
@@ -614,7 +672,7 @@ def writeSettingsFile( self ):
             for windowNumber,winDict in sorted( self.windowsSettingsDict[windowsSettingName].items() ):
                 #print( "  ", repr(windowNumber), repr(winDict) )
                 for windowSettingName,value in sorted( winDict.items() ):
-                    thisOne[windowNumber+windowSettingName] = 'None' if value is None else value
+                    thisOne[windowNumber+windowSettingName] = convertToString( value )
         except UnicodeEncodeError: logging.error( exp("writeSettingsFile: unable to write {} windows set-up").format( repr(windowsSettingName) ) )
     self.settings.save()
 # end of writeSettingsFile
