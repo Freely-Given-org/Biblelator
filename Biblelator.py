@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-15' # by RJH
+LastModifiedDate = '2016-04-18' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.33'
@@ -389,6 +389,9 @@ class Application( Frame ):
         toolsMenu.add_command( label=_('Checks…'), underline=0, command=self.notWrittenYet )
         toolsMenu.add_separator()
         toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+        toolsMenu.add_separator()
+        toolsMenu.add_command( label=_('BOS manager…'), underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label=_('Sword manager…'), underline=1, command=self.notWrittenYet )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )

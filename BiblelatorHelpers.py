@@ -31,11 +31,13 @@
     findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
     logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
     parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction )
+
+TODO: Can some of these functions be (made more general and) moved to the BOS?
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-11' # by RJH
+LastModifiedDate = '2016-04-17' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.33'
@@ -227,6 +229,12 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
 
 
 
+# A (temporary) dictionary containing NT references to OT
+REFERENCE_VERSE_KEY_DICT = {
+    SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
+    SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
+    }
+
 def mapReferenceVerseKey( mainVerseKey ):
     """
     Returns the verse key for OT references in the NT (and vv), etc.
@@ -235,14 +243,11 @@ def mapReferenceVerseKey( mainVerseKey ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
-    referenceVerseKeyDict = {
-        SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
-        SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
-        }
-    if mainVerseKey in referenceVerseKeyDict:
+
+    if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
-        return referenceVerseKeyDict[mainVerseKey]
+            print( '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+        return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferenceVerseKey
 
 
@@ -290,14 +295,14 @@ def mapReferencesVerseKey( mainVerseKey ):
         resultList.append( link )
     return resultList
     # old sample code
-        #referenceVerseKeyDict = {
+        #REFERENCE_VERSE_KEY_DICT = {
             #SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
             #SimpleVerseKey('MAT','3','3'): FlexibleVersesKey( 'ISA_40:3,7,14-15' ),
             #}
-        #if mainVerseKey in referenceVerseKeyDict:
+        #if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                #print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
-            #return referenceVerseKeyDict[mainVerseKey]
+                #print( '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+            #return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferencesVerseKey
 
 
