@@ -34,7 +34,7 @@ from gettext import gettext as _
 LastModifiedDate = '2016-04-18' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -74,6 +74,8 @@ from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
 from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
+from BOSManager import openBOSManager
+#from SwordManager import openSwordManager
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -390,8 +392,8 @@ class Application( Frame ):
         toolsMenu.add_separator()
         toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
         toolsMenu.add_separator()
-        toolsMenu.add_command( label=_('BOS manager…'), underline=0, command=self.notWrittenYet )
-        toolsMenu.add_command( label=_('Sword manager…'), underline=1, command=self.notWrittenYet )
+        toolsMenu.add_command( label=_('BOS manager…'), underline=0, command=self.doOpenBOSManager )
+        toolsMenu.add_command( label=_('Sword manager…'), underline=1, command=self.doOpenSwordManager )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
@@ -537,6 +539,9 @@ class Application( Frame ):
         toolsMenu.add_command( label=_('Checks…'), underline=0, command=self.notWrittenYet )
         toolsMenu.add_separator()
         toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+        toolsMenu.add_separator()
+        toolsMenu.add_command( label=_('BOS manager…'), underline=0, command=self.doOpenBOSManager )
+        toolsMenu.add_command( label=_('Sword manager…'), underline=1, command=self.doOpenSwordManager )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
@@ -2715,12 +2720,34 @@ class Application( Frame ):
     # end of Application.grepMatchesList
 
 
+    def doOpenBOSManager( self, event=None ):
+        """
+        Display the BOS manager window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doOpenBOSManager( {} )").format( event ) )
+
+        openBOSManager( self )
+    # end of Application.doOpenBOSManager
+
+    def doOpenSwordManager( self, event=None ):
+        """
+        Display the Sword module manager window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doOpenSwordManager( {} )").format( event ) )
+
+        #openSwordManager( self )
+    # end of Application.doOpenSwordManager
+
+
     def doHelp( self, event=None ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doHelp()") )
         from Help import HelpBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doHelp( {} )").format( event ) )
 
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -2745,13 +2772,13 @@ class Application( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doSubmitBug()") )
+        from About import AboutBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doSubmitBug( {} )").format( event ) )
 
         if not self.internetAccessEnabled: # we need to warn
             showerror( self, APP_NAME, 'You need to allow Internet access first!' )
             return
-
-        from About import AboutBox
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
@@ -2763,8 +2790,9 @@ class Application( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doAbout()") )
         from About import AboutBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doAbout( {} )").format( event ) )
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
