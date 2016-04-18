@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2016-04-05 RJH
+Last updated: 2016-04-18 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -63,6 +63,7 @@ follow my own instructions on a different computer.
     On the right-hand side of the page are links to either:
         a. Download (clone) BibleOrgSys with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future development versions.
+            The HTTPS link is https://github.com/openscriptures/BibleOrgSys.git
         b. Without Git, download the current version BibleOrgSys as a ZIP file and
             unzip the file in the BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called BibleOrgSys
@@ -74,6 +75,7 @@ follow my own instructions on a different computer.
     On the right-hand side of the page are links to either:
         a. Download (clone) Biblelator with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future development versions.
+            The HTTPS link is https://github.com/openscriptures/Biblelator.git
         b. Without Git, download the current version Biblelator as a ZIP file and
             unzip the file in the BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called Biblelator
@@ -85,6 +87,7 @@ follow my own instructions on a different computer.
     On the right-hand side of the page are links to either:
         a. Download (clone) HebrewLexicon with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future corrected versions.
+            The HTTPS link is https://github.com/openscriptures/HebrewLexicon.git
         b. Without Git, download the current version HebrewLexicon as a ZIP file and
             unzip the file in the first/top BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called HebrewLexicon
@@ -96,6 +99,7 @@ follow my own instructions on a different computer.
     On the right-hand side of the page are links to either:
         a. Download (clone) strongs-dictionary-xml with Git (using either HTTPS or SSH (if you have a GitHub account).
             This method allows easier updating to future corrected versions.
+            The HTTPS link is https://github.com/morphgnt/strongs-dictionary-xml.git
         b. Without Git, download the current version strongs-dictionary-xml as a ZIP file and
             unzip the file in the first/top BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called strongs-dictionary-xml

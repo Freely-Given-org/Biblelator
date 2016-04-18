@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-05' # by RJH
+LastModifiedDate = '2016-04-11' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -255,7 +255,12 @@ class BibleBox( ChildBox ):
                         haveTextFlag = True
                     elif marker == 'b':
                         self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
-                    elif marker == 'm': pass
+                    elif marker in ('m','im'):
+                        self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
+                        if cleanText:
+                            self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                            lastCharWasSpace = False
+                            haveTextFlag = True
                     else:
                         if BibleOrgSysGlobals.debugFlag:
                             logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
@@ -380,7 +385,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
             ##"tabs", "tabstyle", "underline", and "wrap".
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" ) # temp
+        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda b,c: 99 if b=='UNK' or c=='0' or c==0 else self.BibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
@@ -1122,7 +1127,8 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError:
-                logging.critical( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
+                if verseKey.getChapterNumber() != '0':
+                    logging.critical( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.winType, verseKey ) )
     # end of InternalBibleResourceWindow.getContextVerseData
 # end of InternalBibleResourceWindow class
@@ -1161,7 +1167,7 @@ if __name__ == '__main__':
 
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )

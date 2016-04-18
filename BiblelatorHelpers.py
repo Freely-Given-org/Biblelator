@@ -28,15 +28,19 @@
     calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses )
     mapReferenceVerseKey( mainVerseKey )
     mapParallelVerseKey( forGroupCode, mainVerseKey )
+    findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
     logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
+    parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction )
+
+TODO: Can some of these functions be (made more general and) moved to the BOS?
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-27' # by RJH
+LastModifiedDate = '2016-04-17' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -45,6 +49,7 @@ debuggingThisModule = False
 
 import os.path
 from datetime import datetime
+import re
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
@@ -81,6 +86,7 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("createEmptyUSFMBookText( {} )").format( BBB ) )
+
     USFMAbbreviation = BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation( BBB )
     USFMNumber = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber( BBB )
     bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME_VERSION )
@@ -213,12 +219,21 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("calculateTotalVersesForBook( {} )").format( BBB ) )
     totalVerses = 0
-    for C in range( 1, getNumChapters(BBB)+1 ):
-        totalVerses += getNumVerses( BBB, C )
-    return totalVerses
+    try:
+        for C in range( 1, getNumChapters(BBB)+1 ):
+            totalVerses += getNumVerses( BBB, C )
+        return totalVerses
+    except TypeError: # if something is None (i.e., a book without chapters or verses
+        return 1
 # end of BiblelatorHelpers.calculateTotalVersesForBook
 
 
+
+# A (temporary) dictionary containing NT references to OT
+REFERENCE_VERSE_KEY_DICT = {
+    SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
+    SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
+    }
 
 def mapReferenceVerseKey( mainVerseKey ):
     """
@@ -228,14 +243,11 @@ def mapReferenceVerseKey( mainVerseKey ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
-    referenceVerseKeyDict = {
-        SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
-        SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
-        }
-    if mainVerseKey in referenceVerseKeyDict:
+
+    if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
-        return referenceVerseKeyDict[mainVerseKey]
+            print( '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+        return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferenceVerseKey
 
 
@@ -283,14 +295,14 @@ def mapReferencesVerseKey( mainVerseKey ):
         resultList.append( link )
     return resultList
     # old sample code
-        #referenceVerseKeyDict = {
+        #REFERENCE_VERSE_KEY_DICT = {
             #SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
             #SimpleVerseKey('MAT','3','3'): FlexibleVersesKey( 'ISA_40:3,7,14-15' ),
             #}
-        #if mainVerseKey in referenceVerseKeyDict:
+        #if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                #print( '  returning {}'.format( referenceVerseKeyDict[mainVerseKey].getShortText() ) )
-            #return referenceVerseKeyDict[mainVerseKey]
+                #print( '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+            #return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferencesVerseKey
 
 
@@ -328,7 +340,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
         elif isinstance( verseData, tuple ):
             #print( "  It's an InternalBibleEntryList!" )
-            assert( len(verseData) == 2 )
+            assert len(verseData) == 2
             verseDataList, context = verseData
             #print( '   dataList', repr(verseDataList) )
             #print( '    context', repr(context) )
@@ -416,16 +428,19 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
     Note that Biblelator never directly changes InternalBible objects --
         they are effectively 'read-only'.
 
+    "self" here is the main Application object.
+
     Returns an internal Bible object.
     """
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("handleInternalBibles( {} )").format( internalBible ) )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("handleInternalBibles( {}, {} )").format( internalBible, controllingWindow ) )
         self.setDebugText( "handleInternalBibles" )
 
     result = internalBible
     #if internalBible is None:
         #print( "  Got None" )
     if internalBible is not None:
+        #print( "  Not None" )
         foundControllingWindowList = None
         for iB,cWs in self.internalBibles:
             # Some of these variables will be None but they'll still match
@@ -435,14 +450,17 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
             and internalBible.sourceFilename == iB.sourceFilename \
             and internalBible.encoding == iB.encoding: # Let's assume they're the same
                 #print( "  Got a match!" )
-                foundControllingWindowList, result = cWs, iB
+                result, foundControllingWindowList = iB, cWs
                 break
 
         if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "Internal Bibles now:" )
+        print( "Internal Bibles ({}) now:".format( len(self.internalBibles) ) )
+        for something in self.internalBibles:
+            print( "  ", something )
+        print( self.internalBibles )
         for j,(iB,cWs) in enumerate( self.internalBibles ):
             print( "  {}/ {} in {}".format( j+1, iB.getAName(), cWs ) )
             print( "      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation ) )
@@ -479,6 +497,32 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
 
 
 
+def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
+    """
+    Checks if the bookName entry is just a book name, or an entire reference (e.g., "Gn 15:2")
+
+    Returns the discovered BBB, C, V
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("parseEnteredBookname( {}, {}, {}, … )").format( bookNameEntry, Centry, Ventry ) )
+
+    # Do a bit of preliminary cleaning-up
+    bookNameEntry = bookNameEntry.strip()
+    while '  ' in bookNameEntry: bookNameEntry.replace( '  ', ' ' )
+
+    if ':' in bookNameEntry:
+        print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) )
+        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
+        if match:
+            print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+            return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
+
+    #else: # assume it's just a book name
+    return BBBfunction( bookNameEntry ), Centry, Ventry
+# end of BiblelatorHelpers.parseEnteredBookname
+
+
+
 def demo():
     """
     Main program to handle command line parameters and then run what they want.
@@ -510,6 +554,10 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    import sys
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )

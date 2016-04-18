@@ -30,10 +30,10 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-04-14' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = '0.31'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -88,7 +88,7 @@ class ModalDialog( tk.Toplevel ):
         self.initial_focus = self.body( body ) # Create the widgets in the body
         body.pack( padx=5, pady=5 )
 
-        self.buttonbox()
+        self.buttonBox()
 
         self.grab_set()
 
@@ -116,9 +116,12 @@ class ModalDialog( tk.Toplevel ):
     # end of ModalDialog.body
 
 
-    def buttonbox( self ):
-        # add standard button box. override if you don't want the
-        # standard buttons
+    def buttonBox( self ):
+        """
+        Add ourstandard button box
+
+        Override if you don't want the standard buttons.
+        """
         box = Frame( self )
 
         w = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
@@ -130,7 +133,7 @@ class ModalDialog( tk.Toplevel ):
         self.bind( "<Escape>", self.cancel )
 
         box.pack()
-    # end of ModalDialog.buttonbox
+    # end of ModalDialog.buttonBox
 
 
     #

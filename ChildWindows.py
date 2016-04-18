@@ -34,10 +34,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-03' # by RJH
+LastModifiedDate = '2016-04-11' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -581,7 +581,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.parentWindow, self.initialFilename = parentWindow, filename
         tk.Toplevel.__init__( self, self.parentWindow )
         ChildBox.__init__( self, self.parentWindow )
-        self.protocol( "WM_DELETE_WINDOW", self.closeHTMLWindow )
+        self.protocol( "WM_DELETE_WINDOW", self.doClose )
         self.title( 'HTMLWindow' )
         self.genericWindowType = 'HTMLWindow'
         self.winType = 'HTMLWindow'
@@ -823,7 +823,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Display or hide the status bar.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.doToggleStatusBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.doToggleStatusBar()") )
+
         if self._showStatusBarVar.get():
             self.createStatusBar()
         else:
@@ -859,7 +861,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.gotoLink( {} )").format( link ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.gotoLink( {} )").format( link ) )
+
         if not os.path.isabs( link ): # relative filepath
             link = os.path.join( self.folderPath, link )
         self.load( link )
@@ -873,7 +877,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.overLink( {} )").format( link ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.overLink( {} )").format( link ) )
+
         self.setStatus( link ) # Display it
     # end of HTMLWindow.overLink
 
@@ -881,7 +887,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
     def leaveLink( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLWindow.leaveLink()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.leaveLink()") )
+
         self.setStatus() # Clear it
     # end of HTMLWindow.leaveLink
 
@@ -992,7 +1000,7 @@ if __name__ == '__main__':
 
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )

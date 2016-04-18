@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-30' # by RJH
+LastModifiedDate = '2016-04-12' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -150,6 +150,10 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.__init__ finished.") )
     # end of TextEditWindow.__init__
+
+
+    #def __str__(self): return "TextEditWindow"
+    #def __repr__(self): return "TextEditWindow"
 
 
     def createEditorKeyboardBindings( self ):
@@ -1183,11 +1187,14 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
+    import sys
+    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+        from io import TextIOWrapper
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #from tkinter import TclVersion, TkVersion

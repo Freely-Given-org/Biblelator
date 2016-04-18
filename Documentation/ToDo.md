@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-05 RJH
+Last updated: 2016-04-15 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -9,9 +9,14 @@ This is an informal list of things that need to be fixed or are planned to be do
 Eventually we will use the issue tracker at Github
     -- actually, you're welcome to list your issues there already.
 
-Things nearer the top of the list are higher in priority.
+Things nearer the top of the list are higher in priority
+(and due to my situation often only having smallish chunks of time available,
+smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs
+* Book number spinner needs to check if any window contains that book else skip it
+* Need wait status/cursor when opening a DBP resource
+* When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
 * Info box for resource windows doesn't show file name and path
 * Pressing DEL at autocomplete box inserts some weird character
 * \p at end of verse really belongs with next verse
@@ -22,14 +27,22 @@ Biblelator bugs
 * Text file open and Biblelator project open dialogs flash for a while and then go smaller
 * Seems that Alt up and down do different things if a spinbox or the bookname box is selected
 * Prevent autocomplete if editing in the middle of a word ???
-* Need wait status/cursor when opening a DBP resource
 * Make opening a 2nd DBP box inside a resource collection not download everything again
+* Having a DBP window open (and slow Internet) slows all verse navigation
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 
+Bibelator testing required
+* Need to set-up some special .ini files for testing
+* Systematically work through all menus
+
+
 BOS bugs
-* Why do errors and warnings appear on console in Python3.5.1 (and logging file seems not to be created)
+* Why do warnings show on Windows console (yet not on Linux)?
+* Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
+* OSIS (and other containerised) formats should insert end markers when loading
 
 BOS improvements for Biblelator
+* Are we able to read Sword dictionaries?
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
 * Make SwordModules for Windows able to load individual books not just entire Bibles (started)
 * Fix speech mark / quotation checking
@@ -43,22 +56,28 @@ BOS improvements for Biblelator
 * Increased multiprocessing
 * Investigate plug-ins
 * Add check for over-long paragraphs (and sentence length?)
+* Write a GUI for the BOS (esp. to display BOSs)
+
+BOS testing required
+
 
 Biblelator stuff
+* Add Internet fast/slow, expensive/cheap flags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
-* Allow a complete reference (e.g., Gen 3:5) to be typed or pasted into the bookname box
 * Make a proper icon
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
 * Get Sword resources displaying nicer
+* Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
 * Investigate tix widgets
+* Cache DBP to disk (if have expensive Internet)???
 * Need keyboard shortcuts for verse up/down
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste
 * Need to remove autocorrect settings from code and put into files (with an editor???)
-* Need spin buttons on bookname box
+* Display toolbox dictionary???
 * Allow windows to lock together (e.g., two or more project edit windows)
 * Send BCV updates from HTML window
 * Send verse links to Paratext
@@ -74,6 +93,7 @@ Biblelator stuff
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
 * Release version 0.4
+* Include some sample folders and sample ini files
 * Setting max window sizes prevents maximizing -- is this what we really want?
 * Consider when the same project/file is opened multiple times
 * Consider/optimize toolbars in child windows (and/or hiding the menu)
@@ -104,6 +124,7 @@ Biblelator stuff
 * Make multiple Bible lexicon windows use the same (loaded) lexicon
 * Handle interlinear display (for original language resources)
 * Investigate integrating more online resources
+* From a Bible edit window, have a menu item to view the current chapter/section typeset on a page (pop-up window)
 * Improve the about page(s)
 * Turn chapter/verse spin buttons 90 degrees
 * Learn how to install Biblelator on OS X
@@ -114,7 +135,7 @@ Biblelator stuff
 * Make autocompletion aware of previous work and so adjust for context
 * Add progress bars for slow tasks
 * Add tooltips
-* Create an intelligent installer
+* Create an intelligent installer (also investigate Snap packaging)
 * Allow for secure automatic program updates (choice of stable and development branches)
 * Work on automated GUI testing
 * Release version 1.0 (BibleOrgSys versification systems have to be working first)

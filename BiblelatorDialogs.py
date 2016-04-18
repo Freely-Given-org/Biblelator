@@ -44,10 +44,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-24'
+LastModifiedDate = '2016-04-15'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -58,7 +58,7 @@ import logging
 
 import tkinter as tk
 import tkinter.messagebox as tkmb
-from tkinter.ttk import Label, Combobox, Entry, Radiobutton
+from tkinter.ttk import Style, Label, Combobox, Entry, Radiobutton, Button, Frame
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME
@@ -106,7 +106,7 @@ def showerror( parent, title, errorText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showerror( {}, {} )").format( repr(title), repr(errorText) ) )
+        print( exp("showerror( {}, {!r}, {!r} )").format( parent, title, errorText ) )
 
     logging.error( '{}: {}'.format( title, errorText ) )
     parent.parentApp.setStatus( _("Waiting for user input after error…") )
@@ -119,7 +119,7 @@ def showwarning( parent, title, warningText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showwarning( {}, {} )").format( repr(title), repr(warningText) ) )
+        print( exp("showwarning( {}, {!r}, {!r} )").format( parent, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     parent.parentApp.setStatus( _("Waiting for user input after warning…") )
@@ -132,13 +132,18 @@ def showinfo( parent, title, infoText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showinfo( {}, {} )").format( repr(title), repr(infoText) ) )
+        print( exp("showinfo( {}, {!r}, {!r} )").format( parent, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parent.config().items()): # Append the parent window config info
-            if debuggingThisModule or len(configTuple)>2: # don't append alternative names like, bg for background
+            if debuggingThisModule:
+                print( "showinfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
+            if len(configTuple)>2: # don't append alternative names like, bg for background
                 # Don't display the last field if it just duplicates the previous one
                 infoText += '  {}: {!r}{}\n'.format( configTuple[2], configTuple[3],
                                             '' if configTuple[4]==configTuple[3] else ', {!r}'.format( configTuple[4] ) )
+            elif debuggingThisModule: # append alternative names like, bg for background
+                # Don't display the last field if it just duplicates the previous one
+                infoText += '  {}={!r}\n'.format( configTuple[0], configTuple[1] )
 
     logging.info( '{}: {}'.format( title, infoText ) )
     parent.parentApp.setStatus( _("Waiting for user input after info…") )
@@ -203,6 +208,146 @@ class OkCancelDialog( ModalDialog ):
 
 
 
+class BookNameDialog( ModalDialog ):
+    """
+    """
+    def __init__( self, parent, bookNameList, currentIndex ): #, message, title=None ):
+        #print( 'currentIndex', currentIndex )
+        self.bookNameList, self.currentIndex = bookNameList, currentIndex
+        ModalDialog.__init__( self, parent ) #, title, okText=_('Ok'), cancelText=_('Cancel') )
+    # end of BookNameDialog.__init__
+
+
+    def buttonBox( self ):
+        """
+        Do our custom buttonBox (without an ok button)
+        """
+        box = Frame( self )
+        w = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        w.pack( side=tk.LEFT, padx=5, pady=5 )
+        self.bind( "<Escape>", self.cancel )
+        box.pack()
+    # end of BookNameDialog.buttonBox
+
+
+    def body( self, master ):
+        """
+        Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
+        """
+        buttonsAcross = 5
+        if len(self.bookNameList) > 100: buttonsAcross = 12
+        elif len(self.bookNameList) > 80: buttonsAcross = 10
+        elif len(self.bookNameList) > 60: buttonsAcross = 8
+        elif len(self.bookNameList) > 30: buttonsAcross = 6
+        xPad, yPad = 6, 8
+
+        grid=Frame( master )
+        grid.grid( column=0, row=7, columnspan=2, sticky=tk.N+tk.S+tk.E+tk.W )
+        tk.Grid.rowconfigure( master, 7, weight=1 )
+        tk.Grid.columnconfigure( master, 0, weight=1 )
+
+        Style().configure( 'bN.TButton', background='lightgreen' )
+        Style().configure( 'selectedBN.TButton', background='orange' )
+        for j,bookName in enumerate(self.bookNameList):
+            row, col = j // buttonsAcross, j % buttonsAcross
+            #print( j, row, col )
+            Button( master, width=6, text=bookName,
+                                style='selectedBN.TButton' if j==self.currentIndex else 'bN.TButton', \
+                                command=lambda which=j: self.apply(which) ) \
+                        .grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+        #col += 1
+        #if col >= buttonsAcross: row +=1; col=0
+        #Button( master, text=_("Cancel"), command=lambda which='CANCEL': self.apply(which) ) \
+                    #.grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+
+        for x in range(10):
+            tk.Grid.columnconfigure( master, x, weight=1 )
+        for y in range(5):
+            tk.Grid.rowconfigure( master, y, weight=1 )
+        #for j,bookName in enumerate(self.bookNameList):
+            #Button( master, width=6, text=bookName, style='bN.TButton', command=lambda which=j: self.apply(which) ) \
+                        #.grid()
+        #return 0
+    # end of OkCancelDialog.body
+
+
+    def apply( self, buttonNumber ):
+        #if buttonNumber!='CANCEL': self.result = buttonNumber
+        self.result = buttonNumber
+        self.cancel() # We want to exit the dialog immediately
+# end of class BookNameDialog
+
+
+
+class NumberButtonDialog( ModalDialog ):
+    """
+    """
+    def __init__( self, parent, startNumber, endNumber, currentNumber ): #, message, title=None ):
+        #print( 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
+        self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
+        ModalDialog.__init__( self, parent ) #, title, okText=_('Ok'), cancelText=_('Cancel') )
+    # end of NumberButtonDialog.__init__
+
+
+    def buttonBox( self ):
+        """
+        Do our custom buttonBox (without an ok button)
+        """
+        box = Frame( self )
+        w = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        w.pack( side=tk.LEFT, padx=5, pady=5 )
+        self.bind( "<Escape>", self.cancel )
+        box.pack()
+    # end of NumberButtonDialog.buttonBox
+
+
+    def body( self, master ):
+        """
+        Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
+        """
+        buttonsAcross = 5
+        if self.endNumber > 90: buttonsAcross = 8
+        elif self.endNumber > 30: buttonsAcross = 6
+        xPad, yPad = 6, 8
+
+        grid=Frame( master )
+        grid.grid( column=0, row=7, columnspan=2, sticky=tk.N+tk.S+tk.E+tk.W )
+        tk.Grid.rowconfigure( master, 7, weight=1 )
+        tk.Grid.columnconfigure( master, 0, weight=1 )
+
+        Style().configure( 'n.TButton', background='lightgreen' )
+        Style().configure( 'selectedN.TButton', background='orange' )
+        for j in range( self.startNumber, self.endNumber+1 ):
+            row, col = j // buttonsAcross, j % buttonsAcross
+            #print( j, row, col )
+            Button( master, width=3, text=j,
+                                style='selectedN.TButton' if j==self.currentNumber else 'n.TButton', \
+                                command=lambda which=j: self.apply(which) ) \
+                        .grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+        #col += 1
+        #if col >= buttonsAcross: row +=1; col=0
+        #Button( master, text=_("Cancel"), command=lambda which='CANCEL': self.apply(which) ) \
+                    #.grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+
+        for x in range(10):
+            tk.Grid.columnconfigure( master, x, weight=1 )
+        for y in range(5):
+            tk.Grid.rowconfigure( master, y, weight=1 )
+        #for j,bookName in enumerate(self.bookNameList):
+            #Button( master, width=6, text=bookName, style='bN.TButton', command=lambda which=j: self.apply(which) ) \
+                        #.grid()
+        #return 0
+    # end of OkCancelDialog.body
+
+
+    def apply( self, buttonNumber ):
+        #if buttonNumber!='CANCEL': self.result = buttonNumber
+        self.result = buttonNumber
+        self.cancel() # We want to exit the dialog immediately
+# end of class NumberButtonDialog
+
+
+
 class SaveWindowNameDialog( ModalDialog ):
     """
     """
@@ -245,7 +390,7 @@ class SaveWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        #print( exp("New window set-up name is: {}").format( repr(self.result) ) )
+        #print( exp("New window set-up name is: {!r}").format( self.result ) )
     # end of SaveWindowNameDialog.apply
 # end of class SaveWindowNameDialog
 
@@ -289,7 +434,7 @@ class DeleteWindowNameDialog( ModalDialog ):
 
     def apply( self ):
         self.result = self.cb.get()
-        print( exp("Requested window set-up name is: {}").format( repr(self.result) ) )
+        print( exp("Requested window set-up name is: {!r}").format( self.result ) )
     # end of DeleteWindowNameDialog.apply
 # end of class DeleteWindowNameDialog
 
@@ -345,7 +490,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         items = self.lb.curselection()
         print( "items", repr(items) ) # a tuple
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
-        print( exp("Requested resource(s) is/are: {}").format( repr(self.result) ) )
+        print( exp("Requested resource(s) is/are: {!r}").format( self.result ) )
     # end of SelectResourceBoxDialog.apply
 # end of class SelectResourceBoxDialog
 

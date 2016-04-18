@@ -1,7 +1,7 @@
 Biblelator Development Principles
 =================================
 
-Last updated: 2016-03-28 RJH
+Last updated: 2016-04-14 RJH
 
 
 The following are some of the reasons behind some of the major development decisions
@@ -35,7 +35,7 @@ The following are some of the reasons behind some of the major development decis
     obvious then that Python2 would eventually stop being developed, and so there didn't seem to
     be any point in creating a new piece of software based on a language version already
     destined to be obsoleted (even though many libraries hadn't yet been updated at the time).
-    
+
     Also Python3 was Unicode compatible from the beginning and this is important for a Bible
     editor that's expected to be used to handle many non-Roman based character sets.
 
@@ -68,15 +68,17 @@ The following are some of the reasons behind some of the major development decis
 
     Biblelator tries to allow the user to place the main window and child windows anywhere on
     a multi-screen system, but with tools to easily find child windows if they get covered.
-    
+
     Possibly a future option will allow windows to be constrained within the main window.
 
 
 6. Use of colour
 
     Biblelator tries to use colour effectively to help distinguish the various different types
-    of windows, as well as to distinguish various kinds of fields within documents. (Much more
-    use of colour and stylesheets is expected in future versions.)
+    of controls and windows, as well as to distinguish various kinds of fields within documents.
+    We have more concern about functionality (using colours to assist the user in finding things
+    quickly), than in attractive appearance. Much more use of colour and stylesheets is expected
+    in future versions.
 
 
 7. Use of autocompletion and autocorrection
@@ -114,7 +116,7 @@ The following are some of the reasons behind some of the major development decis
     and knows to treat them differently than books containing chapters and verses.
 
 
-12. Protecting your work
+12. Saving your work
 
     We currently use AutoSave to save regular copies of your Bible editing and plan to use
     (optional of course) remote storage in the cloud in the future to provide assurance
@@ -125,28 +127,62 @@ The following are some of the reasons behind some of the major development decis
     translation work.
 
 
-13. Prototype implementation
+13. No hidden folders
+
+    Settings files, log files, autosave files, etc. are all saved in non-hidden folders.
+    While this might irritate some tidyness freaks, it's in line with our "hackable"
+    goals to make everything about Biblelator obvious and accessible.
+
+
+14. Protecting your work
+
+    We do plan to implement a system where an administrator can set permissions for who in a
+    team has easy edit access to particular projects and books (or even chapters) within
+    projects. However, please note that since this requirement is in opposition to the
+    "hackability" requirement, it will only be nominal protection that works with users who
+    conform to the system, i.e., computer savy users will certainly be able to find ways to
+    circumvent such "protections".
+
+
+15. Translation resources
+
+    We do hope to be able to automatically access more open-source Bible translation resources,
+    create more of our own resources (especially key terms and other lists), and maybe get
+    permission to redistribute other Bible and related modules in an easier-to-user format.
+
+
+16. Prototype implementation
 
     All of the existing code is considered as "prototype/proof-of-concept", i.e., it has not
     been optimised for speed and software simplicity (refactoring), but rather to get the
-    program working. Note that not all settings can be adjusted from the menus in the
-    prototypes -- some must be still be adjusted by editing settings files or changing program
-    code.
+    program working. (There is also an element of balancing expensive programmer time
+    [expensive as "in short supply"] vs. cheap computer CPU time which we expect to continue
+    to get "cheaper" as even mobile devices get faster/multicored CPUs and GPUs plus more
+    onboard RAM and non-volatile [e.g., FLASH] memory.)
 
-    After version one is released, only then will time and resources be spent on getting it
-    working more efficiently. Also, after version one, new versions will provide a path to
-    automatically upgrade settings and other files if the formats change -- this is not
-    guaranteed for preliminary versions (where you might have to set-up your preferences
-    again).
+    Future optimisations will include optimising screen space, both for modern desktop
+    environments and for small screen mobile devices. Bible translators usually like lots
+    of resources open and they all compete for screen space. A first step might be getting
+    rid of some of the menus and/or moving some commonly used buttons onto the blank space
+    in the menu bars.
+
+    After version one is released, only then will time and resources be spent on getting
+    the program working more efficiently. Also, after version one, new versions will provide
+    a path to automatically upgrade settings and other files if the formats change -- this
+    is not guaranteed for preliminary versions (where you might have to set-up your
+    preferences again).
+
+    Note that not all settings can be adjusted from the menus in the prototypes -- some must
+    be still be adjusted by editing settings files or changing program code.
 
 
-14. User-requested priorities
+17. User-requested priorities
 
     As far as fixing deficiencies and adding new features, we will try to prioritise what actual
     users find important for their workflow, including the developer of course.
 
 
-15. ESFM (Enhanced Standard Format Markers) aware
+18. ESFM (Enhanced Standard Format Markers) aware
 
     Biblelator is intended to become an ESFM Bible editor. This allows more links and other
     information to be included in source Bibles (especially those intended for online display.)
@@ -154,10 +190,3 @@ The following are some of the reasons behind some of the major development decis
     NOTE: ESFM development is currently on hold, awaiting the release of the USFM v3
     specifications. See http://Freely-Given.org/Software/BibleDropBox/ESFMBibles.html
     for more info.
-
-
-16. No hidden folders
-
-    Settings files, log files, autosave files, etc. are all saved in non-hidden folders.
-    While this might irritate some tidyness freaks, it's in line with our "hackable"
-    goals to make everything about Biblelator obvious and accessible.

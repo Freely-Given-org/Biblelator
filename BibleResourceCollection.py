@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-05' # by RJH
+LastModifiedDate = '2016-04-11' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.32'
+ProgVersion = '0.33'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -192,7 +192,7 @@ class BibleResourceBox( Frame, BibleBox ):
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( "GENERIC-KJV-66-ENG" ) # temp
+        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.BibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
@@ -453,8 +453,11 @@ class BibleResourceBox( Frame, BibleBox ):
         self.currentVerseKey = newVerseKey
 
         BBB = self.currentVerseKey.getBBB()
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
+        try:
+            self.maxChaptersThisBook = self.getNumChapters( BBB )
+            self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
+        except KeyError: # presumably the book doesn't exist
+            self.maxChaptersThisBook = self.maxVersesThisChapter = 1
     # end of BibleResourceBox.setCurrentVerseKey
 
 
@@ -710,7 +713,8 @@ class InternalBibleResourceBox( BibleResourceBox ):
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError: # Could be after a verse-bridge ???
-                logging.critical( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
+                if verseKey.getChapterNumber() != '0':
+                    logging.critical( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.boxType, verseKey ) )
     # end of InternalBibleResourceBox.getContextVerseData
 # end of InternalBibleResourceBox class
@@ -1177,7 +1181,7 @@ if __name__ == '__main__':
 
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' )
+        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
