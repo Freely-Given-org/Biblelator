@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-15 RJH
+Last updated: 2016-04-19 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -30,6 +30,7 @@ Biblelator bugs
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
+* Need to close autocomplete pop-up if window loses focus
 
 Bibelator testing required
 * Need to set-up some special .ini files for testing
@@ -42,6 +43,7 @@ BOS bugs
 * OSIS (and other containerised) formats should insert end markers when loading
 
 BOS improvements for Biblelator
+* PTX module chokes on SSF file not formed properly in lines
 * Are we able to read Sword dictionaries?
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
 * Make SwordModules for Windows able to load individual books not just entire Bibles (started)
@@ -62,6 +64,7 @@ BOS testing required
 
 
 Biblelator stuff
+* Make backup(s) of settings file before saving settings
 * Add Internet fast/slow, expensive/cheap flags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# BOSManager.py
+# SwordManager.py
 #
-# BOS (Bible Organisational System) manager program
+# Sword module download manager program
 #
 # Copyright (C) 2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -30,8 +30,8 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 from gettext import gettext as _
 
 LastModifiedDate = '2016-04-19' # by RJH
-ShortProgName = "BOSManager"
-ProgName = "BOS Manager"
+ShortProgName = "SwordManager"
+ProgName = "Sword Manager"
 ProgVersion = '0.01' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
@@ -84,6 +84,7 @@ from DigitalBiblePlatform import DBPBibles
 from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
+from SwordInstallManager import SwordInstallManager
 from USFMBible import USFMBible
 from PTXBible import PTXBible, loadPTXSSFData
 
@@ -111,7 +112,7 @@ def exp( messageString ):
 
 
 
-class BOSManager( Frame ):
+class SwordManager( Frame ):
     """
     This is the main application window (well, actually a frame in the root toplevel window).
 
@@ -126,7 +127,7 @@ class BOSManager( Frame ):
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
+            print( exp("SwordManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage, self.settings = rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -166,7 +167,7 @@ class BOSManager( Frame ):
         self.createStatusBar()
 
         # Create our display text book
-        self.textBox = ScrolledText( self.rootWindow, bg='yellow' )#style='DebugText.TScrolledText' )
+        self.textBox = ScrolledText( self.rootWindow, bg='lightskyblue' )#style='DebugText.TScrolledText' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH )
         #self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
         self.textBox.tag_configure( 'emp', font='helvetica 10 bold' )
@@ -210,7 +211,7 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
-    # end of BOSManager.__init__
+    # end of SwordManager.__init__
 
 
     def setGenericBibleOrganisationalSystem( self, BOSname ):
@@ -247,7 +248,7 @@ class BOSManager( Frame ):
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
         #print( self.bookNumberTable )
-    # end of BOSManager.setGenericBibleOrganisationalSystem
+    # end of SwordManager.setGenericBibleOrganisationalSystem
 
 
     def createNormalMenuBar( self ):
@@ -336,7 +337,7 @@ class BOSManager( Frame ):
         helpMenu.add_command( label=_('Submit bug…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doSubmitBug )
         helpMenu.add_separator()
         helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
-    # end of BOSManager.createNormalMenuBar
+    # end of SwordManager.createNormalMenuBar
 
     def createTouchMenuBar( self ):
         """
@@ -346,7 +347,7 @@ class BOSManager( Frame ):
             assert self.touchMode
 
         self.createNormalMenuBar()
-    # end of BOSManager.createTouchMenuBar
+    # end of SwordManager.createTouchMenuBar
 
 
     def createNormalNavigationBar( self ):
@@ -457,7 +458,7 @@ class BOSManager( Frame ):
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
         navigationBar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createNormalNavigationBar
+    # end of SwordManager.createNormalNavigationBar
 
     def createTouchNavigationBar( self ):
         """
@@ -584,7 +585,7 @@ class BOSManager( Frame ):
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
         navigationBar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createTouchNavigationBar
+    # end of SwordManager.createTouchNavigationBar
 
 
     def createToolBar( self ):
@@ -612,7 +613,7 @@ class BOSManager( Frame ):
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createToolBar
+    # end of SwordManager.createToolBar
 
 
     def halt( self ):
@@ -622,7 +623,7 @@ class BOSManager( Frame ):
         """
         logging.critical( "User selected HALT in DEBUG MODE. Not saving any files or settings!" )
         self.quit()
-    # end of BOSManager.halt
+    # end of SwordManager.halt
 
 
     def createDebugToolBar( self ):
@@ -644,7 +645,7 @@ class BOSManager( Frame ):
         Button( toolbar, text='Save settings', command=lambda: writeSettingsFile(self) ) \
                         .pack( side=tk.RIGHT, padx=xPad, pady=yPad )
         toolbar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createDebugToolBar
+    # end of SwordManager.createDebugToolBar
 
 
     def createStatusBar( self ):
@@ -665,7 +666,7 @@ class BOSManager( Frame ):
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
         self.setWaitStatus( "Starting up…" )
-    # end of BOSManager.createStatusBar
+    # end of SwordManager.createStatusBar
 
 
     def createMainKeyboardBindings( self ):
@@ -690,7 +691,7 @@ class BOSManager( Frame ):
         #self.bind_all( '<Alt-period>', self.doGotoNextChapter )
         #self.bind_all( '<Alt-bracketleft>', self.doGotoPreviousBook )
         #self.bind_all( '<Alt-bracketright>', self.doGotoNextBook )
-    # end of BOSManager.createMainKeyboardBindings()
+    # end of SwordManager.createMainKeyboardBindings()
 
 
     #def addRecentFile( self, threeTuple ):
@@ -706,13 +707,13 @@ class BOSManager( Frame ):
         #self.recentFiles.insert( 0, threeTuple ) # Put this one at the beginning of the lis
         #if len(self.recentFiles)>MAX_RECENT_FILES: self.recentFiles.pop() # Remove the last one if necessary
         #self.createNormalMenuBar()
-    ## end of BOSManager.addRecentFile()
+    ## end of SwordManager.addRecentFile()
 
 
     def notWrittenYet( self ):
         errorBeep()
         showerror( self, _("Not implemented"), _("Not yet available, sorry") )
-    # end of BOSManager.notWrittenYet
+    # end of SwordManager.notWrittenYet
 
 
     def setStatus( self, newStatusText='' ):
@@ -733,7 +734,7 @@ class BOSManager( Frame ):
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
-    # end of BOSManager.setStatus
+    # end of SwordManager.setStatus
 
     def setErrorStatus( self, newStatusText ):
         """
@@ -747,7 +748,7 @@ class BOSManager( Frame ):
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
-    # end of BOSManager.setErrorStatus
+    # end of SwordManager.setErrorStatus
 
     def setWaitStatus( self, newStatusText ):
         """
@@ -761,7 +762,7 @@ class BOSManager( Frame ):
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
-    # end of BOSManager.setWaitStatus
+    # end of SwordManager.setWaitStatus
 
     def setReadyStatus( self ):
         """
@@ -776,7 +777,7 @@ class BOSManager( Frame ):
             self.setStatus( _("Ready") )
             Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
             self.config( cursor='' )
-    # end of BOSManager.setReadyStatus
+    # end of SwordManager.setReadyStatus
 
 
     def setDebugText( self, newMessage=None ):
@@ -813,7 +814,7 @@ class BOSManager( Frame ):
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
         self.debugTextBox['state'] = tk.DISABLED # Don't allow editing
-    # end of BOSManager.setDebugText
+    # end of SwordManager.setDebugText
 
 
     def doChangeTheme( self, newThemeName ):
@@ -830,7 +831,7 @@ class BOSManager( Frame ):
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
             showerror( self, 'Error', err )
-    # end of BOSManager.doChangeTheme
+    # end of SwordManager.doChangeTheme
 
 
     def doCheckForDeveloperMessages( self, event=None ):
@@ -838,7 +839,7 @@ class BOSManager( Frame ):
         Check if there's any new messages on the website from the developer.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doCheckForDeveloperMessages()") )
+            print( exp("SwordManager.doCheckForDeveloperMessages()") )
 
         import requests
         # NOTE: needs to be https!!!
@@ -874,7 +875,7 @@ class BOSManager( Frame ):
                     ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
 
                     self.lastMessageNumberRead += 1
-    # end of BOSManager.doCheckForDeveloperMessages
+    # end of SwordManager.doCheckForDeveloperMessages
 
 
     #def doOpenRecent( self, recentIndex ):
@@ -888,7 +889,7 @@ class BOSManager( Frame ):
         #filename, folder, winType = self.recentFiles[recentIndex]
         #print( "Need to open", filename, folder, winType )
         #print( "NOT WRITTEN YET" )
-    ## end of BOSManager.doOpenRecent
+    ## end of SwordManager.doOpenRecent
 
 
     def doViewSettings( self ):
@@ -910,7 +911,7 @@ class BOSManager( Frame ):
             #self.childWindows.append( tEW )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Finished doViewSettings" )
         #self.setReadyStatus()
-    # end of BOSManager.doViewSettings
+    # end of SwordManager.doViewSettings
 
 
     def doViewLog( self ):
@@ -934,7 +935,7 @@ class BOSManager( Frame ):
             self.childWindows.append( tEW )
             #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
         self.setReadyStatus()
-    # end of BOSManager.doViewLog
+    # end of SwordManager.doViewLog
 
 
     def doGotoInfo( self, event=None ):
@@ -942,7 +943,7 @@ class BOSManager( Frame ):
         Pop-up dialog giving goto/reference info.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doGotoInfo( {} )").format( event ) )
+            print( exp("SwordManager.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -952,14 +953,14 @@ class BOSManager( Frame ):
                  + '  Book Names: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
                  + '  Books: {}'.format( self.genericBibleOrganisationalSystem.getBookList() )
         showinfo( self, 'Goto Information', infoString )
-    # end of BOSManager.doGotoInfo
+    # end of SwordManager.doGotoInfo
 
 
     def doHelp( self, event=None ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BOSManager.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -976,7 +977,7 @@ class BOSManager( Frame ):
         helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
         helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
         hb = HelpBox( self.rootWindow, ShortProgName, helpInfo )
-    # end of BOSManager.doHelp
+    # end of SwordManager.doHelp
 
 
     def doSubmitBug( self, event=None ):
@@ -985,7 +986,7 @@ class BOSManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BOSManager.doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
             showerror( self, ShortProgName, 'You need to allow Internet access first!' )
@@ -996,14 +997,14 @@ class BOSManager( Frame ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
         ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
-    # end of BOSManager.doSubmitBug
+    # end of SwordManager.doSubmitBug
 
 
     def doAbout( self, event=None ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BOSManager.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -1011,7 +1012,7 @@ class BOSManager( Frame ):
             + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
             + "\n\nBiblelator is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator"
         ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
-    # end of BOSManager.doAbout
+    # end of SwordManager.doAbout
 
 
     #def doProjectClose( self ):
@@ -1019,7 +1020,7 @@ class BOSManager( Frame ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doProjectClose()") )
         #self.notWrittenYet()
-    ## end of BOSManager.doProjectClose
+    ## end of SwordManager.doProjectClose
 
 
     #def doWriteSettingsFile( self ):
@@ -1027,7 +1028,7 @@ class BOSManager( Frame ):
         #Update our program settings and save them.
         #"""
         #writeSettingsFile( self )
-    ### end of BOSManager.writeSettingsFile
+    ### end of SwordManager.writeSettingsFile
 
 
     def doCloseMyChildWindows( self ):
@@ -1035,7 +1036,7 @@ class BOSManager( Frame ):
         Save files first, and then close child windows.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doCloseMyChildWindows()") )
+            print( exp("SwordManager.doCloseMyChildWindows()") )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows[:]:
@@ -1059,7 +1060,7 @@ class BOSManager( Frame ):
         for appWin in self.childWindows[:]:
             appWin.doClose()
         return True
-    # end of BOSManager.doCloseMyChildWindows
+    # end of SwordManager.doCloseMyChildWindows
 
 
     def doCloseMe( self ):
@@ -1067,30 +1068,30 @@ class BOSManager( Frame ):
         Save files first, and then end the application.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doCloseMe()") )
+            print( exp("SwordManager.doCloseMe()") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
             print( _("{} is closing down…").format( ShortProgName ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
             self.rootWindow.destroy()
-    # end of BOSManager.doCloseMe
-# end of class BOSManager
+    # end of SwordManager.doCloseMe
+# end of class SwordManager
 
 
 
-def openBOSManager( parent ):
+def openSwordManager( parent ):
     """
-    Open the BOS Manager as a child window.
+    Open the Sword Manager as a child window.
 
-    This is used when the BOS Manager is used inside another program.
+    This is used when the Sword Manager is used inside another program.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("BOSManager.openBOSManager( {} )").format( parent ) )
+        print( exp("SwordManager.openSwordManager( {} )").format( parent ) )
 
     myWin = tk.Toplevel( parent )
-    application = BOSManager( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage, parent.settings )
-# end of BOSManager.openBOSManager
+    application = SwordManager( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage, parent.settings )
+# end of SwordManager.openSwordManager
 
 
 
@@ -1110,10 +1111,10 @@ def demo():
 
     homeFolderPath = findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = BOSManagerSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
+    settings = SwordManagerSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     settings.load()
 
-    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
+    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -1123,7 +1124,7 @@ def demo():
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of BOSManager.demo
+# end of SwordManager.demo
 
 
 def main( homeFolderPath, loggingFolderPath ):
@@ -1189,14 +1190,14 @@ def main( homeFolderPath, loggingFolderPath ):
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
     settings.load()
 
-    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
+    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of BOSManager.main
+# end of SwordManager.main
 
 
 if __name__ == '__main__':
@@ -1224,4 +1225,4 @@ if __name__ == '__main__':
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
-# end of BOSManager.py
+# end of SwordManager.py
