@@ -1829,10 +1829,10 @@ class Application( Frame ):
                 if ix!= -1:
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     #print( 'ssD2', repr(ssfDirectory) )
-                    if not os.path.exists( ssfDirectory ):
-                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
-                        self.setReadyStatus()
-                        return
+        if not os.path.exists( ssfDirectory ):
+            showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
+            self.setReadyStatus()
+            return
         ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
         ptxBible.preload()
 
@@ -2934,6 +2934,7 @@ def main( homeFolderPath, loggingFolderPath ):
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
+            print( "tasklist line", repr(line) )
             if ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numMyInstancesFound += 1
@@ -2941,7 +2942,7 @@ def main( homeFolderPath, loggingFolderPath ):
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
-    else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
+    else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )
     if numMyInstancesFound > 1:
         import easygui
         logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, ProgName ) )
@@ -3001,7 +3002,7 @@ if __name__ == '__main__':
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
 
-    if BibleOrgSysGlobals.debugFlag:
+    if 1 or BibleOrgSysGlobals.debugFlag:
         print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
         print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
         if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
