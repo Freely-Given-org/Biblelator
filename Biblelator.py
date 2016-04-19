@@ -2932,32 +2932,42 @@ def main( homeFolderPath, loggingFolderPath ):
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        print( 'win processes', repr(programOutputString) )
+        #print( 'win processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
-            print( "tasklist line", repr(line) )
+            #print( "tasklist line", repr(line) )
             if ProgName+'.py' in line:
-                if 1 or BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numMyInstancesFound += 1
             if 'Paratext.exe' in line:
-                if 1 or BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )
     if numMyInstancesFound > 1:
-        import easygui
         logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, ProgName ) )
-        result = easygui.ynbox( _("Seems {} might be already running: Continue?").format( ProgName ), ProgNameVersion, ('Yes', 'No'))
+        try:
+            import easygui
+        except ImportError:
+            result = False
+        else: result = easygui.ynbox( _("Seems {} might be already running: Continue?").format( ProgName ),
+                                                                ProgNameVersion, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
     if numParatextInstancesFound > 1:
-        import easygui
         logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, 'Paratext' ) )
-        result = easygui.ynbox( _("Seems {} might be running: Continue?").format( 'Paratext' ), ProgNameVersion, ('Yes', 'No'))
+        try:
+            import easygui
+        except ImportError:
+            result = False
+        else: result = easygui.ynbox( _("Seems {} might be running: Continue?").format( 'Paratext' ),
+                                                                ProgNameVersion, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
-    if sys.platform in ( 'win32', 'win64', ): halt
+    #if sys.platform in ( 'win32', 'win64', ):
+        #print( "Found", numMyInstancesFound, numParatextInstancesFound )
+        #halt
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
