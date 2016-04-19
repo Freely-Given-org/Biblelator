@@ -2914,9 +2914,9 @@ def main( homeFolderPath, loggingFolderPath ):
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
         #print( 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
-        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
-        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
+        #print( 'linux processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
@@ -2930,16 +2930,16 @@ def main( homeFolderPath, loggingFolderPath ):
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
         #print( 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
-        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
-        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
+        print( 'win processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             print( "tasklist line", repr(line) )
             if ProgName+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if 1 or BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numMyInstancesFound += 1
             if 'Paratext.exe' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if 1 or BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )
@@ -2957,6 +2957,7 @@ def main( homeFolderPath, loggingFolderPath ):
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
+    if sys.platform in ( 'win32', 'win64', ): halt
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
