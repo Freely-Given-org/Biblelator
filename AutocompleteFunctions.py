@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-12' # by RJH
+LastModifiedDate = '2016-04-19' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -199,6 +199,7 @@ def countBookWords( BBB, folder, filename, isCurrentBook ):
         # Now look for (and count) single and some multiple word sequences
         for wx,word in enumerate( words ):
             if not word: continue
+            if 'XXX' in word: continue # This is used in the Matigsalug project to mark errors
             singleWord = word
             while singleWord and singleWord[-1] in END_CHARS_TO_REMOVE: singleWord = singleWord[:-1] # Remove certain final punctuation
             if len(singleWord) > 2: wordCounts[singleWord] += countIncrement
