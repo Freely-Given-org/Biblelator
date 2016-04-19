@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-11' # by RJH
+LastModifiedDate = '2016-04-19' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -156,7 +156,7 @@ class BibleResourceBox( Frame, BibleBox ):
 
         # Create a title bar
         titleBar = Frame( self )
-        Button( titleBar, text=_('Close'), command=self.doClose ).pack( side=tk.RIGHT )
+        Button( titleBar, text=_('Close'), width=5, command=self.doClose ).pack( side=tk.RIGHT )
         # Try to get the title width somewhere near correct (if moduleID is a long path)
         adjModuleID = moduleID
         self.update() # so we can get the geometry
