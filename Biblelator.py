@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-18' # by RJH
+LastModifiedDate = '2016-04-19' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.34'
@@ -75,7 +75,7 @@ from TextEditWindow import TextEditWindow
 from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
 from BOSManager import openBOSManager
-#from SwordManager import openSwordManager
+from SwordManager import openSwordManager
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -2737,7 +2737,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doOpenSwordManager( {} )").format( event ) )
 
-        #openSwordManager( self )
+        openSwordManager( self )
     # end of Application.doOpenSwordManager
 
 
@@ -2908,7 +2908,7 @@ def main( homeFolderPath, loggingFolderPath ):
 
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
 
-    numInstancesFound = 0
+    numMyInstancesFound = numParatextInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
@@ -2920,10 +2920,13 @@ def main( homeFolderPath, loggingFolderPath ):
         for line in programOutputString.split( '\n' ):
             if 'python' in line and ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
-                numInstancesFound += 1
+                numMyInstancesFound += 1
+            if 'paratext' in line:
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
+                numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
-        myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+        myProcess = subprocess.Popen( ['tasklist.exe','/V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
         #print( 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
@@ -2933,13 +2936,23 @@ def main( homeFolderPath, loggingFolderPath ):
         for line in programOutputString.split( '\n' ):
             if ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
-                numInstancesFound += 1
+                numMyInstancesFound += 1
+            if 'Paratext.exe' in line:
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
-    if numInstancesFound > 1:
+    if numMyInstancesFound > 1:
         import easygui
-        logging.critical( "Found {} instances of {} running.".format( numInstancesFound, ProgName ) )
-        result = easygui.ynbox('Seems {} might be already running: Continue?'.format( ProgName), ProgNameVersion, ('Yes', 'No'))
+        logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, ProgName ) )
+        result = easygui.ynbox( _("Seems {} might be already running: Continue?").format( ProgName ), ProgNameVersion, ('Yes', 'No'))
+        if not result:
+            logging.info( "Exiting as user requested." )
+            sys.exit()
+    if numParatextInstancesFound > 1:
+        import easygui
+        logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, 'Paratext' ) )
+        result = easygui.ynbox( _("Seems {} might be running: Continue?").format( 'Paratext' ), ProgNameVersion, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
