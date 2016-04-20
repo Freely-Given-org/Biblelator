@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-19 RJH
+Last updated: 2016-04-20 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -138,6 +138,7 @@ Biblelator stuff
 * Make autocompletion aware of previous work and so adjust for context
 * Add progress bars for slow tasks
 * Add tooltips
+* Make proper user-adjustable (by dragging) toolbar(s)
 * Create an intelligent installer (also investigate Snap packaging)
 * Allow for secure automatic program updates (choice of stable and development branches)
 * Work on automated GUI testing

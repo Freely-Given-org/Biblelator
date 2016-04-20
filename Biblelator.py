@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-19' # by RJH
+LastModifiedDate = '2016-04-20' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.34'
@@ -65,7 +65,8 @@ from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
-        saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
+        saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings, \
+        doSendUsageStatistics
 from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from BibleResourceCollection import BibleResourceCollectionWindow
@@ -364,6 +365,9 @@ class Application( Frame ):
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
         #projectMenu.add_separator()
         #projectMenu.add_command( label=_('Export'), underline=1, command=self.doProjectExports )
+        projectMenu.add_separator()
+        projectMenu.add_command( label=_('Hide all projects'), underline=0, command=self.doHideAllProjects )
+        projectMenu.add_command( label=_('Show all projects'), underline=0, command=self.doShowAllProjects )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
@@ -398,6 +402,7 @@ class Application( Frame ):
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Hide resources'), underline=0, command=self.doHideAllResources )
+        windowMenu.add_command( label=_('Hide projects'), underline=5, command=self.doHideAllProjects )
         windowMenu.add_command( label=_('Hide all'), underline=1, command=self.doHideAll )
         windowMenu.add_command( label=_('Show all'), underline=0, command=self.doShowAll )
         windowMenu.add_command( label=_('Bring all here'), underline=0, command=self.doBringAll )
@@ -512,6 +517,9 @@ class Application( Frame ):
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
         #projectMenu.add_separator()
         #projectMenu.add_command( label=_('Export'), underline=1, command=self.doProjectExports )
+        projectMenu.add_separator()
+        projectMenu.add_command( label=_('Hide all projects'), underline=0, command=self.doHideAllProjects )
+        projectMenu.add_command( label=_('Show all projects'), underline=0, command=self.doShowAllProjects )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
@@ -545,8 +553,9 @@ class Application( Frame ):
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
-        windowMenu.add_command( label=_('Hide resources'), underline=0, command=self.doHideAllResources )
-        windowMenu.add_command( label=_('Hide all'), underline=1, command=self.doHideAll )
+        windowMenu.add_command( label=_('Hide resources'), underline=5, command=self.doHideAllResources )
+        windowMenu.add_command( label=_('Hide projects'), underline=5, command=self.doHideAllProjects )
+        windowMenu.add_command( label=_('Hide all'), underline=0, command=self.doHideAll )
         windowMenu.add_command( label=_('Show all'), underline=0, command=self.doShowAll )
         windowMenu.add_command( label=_('Bring all here'), underline=0, command=self.doBringAll )
         windowMenu.add_separator()
@@ -832,11 +841,14 @@ class Application( Frame ):
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
 
         Style().configure( 'ShowAll.TButton', background='lightgreen' )
-        Style().configure( 'HideResources.TButton', background='pink' )
+        Style().configure( 'HideResources.TButton', background='lightblue' )
+        Style().configure( 'HideProjects.TButton', background='pink' )
         Style().configure( 'HideAll.TButton', background='orange' )
         Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
+                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        Button( toolbar, text='Hide Projects', style='HideProjects.TButton', command=self.doHideAllProjects ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
@@ -2457,21 +2469,39 @@ class Application( Frame ):
     def doHideAllResources( self ):
         """
         Minimize all of our resource windows,
-            i.e., leave the editor and main window
+            i.e., leave the editors and main window
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllResources' )
         self.childWindows.iconifyAll( 'Resource' )
     # end of Application.doHideAllResources
 
+    def doHideAllProjects( self ):
+        """
+        Minimize all of our resource windows,
+            i.e., leave the resources and main window
+        """
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllProjects' )
+        self.childWindows.iconifyAll( 'Editor' )
+    # end of Application.doHideAllProjects
+
 
     def doShowAllResources( self ):
         """
-        Minimize all of our resource windows,
-            i.e., leave the editor and main window
+        Show/Restore all of our resource windows,
+            i.e., leave the editors and main window
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllResources' )
         self.childWindows.deiconifyAll( 'Resource' )
     # end of Application.doShowAllResources
+
+    def doShowAllProjects( self ):
+        """
+        Show/Restore all of our project editor windows,
+            i.e., leave the resources and main window
+        """
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllProjects' )
+        self.childWindows.deiconifyAll( 'Editor' )
+    # end of Application.doShowAllProjects
 
 
     def doHideAll( self, includeMe=True ):
@@ -2486,7 +2516,7 @@ class Application( Frame ):
 
     def doShowAll( self ):
         """
-        Show/restore all of our windows.
+        Show/Restore all of our windows.
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAll' )
         self.childWindows.deiconifyAll()
@@ -2862,6 +2892,8 @@ class Application( Frame ):
         writeSettingsFile( self )
         if self.doCloseMyChildWindows():
             self.rootWindow.destroy()
+        if self.internetAccessEnabled and self.sendUsageStatisticsEnabled:
+            doSendUsageStatistics( self )
     # end of Application.doCloseMe
 # end of class Application
 
@@ -2943,6 +2975,7 @@ def main( homeFolderPath, loggingFolderPath ):
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )
+    # Why don't the following work in Windows ???
     if numMyInstancesFound > 1:
         logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, ProgName ) )
         try:
@@ -3013,12 +3046,11 @@ if __name__ == '__main__':
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
 
-    if 1 or BibleOrgSysGlobals.debugFlag:
+    if BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???
         print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
         print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
         if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
         print( exp("Running main…") )
-
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( ProgName, ProgVersion )

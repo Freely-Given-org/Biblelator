@@ -33,12 +33,13 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
     deleteExistingWindowSetup( self )
     viewSettings( self )
     writeSettingsFile( self )
+    doSendUsageStatistics( self )
     demo()
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-18' # by RJH
+LastModifiedDate = '2016-04-20' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.34'
@@ -292,6 +293,8 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
     Given the name of windows settings,
         find the settings in our dictionary
         and then apply it by creating the windows.
+
+    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
@@ -417,6 +420,8 @@ def getCurrentChildWindowSettings( self ):
     """
     Go through the currently open windows and get their settings data
         and save it in self.windowsSettingsDict['Current'].
+
+    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("getCurrentChildWindowSettings()") )
@@ -485,6 +490,8 @@ def getCurrentChildWindowSettings( self ):
 def saveNewWindowSetup( self ):
     """
     Gets the name for the new window setup and saves the information.
+
+    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("saveNewWindowSetup()") )
@@ -505,6 +512,8 @@ def saveNewWindowSetup( self ):
 def deleteExistingWindowSetup( self ):
     """
     Gets the name of an existing window setting and deletes the setting.
+
+    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("deleteExistingWindowSetup()") )
@@ -526,6 +535,8 @@ def deleteExistingWindowSetup( self ):
 def viewSettings( self ):
     """
     Open a pop-up text window with the current settings displayed.
+
+    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("viewSettings()") )
@@ -548,6 +559,8 @@ def viewSettings( self ):
 def writeSettingsFile( self ):
     """
     Update our program settings and save them.
+
+    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("writeSettingsFile()") )
     elif BibleOrgSysGlobals.verbosityLevel > 0:
@@ -676,6 +689,25 @@ def writeSettingsFile( self ):
         except UnicodeEncodeError: logging.error( exp("writeSettingsFile: unable to write {} windows set-up").format( repr(windowsSettingName) ) )
     self.settings.save()
 # end of writeSettingsFile
+
+
+
+def doSendUsageStatistics( self ):
+    """
+    Send usage statistics over the Internet.
+
+    "self" refers to a Biblelator Application instance.
+    """
+    if BibleOrgSysGlobals.debugFlag:
+        print( exp("doSendUsageStatistics()") )
+        self.setDebugText( "doSendUsageStatistics" )
+        assert self.internetAccessEnabled
+        assert self.sendUsageStatisticsEnabled
+    elif BibleOrgSysGlobals.verbosityLevel > 0:
+        print( _("  Sending program usage info…") )
+
+    pass
+# end of doSendUsageStatistics
 
 
 
