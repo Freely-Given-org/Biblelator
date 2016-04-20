@@ -232,12 +232,13 @@ def countBookWords( BBB, folder, filename, isCurrentBook ):
     # end of countWords
 
     # main code for countBookWords
-    with open( os.path.join( folder, filename ), 'rt' ) as bookFile:
+    USFMFilepath = os.path.join( folder, filename )
+    with open( USFMFilepath, 'rt' ) as bookFile:
         try:
             for line in bookFile:
                 lineCount += 1
                 if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF
-                    logging.info( "USFMFile: Detected Unicode Byte Order Marker (BOM) in {}".format( USFMFilepath ) )
+                    logging.info( "countBookWords: Detected Unicode Byte Order Marker (BOM) in {}".format( USFMFilepath ) )
                     line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
                 if line[-1]=='\n': line=line[:-1] # Removing trailing newline character
                 if not line: continue # Just discard blank lines
@@ -249,7 +250,7 @@ def countBookWords( BBB, folder, filename, isCurrentBook ):
                 if line[0]!='\\': # Not a SFM line
                     if lastMarker is None: # We don't have any SFM data lines yet
                         if BibleOrgSysGlobals.verbosityLevel > 2:
-                            logging.error( "Non-USFM line in " + USFMFilepath + " -- line ignored at #" + str(lineCount) )
+                            logging.error( "countBookWords: Non-USFM line in {} -- line ignored at #{}".format( USFMFilepath, lineCount) )
                         #print( "SFMFile.py: XXZXResult is", lineDuples, len(line) )
                         #for x in range(0, min(6,len(line))):
                             #print( x, "'" + str(ord(line[x])) + "'" )
@@ -301,7 +302,7 @@ def countBookWords( BBB, folder, filename, isCurrentBook ):
 
         except UnicodeError as err:
             print( "Unicode error:", sys.exc_info()[0], err )
-            logging.critical( "Invalid line in " + USFMFilepath + " -- line ignored at #" + str(lineCount) )
+            logging.critical( "countBookWords: Invalid line in {} -- line ignored at #{}".format( USFMFilepath, lineCount) )
             if lineCount > 1: print( 'Previous line was: ', lastLine )
             #print( line )
             #raise

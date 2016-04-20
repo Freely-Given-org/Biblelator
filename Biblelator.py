@@ -182,7 +182,10 @@ class Application( Frame ):
         #print( exp("Preload the Sword library…") )
         #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
+        self.currentProjectName = 'TranslationTest'
+
         self.currentUserName = findUsername().title()
+        self.currentUserEmail = 'Unknown'
         self.currentUserRole = 'Translator'
         self.currentUserAssignments = 'ALL'
 
@@ -1599,7 +1602,7 @@ class Application( Frame ):
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( "doViewLog…" )
-        filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        filename = APP_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \

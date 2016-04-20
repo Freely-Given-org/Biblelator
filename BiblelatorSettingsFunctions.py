@@ -244,8 +244,14 @@ def parseAndApplySettings( self ):
                     assert len(self.recentFiles) == j
                     break # go to next j
 
+    # Parse project info
+    try: self.currentProjectName = self.settings.data['Project']['currentProjectName']
+    except KeyError: pass # use program default
+
     # Parse users
     try: self.currentUserName = self.settings.data['Users']['currentUserName']
+    except KeyError: pass # use program default
+    try: self.currentUserEmail = self.settings.data['Users']['currentUserEmail']
     except KeyError: pass # use program default
     try: self.currentUserRole = self.settings.data['Users']['currentUserRole']
     except KeyError: pass # use program default
@@ -626,10 +632,16 @@ def writeSettingsFile( self ):
         recent[recentName+'Folder'] = convertToString( folder )
         recent[recentName+'Type'] = winType
 
+    # Save the project information
+    self.settings.data['Project'] = {}
+    users = self.settings.data['Project']
+    users['currentProjectName'] = self.currentProjectName
+
     # Save the user information
     self.settings.data['Users'] = {}
     users = self.settings.data['Users']
     users['currentUserName'] = self.currentUserName
+    users['currentUserEmail'] = self.currentUserEmail
     users['currentUserRole'] = self.currentUserRole
     users['currentUserAssignments'] = self.currentUserAssignments
 
@@ -697,16 +709,50 @@ def doSendUsageStatistics( self ):
     Send usage statistics over the Internet.
 
     "self" refers to a Biblelator Application instance.
+
+    Note that Biblelator is mostly closed down at this stage.
     """
     if BibleOrgSysGlobals.debugFlag:
         print( exp("doSendUsageStatistics()") )
-        self.setDebugText( "doSendUsageStatistics" )
         assert self.internetAccessEnabled
         assert self.sendUsageStatisticsEnabled
     elif BibleOrgSysGlobals.verbosityLevel > 0:
         print( _("  Sending program usage info…") )
 
-    pass
+    # Package our stuff up into a zip file
+    import tempfile, zipfile
+    adjAppName = APP_NAME.replace('/','-').replace(':','_').replace('\\','_')
+    zipFilepath = os.path.join( tempfile.gettempdir(), adjAppName+'.zip' )
+    print( "zipF0", repr(zipFilepath) )
+    zf = zipfile.ZipFile( zipFilepath, 'w', compression=zipfile.ZIP_DEFLATED )
+    filename = adjAppName + '_log.txt'
+    print( "zipF1", repr(self.loggingFolderPath) )
+    print( "zipF2", repr(filename) )
+    zf.write( os.path.join( self.loggingFolderPath, filename ), filename )
+    print( "zipF3", repr(self.settings.settingsFilepath) )
+    print( "zipF4", repr(self.settings.settingsFilename) )
+    zf.write( self.settings.settingsFilepath, self.settings.settingsFilename )
+    zf.close()
+
+    if 0: # Not working yet
+        # Post the zip file to our server
+        import http.client, urllib.parse
+        params = urllib.parse.urlencode({'nameLine':self.currentUserName, 'emailLine':self.currentUserEmail,
+                                        'projectLine':self.currentProjectName, 'submit':'Submit' })
+        headers = {"Content-type": "application/x-www-form-urlencoded",
+                    "Accept": "text/plain"}
+        print( "here1" )
+        conn = http.client.HTTPConnection( 'Freely-Given.org/Software/Biblelator/StatusInputs/' )
+        print( "here2" )
+        conn.request( 'POST', '', params, headers )
+        print( "here3" )
+        response = conn.getresponse()
+        print( "doSendUsageStatistics status", repr(response.status) )
+        print( "doSendUsageStatistics reason", repr(response.reason) )
+        data = response.read()
+        print( "doSendUsageStatistics data", repr(data) )
+        conn.close()
+    os.remove( zipFilepath )
 # end of doSendUsageStatistics
 
 
