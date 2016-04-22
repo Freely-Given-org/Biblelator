@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-19' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.01' # Separate versioning from Biblelator
@@ -841,7 +841,7 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("SwordManager.doCheckForDeveloperMessages()") )
 
-        import requests
+        import requests # NOTE: Doesn't work in Windows !!!
         # NOTE: needs to be https!!!
         try: ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
         except requests.exceptions.InvalidSchema as err:
@@ -1142,8 +1142,8 @@ def main( homeFolderPath, loggingFolderPath ):
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
         #print( 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
-        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
-        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and ProgName+'.py' in line:
@@ -1155,8 +1155,8 @@ def main( homeFolderPath, loggingFolderPath ):
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
         #print( 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
-        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
-        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if ProgName+'.py' in line:

@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-20 RJH
+Last updated: 2016-04-22 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,8 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs
+* PTX book encoding and line-endings might not be correct on Windows
+* Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
 * When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
@@ -32,18 +34,20 @@ Biblelator bugs
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 * Need to close autocomplete pop-up if window loses focus
 
-Bibelator testing required
+Biblelator testing required
+* Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
 * Need to set-up some special .ini files for testing
 * Systematically work through all menus
 
 
 BOS bugs
+* Doesn't create a log file on Windows
 * Why do warnings show on Windows console (yet not on Linux)?
 * Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
 * OSIS (and other containerised) formats should insert end markers when loading
 
 BOS improvements for Biblelator
-* PTX module chokes on SSF file not formed properly in lines
+* Upgrade to USX 2.5
 * Are we able to read Sword dictionaries?
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
 * Make SwordModules for Windows able to load individual books not just entire Bibles (started)
@@ -64,7 +68,8 @@ BOS testing required
 
 
 Biblelator stuff
-* Make backup(s) of settings file before saving settings
+* Alert on double-spaces in USFM editor
+* USFM editor still only aware of basic/common USFM tags
 * Add Internet fast/slow, expensive/cheap flags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???

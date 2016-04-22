@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-20' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.34'
@@ -1096,7 +1096,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCheckForDeveloperMessages()") )
 
-        import requests
+        import requests # NOTE: Doesn't work in Windows !!!
         # NOTE: needs to be https!!!
         try: ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
         except requests.exceptions.InvalidSchema as err:
@@ -3048,12 +3048,21 @@ if __name__ == '__main__':
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
+    if 'win' in sys.platform: # Disable multiprocessing until we get less bugs in Biblelator
+        print( "Limiting to single-threading on Windows (until we solve some bugs)" )
+        BibleOrgSysGlobals.maxProcesses = 1
+    #print( 'MP', BibleOrgSysGlobals.maxProcesses )
 
-    if BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???
+    if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???
         print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
         print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
         if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
         print( exp("Running main…") )
+        import locale
+        print( "default locale", locale.getdefaultlocale() )
+        print( "codeset", locale.CODESET )
+        print( "preferredEncoding", locale.getpreferredencoding() )
+
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( ProgName, ProgVersion )

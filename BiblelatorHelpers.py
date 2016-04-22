@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-17' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -202,7 +202,7 @@ def createEmptyUSFMBooks( folderPath, currentBBB, requestDict ):
 
         # Write the actual file
         filename = '{}-{}.USFM'.format( USFMNumber, USFMAbbreviation )
-        with open( os.path.join( folderPath, filename ), mode='wt' ) as theFile:
+        with open( os.path.join( folderPath, filename ), mode='wt', encoding='utf-8' ) as theFile:
             theFile.write( bookText )
         count += 1
     print( len(skippedBooklist), "books skipped:", skippedBooklist ) # Should warn the user here
@@ -491,7 +491,7 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
 
     logText += '{} {} {:,} characters saved by {}\n'.format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                                                                             savedBBB, textLength, userName )
-    with open( filepath, 'wt' ) as logFile:
+    with open( filepath, 'wt', encoding='utf-8' ) as logFile:
         logFile.write( logText )
 # end of BiblelatorHelpers.logChangedFile
 

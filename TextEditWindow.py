@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-20' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.34'
@@ -839,7 +839,7 @@ class TextEditWindow( ChildWindow ):
         self.filename = filename
         self.filepath = os.path.join( self.folderPath, self.filename )
         if createFile: # Create a blank file
-            with open( self.filepath, mode='wt' ) as theBlankFile: pass # write nothing
+            with open( self.filepath, mode='wt', encoding='utf-8' ) as theBlankFile: pass # write nothing
         return self._checkFilepath()
     # end of TextEditWindow.setFilename
 
@@ -1002,7 +1002,7 @@ class TextEditWindow( ChildWindow ):
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
                 allText = self.getEntireText() # from the displayed edit window
-                with open( filepath, mode='wt' ) as theFile:
+                with open( filepath, mode='wt', encoding='utf-8' ) as theFile:
                     theFile.write( allText )
                 self.rememberFileTimeAndSize()
                 self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
@@ -1054,7 +1054,7 @@ class TextEditWindow( ChildWindow ):
 
             # Now save this updated file
             allText = self.getEntireText() # from the displayed edit window and/or elsewhere
-            with open( autosaveFilepath, mode='wt' ) as theFile:
+            with open( autosaveFilepath, mode='wt', encoding='utf-8' ) as theFile:
                 theFile.write( allText )
             self.after( self.autosaveTime, self.doAutosave )
         else:

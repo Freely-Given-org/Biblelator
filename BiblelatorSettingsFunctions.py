@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-20' # by RJH
+LastModifiedDate = '2016-04-22' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.34'
@@ -161,19 +161,20 @@ def parseAndApplySettings( self ):
         if windowSize and windowPosition: self.rootWindow.geometry( windowSize + '+' + windowPosition )
         else: logging.warning( "Settings.KeyError: no windowSize & windowPosition" )
     except KeyError: pass # no [APP_NAME] entries
-
     try: self.doChangeTheme( self.settings.data[APP_NAME]['themeName'] )
     except KeyError: logging.warning( "Settings.KeyError: no themeName" )
-    try: self.interfaceLanguage = self.settings.data[APP_NAME]['interfaceLanguage']
+
+    # Parse Interface stuff
+    try: self.interfaceLanguage = self.settings.data['Interface']['interfaceLanguage']
     except KeyError: self.interfaceLanguage = DEFAULT
     if BibleOrgSysGlobals.debugFlag: assert self.interfaceLanguage in ( DEFAULT, )
-    try: self.interfaceComplexity = self.settings.data[APP_NAME]['interfaceComplexity']
+    try: self.interfaceComplexity = self.settings.data['Interface']['interfaceComplexity']
     except KeyError: self.interfaceComplexity = DEFAULT
     if BibleOrgSysGlobals.debugFlag: assert self.interfaceComplexity in ( DEFAULT, 'Basic', 'Advanced', )
-    try: self.touchMode = convertToPython( self.settings.data[APP_NAME]['touchMode'] )
+    try: self.touchMode = convertToPython( self.settings.data['Interface']['touchMode'] )
     except KeyError: self.touchMode = False
     if BibleOrgSysGlobals.debugFlag: assert self.touchMode in ( False, True )
-    try: self.tabletMode = convertToPython( self.settings.data[APP_NAME]['tabletMode'] )
+    try: self.tabletMode = convertToPython( self.settings.data['Interface']['tabletMode'] )
     except KeyError: self.tabletMode = False
     if BibleOrgSysGlobals.debugFlag: assert self.tabletMode in ( False, 1, 2 )
 
@@ -206,6 +207,20 @@ def parseAndApplySettings( self ):
         cloudBackupsString = self.settings.data['Internet']['cloudBackups']
         self.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
     except KeyError: self.cloudBackupsEnabled = True # default
+
+    # Parse project info
+    try: self.currentProjectName = self.settings.data['Project']['currentProjectName']
+    except KeyError: pass # use program default
+
+    # Parse users
+    try: self.currentUserName = self.settings.data['Users']['currentUserName']
+    except KeyError: pass # use program default
+    try: self.currentUserEmail = self.settings.data['Users']['currentUserEmail']
+    except KeyError: pass # use program default
+    try: self.currentUserRole = self.settings.data['Users']['currentUserRole']
+    except KeyError: pass # use program default
+    try: self.currentUserAssignments = self.settings.data['Users']['currentUserAssignments']
+    except KeyError: pass # use program default
 
     # Parse paths
     try: self.lastFileDir = self.settings.data['Paths']['lastFileDir']
@@ -243,20 +258,6 @@ def parseAndApplySettings( self ):
                     self.recentFiles.append( (filename,folder,winType) )
                     assert len(self.recentFiles) == j
                     break # go to next j
-
-    # Parse project info
-    try: self.currentProjectName = self.settings.data['Project']['currentProjectName']
-    except KeyError: pass # use program default
-
-    # Parse users
-    try: self.currentUserName = self.settings.data['Users']['currentUserName']
-    except KeyError: pass # use program default
-    try: self.currentUserEmail = self.settings.data['Users']['currentUserEmail']
-    except KeyError: pass # use program default
-    try: self.currentUserRole = self.settings.data['Users']['currentUserRole']
-    except KeyError: pass # use program default
-    try: self.currentUserAssignments = self.settings.data['Users']['currentUserAssignments']
-    except KeyError: pass # use program default
 
     # Parse BCV groups
     try: self.genericBibleOrganisationalSystemName = self.settings.data['BCVGroups']['genericBibleOrganisationalSystemName']
@@ -598,11 +599,14 @@ def writeSettingsFile( self ):
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
     mainStuff['minimumSize'] = self.minimumSize
     mainStuff['maximumSize'] = self.maximumSize
-    mainStuff['interfaceLanguage'] = self.interfaceLanguage
-    mainStuff['interfaceComplexity'] = self.interfaceComplexity
-    mainStuff['touchMode'] = convertToString( self.touchMode )
-    mainStuff['tabletMode'] = convertToString( self.tabletMode )
 
+    # Save the user interface settings
+    self.settings.data['Interface'] = {}
+    interface = self.settings.data['Interface']
+    interface['interfaceLanguage'] = self.interfaceLanguage
+    interface['interfaceComplexity'] = self.interfaceComplexity
+    interface['touchMode'] = convertToString( self.touchMode )
+    interface['tabletMode'] = convertToString( self.tabletMode )
 
     # Save the Internet access controls
     self.settings.data['Internet'] = {}
@@ -614,6 +618,19 @@ def writeSettingsFile( self ):
     internet['automaticUpdates'] = 'Enabled' if self.automaticUpdatesEnabled else 'Disabled'
     internet['useDevelopmentVersions'] = 'Enabled' if self.useDevelopmentVersionsEnabled else 'Disabled'
     internet['cloudBackups'] = 'Enabled' if self.cloudBackupsEnabled else 'Disabled'
+
+    # Save the project information
+    self.settings.data['Project'] = {}
+    users = self.settings.data['Project']
+    users['currentProjectName'] = self.currentProjectName
+
+    # Save the user information
+    self.settings.data['Users'] = {}
+    users = self.settings.data['Users']
+    users['currentUserName'] = self.currentUserName
+    users['currentUserEmail'] = self.currentUserEmail
+    users['currentUserRole'] = self.currentUserRole
+    users['currentUserAssignments'] = self.currentUserAssignments
 
     # Save the last paths
     self.settings.data['Paths'] = {}
@@ -631,19 +648,6 @@ def writeSettingsFile( self ):
         recent[recentName+'Filename'] = convertToString( filename )
         recent[recentName+'Folder'] = convertToString( folder )
         recent[recentName+'Type'] = winType
-
-    # Save the project information
-    self.settings.data['Project'] = {}
-    users = self.settings.data['Project']
-    users['currentProjectName'] = self.currentProjectName
-
-    # Save the user information
-    self.settings.data['Users'] = {}
-    users = self.settings.data['Users']
-    users['currentUserName'] = self.currentUserName
-    users['currentUserEmail'] = self.currentUserEmail
-    users['currentUserRole'] = self.currentUserRole
-    users['currentUserAssignments'] = self.currentUserAssignments
 
     # Save the referenceGroups A..D
     self.settings.data['BCVGroups'] = {}
@@ -725,13 +729,27 @@ def doSendUsageStatistics( self ):
     zipFilepath = os.path.join( tempfile.gettempdir(), adjAppName+'.zip' )
     print( "zipF0", repr(zipFilepath) )
     zf = zipfile.ZipFile( zipFilepath, 'w', compression=zipfile.ZIP_DEFLATED )
+
+    # Add log file(s)
     filename = adjAppName + '_log.txt'
-    print( "zipF1", repr(self.loggingFolderPath) )
-    print( "zipF2", repr(filename) )
-    zf.write( os.path.join( self.loggingFolderPath, filename ), filename )
-    print( "zipF3", repr(self.settings.settingsFilepath) )
-    print( "zipF4", repr(self.settings.settingsFilename) )
-    zf.write( self.settings.settingsFilepath, self.settings.settingsFilename )
+    #print( "zipF1", repr(self.loggingFolderPath) )
+    #print( "zipF2", repr(filename) )
+    for extension in BibleOrgSysGlobals.STANDARD_BACKUP_EXTENSIONS:
+        filepath = os.path.join( self.loggingFolderPath, filename+extension )
+        #print( "  zipF3", repr(filepath) )
+        if os.path.exists( filepath ):
+            print( "  zipF4", repr(filepath) )
+            zf.write( filepath, filename+extension )
+
+    # Add settings file(s)
+    #print( "zipF5", repr(self.settings.settingsFilepath) )
+    #print( "zipF6", repr(self.settings.settingsFilename) )
+    for extension in BibleOrgSysGlobals.STANDARD_BACKUP_EXTENSIONS:
+        filepath = self.settings.settingsFilepath+extension
+        #print( "  zipF7", repr(filepath) )
+        if os.path.exists( filepath ):
+            print( "  zipF8", repr(filepath) )
+            zf.write( filepath, self.settings.settingsFilename+extension )
     zf.close()
 
     if 0: # Not working yet
