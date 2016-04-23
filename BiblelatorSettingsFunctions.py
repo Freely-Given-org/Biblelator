@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-22' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.34'
@@ -738,7 +738,7 @@ def doSendUsageStatistics( self ):
         filepath = os.path.join( self.loggingFolderPath, filename+extension )
         #print( "  zipF3", repr(filepath) )
         if os.path.exists( filepath ):
-            print( "  zipF4", repr(filepath) )
+            #print( "  zipF4", repr(filepath) )
             zf.write( filepath, filename+extension )
 
     # Add settings file(s)
@@ -748,7 +748,7 @@ def doSendUsageStatistics( self ):
         filepath = self.settings.settingsFilepath+extension
         #print( "  zipF7", repr(filepath) )
         if os.path.exists( filepath ):
-            print( "  zipF8", repr(filepath) )
+            #print( "  zipF8", repr(filepath) )
             zf.write( filepath, self.settings.settingsFilename+extension )
     zf.close()
 

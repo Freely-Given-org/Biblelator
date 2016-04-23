@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-22' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.34'
@@ -1109,7 +1109,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
                 self.bookText = self.getEntireText()
-                with open( filepath, mode='wt', newline='\r\n' ) as theFile:
+                with open( filepath, mode='wt', encoding=self.internalBible.encoding, newline='\r\n' ) as theFile:
                     theFile.write( self.bookText )
                 self.rememberFileTimeAndSize()
                 BBB = self.currentVerseKey.getBBB()
