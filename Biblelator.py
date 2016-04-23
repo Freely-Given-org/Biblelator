@@ -3063,7 +3063,7 @@ if __name__ == '__main__':
         print( exp("Running main…") )
         import locale
         print( "default locale", locale.getdefaultlocale() )
-        print( "codeset", locale.CODESET )
+        #print( "codeset", locale.CODESET )
         print( "preferredEncoding", locale.getpreferredencoding() )
 
     main( homeFolderPath, loggingFolderPath )
