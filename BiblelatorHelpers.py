@@ -486,7 +486,8 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
         #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
 
     filepath = getChangeLogFilepath( loggingFolder, projectName )
-    try: logText = open( filepath, 'rt' ).read()
+    # TODO: Why don't we just append it to the existing file???
+    try: logText = open( filepath, 'rt', encoding='utf-8' ).read()
     except FileNotFoundError: logText = ''
 
     logText += '{} {} {:,} characters saved by {}\n'.format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),

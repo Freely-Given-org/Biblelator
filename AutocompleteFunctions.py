@@ -33,14 +33,14 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-20' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import sys, os, logging
@@ -87,6 +87,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
     Note that the original word order is preserved (if the wordList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
+    logging.info( exp("AutocompleteFunctions.setAutocompleteWords( …, {}, {} )").format( len(wordList), append ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #print( exp("AutocompleteFunctions.setAutocompleteWords( {} )").format( wordList, append ) )
         print( exp("AutocompleteFunctions.setAutocompleteWords( …, {}, {} )").format( len(wordList), append ) )
@@ -163,14 +164,15 @@ internalMarkers = ['\\'+marker for marker in internalMarkers]
 
 DUMMY_VALUE = 999999 # Some number bigger than the number of characters in a line
 
-def countBookWords( BBB, folder, filename, isCurrentBook ):
+def countBookWords( BBB, internalBible, filename, isCurrentBook ):
     """
     Find all the words in the Bible book and their usage counts.
 
     Returns a dictionary containing the results for the book.
     """
+    logging.debug( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "countBookWords( {}, {}, {} )".format( BBB, folder, filename ) )
+        print( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
     if BBB in AVOID_BOOKS: return
 
     countIncrement = 3 if isCurrentBook else 1 # Each word in current book counts higher so appears higher in the list
@@ -232,8 +234,8 @@ def countBookWords( BBB, folder, filename, isCurrentBook ):
     # end of countWords
 
     # main code for countBookWords
-    USFMFilepath = os.path.join( folder, filename )
-    with open( USFMFilepath, 'rt' ) as bookFile:
+    USFMFilepath = os.path.join( internalBible.sourceFolder, filename )
+    with open( USFMFilepath, 'rt', encoding=internalBible.encoding ) as bookFile:
         try:
             for line in bookFile:
                 lineCount += 1
@@ -328,8 +330,9 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
 
     NOTE: This list should theoretically be updated as the user enters new words!
     """
+    logging.info( exp("loadBibleBookAutocompleteWords()") )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("AutocompleteFunctions.loadBibleBookAutocompleteWords()") )
+        print( exp("loadBibleBookAutocompleteWords()") )
         editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( "Loading {} Bible book words…".format( editWindowObject.projectName ) )
@@ -342,7 +345,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     for BBB2,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
         if BBB2 == currentBBB: foundFilename = filename; break
 
-    wordCountResults = countBookWords( currentBBB, editWindowObject.internalBible.sourceFolder, foundFilename, False )
+    wordCountResults = countBookWords( currentBBB, editWindowObject.internalBible, foundFilename, False )
     #print( 'wordCountResults', len(wordCountResults) )
 
     # Would be nice to load current book first, but we don't know it yet
@@ -395,7 +398,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     bookWordCounts = {}
     if editWindowObject.internalBible.maximumPossibleFilenameTuples:
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
-            parameters = [(BBB,editWindowObject.internalBible.sourceFolder,filename,BBB==currentBBB) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
+            parameters = [(BBB,editWindowObject.internalBible,filename,BBB==currentBBB) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
             if BibleOrgSysGlobals.verbosityLevel > 1:
                 print( exp("Loading up to {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
                 print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
@@ -410,7 +413,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
             for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
                 #if BibleOrgSysGlobals.verbosityLevel>1 or BibleOrgSysGlobals.debugFlag:
                     #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.name, editWindowObject.internalBible.sourceFolder ) )
-                bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible.sourceFolder, filename, BBB==currentBBB ) # also saves it
+                bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible, filename, BBB==currentBBB ) # also saves it
     else:
         logging.critical( exp("No books to load in {}!").format( editWindowObject.internalBible.sourceFolder ) )
 
@@ -456,8 +459,9 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
     NOTE: This list maybe should be updated as the user enters new words
         or else have an additional user dictionary.
     """
+    logging.info( exp("loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("AutocompleteFunctions.loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
+        print( exp("loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
         editWindowObject.parentApp.setDebugText( "loadHunspellAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( "Loading dictionary…" )
@@ -649,14 +653,15 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     NOTE: This list maybe should be updated as the user enters new words
         or else have an additional user dictionary.
     """
+    logging.info( exp("loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("AutocompleteFunctions.loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
+        print( exp("loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
         editWindowObject.parentApp.setDebugText( "loadILEXAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( "Loading dictionary…" )
     autocompleteWords = []
     lineCount = 0
-    with open( dictionaryFilepath, 'rt' ) as dictionaryFile:
+    with open( dictionaryFilepath, 'rt', encoding='utf-8' ) as dictionaryFile:
         for line in dictionaryFile:
             lineCount += 1
             if lineCount==1:

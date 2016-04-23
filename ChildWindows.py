@@ -34,10 +34,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-11' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -842,7 +842,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             print( exp("HTMLWindow.load( {} )").format( filepath ) )
 
         self.folderPath, self.filename = os.path.split( filepath )
-        with open( filepath, 'rt' ) as HTMLFile:
+        with open( filepath, 'rt', encoding='utf-8' ) as HTMLFile:
             fileContents = HTMLFile.read()
         match = re.search( '<title>(.+?)</title>', fileContents )
         if match:

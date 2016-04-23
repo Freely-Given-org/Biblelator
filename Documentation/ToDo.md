@@ -41,6 +41,7 @@ Biblelator testing required
 
 
 BOS bugs
+* Had 8 default mode failures: ['MyBibleBible', 'SwordInstallManager', 'TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestBib1', 'TestHaiola3', 'USFMBible', 'UnknownBible']
 * Doesn't create a log file on Windows
 * Why do warnings show on Windows console (yet not on Linux)?
 * Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
