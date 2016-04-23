@@ -501,6 +501,8 @@ def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
     """
     Checks if the bookName entry is just a book name, or an entire reference (e.g., "Gn 15:2")
 
+    BBBfunction is a function to find BBB from a word/string.
+
     Returns the discovered BBB, C, V
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -511,11 +513,16 @@ def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
     while '  ' in bookNameEntry: bookNameEntry.replace( '  ', ' ' )
 
     if ':' in bookNameEntry:
-        print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) )
+        print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # name C:V
         match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
         if match:
             print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
             return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
+    else:
+        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
+        if match:
+            print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
+            return BBBfunction( match.group(1) ), match.group(2), 1
 
     #else: # assume it's just a book name
     return BBBfunction( bookNameEntry ), Centry, Ventry

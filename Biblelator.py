@@ -2350,6 +2350,8 @@ class Application( Frame ):
             print( exp("gotoBCV( {} {}:{} {} ) = {} from {}").format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
 
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
+        self.setWaitStatus( _("Moving to new Bible reference ({} {}:{})…").format( BBB, C, V ) )
+        self.update_idletasks() # Try to make the main window respond even before child windows can react
         if BibleOrgSysGlobals.debugFlag:
             if self.bookNumberTable[BBB] > 0: # Preface and stuff might fail this
                 assert self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True )
@@ -2357,6 +2359,7 @@ class Application( Frame ):
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
             #print( "swK", self.SwordKey.getText() )
         self.childWindows.updateThisBibleGroup( self.currentVerseKeyGroup, self.currentVerseKey, originator=originator )
+        self.setReadyStatus()
     # end of Application.gotoBCV
 
 

@@ -1109,6 +1109,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
                 self.bookText = self.getEntireText()
+                print( "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
+                logging.debug( "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
                 with open( filepath, mode='wt', encoding=self.internalBible.encoding, newline='\r\n' ) as theFile:
                     theFile.write( self.bookText )
                 self.rememberFileTimeAndSize()
