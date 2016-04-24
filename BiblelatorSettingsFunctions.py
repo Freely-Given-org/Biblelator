@@ -199,6 +199,8 @@ def parseAndApplySettings( self ):
         lastMessageNumberString = self.settings.data['Internet']['lastMessageNumberRead']
         self.lastMessageNumberRead = int( lastMessageNumberString )
     except (KeyError, ValueError): self.lastMessageNumberRead = 0
+    else:
+        if self.lastMessageNumberRead < 0: self.lastMessageNumberRead = 0 # Handle errors in ini file
     try:
         sendUsageStatisticsString = self.settings.data['Internet']['sendUsageStatistics']
         self.sendUsageStatisticsEnabled = sendUsageStatisticsString == 'Enabled'

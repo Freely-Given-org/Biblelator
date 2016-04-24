@@ -1100,12 +1100,13 @@ class Application( Frame ):
         import urllib.request
         # NOTE: needs to be https eventually!!!
         indexString = None
-        url = 'http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx'
+        url = 'http://Freely-Given.org/Software/BibleQlator/DevMsg/DevMsg.idx'
         try:
             with urllib.request.urlopen( url ) as response:
                 indexData = response.read() # a `bytes` object
             #print( "indexData", repr(indexData) )
-        except urllib.error.HTTPError: pass # Just ignore errors
+        except urllib.error.HTTPError:
+            logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url ) )
         else: indexString = indexData.decode('utf-8')
         #print( "indexString", repr(indexString) )
 
@@ -1119,24 +1120,28 @@ class Application( Frame ):
             while indexString.endswith( '\n' ): indexString = indexString[:-1] # Removing trailing line feeds
             n,ext = indexString.split( '.', 1 )
             ni = int( n )
-            if ni<0: ni = 0 # Handle errors in ini file
             #print( 'ni', repr(ni), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
             if ni > self.lastMessageNumberRead:
+                msgString = None
                 url2 = 'http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}'.format( self.lastMessageNumberRead+1, ext )
                 #print( 'url2', repr(url2) )
-                with urllib.request.urlopen( url2 ) as response:
-                    msgData = response.read() # a `bytes` object
-                    #print( "msgData", repr(msgData) )
-                msgString = msgData.decode('utf-8')
+                try:
+                    with urllib.request.urlopen( url2 ) as response:
+                        msgData = response.read() # a `bytes` object
+                        #print( "msgData", repr(msgData) )
+                except urllib.error.HTTPError:
+                    logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url2 ) )
+                else: msgString = msgData.decode('utf-8')
                 #print( "msgString", repr(msgString) )
 
-                from About import AboutBox
-                aboutInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
-                aboutInfo += '\n  via Freely-Given.org'
-                aboutInfo += '\n\n' + msgString
-                ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+                if msgString:
+                    from About import AboutBox
+                    aboutInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
+                    aboutInfo += '\n  via Freely-Given.org'
+                    aboutInfo += '\n\n' + msgString
+                    ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
 
-                self.lastMessageNumberRead += 1
+                    self.lastMessageNumberRead += 1
     # end of Application.doCheckForMessagesFromDeveloper
 
 

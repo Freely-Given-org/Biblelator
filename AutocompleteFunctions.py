@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.34'
@@ -392,7 +392,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
 
     editWindowObject.parentApp.setWaitStatus( "Loading {} Bible words…".format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(BBB) )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(currentBBB) )
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
     bookWordCounts = {}
