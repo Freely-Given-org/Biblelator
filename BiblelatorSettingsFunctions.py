@@ -160,10 +160,12 @@ def parseAndApplySettings( self ):
 
     try: self.minimumSize = self.settings.data[APP_NAME]['minimumSize']
     except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
-    self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
+    if 1:
+        self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
     try: self.maximumSize = self.settings.data[APP_NAME]['maximumSize']
     except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
-    self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
+    if 1:
+        self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
     if debuggingThisModule:
         print( "  apply min", repr(self.minimumSize), repr(parseWindowSize(self.minimumSize)), "max", repr(self.maximumSize), repr(parseWindowSize(self.maximumSize)) )
 
@@ -404,11 +406,11 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 logging.critical( exp("applyGivenWindowsSettings: Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
             else: # we've opened our child window -- now customize it a bit more
                 minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
-                if minimumSize:
+                if 1 and minimumSize:
                     if BibleOrgSysGlobals.debugFlag: assert 'x' in minimumSize
                     rw.minsize( *parseWindowSize( minimumSize ) )
                 maximumSize = thisStuff['MaximumSize'] if 'MaximumSize' in thisStuff else None
-                if maximumSize:
+                if 1 and maximumSize:
                     if BibleOrgSysGlobals.debugFlag: assert 'x' in maximumSize
                     rw.maxsize( *parseWindowSize( maximumSize ) )
                 groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
@@ -461,8 +463,9 @@ def getCurrentChildWindowSettings( self ):
         thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
         if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
             thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
-        thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
-        thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
+        if 1:
+            thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
+            thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
 
         if appWin.windowType == 'SwordBibleResourceWindow':
             thisOne['ModuleAbbreviation'] = appWin.moduleID
@@ -724,6 +727,7 @@ def writeSettingsFile( self ):
 
 
 
+MIME_BOUNDARY = "sdafsZXXdahxcvblkDSFSDFjeflqwertlSDFSDFjkre" # Random string that won't occur in our data
 def doSendUsageStatistics( self ):
     """
     Send usage statistics over the Internet.
@@ -739,11 +743,13 @@ def doSendUsageStatistics( self ):
     elif BibleOrgSysGlobals.verbosityLevel > 0:
         print( _("  Sending program usage info…") )
 
+    adjAppName = APP_NAME.replace('/','-').replace(':','_').replace('\\','_').replace(' ','_')
+    adjUserName = self.currentUserName.replace('/','-').replace(':','_').replace('\\','_')
+
     # Package our stuff up into a zip file
     import tempfile, zipfile
-    adjAppName = APP_NAME.replace('/','-').replace(':','_').replace('\\','_')
     zipFilepath = os.path.join( tempfile.gettempdir(), adjAppName+'.zip' )
-    print( "zipF0", repr(zipFilepath) )
+    #print( "zipF0", repr(zipFilepath) )
     zf = zipfile.ZipFile( zipFilepath, 'w', compression=zipfile.ZIP_DEFLATED )
 
     # Add log file(s)
@@ -767,26 +773,41 @@ def doSendUsageStatistics( self ):
             #print( "  zipF8", repr(filepath) )
             zf.write( filepath, self.settings.settingsFilename+extension )
     zf.close()
-
-    if 0: # Not working yet
-        # Post the zip file to our server
-        import http.client, urllib.parse
-        params = urllib.parse.urlencode({'nameLine':self.currentUserName, 'emailLine':self.currentUserEmail,
-                                        'projectLine':self.currentProjectName, 'submit':'Submit' })
-        headers = {"Content-type": "application/x-www-form-urlencoded",
-                    "Accept": "text/plain"}
-        print( "here1" )
-        conn = http.client.HTTPConnection( 'Freely-Given.org/Software/Biblelator/StatusInputs/' )
-        print( "here2" )
-        conn.request( 'POST', '', params, headers )
-        print( "here3" )
-        response = conn.getresponse()
-        print( "doSendUsageStatistics status", repr(response.status) )
-        print( "doSendUsageStatistics reason", repr(response.reason) )
-        data = response.read()
-        print( "doSendUsageStatistics data", repr(data) )
-        conn.close()
+    with open( zipFilepath, 'rb' ) as zFile:
+        zData = zFile.read()
     os.remove( zipFilepath )
+    zDataStr = zData.decode('latin-1') # Make extended ASCII bytes into str
+
+    # Post the zip file to our server
+    parameterList = []
+    parameterList.extend( ('--' + MIME_BOUNDARY, "Content-Disposition: form-data; name=nameLine",
+                           '', self.currentUserName ) )
+    parameterList.extend( ('--' + MIME_BOUNDARY, "Content-Disposition: form-data; name=emailLine",
+                           '', self.currentUserEmail ) )
+    parameterList.extend( ('--' + MIME_BOUNDARY, "Content-Disposition: form-data; name=projectLine",
+                           '', self.currentProjectName ) )
+    parameterList.extend( ('--' + MIME_BOUNDARY,
+                    'Content-Disposition: form-data; name=uploadedZipFile; filename="{}.zip"'.format( adjUserName ),
+                    'Content-Type: application/zip', '', zDataStr ) )
+    parameterList.extend( ('--' + MIME_BOUNDARY + '--' , '') )
+    parameterString = '\r\n'.join (parameterList)
+    #print( "\nparameterString", repr(parameterString) )
+
+    headers = {"Content-type": "multipart/form-data; MIME_BOUNDARY={}".format( MIME_BOUNDARY ) }
+    #print( "\nheaders", headers )
+
+    import http.client
+    conn = http.client.HTTPConnection( 'Freely-Given.org' )
+    conn.request( 'POST', '/Software/Biblelator/StatusInputs/SubmitAction.phtml', parameterString, headers )
+    response = conn.getresponse()
+    if response.status == 200:
+        print( "doSendUsageStatistics accepted by server" )
+    else:
+        print( "doSendUsageStatistics status", repr(response.status) ) # Should be 200
+        print( "doSendUsageStatistics reason", repr(response.reason) ) # Should be 'OK'
+        data = response.read()
+        print( "doSendUsageStatistics data", repr(data) ) # Web page back from the server
+    conn.close()
 # end of doSendUsageStatistics
 
 
