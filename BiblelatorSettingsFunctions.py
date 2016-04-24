@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.34'
@@ -192,13 +192,13 @@ def parseAndApplySettings( self ):
         self.internetAccessEnabled = internetAccessString == 'Enabled'
     except KeyError: self.internetAccessEnabled = False # default
     try:
-        checkForMessagesString = self.settings.data['Internet']['checkForMessages']
-        self.checkForMessagesEnabled = checkForMessagesString == 'Enabled'
-    except KeyError: self.checkForMessagesEnabled = True # default
+        checkForMessagesString = self.settings.data['Internet']['checkForDeveloperMessages']
+        self.checkForDeveloperMessagesEnabled = checkForMessagesString == 'Enabled'
+    except KeyError: self.checkForDeveloperMessagesEnabled = True # default
     try:
         lastMessageNumberString = self.settings.data['Internet']['lastMessageNumberRead']
         self.lastMessageNumberRead = int( lastMessageNumberString )
-    except (KeyError, ValueError): self.lastMessageNumberRead = -1
+    except (KeyError, ValueError): self.lastMessageNumberRead = 0
     try:
         sendUsageStatisticsString = self.settings.data['Internet']['sendUsageStatistics']
         self.sendUsageStatisticsEnabled = sendUsageStatisticsString == 'Enabled'
@@ -456,10 +456,10 @@ def getCurrentChildWindowSettings( self ):
         if debuggingThisModule:
             print( "Child", j, appWin.genericWindowType, appWin.windowType )
             print( "  child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
-            print( "  child winfo x", appWin.winfo_x(), "child winfo rootx", appWin.winfo_rootx() )
-            print( "  child winfo y", appWin.winfo_y(), "child winforooty", appWin.winfo_rooty() )
-            print( "  child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
-            print( "  child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
+            #print( "  child winfo x", appWin.winfo_x(), "child winfo rootx", appWin.winfo_rootx() )
+            #print( "  child winfo y", appWin.winfo_y(), "child winforooty", appWin.winfo_rooty() )
+            #print( "  child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
+            #print( "  child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
         thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
         if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
             thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
@@ -609,8 +609,8 @@ def writeSettingsFile( self ):
     mainStuff['themeName'] = self.themeName
     if debuggingThisModule:
         print( " root geometry", self.rootWindow.geometry(), "root winfo_geometry", self.rootWindow.winfo_geometry() )
-        print( " root winfo x", self.rootWindow.winfo_x(), "root winfo rootx", self.rootWindow.winfo_rootx(), "BOTH WRONG!" )
-        print( " root winfo y", self.rootWindow.winfo_y(), "root winfo rooty", self.rootWindow.winfo_rooty(), "BOTH WRONG!" )
+        print( " root winfo x", self.rootWindow.winfo_x(), "root winfo rootx", self.rootWindow.winfo_rootx() )
+        print( " root winfo y", self.rootWindow.winfo_y(), "root winfo rooty", self.rootWindow.winfo_rooty() )
     mainStuff['windowSize'], mainStuff['windowPosition'] = self.rootWindow.geometry().split( '+', 1 )
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
     mainStuff['minimumSize'] = self.minimumSize
@@ -631,7 +631,7 @@ def writeSettingsFile( self ):
     self.settings.data['Internet'] = {}
     internet = self.settings.data['Internet']
     internet['internetAccess'] = 'Enabled' if self.internetAccessEnabled else 'Disabled'
-    internet['checkForMessages'] = 'Enabled' if self.checkForMessagesEnabled else 'Disabled'
+    internet['checkForDeveloperMessages'] = 'Enabled' if self.checkForDeveloperMessagesEnabled else 'Disabled'
     internet['lastMessageNumberRead'] = str( self.lastMessageNumberRead )
     internet['sendUsageStatistics'] = 'Enabled' if self.sendUsageStatisticsEnabled else 'Disabled'
     internet['automaticUpdates'] = 'Enabled' if self.automaticUpdatesEnabled else 'Disabled'

@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2016-04-18 RJH
+Last updated: 2016-04-25 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -135,7 +135,18 @@ follow my own instructions on a different computer.
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
 
 
-10. Try starting the Biblelator program in debug mode.
+10. Run Biblelator in the normal mode for normal working.
+    If everything seems to be working correctly,
+        next time you run Biblelator you might not need to run it in debug mode,
+    i.e., simply omit the "--version" and "--debug" parameters in order to run in normal mode.
+    If the program does not run, please copy the contents of the command prompt window,
+        and paste them into the comment box at http://Freely-Given.org/Contact.html.
+    It may also be helpful to include the contents of the Biblelator.ini file
+        which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/ folder.
+
+
+11. IF #10 ABOVE CRASHED IMMEDIATELY, or if you need more info on what's going wrong,
+        try starting the Biblelator program in debug mode.
     Using a command similar to what worked in the previous step,
         replace "--version" with "--debug" to actually run the program
             but with extra debugging information displayed in the command prompt window
@@ -155,28 +166,29 @@ follow my own instructions on a different computer.
         and a BiblelatorLogs folder should contain a log file.
 
 
-11. Run Biblelator in the normal mode for normal working.
-    If everything seems to be working correctly,
-        next time you run Biblelator you might not need to run it in debug mode,
-    i.e., simply omit the "--version" and "--debug" parameters in order to run in normal mode.
-    If the program does not run, please copy the contents of the command prompt window,
-        and paste them into the comment box at http://Freely-Given.org/Contact.html.
-    It may also be helpful to include the contents of the Biblelator.ini file
-        which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/ folder.
+12. In order to keep people safe who might be working on Bibles in sensitive locations, the
+        default settings have all Internet access disabled.
+    We recommend that most people enable Internet access. Unfortunately, this can't yet be
+        done inside the program, so you need to find the settings file and edit it. The
+        BiblelatorData folder should have been created in your home folder. Inside that is
+        the BiblelatorSettings folder. Inside that, there's a default Biblelator.ini file
+        (or you might have created a different ini file using the --override (or -o) argument).
+        Open this file with a text editor, e.g., gedit or Notepad and change the setting
+        "internetAccess" to Enabled (and then save the file of course).
 
 
-12. Eventually (once the program is working fully and reliably) you might like to
+13. Eventually (once the program is working fully and reliably) you might like to
     make a desktop or toolbar shortcut to run Biblelator on your system so it can be started easier
     (without having to open a command prompt window and manually navigate to files and folders).
     Meanwhile though, it's probably useful to have the command prompt window open.
 
 
-13. If you wish to access online Scripture resources from the Digital Bible Platform
+14. If you wish to access online Scripture resources from the Digital Bible Platform
     (Faith Comes By Hearing FCBH), request further information from the Biblelator programmer(s)
     via http://Freely-Given.org/Contact.html.
 
 
-14. If you wish to access offline Scripture resources from the Crosswire Sword project,
+15. If you wish to access offline Scripture resources from the Crosswire Sword project,
     you should download and install/unzip the resources from the Crosswire or other repositories.
     You might already have these installed if you use a Sword-based Bible program such as
         Xiphos, Bibletime, BPBible, etc.
@@ -186,14 +198,14 @@ follow my own instructions on a different computer.
     Then hopefully we can get you started with basic access to these modules.
 
 
-15. PhotoBible
+16. PhotoBible
     If you wish to use the PhotoBible export option for your USFM projects, you need to install
 	the free ImageMagick package. For Linux, this can usually be installed from your package
 	manager, and for Windows (untested), the exe installation files can be downloaded from
 	http://www.imagemagick.org/download/binaries.
 
 
-16. Program updates
+17. Program updates
     If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each
         of them with "git pull" on each folder (or the equivalent command from the GUI if you
         use TortoiseGit or equivalent).

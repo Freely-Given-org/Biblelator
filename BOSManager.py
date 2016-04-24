@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.01' # Separate versioning from Biblelator
@@ -203,7 +203,7 @@ class BOSManager( Frame ):
         self.createMainKeyboardBindings()
 
         # See if there's any developer messages
-        if self.internetAccessEnabled and self.checkForMessagesEnabled:
+        if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForDeveloperMessages()
 
         self.rootWindow.title( ProgNameVersion )
@@ -831,64 +831,6 @@ class BOSManager( Frame ):
         except tk.TclError as err:
             showerror( self, 'Error', err )
     # end of BOSManager.doChangeTheme
-
-
-    def doCheckForDeveloperMessages( self, event=None ):
-        """
-        Check if there's any new messages on the website from the developer.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doCheckForDeveloperMessages()") )
-
-        import requests # NOTE: Doesn't work in Windows !!!
-        # NOTE: needs to be https!!!
-        try: ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
-        except requests.exceptions.InvalidSchema as err:
-            logging.critical( exp("doCheckForDeveloperMessages: Unable to check for developer messages") )
-            logging.info( exp("doCheckForDeveloperMessages: {}").format( err ) )
-            showerror( self, 'Check for Developer Messages Error', err )
-            return
-
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( 'doCheckForDeveloperMessages Status', repr(ri.status_code) )
-            #print( 'Headers',  repr(ri.headers) )
-            #print( 'Content', repr(ri.content) )
-            #print( 'Encoding',  repr(ri.encoding) )
-            #print( 'Text',  repr(ri.text) )
-
-        if ri.status_code == 200: # successful
-            fetchedText = ri.text
-            while fetchedText.endswith( '\n' ): result = result[:-1] # Removing trailing line feeds
-            n,ext = fetchedText.split( '.', 1 )
-            ni = int( n )
-            #print( ni, ext )
-            if ni > self.lastMessageNumberRead:
-                rq = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}".format( self.lastMessageNumberRead+1, ext ) )
-                if rq.status_code == 200: # successful
-                    #print( r.text )
-
-                    from About import AboutBox
-                    aboutInfo = ProgNameVersion + " Developer Message #{}".format( self.lastMessageNumberRead )
-                    aboutInfo += '\n  from Freely-Given.org'
-                    aboutInfo += '\n\n' + rq.text
-                    ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
-
-                    self.lastMessageNumberRead += 1
-    # end of BOSManager.doCheckForDeveloperMessages
-
-
-    #def doOpenRecent( self, recentIndex ):
-        #"""
-        #"""
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doOpenRecent( {} )").format( recentIndex ) )
-            #self.setDebugText( "doOpenRecent…" )
-            #assert recentIndex < len(self.recentFiles)
-
-        #filename, folder, windowType = self.recentFiles[recentIndex]
-        #print( "Need to open", filename, folder, windowType )
-        #print( "NOT WRITTEN YET" )
-    ## end of BOSManager.doOpenRecent
 
 
     def doViewSettings( self ):

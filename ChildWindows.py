@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.34'
@@ -376,6 +376,18 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.__init__ finished.") )
     # end of ChildWindow.__init__
+
+
+    def geometry( self, *args, **kwargs ):
+        """
+        Try to ensure that the Toplevel geometry function is easily accessed
+            (and not the ChildBox function) in case this is causing us problems???
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.geometry("), *args, ')' )
+
+        return tk.Toplevel.geometry( self, *args, **kwargs )
+    # end of ChildWindow.geometry
 
 
     def notWrittenYet( self ):

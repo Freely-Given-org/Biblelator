@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.34'
@@ -246,7 +246,7 @@ class Application( Frame ):
         self.updateBCVGroup( self.currentVerseKeyGroup ) # Does an acceptNewBnCV
 
         # See if there's any developer messages
-        if self.internetAccessEnabled and self.checkForMessagesEnabled:
+        if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForMessagesFromDeveloper()
 
         self.rootWindow.title( ProgNameVersion + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
@@ -1097,40 +1097,46 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCheckForMessagesFromDeveloper()") )
 
-        import requests # NOTE: Doesn't work in Windows !!!
-        # NOTE: needs to be https!!!
-        try: ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
-        except requests.exceptions.InvalidSchema as err:
-            logging.critical( exp("doCheckForMessagesFromDeveloper: Unable to check for developer messages") )
-            logging.info( exp("doCheckForMessagesFromDeveloper: {}").format( err ) )
-            showerror( self, 'Check for Developer Messages Error', err )
-            return
+        import urllib.request
+        # NOTE: needs to be https eventually!!!
+        indexString = None
+        url = 'http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx'
+        try:
+            with urllib.request.urlopen( url ) as response:
+                indexData = response.read() # a `bytes` object
+            #print( "indexData", repr(indexData) )
+        except urllib.error.HTTPError: pass # Just ignore errors
+        else: indexString = indexData.decode('utf-8')
+        #print( "indexString", repr(indexString) )
 
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( 'doCheckForMessagesFromDeveloper Status', repr(ri.status_code) )
-            #print( 'Headers',  repr(ri.headers) )
-            #print( 'Content', repr(ri.content) )
-            #print( 'Encoding',  repr(ri.encoding) )
-            #print( 'Text',  repr(ri.text) )
+        #except requests.exceptions.InvalidSchema as err:
+            #logging.critical( exp("doCheckForMessagesFromDeveloper: Unable to check for developer messages") )
+            #logging.info( exp("doCheckForMessagesFromDeveloper: {}").format( err ) )
+            #showerror( self, 'Check for Developer Messages Error', err )
+            #return
 
-        if ri.status_code == 200: # successful
-            fetchedText = ri.text
-            while fetchedText.endswith( '\n' ): result = result[:-1] # Removing trailing line feeds
-            n,ext = fetchedText.split( '.', 1 )
+        if indexString:
+            while indexString.endswith( '\n' ): indexString = indexString[:-1] # Removing trailing line feeds
+            n,ext = indexString.split( '.', 1 )
             ni = int( n )
-            #print( ni, ext )
+            if ni<0: ni = 0 # Handle errors in ini file
+            #print( 'ni', repr(ni), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
             if ni > self.lastMessageNumberRead:
-                rq = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}".format( self.lastMessageNumberRead+1, ext ) )
-                if rq.status_code == 200: # successful
-                    #print( r.text )
+                url2 = 'http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}'.format( self.lastMessageNumberRead+1, ext )
+                #print( 'url2', repr(url2) )
+                with urllib.request.urlopen( url2 ) as response:
+                    msgData = response.read() # a `bytes` object
+                    #print( "msgData", repr(msgData) )
+                msgString = msgData.decode('utf-8')
+                #print( "msgString", repr(msgString) )
 
-                    from About import AboutBox
-                    aboutInfo = ProgNameVersion + " Developer Message #{}".format( self.lastMessageNumberRead )
-                    aboutInfo += '\n  from Freely-Given.org'
-                    aboutInfo += '\n\n' + rq.text
-                    ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+                from About import AboutBox
+                aboutInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
+                aboutInfo += '\n  via Freely-Given.org'
+                aboutInfo += '\n\n' + msgString
+                ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
 
-                    self.lastMessageNumberRead += 1
+                self.lastMessageNumberRead += 1
     # end of Application.doCheckForMessagesFromDeveloper
 
 
