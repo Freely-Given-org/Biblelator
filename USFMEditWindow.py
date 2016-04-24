@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.34'
@@ -83,7 +83,7 @@ def exp( messageString ):
 class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     """
     self.genericWindowType will be BibleEditor
-    self.winType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
+    self.windowType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
 
     Even though it contains a link to an USFMBible (InternalBible) object,
         this class always works directly with the USFM (text) files.
@@ -128,7 +128,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         # Now we need to override a few critical variables
         self.genericWindowType = 'BibleEditor'
-        #self.winType = 'USFMBibleEditWindow'
+        #self.windowType = 'USFMBibleEditWindow'
         self.verseCache = OrderedDict()
         if editMode is not None: self.editMode = editMode
 
@@ -1144,7 +1144,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         assert self.groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
         uEW = USFMEditWindow( self.parentApp, self.internalBible, editMode=self.editMode )
         #if windowGeometry: uEW.geometry( windowGeometry )
-        uEW.winType = self.winType # override the default
+        uEW.windowType = self.windowType # override the default
         uEW.moduleID = self.moduleID
         uEW.setFolderPath( self.folderPath )
         uEW.settings = self.settings
@@ -1176,7 +1176,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         for j in range( 1, len(BIBLE_GROUP_CODES) ):
             uEW = USFMEditWindow( self.parentApp, self.internalBible, editMode=self.editMode )
             #if windowGeometry: uEW.geometry( windowGeometry )
-            uEW.winType = self.winType # override the default
+            uEW.windowType = self.windowType # override the default
             uEW.moduleID = self.moduleID
             uEW.setFolderPath( self.folderPath )
             uEW.settings = self.settings
@@ -1207,7 +1207,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         assert self.groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
         BRCW = BibleReferenceCollectionWindow( self.parentApp, self.internalBible )
         #if windowGeometry: uEW.geometry( windowGeometry )
-        BRCW.winType = self.winType # override the default
+        BRCW.windowType = self.windowType # override the default
         BRCW.moduleID = self.moduleID
         BRCW.setFolderPath( self.folderPath )
         BRCW.settings = self.settings

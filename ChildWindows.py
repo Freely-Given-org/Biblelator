@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.34'
@@ -328,7 +328,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     def __init__( self, parentApp, genericWindowType ):
         """
         The genericWindowType is set here,
-            but the more specific winType is set later by the subclass.
+            but the more specific windowType is set later by the subclass.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
@@ -437,7 +437,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\nHelp for {}".format( self.windowType )
         helpInfo += "\n  Keyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
@@ -454,7 +454,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.winType )
+        aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of ChildWindow.doAbout
 
@@ -471,7 +471,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("ChildWindow.doClose() for {} wasn't in list").format( self.winType ) )
+                print( exp("ChildWindow.doClose() for {} wasn't in list").format( self.windowType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed child window" )
@@ -584,7 +584,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.protocol( "WM_DELETE_WINDOW", self.doClose )
         self.title( 'HTMLWindow' )
         self.genericWindowType = 'HTMLWindow'
-        self.winType = 'HTMLWindow'
+        self.windowType = 'HTMLWindow'
         self.moduleID = 'HTML'
 
         self.geometry( INITIAL_HTML_SIZE )
@@ -921,7 +921,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\nHelp for {}".format( self.windowType )
         helpInfo += "\n  Keyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
@@ -938,7 +938,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.winType )
+        aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of HTMLWindow.doAbout
 
@@ -959,7 +959,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("HTMLWindow.doClose() for {} wasn't in list").format( self.winType ) )
+                print( exp("HTMLWindow.doClose() for {} wasn't in list").format( self.windowType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )

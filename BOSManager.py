@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.01' # Separate versioning from Biblelator
@@ -271,7 +271,7 @@ class BOSManager( Frame ):
         fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
         fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
         fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
-        for j, (filename, folder, winType) in enumerate( self.recentFiles ):
+        for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=self.notWrittenYet )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.notWrittenYet )
@@ -801,8 +801,8 @@ class BOSManager( Frame ):
             #except AttributeError: extra = ''
             self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} BCV={}" \
                                     .format( j+1,
-                                        appWin.winType,
-                                        #appWin.winType.replace('ChildWindow',''),
+                                        appWin.windowType,
+                                        #appWin.windowType.replace('ChildWindow',''),
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
@@ -885,8 +885,8 @@ class BOSManager( Frame ):
             #self.setDebugText( "doOpenRecent…" )
             #assert recentIndex < len(self.recentFiles)
 
-        #filename, folder, winType = self.recentFiles[recentIndex]
-        #print( "Need to open", filename, folder, winType )
+        #filename, folder, windowType = self.recentFiles[recentIndex]
+        #print( "Need to open", filename, folder, windowType )
         #print( "NOT WRITTEN YET" )
     ## end of BOSManager.doOpenRecent
 

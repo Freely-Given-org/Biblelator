@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-19' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.34'
@@ -574,7 +574,7 @@ class BibleResourceBox( Frame, BibleBox ):
             self.destroy()
         else: # we might not have finished making our box yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("BibleResourceBox.closeResourceBox() for {} wasn't in list").format( self.winType ) )
+                print( exp("BibleResourceBox.closeResourceBox() for {} wasn't in list").format( self.windowType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource box" )
@@ -744,7 +744,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.parentApp = parentApp
         BibleResourceWindow.__init__( self, parentApp, 'BibleResourceCollectionWindow', collectionName )
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
-        #self.winType = 'InternalBibleResourceBox'
+        #self.windowType = 'InternalBibleResourceBox'
 
         self.geometry( INITIAL_RESOURCE_COLLECTION_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE
@@ -831,7 +831,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
 
-        #if 'DBP' in self.winType: # disable excessive online use
+        #if 'DBP' in self.windowType: # disable excessive online use
             #self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
             #self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
@@ -1125,7 +1125,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\nHelp for {}".format( self.windowType )
         helpInfo += "\n  Keyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
@@ -1142,7 +1142,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.winType )
+        aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of BibleResourceCollectionWindow.doAbout
 # end of BibleResourceCollectionWindow class

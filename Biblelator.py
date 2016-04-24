@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.34'
@@ -247,7 +247,7 @@ class Application( Frame ):
 
         # See if there's any developer messages
         if self.internetAccessEnabled and self.checkForMessagesEnabled:
-            self.doCheckForDeveloperMessages()
+            self.doCheckForMessagesFromDeveloper()
 
         self.rootWindow.title( ProgNameVersion + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
@@ -314,7 +314,7 @@ class Application( Frame ):
         fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
         fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
         fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
-        for j, (filename, folder, winType) in enumerate( self.recentFiles ):
+        for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
@@ -466,7 +466,7 @@ class Application( Frame ):
         fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
         fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
         fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
-        for j, (filename, folder, winType) in enumerate( self.recentFiles ):
+        for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
@@ -1057,8 +1057,8 @@ class Application( Frame ):
             #except AttributeError: extra = ''
             self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} BCV={}" \
                                     .format( j+1,
-                                        appWin.winType,
-                                        #appWin.winType.replace('ChildWindow',''),
+                                        appWin.windowType,
+                                        #appWin.windowType.replace('ChildWindow',''),
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
@@ -1089,24 +1089,25 @@ class Application( Frame ):
     # end of Application.doChangeTheme
 
 
-    def doCheckForDeveloperMessages( self, event=None ):
+    def doCheckForMessagesFromDeveloper( self, event=None ):
         """
         Check if there's any new messages on the website from the developer.
         """
+        logging.info( exp("Application.doCheckForMessagesFromDeveloper()") )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("Application.doCheckForDeveloperMessages()") )
+            print( exp("Application.doCheckForMessagesFromDeveloper()") )
 
         import requests # NOTE: Doesn't work in Windows !!!
         # NOTE: needs to be https!!!
         try: ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
         except requests.exceptions.InvalidSchema as err:
-            logging.critical( exp("doCheckForDeveloperMessages: Unable to check for developer messages") )
-            logging.info( exp("doCheckForDeveloperMessages: {}").format( err ) )
+            logging.critical( exp("doCheckForMessagesFromDeveloper: Unable to check for developer messages") )
+            logging.info( exp("doCheckForMessagesFromDeveloper: {}").format( err ) )
             showerror( self, 'Check for Developer Messages Error', err )
             return
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( 'doCheckForDeveloperMessages Status', repr(ri.status_code) )
+            print( 'doCheckForMessagesFromDeveloper Status', repr(ri.status_code) )
             #print( 'Headers',  repr(ri.headers) )
             #print( 'Content', repr(ri.content) )
             #print( 'Encoding',  repr(ri.encoding) )
@@ -1130,7 +1131,7 @@ class Application( Frame ):
                     ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
 
                     self.lastMessageNumberRead += 1
-    # end of Application.doCheckForDeveloperMessages
+    # end of Application.doCheckForMessagesFromDeveloper
 
 
     #def doSaveNewWindowSetup( self ):
@@ -1164,8 +1165,8 @@ class Application( Frame ):
             self.setDebugText( "doOpenRecent…" )
             assert recentIndex < len(self.recentFiles)
 
-        filename, folder, winType = self.recentFiles[recentIndex]
-        print( "Need to open", filename, folder, winType )
+        filename, folder, windowType = self.recentFiles[recentIndex]
+        print( "Need to open", filename, folder, windowType )
         print( "NOT WRITTEN YET" )
     # end of Application.doOpenRecent
 
@@ -1664,7 +1665,7 @@ class Application( Frame ):
             uB = USFMBible( newFolderPath ) # Get a blank object
             uB.name, uB.abbreviation = projName, projAbbrev
             uEW = USFMEditWindow( self, uB )
-            uEW.winType = 'BiblelatorUSFMBibleEditWindow' # override the default
+            uEW.windowType = 'BiblelatorUSFMBibleEditWindow' # override the default
             uEW.moduleID = newFolderPath
             uEW.setFolderPath( newFolderPath )
             uEW.settings = ProjectSettings( newFolderPath )
@@ -1717,7 +1718,7 @@ class Application( Frame ):
         uB = USFMBible( projectFolderPath )
         uEW = USFMEditWindow( self, uB, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
-        uEW.winType = 'BiblelatorUSFMBibleEditWindow' # override the default
+        uEW.windowType = 'BiblelatorUSFMBibleEditWindow' # override the default
         uEW.moduleID = projectFolderPath
         uEW.setFolderPath( projectFolderPath )
         uEW.settings = ProjectSettings( projectFolderPath )
@@ -1853,7 +1854,7 @@ class Application( Frame ):
 
         uEW = USFMEditWindow( self, ptxBible, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
-        uEW.winType = 'ParatextUSFMBibleEditWindow' # override the default
+        uEW.windowType = 'ParatextUSFMBibleEditWindow' # override the default
         uEW.moduleID = SSFFilepath
         uEW.setFilepath( SSFFilepath )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
@@ -2312,7 +2313,7 @@ class Application( Frame ):
         """
         #if BibleOrgSysGlobals.debugFlag: print( exp("haveSwordResourcesOpen()") )
         for appWin in self.childWindows:
-            if 'Sword' in appWin.winType:
+            if 'Sword' in appWin.windowType:
                 if self.SwordInterface is None:
                     self.SwordInterface = SwordInterface() # Load the Sword library
                 return True

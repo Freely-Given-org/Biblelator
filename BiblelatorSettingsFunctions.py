@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.34'
@@ -114,6 +114,11 @@ def parseAndApplySettings( self ):
 
     "self" refers to a Biblelator Application instance.
     """
+    logging.info( exp("parseAndApplySettings()") )
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+        print( exp("parseAndApplySettings()") )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "parseAndApplySettings…" )
+
     def retrieveWindowsSettings( self, windowsSettingsName ):
         """
         Gets a certain windows settings from the settings (INI) file information
@@ -140,27 +145,28 @@ def parseAndApplySettings( self ):
 
 
     # Main code for parseAndApplySettings()
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("parseAndApplySettings()") )
-        self.setDebugText( "parseAndApplySettings…" )
-
     # Parse main app stuff
-    try: self.minimumSize = self.settings.data[APP_NAME]['minimumSize']
-    except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
-    self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
-    try: self.maximumSize = self.settings.data[APP_NAME]['maximumSize']
-    except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
-    self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
     #try: self.rootWindow.geometry( self.settings.data[APP_NAME]['windowGeometry'] )
     #except KeyError: print( "KeyError1" ) # we had no geometry set
     #except tk.TclError: logging.critical( exp("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[APP_NAME]['windowGeometry'] ) )
     try:
         windowSize = self.settings.data[APP_NAME]['windowSize'] if 'windowSize' in self.settings.data[APP_NAME] else None
         windowPosition = self.settings.data[APP_NAME]['windowPosition'] if 'windowPosition' in self.settings.data[APP_NAME] else None
-        #print( "ws", repr(windowSize), "wp", repr(windowPosition) )
+        if debuggingThisModule:
+            print( "main window settings (across/down from ini file) size", repr(windowSize), "pos", repr(windowPosition) )
         if windowSize and windowPosition: self.rootWindow.geometry( windowSize + '+' + windowPosition )
         else: logging.warning( "Settings.KeyError: no windowSize & windowPosition" )
     except KeyError: pass # no [APP_NAME] entries
+
+    try: self.minimumSize = self.settings.data[APP_NAME]['minimumSize']
+    except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
+    self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
+    try: self.maximumSize = self.settings.data[APP_NAME]['maximumSize']
+    except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
+    self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
+    if debuggingThisModule:
+        print( "  apply min", repr(self.minimumSize), repr(parseWindowSize(self.minimumSize)), "max", repr(self.maximumSize), repr(parseWindowSize(self.maximumSize)) )
+
     try: self.doChangeTheme( self.settings.data[APP_NAME]['themeName'] )
     except KeyError: logging.warning( "Settings.KeyError: no themeName" )
 
@@ -254,8 +260,8 @@ def parseAndApplySettings( self ):
                     folder = convertToPython( self.settings.data['RecentFiles']['Recent{}Folder'.format( j )] )
                     #if folder == 'None': folder = None
                     if folder and folder[-1] not in '/\\': folder += '/'
-                    winType = self.settings.data['RecentFiles']['Recent{}Type'.format( j )]
-                    self.recentFiles.append( (filename,folder,winType) )
+                    windowType = self.settings.data['RecentFiles']['Recent{}Type'.format( j )]
+                    self.recentFiles.append( (filename,folder,windowType) )
                     assert len(self.recentFiles) == j
                     break # go to next j
 
@@ -303,9 +309,10 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
 
     "self" refers to a Biblelator Application instance.
     """
-    if BibleOrgSysGlobals.debugFlag:
+    logging.debug( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
-        self.setDebugText( "applyGivenWindowsSettings…" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "applyGivenWindowsSettings…" )
 
     self.doCloseMyChildWindows()
 
@@ -314,35 +321,35 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
         winNumber = 'window{}'.format( j )
         if winNumber in windowsSettingsFields:
             thisStuff = windowsSettingsFields[winNumber]
-            winType = thisStuff['Type']
+            windowType = thisStuff['Type']
             #windowGeometry = thisStuff['Geometry'] if 'Geometry' in thisStuff else None
             windowSize = thisStuff['Size'] if 'Size' in thisStuff else None
             windowPosition = thisStuff['Position'] if 'Position' in thisStuff else None
             windowGeometry = windowSize+'+'+windowPosition if windowSize and windowPosition else None
-            #print( winType, windowGeometry )
-            if winType == 'SwordBibleResourceWindow':
+            print( "applyGivenWindowsSettings", windowType, windowGeometry )
+            if windowType == 'SwordBibleResourceWindow':
                 rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
                 #except: logging.critical( "Unable to read all SwordBibleResourceWindow {} settings".format( j ) )
-            elif winType == 'DBPBibleResourceWindow':
+            elif windowType == 'DBPBibleResourceWindow':
                 rw = self.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
                 #except: logging.critical( "Unable to read all DBPBibleResourceWindow {} settings".format( j ) )
-            elif winType == 'InternalBibleResourceWindow':
+            elif windowType == 'InternalBibleResourceWindow':
                 folderPath = thisStuff['BibleFolderPath']
                 if folderPath[-1] not in '/\\': folderPath += '/'
                 rw = self.openInternalBibleResourceWindow( folderPath, windowGeometry )
                 #except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
 
-            #elif winType == 'HebrewLexiconResourceWindow':
+            #elif windowType == 'HebrewLexiconResourceWindow':
                 #self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
                 ##except: logging.critical( "Unable to read all HebrewLexiconResourceWindow {} settings".format( j ) )
-            #elif winType == 'GreekLexiconResourceWindow':
+            #elif windowType == 'GreekLexiconResourceWindow':
                 #self.openGreekLexiconResourceWindow( thisStuff['GreekLexiconPath'], windowGeometry )
                 ##except: logging.critical( "Unable to read all GreekLexiconResourceWindow {} settings".format( j ) )
-            elif winType == 'BibleLexiconResourceWindow':
+            elif windowType == 'BibleLexiconResourceWindow':
                 rw = self.openBibleLexiconResourceWindow( thisStuff['BibleLexiconPath'], windowGeometry )
                 #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
-            elif winType == 'BibleResourceCollectionWindow':
+            elif windowType == 'BibleResourceCollectionWindow':
                 collectionName = thisStuff['CollectionName']
                 rw = self.openBibleResourceCollectionWindow( collectionName, windowGeometry )
                 #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
@@ -364,37 +371,37 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                                 #if boxSource[-1] not in '/\\': boxSource += '/' # Are they all folders -- might be wrong
                             rw.openBox( boxType, boxSource )
 
-            elif winType == 'BibleReferenceCollectionWindow':
+            elif windowType == 'BibleReferenceCollectionWindow':
                 xyz = "JustTesting!"
                 rw = self.openBibleReferenceCollectionWindow( xyz, windowGeometry )
                 #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
-            elif winType == 'PlainTextEditWindow':
+            elif windowType == 'PlainTextEditWindow':
                 try: filepath = convertToPython( thisStuff['TextFilepath'] )
                 except KeyError: filepath = None
                 #if filepath == 'None': filepath = None
                 rw = self.openFileTextEditWindow( filepath, windowGeometry )
                 #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
-            elif winType == 'BiblelatorUSFMBibleEditWindow':
+            elif windowType == 'BiblelatorUSFMBibleEditWindow':
                 folderPath = thisStuff['ProjectFolderPath']
                 if folderPath[-1] not in '/\\': folderPath += '/'
                 rw = self.openBiblelatorBibleEditWindow( folderPath, thisStuff['EditMode'], windowGeometry )
                 #except: logging.critical( "Unable to read all BiblelatorUSFMBibleEditWindow {} settings".format( j ) )
-            elif winType == 'ParatextUSFMBibleEditWindow':
+            elif windowType == 'ParatextUSFMBibleEditWindow':
                 rw = self.openParatextBibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
                 #except: logging.critical( "Unable to read all ParatextUSFMBibleEditWindow {} settings".format( j ) )
-            elif winType == 'ESFMEditWindow':
+            elif windowType == 'ESFMEditWindow':
                 folderPath = thisStuff['ESFMFolder']
                 if folderPath[-1] not in '/\\': folderPath += '/'
                 rw = self.openESFMEditWindow( folderPath, thisStuff['EditMode'], windowGeometry )
                 #except: logging.critical( "Unable to read all ESFMEditWindow {} settings".format( j ) )
 
             else:
-                logging.critical( exp("applyGivenWindowsSettings: Unknown {} window type").format( repr(winType) ) )
+                logging.critical( exp("applyGivenWindowsSettings: Unknown {} window type").format( repr(windowType) ) )
                 if BibleOrgSysGlobals.debugFlag: halt
 
             if rw is None:
-                logging.critical( exp("applyGivenWindowsSettings: Failed to reopen {} window type!!! How did this happen?").format( repr(winType) ) )
+                logging.critical( exp("applyGivenWindowsSettings: Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
             else: # we've opened our child window -- now customize it a bit more
                 minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
                 if minimumSize:
@@ -416,7 +423,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 autocompleteMode = convertToPython( thisStuff['AutocompleteMode'] ) if 'AutocompleteMode' in thisStuff else None
                 #if autocompleteMode == 'None': autocompleteMode = None
                 if autocompleteMode:
-                    if BibleOrgSysGlobals.debugFlag: assert winType.endswith( 'EditWindow' )
+                    if BibleOrgSysGlobals.debugFlag: assert windowType.endswith( 'EditWindow' )
                     rw.autocompleteMode = autocompleteMode
                     rw.prepareAutocomplete()
 # end of applyGivenWindowsSettings
@@ -430,65 +437,68 @@ def getCurrentChildWindowSettings( self ):
 
     "self" refers to a Biblelator Application instance.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+    logging.debug( exp("getCurrentChildWindowSettings()") )
+    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         print( exp("getCurrentChildWindowSettings()") )
 
     if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
     self.windowsSettingsDict['Current'] = {}
     for j, appWin in enumerate( self.childWindows ):
-        if appWin.winType == 'HTMLWindow':
+        if appWin.windowType == 'HTMLWindow':
             continue # We don't save these
 
         winNumber = "window{}".format( j+1 )
         self.windowsSettingsDict['Current'][winNumber] = {}
         thisOne = self.windowsSettingsDict['Current'][winNumber]
-        thisOne['Type'] = appWin.winType #.replace( 'Window', 'Window' )
-        #print( "child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
-        #print( "child x", appWin.winfo_x(), "child rootx", appWin.winfo_rootx() )
-        #print( "child y", appWin.winfo_y(), "child rooty", appWin.winfo_rooty() )
-        #print( "child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
-        #print( "child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
+        thisOne['Type'] = appWin.windowType #.replace( 'Window', 'Window' )
+        if debuggingThisModule:
+            print( "Child", j, appWin.genericWindowType, appWin.windowType )
+            print( "  child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
+            print( "  child winfo x", appWin.winfo_x(), "child winfo rootx", appWin.winfo_rootx() )
+            print( "  child winfo y", appWin.winfo_y(), "child winforooty", appWin.winfo_rooty() )
+            print( "  child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
+            print( "  child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
         thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
         if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
             thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
         thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
         thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
 
-        if appWin.winType == 'SwordBibleResourceWindow':
+        if appWin.windowType == 'SwordBibleResourceWindow':
             thisOne['ModuleAbbreviation'] = appWin.moduleID
-        elif appWin.winType == 'DBPBibleResourceWindow':
+        elif appWin.windowType == 'DBPBibleResourceWindow':
             thisOne['ModuleAbbreviation'] = appWin.moduleID
-        elif appWin.winType == 'InternalBibleResourceWindow':
+        elif appWin.windowType == 'InternalBibleResourceWindow':
             thisOne['BibleFolderPath'] = appWin.moduleID
 
-        elif appWin.winType == 'BibleLexiconResourceWindow':
+        elif appWin.windowType == 'BibleLexiconResourceWindow':
             thisOne['BibleLexiconPath'] = appWin.moduleID
 
-        elif appWin.winType == 'BibleResourceCollectionWindow':
+        elif appWin.windowType == 'BibleResourceCollectionWindow':
             thisOne['CollectionName'] = appWin.moduleID
 
-        elif appWin.winType == 'PlainTextEditWindow':
+        elif appWin.windowType == 'PlainTextEditWindow':
             try: thisOne['TextFilepath'] = appWin.filepath
             except AttributeError: pass # It's possible to have a blank new text edit window open
 
-        elif appWin.winType == 'BiblelatorUSFMBibleEditWindow':
+        elif appWin.windowType == 'BiblelatorUSFMBibleEditWindow':
             thisOne['ProjectFolderPath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
-        elif appWin.winType == 'ParatextUSFMBibleEditWindow':
+        elif appWin.windowType == 'ParatextUSFMBibleEditWindow':
             thisOne['SSFFilepath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
 
         else:
-            logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.winType) ) )
+            logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.windowType) ) )
             if BibleOrgSysGlobals.debugFlag: halt
 
         if 'Bible' in appWin.genericWindowType:
             try: thisOne['GroupCode'] = appWin.groupCode
-            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.winType ) )
+            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.windowType ) )
             try: thisOne['ContextViewMode'] = appWin.contextViewMode
-            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.winType ) )
+            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.windowType ) )
 
-        if appWin.winType.endswith( 'EditWindow' ):
+        if appWin.windowType.endswith( 'EditWindow' ):
             thisOne['AutocompleteMode'] = appWin.autocompleteMode
 # end of getCurrentChildWindowSettings
 
@@ -569,7 +579,9 @@ def writeSettingsFile( self ):
 
     "self" refers to a Biblelator Application instance.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("writeSettingsFile()") )
+    logging.info( exp("writeSettingsFile()") )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("writeSettingsFile()") )
     elif BibleOrgSysGlobals.verbosityLevel > 0:
         print( _("  Saving program settings…") )
 
@@ -592,13 +604,17 @@ def writeSettingsFile( self ):
     mainStuff['settingsVersion'] = SettingsVersion
     mainStuff['progVersion'] = ProgVersion
     mainStuff['themeName'] = self.themeName
-    #print( "root geometry", self.rootWindow.geometry(), "root winfo_geometry", self.rootWindow.winfo_geometry() )
-    #print( "root x", self.rootWindow.winfo_x(), "root rootx", self.rootWindow.winfo_rootx() )
-    #print( "root y", self.rootWindow.winfo_y(), "root rooty", self.rootWindow.winfo_rooty() )
+    if debuggingThisModule:
+        print( " root geometry", self.rootWindow.geometry(), "root winfo_geometry", self.rootWindow.winfo_geometry() )
+        print( " root winfo x", self.rootWindow.winfo_x(), "root winfo rootx", self.rootWindow.winfo_rootx(), "BOTH WRONG!" )
+        print( " root winfo y", self.rootWindow.winfo_y(), "root winfo rooty", self.rootWindow.winfo_rooty(), "BOTH WRONG!" )
     mainStuff['windowSize'], mainStuff['windowPosition'] = self.rootWindow.geometry().split( '+', 1 )
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
     mainStuff['minimumSize'] = self.minimumSize
     mainStuff['maximumSize'] = self.maximumSize
+    if debuggingThisModule:
+        print( " saved size (across/down) to ini file", repr(mainStuff['windowSize']), "pos", repr(mainStuff['windowPosition']) )
+        print( "   min", repr(mainStuff['minimumSize']), "max", repr(mainStuff['maximumSize']) )
 
     # Save the user interface settings
     self.settings.data['Interface'] = {}
@@ -643,11 +659,11 @@ def writeSettingsFile( self ):
     # Save the recent files
     self.settings.data['RecentFiles'] = {}
     recent = self.settings.data['RecentFiles']
-    for j, (filename,folder,winType) in enumerate( self.recentFiles ):
+    for j, (filename,folder,windowType) in enumerate( self.recentFiles ):
         recentName = 'Recent{}'.format( j+1 )
         recent[recentName+'Filename'] = convertToString( filename )
         recent[recentName+'Folder'] = convertToString( folder )
-        recent[recentName+'Type'] = winType
+        recent[recentName+'Type'] = windowType
 
     # Save the referenceGroups A..D
     self.settings.data['BCVGroups'] = {}
@@ -676,8 +692,8 @@ def writeSettingsFile( self ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "save collection data…" )
     for appWin in self.childWindows:
         #print( "  gT", appWin.genericWindowType )
-        #print( "  wT", appWin.winType )
-        if appWin.winType == 'BibleResourceCollectionWindow':
+        #print( "  wT", appWin.windowType )
+        if appWin.windowType == 'BibleResourceCollectionWindow':
             if appWin.resourceBoxes: # so we don't create just an empty heading for an empty collection
                 self.settings.data['BibleResourceCollection'+appWin.moduleID] = {}
                 thisOne = self.settings.data['BibleResourceCollection'+appWin.moduleID]
