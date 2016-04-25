@@ -41,7 +41,7 @@ ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os.path, logging, re
@@ -382,14 +382,14 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Try to ensure that the Toplevel geometry function is easily accessed
             (and not the ChildBox function) in case this is causing us problems???
-            
+
         Also found that we needed to call update first on Windows-10
             in order to set the window geometry correctly.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.geometry("), *args, ')' )
+            print( exp("ChildWindow.geometry("), *args, *kwargs, ')' )
 
-        self.update() # Make sure that the window has finished being created
+        self.update() # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
         return tk.Toplevel.geometry( self, *args, **kwargs )
     # end of ChildWindow.geometry
 

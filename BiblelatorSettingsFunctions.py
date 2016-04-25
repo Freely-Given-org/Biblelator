@@ -115,7 +115,7 @@ def parseAndApplySettings( self ):
     "self" refers to a Biblelator Application instance.
     """
     logging.info( exp("parseAndApplySettings()") )
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("parseAndApplySettings()") )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "parseAndApplySettings…" )
 
@@ -152,21 +152,21 @@ def parseAndApplySettings( self ):
     try:
         windowSize = self.settings.data[APP_NAME]['windowSize'] if 'windowSize' in self.settings.data[APP_NAME] else None
         windowPosition = self.settings.data[APP_NAME]['windowPosition'] if 'windowPosition' in self.settings.data[APP_NAME] else None
-        if debuggingThisModule:
+        if 0 and debuggingThisModule:
             print( "main window settings (across/down from ini file) size", repr(windowSize), "pos", repr(windowPosition) )
-        if windowSize and windowPosition: self.rootWindow.geometry( windowSize + '+' + windowPosition )
+        if windowSize and windowPosition:
+            self.update() # Make sure that the window has finished being created
+            self.rootWindow.geometry( windowSize + '+' + windowPosition )
         else: logging.warning( "Settings.KeyError: no windowSize & windowPosition" )
     except KeyError: pass # no [APP_NAME] entries
 
     try: self.minimumSize = self.settings.data[APP_NAME]['minimumSize']
     except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
-    if 1:
-        self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
+    self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
     try: self.maximumSize = self.settings.data[APP_NAME]['maximumSize']
     except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
-    if 1:
-        self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
-    if debuggingThisModule:
+    self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
+    if 0 and debuggingThisModule:
         print( "  apply min", repr(self.minimumSize), repr(parseWindowSize(self.minimumSize)), "max", repr(self.maximumSize), repr(parseWindowSize(self.maximumSize)) )
 
     try: self.doChangeTheme( self.settings.data[APP_NAME]['themeName'] )
@@ -314,7 +314,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
     "self" refers to a Biblelator Application instance.
     """
     logging.debug( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "applyGivenWindowsSettings…" )
 
@@ -330,7 +330,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
             windowSize = thisStuff['Size'] if 'Size' in thisStuff else None
             windowPosition = thisStuff['Position'] if 'Position' in thisStuff else None
             windowGeometry = windowSize+'+'+windowPosition if windowSize and windowPosition else None
-            print( "applyGivenWindowsSettings", windowType, windowGeometry )
+            #print( "applyGivenWindowsSettings", windowType, windowGeometry )
             if windowType == 'SwordBibleResourceWindow':
                 rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
                 #except: logging.critical( "Unable to read all SwordBibleResourceWindow {} settings".format( j ) )
@@ -408,11 +408,11 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 logging.critical( exp("applyGivenWindowsSettings: Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
             else: # we've opened our child window -- now customize it a bit more
                 minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
-                if 1 and minimumSize:
+                if minimumSize:
                     if BibleOrgSysGlobals.debugFlag: assert 'x' in minimumSize
                     rw.minsize( *parseWindowSize( minimumSize ) )
                 maximumSize = thisStuff['MaximumSize'] if 'MaximumSize' in thisStuff else None
-                if 1 and maximumSize:
+                if maximumSize:
                     if BibleOrgSysGlobals.debugFlag: assert 'x' in maximumSize
                     rw.maxsize( *parseWindowSize( maximumSize ) )
                 groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
@@ -442,7 +442,7 @@ def getCurrentChildWindowSettings( self ):
     "self" refers to a Biblelator Application instance.
     """
     logging.debug( exp("getCurrentChildWindowSettings()") )
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("getCurrentChildWindowSettings()") )
 
     if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
@@ -455,7 +455,7 @@ def getCurrentChildWindowSettings( self ):
         self.windowsSettingsDict['Current'][winNumber] = {}
         thisOne = self.windowsSettingsDict['Current'][winNumber]
         thisOne['Type'] = appWin.windowType #.replace( 'Window', 'Window' )
-        if debuggingThisModule:
+        if 0 and debuggingThisModule:
             print( "Child", j, appWin.genericWindowType, appWin.windowType )
             print( "  child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
             #print( "  child winfo x", appWin.winfo_x(), "child winfo rootx", appWin.winfo_rootx() )
@@ -465,9 +465,8 @@ def getCurrentChildWindowSettings( self ):
         thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
         if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
             thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
-        if 1:
-            thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
-            thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
+        thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
+        thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
 
         if appWin.windowType == 'SwordBibleResourceWindow':
             thisOne['ModuleAbbreviation'] = appWin.moduleID
@@ -609,7 +608,7 @@ def writeSettingsFile( self ):
     mainStuff['settingsVersion'] = SettingsVersion
     mainStuff['progVersion'] = ProgVersion
     mainStuff['themeName'] = self.themeName
-    if debuggingThisModule:
+    if 0 and debuggingThisModule:
         print( " root geometry", self.rootWindow.geometry(), "root winfo_geometry", self.rootWindow.winfo_geometry() )
         print( " root winfo x", self.rootWindow.winfo_x(), "root winfo rootx", self.rootWindow.winfo_rootx() )
         print( " root winfo y", self.rootWindow.winfo_y(), "root winfo rooty", self.rootWindow.winfo_rooty() )
@@ -617,7 +616,7 @@ def writeSettingsFile( self ):
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
     mainStuff['minimumSize'] = self.minimumSize
     mainStuff['maximumSize'] = self.maximumSize
-    if debuggingThisModule:
+    if 0 and debuggingThisModule:
         print( " saved size (across/down) to ini file", repr(mainStuff['windowSize']), "pos", repr(mainStuff['windowPosition']) )
         print( "   min", repr(mainStuff['minimumSize']), "max", repr(mainStuff['maximumSize']) )
 
@@ -803,7 +802,7 @@ def doSendUsageStatistics( self ):
     conn.request( 'POST', '/Software/Biblelator/StatusInputs/SubmitAction.phtml', parameterString, headers )
     response = conn.getresponse()
     if response.status == 200:
-        print( "doSendUsageStatistics accepted by server" )
+        print( "    doSendUsageStatistics accepted by server" )
     else:
         print( "doSendUsageStatistics status", repr(response.status) ) # Should be 200
         print( "doSendUsageStatistics reason", repr(response.reason) ) # Should be 'OK'
