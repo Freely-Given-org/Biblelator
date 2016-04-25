@@ -34,7 +34,7 @@ from gettext import gettext as _
 LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 

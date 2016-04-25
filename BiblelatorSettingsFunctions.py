@@ -42,8 +42,8 @@ from gettext import gettext as _
 LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.34'
-SettingsVersion = '0.34' # Only need to change this if the settings format has changed
+ProgVersion = '0.35'
+SettingsVersion = '0.35' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
