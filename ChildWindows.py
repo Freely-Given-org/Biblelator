@@ -382,10 +382,14 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Try to ensure that the Toplevel geometry function is easily accessed
             (and not the ChildBox function) in case this is causing us problems???
+            
+        Also found that we needed to call update first on Windows-10
+            in order to set the window geometry correctly.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.geometry("), *args, ')' )
 
+        self.update() # Make sure that the window has finished being created
         return tk.Toplevel.geometry( self, *args, **kwargs )
     # end of ChildWindow.geometry
 
