@@ -34,14 +34,14 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-11' # by RJH
+LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os.path, logging, re
@@ -328,7 +328,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     def __init__( self, parentApp, genericWindowType ):
         """
         The genericWindowType is set here,
-            but the more specific winType is set later by the subclass.
+            but the more specific windowType is set later by the subclass.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
@@ -376,6 +376,22 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.__init__ finished.") )
     # end of ChildWindow.__init__
+
+
+    def geometry( self, *args, **kwargs ):
+        """
+        Try to ensure that the Toplevel geometry function is easily accessed
+            (and not the ChildBox function) in case this is causing us problems???
+
+        Also found that we needed to call update first on Windows-10
+            in order to set the window geometry correctly.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.geometry("), *args, *kwargs, ')' )
+
+        self.update() # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
+        return tk.Toplevel.geometry( self, *args, **kwargs )
+    # end of ChildWindow.geometry
 
 
     def notWrittenYet( self ):
@@ -437,7 +453,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\nHelp for {}".format( self.windowType )
         helpInfo += "\n  Keyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
@@ -454,7 +470,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.winType )
+        aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of ChildWindow.doAbout
 
@@ -471,7 +487,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("ChildWindow.doClose() for {} wasn't in list").format( self.winType ) )
+                print( exp("ChildWindow.doClose() for {} wasn't in list").format( self.windowType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed child window" )
@@ -584,7 +600,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.protocol( "WM_DELETE_WINDOW", self.doClose )
         self.title( 'HTMLWindow' )
         self.genericWindowType = 'HTMLWindow'
-        self.winType = 'HTMLWindow'
+        self.windowType = 'HTMLWindow'
         self.moduleID = 'HTML'
 
         self.geometry( INITIAL_HTML_SIZE )
@@ -842,7 +858,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             print( exp("HTMLWindow.load( {} )").format( filepath ) )
 
         self.folderPath, self.filename = os.path.split( filepath )
-        with open( filepath, 'rt' ) as HTMLFile:
+        with open( filepath, 'rt', encoding='utf-8' ) as HTMLFile:
             fileContents = HTMLFile.read()
         match = re.search( '<title>(.+?)</title>', fileContents )
         if match:
@@ -921,7 +937,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.winType )
+        helpInfo += "\nHelp for {}".format( self.windowType )
         helpInfo += "\n  Keyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
@@ -938,7 +954,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.winType )
+        aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of HTMLWindow.doAbout
 
@@ -959,7 +975,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             self.destroy()
         else: # we might not have finished making our window yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("HTMLWindow.doClose() for {} wasn't in list").format( self.winType ) )
+                print( exp("HTMLWindow.doClose() for {} wasn't in list").format( self.windowType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )

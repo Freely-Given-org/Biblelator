@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-30' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.32'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -84,7 +84,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         ChildWindow.__init__( self, parentApp, 'LexiconResource' )
         self.parentApp, self.lexiconPath = parentApp, lexiconPath
         self.moduleID = self.lexiconPath
-        self.winType = 'BibleLexiconResourceWindow'
+        self.windowType = 'BibleLexiconResourceWindow'
 
         # Make our own textBox
         self.textBox.destroy()

@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-17' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -202,7 +202,7 @@ def createEmptyUSFMBooks( folderPath, currentBBB, requestDict ):
 
         # Write the actual file
         filename = '{}-{}.USFM'.format( USFMNumber, USFMAbbreviation )
-        with open( os.path.join( folderPath, filename ), mode='wt' ) as theFile:
+        with open( os.path.join( folderPath, filename ), mode='wt', encoding='utf-8' ) as theFile:
             theFile.write( bookText )
         count += 1
     print( len(skippedBooklist), "books skipped:", skippedBooklist ) # Should warn the user here
@@ -486,12 +486,13 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
         #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
 
     filepath = getChangeLogFilepath( loggingFolder, projectName )
-    try: logText = open( filepath, 'rt' ).read()
+    # TODO: Why don't we just append it to the existing file???
+    try: logText = open( filepath, 'rt', encoding='utf-8' ).read()
     except FileNotFoundError: logText = ''
 
     logText += '{} {} {:,} characters saved by {}\n'.format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                                                                             savedBBB, textLength, userName )
-    with open( filepath, 'wt' ) as logFile:
+    with open( filepath, 'wt', encoding='utf-8' ) as logFile:
         logFile.write( logText )
 # end of BiblelatorHelpers.logChangedFile
 
@@ -500,6 +501,8 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
 def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
     """
     Checks if the bookName entry is just a book name, or an entire reference (e.g., "Gn 15:2")
+
+    BBBfunction is a function to find BBB from a word/string.
 
     Returns the discovered BBB, C, V
     """
@@ -511,11 +514,16 @@ def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
     while '  ' in bookNameEntry: bookNameEntry.replace( '  ', ' ' )
 
     if ':' in bookNameEntry:
-        print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) )
+        print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # name C:V
         match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
         if match:
             print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
             return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
+    else:
+        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
+        if match:
+            print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
+            return BBBfunction( match.group(1) ), match.group(2), 1
 
     #else: # assume it's just a book name
     return BBBfunction( bookNameEntry ), Centry, Ventry

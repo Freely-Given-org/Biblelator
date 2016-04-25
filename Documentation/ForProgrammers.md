@@ -1,7 +1,7 @@
 Biblelator Notes for Programmers
 ================================
 
-Last updated: 2016-03-28 RJH
+Last updated: 2016-04-23 RJH
 
 
 I won't repeat what's in the other documentation files here. You should certainly study these
@@ -10,17 +10,17 @@ others first:
     * GettingStarted.md
     * DevelopmentPrinciples.md
     * ToDo.md
-    
-    
+
+
 1. GitHub
 
     Since Biblelator (and the Bible Organisational System: BibleOrgSys) are open-source (GPL-3)
     programs, GitHub was considered a good place to host them.
-    
+
     Since the OpenScriptures group was already working towards making high-quality Bible source
     texts available, this software seemed compatible with their aims and so it's been placed
     under the OpenScriptures project.
-    
+
     There is currently a master branch, with various alpha releases tagged, and a development
     branch where work-in-process is being uploaded for the keenest testers to try.
 
@@ -31,12 +31,20 @@ others first:
     is a major aim, and I feel that my style is more readable, despite the "costs" of being
     non-standard. You're welcome to disagree, but it's my project. I won't accept patches that
     simple alter the style of the code.
-    
+
     Also, generally if there's a choice of using a short variable name, e.g., wi, we prefer
     going to the extra effort to call it wordIndex. It's a strong aim to try to make the code
     as readable as reasonably possible to a novice or even non-programmer. This also means
     that readable code is preferred over very clever code, unless there's a major efficiency
     advantage.
+
+
+3. Comments
+
+    In line with #2 above, I try hard to comment blocks of code, as well as any lines that
+    might not be immediately intuitive. (Admittedly, sometimes I do do the commenting when
+    I go back over my code and can't figure out exactly what it's doing.) But again, to make
+    it hackable, I try to make the code as understandable as possible.
 
 
 3. Algorithmic efficiency
@@ -48,7 +56,7 @@ others first:
     that patches from others to improve efficiency won't be accepted. But for me, NEW FEATURES
     are currently my priority, followed by removing bugs. Further automated testing will be
     next, and then efficiency improvements is last.
-    
-    
+
+
 Robert Hunt.
 Biblelator developer.

@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-11' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -234,7 +234,7 @@ class BibleBox( ChildBox ):
                             self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
                             lastCharWasSpace = False
                         haveTextFlag = True
-                    #elif marker == 'p#' and self.winType=='DBPBibleResourceWindow':
+                    #elif marker == 'p#' and self.windowType=='DBPBibleResourceWindow':
                     elif marker == 'p#' and self.boxType=='DBPBibleResourceBox':
                         pass # Just ignore these for now
                     elif marker in ('q1','q2','q3','q4',):
@@ -350,9 +350,9 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     """
     The superclass must provide a getContextVerseData function.
     """
-    def __init__( self, parentApp, winType, moduleID ):
-        if BibleOrgSysGlobals.debugFlag: print( exp("BibleResourceWindow.__init__( {}, {}, {} )").format( parentApp, winType, moduleID ) )
-        self.parentApp, self.winType, self.moduleID = parentApp, winType, moduleID
+    def __init__( self, parentApp, windowType, moduleID ):
+        if BibleOrgSysGlobals.debugFlag: print( exp("BibleResourceWindow.__init__( {}, {}, {} )").format( parentApp, windowType, moduleID ) )
+        self.parentApp, self.windowType, self.moduleID = parentApp, windowType, moduleID
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self._viewRadioVar, self._groupRadioVar = tk.IntVar(), tk.StringVar()
@@ -482,7 +482,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
 
-        if 'DBP' in self.winType: # disable excessive online use
+        if 'DBP' in self.windowType: # disable excessive online use
             self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
             self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
 
@@ -860,7 +860,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         startingFlag = True
 
         # Safety-check in case they edited the settings file
-        if 'DBP' in self.winType and self.contextViewMode in ('ByBook','ByChapter',):
+        if 'DBP' in self.windowType and self.contextViewMode in ('ByBook','ByChapter',):
             print( exp("updateShownBCV: Safety-check converted {!r} contextViewMode for DBP").format( self.contextViewMode ) )
             self._viewRadioVar.set( 3 ) # ByVerse
             self.changeBibleContextView()
@@ -944,7 +944,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleResourceWindow.doShowInfo( {} )").format( event ) )
 
-        infoString = '{}:\n'.format( self.winType ) \
+        infoString = '{}:\n'.format( self.windowType ) \
                  + '  Name:\t{}\n'.format( self.moduleID )
         showinfo( self, 'Window Information', infoString )
     # end of BibleResourceWindow.doShowInfo
@@ -961,7 +961,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag: print( "SwordBibleResourceWindow.__init__( {}, {} )".format( parentApp, moduleAbbreviation ) )
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
         BibleResourceWindow.__init__( self, self.parentApp, 'SwordBibleResourceWindow', self.moduleAbbreviation )
-        #self.winType = 'SwordBibleResourceWindow'
+        #self.windowType = 'SwordBibleResourceWindow'
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
         self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
@@ -1028,7 +1028,7 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
 
         self.DBPModule = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, 'DBPBibleResourceWindow', self.moduleAbbreviation )
-        #self.winType = 'DBPBibleResourceWindow'
+        #self.windowType = 'DBPBibleResourceWindow'
 
         # Disable excessive online use
         self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
@@ -1085,7 +1085,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
 
         self.internalBible = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, 'InternalBibleResourceWindow', self.modulePath )
-        #self.winType = 'InternalBibleResourceWindow'
+        #self.windowType = 'InternalBibleResourceWindow'
 
         try: self.UnknownBible = UnknownBible( self.modulePath )
         except FileNotFoundError:
@@ -1129,7 +1129,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
             except KeyError:
                 if verseKey.getChapterNumber() != '0':
                     logging.critical( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
-                                                                .format( self.winType, verseKey ) )
+                                                                .format( self.windowType, verseKey ) )
     # end of InternalBibleResourceWindow.getContextVerseData
 # end of InternalBibleResourceWindow class
 

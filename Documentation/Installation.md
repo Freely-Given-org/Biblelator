@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2016-04-18 RJH
+Last updated: 2016-04-25 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -47,6 +47,10 @@ follow my own instructions on a different computer.
     If you use Git in steps #4 and #5 below, then to upgrade later to future versions
         of BibleOrgSys and Biblelator, you just have to do a "git pull" command
         on each of those folders.
+
+    If Git is not on your path when you open a command prompt window in Windows,
+        a command like "set PATH=%PATH%;C:\Program Files (x86)\git\bin" might help
+        (or without the " (x86)" if it's not a 64-bit system).
 
 
 3. Create a folder for Biblelator -- we recommend the name BiblelatorFiles.
@@ -131,7 +135,18 @@ follow my own instructions on a different computer.
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
 
 
-10. Try starting the Biblelator program in debug mode.
+10. Run Biblelator in the normal mode for normal working.
+    If everything seems to be working correctly,
+        next time you run Biblelator you might not need to run it in debug mode,
+    i.e., simply omit the "--version" and "--debug" parameters in order to run in normal mode.
+    If the program does not run, please copy the contents of the command prompt window,
+        and paste them into the comment box at http://Freely-Given.org/Contact.html.
+    It may also be helpful to include the contents of the Biblelator.ini file
+        which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/ folder.
+
+
+11. IF #10 ABOVE CRASHED IMMEDIATELY, or if you need more info on what's going wrong,
+        try starting the Biblelator program in debug mode.
     Using a command similar to what worked in the previous step,
         replace "--version" with "--debug" to actually run the program
             but with extra debugging information displayed in the command prompt window
@@ -151,28 +166,29 @@ follow my own instructions on a different computer.
         and a BiblelatorLogs folder should contain a log file.
 
 
-11. Run Biblelator in the normal mode for normal working.
-    If everything seems to be working correctly,
-        next time you run Biblelator you might not need to run it in debug mode,
-    i.e., simply omit the "--version" and "--debug" parameters in order to run in normal mode.
-    If the program does not run, please copy the contents of the command prompt window,
-        and paste them into the comment box at http://Freely-Given.org/Contact.html.
-    It may also be helpful to include the contents of the Biblelator.ini file
-        which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/ folder.
+12. In order to keep people safe who might be working on Bibles in sensitive locations, the
+        default settings have all Internet access disabled.
+    We recommend that most people enable Internet access. Unfortunately, this can't yet be
+        done inside the program, so you need to find the settings file and edit it. The
+        BiblelatorData folder should have been created in your home folder. Inside that is
+        the BiblelatorSettings folder. Inside that, there's a default Biblelator.ini file
+        (or you might have created a different ini file using the --override (or -o) argument).
+        Open this file with a text editor, e.g., gedit or Notepad and change the setting
+        "internetAccess" to Enabled (and then save the file of course).
 
 
-12. Eventually (once the program is working fully and reliably) you might like to
+13. Eventually (once the program is working fully and reliably) you might like to
     make a desktop or toolbar shortcut to run Biblelator on your system so it can be started easier
     (without having to open a command prompt window and manually navigate to files and folders).
     Meanwhile though, it's probably useful to have the command prompt window open.
 
 
-13. If you wish to access online Scripture resources from the Digital Bible Platform
+14. If you wish to access online Scripture resources from the Digital Bible Platform
     (Faith Comes By Hearing FCBH), request further information from the Biblelator programmer(s)
     via http://Freely-Given.org/Contact.html.
 
 
-14. If you wish to access offline Scripture resources from the Crosswire Sword project,
+15. If you wish to access offline Scripture resources from the Crosswire Sword project,
     you should download and install/unzip the resources from the Crosswire or other repositories.
     You might already have these installed if you use a Sword-based Bible program such as
         Xiphos, Bibletime, BPBible, etc.
@@ -182,14 +198,14 @@ follow my own instructions on a different computer.
     Then hopefully we can get you started with basic access to these modules.
 
 
-15. PhotoBible
+16. PhotoBible
     If you wish to use the PhotoBible export option for your USFM projects, you need to install
 	the free ImageMagick package. For Linux, this can usually be installed from your package
 	manager, and for Windows (untested), the exe installation files can be downloaded from
 	http://www.imagemagick.org/download/binaries.
 
 
-16. Program updates
+17. Program updates
     If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each
         of them with "git pull" on each folder (or the equivalent command from the GUI if you
         use TortoiseGit or equivalent).
@@ -210,27 +226,42 @@ Windows-7 laptop:
 * Python 3.4.3 was already installed for all users
 * Opened command prompt and typed "python". This worked. Closed Python 3.4.3.
 * Didn't want to install Git
-* Downloaded zip from https://github.com/openscriptures/BibleOrgSys (15MB) and https://github.com/openscriptures/Biblelator/tree/development
+* Downloaded zip from https://github.com/openscriptures/BibleOrgSys (15MB)
+    and https://github.com/openscriptures/Biblelator/tree/development
 * Moved two zip files from Downloads folder to C:\Users\Public\Documents
 * Right-clicked the files and choose Extract all…
 * Had to rename BibleOrgSys-master folder to BibleOrgSys and Biblelator-development to Biblelator
-* Discovered that these folders both had an extra folder inside them, so went into that folder, did Control+A to select all files, Control+X to cut, went back up a level then Control+V to paste and then deleted the now-empty extra folder
-* Now the file Biblelator.py, etc. is in C:\Users\Public\Documents\Biblelator\ and BCVBible.py, etc. is in C:\Users\Public\Documents\BibleOrgSys\
+* Discovered that these folders both had an extra folder inside them, so went into that folder,
+    did Control+A to select all files, Control+X to cut, went back up a level then Control+V to
+    paste and then deleted the now-empty extra folder
+* Now the file Biblelator.py, etc. is in C:\Users\Public\Documents\Biblelator\
+    and BCVBible.py, etc. is in C:\Users\Public\Documents\BibleOrgSys\
+* (Yes I forgot to create a BiblelatorFiles folder like in the instructions above.)
 * Entered "cd C:\Users\Public\Documents\Biblelator" in command prompt window
-* Entered "Biblelator.py --version" in command prompt window. This gave a lot of WARNINGs and CRITICAL errors, but did display v0.32 at the bottom. (Since I downloaded the development branch from GitHub, this will likely be a still unfinished v0.32.)
-* Entered "Biblelator.py --debug" in command prompt window. Same lot of errors and a multicoloured Biblelator window opened. I clicked the quit button.
-* Entered "Biblelator.py" in command prompt window. Same lot of errors and a less coloured Biblelator window which I made less deep but moving up the bottom border.
-* Tried to open some resource windows, but online Digitial Bible Platform was greyed out (needs a key code -- email the program developer to get one)
+* Entered "Biblelator.py --version" in command prompt window.
+    This gave a lot of WARNINGs and CRITICAL errors, but did display v0.32 at the bottom.
+    (Since I downloaded the development branch from GitHub, this will likely be a still-unfinished v0.32.)
+* Entered "Biblelator.py --debug" in command prompt window.
+    Same lot of errors and a multicoloured Biblelator window opened. I clicked the quit button.
+* Entered "Biblelator.py" in command prompt window.
+    Same lot of errors and a less coloured Biblelator window which I made less deep by moving up the bottom border.
+* Tried to open some resource windows, but online Digitial Bible Platform was greyed out
+    (needs a key code -- email the program developer to get one)
 * Tried to open a Sword module but it failed. (Not too surprised since I have none installed.)
-* I looked here https://www.crosswire.org/applications/?section=Windows and decided to install Xiphos from http://xiphos.org/download/.
-* Installed Xiphos (required the administrator password, plus again to allow Windows firewall access to the Internet)
+* I looked here https://www.crosswire.org/applications/?section=Windows and decided to install
+    Xiphos from http://xiphos.org/download/.
+* Installed Xiphos (required the administrator password,
+    plus again to allow Windows firewall access to the Internet)
 * Xiphos installed no modules, but after closing two introductory windows, showed the Module Manager.
 * Modules Sources / Choose indicated that resources would be installed into C:\Users\<user>\AppData\Roaming/Sword.
-* I went into Modules / Install/Update, clicked Refresh, and installed some English Bibles, then restarted Xiphos to ensure that they were really there.
-* Now restarting Biblelator, I could open these Sword modules (although the display formatting was very messy -- but this is v0.32).
+* I went into Modules / Install/Update, clicked Refresh, and installed some English Bibles,
+    then restarted Xiphos to ensure that they were really there.
+* Now restarting Biblelator, I could open these Sword modules (although the display formatting
+    was very messy -- but this is still only v0.32).
 * Closed Biblelator and restarted it, and it remembered which windows I had opened where.
 * Created a new project, and then created all (blank) books using RSV52 versification.
-* I could open a lexicon window, but it showed nothing but a heading when I typed H1234 into the lexicon key box (to the right of the verse spinbox in the main window)
+* I could open a lexicon window, but it showed nothing but a heading when I typed H1234
+    into the lexicon key box (to the right of the verse spinbox in the main window)
 * File / Info on the new project window showed me that the project was saved in C:\Users\<user>\BiblelatorData\.
 
 

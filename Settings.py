@@ -44,10 +44,10 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-23' # by RJH
+LastModifiedDate = '2016-04-23' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = '0.31'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -145,10 +145,11 @@ class Settings:
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ApplicationSettings.save() in {!r}").format( self.settingsFilepath ) )
+            assert self.data
+            assert self.settingsFilepath
 
-        assert self.data
-        assert self.settingsFilepath
-        with open( self.settingsFilepath, 'wt') as settingsFile: # It may or may not have previously existed
+        BibleOrgSysGlobals.backupAnyExistingFile( self.settingsFilepath, numBackups=4 )
+        with open( self.settingsFilepath, 'wt', encoding='utf-8' ) as settingsFile: # It may or may not have previously existed
             self.data.write( settingsFile )
     # end of Settings.save
 # end of class Settings

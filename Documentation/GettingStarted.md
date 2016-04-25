@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2016-04-15 RJH
+Last updated: 2016-04-25 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -46,13 +46,22 @@ For an overview of the program design philosophy, see Development.md.
         Biblelator.py -o English
         Biblelator.py -o French
 
+    It's recommended that you edit the .ini settings file to enable Internet access unless
+        you have (security) reasons not to. You'll also see other settings that can be
+        adjusted. (Eventually you'll be able to set these from inside the program, but
+        the settings editor hasn't been written yet.)
+
 
 2. Logging
 
     A folder called BiblelatorLogs is also created inside the BiblelatorData folder. The
-    last two logs (e.g., Biblelator_log.txt and Biblelator_log.txt.bak) are kept in this
-    folder. These logs may be useful to the programmers after a program crash to help
-    determine what caused the fault.
+    last two or more logs (e.g., Biblelator_log.txt and Biblelator_log.txt.bak) are kept
+    in this folder. These logs may be useful to the programmers after a program crash to
+    help determine what caused the fault.
+
+    If Internet access is enabled in the settings file, and the sendUsageStatistics flag
+    is enabled, then the logs will be automatically uploaded to the Freely-Given.org
+    server.
 
 
 3. Main window
@@ -118,12 +127,20 @@ For an overview of the program design philosophy, see Development.md.
 
     Projects are Bibles in the process of being translated, so they have a full edit window.
 
+    Note that the default settings for AutocompleteMode in the .ini settings file is None.
+    Other options are Bible and BibleBook. Using Bible AutocompleteMode slows down the
+    starting of Biblelator as existing Bible books are scanned to find all words used, but
+    having the pop-up autocomplete box make suggestions can significantly speed up typing
+    of commonly used terms, plus it can also highlight mispellings if you scan through the
+    suggestions. (Use ESC or just keep typing to dismiss the pop-up window.)
+
 
 9a. Biblelator Project Windows
 
-    If Biblelator is you only Bible editor, you can use our native Bible projects. At this
+    If Biblelator is your only Bible editor, you can use our native Bible projects. At this
     stage, you simply give a Bible name and abbreviation, e.g., "My special Bible", "MSB".
-    The project files are saved as UTF-8 files in your BiblelatorSettings folder.
+    The project files are saved as UTF-8 files in your BiblelatorSettings folder. (These
+    projects are not fully developed yet.)
 
 
 9b. Paratext Project Windows
@@ -132,6 +149,8 @@ For an overview of the program design philosophy, see Development.md.
     (but of course you're likely to lose work if you edit using both programs on the same
     files at the same time so we suggest only having one of these programs open at a time).
     You point Biblelator at the .SSF file to open an existing Paratext project in Biblelator.
+    (This feature is used extensively by the developer, so it's well tested, at least on
+    Linux.)
 
 
 10. Bible Groups

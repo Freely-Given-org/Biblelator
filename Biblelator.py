@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-18' # by RJH
+LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -65,7 +65,8 @@ from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
-        saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
+        saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings, \
+        doSendUsageStatistics
 from ChildWindows import ChildWindows
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from BibleResourceCollection import BibleResourceCollectionWindow
@@ -74,6 +75,8 @@ from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
 from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
+from BOSManager import openBOSManager
+from SwordManager import openSwordManager
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -179,7 +182,10 @@ class Application( Frame ):
         #print( exp("Preload the Sword library…") )
         #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
+        self.currentProjectName = 'TranslationTest'
+
         self.currentUserName = findUsername().title()
+        self.currentUserEmail = 'Unknown'
         self.currentUserRole = 'Translator'
         self.currentUserAssignments = 'ALL'
 
@@ -240,8 +246,8 @@ class Application( Frame ):
         self.updateBCVGroup( self.currentVerseKeyGroup ) # Does an acceptNewBnCV
 
         # See if there's any developer messages
-        if self.internetAccessEnabled and self.checkForMessagesEnabled:
-            self.doCheckForDeveloperMessages()
+        if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
+            self.doCheckForMessagesFromDeveloper()
 
         self.rootWindow.title( ProgNameVersion + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
@@ -308,7 +314,7 @@ class Application( Frame ):
         fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
         fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
         fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
-        for j, (filename, folder, winType) in enumerate( self.recentFiles ):
+        for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
@@ -362,6 +368,9 @@ class Application( Frame ):
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
         #projectMenu.add_separator()
         #projectMenu.add_command( label=_('Export'), underline=1, command=self.doProjectExports )
+        projectMenu.add_separator()
+        projectMenu.add_command( label=_('Hide all projects'), underline=0, command=self.doHideAllProjects )
+        projectMenu.add_command( label=_('Show all projects'), underline=0, command=self.doShowAllProjects )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
@@ -390,12 +399,13 @@ class Application( Frame ):
         toolsMenu.add_separator()
         toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
         toolsMenu.add_separator()
-        toolsMenu.add_command( label=_('BOS manager…'), underline=0, command=self.notWrittenYet )
-        toolsMenu.add_command( label=_('Sword manager…'), underline=1, command=self.notWrittenYet )
+        toolsMenu.add_command( label=_('BOS manager…'), underline=0, command=self.doOpenBOSManager )
+        toolsMenu.add_command( label=_('Sword manager…'), underline=1, command=self.doOpenSwordManager )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Hide resources'), underline=0, command=self.doHideAllResources )
+        windowMenu.add_command( label=_('Hide projects'), underline=5, command=self.doHideAllProjects )
         windowMenu.add_command( label=_('Hide all'), underline=1, command=self.doHideAll )
         windowMenu.add_command( label=_('Show all'), underline=0, command=self.doShowAll )
         windowMenu.add_command( label=_('Bring all here'), underline=0, command=self.doBringAll )
@@ -456,7 +466,7 @@ class Application( Frame ):
         fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
         fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
         fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
-        for j, (filename, folder, winType) in enumerate( self.recentFiles ):
+        for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
@@ -510,6 +520,9 @@ class Application( Frame ):
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
         #projectMenu.add_separator()
         #projectMenu.add_command( label=_('Export'), underline=1, command=self.doProjectExports )
+        projectMenu.add_separator()
+        projectMenu.add_command( label=_('Hide all projects'), underline=0, command=self.doHideAllProjects )
+        projectMenu.add_command( label=_('Show all projects'), underline=0, command=self.doShowAllProjects )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
@@ -537,11 +550,15 @@ class Application( Frame ):
         toolsMenu.add_command( label=_('Checks…'), underline=0, command=self.notWrittenYet )
         toolsMenu.add_separator()
         toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+        toolsMenu.add_separator()
+        toolsMenu.add_command( label=_('BOS manager…'), underline=0, command=self.doOpenBOSManager )
+        toolsMenu.add_command( label=_('Sword manager…'), underline=1, command=self.doOpenSwordManager )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
-        windowMenu.add_command( label=_('Hide resources'), underline=0, command=self.doHideAllResources )
-        windowMenu.add_command( label=_('Hide all'), underline=1, command=self.doHideAll )
+        windowMenu.add_command( label=_('Hide resources'), underline=5, command=self.doHideAllResources )
+        windowMenu.add_command( label=_('Hide projects'), underline=5, command=self.doHideAllProjects )
+        windowMenu.add_command( label=_('Hide all'), underline=0, command=self.doHideAll )
         windowMenu.add_command( label=_('Show all'), underline=0, command=self.doShowAll )
         windowMenu.add_command( label=_('Bring all here'), underline=0, command=self.doBringAll )
         windowMenu.add_separator()
@@ -827,11 +844,14 @@ class Application( Frame ):
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
 
         Style().configure( 'ShowAll.TButton', background='lightgreen' )
-        Style().configure( 'HideResources.TButton', background='pink' )
+        Style().configure( 'HideResources.TButton', background='lightblue' )
+        Style().configure( 'HideProjects.TButton', background='pink' )
         Style().configure( 'HideAll.TButton', background='orange' )
         Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
+                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        Button( toolbar, text='Hide Projects', style='HideProjects.TButton', command=self.doHideAllProjects ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
@@ -1037,8 +1057,8 @@ class Application( Frame ):
             #except AttributeError: extra = ''
             self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} BCV={}" \
                                     .format( j+1,
-                                        appWin.winType,
-                                        #appWin.winType.replace('ChildWindow',''),
+                                        appWin.windowType,
+                                        #appWin.windowType.replace('ChildWindow',''),
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
@@ -1069,48 +1089,60 @@ class Application( Frame ):
     # end of Application.doChangeTheme
 
 
-    def doCheckForDeveloperMessages( self, event=None ):
+    def doCheckForMessagesFromDeveloper( self, event=None ):
         """
         Check if there's any new messages on the website from the developer.
         """
+        logging.info( exp("Application.doCheckForMessagesFromDeveloper()") )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("Application.doCheckForDeveloperMessages()") )
+            print( exp("Application.doCheckForMessagesFromDeveloper()") )
 
-        import requests
-        # NOTE: needs to be https!!!
-        try: ri = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/DevMsg.idx" )
-        except requests.exceptions.InvalidSchema as err:
-            logging.critical( exp("doCheckForDeveloperMessages: Unable to check for developer messages") )
-            logging.info( exp("doCheckForDeveloperMessages: {}").format( err ) )
-            showerror( self, 'Check for Developer Messages Error', err )
-            return
+        import urllib.request
+        # NOTE: needs to be https eventually!!!
+        indexString = None
+        url = 'http://Freely-Given.org/Software/BibleQlator/DevMsg/DevMsg.idx'
+        try:
+            with urllib.request.urlopen( url ) as response:
+                indexData = response.read() # a `bytes` object
+            #print( "indexData", repr(indexData) )
+        except urllib.error.HTTPError:
+            logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url ) )
+        else: indexString = indexData.decode('utf-8')
+        #print( "indexString", repr(indexString) )
 
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( 'doCheckForDeveloperMessages Status', repr(ri.status_code) )
-            #print( 'Headers',  repr(ri.headers) )
-            #print( 'Content', repr(ri.content) )
-            #print( 'Encoding',  repr(ri.encoding) )
-            #print( 'Text',  repr(ri.text) )
+        #except requests.exceptions.InvalidSchema as err:
+            #logging.critical( exp("doCheckForMessagesFromDeveloper: Unable to check for developer messages") )
+            #logging.info( exp("doCheckForMessagesFromDeveloper: {}").format( err ) )
+            #showerror( self, 'Check for Developer Messages Error', err )
+            #return
 
-        if ri.status_code == 200: # successful
-            fetchedText = ri.text
-            while fetchedText.endswith( '\n' ): result = result[:-1] # Removing trailing line feeds
-            n,ext = fetchedText.split( '.', 1 )
+        if indexString:
+            while indexString.endswith( '\n' ): indexString = indexString[:-1] # Removing trailing line feeds
+            n,ext = indexString.split( '.', 1 )
             ni = int( n )
-            #print( ni, ext )
+            #print( 'ni', repr(ni), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
             if ni > self.lastMessageNumberRead:
-                rq = requests.get( "http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}".format( self.lastMessageNumberRead+1, ext ) )
-                if rq.status_code == 200: # successful
-                    #print( r.text )
+                msgString = None
+                url2 = 'http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}'.format( self.lastMessageNumberRead+1, ext )
+                #print( 'url2', repr(url2) )
+                try:
+                    with urllib.request.urlopen( url2 ) as response:
+                        msgData = response.read() # a `bytes` object
+                        #print( "msgData", repr(msgData) )
+                except urllib.error.HTTPError:
+                    logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url2 ) )
+                else: msgString = msgData.decode('utf-8')
+                #print( "msgString", repr(msgString) )
 
+                if msgString:
                     from About import AboutBox
-                    aboutInfo = ProgNameVersion + " Developer Message #{}".format( self.lastMessageNumberRead )
-                    aboutInfo += '\n  from Freely-Given.org'
-                    aboutInfo += '\n\n' + rq.text
+                    aboutInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
+                    aboutInfo += '\n  via Freely-Given.org'
+                    aboutInfo += '\n\n' + msgString
                     ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
 
                     self.lastMessageNumberRead += 1
-    # end of Application.doCheckForDeveloperMessages
+    # end of Application.doCheckForMessagesFromDeveloper
 
 
     #def doSaveNewWindowSetup( self ):
@@ -1144,8 +1176,8 @@ class Application( Frame ):
             self.setDebugText( "doOpenRecent…" )
             assert recentIndex < len(self.recentFiles)
 
-        filename, folder, winType = self.recentFiles[recentIndex]
-        print( "Need to open", filename, folder, winType )
+        filename, folder, windowType = self.recentFiles[recentIndex]
+        print( "Need to open", filename, folder, windowType )
         print( "NOT WRITTEN YET" )
     # end of Application.doOpenRecent
 
@@ -1582,7 +1614,7 @@ class Application( Frame ):
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( "doViewLog…" )
-        filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        filename = APP_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
@@ -1644,7 +1676,7 @@ class Application( Frame ):
             uB = USFMBible( newFolderPath ) # Get a blank object
             uB.name, uB.abbreviation = projName, projAbbrev
             uEW = USFMEditWindow( self, uB )
-            uEW.winType = 'BiblelatorUSFMBibleEditWindow' # override the default
+            uEW.windowType = 'BiblelatorUSFMBibleEditWindow' # override the default
             uEW.moduleID = newFolderPath
             uEW.setFolderPath( newFolderPath )
             uEW.settings = ProjectSettings( newFolderPath )
@@ -1697,7 +1729,7 @@ class Application( Frame ):
         uB = USFMBible( projectFolderPath )
         uEW = USFMEditWindow( self, uB, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
-        uEW.winType = 'BiblelatorUSFMBibleEditWindow' # override the default
+        uEW.windowType = 'BiblelatorUSFMBibleEditWindow' # override the default
         uEW.moduleID = projectFolderPath
         uEW.setFolderPath( projectFolderPath )
         uEW.settings = ProjectSettings( projectFolderPath )
@@ -1824,16 +1856,16 @@ class Application( Frame ):
                 if ix!= -1:
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     #print( 'ssD2', repr(ssfDirectory) )
-                    if not os.path.exists( ssfDirectory ):
-                        showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
-                        self.setReadyStatus()
-                        return
+        if not os.path.exists( ssfDirectory ):
+            showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
+            self.setReadyStatus()
+            return
         ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
         ptxBible.preload()
 
         uEW = USFMEditWindow( self, ptxBible, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
-        uEW.winType = 'ParatextUSFMBibleEditWindow' # override the default
+        uEW.windowType = 'ParatextUSFMBibleEditWindow' # override the default
         uEW.moduleID = SSFFilepath
         uEW.setFilepath( SSFFilepath )
         uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
@@ -2292,7 +2324,7 @@ class Application( Frame ):
         """
         #if BibleOrgSysGlobals.debugFlag: print( exp("haveSwordResourcesOpen()") )
         for appWin in self.childWindows:
-            if 'Sword' in appWin.winType:
+            if 'Sword' in appWin.windowType:
                 if self.SwordInterface is None:
                     self.SwordInterface = SwordInterface() # Load the Sword library
                 return True
@@ -2330,6 +2362,8 @@ class Application( Frame ):
             print( exp("gotoBCV( {} {}:{} {} ) = {} from {}").format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
 
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
+        self.setWaitStatus( _("Moving to new Bible reference ({} {}:{})…").format( BBB, C, V ) )
+        self.update_idletasks() # Try to make the main window respond even before child windows can react
         if BibleOrgSysGlobals.debugFlag:
             if self.bookNumberTable[BBB] > 0: # Preface and stuff might fail this
                 assert self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True )
@@ -2337,6 +2371,7 @@ class Application( Frame ):
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
             #print( "swK", self.SwordKey.getText() )
         self.childWindows.updateThisBibleGroup( self.currentVerseKeyGroup, self.currentVerseKey, originator=originator )
+        self.setReadyStatus()
     # end of Application.gotoBCV
 
 
@@ -2452,21 +2487,39 @@ class Application( Frame ):
     def doHideAllResources( self ):
         """
         Minimize all of our resource windows,
-            i.e., leave the editor and main window
+            i.e., leave the editors and main window
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllResources' )
         self.childWindows.iconifyAll( 'Resource' )
     # end of Application.doHideAllResources
 
+    def doHideAllProjects( self ):
+        """
+        Minimize all of our resource windows,
+            i.e., leave the resources and main window
+        """
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllProjects' )
+        self.childWindows.iconifyAll( 'Editor' )
+    # end of Application.doHideAllProjects
+
 
     def doShowAllResources( self ):
         """
-        Minimize all of our resource windows,
-            i.e., leave the editor and main window
+        Show/Restore all of our resource windows,
+            i.e., leave the editors and main window
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllResources' )
         self.childWindows.deiconifyAll( 'Resource' )
     # end of Application.doShowAllResources
+
+    def doShowAllProjects( self ):
+        """
+        Show/Restore all of our project editor windows,
+            i.e., leave the resources and main window
+        """
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllProjects' )
+        self.childWindows.deiconifyAll( 'Editor' )
+    # end of Application.doShowAllProjects
 
 
     def doHideAll( self, includeMe=True ):
@@ -2481,7 +2534,7 @@ class Application( Frame ):
 
     def doShowAll( self ):
         """
-        Show/restore all of our windows.
+        Show/Restore all of our windows.
         """
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAll' )
         self.childWindows.deiconifyAll()
@@ -2715,12 +2768,34 @@ class Application( Frame ):
     # end of Application.grepMatchesList
 
 
+    def doOpenBOSManager( self, event=None ):
+        """
+        Display the BOS manager window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doOpenBOSManager( {} )").format( event ) )
+
+        openBOSManager( self )
+    # end of Application.doOpenBOSManager
+
+    def doOpenSwordManager( self, event=None ):
+        """
+        Display the Sword module manager window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doOpenSwordManager( {} )").format( event ) )
+
+        openSwordManager( self )
+    # end of Application.doOpenSwordManager
+
+
     def doHelp( self, event=None ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doHelp()") )
         from Help import HelpBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doHelp( {} )").format( event ) )
 
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -2745,13 +2820,13 @@ class Application( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doSubmitBug()") )
+        from About import AboutBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doSubmitBug( {} )").format( event ) )
 
         if not self.internetAccessEnabled: # we need to warn
             showerror( self, APP_NAME, 'You need to allow Internet access first!' )
             return
-
-        from About import AboutBox
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
@@ -2763,8 +2838,9 @@ class Application( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("Application.doAbout()") )
         from About import AboutBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.doAbout( {} )").format( event ) )
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
@@ -2834,6 +2910,8 @@ class Application( Frame ):
         writeSettingsFile( self )
         if self.doCloseMyChildWindows():
             self.rootWindow.destroy()
+        if self.internetAccessEnabled and self.sendUsageStatisticsEnabled:
+            doSendUsageStatistics( self )
     # end of Application.doCloseMe
 # end of class Application
 
@@ -2880,41 +2958,67 @@ def main( homeFolderPath, loggingFolderPath ):
 
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
 
-    numInstancesFound = 0
+    numMyInstancesFound = numParatextInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
         #print( 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
-        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
-        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
+        #print( 'linux processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
-                numInstancesFound += 1
+                numMyInstancesFound += 1
+            if 'paratext' in line:
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
+                numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
-        myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+        myProcess = subprocess.Popen( ['tasklist.exe','/V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
         #print( 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
-        programOutputString = programOutputBytes.decode( encoding='utf-8', errors="replace" ) if programOutputBytes else None
-        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors="replace" ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
+        programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
+        #print( 'win processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
+            #print( "tasklist line", repr(line) )
             if ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
-                numInstancesFound += 1
+                numMyInstancesFound += 1
+            if 'Paratext.exe' in line:
+                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
-    else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
-    if numInstancesFound > 1:
-        import easygui
-        logging.critical( "Found {} instances of {} running.".format( numInstancesFound, ProgName ) )
-        result = easygui.ynbox('Seems {} might be already running: Continue?'.format( ProgName), ProgNameVersion, ('Yes', 'No'))
+    else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )
+    # Why don't the following work in Windows ???
+    if numMyInstancesFound > 1:
+        logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, ProgName ) )
+        try:
+            import easygui
+        except ImportError:
+            result = False
+        else: result = easygui.ynbox( _("Seems {} might be already running: Continue?").format( ProgName ),
+                                                                ProgNameVersion, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
+    if numParatextInstancesFound > 1:
+        logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, 'Paratext' ) )
+        try:
+            import easygui
+        except ImportError:
+            result = False
+        else: result = easygui.ynbox( _("Seems {} might be running: Continue?").format( 'Paratext' ),
+                                                                ProgNameVersion, ('Yes', 'No'))
+        if not result:
+            logging.info( "Exiting as user requested." )
+            sys.exit()
+    #if sys.platform in ( 'win32', 'win64', ):
+        #print( "Found", numMyInstancesFound, numParatextInstancesFound )
+        #halt
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
@@ -2959,12 +3063,20 @@ if __name__ == '__main__':
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
+    if 'win' in sys.platform: # Disable multiprocessing until we get less bugs in Biblelator
+        print( "Limiting to single-threading on Windows (until we solve some bugs)" )
+        BibleOrgSysGlobals.maxProcesses = 1
+    #print( 'MP', BibleOrgSysGlobals.maxProcesses )
 
-    if BibleOrgSysGlobals.debugFlag:
+    if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???
         print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
         print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
         if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
         print( exp("Running main…") )
+        import locale
+        print( "default locale", locale.getdefaultlocale() )
+        #print( "codeset", locale.CODESET )
+        print( "preferredEncoding", locale.getpreferredencoding() )
 
     main( homeFolderPath, loggingFolderPath )
 

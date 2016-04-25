@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-12' # by RJH
+LastModifiedDate = '2016-04-24' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.33'
+ProgVersion = '0.34'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -93,7 +93,7 @@ class TextEditWindow( ChildWindow ):
         self.editMode = DEFAULT
         ChildWindow.__init__( self, self.parentApp, 'TextEditor' ) # calls refreshTitle
         self.moduleID = None
-        self.winType = 'PlainTextEditWindow'
+        self.windowType = 'PlainTextEditWindow'
         self.protocol( "WM_DELETE_WINDOW", self.doClose ) # Catch when window is closed
 
         self.loading = True
@@ -584,9 +584,9 @@ class TextEditWindow( ChildWindow ):
         and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
           or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
             if self.modified():
-                showerror( self, APP_NAME, _('File {} has also changed on disk').format( repr(self.filename) ) )
+                showerror( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
             else: # We haven't modified the file since loading it
-                ynd = YesNoDialog( self, _('File {} has changed on disk. Reload?').format( repr(self.filename) ), title=_('Reload?') )
+                ynd = YesNoDialog( self, _("File {} has changed on disk. Reload?").format( repr(self.filename) ), title=_('Reload?') )
                 #print( "yndResult", repr(ynd.result) )
                 if ynd.result == True: # Yes was chosen
                     self.loadText() # reload
@@ -621,7 +621,7 @@ class TextEditWindow( ChildWindow ):
             + '\nSettings:\n' \
             + '  Autocorrect entries:\t{:,}\n  Autocomplete:\t{}\n  Autosave time:\t{} secs\n  Save changes automatically:\t{}'.format( len(self.autocorrectEntries), self.autocompleteMode, round(self.autosaveTime/1000), self.saveChangesAutomatically )
 
-        showinfo( self, 'Window Information', infoString )
+        showinfo( self, _("Window Information"), infoString )
     # end of TextEditWindow.doShowInfo
 
 
@@ -630,7 +630,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doUndo( {} )").format( event ) )
 
         try: self.textBox.edit_undo()
-        except tk.TclError: showinfo( self, APP_NAME, 'Nothing to undo' )
+        except tk.TclError: showinfo( self, APP_NAME, _("Nothing to undo") )
         self.textBox.update() # force refresh
     # end of TextEditWindow.doUndo
 
@@ -640,7 +640,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doRedo( {} )").format( event ) )
 
         try: self.textBox.edit_redo()
-        except tk.TclError: showinfo( self, APP_NAME, 'Nothing to redo' )
+        except tk.TclError: showinfo( self, APP_NAME, _("Nothing to redo") )
         self.textBox.update() # force refresh
     # end of TextEditWindow.doRedo
 
@@ -650,7 +650,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doDelete( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
-            showerror( self, APP_NAME, 'No text selected')
+            showerror( self, APP_NAME, _("No text selected") )
         else:
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST )
     # end of TextEditWindow.doDelete
@@ -663,7 +663,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doCut( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
-            showerror( self, APP_NAME, 'No text selected')
+            showerror( self, APP_NAME, _("No text selected") )
         else:
             self.doCopy()                       # save and delete selected text
             self.doDelete()
@@ -679,7 +679,7 @@ class TextEditWindow( ChildWindow ):
         try:
             text = self.selection_get( selection='CLIPBOARD')
         except tk.TclError:
-            showerror( self, APP_NAME, 'Nothing to paste')
+            showerror( self, APP_NAME, _("Nothing to paste") )
             return
         self.textBox.insert( tk.INSERT, text)          # add at current insert cursor
         self.textBox.tag_remove( tk.SEL, START, tk.END )
@@ -725,7 +725,7 @@ class TextEditWindow( ChildWindow ):
     ############################################################################
 
     def xxxdoGotoLine( self, forceline=None):
-        line = forceline or askinteger( APP_NAME, 'Enter line number' )
+        line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
         self.textBox.focus()
         if line is not None:
@@ -737,12 +737,12 @@ class TextEditWindow( ChildWindow ):
                 self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
                 self.textBox.see( tk.INSERT )                          # scroll to line
             else:
-                showerror( self, APP_NAME, 'No such line number' )
+                showerror( self, APP_NAME, _("No such line number") )
     # end of TextEditWindow.doGotoLine
 
 
     def xxxdoFind( self, lastkey=None):
-        key = lastkey or askstring( APP_NAME, 'Enter search string' )
+        key = lastkey or askstring( APP_NAME, _("Enter search string") )
         self.textBox.update()
         self.textBox.focus()
         self.lastfind = key
@@ -750,7 +750,7 @@ class TextEditWindow( ChildWindow ):
             nocase = self.optionsDict['caseinsens']
             where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
-                showerror( self, APP_NAME, 'String not found' )
+                showerror( self, APP_NAME, _("String not found") )
             else:
                 pastkey = where + '+%dc' % len(key)           # index past key
                 self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
@@ -839,7 +839,7 @@ class TextEditWindow( ChildWindow ):
         self.filename = filename
         self.filepath = os.path.join( self.folderPath, self.filename )
         if createFile: # Create a blank file
-            with open( self.filepath, mode='wt' ) as theBlankFile: pass # write nothing
+            with open( self.filepath, mode='wt', encoding='utf-8' ) as theBlankFile: pass # write nothing
         return self._checkFilepath()
     # end of TextEditWindow.setFilename
 
@@ -889,13 +889,13 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow._checkFilepath()") )
 
         if not os.path.isfile( self.filepath ):
-            showerror( self, APP_NAME, 'No such file path: {!r}'.format( self.filepath ) )
+            showerror( self, APP_NAME, _("No such file path: {!r}").format( self.filepath ) )
             return False
         if not os.access( self.filepath, os.R_OK ):
-            showerror( self, APP_NAME, 'No permission to read {!r} in {!r}'.format( self.filename, self.folderPath ) )
+            showerror( self, APP_NAME, _("No permission to read {!r} in {!r}").format( self.filename, self.folderPath ) )
             return False
         if not os.access( self.filepath, os.W_OK ):
-            showerror( self, APP_NAME, 'No permission to write {!r} in {!r}'.format( self.filename, self.folderPath ) )
+            showerror( self, APP_NAME, _("No permission to write {!r} in {!r}").format( self.filename, self.folderPath ) )
             return False
 
         self.rememberFileTimeAndSize()
@@ -1002,7 +1002,7 @@ class TextEditWindow( ChildWindow ):
             if self.folderPath and self.filename:
                 filepath = os.path.join( self.folderPath, self.filename )
                 allText = self.getEntireText() # from the displayed edit window
-                with open( filepath, mode='wt' ) as theFile:
+                with open( filepath, mode='wt', encoding='utf-8' ) as theFile:
                     theFile.write( allText )
                 self.rememberFileTimeAndSize()
                 self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
@@ -1054,7 +1054,7 @@ class TextEditWindow( ChildWindow ):
 
             # Now save this updated file
             allText = self.getEntireText() # from the displayed edit window and/or elsewhere
-            with open( autosaveFilepath, mode='wt' ) as theFile:
+            with open( autosaveFilepath, mode='wt', encoding='utf-8' ) as theFile:
                 theFile.write( allText )
             self.after( self.autosaveTime, self.doAutosave )
         else:
