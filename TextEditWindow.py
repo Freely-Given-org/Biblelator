@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-04-26' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -39,8 +39,10 @@ debuggingThisModule = True
 
 import os.path, logging, shutil #, re
 from datetime import datetime
+#from time import time
 
 import tkinter as tk
+from tkinter import font
 from tkinter.simpledialog import askstring, askinteger
 from tkinter.filedialog import asksaveasfilename
 from tkinter.ttk import Button, Label, Entry
@@ -60,6 +62,7 @@ import BibleOrgSysGlobals
 
 REFRESH_TITLE_TIME = 500 # msecs
 CHECK_DISK_CHANGES_TIME = 33333 # msecs
+NO_TYPE_TIME = 6000 # msecs
 
 
 
@@ -89,6 +92,8 @@ class TextEditWindow( ChildWindow ):
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
         self.filepath = os.path.join( folderPath, filename ) if folderPath and filename else None
 
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderPath, filename ) )
+
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
         ChildWindow.__init__( self, self.parentApp, 'TextEditor' ) # calls refreshTitle
@@ -103,7 +108,9 @@ class TextEditWindow( ChildWindow ):
         self.textBox.destroy()
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
-        self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
+
+        self.customFont = tk.font.Font( family="sans-serif", size=12 )
+        self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word', font=self.customFont )
 
         self.defaultBackgroundColour = 'gold2'
         self.textBox['background'] = self.defaultBackgroundColour
@@ -146,6 +153,7 @@ class TextEditWindow( ChildWindow ):
         self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
         #self.after( REFRESH_TITLE_TIME, self.refreshTitle )
         self.loading = self.hadTextWarning = False
+        #self.lastTextChangeTime = time()
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.__init__ finished.") )
@@ -248,11 +256,10 @@ class TextEditWindow( ChildWindow ):
 ##        gotoMenu.add_separator()
 ##        gotoMenu.add_command( label=_('Book'), underline=0, command=self.notWrittenYet )
 
-##        viewMenu = tk.Menu( self.menubar, tearoff=False )
-##        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-##        viewMenu.add_command( label=_('Whole chapter'), underline=6, command=self.notWrittenYet )
-##        viewMenu.add_command( label=_('Whole book'), underline=6, command=self.notWrittenYet )
-##        viewMenu.add_command( label=_('Single verse'), underline=7, command=self.notWrittenYet )
+        viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
+        viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
+        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
@@ -344,6 +351,29 @@ class TextEditWindow( ChildWindow ):
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 print( "Autosave not set-up properly yet" )
     # end if TextEditWindow.refreshTitleContinue
+
+
+    def OnFontBigger( self ):
+        """
+        Make the font one point bigger
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.OnFontBigger()") )
+
+        size = self.customFont['size']
+        self.customFont.configure( size=size+1 )
+    # end if TextEditWindow.OnFontBigger
+
+    def OnFontSmaller( self ):
+        """
+        Make the font one point smaller
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.OnFontSmaller()") )
+
+        size = self.customFont['size']
+        self.customFont.configure( size=size-1 )
+    # end if TextEditWindow.OnFontSmaller
 
 
     def OnAutocompleteChar( self, event ):
@@ -441,9 +471,10 @@ class TextEditWindow( ChildWindow ):
         Checks to see if they have moved to a new chapter/verse,
             and if so, informs the parent app.
         """
+        self.after_cancel( self.onTextNoChange ) # Cancel any delayed checks which are scheduled
         if self.loading: return # So we don't get called a million times for nothing
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -568,7 +599,21 @@ class TextEditWindow( ChildWindow ):
                 #print( 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
                 self.removeAutocompleteBox()
             # end of auto-complete section
+
+        #self.lastTextChangeTime = time()
+        self.after( NO_TYPE_TIME, self.onTextNoChange ) # Redo it so we keep checking
     # end of TextEditWindow.onTextChange
+
+
+    def onTextNoChange( self ):
+        """
+        Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
+
+        Checks for some types of formatting errors.
+        """
+        #print( "TextEditWindow.onTextNoChange" )
+        pass
+    # end of TextEditWindow.onTextNoChange
 
 
     def checkForDiskChanges( self ):

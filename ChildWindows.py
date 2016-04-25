@@ -37,14 +37,14 @@ from gettext import gettext as _
 LastModifiedDate = '2016-04-25' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = False
 
 
-import os.path, logging, re
+import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
@@ -389,7 +389,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.geometry("), *args, *kwargs, ')' )
 
-        self.update() # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
+        if 'win' in sys.platform:  # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
+            self.update()
         return tk.Toplevel.geometry( self, *args, **kwargs )
     # end of ChildWindow.geometry
 

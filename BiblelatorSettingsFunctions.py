@@ -764,6 +764,9 @@ def doSendUsageStatistics( self ):
             #print( "  zipF4", repr(filepath) )
             zf.write( filepath, filename+extension )
 
+    # Add usage file(s)
+    zf.write( self.usageLogPath, self.usageFilename )
+
     # Add settings file(s)
     #print( "zipF5", repr(self.settings.settingsFilepath) )
     #print( "zipF6", repr(self.settings.settingsFilename) )

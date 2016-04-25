@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-22 RJH
+Last updated: 2016-04-25 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,7 +14,6 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs
-* PTX book encoding and line-endings might not be correct on Windows
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
@@ -25,7 +24,7 @@ Biblelator bugs
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
-* Ctrl+V seems to paste double in text edit windows (paste from menu only does it once)
+* Ctrl+V seems to paste double in text edit windows (paste from menu or right-click only does it once)
 * Text file open and Biblelator project open dialogs flash for a while and then go smaller
 * Seems that Alt up and down do different things if a spinbox or the bookname box is selected
 * Prevent autocomplete if editing in the middle of a word ???
@@ -69,7 +68,6 @@ BOS testing required
 
 
 Biblelator stuff
-* Alert on double-spaces in USFM editor
 * USFM editor still only aware of basic/common USFM tags
 * Add Internet fast/slow, expensive/cheap flags
 * Make Biblelator use Paratext autocorrect files for Paratext projects

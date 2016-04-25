@@ -41,8 +41,9 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 
-import sys, os, logging, subprocess
-import multiprocessing
+import sys, os, logging
+from datetime import datetime
+import multiprocessing, subprocess
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
@@ -135,6 +136,12 @@ class Application( Frame ):
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
 
+        if 0:
+            from tkinter import font
+            print( "tkDefaultFont", font.nametofont("TkDefaultFont").configure() )
+            print( "tkTextFont", font.nametofont("TkTextFont").configure() )
+            print( "tkFixedFont", font.nametofont("TkFixedFont").configure() )
+
         self.themeName = 'default'
         self.style = Style()
         self.interfaceLanguage = DEFAULT
@@ -149,6 +156,10 @@ class Application( Frame ):
 
         self.lexiconWord = None
         self.currentProject = None
+
+        self.usageFilename = APP_NAME + 'UsageLog.txt'
+        self.usageLogPath = os.path.join ( loggingFolderPath, self.usageFilename )
+        self.lastLoggedUsageDate = self.lastLoggedUsageTime = None
 
         if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
         if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
@@ -253,6 +264,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
+        self.logUsage( ProgName, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
     # end of Application.__init__
 
 
@@ -942,6 +954,7 @@ class Application( Frame ):
         """
         Puts most recent first
         """
+        self.logUsage( ProgName, debuggingThisModule, 'addRecentFile {}'.format( threeTuple ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("addRecentFile( {} )").format( threeTuple ) )
             assert len(threeTuple) == 3
@@ -2247,6 +2260,7 @@ class Application( Frame ):
         """
         Handle a new book setting from the GUI dropbox.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'spinToNewBook' )
         if BibleOrgSysGlobals.debugFlag:
             print( exp("spinToNewBook( {} )").format( event ) )
         #print( dir(event) )
@@ -2261,6 +2275,7 @@ class Application( Frame ):
         """
         Handle a new book number setting from the GUI dropbox.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'spinToNewBookNumber' )
         if BibleOrgSysGlobals.debugFlag:
             print( exp("spinToNewBookNumber( {} )").format( event ) )
         #print( dir(event) )
@@ -2279,6 +2294,7 @@ class Application( Frame ):
         """
         Handle a new chapter setting from the GUI spinbox.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'spinToNewChapter' )
         if BibleOrgSysGlobals.debugFlag:
             print( exp("spinToNewChapter( {} )").format( event ) )
         #print( dir(event) )
@@ -2461,6 +2477,7 @@ class Application( Frame ):
         """
         Handle a new lexicon word setting from the GUI.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'acceptNewWord' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("acceptNewWord()") )
         #print( dir(event) )
 
@@ -2476,6 +2493,7 @@ class Application( Frame ):
         Sets self.lexiconWord
             then calls update on the child windows.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'gotoWord {!r}'.format( lexiconWord ) )
         if BibleOrgSysGlobals.debugFlag: print( exp("gotoWord( {} )").format( lexiconWord ) )
         assert lexiconWord is None or isinstance( lexiconWord, str )
         self.lexiconWord = lexiconWord
@@ -2489,6 +2507,7 @@ class Application( Frame ):
         Minimize all of our resource windows,
             i.e., leave the editors and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doHideAllResources' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllResources' )
         self.childWindows.iconifyAll( 'Resource' )
     # end of Application.doHideAllResources
@@ -2498,6 +2517,7 @@ class Application( Frame ):
         Minimize all of our resource windows,
             i.e., leave the resources and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doHideAllProjects' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllProjects' )
         self.childWindows.iconifyAll( 'Editor' )
     # end of Application.doHideAllProjects
@@ -2508,6 +2528,7 @@ class Application( Frame ):
         Show/Restore all of our resource windows,
             i.e., leave the editors and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doShowAllResources' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllResources' )
         self.childWindows.deiconifyAll( 'Resource' )
     # end of Application.doShowAllResources
@@ -2517,6 +2538,7 @@ class Application( Frame ):
         Show/Restore all of our project editor windows,
             i.e., leave the resources and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doShowAllProjects' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllProjects' )
         self.childWindows.deiconifyAll( 'Editor' )
     # end of Application.doShowAllProjects
@@ -2526,6 +2548,7 @@ class Application( Frame ):
         """
         Minimize all of our windows.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doHideAll' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAll' )
         self.childWindows.iconifyAll()
         if includeMe: self.rootWindow.iconify()
@@ -2772,6 +2795,7 @@ class Application( Frame ):
         """
         Display the BOS manager window.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doOpenBOSManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doOpenBOSManager( {} )").format( event ) )
 
@@ -2782,10 +2806,37 @@ class Application( Frame ):
         """
         Display the Sword module manager window.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doOpenSwordManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doOpenSwordManager( {} )").format( event ) )
 
         openSwordManager( self )
+    # end of Application.doOpenSwordManager
+
+
+    def logUsage( self, moduleName, debuggingThatModule, usageText ):
+        """
+        Log usage information for developer to understand typical program use.
+        """
+        timeString = datetime.now().strftime( '%H:%M')
+        if timeString == self.lastLoggedUsageTime: timeString = dateString = None
+        else:
+            self.lastLoggedUsageTime = timeString
+            dateString = datetime.now().strftime( '%Y-%m-%d' )
+            if dateString == self.lastLoggedUsageDate: dateString = None
+            else: self.lastLoggedUsageDate = dateString
+
+        logText = '{}\n'.format( usageText )
+
+        with open( self.usageLogPath, 'at', encoding='utf-8' ) as logFile: # Append puts the file pointer at the end of the file
+            if dateString:
+                logFile.write( "\nNew start or new day: {} for {!r} as {!r} on {!r}\n". \
+                    format( dateString, self.currentUserName, self.currentUserRole, self.currentProjectName ) )
+            if timeString:
+                if timeString.endswith( '00' ):
+                    logFile.write( "New time: {} for {}\n".format( timeString, dateString ) )
+                else: logFile.write( "New time: {}\n".format( timeString ) )
+            logFile.write( logText )
     # end of Application.doOpenSwordManager
 
 
@@ -2794,6 +2845,7 @@ class Application( Frame ):
         Display a help box.
         """
         from Help import HelpBox
+        self.logUsage( ProgName, debuggingThisModule, 'doHelp' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doHelp( {} )").format( event ) )
 
@@ -2839,6 +2891,7 @@ class Application( Frame ):
         Display an about box.
         """
         from About import AboutBox
+        self.logUsage( ProgName, debuggingThisModule, 'doAbout' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doAbout( {} )").format( event ) )
 
@@ -2870,6 +2923,7 @@ class Application( Frame ):
         """
         Save files first, and then close child windows.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doCloseMyChildWindows' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCloseMyChildWindows()") )
 
@@ -2902,6 +2956,7 @@ class Application( Frame ):
         """
         Save files first, and then end the application.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doCloseMe' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCloseMe()") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
@@ -3075,7 +3130,6 @@ if __name__ == '__main__':
         print( exp("Running main…") )
         import locale
         print( "default locale", locale.getdefaultlocale() )
-        #print( "codeset", locale.CODESET )
         print( "preferredEncoding", locale.getpreferredencoding() )
 
     main( homeFolderPath, loggingFolderPath )
