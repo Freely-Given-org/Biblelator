@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-04-27' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.35'
@@ -2923,7 +2923,7 @@ class Application( Frame ):
         """
         Save files first, and then close child windows.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doCloseMyChildWindows' )
+        #self.logUsage( ProgName, debuggingThisModule, 'doCloseMyChildWindows' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCloseMyChildWindows()") )
 

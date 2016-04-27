@@ -42,6 +42,7 @@ import os.path, logging
 from collections import OrderedDict
 
 import tkinter as tk
+from tkinter.simpledialog import askstring #, askinteger
 from tkinter.ttk import Style
 
 # Biblelator imports
@@ -213,13 +214,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
         #fileMenu.add_command( label=_('Export'), underline=1, command=self.doMostExports )
-        subfileMenuExport = tk.Menu( fileMenu, tearoff=False )
-        subfileMenuExport.add_command( label=_('Quick exports'), underline=0, command=self.doMostExports )
-        subfileMenuExport.add_command( label=_('PhotoBible'), underline=0, command=self.doPhotoBibleExport )
-        subfileMenuExport.add_command( label=_('ODFs'), underline=0, command=self.doODFsExport )
-        subfileMenuExport.add_command( label=_('PDFs'), underline=1, command=self.doPDFsExport )
-        subfileMenuExport.add_command( label=_('All exports'), underline=0, command=self.doAllExports )
-        fileMenu.add_cascade( label=_('Export'), underline=1, menu=subfileMenuExport )
+        subFileMenuExport = tk.Menu( fileMenu, tearoff=False )
+        subFileMenuExport.add_command( label=_('Quick exports'), underline=0, command=self.doMostExports )
+        subFileMenuExport.add_command( label=_('PhotoBible'), underline=0, command=self.doPhotoBibleExport )
+        subFileMenuExport.add_command( label=_('ODFs'), underline=0, command=self.doODFsExport )
+        subFileMenuExport.add_command( label=_('PDFs'), underline=1, command=self.doPDFsExport )
+        subFileMenuExport.add_command( label=_('All exports'), underline=0, command=self.doAllExports )
+        fileMenu.add_cascade( label=_('Export'), underline=1, menu=subFileMenuExport )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo )
         fileMenu.add_separator()
@@ -239,11 +240,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine )
+        subsearchMenuBible = tk.Menu( searchMenu, tearoff=False )
+        subsearchMenuBible.add_command( label=_('Find…'), underline=0, command=self.doBibleFind )
+        subsearchMenuBible.add_command( label=_('Find again'), underline=5, command=self.notWrittenYet )
+        subsearchMenuBible.add_command( label=_('Replace…'), underline=0, command=self.notWrittenYet )
+        searchMenu.add_cascade( label=_('Bible'), underline=0, menu=subsearchMenuBible )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doFindReplace )
+        subSearchMenuWindow = tk.Menu( searchMenu, tearoff=False )
+        subSearchMenuWindow.add_command( label=_('Find…'), underline=0, command=self.doWindowFind )
+        subSearchMenuWindow.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind )
+        subSearchMenuWindow.add_command( label=_('Replace…'), underline=0, command=self.doWindowFindReplace )
+        searchMenu.add_cascade( label=_('Window'), underline=0, menu=subSearchMenuWindow )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -490,10 +498,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         if self.contextViewMode == 'BeforeAndAfter':
             minChapterMarkers, maxChapterMarkers = 0, 1
-            minVerseMarkers = maxVerseMarkers = 0 if C=='0' else 3
+            if C == '0': minVerseMarkers = maxVerseMarkers = 0
+            elif C=='1' and V=='1': minVerseMarkers = maxVerseMarkers = 2
+            else: minVerseMarkers = maxVerseMarkers = 3
         elif self.contextViewMode == 'ByVerse':
             minChapterMarkers = maxChapterMarkers = 1 if V=='0' and C!='0' else 0
-            minVerseMarkers = maxVerseMarkers = 0 if C=='0' else 1
+            if C == '0': minVerseMarkers = maxVerseMarkers = 0
+            else: minVerseMarkers = maxVerseMarkers = 1
         elif self.contextViewMode == 'BySection':
             minChapterMarkers, maxChapterMarkers = 0, 1
             minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,10)
@@ -534,7 +545,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             self.hadTextWarning = True
         elif suggestionMessage:
             self.parentApp.setErrorStatus( suggestionMessage )
-            self.textBox['background'] = 'orchid1'
+            self.textBox['background'] = 'orchid1' # Make this one not too dissimilar from the default
             self.hadTextWarning = True
         elif self.hadTextWarning: # last time but not now
             self.textBox['background'] = self.defaultBackgroundColour
@@ -984,9 +995,43 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.updateShownBCV
 
 
+    def doBibleFind( self, event=None, lastkey=None ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow doBibleFind {!r}'.format( lastkey ) )
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doBibleFind( {}, {!r} )").format( event, lastkey ) )
+
+        if self.internalBible is None:
+            print( "No Bible to search" )
+            return
+        self._prepareInternalBible()
+
+        key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        self.textBox.update()
+        self.textBox.focus()
+        self.lastfind = key
+        if key:
+            nocase = self.optionsDict['caseinsens']
+            #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
+            where = self.internalBible.searchText( key, noCase=nocase )
+            if not where:                                          # don't wrap
+                errorBeep()
+                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            else:
+                print( "  Got search result: {}".format( where ) )
+                #pastkey = where + '+%dc' % len(key)           # index past key
+                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
+                #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
+                #self.textBox.see( where )                          # scroll display
+    # end of USFMEditWindow.doBibleFind
+
+
     def _prepareInternalBible( self ):
         """
-        Prepare to do some of the exports or checks available in BibleOrgSysGlobals.
+        Prepare to do a search on the Internal Bible object
+            or to do some of the exports or checks available in BibleOrgSysGlobals.
 
         Leaves the wait cursor displayed.
         """

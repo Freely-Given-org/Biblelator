@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-25 RJH
+Last updated: 2016-04-27 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -40,11 +40,12 @@ Biblelator testing required
 
 
 BOS bugs
-* Had 8 default mode failures: ['MyBibleBible', 'SwordInstallManager', 'TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestBib1', 'TestHaiola3', 'USFMBible', 'UnknownBible']
+* Had 8 default mode failures: ['MyBibleBible',TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestBib1', 'TestHaiola3'
 * Doesn't create a log file on Windows
 * Why do warnings show on Windows console (yet not on Linux)?
 * Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
-* OSIS (and other containerised) formats should insert end markers when loading
+* Don't know about Sword NRSVA versification yet
+* OSIS (and other containerised) formats should insert end markers themselves when loading
 
 BOS improvements for Biblelator
 * Upgrade to USX 2.5

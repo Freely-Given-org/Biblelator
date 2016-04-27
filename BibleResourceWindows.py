@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-04-26' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -437,10 +437,10 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )

@@ -186,7 +186,7 @@ class TextEditWindow( ChildWindow ):
         #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
         #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
         #self.textBox.bind('<Control-x>', self.doCut ); self.textBox.bind('<Control-X>', self.doCut )
-        #self.textBox.bind('<Control-g>', self.doRefind ); self.textBox.bind('<Control-G>', self.doRefind )
+        #self.textBox.bind('<Control-g>', self.doWindowRefind ); self.textBox.bind('<Control-G>', self.doWindowRefind )
     # end of TextEditWindow.createEditorKeyboardBindings()
 
 
@@ -231,11 +231,11 @@ class TextEditWindow( ChildWindow ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doFindReplace )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doWindowFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label=_('Grep…'), underline=0, command=self.onGrep )
 
@@ -769,48 +769,48 @@ class TextEditWindow( ChildWindow ):
     # Search menu commands
     ############################################################################
 
-    def xxxdoGotoLine( self, forceline=None):
-        line = forceline or askinteger( APP_NAME, _("Enter line number") )
-        self.textBox.update()
-        self.textBox.focus()
-        if line is not None:
-            maxindex = self.textBox.index( tk.END+'-1c' )
-            maxline  = int( maxindex.split('.')[0] )
-            if line > 0 and line <= maxline:
-                self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
-                self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
-                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
-                self.textBox.see( tk.INSERT )                          # scroll to line
-            else:
-                showerror( self, APP_NAME, _("No such line number") )
-    # end of TextEditWindow.doGotoLine
+    #def xxxdoGotoWindowLine( self, forceline=None):
+        #line = forceline or askinteger( APP_NAME, _("Enter line number") )
+        #self.textBox.update()
+        #self.textBox.focus()
+        #if line is not None:
+            #maxindex = self.textBox.index( tk.END+'-1c' )
+            #maxline  = int( maxindex.split('.')[0] )
+            #if line > 0 and line <= maxline:
+                #self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
+                #self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
+                #self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
+                #self.textBox.see( tk.INSERT )                          # scroll to line
+            #else:
+                #showerror( self, APP_NAME, _("No such line number") )
+    ## end of TextEditWindow.doGotoWindowLine
 
 
-    def xxxdoFind( self, lastkey=None):
-        key = lastkey or askstring( APP_NAME, _("Enter search string") )
-        self.textBox.update()
-        self.textBox.focus()
-        self.lastfind = key
-        if key:
-            nocase = self.optionsDict['caseinsens']
-            where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
-            if not where:                                          # don't wrap
-                showerror( self, APP_NAME, _("String not found") )
-            else:
-                pastkey = where + '+%dc' % len(key)           # index past key
-                self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
-                self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
-                self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
-                self.textBox.see( where )                          # scroll display
-    # end of TextEditWindow.doFind
+    #def xxxdoWindowFind( self, lastkey=None):
+        #key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        #self.textBox.update()
+        #self.textBox.focus()
+        #self.lastfind = key
+        #if key:
+            #nocase = self.optionsDict['caseinsens']
+            #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
+            #if not where:                                          # don't wrap
+                #showerror( self, APP_NAME, _("String not found") )
+            #else:
+                #pastkey = where + '+%dc' % len(key)           # index past key
+                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
+                #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
+                #self.textBox.see( where )                          # scroll display
+    ## end of TextEditWindow.doWindowFind
 
 
-    def xxxdoRefind( self ):
-        self.doFind( self.lastfind)
-    # end of TextEditWindow.doRefind
+    #def xxxdoWindowRefind( self ):
+        #self.doWindowFind( self.lastfind)
+    ## end of TextEditWindow.doWindowRefind
 
 
-    def doFindReplace( self ):
+    def doWindowFindReplace( self ):
         """
         Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
@@ -824,16 +824,16 @@ class TextEditWindow( ChildWindow ):
         entry1.grid( row=0, column=1, sticky=tk.EW )
         entry2.grid( row=1, column=1, sticky=tk.EW )
 
-        def doFind():                         # use my entry in enclosing scope
-            self.doFind( entry1.get() )         # runs normal find dialog callback
+        def doWindowFind():                         # use my entry in enclosing scope
+            self.doWindowFind( entry1.get() )         # runs normal find dialog callback
 
         def onApply():
             self.onDoChange( entry1.get(), entry2.get() )
 
-        Button( newPopupWindow, text='Find',  command=doFind ).grid(row=0, column=2, sticky=tk.EW )
+        Button( newPopupWindow, text='Find',  command=doWindowFind ).grid(row=0, column=2, sticky=tk.EW )
         Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=tk.EW )
         newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
-    # end of TextEditWindow.doFindReplace
+    # end of TextEditWindow.doWindowFindReplace
 
 
     def onDoChange( self, findtext, changeto):
@@ -844,7 +844,7 @@ class TextEditWindow( ChildWindow ):
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
             self.textBox.insert( tk.INSERT, changeto)             # deletes if empty
             self.textBox.see( tk.INSERT )
-            self.doFind( findtext )                          # goto next appear
+            self.doWindowFind( findtext )                          # goto next appear
             self.textBox.update() # force refresh
     # end of TextEditWindow.onDoChange
 

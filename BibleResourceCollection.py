@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-04-26' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -215,7 +215,7 @@ class BibleResourceBox( Frame, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleResourceBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
-                             ('Find',self.doFind), ('Refind',self.doRefind),
+                             ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
                              ('Info',self.doShowInfo), ('Close',self.doClose), ):
             self.createStandardKeyboardBinding( name, command )
     # end of BibleResourceBox.createStandardKeyboardBindings()
@@ -786,10 +786,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
             searchMenu = tk.Menu( self.menubar )
             self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-            searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+            searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
             searchMenu.add_separator()
-            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
