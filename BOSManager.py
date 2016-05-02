@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-02' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
-ProgVersion = '0.01' # Separate versioning from Biblelator
+ProgVersion = '0.02' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -44,19 +44,18 @@ import multiprocessing
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
-from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
+from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
 from BiblelatorGlobals import DEFAULT, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-        INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
-        BIBLE_GROUP_CODES, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, findUsername, \
-        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
+        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
+        parseWindowSize
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, parseWindowSize,
+# assembleWindowSize, ,
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -89,9 +88,8 @@ from PTXBible import PTXBible, loadPTXSSFData
 
 
 
-TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
-BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
-PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+# Default window size settings (Note: X=width, Y=height)
+INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x276', '607x360', '550x275', '700x500'
 
 
 
@@ -165,12 +163,12 @@ class BOSManager( Frame ):
 
         self.createStatusBar()
 
-        # Create our display text book
-        self.textBox = ScrolledText( self.rootWindow, bg='yellow' )#style='DebugText.TScrolledText' )
-        self.textBox.pack( side=tk.TOP, fill=tk.BOTH )
-        #self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
-        self.textBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        self.textBox.insert( tk.END, 'Main Text Box:' )
+        ## Create our display text box
+        #self.textBox = ScrolledText( self.rootWindow, bg='yellow' )#style='DebugText.TScrolledText' )
+        #self.textBox.pack( side=tk.TOP, fill=tk.BOTH )
+        ##self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
+        #self.textBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.textBox.insert( tk.END, 'Main Text Box:' )
 
         if BibleOrgSysGlobals.debugFlag: # Create a scrolling debug box
             self.lastDebugMessage = None
@@ -201,12 +199,15 @@ class BOSManager( Frame ):
         self.createToolBar()
         if BibleOrgSysGlobals.debugFlag: self.createDebugToolBar()
         self.createMainKeyboardBindings()
+        self.createNotebook()
 
         # See if there's any developer messages
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForDeveloperMessages()
 
         self.rootWindow.title( ProgNameVersion )
+        self.minimumSize = MINIMUM_MAIN_SIZE
+        self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
@@ -614,6 +615,52 @@ class BOSManager( Frame ):
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of BOSManager.createToolBar
 
+
+    def createNotebook( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createToolBar()") )
+
+        self.notebook = Notebook( self )
+
+        # Adding Frames as pages for the ttk.Notebook
+        
+        # Bible Books Codes page
+        self.codesPage = Frame( self.notebook )
+        self.codesLabel = Label( self.codesPage, text="Books Codes ({})".format( len(BibleOrgSysGlobals.BibleBooksCodes) ) )
+        #self.codesLabel.pack( side=tk.LEFT, fill=tk.X )
+        self.codesLabel.grid( row=0, column=0 )
+        self.codesSearch = Entry( self.codesPage )
+        #self.codesSearch.pack( side=tk.LEFT, fill=tk.X )
+        self.codesSearch.grid( row=1, column=0 )
+        sbar = Scrollbar( self.codesPage )
+        self.codesListbox = tk.Listbox( self.codesPage, relief=tk.SUNKEN )
+        sbar.config( command=self.codesListbox.yview )
+        self.codesListbox.config( yscrollcommand=sbar.set )
+        #sbar.pack( side=tk.RIGHT, fill=tk.Y )
+        sbar.grid( row=0, column=2 )
+        #self.codesListbox.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )   
+        self.codesListbox.grid( row=0, column=1 )
+        self.codeTextBox = ScrolledText( self.codesPage, bg='orange' )
+        self.codeTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        self.codeTextBox.insert( tk.END, 'Codes' )
+        #self.codeTextBox.pack( side=tk.RIGHT, fill=tk.Y )
+        self.codeTextBox.grid( row=0, column=3 )
+        
+        for BBB in BibleOrgSysGlobals.BibleBooksCodes:
+            self.codesListbox.insert( tk.END, BBB )
+            
+        # second page
+        self.page2 = Frame( self.notebook )
+        text = ScrolledText( self.page2 )
+        text.pack( expand=1, fill='both' )
+
+        self.notebook.add( self.codesPage, text='Books Codes')
+        self.notebook.add( self.page2, text='Versifications')
+        self.notebook.pack( expand=1, fill='both' )
+    # end of BOSManager.createNotebook
+        
 
     def halt( self ):
         """
