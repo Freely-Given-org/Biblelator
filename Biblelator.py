@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-27' # by RJH
+LastModifiedDate = '2016-05-04' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.35'
@@ -651,7 +651,7 @@ class Application( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -766,7 +766,7 @@ class Application( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -2320,7 +2320,7 @@ class Application( Frame ):
         #enteredBookname = self.bookNameVar.get()
         #C = self.chapterNumberVar.get()
         #V = self.verseNumberVar.get()
-        #BBB = self.getBBB( enteredBookname )
+        #BBB = self.getBBBFromText( enteredBookname )
         #print( "BBB", BBB )
 
         if BBB is None:
@@ -2360,7 +2360,7 @@ class Application( Frame ):
             #print( exp("gotoBnCV( {!r} {}:{} )").format( enteredBookname, C, V ) )
 
         ##self.BnameCV = (enteredBookname,C,V,)
-        #BBB = self.getBBB( enteredBookname )
+        #BBB = self.getBBBFromText( enteredBookname )
         ##print( "BBB", BBB )
         #if BBB is None:
             #self.setErrorStatus( "Unable to determine book name" )
@@ -2898,7 +2898,7 @@ class Application( Frame ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
             + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
-            + "\n\nBiblelator is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator"
+            + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( ShortProgName )
         ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
     # end of Application.doAbout
 

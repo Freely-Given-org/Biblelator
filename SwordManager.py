@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-04' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.01' # Separate versioning from Biblelator
@@ -394,7 +394,7 @@ class SwordManager( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -511,7 +511,7 @@ class SwordManager( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -898,11 +898,19 @@ class SwordManager( Frame ):
     # end of SwordManager.doGotoInfo
 
 
+    def logUsage( self, p1, p2, p3 ):
+        """
+        Not required in this app.
+        """
+        pass
+    # end of BOSManager.logUsage
+
+
     def doHelp( self, event=None ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -928,7 +936,7 @@ class SwordManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
             showerror( self, ShortProgName, 'You need to allow Internet access first!' )
@@ -946,13 +954,13 @@ class SwordManager( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
             + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
-            + "\n\nBiblelator is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator"
+            + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( ShortProgName )
         ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
     # end of SwordManager.doAbout
 
