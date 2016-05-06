@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-04' # by RJH
+LastModifiedDate = '2016-05-06' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
-ProgVersion = '0.03' # Separate versioning from Biblelator
+ProgVersion = '0.04' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -235,7 +235,7 @@ class BOSManager( Frame ):
         self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode
         self.getNextBookCode = self.genericBibleOrganizationalSystem.getNextBookCode
-        self.getBBB = self.genericBibleOrganizationalSystem.getBBB
+        self.getBBBFromText = self.genericBibleOrganizationalSystem.getBBBFromText
         self.getGenericBookName = self.genericBibleOrganizationalSystem.getBookName
         #self.getBookList = self.genericBibleOrganizationalSystem.getBookList
 
@@ -1292,27 +1292,27 @@ class BOSManager( Frame ):
     def searchMapping( self, event ):
         """
         """
-        enteredText = self.versificationsSearch.get()
+        enteredText = self.mappingsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule: print( exp("searchMapping( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchMapping…" )
 
         if not enteredText: return
 
-        if len(enteredText)<3: self.setErrorStatus( "Books versifications must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books versifications must have no spaces" ); return
+        if len(enteredText)<3: self.setErrorStatus( "Books mappings must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books mappings must have no spaces" ); return
         elif enteredText not in self.BibleMappingsSystemsList:
-            self.setErrorStatus( "Unknown {!r} book versification".format( enteredText ) )
+            self.setErrorStatus( "Unknown {!r} book mapping".format( enteredText ) )
             return
 
         # Must be ok
-        self.versificationSystemName = enteredText
-        index = self.BibleMappingsSystemsList.index( self.versificationSystemName )
+        self.mappingSystemName = enteredText
+        index = self.BibleMappingsSystemsList.index( self.mappingSystemName )
 
         # Select it in the listbox
-        self.versificationsListbox.select_set( index )
-        self.versificationsListbox.see( index )
-        self.versificationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewMapping below
+        self.mappingsListbox.select_set( index )
+        self.mappingsListbox.see( index )
+        self.mappingsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewMapping below
     # end of BOSManager.searchMapping
 
 
@@ -1322,20 +1322,20 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule: print( exp("gotoNewMapping( {} )").format( event ) )
             self.setDebugText( "gotoNewMapping…" )
-            #print( 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
+            #print( 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
 
-        index = int( self.versificationsListbox.curselection()[0] ) # Top one selected
-        self.versificationSystemName = self.versificationsListbox.get( index )
-        versificationSystem =  self.BibleMappingsSystems.getMappingSystem( self.versificationSystemName )
+        index = int( self.mappingsListbox.curselection()[0] ) # Top one selected
+        self.mappingSystemName = self.mappingsListbox.get( index )
+        mappingSystem =  self.BibleMappingsSystems.getMappingSystem( self.mappingSystemName )
 
         # Clear the text box
-        self.versificationTextBox['state'] = tk.NORMAL
-        self.versificationTextBox.delete( START, tk.END )
-        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( self.versificationSystemName ) )
-        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( versificationSystem ) )
-        #for field,value in sorted( versificationDict.items() ):
+        self.mappingTextBox['state'] = tk.NORMAL
+        self.mappingTextBox.delete( START, tk.END )
+        self.mappingTextBox.insert( tk.END, '{}\n\n'.format( self.mappingSystemName ) )
+        self.mappingTextBox.insert( tk.END, '{}\n\n'.format( mappingSystem ) )
+        #for field,value in sorted( mappingDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.versificationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+                #self.mappingTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
     # end of BOSManager.gotoNewMapping
 
 
@@ -1451,10 +1451,10 @@ class BOSManager( Frame ):
 
         if not enteredText: return
 
-        if len(enteredText)<3: self.setErrorStatus( "Books organizations must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books organizations must have no spaces" ); return
+        if len(enteredText)<3: self.setErrorStatus( "Bible organizational system names must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Bible organizational system names must have no spaces" ); return
         elif enteredText not in self.BibleOrganizationalSystemsList:
-            self.setErrorStatus( "Unknown {!r} book organization".format( enteredText ) )
+            self.setErrorStatus( "Unknown {!r} Bible organizational system name".format( enteredText ) )
             return
 
         # Must be ok
@@ -1494,27 +1494,27 @@ class BOSManager( Frame ):
     def searchReference( self, event ):
         """
         """
-        enteredText = self.versificationsSearch.get()
+        enteredText = self.referenceSearch.get()
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule: print( exp("searchReference( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchReference…" )
 
         if not enteredText: return
 
-        if len(enteredText)<3: self.setErrorStatus( "Books versifications must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books versifications must have no spaces" ); return
-        elif enteredText not in self.BibleReferencesSystemsList:
-            self.setErrorStatus( "Unknown {!r} book versification".format( enteredText ) )
+        if len(enteredText)<3: self.setErrorStatus( "Books references must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books references must have no spaces" ); return
+        elif enteredText not in self.BibleReferenceSystemsList:
+            self.setErrorStatus( "Unknown {!r} reference".format( enteredText ) )
             return
 
         # Must be ok
-        self.versificationSystemName = enteredText
-        index = self.BibleReferencesSystemsList.index( self.versificationSystemName )
+        self.referenceSystemName = enteredText
+        index = self.BibleReferenceSystemsList.index( self.referenceSystemName )
 
         # Select it in the listbox
-        self.versificationsListbox.select_set( index )
-        self.versificationsListbox.see( index )
-        self.versificationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewReference below
+        self.referencesListbox.select_set( index )
+        self.referencesListbox.see( index )
+        self.referencesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewReference below
     # end of BOSManager.searchReference
 
 
@@ -1524,20 +1524,20 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule: print( exp("gotoNewReference( {} )").format( event ) )
             self.setDebugText( "gotoNewReference…" )
-            #print( 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
+            #print( 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
 
-        index = int( self.versificationsListbox.curselection()[0] ) # Top one selected
-        self.versificationSystemName = self.versificationsListbox.get( index )
-        versificationSystem =  self.BibleReferencesSystems.getReferenceSystem( self.versificationSystemName )
+        index = int( self.referencesListbox.curselection()[0] ) # Top one selected
+        self.referenceSystemName = self.referencesListbox.get( index )
+        referenceSystem =  self.BibleReferenceSystems.getReferenceSystem( self.referenceSystemName )
 
         # Clear the text box
-        self.versificationTextBox['state'] = tk.NORMAL
-        self.versificationTextBox.delete( START, tk.END )
-        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( self.versificationSystemName ) )
-        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( versificationSystem ) )
-        #for field,value in sorted( versificationDict.items() ):
+        self.referenceTextBox['state'] = tk.NORMAL
+        self.referenceTextBox.delete( START, tk.END )
+        self.referenceTextBox.insert( tk.END, '{}\n\n'.format( self.referenceSystemName ) )
+        self.referenceTextBox.insert( tk.END, '{}\n\n'.format( referenceSystem ) )
+        #for field,value in sorted( referenceDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.versificationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+                #self.referenceTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
     # end of BOSManager.gotoNewReference
 
 

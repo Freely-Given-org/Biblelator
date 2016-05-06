@@ -69,6 +69,7 @@ BOS testing required
 
 
 Biblelator stuff
+* Make Bible fields in BOSManager into clickable links (to go to other tabs)
 * USFM editor still only aware of basic/common USFM tags
 * Add Internet fast/slow, expensive/cheap flags
 * Make Biblelator use Paratext autocorrect files for Paratext projects

@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-04' # by RJH
+LastModifiedDate = '2016-05-06' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
-ProgVersion = '0.01' # Separate versioning from Biblelator
+ProgVersion = '0.02' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -44,17 +44,16 @@ import multiprocessing
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
-from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
+from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, \
+from BiblelatorGlobals import DEFAULT, START, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-        INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
-        BIBLE_GROUP_CODES, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, findUsername, \
-        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
+        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
+        parseWindowSize
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
 # assembleWindowSize, parseWindowSize,
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
@@ -79,20 +78,19 @@ sys.path.append( '../BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
-from BibleVersificationSystems import BibleVersificationSystems
-from DigitalBiblePlatform import DBPBibles
-from VerseReferences import SimpleVerseKey
+#from BibleVersificationSystems import BibleVersificationSystems
+#from DigitalBiblePlatform import DBPBibles
+#from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from SwordInstallManager import SwordInstallManager
-from USFMBible import USFMBible
-from PTXBible import PTXBible, loadPTXSSFData
+#from USFMBible import USFMBible
+#from PTXBible import PTXBible, loadPTXSSFData
 
 
 
-TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
-BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
-PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+# Default window size settings (Note: X=width, Y=height)
+INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x376', '607x460', '550x375', '700x600'
 
 
 
@@ -202,12 +200,15 @@ class SwordManager( Frame ):
         self.createToolBar()
         if BibleOrgSysGlobals.debugFlag: self.createDebugToolBar()
         self.createMainKeyboardBindings()
+        self.createNotebook()
 
         # See if there's any developer messages
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForDeveloperMessages()
 
         self.rootWindow.title( ProgNameVersion )
+        self.minimumSize = MINIMUM_MAIN_SIZE
+        self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
@@ -232,7 +233,7 @@ class SwordManager( Frame ):
         self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
         self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
-        self.getBBB = self.genericBibleOrganisationalSystem.getBBB
+        self.getBBBFromText = self.genericBibleOrganisationalSystem.getBBBFromText
         self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
@@ -616,6 +617,60 @@ class SwordManager( Frame ):
     # end of SwordManager.createToolBar
 
 
+    def createNotebook( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createToolBar()") )
+
+        self.notebook = Notebook( self )
+
+        # Adding Frames as pages for the ttk.Notebook
+
+        # Bible books codes page
+        print( "Create codes page" )
+        self.BibleBooksCodesList = BibleOrgSysGlobals.BibleBooksCodes.getAllReferenceAbbreviations()
+        self.codesPage = Frame( self.notebook )
+        codesLabel = Label( self.codesPage, text="Books Codes ({})".format( len(self.BibleBooksCodesList) ) )
+        codesLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.codesPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.codesSearch = Entry( self.codesPage, width=5 )
+        self.codesSearch.bind( '<Return>', self.searchCode )
+        self.codesSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.codesPage )
+        self.codesListbox = tk.Listbox( self.codesPage, width=5, relief=tk.SUNKEN )
+        sbar.config( command=self.codesListbox.yview )
+        self.codesListbox.config( yscrollcommand=sbar.set )
+        self.codesListbox.bind('<<ListboxSelect>>', self.gotoNewCode )
+        #self.codesListbox.bind( '<Return>', self.gotoNewCode )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.codesListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.codeTextBox = ScrolledText( self.codesPage, bg='lightblue' )
+        self.codeTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.codeTextBox.insert( tk.END, 'Codes' )
+        self.codeTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        for BBB in self.BibleBooksCodesList:
+            self.codesListbox.insert( tk.END, BBB ) # fill the listbox
+        self.codesSearch.insert( tk.END, 'GEN' )
+        self.searchCode( None ) # Go to the above
+        self.codesSearch.delete( 0, tk.END ) # Clear the search box again
+
+
+        print( "Add all pages" )
+        self.notebook.add( self.codesPage, text='Codes')
+        #self.notebook.add( self.punctuationPage, text='Punctuation')
+        #self.notebook.add( self.versificationsPage, text='Versifications')
+        #self.notebook.add( self.mappingsPage, text='Mappings')
+        #self.notebook.add( self.ordersPage, text='Orders')
+        #self.notebook.add( self.namesPage, text='Names')
+        #self.notebook.add( self.organizationsPage, text='Bibles')
+        #self.notebook.add( self.referencesPage, text='References')
+        #self.notebook.add( self.stylesheetsPage, text='StyleSheets')
+        self.notebook.pack( expand=1, fill='both' )
+    # end of SwordManager.createNotebook
+
+
     def halt( self ):
         """
         Halts the program immediately without saving any files or settings.
@@ -834,6 +889,62 @@ class SwordManager( Frame ):
     # end of SwordManager.doChangeTheme
 
 
+    def searchCode( self, event ):
+        """
+        """
+        enteredText = self.codesSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchCode( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchCode…" )
+
+        if not enteredText: return
+
+        eTU = enteredText.upper()
+        if len(eTU)==3 and eTU!=enteredText and eTU in self.BibleBooksCodesList:
+            self.setErrorStatus( "Converted entered book code to UPPER CASE" )
+            enteredText = eTU
+
+        if len(enteredText)!=3: self.setErrorStatus( "Books codes must be three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books codes must have no spaces" ); return
+        elif enteredText not in self.BibleBooksCodesList:
+            self.setErrorStatus( "Unknown {!r} book code".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.BBB = enteredText
+        index = self.BibleBooksCodesList.index( self.BBB )
+
+        # Select it in the listbox
+        self.codesListbox.select_set( index )
+        self.codesListbox.see( index )
+        self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
+    # end of BOSManager.searchCode
+
+
+    def gotoNewCode( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewCode( {} )").format( event ) )
+            self.setDebugText( "gotoNewCode…" )
+            #print( 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+
+        print( "code cursel", repr(self.codesListbox.curselection()) )
+        index = int( self.codesListbox.curselection()[0] ) # Top one selected
+        self.BBB = self.codesListbox.get( index )
+        codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
+
+        # Clear the text box
+        self.codeTextBox['state'] = tk.NORMAL
+        self.codeTextBox.delete( START, tk.END )
+        self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
+        self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
+        for field,value in sorted( codeDict.items() ):
+            if field not in ( 'referenceNumber', 'nameEnglish', ):
+                self.codeTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewCode
+
+
     def doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
@@ -915,17 +1026,16 @@ class SwordManager( Frame ):
 
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
-        helpInfo += "\n  Use the Resource menu to open study/reference resources."
-        helpInfo += "\n  Use the Project menu to open editable Bibles."
+        helpInfo += "\n  Click on a tab to view that area of the Sword Manager."
         helpInfo += "\n\nKeyboard shortcuts:"
-        for name,shortcut in self.myKeyboardBindingsList:
-            helpInfo += "\n  {}\t{}".format( name, shortcut )
-        helpInfo += "\n\n  {}\t{}".format( 'Prev Verse', 'Alt+UpArrow' )
-        helpInfo += "\n  {}\t{}".format( 'Next Verse', 'Alt+DownArrow' )
-        helpInfo += "\n  {}\t{}".format( 'Prev Chapter', 'Alt+, (<)' )
-        helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
-        helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
-        helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
+        #for name,shortcut in self.myKeyboardBindingsList:
+            #helpInfo += "\n  {}\t{}".format( name, shortcut )
+        #helpInfo += "\n\n  {}\t{}".format( 'Prev Verse', 'Alt+UpArrow' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Verse', 'Alt+DownArrow' )
+        #helpInfo += "\n  {}\t{}".format( 'Prev Chapter', 'Alt+, (<)' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
+        #helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
         hb = HelpBox( self.rootWindow, ShortProgName, helpInfo )
     # end of SwordManager.doHelp
 
@@ -958,9 +1068,11 @@ class SwordManager( Frame ):
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nA free USFM Bible editor." \
-            + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
-            + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( ShortProgName )
+        aboutInfo += "\nA display manager for Sword (from CrossWire) Bible modules." \
+            + "\n\nThis is still an unfinished alpha test version, but it should allow you to display and set various parameters" \
+            + " and then download and view Bible and commentary modules from the Internet." \
+            + "\n\n{} is written in Python.".format( ShortProgName ) \
+            + " For more information see our web pages at Freely-Given.org/Software/BibleOrgSys and Freely-Given.org/Software/Biblelator and Freely-Given.org/Software/BibleDropBox/SwordModules.html"
         ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
     # end of SwordManager.doAbout
 

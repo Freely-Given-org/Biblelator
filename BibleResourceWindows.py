@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-26' # by RJH
+LastModifiedDate = '2016-05-06' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.35'
@@ -392,7 +392,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
         self.getNextBookCode = self.BibleOrganisationalSystem.getNextBookCode
-        self.getBBB = self.BibleOrganisationalSystem.getBBB
+        self.getBBBFromText = self.BibleOrganisationalSystem.getBBBFromText
         self.getBookName = self.BibleOrganisationalSystem.getBookName
         self.getBookList = self.BibleOrganisationalSystem.getBookList
         self.maxChaptersThisBook, self.maxVersesThisChapter = 150, 150 # temp

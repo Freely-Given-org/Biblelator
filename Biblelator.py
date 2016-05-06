@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-04' # by RJH
+LastModifiedDate = '2016-05-06' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.35'
@@ -286,7 +286,7 @@ class Application( Frame ):
         self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
         self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
-        self.getBBB = self.genericBibleOrganisationalSystem.getBBB
+        self.getBBBFromText = self.genericBibleOrganisationalSystem.getBBBFromText
         self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
@@ -2316,7 +2316,7 @@ class Application( Frame ):
             print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBookname ) )
             #print( dir(event) )
 
-        BBB, C, V = parseEnteredBookname( enteredBookname, self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBB )
+        BBB, C, V = parseEnteredBookname( enteredBookname, self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
         #enteredBookname = self.bookNameVar.get()
         #C = self.chapterNumberVar.get()
         #V = self.verseNumberVar.get()
