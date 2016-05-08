@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-06' # by RJH
+LastModifiedDate = '2016-05-07' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
-ProgVersion = '0.04' # Separate versioning from Biblelator
+ProgVersion = '0.05' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -636,23 +636,28 @@ class BOSManager( Frame ):
         self.codesPage = Frame( self.notebook )
         codesLabel = Label( self.codesPage, text="Books Codes ({})".format( len(self.BibleBooksCodesList) ) )
         codesLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.codesPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.codesSearch = Entry( self.codesPage, width=5 )
+        searchBBBLabel = Label( self.codesPage, text=_("Search BBB:") )
+        searchBBBLabel.grid( row=1, column=0 )
+        self.codesBBBSearch = Entry( self.codesPage, width=5 )
+        self.codesBBBSearch.bind( '<Return>', self.searchBBBCode )
+        self.codesBBBSearch.grid( row=1, column=1 )
+        searchLabel = Label( self.codesPage, text=_("Search (all):") )
+        searchLabel.grid( row=2, column=0 )
+        self.codesSearch = Entry( self.codesPage, width=8 )
         self.codesSearch.bind( '<Return>', self.searchCode )
-        self.codesSearch.grid( row=1, column=1 )
+        self.codesSearch.grid( row=2, column=1 )
         sbar = Scrollbar( self.codesPage )
         self.codesListbox = tk.Listbox( self.codesPage, width=5, relief=tk.SUNKEN )
         sbar.config( command=self.codesListbox.yview )
         self.codesListbox.config( yscrollcommand=sbar.set )
         self.codesListbox.bind('<<ListboxSelect>>', self.gotoNewCode )
         #self.codesListbox.bind( '<Return>', self.gotoNewCode )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.codesListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        sbar.grid( row=0, column=3, rowspan=3, sticky=tk.N+tk.S )
+        self.codesListbox.grid( row=0, column=2, rowspan=3, sticky=tk.N+tk.S )
         self.codeTextBox = ScrolledText( self.codesPage, bg='lightblue' )
         self.codeTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.codeTextBox.insert( tk.END, 'Codes' )
-        self.codeTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.codeTextBox.grid( row=0, column=4, rowspan=3, sticky=tk.N+tk.S+tk.E )
         for BBB in self.BibleBooksCodesList:
             self.codesListbox.insert( tk.END, BBB ) # fill the listbox
         self.codesSearch.insert( tk.END, 'GEN' )
@@ -682,7 +687,7 @@ class BOSManager( Frame ):
         self.punctuationTextBox = ScrolledText( self.punctuationPage, bg='lightgreen' )
         self.punctuationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.punctuationTextBox.insert( tk.END, 'Punctuations' )
-        self.punctuationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.punctuationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for pName in self.BiblePunctuationsList:
             self.punctuationsListbox.insert( tk.END, pName ) # fill the listbox
         self.punctuationsSearch.insert( tk.END, 'English' )
@@ -712,7 +717,7 @@ class BOSManager( Frame ):
         self.versificationTextBox = ScrolledText( self.versificationsPage, bg='orange' )
         self.versificationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.versificationTextBox.insert( tk.END, 'Versifications' )
-        self.versificationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.versificationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for vName in self.BibleVersificationsSystemsList:
             self.versificationsListbox.insert( tk.END, vName ) # fill the listbox
         self.versificationsSearch.insert( tk.END, 'KJV' ) # Select KJV
@@ -742,7 +747,7 @@ class BOSManager( Frame ):
         self.mappingTextBox = ScrolledText( self.mappingsPage, bg='brown' )
         self.mappingTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.mappingTextBox.insert( tk.END, 'Mappings' )
-        self.mappingTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.mappingTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for mName in self.BibleMappingsSystemsList:
             self.mappingsListbox.insert( tk.END, mName ) # fill the listbox
         self.mappingsSearch.insert( tk.END, 'KJV' ) # Select KJV
@@ -772,7 +777,7 @@ class BOSManager( Frame ):
         self.orderTextBox = ScrolledText( self.ordersPage, bg='yellow' )
         self.orderTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.orderTextBox.insert( tk.END, 'Orders' )
-        self.orderTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.orderTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for oName in self.BibleOrdersSystemsList:
             self.ordersListbox.insert( tk.END, oName ) # fill the listbox
         self.ordersSearch.insert( tk.END, 'LutheranBible' )
@@ -802,7 +807,7 @@ class BOSManager( Frame ):
         self.nameTextBox = ScrolledText( self.namesPage, bg='orange' )
         self.nameTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.nameTextBox.insert( tk.END, 'Names' )
-        self.nameTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.nameTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for nName in self.BibleNamesSystemsList:
             self.namesListbox.insert( tk.END, nName ) # fill the listbox
         self.namesSearch.insert( tk.END, 'eng_traditional' )
@@ -832,7 +837,7 @@ class BOSManager( Frame ):
         self.organizationTextBox = ScrolledText( self.organizationsPage, bg='pink' )
         self.organizationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.organizationTextBox.insert( tk.END, 'Organizations' )
-        self.organizationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.organizationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for orgName in self.BibleOrganizationalSystemsList:
             self.organizationsListbox.insert( tk.END, orgName ) # fill the listbox
         self.organizationsSearch.insert( tk.END, 'RSV71' )
@@ -862,7 +867,7 @@ class BOSManager( Frame ):
         self.referenceTextBox = ScrolledText( self.referencesPage, bg='orange' )
         self.referenceTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.referenceTextBox.insert( tk.END, 'References' )
-        self.referenceTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.referenceTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for rName in self.BibleReferenceSystemsList:
             self.referencesListbox.insert( tk.END, rName ) # fill the listbox
         self.referenceSearch.insert( tk.END, 'KJV' ) # Select KJV
@@ -892,7 +897,7 @@ class BOSManager( Frame ):
         self.stylesheetTextBox = ScrolledText( self.stylesheetsPage, bg='orange' )
         self.stylesheetTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
         #self.stylesheetTextBox.insert( tk.END, 'Organizations' )
-        self.stylesheetTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S )
+        self.stylesheetTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for ssName in self.BibleStylesheetSystemsList:
             self.stylesheetsListbox.insert( tk.END, ssName ) # fill the listbox
         self.stylesheetSearch.insert( tk.END, 'KJV' ) # Select KJV
@@ -1131,8 +1136,42 @@ class BOSManager( Frame ):
     # end of BOSManager.doChangeTheme
 
 
+    def searchBBBCode( self, event ):
+        """
+        Search for the given text in the 3-character (uppercase or numeric) book codes.
+        """
+        enteredText = self.codesSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchBBBCode…" )
+
+        if not enteredText: return
+
+        eTU = enteredText.upper()
+        if len(eTU)==3 and eTU!=enteredText and eTU in self.BibleBooksCodesList:
+            self.setErrorStatus( "Converted entered book code to UPPER CASE" )
+            enteredText = eTU
+
+        if len(enteredText)!=3: self.setErrorStatus( "Books codes must be three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books codes must have no spaces" ); return
+        elif enteredText not in self.BibleBooksCodesList:
+            self.setErrorStatus( "Unknown {!r} book code".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.BBB = enteredText
+        index = self.BibleBooksCodesList.index( self.BBB )
+
+        # Select it in the listbox
+        self.codesListbox.select_set( index )
+        self.codesListbox.see( index )
+        self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
+    # end of BOSManager.searchBBBCode
+
+
     def searchCode( self, event ):
         """
+        Search for the given text through all possible book code types.
         """
         enteredText = self.codesSearch.get()
         if BibleOrgSysGlobals.debugFlag:
