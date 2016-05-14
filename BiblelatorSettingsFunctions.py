@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-14' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.35'
@@ -192,6 +192,18 @@ def parseAndApplySettings( self ):
         self.internetAccessEnabled = internetAccessString == 'Enabled'
     except KeyError: self.internetAccessEnabled = False # default
     try:
+        fastString = self.settings.data['Internet']['internetFast']
+        self.internetFast = fastString.lower() in ('true' ,'yes',)
+    except KeyError: self.internetFast = True # default
+    try:
+        expensiveString = self.settings.data['Internet']['internetExpensive']
+        self.internetExpensive = expensiveString.lower() in ('true' ,'yes',)
+    except KeyError: self.internetExpensive = True # default
+    try:
+        cloudBackupsString = self.settings.data['Internet']['cloudBackups']
+        self.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
+    except KeyError: self.cloudBackupsEnabled = True # default
+    try:
         checkForMessagesString = self.settings.data['Internet']['checkForDeveloperMessages']
         self.checkForDeveloperMessagesEnabled = checkForMessagesString == 'Enabled'
     except KeyError: self.checkForDeveloperMessagesEnabled = True # default
@@ -213,10 +225,6 @@ def parseAndApplySettings( self ):
         useDevelopmentVersionsString = self.settings.data['Internet']['useDevelopmentVersions']
         self.useDevelopmentVersionsEnabled = useDevelopmentVersionsString == 'Enabled'
     except KeyError: self.useDevelopmentVersionsEnabled = False # default
-    try:
-        cloudBackupsString = self.settings.data['Internet']['cloudBackups']
-        self.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
-    except KeyError: self.cloudBackupsEnabled = True # default
 
     # Parse project info
     try: self.currentProjectName = self.settings.data['Project']['currentProjectName']
@@ -256,15 +264,15 @@ def parseAndApplySettings( self ):
     except KeyError: recentFields = None
     if recentFields: # in settings file
         for j in range( 1, MAX_RECENT_FILES+1 ):
-            recentName = 'Recent{}'.format( j )
+            recentName = 'recent{}'.format( j )
             for keyName in recentFields:
                 if keyName.startswith( recentName ): # This index number (j) is present
-                    filename = convertToPython( self.settings.data['RecentFiles']['Recent{}Filename'.format( j )] )
+                    filename = convertToPython( self.settings.data['RecentFiles']['recent{}Filename'.format( j )] )
                     #if filename == 'None': filename = None
-                    folder = convertToPython( self.settings.data['RecentFiles']['Recent{}Folder'.format( j )] )
+                    folder = convertToPython( self.settings.data['RecentFiles']['recent{}Folder'.format( j )] )
                     #if folder == 'None': folder = None
                     if folder and folder[-1] not in '/\\': folder += '/'
-                    windowType = self.settings.data['RecentFiles']['Recent{}Type'.format( j )]
+                    windowType = self.settings.data['RecentFiles']['recent{}Type'.format( j )]
                     self.recentFiles.append( (filename,folder,windowType) )
                     assert len(self.recentFiles) == j
                     break # go to next j
@@ -632,12 +640,14 @@ def writeSettingsFile( self ):
     self.settings.data['Internet'] = {}
     internet = self.settings.data['Internet']
     internet['internetAccess'] = 'Enabled' if self.internetAccessEnabled else 'Disabled'
+    internet['internetFast'] = 'True' if self.internetFast else 'False'
+    internet['internetExpensive'] = 'True' if self.internetExpensive else 'False'
+    internet['cloudBackups'] = 'Enabled' if self.cloudBackupsEnabled else 'Disabled'
     internet['checkForDeveloperMessages'] = 'Enabled' if self.checkForDeveloperMessagesEnabled else 'Disabled'
     internet['lastMessageNumberRead'] = str( self.lastMessageNumberRead )
     internet['sendUsageStatistics'] = 'Enabled' if self.sendUsageStatisticsEnabled else 'Disabled'
     internet['automaticUpdates'] = 'Enabled' if self.automaticUpdatesEnabled else 'Disabled'
     internet['useDevelopmentVersions'] = 'Enabled' if self.useDevelopmentVersionsEnabled else 'Disabled'
-    internet['cloudBackups'] = 'Enabled' if self.cloudBackupsEnabled else 'Disabled'
 
     # Save the project information
     self.settings.data['Project'] = {}
@@ -664,7 +674,7 @@ def writeSettingsFile( self ):
     self.settings.data['RecentFiles'] = {}
     recent = self.settings.data['RecentFiles']
     for j, (filename,folder,windowType) in enumerate( self.recentFiles ):
-        recentName = 'Recent{}'.format( j+1 )
+        recentName = 'recent{}'.format( j+1 )
         recent[recentName+'Filename'] = convertToString( filename )
         recent[recentName+'Folder'] = convertToString( folder )
         recent[recentName+'Type'] = windowType

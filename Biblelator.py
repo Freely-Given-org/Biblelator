@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-06' # by RJH
+LastModifiedDate = '2016-05-14' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.35'
@@ -94,6 +94,7 @@ from PTXBible import PTXBible, loadPTXSSFData
 
 
 
+LOCK_FILENAME = '{}.lock'.format( APP_NAME )
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
 BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
 PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
@@ -2862,7 +2863,8 @@ class Application( Frame ):
         helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
         helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
         helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
-        hb = HelpBox( self.rootWindow, APP_NAME, helpInfo )
+        helpImage = 'BiblelatorLogoSmall.gif'
+        hb = HelpBox( self.rootWindow, APP_NAME, helpInfo, helpImage )
     # end of Application.doHelp
 
 
@@ -2899,7 +2901,8 @@ class Application( Frame ):
         aboutInfo += "\nA free USFM Bible editor." \
             + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
             + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( ShortProgName )
-        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+        aboutImage = 'BiblelatorLogoSmall.gif'
+        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo, aboutImage )
     # end of Application.doAbout
 
 
@@ -2969,6 +2972,110 @@ class Application( Frame ):
             doSendUsageStatistics( self )
     # end of Application.doCloseMe
 # end of class Application
+
+
+
+def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName, iniName ):
+    """
+    The lock file was still there when we started, so maybe we didn't close cleanly.
+
+    Try to help the user through this problem.
+    """
+    from collections import OrderedDict
+    from USFMBookCompare import USFMBookCompare
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("Application.handlePossibleCrash( {}, {}, {}, {} )").format( homeFolderPath, dataFolderName, settingsFolderName, iniName ) )
+
+    print( '\n' + _("Is there another copy of {} already running?").format( APP_NAME ) )
+    print( '\n' + _("If not, perhaps {} didn't close nicely (i.e., crashed?) last time?").format( APP_NAME ) )
+
+    if not iniName.lower().endswith( '.ini' ): iniName += '.ini'
+    iniFilepath = os.path.join( homeFolderPath, dataFolderName, settingsFolderName, iniName )
+    currentWindowDict = OrderedDict()
+    with open( iniFilepath, 'rt' ) as iniFile:
+        inCurrent = False
+        for line in iniFile:
+            line = line.strip()
+            #while line and line[-1] in '\n\r': line = line[:-1]
+            #print( repr(line) )
+            if inCurrent:
+                if line.startswith( 'window' ):
+                    num = line[6]
+                    field, contents = line[7:].split( ' = ', 1 )
+                    if num not in currentWindowDict: currentWindowDict[num] = {}
+                    currentWindowDict[num][field] = contents
+                else: inCurrent = False
+            elif line == '[WindowSettingCurrent]':
+                inCurrent = True
+    #print( currentWindowDict )
+
+    hadAny = False
+    for num in currentWindowDict:
+        if currentWindowDict[num]['Type'] == 'ParatextUSFMBibleEditWindow':
+            ssfFilepath = currentWindowDict[num]['SSFFilepath']
+            ssfFolder, ssfFilename = os.path.split( ssfFilepath )
+            #print( "ssfFolder", ssfFolder )
+            ssfName = ssfFilename[:-4]
+            print( '  ' + _("Seems you might have been editing {}").format( ssfName ) )
+            projectFolder = os.path.join( ssfFolder+'/', ssfName+'/' )
+            # Look for an Autosave folder
+            autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
+            if os.path.exists( autosaveFolderPath ):
+                print( "    " + _("Checking in {}").format( autosaveFolderPath ) )
+                for something in os.listdir( autosaveFolderPath ):
+                    somepath = os.path.join( autosaveFolderPath, something )
+                    #if os.path.isdir( somepath ): foundFolders.append( something )
+                    if os.path.isfile( somepath ):
+                        filepath = os.path.join( projectFolder, something )
+                        if os.path.exists( filepath ):
+                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            resultDict = USFMBookCompare( filepath, somepath )
+                            #print( resultDict )
+                            haveSuggestions = False
+                            for someKey,someValue in resultDict['Summary'].items():
+                                if someValue.startswith( 'file2' ): # autosave file might be important
+                                    haveSuggestions = True
+                            if haveSuggestions:
+                                print( "      " + _("Comparing file1 {}").format( filepath ) )
+                                print( "      " + _("     with file2 {}").format( somepath ) )
+                                for someKey,someValue in resultDict['Summary'].items():
+                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                hadAny = True
+
+        elif currentWindowDict[num]['Type'] == 'BiblelatorUSFMBibleEditWindow':
+            projectFolder = currentWindowDict[num]['ProjectFolderPath']
+            print( '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
+            # Look for an Autosave folder
+            autosaveFolderPath = os.path.join( projectFolder, 'AutoSave/' )
+            if os.path.exists( autosaveFolderPath ):
+                print( "    " + _("Checking in {}").format( autosaveFolderPath ) )
+                for something in os.listdir( autosaveFolderPath ):
+                    somepath = os.path.join( autosaveFolderPath, something )
+                    #if os.path.isdir( somepath ): foundFolders.append( something )
+                    if os.path.isfile( somepath ):
+                        filepath = os.path.join( projectFolder, something )
+                        if os.path.exists( filepath ):
+                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            resultDict = USFMBookCompare( filepath, somepath )
+                            #print( resultDict )
+                            haveSuggestions = False
+                            for someKey,someValue in resultDict['Summary'].items():
+                                if someValue.startswith( 'file2' ): # autosave file might be important
+                                    haveSuggestions = True
+                            if haveSuggestions:
+                                print( "      " + _("Comparing file1 {}").format( filepath ) )
+                                print( "      " + _("     with file2 {}").format( somepath ) )
+                                for someKey,someValue in resultDict['Summary'].items():
+                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                hadAny = True
+    if hadAny:
+        print( '  ' + _("You might want to copy the above AutoSave files???") )
+    else: print( '  ' + _("Seems that your files are ok / up-to-date (as far was we can tell)") )
+
+    print( '\n' + _("{} will not open while the lock file exists.").format( APP_NAME ) )
+    print( "    " + _("(Remove {!r} from {!r} after backing-up / recovering any files)").format( LOCK_FILENAME, os.getcwd() ) )
+    sys.exit()
+# end of handlePossibleCrash
 
 
 
@@ -3075,6 +3182,20 @@ def main( homeFolderPath, loggingFolderPath ):
         #print( "Found", numMyInstancesFound, numParatextInstancesFound )
         #halt
 
+    if BibleOrgSysGlobals.commandLineArguments.override is None:
+        INIname = APP_NAME
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( INIname ) )
+    else:
+        INIname = BibleOrgSysGlobals.commandLineArguments.override
+        if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( INIname ) )
+
+    if os.path.exists( LOCK_FILENAME ): # perhaps the program crashed last time
+        handlePossibleCrash( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
+
+    # Create the lock file on normal startup
+    with open( LOCK_FILENAME, 'wt' ) as lockFile:
+        lockFile.write( 'Lock file for {}\n'.format( APP_NAME ) )
+
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
@@ -3084,12 +3205,6 @@ def main( homeFolderPath, loggingFolderPath ):
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
 
-    if BibleOrgSysGlobals.commandLineArguments.override is None:
-        INIname = APP_NAME
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( INIname ) )
-    else:
-        INIname = BibleOrgSysGlobals.commandLineArguments.override
-        if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( INIname ) )
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
     settings.load()
 
@@ -3100,6 +3215,9 @@ def main( homeFolderPath, loggingFolderPath ):
 
     # Start the program running
     tkRootWindow.mainloop()
+
+    # Remove the lock file when we close
+    os.remove( LOCK_FILENAME )
 # end of Biblelator.main
 
 

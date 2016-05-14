@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-04-27 RJH
+Last updated: 2016-05-14 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -32,6 +32,7 @@ Biblelator bugs
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 * Need to close autocomplete pop-up if window loses focus
+* Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
@@ -71,7 +72,6 @@ BOS testing required
 Biblelator stuff
 * Make Bible fields in BOSManager into clickable links (to go to other tabs)
 * USFM editor still only aware of basic/common USFM tags
-* Add Internet fast/slow, expensive/cheap flags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
 * Make a proper icon

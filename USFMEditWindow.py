@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-26' # by RJH
+LastModifiedDate = '2016-05-09' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.35'
@@ -738,6 +738,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             #print( "contextViewMode", self.contextViewMode )
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
+        self.textBox['background'] = self.defaultBackgroundColour # Go back to default background
 
         oldVerseKey = self.currentVerseKey
         oldBBB, oldC, oldV = (None,None,None) if oldVerseKey is None else oldVerseKey.getBCV()
