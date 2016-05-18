@@ -25,18 +25,64 @@
 """
 Windows and frames to allow display and manipulation of
     (non-editable) Bible resource windows.
+
+class BibleBox( ChildBox )
+    displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False )
+    getBeforeAndAfterBibleData( self, newVerseKey )
+
+class BibleResourceWindow( ChildWindow, BibleBox )
+    __init__( self, parentApp, windowType, moduleID )
+    createMenuBar( self )
+    changeBibleContextView( self )
+    changeBibleGroupCode( self )
+    doGotoPreviousBook( self, gotoEnd=False )
+    doGotoNextBook( self )
+    doGotoPreviousChapter( self, gotoEnd=False )
+    doGotoNextChapter( self )
+    doGotoPreviousSection( self, gotoEnd=False )
+    doGotoNextSection( self )
+    doGotoPreviousVerse( self )
+    doGotoNextVerse( self )
+    doGoForward( self )
+    doGoBackward( self )
+    doGotoPreviousListItem( self )
+    doGotoNextListItem( self )
+    doGotoBook( self )
+    gotoBCV( self, BBB, C, V )
+    getSwordVerseKey( self, verseKey )
+    getCachedVerseData( self, verseKey )
+    setCurrentVerseKey( self, newVerseKey )
+    updateShownBCV( self, newReferenceVerseKey, originator=None )
+    doShowInfo( self, event=None )
+
+class SwordBibleResourceWindow( BibleResourceWindow )
+    __init__( self, parentApp, moduleAbbreviation )
+    refreshTitle( self )
+    getContextVerseData( self, verseKey )
+
+class DBPBibleResourceWindow( BibleResourceWindow )
+    __init__( self, parentApp, moduleAbbreviation )
+    refreshTitle( self )
+    getContextVerseData( self, verseKey )
+
+class InternalBibleResourceWindow( BibleResourceWindow )
+    __init__( self, parentApp, modulePath )
+    refreshTitle( self )
+    getContextVerseData( self, verseKey )
+
+demo()
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-06' # by RJH
+LastModifiedDate = '2016-05-18' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys, logging
@@ -222,6 +268,9 @@ class BibleBox( ChildBox ):
                         self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
                     elif marker in ('s1','s2','s3','s4', 'is1','is2','is3','is4',):
+                        self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('d','sp',):
                         self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
                     elif marker == 'r':
@@ -900,7 +949,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         elif self.contextViewMode == 'ByBook':
             BBB, C, V = newVerseKey.getBCV()
             intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            for thisC in range( 0, self.getNumChapters( BBB ) ):
+            for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
                 try: numVerses = self.getNumVerses( BBB, thisC )
                 except KeyError: numVerses = 0
                 for thisV in range( 0, numVerses ):
@@ -915,7 +964,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
             intV = newVerseKey.getVerseNumberInt()
             try: numVerses = self.getNumVerses( BBB, C )
             except KeyError: numVerses = 0
-            for thisV in range( 0, numVerses ):
+            for thisV in range( 0, numVerses + 1 ):
                 thisVerseKey = SimpleVerseKey( BBB, C, thisV )
                 thisVerseData = self.getCachedVerseData( thisVerseKey )
                 self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
@@ -935,19 +984,6 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
 
         self.refreshTitle()
     # end of BibleResourceWindow.updateShownBCV
-
-
-    def doShowInfo( self, event=None ):
-        """
-        Pop-up dialog
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleResourceWindow.doShowInfo( {} )").format( event ) )
-
-        infoString = '{}:\n'.format( self.windowType ) \
-                 + '  Name:\t{}\n'.format( self.moduleID )
-        showinfo( self, 'Window Information', infoString )
-    # end of BibleResourceWindow.doShowInfo
 # end of BibleResourceWindow class
 
 
@@ -1011,6 +1047,22 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
                     adjustedInternalBibleData.append( newInternalBibleEntry )
                 return adjustedInternalBibleData, context
     # end of SwordBibleResourceWindow.getContextVerseData
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("SwordBibleResourceWindow.doShowInfo( {} )").format( event ) )
+
+        infoString = 'SwordBibleResourceWindow:\n' \
+                 + '  Module:\t\t{}\n'.format( self.moduleAbbreviation ) \
+                 + '  Type:\t\t{}\n'.format( '' if self.SwordModule is None else self.SwordModule.getType() ) \
+                 + '  Format:\t\t{}\n'.format( '' if self.SwordModule is None else self.SwordModule.getMarkup() ) \
+                 + '  Encoding:\t{}'.format( '' if self.SwordModule is None else self.SwordModule.getEncoding() )
+        showinfo( self, 'Window Information', infoString )
+    # end of SwordBibleResourceWindow.doShowInfo
 # end of SwordBibleResourceWindow class
 
 
@@ -1068,6 +1120,19 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 return self.DBPModule.getContextVerseData( verseKey )
     # end of DBPBibleResourceWindow.getContextVerseData
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("DBPBibleResourceWindow.doShowInfo( {} )").format( event ) )
+
+        infoString = 'DBPBibleResourceWindow:\n' \
+                 + '  Name:\t{}'.format( self.moduleAbbreviation )
+        showinfo( self, 'Window Information', infoString )
+    # end of DBPBibleResourceWindow.doShowInfo
 # end of DBPBibleResourceWindow class
 
 
@@ -1131,6 +1196,21 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                     logging.critical( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
                                                                 .format( self.windowType, verseKey ) )
     # end of InternalBibleResourceWindow.getContextVerseData
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.doShowInfo( {} )").format( event ) )
+
+        infoString = 'InternalBibleResourceWindow:\n' \
+                 + '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.name ) \
+                 + '  Type:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.objectTypeString ) \
+                 + '  Path:\t{}'.format( self.modulePath )
+        showinfo( self, 'Window Information', infoString )
+    # end of InternalBibleResourceWindow.doShowInfo
 # end of InternalBibleResourceWindow class
 
 

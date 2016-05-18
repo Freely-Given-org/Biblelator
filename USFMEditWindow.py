@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-09' # by RJH
+LastModifiedDate = '2016-05-15' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.35'
@@ -944,7 +944,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -959,10 +959,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses+1 ):
+                    for thisV in range( 0, numVerses + 1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''

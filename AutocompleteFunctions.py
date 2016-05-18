@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-17' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -51,7 +51,6 @@ from collections import defaultdict
 # BibleOrgSys imports
 if __name__ == '__main__': sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-from InternalBibleBook import INTERNAL_SFMS_TO_REMOVE
 from InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
 from USFMMarkers import USFM_PRINTABLE_MARKERS
 
@@ -157,11 +156,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
 
 
 
-# Get our list of markers -- note that the more common note markers are first
-internalMarkers = BibleOrgSysGlobals.USFMMarkers.getNoteMarkersList() \
-    + BibleOrgSysGlobals.USFMMarkers.getCharacterMarkersList( includeBackslash=False, includeEndMarkers=False, includeNestedMarkers=True, expandNumberableMarkers=True )
-internalMarkers = ['\\'+marker for marker in internalMarkers]
-
+internalMarkers = None
 DUMMY_VALUE = 999999 # Some number bigger than the number of characters in a line
 
 def countBookWords( BBB, internalBible, filename, isCurrentBook ):
@@ -174,6 +169,12 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
     if BBB in AVOID_BOOKS: return
+
+    global internalMarkers
+    if internalMarkers is None: # Get our list of markers -- note that the more common note markers are first
+        internalMarkers = BibleOrgSysGlobals.USFMMarkers.getNoteMarkersList() \
+            + BibleOrgSysGlobals.USFMMarkers.getCharacterMarkersList( includeBackslash=False, includeEndMarkers=False, includeNestedMarkers=True, expandNumberableMarkers=True )
+        internalMarkers = ['\\'+marker for marker in internalMarkers]
 
     countIncrement = 3 if isCurrentBook else 1 # Each word in current book counts higher so appears higher in the list
     # NOTE: This idea fails as soon as they change books in the edit window

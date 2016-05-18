@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-06' # by RJH
+LastModifiedDate = '2016-05-18' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.35'
@@ -92,7 +92,7 @@ from tkinter.ttk import Frame, Button, Scrollbar
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
-from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog
+from BiblelatorDialogs import showerror, showinfo, SelectResourceBoxDialog, RenameResourceCollectionDialog
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 from BiblelatorHelpers import handleInternalBibles
 
@@ -520,7 +520,7 @@ class BibleResourceBox( Frame, BibleBox ):
         #elif self.parentWindow.contextViewMode == 'ByBook':
             #BBB, C, V = newVerseKey.getBCV()
             #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            #for thisC in range( 0, self.getNumChapters( BBB ) ):
+            #for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
                 #try: numVerses = self.getNumVerses( BBB, thisC )
                 #except KeyError: numVerses = 0
                 #for thisV in range( 0, numVerses ):
@@ -535,7 +535,7 @@ class BibleResourceBox( Frame, BibleBox ):
             #intV = newVerseKey.getVerseNumberInt()
             #try: numVerses = self.getNumVerses( BBB, C )
             #except KeyError: numVerses = 0
-            #for thisV in range( 0, numVerses ):
+            #for thisV in range( 0, numVerses + 1 ):
                 #thisVerseKey = SimpleVerseKey( BBB, C, thisV )
                 #thisVerseData = self.getCachedVerseData( thisVerseKey )
                 #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
@@ -1114,6 +1114,21 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
         self.refreshTitle()
     # end of BibleResourceCollectionWindow.updateShownBCV
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceCollectionWindow.doShowInfo( {} )").format( event ) )
+
+        infoString = 'BibleResourceCollectionWindow:\n  Name:\t{}\n'.format( self.moduleID )
+        for j, resourceBox in enumerate( self.resourceBoxes ):
+            infoString += '\nType{}:\t{}'.format( j+1, resourceBox.boxType ) \
+                 + '\nName{}:\t{}'.format( j+1, resourceBox.moduleID )
+        showinfo( self, 'Window Information', infoString )
+    # end of BibleResourceCollectionWindow.doShowInfo
 
 
     def doHelp( self, event=None ):

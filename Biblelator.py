@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-14' # by RJH
+LastModifiedDate = '2016-05-17' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.35'
@@ -3073,7 +3073,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName, ini
     else: print( '  ' + _("Seems that your files are ok / up-to-date (as far was we can tell)") )
 
     print( '\n' + _("{} will not open while the lock file exists.").format( APP_NAME ) )
-    print( "    " + _("(Remove {!r} from {!r} after backing-up / recovering any files)").format( LOCK_FILENAME, os.getcwd() ) )
+    print( "    " + _("(Remove {!r} from {!r} after backing-up / recovering any files first)").format( LOCK_FILENAME, os.getcwd() ) )
     sys.exit()
 # end of handlePossibleCrash
 
@@ -3236,9 +3236,9 @@ if __name__ == '__main__':
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
-    if 'win' in sys.platform: # Disable multiprocessing until we get less bugs in Biblelator
-        print( "Limiting to single-threading on Windows (until we solve some bugs)" )
-        BibleOrgSysGlobals.maxProcesses = 1
+    #if 'win' in sys.platform: # Disable multiprocessing until we get less bugs in Biblelator
+        #print( "Limiting to single-threading on Windows (until we solve some bugs)" )
+        #BibleOrgSysGlobals.maxProcesses = 1
     #print( 'MP', BibleOrgSysGlobals.maxProcesses )
 
     if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???

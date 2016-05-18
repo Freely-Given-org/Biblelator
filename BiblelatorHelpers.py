@@ -37,7 +37,7 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-16' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.35'
@@ -229,12 +229,6 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
 
 
 
-# A (temporary) dictionary containing NT references to OT
-REFERENCE_VERSE_KEY_DICT = {
-    SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
-    SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
-    }
-
 def mapReferenceVerseKey( mainVerseKey ):
     """
     Returns the verse key for OT references in the NT (and vv), etc.
@@ -243,6 +237,12 @@ def mapReferenceVerseKey( mainVerseKey ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+
+    # A (temporary) dictionary containing NT references to OT
+    REFERENCE_VERSE_KEY_DICT = {
+        SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
+        SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
+        }
 
     if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:

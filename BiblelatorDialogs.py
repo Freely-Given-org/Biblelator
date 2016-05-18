@@ -44,10 +44,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-15'
+LastModifiedDate = '2016-04-17'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.33'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -131,7 +131,7 @@ def showwarning( parent, title, warningText ):
 def showinfo( parent, title, infoText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag:
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("showinfo( {}, {!r}, {!r} )").format( parent, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parent.config().items()): # Append the parent window config info
