@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-08' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
-ProgVersion = '0.01' # Separate versioning from Biblelator
+ProgVersion = '0.03' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -41,20 +41,21 @@ debuggingThisModule = True
 
 import sys, os, logging, subprocess
 import multiprocessing
+from collections import OrderedDict
+
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
-from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
+from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, \
+from BiblelatorGlobals import DEFAULT, START, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-        INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
-        BIBLE_GROUP_CODES, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, findUsername, \
-        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
+        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
+        parseWindowSize
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
 # assembleWindowSize, parseWindowSize,
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
@@ -79,20 +80,19 @@ sys.path.append( '../BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
-from BibleVersificationSystems import BibleVersificationSystems
-from DigitalBiblePlatform import DBPBibles
-from VerseReferences import SimpleVerseKey
+#from BibleVersificationSystems import BibleVersificationSystems
+#from DigitalBiblePlatform import DBPBibles
+#from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from SwordInstallManager import SwordInstallManager
-from USFMBible import USFMBible
-from PTXBible import PTXBible, loadPTXSSFData
+#from USFMBible import USFMBible
+#from PTXBible import PTXBible, loadPTXSSFData
 
 
 
-TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
-BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
-PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+# Default window size settings (Note: X=width, Y=height)
+INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x376', '607x460', '550x375', '700x600'
 
 
 
@@ -166,6 +166,8 @@ class SwordManager( Frame ):
 
         self.createStatusBar()
 
+        self.SwIM = SwordInstallManager()
+
         # Create our display text book
         self.textBox = ScrolledText( self.rootWindow, bg='lightskyblue' )#style='DebugText.TScrolledText' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH )
@@ -203,11 +205,16 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.createDebugToolBar()
         self.createMainKeyboardBindings()
 
+        self.repoDict = None
+        self.createNotebook()
+
         # See if there's any developer messages
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForDeveloperMessages()
 
         self.rootWindow.title( ProgNameVersion )
+        self.minimumSize = MINIMUM_MAIN_SIZE
+        self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
@@ -232,7 +239,7 @@ class SwordManager( Frame ):
         self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
         self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
-        self.getBBB = self.genericBibleOrganisationalSystem.getBBB
+        self.getBBBFromText = self.genericBibleOrganisationalSystem.getBBBFromText
         self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
@@ -266,58 +273,22 @@ class SwordManager( Frame ):
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
         #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
         fileNewSubmenu = tk.Menu( fileMenu, tearoff=False )
-        fileMenu.add_cascade( label=_('New'), underline=0, menu=fileNewSubmenu )
-        fileNewSubmenu.add_command( label=_('Text file'), underline=0, command=self.notWrittenYet )
-        fileOpenSubmenu = tk.Menu( fileMenu, tearoff=False )
-        fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
-        fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
-        fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
-        for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
-            fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=self.notWrittenYet )
-        fileOpenSubmenu.add_separator()
-        fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_separator()
-        fileMenu.add_command( label=_('Save all…'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_separator()
-        fileMenu.add_command( label=_('Save settings'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_separator()
+        #fileMenu.add_cascade( label=_('New'), underline=0, menu=fileNewSubmenu )
+        #fileNewSubmenu.add_command( label=_('Text file'), underline=0, command=self.notWrittenYet )
+        #fileOpenSubmenu = tk.Menu( fileMenu, tearoff=False )
+        #fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
+        #fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
+        #fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
+        #for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
+            #fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=self.notWrittenYet )
+        #fileOpenSubmenu.add_separator()
+        #fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Save all…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Save settings'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
         fileMenu.add_command( label=_('Quit app'), underline=0, command=self.doCloseMe, accelerator=self.keyBindingDict[_('Quit')][0] ) # quit app
-
-        #editMenu = tk.Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
-        #editMenu.add_command( label=_('Find…'), underline=0, command=self.notWrittenYet )
-        #editMenu.add_command( label=_('Replace…'), underline=0, command=self.notWrittenYet )
-
-        booksCodesMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=booksCodesMenu, label=_('Codes'), underline=0 )
-        booksCodesMenu.add_command( label=_('View…'), underline=-1, command=self.notWrittenYet )
-        booksCodesMenu.add_separator()
-        booksCodesMenu.add_command( label=_('Info…'), underline=0, command=self.doGotoInfo )
-
-        ordersMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=ordersMenu, label=_('Orders'), underline=0 )
-        ordersMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
-        ordersMenu.add_separator()
-        ordersMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
-
-        namesMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=namesMenu, label=_('Names'), underline=0 )
-        submenuBibleResourceType = tk.Menu( namesMenu, tearoff=False )
-        namesMenu.add_command( label=_('View…'), underline=5, command=self.notWrittenYet )
-        namesMenu.add_separator()
-        namesMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
-
-        versificationsMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=versificationsMenu, label=_('Versifications'), underline=0 )
-        versificationsMenu.add_command( label=_('View…'), underline=0, command=self.notWrittenYet )
-        versificationsMenu.add_separator()
-        versificationsMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
-
-        orgsMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=orgsMenu, label=_('Bibles'), underline=0 )
-        orgsMenu.add_command( label=_('View…'), underline=0, command=self.notWrittenYet )
-        orgsMenu.add_separator()
-        orgsMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
 
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
@@ -394,7 +365,7 @@ class SwordManager( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -511,7 +482,7 @@ class SwordManager( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -614,6 +585,119 @@ class SwordManager( Frame ):
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of SwordManager.createToolBar
+
+
+    def createNotebook( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createToolBar()") )
+
+        self.notebook = Notebook( self )
+
+        # Adding Frames as pages for the ttk.Notebook
+
+        # Sources page
+        print( "Create sources page" )
+        if self.repoDict is None:
+            self.repoDict = OrderedDict()
+            for repoName,repoData in self.SwIM.downloadSources.items():
+                var = tk.BooleanVar()
+                self.repoDict[repoName] = (var,repoData)
+        else: # check if it's been expanded
+            for repoName,repoData in self.SwIM.downloadSources.items():
+                if repoName not in self.repoDict:
+                    var = tk.BooleanVar()
+                    self.repoDict[repoName] = (var,repoData)
+        self.sourcesPage = Frame( self.notebook )
+
+        self.sourceModeVar = tk.IntVar()
+        self.sourceModeVar.set( 1 )
+        Label( self.sourcesPage, text="Source repositories", justify = tk.LEFT ).grid( row=0, column=0, sticky=tk.W )
+        tk.Radiobutton( self.sourcesPage, text="Single source only", padx = 20, variable=self.sourceModeVar, value=1 ).grid( row=1, column=0, sticky=tk.W )
+        tk.Radiobutton( self.sourcesPage, text="Allow multiple sources", padx = 20, variable=self.sourceModeVar, value=2 ).grid( row=2, column=0, sticky=tk.W )
+        Label( self.sourcesPage, text=_("SOURCE") ).grid( row=0, column=4 )
+        Label( self.sourcesPage, text=_("MODE") ).grid( row=0, column=5 )
+        Label( self.sourcesPage, text=_("SITE") ).grid( row=0, column=6 )
+        Label( self.sourcesPage, text=_("FOLDER") ).grid( row=0, column=7 )
+        for j, repoName in enumerate( self.repoDict ):
+            var, repoData = self.repoDict[repoName]
+            cb = tk.Checkbutton( self.sourcesPage, text=repoName, variable=var, command=self.searchCode )
+            cb.grid( row=j+1, column=4, sticky=tk.W )
+            e0 = Entry( self.sourcesPage, width=5 )
+            e0.insert( tk.END, repoData[0] )
+            e0['state'] = tk.DISABLED
+            e0.grid( row=j+1, column=5, sticky=tk.W )
+            e1 = Entry( self.sourcesPage, width=15 )
+            e1.insert( tk.END, repoData[1] )
+            e1['state'] = tk.DISABLED
+            e1.grid( row=j+1, column=6, sticky=tk.W )
+            e2 = Entry( self.sourcesPage, width=20 )
+            e2.insert( tk.END, repoData[2] )
+            e2['state'] = tk.DISABLED
+            e2.grid( row=j+1, column=7, sticky=tk.W )
+
+        # Folders page
+        print( "Create folders page" )
+        self.foldersPage = Frame( self.notebook )
+        foldersLabel = Label( self.foldersPage, text="Install folder(s)" )
+        foldersLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.foldersPage, text=_("Install folder:") )
+        searchLabel.grid( row=1, column=0 )
+        self.foldersSearch = Entry( self.foldersPage, width=25 )
+        self.foldersSearch.bind( '<Return>', self.searchCode )
+        self.foldersSearch.grid( row=1, column=1 )
+        searchLabel2 = Label( self.foldersPage, text=_("Temp folder:") )
+        searchLabel2.grid( row=2, column=0 )
+        self.foldersSearch2 = Entry( self.foldersPage, width=25 )
+        self.foldersSearch2.bind( '<Return>', self.searchCode )
+        self.foldersSearch2.grid( row=2, column=1 )
+        sbar = Scrollbar( self.foldersPage )
+        self.foldersListbox = tk.Listbox( self.foldersPage, width=5, relief=tk.SUNKEN )
+        sbar.config( command=self.foldersListbox.yview )
+        self.foldersListbox.config( yscrollcommand=sbar.set )
+        self.foldersListbox.bind('<<ListboxSelect>>', self.gotoNewCode )
+        #self.foldersListbox.bind( '<Return>', self.gotoNewCode )
+        sbar.grid( row=0, column=3, rowspan=3, sticky=tk.N+tk.S )
+        self.foldersListbox.grid( row=0, column=2, rowspan=3, sticky=tk.N+tk.S )
+        self.folderTextBox = ScrolledText( self.foldersPage, bg='lightblue' )
+        self.folderTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.folderTextBox.insert( tk.END, 'Codes' )
+        self.folderTextBox.grid( row=0, column=4, rowspan=3, sticky=tk.N+tk.S+tk.E )
+        #for BBB in self.BibleBooksCodesList:
+            #self.foldersListbox.insert( tk.END, BBB ) # fill the listbox
+        self.foldersSearch.insert( tk.END, str(self.SwIM.currentInstallFolder) )
+        self.foldersSearch2.insert( tk.END, str(self.SwIM.currentTempFolder) )
+        #self.searchCode( None ) # Go to the above
+        #self.foldersSearch.delete( 0, tk.END ) # Clear the search box again
+
+
+        # Folders page
+        print( "Create install page" )
+        self.installPage = Frame( self.notebook )
+        foldersLabel = Label( self.installPage, text="Install new module(s)" )
+        foldersLabel.grid( row=0, column=0, columnspan=2 )
+
+        # Folders page
+        print( "Create update page" )
+        self.updatePage = Frame( self.notebook )
+        foldersLabel = Label( self.updatePage, text="Update module(s)" )
+        foldersLabel.grid( row=0, column=0, columnspan=2 )
+
+        # Folders page
+        print( "Create modules page" )
+        self.modulesPage = Frame( self.notebook )
+        foldersLabel = Label( self.modulesPage, text="View modules" )
+        foldersLabel.grid( row=0, column=0, columnspan=2 )
+
+        print( "Add all pages" )
+        self.notebook.add( self.sourcesPage, text=_("Sources") )
+        self.notebook.add( self.foldersPage, text=_("Folders") )
+        self.notebook.add( self.installPage, text=_("Install new") )
+        self.notebook.add( self.updatePage, text=_("Update") )
+        self.notebook.add( self.modulesPage, text=_("View modules") )
+        self.notebook.pack( expand=1, fill='both' )
+    # end of SwordManager.createNotebook
 
 
     def halt( self ):
@@ -834,6 +918,59 @@ class SwordManager( Frame ):
     # end of SwordManager.doChangeTheme
 
 
+    def searchCode( self, event ):
+        """
+        """
+        enteredText = self.foldersSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchFolder( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchFolder…" )
+
+        if not enteredText: return
+
+        return
+
+        if len(enteredText)!=3: self.setErrorStatus( "Books codes must be three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books codes must have no spaces" ); return
+        elif enteredText not in self.BibleBooksCodesList:
+            self.setErrorStatus( "Unknown {!r} book code".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.BBB = enteredText
+        index = self.BibleBooksCodesList.index( self.BBB )
+
+        # Select it in the listbox
+        self.codesListbox.select_set( index )
+        self.codesListbox.see( index )
+        self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
+    # end of BOSManager.searchCode
+
+
+    def gotoNewCode( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewCode( {} )").format( event ) )
+            self.setDebugText( "gotoNewCode…" )
+            #print( 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+
+        print( "code cursel", repr(self.codesListbox.curselection()) )
+        index = int( self.codesListbox.curselection()[0] ) # Top one selected
+        self.BBB = self.codesListbox.get( index )
+        codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
+
+        # Clear the text box
+        self.codeTextBox['state'] = tk.NORMAL
+        self.codeTextBox.delete( START, tk.END )
+        self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
+        self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
+        for field,value in sorted( codeDict.items() ):
+            if field not in ( 'referenceNumber', 'nameEnglish', ):
+                self.codeTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewCode
+
+
     def doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
@@ -898,26 +1035,33 @@ class SwordManager( Frame ):
     # end of SwordManager.doGotoInfo
 
 
+    def logUsage( self, p1, p2, p3 ):
+        """
+        Not required in this app.
+        """
+        pass
+    # end of BOSManager.logUsage
+
+
     def doHelp( self, event=None ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
-        helpInfo += "\n  Use the Resource menu to open study/reference resources."
-        helpInfo += "\n  Use the Project menu to open editable Bibles."
+        helpInfo += "\n  Click on a tab to view that area of the Sword Manager."
         helpInfo += "\n\nKeyboard shortcuts:"
-        for name,shortcut in self.myKeyboardBindingsList:
-            helpInfo += "\n  {}\t{}".format( name, shortcut )
-        helpInfo += "\n\n  {}\t{}".format( 'Prev Verse', 'Alt+UpArrow' )
-        helpInfo += "\n  {}\t{}".format( 'Next Verse', 'Alt+DownArrow' )
-        helpInfo += "\n  {}\t{}".format( 'Prev Chapter', 'Alt+, (<)' )
-        helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
-        helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
-        helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
+        #for name,shortcut in self.myKeyboardBindingsList:
+            #helpInfo += "\n  {}\t{}".format( name, shortcut )
+        #helpInfo += "\n\n  {}\t{}".format( 'Prev Verse', 'Alt+UpArrow' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Verse', 'Alt+DownArrow' )
+        #helpInfo += "\n  {}\t{}".format( 'Prev Chapter', 'Alt+, (<)' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
+        #helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
         hb = HelpBox( self.rootWindow, ShortProgName, helpInfo )
     # end of SwordManager.doHelp
 
@@ -928,7 +1072,7 @@ class SwordManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
             showerror( self, ShortProgName, 'You need to allow Internet access first!' )
@@ -946,13 +1090,15 @@ class SwordManager( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("SwordManager.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nA free USFM Bible editor." \
-            + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
-            + "\n\nBiblelator is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator"
+        aboutInfo += "\nA display manager for Sword (from CrossWire) Bible modules." \
+            + "\n\nThis is still an unfinished alpha test version, but it should allow you to display and set various parameters" \
+            + " and then download and view Bible and commentary modules from the Internet." \
+            + "\n\n{} is written in Python.".format( ShortProgName ) \
+            + " For more information see our web pages at Freely-Given.org/Software/BibleOrgSys and Freely-Given.org/Software/Biblelator and Freely-Given.org/Software/BibleDropBox/SwordModules.html"
         ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
     # end of SwordManager.doAbout
 

@@ -31,18 +31,19 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-17' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
-import sys, os, logging, subprocess
-import multiprocessing
+import sys, os, logging
+from datetime import datetime
+import multiprocessing, subprocess
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
@@ -93,6 +94,7 @@ from PTXBible import PTXBible, loadPTXSSFData
 
 
 
+LOCK_FILENAME = '{}.lock'.format( APP_NAME )
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
 BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
 PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
@@ -135,6 +137,12 @@ class Application( Frame ):
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
 
+        if 0:
+            from tkinter import font
+            print( "tkDefaultFont", font.nametofont("TkDefaultFont").configure() )
+            print( "tkTextFont", font.nametofont("TkTextFont").configure() )
+            print( "tkFixedFont", font.nametofont("TkFixedFont").configure() )
+
         self.themeName = 'default'
         self.style = Style()
         self.interfaceLanguage = DEFAULT
@@ -149,6 +157,10 @@ class Application( Frame ):
 
         self.lexiconWord = None
         self.currentProject = None
+
+        self.usageFilename = APP_NAME + 'UsageLog.txt'
+        self.usageLogPath = os.path.join ( loggingFolderPath, self.usageFilename )
+        self.lastLoggedUsageDate = self.lastLoggedUsageTime = None
 
         if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
         if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
@@ -253,6 +265,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
+        self.logUsage( ProgName, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
     # end of Application.__init__
 
 
@@ -274,7 +287,7 @@ class Application( Frame ):
         self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
         self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
-        self.getBBB = self.genericBibleOrganisationalSystem.getBBB
+        self.getBBBFromText = self.genericBibleOrganisationalSystem.getBBBFromText
         self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
@@ -639,7 +652,7 @@ class Application( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -754,7 +767,7 @@ class Application( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -942,6 +955,7 @@ class Application( Frame ):
         """
         Puts most recent first
         """
+        self.logUsage( ProgName, debuggingThisModule, 'addRecentFile {}'.format( threeTuple ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("addRecentFile( {} )").format( threeTuple ) )
             assert len(threeTuple) == 3
@@ -2247,6 +2261,7 @@ class Application( Frame ):
         """
         Handle a new book setting from the GUI dropbox.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'spinToNewBook' )
         if BibleOrgSysGlobals.debugFlag:
             print( exp("spinToNewBook( {} )").format( event ) )
         #print( dir(event) )
@@ -2261,6 +2276,7 @@ class Application( Frame ):
         """
         Handle a new book number setting from the GUI dropbox.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'spinToNewBookNumber' )
         if BibleOrgSysGlobals.debugFlag:
             print( exp("spinToNewBookNumber( {} )").format( event ) )
         #print( dir(event) )
@@ -2279,6 +2295,7 @@ class Application( Frame ):
         """
         Handle a new chapter setting from the GUI spinbox.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'spinToNewChapter' )
         if BibleOrgSysGlobals.debugFlag:
             print( exp("spinToNewChapter( {} )").format( event ) )
         #print( dir(event) )
@@ -2300,11 +2317,11 @@ class Application( Frame ):
             print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBookname ) )
             #print( dir(event) )
 
-        BBB, C, V = parseEnteredBookname( enteredBookname, self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBB )
+        BBB, C, V = parseEnteredBookname( enteredBookname, self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
         #enteredBookname = self.bookNameVar.get()
         #C = self.chapterNumberVar.get()
         #V = self.verseNumberVar.get()
-        #BBB = self.getBBB( enteredBookname )
+        #BBB = self.getBBBFromText( enteredBookname )
         #print( "BBB", BBB )
 
         if BBB is None:
@@ -2344,7 +2361,7 @@ class Application( Frame ):
             #print( exp("gotoBnCV( {!r} {}:{} )").format( enteredBookname, C, V ) )
 
         ##self.BnameCV = (enteredBookname,C,V,)
-        #BBB = self.getBBB( enteredBookname )
+        #BBB = self.getBBBFromText( enteredBookname )
         ##print( "BBB", BBB )
         #if BBB is None:
             #self.setErrorStatus( "Unable to determine book name" )
@@ -2461,6 +2478,7 @@ class Application( Frame ):
         """
         Handle a new lexicon word setting from the GUI.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'acceptNewWord' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("acceptNewWord()") )
         #print( dir(event) )
 
@@ -2476,6 +2494,7 @@ class Application( Frame ):
         Sets self.lexiconWord
             then calls update on the child windows.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'gotoWord {!r}'.format( lexiconWord ) )
         if BibleOrgSysGlobals.debugFlag: print( exp("gotoWord( {} )").format( lexiconWord ) )
         assert lexiconWord is None or isinstance( lexiconWord, str )
         self.lexiconWord = lexiconWord
@@ -2489,6 +2508,7 @@ class Application( Frame ):
         Minimize all of our resource windows,
             i.e., leave the editors and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doHideAllResources' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllResources' )
         self.childWindows.iconifyAll( 'Resource' )
     # end of Application.doHideAllResources
@@ -2498,6 +2518,7 @@ class Application( Frame ):
         Minimize all of our resource windows,
             i.e., leave the resources and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doHideAllProjects' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllProjects' )
         self.childWindows.iconifyAll( 'Editor' )
     # end of Application.doHideAllProjects
@@ -2508,6 +2529,7 @@ class Application( Frame ):
         Show/Restore all of our resource windows,
             i.e., leave the editors and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doShowAllResources' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllResources' )
         self.childWindows.deiconifyAll( 'Resource' )
     # end of Application.doShowAllResources
@@ -2517,6 +2539,7 @@ class Application( Frame ):
         Show/Restore all of our project editor windows,
             i.e., leave the resources and main window
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doShowAllProjects' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllProjects' )
         self.childWindows.deiconifyAll( 'Editor' )
     # end of Application.doShowAllProjects
@@ -2526,6 +2549,7 @@ class Application( Frame ):
         """
         Minimize all of our windows.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doHideAll' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAll' )
         self.childWindows.iconifyAll()
         if includeMe: self.rootWindow.iconify()
@@ -2772,6 +2796,7 @@ class Application( Frame ):
         """
         Display the BOS manager window.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doOpenBOSManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doOpenBOSManager( {} )").format( event ) )
 
@@ -2782,10 +2807,37 @@ class Application( Frame ):
         """
         Display the Sword module manager window.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doOpenSwordManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doOpenSwordManager( {} )").format( event ) )
 
         openSwordManager( self )
+    # end of Application.doOpenSwordManager
+
+
+    def logUsage( self, moduleName, debuggingThatModule, usageText ):
+        """
+        Log usage information for developer to understand typical program use.
+        """
+        timeString = datetime.now().strftime( '%H:%M')
+        if timeString == self.lastLoggedUsageTime: timeString = dateString = None
+        else:
+            self.lastLoggedUsageTime = timeString
+            dateString = datetime.now().strftime( '%Y-%m-%d' )
+            if dateString == self.lastLoggedUsageDate: dateString = None
+            else: self.lastLoggedUsageDate = dateString
+
+        logText = '{}\n'.format( usageText )
+
+        with open( self.usageLogPath, 'at', encoding='utf-8' ) as logFile: # Append puts the file pointer at the end of the file
+            if dateString:
+                logFile.write( "\nNew start or new day: {} for {!r} as {!r} on {!r}\n". \
+                    format( dateString, self.currentUserName, self.currentUserRole, self.currentProjectName ) )
+            if timeString:
+                if timeString.endswith( '00' ):
+                    logFile.write( "New time: {} for {}\n".format( timeString, dateString ) )
+                else: logFile.write( "New time: {}\n".format( timeString ) )
+            logFile.write( logText )
     # end of Application.doOpenSwordManager
 
 
@@ -2794,6 +2846,7 @@ class Application( Frame ):
         Display a help box.
         """
         from Help import HelpBox
+        self.logUsage( ProgName, debuggingThisModule, 'doHelp' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doHelp( {} )").format( event ) )
 
@@ -2810,7 +2863,8 @@ class Application( Frame ):
         helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
         helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
         helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
-        hb = HelpBox( self.rootWindow, APP_NAME, helpInfo )
+        helpImage = 'BiblelatorLogoSmall.gif'
+        hb = HelpBox( self.rootWindow, APP_NAME, helpInfo, helpImage )
     # end of Application.doHelp
 
 
@@ -2839,14 +2893,16 @@ class Application( Frame ):
         Display an about box.
         """
         from About import AboutBox
+        self.logUsage( ProgName, debuggingThisModule, 'doAbout' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doAbout( {} )").format( event ) )
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
             + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
-            + "\n\nBiblelator is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator"
-        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+            + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( ShortProgName )
+        aboutImage = 'BiblelatorLogoSmall.gif'
+        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo, aboutImage )
     # end of Application.doAbout
 
 
@@ -2870,6 +2926,7 @@ class Application( Frame ):
         """
         Save files first, and then close child windows.
         """
+        #self.logUsage( ProgName, debuggingThisModule, 'doCloseMyChildWindows' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCloseMyChildWindows()") )
 
@@ -2902,6 +2959,7 @@ class Application( Frame ):
         """
         Save files first, and then end the application.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doCloseMe' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCloseMe()") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
@@ -2914,6 +2972,110 @@ class Application( Frame ):
             doSendUsageStatistics( self )
     # end of Application.doCloseMe
 # end of class Application
+
+
+
+def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName, iniName ):
+    """
+    The lock file was still there when we started, so maybe we didn't close cleanly.
+
+    Try to help the user through this problem.
+    """
+    from collections import OrderedDict
+    from USFMBookCompare import USFMBookCompare
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("Application.handlePossibleCrash( {}, {}, {}, {} )").format( homeFolderPath, dataFolderName, settingsFolderName, iniName ) )
+
+    print( '\n' + _("Is there another copy of {} already running?").format( APP_NAME ) )
+    print( '\n' + _("If not, perhaps {} didn't close nicely (i.e., crashed?) last time?").format( APP_NAME ) )
+
+    if not iniName.lower().endswith( '.ini' ): iniName += '.ini'
+    iniFilepath = os.path.join( homeFolderPath, dataFolderName, settingsFolderName, iniName )
+    currentWindowDict = OrderedDict()
+    with open( iniFilepath, 'rt' ) as iniFile:
+        inCurrent = False
+        for line in iniFile:
+            line = line.strip()
+            #while line and line[-1] in '\n\r': line = line[:-1]
+            #print( repr(line) )
+            if inCurrent:
+                if line.startswith( 'window' ):
+                    num = line[6]
+                    field, contents = line[7:].split( ' = ', 1 )
+                    if num not in currentWindowDict: currentWindowDict[num] = {}
+                    currentWindowDict[num][field] = contents
+                else: inCurrent = False
+            elif line == '[WindowSettingCurrent]':
+                inCurrent = True
+    #print( currentWindowDict )
+
+    hadAny = False
+    for num in currentWindowDict:
+        if currentWindowDict[num]['Type'] == 'ParatextUSFMBibleEditWindow':
+            ssfFilepath = currentWindowDict[num]['SSFFilepath']
+            ssfFolder, ssfFilename = os.path.split( ssfFilepath )
+            #print( "ssfFolder", ssfFolder )
+            ssfName = ssfFilename[:-4]
+            print( '  ' + _("Seems you might have been editing {}").format( ssfName ) )
+            projectFolder = os.path.join( ssfFolder+'/', ssfName+'/' )
+            # Look for an Autosave folder
+            autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
+            if os.path.exists( autosaveFolderPath ):
+                print( "    " + _("Checking in {}").format( autosaveFolderPath ) )
+                for something in os.listdir( autosaveFolderPath ):
+                    somepath = os.path.join( autosaveFolderPath, something )
+                    #if os.path.isdir( somepath ): foundFolders.append( something )
+                    if os.path.isfile( somepath ):
+                        filepath = os.path.join( projectFolder, something )
+                        if os.path.exists( filepath ):
+                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            resultDict = USFMBookCompare( filepath, somepath )
+                            #print( resultDict )
+                            haveSuggestions = False
+                            for someKey,someValue in resultDict['Summary'].items():
+                                if someValue.startswith( 'file2' ): # autosave file might be important
+                                    haveSuggestions = True
+                            if haveSuggestions:
+                                print( "      " + _("Comparing file1 {}").format( filepath ) )
+                                print( "      " + _("     with file2 {}").format( somepath ) )
+                                for someKey,someValue in resultDict['Summary'].items():
+                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                hadAny = True
+
+        elif currentWindowDict[num]['Type'] == 'BiblelatorUSFMBibleEditWindow':
+            projectFolder = currentWindowDict[num]['ProjectFolderPath']
+            print( '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
+            # Look for an Autosave folder
+            autosaveFolderPath = os.path.join( projectFolder, 'AutoSave/' )
+            if os.path.exists( autosaveFolderPath ):
+                print( "    " + _("Checking in {}").format( autosaveFolderPath ) )
+                for something in os.listdir( autosaveFolderPath ):
+                    somepath = os.path.join( autosaveFolderPath, something )
+                    #if os.path.isdir( somepath ): foundFolders.append( something )
+                    if os.path.isfile( somepath ):
+                        filepath = os.path.join( projectFolder, something )
+                        if os.path.exists( filepath ):
+                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            resultDict = USFMBookCompare( filepath, somepath )
+                            #print( resultDict )
+                            haveSuggestions = False
+                            for someKey,someValue in resultDict['Summary'].items():
+                                if someValue.startswith( 'file2' ): # autosave file might be important
+                                    haveSuggestions = True
+                            if haveSuggestions:
+                                print( "      " + _("Comparing file1 {}").format( filepath ) )
+                                print( "      " + _("     with file2 {}").format( somepath ) )
+                                for someKey,someValue in resultDict['Summary'].items():
+                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                hadAny = True
+    if hadAny:
+        print( '  ' + _("You might want to copy the above AutoSave files???") )
+    else: print( '  ' + _("Seems that your files are ok / up-to-date (as far was we can tell)") )
+
+    print( '\n' + _("{} will not open while the lock file exists.").format( APP_NAME ) )
+    print( "    " + _("(Remove {!r} from {!r} after backing-up / recovering any files first)").format( LOCK_FILENAME, os.getcwd() ) )
+    sys.exit()
+# end of handlePossibleCrash
 
 
 
@@ -3020,6 +3182,20 @@ def main( homeFolderPath, loggingFolderPath ):
         #print( "Found", numMyInstancesFound, numParatextInstancesFound )
         #halt
 
+    if BibleOrgSysGlobals.commandLineArguments.override is None:
+        INIname = APP_NAME
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( INIname ) )
+    else:
+        INIname = BibleOrgSysGlobals.commandLineArguments.override
+        if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( INIname ) )
+
+    if os.path.exists( LOCK_FILENAME ): # perhaps the program crashed last time
+        handlePossibleCrash( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
+
+    # Create the lock file on normal startup
+    with open( LOCK_FILENAME, 'wt' ) as lockFile:
+        lockFile.write( 'Lock file for {}\n'.format( APP_NAME ) )
+
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
@@ -3029,12 +3205,6 @@ def main( homeFolderPath, loggingFolderPath ):
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
 
-    if BibleOrgSysGlobals.commandLineArguments.override is None:
-        INIname = APP_NAME
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( INIname ) )
-    else:
-        INIname = BibleOrgSysGlobals.commandLineArguments.override
-        if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( INIname ) )
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
     settings.load()
 
@@ -3045,6 +3215,9 @@ def main( homeFolderPath, loggingFolderPath ):
 
     # Start the program running
     tkRootWindow.mainloop()
+
+    # Remove the lock file when we close
+    os.remove( LOCK_FILENAME )
 # end of Biblelator.main
 
 
@@ -3063,9 +3236,9 @@ if __name__ == '__main__':
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
-    if 'win' in sys.platform: # Disable multiprocessing until we get less bugs in Biblelator
-        print( "Limiting to single-threading on Windows (until we solve some bugs)" )
-        BibleOrgSysGlobals.maxProcesses = 1
+    #if 'win' in sys.platform: # Disable multiprocessing until we get less bugs in Biblelator
+        #print( "Limiting to single-threading on Windows (until we solve some bugs)" )
+        #BibleOrgSysGlobals.maxProcesses = 1
     #print( 'MP', BibleOrgSysGlobals.maxProcesses )
 
     if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???
@@ -3075,7 +3248,6 @@ if __name__ == '__main__':
         print( exp("Running main…") )
         import locale
         print( "default locale", locale.getdefaultlocale() )
-        #print( "codeset", locale.CODESET )
         print( "preferredEncoding", locale.getpreferredencoding() )
 
     main( homeFolderPath, loggingFolderPath )

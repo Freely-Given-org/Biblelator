@@ -3,7 +3,7 @@
 #
 # BOSManager.py
 #
-# BOS (Bible Organisational System) manager program
+# BOS (Bible Organizational System) manager program
 #
 # Copyright (C) 2016 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -23,16 +23,16 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow viewing of various BOS (Bible Organisational System) subsystems
+Program to allow viewing of various BOS (Bible Organizational System) subsystems
     such as versification systems, books names systems, etc.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-05-07' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
-ProgVersion = '0.01' # Separate versioning from Biblelator
+ProgVersion = '0.05' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -44,19 +44,18 @@ import multiprocessing
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
-from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
+from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, \
+from BiblelatorGlobals import DEFAULT, START, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-        INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
-        BIBLE_GROUP_CODES, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, findUsername, \
-        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
+        parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
+        parseWindowSize
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, parseWindowSize,
+# assembleWindowSize, ,
 from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -78,20 +77,22 @@ from USFMEditWindow import USFMEditWindow
 sys.path.append( '../BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
-from BibleOrganizationalSystems import BibleOrganizationalSystem
+from BibleOrganizationalSystems import BibleOrganizationalSystems, BibleOrganizationalSystem
 from BibleVersificationSystems import BibleVersificationSystems
-from DigitalBiblePlatform import DBPBibles
-from VerseReferences import SimpleVerseKey
+from BibleBookOrders import BibleBookOrderSystems
+from BibleBooksNames import BibleBooksNamesSystems
+from BiblePunctuationSystems import BiblePunctuationSystems
+#from DigitalBiblePlatform import DBPBibles
+#from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
-from SwordResources import SwordType, SwordInterface
-from USFMBible import USFMBible
-from PTXBible import PTXBible, loadPTXSSFData
+#from SwordResources import SwordType, SwordInterface
+#from USFMBible import USFMBible
+#from PTXBible import PTXBible, loadPTXSSFData
 
 
 
-TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
-BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
-PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+# Default window size settings (Note: X=width, Y=height)
+INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x376', '607x460', '550x375', '700x600'
 
 
 
@@ -152,8 +153,8 @@ class BOSManager( Frame ):
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
-        #self.genericBibleOrganisationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
-        #self.setGenericBibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
+        #self.genericBibleOrganizationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
+        #self.setGenericBibleOrganizationalSystem( self.genericBibleOrganizationalSystemName )
 
         self.stylesheet = BibleStylesheet().loadDefault()
         Frame.__init__( self, self.rootWindow )
@@ -165,12 +166,12 @@ class BOSManager( Frame ):
 
         self.createStatusBar()
 
-        # Create our display text book
-        self.textBox = ScrolledText( self.rootWindow, bg='yellow' )#style='DebugText.TScrolledText' )
-        self.textBox.pack( side=tk.TOP, fill=tk.BOTH )
-        #self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
-        self.textBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        self.textBox.insert( tk.END, 'Main Text Box:' )
+        ## Create our display text box
+        #self.textBox = ScrolledText( self.rootWindow, bg='yellow' )#style='DebugText.TScrolledText' )
+        #self.textBox.pack( side=tk.TOP, fill=tk.BOTH )
+        ##self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
+        #self.textBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.textBox.insert( tk.END, 'Main Text Box:' )
 
         if BibleOrgSysGlobals.debugFlag: # Create a scrolling debug box
             self.lastDebugMessage = None
@@ -201,39 +202,42 @@ class BOSManager( Frame ):
         self.createToolBar()
         if BibleOrgSysGlobals.debugFlag: self.createDebugToolBar()
         self.createMainKeyboardBindings()
+        self.createNotebook()
 
         # See if there's any developer messages
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForDeveloperMessages()
 
         self.rootWindow.title( ProgNameVersion )
+        self.minimumSize = MINIMUM_MAIN_SIZE
+        self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
     # end of BOSManager.__init__
 
 
-    def setGenericBibleOrganisationalSystem( self, BOSname ):
+    def setGenericBibleOrganizationalSystem( self, BOSname ):
         """
         We usually use a fairly generic BibleOrganizationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
+            print( exp("setGenericBibleOrganizationalSystem( {} )").format( BOSname ) )
 
         # Set-up our Bible system and our callables
-        self.genericBibleOrganisationalSystem = BibleOrganizationalSystem( self.genericBibleOrganisationalSystemName )
-        self.genericBookList = self.genericBibleOrganisationalSystem.getBookList()
-        #self.getNumBooks = self.genericBibleOrganisationalSystem.getNumBooks
-        self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
-        self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
-        self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
-        self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
-        self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
-        self.getBBB = self.genericBibleOrganisationalSystem.getBBB
-        self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
-        #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
+        self.genericBibleOrganizationalSystem = BibleOrganizationalSystem( self.genericBibleOrganizationalSystemName )
+        self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
+        #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
+        self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
+        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
+        self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
+        self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
+        self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode
+        self.getNextBookCode = self.genericBibleOrganizationalSystem.getNextBookCode
+        self.getBBBFromText = self.genericBibleOrganizationalSystem.getBBBFromText
+        self.getGenericBookName = self.genericBibleOrganizationalSystem.getBookName
+        #self.getBookList = self.genericBibleOrganizationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
         #print( self.genericBookList )
@@ -247,7 +251,7 @@ class BOSManager( Frame ):
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
         #print( self.bookNumberTable )
-    # end of BOSManager.setGenericBibleOrganisationalSystem
+    # end of BOSManager.setGenericBibleOrganizationalSystem
 
 
     def createNormalMenuBar( self ):
@@ -263,60 +267,61 @@ class BOSManager( Frame ):
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
-        #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
-        fileNewSubmenu = tk.Menu( fileMenu, tearoff=False )
-        fileMenu.add_cascade( label=_('New'), underline=0, menu=fileNewSubmenu )
-        fileNewSubmenu.add_command( label=_('Text file'), underline=0, command=self.notWrittenYet )
-        fileOpenSubmenu = tk.Menu( fileMenu, tearoff=False )
-        fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
-        fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
-        fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
-        for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
-            fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=self.notWrittenYet )
-        fileOpenSubmenu.add_separator()
-        fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_separator()
-        fileMenu.add_command( label=_('Save all…'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_separator()
-        fileMenu.add_command( label=_('Save settings'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_separator()
+        ##fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
+        #fileNewSubmenu = tk.Menu( fileMenu, tearoff=False )
+        #fileMenu.add_cascade( label=_('New'), underline=0, menu=fileNewSubmenu )
+        #fileNewSubmenu.add_command( label=_('Text file'), underline=0, command=self.notWrittenYet )
+        #fileOpenSubmenu = tk.Menu( fileMenu, tearoff=False )
+        #fileMenu.add_cascade( label=_('Open'), underline=0, menu=fileOpenSubmenu )
+        #fileRecentOpenSubmenu = tk.Menu( fileOpenSubmenu, tearoff=False )
+        #fileOpenSubmenu.add_cascade( label=_('Recent'), underline=0, menu=fileRecentOpenSubmenu )
+        #for j, (filename, folder, windowType) in enumerate( self.recentFiles ):
+            #fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=self.notWrittenYet )
+        #fileOpenSubmenu.add_separator()
+        #fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Save all…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Save settings'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
         fileMenu.add_command( label=_('Quit app'), underline=0, command=self.doCloseMe, accelerator=self.keyBindingDict[_('Quit')][0] ) # quit app
 
-        #editMenu = tk.Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
-        #editMenu.add_command( label=_('Find…'), underline=0, command=self.notWrittenYet )
-        #editMenu.add_command( label=_('Replace…'), underline=0, command=self.notWrittenYet )
+        if 0:
+            #editMenu = tk.Menu( self.menubar, tearoff=False )
+            #self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
+            #editMenu.add_command( label=_('Find…'), underline=0, command=self.notWrittenYet )
+            #editMenu.add_command( label=_('Replace…'), underline=0, command=self.notWrittenYet )
 
-        booksCodesMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=booksCodesMenu, label=_('Codes'), underline=0 )
-        booksCodesMenu.add_command( label=_('View…'), underline=-1, command=self.notWrittenYet )
-        booksCodesMenu.add_separator()
-        booksCodesMenu.add_command( label=_('Info…'), underline=0, command=self.doGotoInfo )
+            booksCodesMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=booksCodesMenu, label=_('Codes'), underline=0 )
+            booksCodesMenu.add_command( label=_('View…'), underline=-1, command=self.notWrittenYet )
+            booksCodesMenu.add_separator()
+            booksCodesMenu.add_command( label=_('Info…'), underline=0, command=self.doGotoInfo )
 
-        ordersMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=ordersMenu, label=_('Orders'), underline=0 )
-        ordersMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
-        ordersMenu.add_separator()
-        ordersMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
+            ordersMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=ordersMenu, label=_('Orders'), underline=0 )
+            ordersMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
+            ordersMenu.add_separator()
+            ordersMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
 
-        namesMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=namesMenu, label=_('Names'), underline=0 )
-        submenuBibleResourceType = tk.Menu( namesMenu, tearoff=False )
-        namesMenu.add_command( label=_('View…'), underline=5, command=self.notWrittenYet )
-        namesMenu.add_separator()
-        namesMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
+            namesMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=namesMenu, label=_('Names'), underline=0 )
+            submenuBibleResourceType = tk.Menu( namesMenu, tearoff=False )
+            namesMenu.add_command( label=_('View…'), underline=5, command=self.notWrittenYet )
+            namesMenu.add_separator()
+            namesMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
 
-        versificationsMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=versificationsMenu, label=_('Versifications'), underline=0 )
-        versificationsMenu.add_command( label=_('View…'), underline=0, command=self.notWrittenYet )
-        versificationsMenu.add_separator()
-        versificationsMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
+            versificationsMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=versificationsMenu, label=_('Versifications'), underline=0 )
+            versificationsMenu.add_command( label=_('View…'), underline=0, command=self.notWrittenYet )
+            versificationsMenu.add_separator()
+            versificationsMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
 
-        orgsMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=orgsMenu, label=_('Bibles'), underline=0 )
-        orgsMenu.add_command( label=_('View…'), underline=0, command=self.notWrittenYet )
-        orgsMenu.add_separator()
-        orgsMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
+            orgsMenu = tk.Menu( self.menubar, tearoff=False )
+            self.menubar.add_cascade( menu=orgsMenu, label=_('Bibles'), underline=0 )
+            orgsMenu.add_command( label=_('View…'), underline=0, command=self.notWrittenYet )
+            orgsMenu.add_separator()
+            orgsMenu.add_command( label=_('Info…'), underline=0, command=self.notWrittenYet )
 
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
@@ -393,7 +398,7 @@ class BOSManager( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -510,7 +515,7 @@ class BOSManager( Frame ):
         bookName = self.bookNames[1] # Default to Genesis usually
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
-        BBB = self.getBBB( bookName )
+        BBB = self.getBBBFromText( bookName )
         self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
@@ -613,6 +618,304 @@ class BOSManager( Frame ):
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of BOSManager.createToolBar
+
+
+    def createNotebook( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createToolBar()") )
+
+        self.notebook = Notebook( self )
+
+        # Adding Frames as pages for the ttk.Notebook
+
+        # Bible books codes page
+        print( "Create codes page" )
+        self.BibleBooksCodesList = BibleOrgSysGlobals.BibleBooksCodes.getAllReferenceAbbreviations()
+        self.codesPage = Frame( self.notebook )
+        codesLabel = Label( self.codesPage, text="Books Codes ({})".format( len(self.BibleBooksCodesList) ) )
+        codesLabel.grid( row=0, column=0, columnspan=2 )
+        searchBBBLabel = Label( self.codesPage, text=_("Search BBB:") )
+        searchBBBLabel.grid( row=1, column=0 )
+        self.codesBBBSearch = Entry( self.codesPage, width=5 )
+        self.codesBBBSearch.bind( '<Return>', self.searchBBBCode )
+        self.codesBBBSearch.grid( row=1, column=1 )
+        searchLabel = Label( self.codesPage, text=_("Search (all):") )
+        searchLabel.grid( row=2, column=0 )
+        self.codesSearch = Entry( self.codesPage, width=8 )
+        self.codesSearch.bind( '<Return>', self.searchCode )
+        self.codesSearch.grid( row=2, column=1 )
+        sbar = Scrollbar( self.codesPage )
+        self.codesListbox = tk.Listbox( self.codesPage, width=5, relief=tk.SUNKEN )
+        sbar.config( command=self.codesListbox.yview )
+        self.codesListbox.config( yscrollcommand=sbar.set )
+        self.codesListbox.bind('<<ListboxSelect>>', self.gotoNewCode )
+        #self.codesListbox.bind( '<Return>', self.gotoNewCode )
+        sbar.grid( row=0, column=3, rowspan=3, sticky=tk.N+tk.S )
+        self.codesListbox.grid( row=0, column=2, rowspan=3, sticky=tk.N+tk.S )
+        self.codeTextBox = ScrolledText( self.codesPage, bg='lightblue' )
+        self.codeTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.codeTextBox.insert( tk.END, 'Codes' )
+        self.codeTextBox.grid( row=0, column=4, rowspan=3, sticky=tk.N+tk.S+tk.E )
+        for BBB in self.BibleBooksCodesList:
+            self.codesListbox.insert( tk.END, BBB ) # fill the listbox
+        self.codesSearch.insert( tk.END, 'GEN' )
+        self.searchCode( None ) # Go to the above
+        self.codesSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible punctuations systems page
+        print( "Create punct page" )
+        self.BiblePunctuationSystems = BiblePunctuationSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BiblePunctuationsList = sorted( self.BiblePunctuationSystems.getAvailablePunctuationSystemNames() )
+        self.punctuationPage = Frame( self.notebook )
+        punctuationLabel = Label( self.punctuationPage, text="Books Punctuations ({})".format( len(self.BiblePunctuationsList) ) )
+        punctuationLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.punctuationPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.punctuationsSearch = Entry( self.punctuationPage, width=12 )
+        self.punctuationsSearch.bind( '<Return>', self.searchPunctuation )
+        self.punctuationsSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.punctuationPage )
+        self.punctuationsListbox = tk.Listbox( self.punctuationPage, width=12, relief=tk.SUNKEN )
+        sbar.config( command=self.punctuationsListbox.yview )
+        self.punctuationsListbox.config( yscrollcommand=sbar.set )
+        self.punctuationsListbox.bind('<<ListboxSelect>>', self.gotoNewPunctuation )
+        #self.punctuationListbox.bind( '<Return>', self.gotoNewPunctuation )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.punctuationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.punctuationTextBox = ScrolledText( self.punctuationPage, bg='lightgreen' )
+        self.punctuationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.punctuationTextBox.insert( tk.END, 'Punctuations' )
+        self.punctuationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for pName in self.BiblePunctuationsList:
+            self.punctuationsListbox.insert( tk.END, pName ) # fill the listbox
+        self.punctuationsSearch.insert( tk.END, 'English' )
+        self.searchPunctuation( None ) # Go to the above
+        self.punctuationsSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible versification systems page
+        print( "Create vers page" )
+        self.BibleVersificationsSystems = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleVersificationsSystemsList = sorted( self.BibleVersificationsSystems.getAvailableVersificationSystemNames() )
+        self.versificationsPage = Frame( self.notebook )
+        versificationsLabel = Label( self.versificationsPage, text="Bible Versification Systems ({})".format( len(self.BibleVersificationsSystemsList) ) )
+        versificationsLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.versificationsPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.versificationsSearch = Entry( self.versificationsPage, width=15 )
+        self.versificationsSearch.bind( '<Return>', self.searchVersification )
+        self.versificationsSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.versificationsPage )
+        self.versificationsListbox = tk.Listbox( self.versificationsPage, width=15, relief=tk.SUNKEN )
+        sbar.config( command=self.versificationsListbox.yview )
+        self.versificationsListbox.config( yscrollcommand=sbar.set )
+        self.versificationsListbox.bind('<<ListboxSelect>>', self.gotoNewVersification )
+        #self.versificationsListbox.bind( '<Return>', self.gotoNewVersification )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.versificationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.versificationTextBox = ScrolledText( self.versificationsPage, bg='orange' )
+        self.versificationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.versificationTextBox.insert( tk.END, 'Versifications' )
+        self.versificationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for vName in self.BibleVersificationsSystemsList:
+            self.versificationsListbox.insert( tk.END, vName ) # fill the listbox
+        self.versificationsSearch.insert( tk.END, 'KJV' ) # Select KJV
+        self.searchVersification( None ) # Go to KJV
+        self.versificationsSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible versification mappings page
+        print( "Create mappings page" )
+        #self.BibleMappingsSystems = BibleMappingSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleMappingsSystemsList = []
+        self.mappingsPage = Frame( self.notebook )
+        mappingsLabel = Label( self.mappingsPage, text="Mapping Mappings ({})".format( len(self.BibleMappingsSystemsList) ) )
+        mappingsLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.mappingsPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.mappingsSearch = Entry( self.mappingsPage, width=15 )
+        self.mappingsSearch.bind( '<Return>', self.searchMapping )
+        self.mappingsSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.mappingsPage )
+        self.mappingsListbox = tk.Listbox( self.mappingsPage, width=15, relief=tk.SUNKEN )
+        sbar.config( command=self.mappingsListbox.yview )
+        self.mappingsListbox.config( yscrollcommand=sbar.set )
+        self.mappingsListbox.bind('<<ListboxSelect>>', self.gotoNewMapping )
+        #self.mappingsListbox.bind( '<Return>', self.gotoNewMapping )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.mappingsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.mappingTextBox = ScrolledText( self.mappingsPage, bg='brown' )
+        self.mappingTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.mappingTextBox.insert( tk.END, 'Mappings' )
+        self.mappingTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for mName in self.BibleMappingsSystemsList:
+            self.mappingsListbox.insert( tk.END, mName ) # fill the listbox
+        self.mappingsSearch.insert( tk.END, 'KJV' ) # Select KJV
+        self.searchMapping( None ) # Go to KJV
+        self.mappingsSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible book order systems page
+        print( "Create orders page" )
+        self.BibleOrdersSystems = BibleBookOrderSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleOrdersSystemsList = sorted( self.BibleOrdersSystems.getAvailableBookOrderSystemNames() )
+        self.ordersPage = Frame( self.notebook )
+        ordersLabel = Label( self.ordersPage, text="Bible Order Systems ({})".format( len(self.BibleOrdersSystemsList) ) )
+        ordersLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.ordersPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.ordersSearch = Entry( self.ordersPage, width=15 )
+        self.ordersSearch.bind( '<Return>', self.searchOrder )
+        self.ordersSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.ordersPage )
+        self.ordersListbox = tk.Listbox( self.ordersPage, width=15, relief=tk.SUNKEN )
+        sbar.config( command=self.ordersListbox.yview )
+        self.ordersListbox.config( yscrollcommand=sbar.set )
+        self.ordersListbox.bind('<<ListboxSelect>>', self.gotoNewOrder )
+        #self.ordersListbox.bind( '<Return>', self.gotoNewOrder )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.ordersListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.orderTextBox = ScrolledText( self.ordersPage, bg='yellow' )
+        self.orderTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.orderTextBox.insert( tk.END, 'Orders' )
+        self.orderTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for oName in self.BibleOrdersSystemsList:
+            self.ordersListbox.insert( tk.END, oName ) # fill the listbox
+        self.ordersSearch.insert( tk.END, 'LutheranBible' )
+        self.searchOrder( None ) # Go to the above
+        self.ordersSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible book name systems page
+        print( "Create names page" )
+        self.BibleNamesSystems = BibleBooksNamesSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleNamesSystemsList = sorted( self.BibleNamesSystems.getAvailableBooksNamesSystemNames() )
+        self.namesPage = Frame( self.notebook )
+        namesLabel = Label( self.namesPage, text="Bible Name Systems ({})".format( len(self.BibleNamesSystemsList) ) )
+        namesLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.namesPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.namesSearch = Entry( self.namesPage, width=15 )
+        self.namesSearch.bind( '<Return>', self.searchName )
+        self.namesSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.namesPage )
+        self.namesListbox = tk.Listbox( self.namesPage, width=15, relief=tk.SUNKEN )
+        sbar.config( command=self.namesListbox.yview )
+        self.namesListbox.config( yscrollcommand=sbar.set )
+        self.namesListbox.bind('<<ListboxSelect>>', self.gotoNewName )
+        #self.namesListbox.bind( '<Return>', self.gotoNewName )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.namesListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.nameTextBox = ScrolledText( self.namesPage, bg='orange' )
+        self.nameTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.nameTextBox.insert( tk.END, 'Names' )
+        self.nameTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for nName in self.BibleNamesSystemsList:
+            self.namesListbox.insert( tk.END, nName ) # fill the listbox
+        self.namesSearch.insert( tk.END, 'eng_traditional' )
+        self.searchName( None ) # Go to the above
+        self.namesSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible organizational systems page
+        print( "Create Bibles page" )
+        self.BibleOrganizationalSystems = BibleOrganizationalSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleOrganizationalSystemsList = sorted( self.BibleOrganizationalSystems.getAvailableOrganizationalSystemNames() )
+        self.organizationsPage = Frame( self.notebook )
+        organizationsLabel = Label( self.organizationsPage, text="Bible Organization Systems ({})".format( len(self.BibleOrganizationalSystemsList) ) )
+        organizationsLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.organizationsPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.organizationsSearch = Entry( self.organizationsPage, width=18 )
+        self.organizationsSearch.bind( '<Return>', self.searchOrganization )
+        self.organizationsSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.organizationsPage )
+        self.organizationsListbox = tk.Listbox( self.organizationsPage, width=18, relief=tk.SUNKEN )
+        sbar.config( command=self.organizationsListbox.yview )
+        self.organizationsListbox.config( yscrollcommand=sbar.set )
+        self.organizationsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
+        #self.organizationsListbox.bind( '<Return>', self.gotoNewOrganization )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.organizationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.organizationTextBox = ScrolledText( self.organizationsPage, bg='pink' )
+        self.organizationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.organizationTextBox.insert( tk.END, 'Organizations' )
+        self.organizationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for orgName in self.BibleOrganizationalSystemsList:
+            self.organizationsListbox.insert( tk.END, orgName ) # fill the listbox
+        self.organizationsSearch.insert( tk.END, 'RSV71' )
+        self.searchOrganization( None ) # Go to above
+        self.organizationsSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible reference systems page
+        print( "Create refs page" )
+        #self.BibleReferenceSystems = BibleReferenceSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleReferenceSystemsList = []
+        self.referencesPage = Frame( self.notebook )
+        referencesLabel = Label( self.referencesPage, text="Bible Reference Systems ({})".format( len(self.BibleReferenceSystemsList) ) )
+        referencesLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.referencesPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.referenceSearch = Entry( self.referencesPage, width=18 )
+        self.referenceSearch.bind( '<Return>', self.searchReference )
+        self.referenceSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.referencesPage )
+        self.referencesListbox = tk.Listbox( self.referencesPage, width=18, relief=tk.SUNKEN )
+        sbar.config( command=self.referencesListbox.yview )
+        self.referencesListbox.config( yscrollcommand=sbar.set )
+        self.referencesListbox.bind('<<ListboxSelect>>', self.gotoNewReference )
+        #self.referencesListbox.bind( '<Return>', self.gotoNewReference )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.referencesListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.referenceTextBox = ScrolledText( self.referencesPage, bg='orange' )
+        self.referenceTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.referenceTextBox.insert( tk.END, 'References' )
+        self.referenceTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for rName in self.BibleReferenceSystemsList:
+            self.referencesListbox.insert( tk.END, rName ) # fill the listbox
+        self.referenceSearch.insert( tk.END, 'KJV' ) # Select KJV
+        self.searchReference( None ) # Go to KJV
+        self.referenceSearch.delete( 0, tk.END ) # Clear the search box again
+
+        # Bible stylesheet systems page
+        print( "Create stylesheets page" )
+        #self.BibleStylesheetSystems = BibleStylesheetSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleStylesheetSystemsList = []
+        self.stylesheetsPage = Frame( self.notebook )
+        stylesheetsLabel = Label( self.stylesheetsPage, text="Bible Stylesheet Systems ({})".format( len(self.BibleStylesheetSystemsList) ) )
+        stylesheetsLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.stylesheetsPage, text=_("Search:") )
+        searchLabel.grid( row=1, column=0 )
+        self.stylesheetSearch = Entry( self.stylesheetsPage, width=18 )
+        self.stylesheetSearch.bind( '<Return>', self.searchOrganization )
+        self.stylesheetSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.stylesheetsPage )
+        self.stylesheetsListbox = tk.Listbox( self.stylesheetsPage, width=18, relief=tk.SUNKEN )
+        sbar.config( command=self.stylesheetsListbox.yview )
+        self.stylesheetsListbox.config( yscrollcommand=sbar.set )
+        self.stylesheetsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
+        #self.stylesheetsListbox.bind( '<Return>', self.gotoNewOrganization )
+        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
+        self.stylesheetsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.stylesheetTextBox = ScrolledText( self.stylesheetsPage, bg='orange' )
+        self.stylesheetTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.stylesheetTextBox.insert( tk.END, 'Organizations' )
+        self.stylesheetTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for ssName in self.BibleStylesheetSystemsList:
+            self.stylesheetsListbox.insert( tk.END, ssName ) # fill the listbox
+        self.stylesheetSearch.insert( tk.END, 'KJV' ) # Select KJV
+        self.searchOrganization( None ) # Go to KJV
+        self.stylesheetSearch.delete( 0, tk.END ) # Clear the search box again
+
+        print( "Add all pages" )
+        self.notebook.add( self.codesPage, text='Codes')
+        self.notebook.add( self.punctuationPage, text='Punctuation')
+        self.notebook.add( self.versificationsPage, text='Versifications')
+        self.notebook.add( self.mappingsPage, text='Mappings')
+        self.notebook.add( self.ordersPage, text='Orders')
+        self.notebook.add( self.namesPage, text='Names')
+        self.notebook.add( self.organizationsPage, text='Bibles')
+        self.notebook.add( self.referencesPage, text='References')
+        self.notebook.add( self.stylesheetsPage, text='StyleSheets')
+        self.notebook.pack( expand=1, fill='both' )
+    # end of BOSManager.createNotebook
 
 
     def halt( self ):
@@ -833,6 +1136,500 @@ class BOSManager( Frame ):
     # end of BOSManager.doChangeTheme
 
 
+    def searchBBBCode( self, event ):
+        """
+        Search for the given text in the 3-character (uppercase or numeric) book codes.
+        """
+        enteredText = self.codesSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchBBBCode…" )
+
+        if not enteredText: return
+
+        eTU = enteredText.upper()
+        if len(eTU)==3 and eTU!=enteredText and eTU in self.BibleBooksCodesList:
+            self.setErrorStatus( "Converted entered book code to UPPER CASE" )
+            enteredText = eTU
+
+        if len(enteredText)!=3: self.setErrorStatus( "Books codes must be three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books codes must have no spaces" ); return
+        elif enteredText not in self.BibleBooksCodesList:
+            self.setErrorStatus( "Unknown {!r} book code".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.BBB = enteredText
+        index = self.BibleBooksCodesList.index( self.BBB )
+
+        # Select it in the listbox
+        self.codesListbox.select_set( index )
+        self.codesListbox.see( index )
+        self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
+    # end of BOSManager.searchBBBCode
+
+
+    def searchCode( self, event ):
+        """
+        Search for the given text through all possible book code types.
+        """
+        enteredText = self.codesSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchCode( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchCode…" )
+
+        if not enteredText: return
+
+        eTU = enteredText.upper()
+        if len(eTU)==3 and eTU!=enteredText and eTU in self.BibleBooksCodesList:
+            self.setErrorStatus( "Converted entered book code to UPPER CASE" )
+            enteredText = eTU
+
+        if len(enteredText)!=3: self.setErrorStatus( "Books codes must be three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books codes must have no spaces" ); return
+        elif enteredText not in self.BibleBooksCodesList:
+            self.setErrorStatus( "Unknown {!r} book code".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.BBB = enteredText
+        index = self.BibleBooksCodesList.index( self.BBB )
+
+        # Select it in the listbox
+        self.codesListbox.select_set( index )
+        self.codesListbox.see( index )
+        self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
+    # end of BOSManager.searchCode
+
+
+    def gotoNewCode( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewCode( {} )").format( event ) )
+            self.setDebugText( "gotoNewCode…" )
+            #print( 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+
+        print( "code cursel", repr(self.codesListbox.curselection()) )
+        index = int( self.codesListbox.curselection()[0] ) # Top one selected
+        self.BBB = self.codesListbox.get( index )
+        codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
+
+        # Clear the text box
+        self.codeTextBox['state'] = tk.NORMAL
+        self.codeTextBox.delete( START, tk.END )
+        self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
+        self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
+        for field,value in sorted( codeDict.items() ):
+            if field not in ( 'referenceNumber', 'nameEnglish', ):
+                self.codeTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewCode
+
+
+    def searchPunctuation( self, event ):
+        """
+        """
+        enteredText = self.punctuationsSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchPunctuation…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Books punctuation system names must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books punctuation system names must have no spaces" ); return
+        elif enteredText not in self.BiblePunctuationsList:
+            self.setErrorStatus( "Unknown {!r} punctuation system name".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.punctuationSystemName = enteredText
+        index = self.BiblePunctuationsList.index( self.punctuationSystemName )
+
+        # Select it in the listbox
+        self.punctuationsListbox.select_set( index )
+        self.punctuationsListbox.see( index )
+        self.punctuationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewPunctuation below
+    # end of BOSManager.searchPunctuation
+
+
+    def gotoNewPunctuation( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewPunctuation( {} )").format( event ) )
+            self.setDebugText( "gotoNewPunctuation…" )
+            #print( 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
+
+        print( "punct cursel", repr(self.punctuationsListbox.curselection()) )
+        index = int( self.punctuationsListbox.curselection()[0] ) # Top one selected
+        self.punctuationSystemName = self.punctuationsListbox.get( index )
+        punctuationDict =  self.BiblePunctuationSystems.getPunctuationSystem( self.punctuationSystemName )
+
+        # Clear the text box
+        self.punctuationTextBox['state'] = tk.NORMAL
+        self.punctuationTextBox.delete( START, tk.END )
+        self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( self.punctuationSystemName ) )
+        #self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( punctuationDict['nameEnglish'] ) )
+        for field,value in sorted( punctuationDict.items() ):
+            #if field not in ( 'referenceNumber', 'nameEnglish', ):
+                self.punctuationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewPunctuation
+
+
+    def searchVersification( self, event ):
+        """
+        """
+        enteredText = self.versificationsSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchVersification( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchVersification…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Books versifications must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books versifications must have no spaces" ); return
+        elif enteredText not in self.BibleVersificationsSystemsList:
+            self.setErrorStatus( "Unknown {!r} book versification".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.versificationSystemName = enteredText
+        index = self.BibleVersificationsSystemsList.index( self.versificationSystemName )
+
+        # Select it in the listbox
+        self.versificationsListbox.select_set( index )
+        self.versificationsListbox.see( index )
+        self.versificationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewVersification below
+    # end of BOSManager.searchVersification
+
+
+    def gotoNewVersification( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewVersification( {} )").format( event ) )
+            self.setDebugText( "gotoNewVersification…" )
+            #print( 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
+
+        print( "vers cursel", repr(self.versificationsListbox.curselection()) )
+        index = int( self.versificationsListbox.curselection()[0] ) # Top one selected
+        self.versificationSystemName = self.versificationsListbox.get( index )
+        versificationSystem =  self.BibleVersificationsSystems.getVersificationSystem( self.versificationSystemName )
+
+        # Clear the text box
+        self.versificationTextBox['state'] = tk.NORMAL
+        self.versificationTextBox.delete( START, tk.END )
+        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( self.versificationSystemName ) )
+        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( versificationSystem ) )
+        #for field,value in sorted( versificationDict.items() ):
+            #if field not in ( 'referenceNumber', 'nameEnglish', ):
+                #self.versificationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewVersification
+
+
+    def searchMapping( self, event ):
+        """
+        """
+        enteredText = self.mappingsSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchMapping( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchMapping…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Books mappings must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books mappings must have no spaces" ); return
+        elif enteredText not in self.BibleMappingsSystemsList:
+            self.setErrorStatus( "Unknown {!r} book mapping".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.mappingSystemName = enteredText
+        index = self.BibleMappingsSystemsList.index( self.mappingSystemName )
+
+        # Select it in the listbox
+        self.mappingsListbox.select_set( index )
+        self.mappingsListbox.see( index )
+        self.mappingsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewMapping below
+    # end of BOSManager.searchMapping
+
+
+    def gotoNewMapping( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewMapping( {} )").format( event ) )
+            self.setDebugText( "gotoNewMapping…" )
+            #print( 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
+
+        index = int( self.mappingsListbox.curselection()[0] ) # Top one selected
+        self.mappingSystemName = self.mappingsListbox.get( index )
+        mappingSystem =  self.BibleMappingsSystems.getMappingSystem( self.mappingSystemName )
+
+        # Clear the text box
+        self.mappingTextBox['state'] = tk.NORMAL
+        self.mappingTextBox.delete( START, tk.END )
+        self.mappingTextBox.insert( tk.END, '{}\n\n'.format( self.mappingSystemName ) )
+        self.mappingTextBox.insert( tk.END, '{}\n\n'.format( mappingSystem ) )
+        #for field,value in sorted( mappingDict.items() ):
+            #if field not in ( 'referenceNumber', 'nameEnglish', ):
+                #self.mappingTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewMapping
+
+
+    def searchOrder( self, event ):
+        """
+        """
+        enteredText = self.ordersSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchOrder( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchOrder…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Books orders must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books orders must have no spaces" ); return
+        elif enteredText not in self.BibleOrdersSystemsList:
+            self.setErrorStatus( "Unknown {!r} book order".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.orderSystemName = enteredText
+        index = self.BibleOrdersSystemsList.index( self.orderSystemName )
+
+        # Select it in the listbox
+        self.ordersListbox.select_set( index )
+        self.ordersListbox.see( index )
+        self.ordersListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrder below
+    # end of BOSManager.searchOrder
+
+
+    def gotoNewOrder( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewOrder( {} )").format( event ) )
+            self.setDebugText( "gotoNewOrder…" )
+            #print( 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
+
+        print( "order cursel", repr(self.ordersListbox.curselection()) )
+        index = int( self.ordersListbox.curselection()[0] ) # Top one selected
+        self.orderSystemName = self.ordersListbox.get( index )
+        orderSystem =  self.BibleOrdersSystems.getBookOrderSystem( self.orderSystemName )
+
+        # Clear the text box
+        self.orderTextBox['state'] = tk.NORMAL
+        self.orderTextBox.delete( START, tk.END )
+        self.orderTextBox.insert( tk.END, '{}\n\n'.format( self.orderSystemName ) )
+        self.orderTextBox.insert( tk.END, '{}\n\n'.format( orderSystem ) )
+        #for field,value in sorted( orderDict.items() ):
+            #if field not in ( 'referenceNumber', 'nameEnglish', ):
+                #self.orderTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewOrder
+
+
+    def searchName( self, event ):
+        """
+        """
+        enteredText = self.namesSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchName( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchName…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Books names must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books names must have no spaces" ); return
+        elif enteredText not in self.BibleNamesSystemsList:
+            self.setErrorStatus( "Unknown {!r} book name".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.nameSystemName = enteredText
+        index = self.BibleNamesSystemsList.index( self.nameSystemName )
+
+        # Select it in the listbox
+        self.namesListbox.select_set( index )
+        self.namesListbox.see( index )
+        self.namesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewNames below
+    # end of BOSManager.searchName
+
+
+    def gotoNewName( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewName( {} )").format( event ) )
+            self.setDebugText( "gotoNewName…" )
+            #print( 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
+
+        print( "name cursel", repr(self.namesListbox.curselection()) )
+        index = int( self.namesListbox.curselection()[0] ) # Top one selected
+        self.nameSystemName = self.namesListbox.get( index )
+        nameSystem =  self.BibleNamesSystems.getBooksNamesSystem( self.nameSystemName )
+
+        # Clear the text box
+        self.nameTextBox['state'] = tk.NORMAL
+        self.nameTextBox.delete( START, tk.END )
+        self.nameTextBox.insert( tk.END, '{}\n\n'.format( self.nameSystemName ) )
+        self.nameTextBox.insert( tk.END, '{}\n\n'.format( nameSystem ) )
+        #for field,value in sorted( nameDict.items() ):
+            #if field not in ( 'referenceNumber', 'nameEnglish', ):
+                #self.nameTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewName
+
+
+    def searchOrganization( self, event ):
+        """
+        """
+        enteredText = self.organizationsSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchOrganization( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchOrganization…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Bible organizational system names must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Bible organizational system names must have no spaces" ); return
+        elif enteredText not in self.BibleOrganizationalSystemsList:
+            self.setErrorStatus( "Unknown {!r} Bible organizational system name".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.organizationSystemName = enteredText
+        index = self.BibleOrganizationalSystemsList.index( self.organizationSystemName )
+
+        # Select it in the listbox
+        self.organizationsListbox.select_set( index )
+        self.organizationsListbox.see( index )
+        self.organizationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrganization below
+    # end of BOSManager.searchOrganization
+
+
+    def gotoNewOrganization( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewOrganization( {} )").format( event ) )
+            self.setDebugText( "gotoNewOrganization…" )
+            #print( 'You selected items: %s'%[self.organizationsListbox.get(int(i)) for i in self.organizationsListbox.curselection()] )
+
+        index = int( self.organizationsListbox.curselection()[0] ) # Top one selected
+        self.organizationSystemName = self.organizationsListbox.get( index )
+        organizationalSystemDict =  self.BibleOrganizationalSystems.getOrganizationalSystem( self.organizationSystemName )
+
+        # Clear the text box
+        self.organizationTextBox['state'] = tk.NORMAL
+        self.organizationTextBox.delete( START, tk.END )
+        self.organizationTextBox.insert( tk.END, '{} ({})\n\n'.format( self.organizationSystemName, organizationalSystemDict['type'] ) )
+        self.organizationTextBox.insert( tk.END, '{}\n\n'.format( organizationalSystemDict['name'][0] ) )
+        for field,value in sorted( organizationalSystemDict.items() ):
+            if field not in ( 'type', ):
+                self.organizationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewOrganization
+
+
+    def searchReference( self, event ):
+        """
+        """
+        enteredText = self.referenceSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchReference( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchReference…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Books references must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books references must have no spaces" ); return
+        elif enteredText not in self.BibleReferenceSystemsList:
+            self.setErrorStatus( "Unknown {!r} reference".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.referenceSystemName = enteredText
+        index = self.BibleReferenceSystemsList.index( self.referenceSystemName )
+
+        # Select it in the listbox
+        self.referencesListbox.select_set( index )
+        self.referencesListbox.see( index )
+        self.referencesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewReference below
+    # end of BOSManager.searchReference
+
+
+    def gotoNewReference( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewReference( {} )").format( event ) )
+            self.setDebugText( "gotoNewReference…" )
+            #print( 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
+
+        index = int( self.referencesListbox.curselection()[0] ) # Top one selected
+        self.referenceSystemName = self.referencesListbox.get( index )
+        referenceSystem =  self.BibleReferenceSystems.getReferenceSystem( self.referenceSystemName )
+
+        # Clear the text box
+        self.referenceTextBox['state'] = tk.NORMAL
+        self.referenceTextBox.delete( START, tk.END )
+        self.referenceTextBox.insert( tk.END, '{}\n\n'.format( self.referenceSystemName ) )
+        self.referenceTextBox.insert( tk.END, '{}\n\n'.format( referenceSystem ) )
+        #for field,value in sorted( referenceDict.items() ):
+            #if field not in ( 'referenceNumber', 'nameEnglish', ):
+                #self.referenceTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewReference
+
+
+    def searchStylesheet( self, event ):
+        """
+        """
+        enteredText = self.stylesheetsSearch.get()
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchStylesheet…" )
+
+        if not enteredText: return
+
+        if len(enteredText)<3: self.setErrorStatus( "Books stylesheets must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Books stylesheets must have no spaces" ); return
+        elif enteredText not in self.BibleStylesheetsSystemsList:
+            self.setErrorStatus( "Unknown {!r} book stylesheet".format( enteredText ) )
+            return
+
+        # Must be ok
+        self.stylesheetSystemName = enteredText
+        index = self.BibleStylesheetsSystemsList.index( self.stylesheetSystemName )
+
+        # Select it in the listbox
+        self.stylesheetsListbox.select_set( index )
+        self.stylesheetsListbox.see( index )
+        self.stylesheetsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewStylesheet below
+    # end of BOSManager.searchStylesheet
+
+
+    def gotoNewStylesheet( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("gotoNewStylesheet( {} )").format( event ) )
+            self.setDebugText( "gotoNewStylesheet…" )
+            #print( 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
+
+        index = int( self.stylesheetsListbox.curselection()[0] ) # Top one selected
+        self.stylesheetSystemName = self.stylesheetsListbox.get( index )
+        stylesheetSystem =  self.BibleStylesheetsSystems.getStylesheetSystem( self.stylesheetSystemName )
+
+        # Clear the text box
+        self.stylesheetTextBox['state'] = tk.NORMAL
+        self.stylesheetTextBox.delete( START, tk.END )
+        self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( self.stylesheetSystemName ) )
+        self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( stylesheetSystem ) )
+        #for field,value in sorted( stylesheetDict.items() ):
+            #if field not in ( 'referenceNumber', 'nameEnglish', ):
+                #self.stylesheetTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewStylesheet
+
+
     def doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
@@ -887,36 +1684,43 @@ class BOSManager( Frame ):
             print( exp("BOSManager.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
-                 + '\nBible Organisational System (BOS):\n' \
-                 + '  Name: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemName() ) \
-                 + '  Versification: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'versificationSystem' ) ) \
-                 + '  Book Order: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'bookOrderSystem' ) ) \
-                 + '  Book Names: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
-                 + '  Books: {}'.format( self.genericBibleOrganisationalSystem.getBookList() )
+                 + '\nBible Organizational System (BOS):\n' \
+                 + '  Name: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemName() ) \
+                 + '  Versification: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'versificationSystem' ) ) \
+                 + '  Book Order: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'bookOrderSystem' ) ) \
+                 + '  Book Names: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
+                 + '  Books: {}'.format( self.genericBibleOrganizationalSystem.getBookList() )
         showinfo( self, 'Goto Information', infoString )
     # end of BOSManager.doGotoInfo
+
+
+    def logUsage( self, p1, p2, p3 ):
+        """
+        Not required in this app.
+        """
+        pass
+    # end of BOSManager.logUsage
 
 
     def doHelp( self, event=None ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BOSManager.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
-        helpInfo += "\n  Use the Resource menu to open study/reference resources."
-        helpInfo += "\n  Use the Project menu to open editable Bibles."
+        helpInfo += "\n  Click on a tab to view that subset of the Bible Organisational System (BOS)."
         helpInfo += "\n\nKeyboard shortcuts:"
-        for name,shortcut in self.myKeyboardBindingsList:
-            helpInfo += "\n  {}\t{}".format( name, shortcut )
-        helpInfo += "\n\n  {}\t{}".format( 'Prev Verse', 'Alt+UpArrow' )
-        helpInfo += "\n  {}\t{}".format( 'Next Verse', 'Alt+DownArrow' )
-        helpInfo += "\n  {}\t{}".format( 'Prev Chapter', 'Alt+, (<)' )
-        helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
-        helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
-        helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
+        #for name,shortcut in self.myKeyboardBindingsList:
+            #helpInfo += "\n  {}\t{}".format( name, shortcut )
+        #helpInfo += "\n\n  {}\t{}".format( 'Prev Verse', 'Alt+UpArrow' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Verse', 'Alt+DownArrow' )
+        #helpInfo += "\n  {}\t{}".format( 'Prev Chapter', 'Alt+, (<)' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
+        #helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
+        #helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
         hb = HelpBox( self.rootWindow, ShortProgName, helpInfo )
     # end of BOSManager.doHelp
 
@@ -927,7 +1731,7 @@ class BOSManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BOSManager.doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
             showerror( self, ShortProgName, 'You need to allow Internet access first!' )
@@ -945,13 +1749,13 @@ class BOSManager( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BOSManager.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nA free USFM Bible editor." \
-            + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
-            + "\n\nBiblelator is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator"
+        aboutInfo += "\nA display manager for the Bible Organisational System (BOS)." \
+            + "\n\nThis is still an unfinished alpha test version, but it should allow you to select and display various sets of information from the BOS." \
+            + "\n\n{} is written in Python. For more information see our web pages at Freely-Given.org/Software/BibleOrgSys and Freely-Given.org/Software/Biblelator".format( ShortProgName )
         ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
     # end of BOSManager.doAbout
 

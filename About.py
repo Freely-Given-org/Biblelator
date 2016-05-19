@@ -28,10 +28,10 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-05-12' # by RJH
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = '0.31'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -67,7 +67,11 @@ import BibleOrgSysGlobals
 
 
 class AboutBox( tk.Toplevel ):
-    def __init__( self, parent=None, progName=None, text=None ):
+    """
+    """
+    def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
+        """
+        """
         #if BibleOrgSysGlobals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_ABOUT_SIZE
@@ -76,15 +80,21 @@ class AboutBox( tk.Toplevel ):
         self.maxsize( *parseWindowSize( self.maximumSize ) )
         if parent: centreWindowOnWindow( self, parent )
 
-        self.okButton = Button( self, text='Ok', command=self.destroy )
-        self.okButton.pack( side=tk.BOTTOM )
-
         self.title( 'About '+progName )
-        self.textBox = ScrolledText( self ) #, state=tk.DISABLED )
+
+        self.textBox = ScrolledText( self, height=12 ) #, state=tk.DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.pack( expand=tk.YES )
         self.textBox.insert( tk.END, text )
         self.textBox['state'] = tk.DISABLED # Don't allow editing
+
+        if logoPath:
+            self.logo = tk.PhotoImage( file=logoPath )
+            self.label = tk.Label( self, image=self.logo )
+            self.label.pack( side=tk.LEFT )
+
+        self.okButton = Button( self, text='Ok', command=self.destroy )
+        self.okButton.pack( side=tk.RIGHT )
 
         self.focus_set() # take over input focus,
         self.grab_set() # disable other windows while I'm open,
@@ -94,17 +104,27 @@ class AboutBox( tk.Toplevel ):
 
 
 class AboutBox2():
-    def __init__( self, parent=None, progName=None, text=None ):
+    """
+    """
+    def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
+        """
+        """
         #if BibleOrgSysGlobals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
         ab = tk.Toplevel( parent )
         self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
         ab.minsize( self.minimumXSize, self.minimumYSize )
         if parent: centreWindowOnWindow( ab, parent )
 
+        if logoPath:
+            self.logo = tk.PhotoImage( file=logoPath )
+            self.label = tk.Label( ab, image=self.logo )
+            self.label.pack( side=tk.TOP )
+
         self.okButton = Button( ab, text='Ok', command=ab.destroy )
         self.okButton.pack( side=tk.BOTTOM )
 
         ab.title( 'About '+progName )
+
         textBox = ScrolledText( ab ) #, state=tk.DISABLED )
         textBox['wrap'] = 'word'
         textBox.pack( expand=tk.YES )
@@ -117,8 +137,8 @@ class AboutBox2():
         ab.focus_set() # take over input focus,
         ab.grab_set() # disable other windows while I'm open,
         ab.wait_window() # and wait here until win destroyed
-    # end of AboutBox.__init__
-# end of class AboutBox
+    # end of AboutBox2.__init__
+# end of class AboutBox2
 
 
 def demo():

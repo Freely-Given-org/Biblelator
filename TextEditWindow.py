@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-05-02' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -39,8 +39,10 @@ debuggingThisModule = True
 
 import os.path, logging, shutil #, re
 from datetime import datetime
+#from time import time
 
 import tkinter as tk
+from tkinter import font
 from tkinter.simpledialog import askstring, askinteger
 from tkinter.filedialog import asksaveasfilename
 from tkinter.ttk import Button, Label, Entry
@@ -60,6 +62,7 @@ import BibleOrgSysGlobals
 
 REFRESH_TITLE_TIME = 500 # msecs
 CHECK_DISK_CHANGES_TIME = 33333 # msecs
+NO_TYPE_TIME = 6000 # msecs
 
 
 
@@ -89,6 +92,8 @@ class TextEditWindow( ChildWindow ):
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
         self.filepath = os.path.join( folderPath, filename ) if folderPath and filename else None
 
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderPath, filename ) )
+
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
         ChildWindow.__init__( self, self.parentApp, 'TextEditor' ) # calls refreshTitle
@@ -103,7 +108,9 @@ class TextEditWindow( ChildWindow ):
         self.textBox.destroy()
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
-        self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
+
+        self.customFont = tk.font.Font( family="sans-serif", size=12 )
+        self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word', font=self.customFont )
 
         self.defaultBackgroundColour = 'gold2'
         self.textBox['background'] = self.defaultBackgroundColour
@@ -146,6 +153,7 @@ class TextEditWindow( ChildWindow ):
         self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
         #self.after( REFRESH_TITLE_TIME, self.refreshTitle )
         self.loading = self.hadTextWarning = False
+        #self.lastTextChangeTime = time()
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.__init__ finished.") )
@@ -178,7 +186,7 @@ class TextEditWindow( ChildWindow ):
         #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
         #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
         #self.textBox.bind('<Control-x>', self.doCut ); self.textBox.bind('<Control-X>', self.doCut )
-        #self.textBox.bind('<Control-g>', self.doRefind ); self.textBox.bind('<Control-G>', self.doRefind )
+        #self.textBox.bind('<Control-g>', self.doWindowRefind ); self.textBox.bind('<Control-G>', self.doWindowRefind )
     # end of TextEditWindow.createEditorKeyboardBindings()
 
 
@@ -223,11 +231,11 @@ class TextEditWindow( ChildWindow ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doFindReplace )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doWindowFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label=_('Grep…'), underline=0, command=self.onGrep )
 
@@ -248,11 +256,10 @@ class TextEditWindow( ChildWindow ):
 ##        gotoMenu.add_separator()
 ##        gotoMenu.add_command( label=_('Book'), underline=0, command=self.notWrittenYet )
 
-##        viewMenu = tk.Menu( self.menubar, tearoff=False )
-##        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-##        viewMenu.add_command( label=_('Whole chapter'), underline=6, command=self.notWrittenYet )
-##        viewMenu.add_command( label=_('Whole book'), underline=6, command=self.notWrittenYet )
-##        viewMenu.add_command( label=_('Single verse'), underline=7, command=self.notWrittenYet )
+        viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
+        viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
+        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
@@ -344,6 +351,29 @@ class TextEditWindow( ChildWindow ):
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 print( "Autosave not set-up properly yet" )
     # end if TextEditWindow.refreshTitleContinue
+
+
+    def OnFontBigger( self ):
+        """
+        Make the font one point bigger
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.OnFontBigger()") )
+
+        size = self.customFont['size']
+        self.customFont.configure( size=size+1 )
+    # end if TextEditWindow.OnFontBigger
+
+    def OnFontSmaller( self ):
+        """
+        Make the font one point smaller
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.OnFontSmaller()") )
+
+        size = self.customFont['size']
+        self.customFont.configure( size=size-1 )
+    # end if TextEditWindow.OnFontSmaller
 
 
     def OnAutocompleteChar( self, event ):
@@ -441,9 +471,10 @@ class TextEditWindow( ChildWindow ):
         Checks to see if they have moved to a new chapter/verse,
             and if so, informs the parent app.
         """
+        self.after_cancel( self.onTextNoChange ) # Cancel any delayed checks which are scheduled
         if self.loading: return # So we don't get called a million times for nothing
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -526,13 +557,13 @@ class TextEditWindow( ChildWindow ):
                                     .format( x + self.textBox.winfo_rootx() + 2, y + cy + self.textBox.winfo_rooty() ) )
                                 frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
                                 frame.pack( fill=tk.BOTH, expand=tk.YES )
-                                autocompleteScrollBar = tk.Scrollbar( frame, highlightthickness=0 )
-                                autocompleteScrollBar.pack( side=tk.RIGHT, fill='y' )
+                                autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
+                                autocompleteScrollbar.pack( side=tk.RIGHT, fill='y' )
                                 self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
                                                             relief="flat",
-                                                            yscrollcommand=autocompleteScrollBar.set,
+                                                            yscrollcommand=autocompleteScrollbar.set,
                                                             width=20, height=6 )
-                                autocompleteScrollBar.config( command=self.autocompleteBox.yview )
+                                autocompleteScrollbar.config( command=self.autocompleteBox.yview )
                                 self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
                                 #self.autocompleteBox.select_set( '0' )
                                 #self.autocompleteBox.focus()
@@ -568,7 +599,21 @@ class TextEditWindow( ChildWindow ):
                 #print( 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
                 self.removeAutocompleteBox()
             # end of auto-complete section
+
+        #self.lastTextChangeTime = time()
+        self.after( NO_TYPE_TIME, self.onTextNoChange ) # Redo it so we keep checking
     # end of TextEditWindow.onTextChange
+
+
+    def onTextNoChange( self ):
+        """
+        Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
+
+        Checks for some types of formatting errors.
+        """
+        #print( "TextEditWindow.onTextNoChange" )
+        pass
+    # end of TextEditWindow.onTextNoChange
 
 
     def checkForDiskChanges( self ):
@@ -724,48 +769,48 @@ class TextEditWindow( ChildWindow ):
     # Search menu commands
     ############################################################################
 
-    def xxxdoGotoLine( self, forceline=None):
-        line = forceline or askinteger( APP_NAME, _("Enter line number") )
-        self.textBox.update()
-        self.textBox.focus()
-        if line is not None:
-            maxindex = self.textBox.index( tk.END+'-1c' )
-            maxline  = int( maxindex.split('.')[0] )
-            if line > 0 and line <= maxline:
-                self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
-                self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
-                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
-                self.textBox.see( tk.INSERT )                          # scroll to line
-            else:
-                showerror( self, APP_NAME, _("No such line number") )
-    # end of TextEditWindow.doGotoLine
+    #def xxxdoGotoWindowLine( self, forceline=None):
+        #line = forceline or askinteger( APP_NAME, _("Enter line number") )
+        #self.textBox.update()
+        #self.textBox.focus()
+        #if line is not None:
+            #maxindex = self.textBox.index( tk.END+'-1c' )
+            #maxline  = int( maxindex.split('.')[0] )
+            #if line > 0 and line <= maxline:
+                #self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
+                #self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
+                #self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
+                #self.textBox.see( tk.INSERT )                          # scroll to line
+            #else:
+                #showerror( self, APP_NAME, _("No such line number") )
+    ## end of TextEditWindow.doGotoWindowLine
 
 
-    def xxxdoFind( self, lastkey=None):
-        key = lastkey or askstring( APP_NAME, _("Enter search string") )
-        self.textBox.update()
-        self.textBox.focus()
-        self.lastfind = key
-        if key:
-            nocase = self.optionsDict['caseinsens']
-            where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
-            if not where:                                          # don't wrap
-                showerror( self, APP_NAME, _("String not found") )
-            else:
-                pastkey = where + '+%dc' % len(key)           # index past key
-                self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
-                self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
-                self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
-                self.textBox.see( where )                          # scroll display
-    # end of TextEditWindow.doFind
+    #def xxxdoWindowFind( self, lastkey=None):
+        #key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        #self.textBox.update()
+        #self.textBox.focus()
+        #self.lastfind = key
+        #if key:
+            #nocase = self.optionsDict['caseinsens']
+            #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
+            #if not where:                                          # don't wrap
+                #showerror( self, APP_NAME, _("String not found") )
+            #else:
+                #pastkey = where + '+%dc' % len(key)           # index past key
+                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
+                #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
+                #self.textBox.see( where )                          # scroll display
+    ## end of TextEditWindow.doWindowFind
 
 
-    def xxxdoRefind( self ):
-        self.doFind( self.lastfind)
-    # end of TextEditWindow.doRefind
+    #def xxxdoWindowRefind( self ):
+        #self.doWindowFind( self.lastfind)
+    ## end of TextEditWindow.doWindowRefind
 
 
-    def doFindReplace( self ):
+    def doWindowFindReplace( self ):
         """
         Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
@@ -779,16 +824,16 @@ class TextEditWindow( ChildWindow ):
         entry1.grid( row=0, column=1, sticky=tk.EW )
         entry2.grid( row=1, column=1, sticky=tk.EW )
 
-        def doFind():                         # use my entry in enclosing scope
-            self.doFind( entry1.get() )         # runs normal find dialog callback
+        def doWindowFind():                         # use my entry in enclosing scope
+            self.doWindowFind( entry1.get() )         # runs normal find dialog callback
 
         def onApply():
             self.onDoChange( entry1.get(), entry2.get() )
 
-        Button( newPopupWindow, text='Find',  command=doFind ).grid(row=0, column=2, sticky=tk.EW )
+        Button( newPopupWindow, text='Find',  command=doWindowFind ).grid(row=0, column=2, sticky=tk.EW )
         Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=tk.EW )
         newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
-    # end of TextEditWindow.doFindReplace
+    # end of TextEditWindow.doWindowFindReplace
 
 
     def onDoChange( self, findtext, changeto):
@@ -799,7 +844,7 @@ class TextEditWindow( ChildWindow ):
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
             self.textBox.insert( tk.INSERT, changeto)             # deletes if empty
             self.textBox.see( tk.INSERT )
-            self.doFind( findtext )                          # goto next appear
+            self.doWindowFind( findtext )                          # goto next appear
             self.textBox.update() # force refresh
     # end of TextEditWindow.onDoChange
 

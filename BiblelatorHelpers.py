@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-05-16' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -229,12 +229,6 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
 
 
 
-# A (temporary) dictionary containing NT references to OT
-REFERENCE_VERSE_KEY_DICT = {
-    SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
-    SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
-    }
-
 def mapReferenceVerseKey( mainVerseKey ):
     """
     Returns the verse key for OT references in the NT (and vv), etc.
@@ -243,6 +237,12 @@ def mapReferenceVerseKey( mainVerseKey ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+
+    # A (temporary) dictionary containing NT references to OT
+    REFERENCE_VERSE_KEY_DICT = {
+        SimpleVerseKey('MAT','2','18'): SimpleVerseKey('JER','31','15'),
+        SimpleVerseKey('MAT','3','3'): SimpleVerseKey('ISA','40','3'),
+        }
 
     if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -475,7 +475,7 @@ def getChangeLogFilepath( loggingFolder, projectName ):
     """
     """
     return os.path.join( loggingFolder, \
-                        BibleOrgSysGlobals.makeSafeFilename( projectName.replace(' ','_') + '_changes.log' ) )
+                        BibleOrgSysGlobals.makeSafeFilename( projectName.replace(' ','_') + '_ChangeLog.txt' ) )
 # end of BiblelatorHelpers.getChangeLogFilepath
 
 def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength ):
@@ -486,13 +486,14 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
         #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
 
     filepath = getChangeLogFilepath( loggingFolder, projectName )
-    # TODO: Why don't we just append it to the existing file???
-    try: logText = open( filepath, 'rt', encoding='utf-8' ).read()
-    except FileNotFoundError: logText = ''
 
-    logText += '{} {} {:,} characters saved by {}\n'.format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    ## TODO: Why don't we just append it to the existing file???
+    #try: logText = open( filepath, 'rt', encoding='utf-8' ).read()
+    #except FileNotFoundError: logText = ''
+
+    logText = '{} {} {:,} characters saved by {}\n'.format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                                                                             savedBBB, textLength, userName )
-    with open( filepath, 'wt', encoding='utf-8' ) as logFile:
+    with open( filepath, 'at', encoding='utf-8' ) as logFile: # Append puts the file pointer at the end of the file
         logFile.write( logText )
 # end of BiblelatorHelpers.logChangedFile
 

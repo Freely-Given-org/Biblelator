@@ -135,17 +135,27 @@ follow my own instructions on a different computer.
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
 
 
-10. Run Biblelator in the normal mode for normal working.
+10. View optional parameters.
+    On Linux, type ".\Biblelator.py --help" (without the quotes), or
+    on Windows, the command is something like:
+            "Biblelator.py --help" (without the quotes)
+        or if that doesn't work, you might need something like
+            "C:\Python35\python.exe Biblelator.py --help" (without the quotes)
+        depending on your Python3 version number and how it was installed.
+    This test run of the program should display the Biblelator command prompt
+        help page and then exit immediately.
+
+11. Run Biblelator in the normal mode for normal working.
     If everything seems to be working correctly,
         next time you run Biblelator you might not need to run it in debug mode,
-    i.e., simply omit the "--version" and "--debug" parameters in order to run in normal mode.
+    i.e., simply omit the "--version" or "--help" parameters in order to run in normal mode.
     If the program does not run, please copy the contents of the command prompt window,
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
     It may also be helpful to include the contents of the Biblelator.ini file
         which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/ folder.
 
 
-11. IF #10 ABOVE CRASHED IMMEDIATELY, or if you need more info on what's going wrong,
+12. IF #11 ABOVE CRASHED IMMEDIATELY, or if you need more info on what's going wrong,
         try starting the Biblelator program in debug mode.
     Using a command similar to what worked in the previous step,
         replace "--version" with "--debug" to actually run the program
@@ -166,7 +176,7 @@ follow my own instructions on a different computer.
         and a BiblelatorLogs folder should contain a log file.
 
 
-12. In order to keep people safe who might be working on Bibles in sensitive locations, the
+13. In order to keep people safe who might be working on Bibles in sensitive locations, the
         default settings have all Internet access disabled.
     We recommend that most people enable Internet access. Unfortunately, this can't yet be
         done inside the program, so you need to find the settings file and edit it. The
@@ -177,18 +187,18 @@ follow my own instructions on a different computer.
         "internetAccess" to Enabled (and then save the file of course).
 
 
-13. Eventually (once the program is working fully and reliably) you might like to
+14. Eventually (once the program is working fully and reliably) you might like to
     make a desktop or toolbar shortcut to run Biblelator on your system so it can be started easier
     (without having to open a command prompt window and manually navigate to files and folders).
     Meanwhile though, it's probably useful to have the command prompt window open.
 
 
-14. If you wish to access online Scripture resources from the Digital Bible Platform
+15. If you wish to access online Scripture resources from the Digital Bible Platform
     (Faith Comes By Hearing FCBH), request further information from the Biblelator programmer(s)
     via http://Freely-Given.org/Contact.html.
 
 
-15. If you wish to access offline Scripture resources from the Crosswire Sword project,
+16. If you wish to access offline Scripture resources from the Crosswire Sword project,
     you should download and install/unzip the resources from the Crosswire or other repositories.
     You might already have these installed if you use a Sword-based Bible program such as
         Xiphos, Bibletime, BPBible, etc.
@@ -198,14 +208,14 @@ follow my own instructions on a different computer.
     Then hopefully we can get you started with basic access to these modules.
 
 
-16. PhotoBible
+17. PhotoBible
     If you wish to use the PhotoBible export option for your USFM projects, you need to install
 	the free ImageMagick package. For Linux, this can usually be installed from your package
 	manager, and for Windows (untested), the exe installation files can be downloaded from
 	http://www.imagemagick.org/download/binaries.
 
 
-17. Program updates
+18. Program updates
     If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each
         of them with "git pull" on each folder (or the equivalent command from the GUI if you
         use TortoiseGit or equivalent).

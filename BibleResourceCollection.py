@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-05-18' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -92,7 +92,7 @@ from tkinter.ttk import Frame, Button, Scrollbar
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
-from BiblelatorDialogs import showerror, SelectResourceBoxDialog, RenameResourceCollectionDialog
+from BiblelatorDialogs import showerror, showinfo, SelectResourceBoxDialog, RenameResourceCollectionDialog
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 from BiblelatorHelpers import handleInternalBibles
 
@@ -199,7 +199,7 @@ class BibleResourceBox( Frame, BibleBox ):
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
         self.getNextBookCode = self.BibleOrganisationalSystem.getNextBookCode
-        self.getBBB = self.BibleOrganisationalSystem.getBBB
+        self.getBBBFromText = self.BibleOrganisationalSystem.getBBBFromText
         self.getBookName = self.BibleOrganisationalSystem.getBookName
         self.getBookList = self.BibleOrganisationalSystem.getBookList
         self.maxChaptersThisBook, self.maxVersesThisChapter = 150, 150 # temp
@@ -215,7 +215,7 @@ class BibleResourceBox( Frame, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleResourceBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
-                             ('Find',self.doFind), ('Refind',self.doRefind),
+                             ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
                              ('Info',self.doShowInfo), ('Close',self.doClose), ):
             self.createStandardKeyboardBinding( name, command )
     # end of BibleResourceBox.createStandardKeyboardBindings()
@@ -520,7 +520,7 @@ class BibleResourceBox( Frame, BibleBox ):
         #elif self.parentWindow.contextViewMode == 'ByBook':
             #BBB, C, V = newVerseKey.getBCV()
             #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            #for thisC in range( 0, self.getNumChapters( BBB ) ):
+            #for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
                 #try: numVerses = self.getNumVerses( BBB, thisC )
                 #except KeyError: numVerses = 0
                 #for thisV in range( 0, numVerses ):
@@ -535,7 +535,7 @@ class BibleResourceBox( Frame, BibleBox ):
             #intV = newVerseKey.getVerseNumberInt()
             #try: numVerses = self.getNumVerses( BBB, C )
             #except KeyError: numVerses = 0
-            #for thisV in range( 0, numVerses ):
+            #for thisV in range( 0, numVerses + 1 ):
                 #thisVerseKey = SimpleVerseKey( BBB, C, thisV )
                 #thisVerseData = self.getCachedVerseData( thisVerseKey )
                 #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
@@ -786,10 +786,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
             searchMenu = tk.Menu( self.menubar )
             self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-            searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+            searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
             searchMenu.add_separator()
-            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -1114,6 +1114,21 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
         self.refreshTitle()
     # end of BibleResourceCollectionWindow.updateShownBCV
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceCollectionWindow.doShowInfo( {} )").format( event ) )
+
+        infoString = 'BibleResourceCollectionWindow:\n  Name:\t{}\n'.format( self.moduleID )
+        for j, resourceBox in enumerate( self.resourceBoxes ):
+            infoString += '\nType{}:\t{}'.format( j+1, resourceBox.boxType ) \
+                 + '\nName{}:\t{}'.format( j+1, resourceBox.moduleID )
+        showinfo( self, 'Window Information', infoString )
+    # end of BibleResourceCollectionWindow.doShowInfo
 
 
     def doHelp( self, event=None ):

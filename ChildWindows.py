@@ -34,17 +34,17 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-25' # by RJH
+LastModifiedDate = '2016-04-26' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = False
 
 
-import os.path, logging, re
+import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
@@ -128,7 +128,7 @@ class ChildBox():
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
-                             ('Find',self.doFind), ('Refind',self.doRefind),
+                             ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
                              ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              ('Close',self.doClose), ('ShowMain',self.doShowMainWindow), ):
             self.createStandardKeyboardBinding( name, command )
@@ -149,7 +149,7 @@ class ChildBox():
 
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
-            showerror( self, APP_NAME, 'No text selected')
+            showerror( self, APP_NAME, _("No text selected") )
         else:
             copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
             print( "  copied text", repr(copyText) )
@@ -171,11 +171,13 @@ class ChildBox():
     # end of ChildBox.doSelectAll
 
 
-    def doGotoLine( self, event=None, forceline=None ):
+    def doGotoWindowLine( self, event=None, forceline=None ):
         """
         """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doGotoWindowLine {}'.format( forceline ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doGotoLine( {}, {} )").format( event, forceline ) )
+            print( exp("ChildBox.doGotoWindowLine( {}, {} )").format( event, forceline ) )
+
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
         self.textBox.focus()
@@ -190,10 +192,16 @@ class ChildBox():
             else:
                 errorBeep()
                 showerror( self, APP_NAME, _("No such line number") )
-    # end of ChildBox.doGotoLine
+    # end of ChildBox.doGotoWindowLine
 
 
-    def doFind( self, event=None, lastkey=None ):
+    def doWindowFind( self, event=None, lastkey=None ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doWindowFind {!r}'.format( lastkey ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildBox.doWindowFind( {}, {!r} )").format( event, lastkey ) )
+
         key = lastkey or askstring( APP_NAME, _("Enter search string") )
         self.textBox.update()
         self.textBox.focus()
@@ -203,19 +211,25 @@ class ChildBox():
             where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
                 errorBeep()
-                showerror( self, APP_NAME, 'String not found' )
+                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
                 pastkey = where + '+%dc' % len(key)           # index past key
                 self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
                 self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 self.textBox.see( where )                          # scroll display
-    # end of ChildBox.doFind
+    # end of ChildBox.doWindowFind
 
 
-    def doRefind( self, event=None ):
-        self.doFind( self.lastfind)
-    # end of ChildBox.doRefind
+    def doWindowRefind( self, event=None ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doWindowRefind' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildBox.doWindowRefind( {} ) for {!r}").format( event, self.lastfind ) )
+
+        self.doWindowFind( lastkey=self.lastfind )
+    # end of ChildBox.doWindowRefind
 
 
     def doShowInfo( self, event=None ):
@@ -224,6 +238,7 @@ class ChildBox():
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doShowInfo( {} )").format( event ) )
 
@@ -389,7 +404,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.geometry("), *args, *kwargs, ')' )
 
-        self.update() # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
+        if 'win' in sys.platform:  # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
+            self.update()
         return tk.Toplevel.geometry( self, *args, **kwargs )
     # end of ChildWindow.geometry
 
@@ -420,7 +436,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
@@ -694,10 +710,10 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine, accelerator=kBD[_('Line')][0] )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=kBD[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=kBD[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind, accelerator=kBD[_('Refind')][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=kBD[_('Refind')][0] )
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
@@ -738,7 +754,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doFind, accelerator=kBD[_('Find')][0] )
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
 

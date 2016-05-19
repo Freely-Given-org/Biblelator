@@ -28,32 +28,34 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-24' # by RJH
+LastModifiedDate = '2016-05-15' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.34'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 import os.path, logging
+#from time import time
 from collections import OrderedDict
 
 import tkinter as tk
+from tkinter.simpledialog import askstring #, askinteger
 from tkinter.ttk import Style
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
-from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog # OkCancelDialog
+from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
 from TextBoxes import CustomText
-from ChildWindows import HTMLWindow # ChildWindow
-from BibleResourceWindows import BibleResourceWindow #, BibleBox
+from ChildWindows import HTMLWindow
+from BibleResourceWindows import BibleResourceWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
-from TextEditWindow import TextEditWindow #, REFRESH_TITLE_TIME, CHECK_DISK_CHANGES_TIME
+from TextEditWindow import TextEditWindow, NO_TYPE_TIME
 from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
@@ -95,6 +97,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.parentApp = parentApp
         self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
 
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( USFMBible.sourceFolder ) )
+
         if self.internalBible is not None:
             self.projectName = self.internalBible.shortName if self.internalBible.shortName else self.internalBible.givenName
             if not self.projectName:
@@ -112,14 +116,16 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         self.formatViewMode = 'Unformatted'
 
         # Make our own custom textBox which allows callbacks
-        self.textBox.destroy()
+        #self.textBox.destroy()
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
-        self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
-        self.textBox.setTextChangeCallback( self.onTextChange )
-        self.textBox['wrap'] = 'word'
-        self.textBox.config( undo=True, autoseparators=True )
-        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+
+
+        #self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
+        #self.textBox.setTextChangeCallback( self.onTextChange )
+        #self.textBox['wrap'] = 'word'
+        #self.textBox.config( undo=True, autoseparators=True )
+        #self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
 
         Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='green' )
         self.vScrollbar.config( command=self.textBox.yview, style=self.projectName+'USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
@@ -208,13 +214,13 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
         #fileMenu.add_command( label=_('Export'), underline=1, command=self.doMostExports )
-        subfileMenuExport = tk.Menu( fileMenu, tearoff=False )
-        subfileMenuExport.add_command( label=_('Quick exports'), underline=0, command=self.doMostExports )
-        subfileMenuExport.add_command( label=_('PhotoBible'), underline=0, command=self.doPhotoBibleExport )
-        subfileMenuExport.add_command( label=_('ODFs'), underline=0, command=self.doODFsExport )
-        subfileMenuExport.add_command( label=_('PDFs'), underline=1, command=self.doPDFsExport )
-        subfileMenuExport.add_command( label=_('All exports'), underline=0, command=self.doAllExports )
-        fileMenu.add_cascade( label=_('Export'), underline=1, menu=subfileMenuExport )
+        subFileMenuExport = tk.Menu( fileMenu, tearoff=False )
+        subFileMenuExport.add_command( label=_('Quick exports'), underline=0, command=self.doMostExports )
+        subFileMenuExport.add_command( label=_('PhotoBible'), underline=0, command=self.doPhotoBibleExport )
+        subFileMenuExport.add_command( label=_('ODFs'), underline=0, command=self.doODFsExport )
+        subFileMenuExport.add_command( label=_('PDFs'), underline=1, command=self.doPDFsExport )
+        subFileMenuExport.add_command( label=_('All exports'), underline=0, command=self.doAllExports )
+        fileMenu.add_cascade( label=_('Export'), underline=1, menu=subFileMenuExport )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo )
         fileMenu.add_separator()
@@ -234,11 +240,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoLine )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine )
+        subsearchMenuBible = tk.Menu( searchMenu, tearoff=False )
+        subsearchMenuBible.add_command( label=_('Find…'), underline=0, command=self.doBibleFind )
+        subsearchMenuBible.add_command( label=_('Find again'), underline=5, command=self.notWrittenYet )
+        subsearchMenuBible.add_command( label=_('Replace…'), underline=0, command=self.notWrittenYet )
+        searchMenu.add_cascade( label=_('Bible'), underline=0, menu=subsearchMenuBible )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doFind )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doRefind )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doFindReplace )
+        subSearchMenuWindow = tk.Menu( searchMenu, tearoff=False )
+        subSearchMenuWindow.add_command( label=_('Find…'), underline=0, command=self.doWindowFind )
+        subSearchMenuWindow.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind )
+        subSearchMenuWindow.add_command( label=_('Replace…'), underline=0, command=self.doWindowFindReplace )
+        searchMenu.add_cascade( label=_('Window'), underline=0, menu=subSearchMenuWindow )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -278,6 +291,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
         viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
+
+        viewMenu.add_separator()
+        viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
+        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
 
         #viewMenu.entryconfigure( 'Before and after…', state=tk.DISABLED )
         #viewMenu.entryconfigure( 'One section', state=tk.DISABLED )
@@ -350,6 +367,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     def prepareAutocomplete( self ):
         """
         """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'prepareAutocomplete' )
         logging.debug( exp("prepareAutocomplete()") )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("prepareAutocomplete()") )
@@ -378,8 +396,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -427,56 +445,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             self.bookTextModified = True
 
             # Check the text for USFM errors
-            editedText = self.getAllText()
-
-            # Check counts of USFM chapter and verse markers
-            numChaps = editedText.count( '\\c ' )
-            numVerses = editedText.count( '\\v ' )
-            BBB, C, V = self.currentVerseKey.getBCV()
-            #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-
-            if self.contextViewMode == 'BeforeAndAfter':
-                minChapterMarkers, maxChapterMarkers = 0, 1
-                minVerseMarkers = maxVerseMarkers = 0 if C=='0' else 3
-            elif self.contextViewMode == 'ByVerse':
-                minChapterMarkers = maxChapterMarkers = 1 if V=='0' and C!='0' else 0
-                minVerseMarkers = maxVerseMarkers = 0 if C=='0' else 1
-            elif self.contextViewMode == 'BySection':
-                minChapterMarkers, maxChapterMarkers = 0, 1
-                minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,10)
-            elif self.contextViewMode == 'ByBook':
-                minChapterMarkers = maxChapterMarkers = self.getNumChapters( BBB )
-                minVerseMarkers = maxVerseMarkers = self.numTotalVerses
-            elif self.contextViewMode == 'ByChapter':
-                minChapterMarkers = maxChapterMarkers = 0 if C=='0' else 1
-                minVerseMarkers = maxVerseMarkers = 0 if C=='0' else self.getNumVerses( BBB, C )
-            else: halt
-
-            errorMessage = warningMessage = None
-            if numChaps > maxChapterMarkers:
-                errorMessage = _("Too many USFM chapter markers (max of {} expected)").format( maxChapterMarkers )
-                print( errorMessage )
-            elif numChaps < minChapterMarkers:
-                warningMessage = _("May have missing USFM chapter markers (expected {}, found {})").format( maxChapterMarkers, numChaps )
-                print( warningMessage )
-            if numVerses > maxVerseMarkers:
-                errorMessage = _("Too many USFM verse markers (max of {} expected)").format( maxVerseMarkers )
-                print( errorMessage )
-            elif numVerses < minVerseMarkers:
-                warningMessage = _("May have missing USFM verse markers (expected {}, found {})").format( maxVerseMarkers, numVerses )
-                print( warningMessage )
-
-            if errorMessage:
-                self.parentApp.setErrorStatus( errorMessage )
-                self.textBox['background'] = 'firebrick1'
-                self.hadTextWarning = True
-            elif warningMessage:
-                self.parentApp.setErrorStatus( warningMessage )
-                self.textBox['background'] = 'chocolate1'
-                self.hadTextWarning = True
-            elif self.hadTextWarning:
-                self.textBox['background'] = self.defaultBackgroundColour
-                self.parentApp.setReadyStatus()
+            self.checkTextForErrors()
 
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
@@ -498,12 +467,99 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.onTextChange
 
 
+    def onTextNoChange( self ):
+        """
+        Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
+
+        Checks for some types of formatting errors.
+        """
+        #print( "USFMEditWindow.onTextNoChange" )
+
+        # Check the text for formatting errors
+        self.checkTextForErrors( includeFormatting=True )
+    # end of USFMEditWindow.onTextNoChange
+
+
+    def checkTextForErrors( self, includeFormatting=False ):
+        """
+        Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
+
+        Checks for some types of formatting errors.
+        """
+        #print( "USFMEditWindow.checkTextForErrors", includeFormatting )
+
+        editedText = self.getAllText()
+
+        # Check counts of USFM chapter and verse markers
+        numChaps = editedText.count( '\\c ' )
+        numVerses = editedText.count( '\\v ' )
+        BBB, C, V = self.currentVerseKey.getBCV()
+        #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+
+        if self.contextViewMode == 'BeforeAndAfter':
+            minChapterMarkers, maxChapterMarkers = 0, 1
+            if C == '0': minVerseMarkers = maxVerseMarkers = 0
+            elif C=='1' and V=='1': minVerseMarkers = maxVerseMarkers = 2
+            else: minVerseMarkers = maxVerseMarkers = 3
+        elif self.contextViewMode == 'ByVerse':
+            minChapterMarkers = maxChapterMarkers = 1 if V=='0' and C!='0' else 0
+            if C == '0': minVerseMarkers = maxVerseMarkers = 0
+            else: minVerseMarkers = maxVerseMarkers = 1
+        elif self.contextViewMode == 'BySection':
+            minChapterMarkers, maxChapterMarkers = 0, 1
+            minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,10)
+        elif self.contextViewMode == 'ByBook':
+            minChapterMarkers = maxChapterMarkers = self.getNumChapters( BBB )
+            minVerseMarkers = maxVerseMarkers = self.numTotalVerses
+        elif self.contextViewMode == 'ByChapter':
+            minChapterMarkers = maxChapterMarkers = 0 if C=='0' else 1
+            minVerseMarkers = maxVerseMarkers = 0 if C=='0' else self.getNumVerses( BBB, C )
+        else: halt
+
+        errorMessage = warningMessage = suggestionMessage = None
+        if numChaps > maxChapterMarkers:
+            errorMessage = _("Too many USFM chapter markers (max of {} expected)").format( maxChapterMarkers )
+            #print( errorMessage )
+        elif numChaps < minChapterMarkers:
+            warningMessage = _("May have missing USFM chapter markers (expected {}, found {})").format( maxChapterMarkers, numChaps )
+            #print( warningMessage )
+        if numVerses > maxVerseMarkers:
+            errorMessage = _("Too many USFM verse markers (max of {} expected)").format( maxVerseMarkers )
+            #print( errorMessage )
+        elif numVerses < minVerseMarkers:
+            warningMessage = _("May have missing USFM verse markers (expected {}, found {})").format( maxVerseMarkers, numVerses )
+            #print( warningMessage )
+        if '  ' in editedText:
+            warningMessage = _("No good reason to have multiple spaces in a USFM book")
+            #print( warningMessage )
+        elif includeFormatting and ' \n' in editedText:
+            suggestionMessage = _("No good reason to have a line ending with a space in a USFM book")
+
+        if errorMessage:
+            self.parentApp.setErrorStatus( errorMessage )
+            self.textBox['background'] = 'firebrick1'
+            self.hadTextWarning = True
+        elif warningMessage:
+            self.parentApp.setErrorStatus( warningMessage )
+            self.textBox['background'] = 'chocolate1'
+            self.hadTextWarning = True
+        elif suggestionMessage:
+            self.parentApp.setErrorStatus( suggestionMessage )
+            self.textBox['background'] = 'orchid1' # Make this one not too dissimilar from the default
+            self.hadTextWarning = True
+        elif self.hadTextWarning: # last time but not now
+            self.textBox['background'] = self.defaultBackgroundColour
+            self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.checkTextForErrors
+
+
     def doShowInfo( self, event=None ):
         """
         Pop-up dialog giving text statistics and cursor location;
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'doShowInfo' )
         logging.debug( exp("USFMEditWindow.doShowInfo( {} )").format( event ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.doShowInfo( {} )").format( event ) )
@@ -682,6 +738,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             #print( "contextViewMode", self.contextViewMode )
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
+        self.textBox['background'] = self.defaultBackgroundColour # Go back to default background
 
         oldVerseKey = self.currentVerseKey
         oldBBB, oldC, oldV = (None,None,None) if oldVerseKey is None else oldVerseKey.getBCV()
@@ -887,7 +944,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -902,10 +959,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses+1 ):
+                    for thisV in range( 0, numVerses + 1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''
@@ -939,9 +996,43 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.updateShownBCV
 
 
+    def doBibleFind( self, event=None, lastkey=None ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow doBibleFind {!r}'.format( lastkey ) )
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doBibleFind( {}, {!r} )").format( event, lastkey ) )
+
+        if self.internalBible is None:
+            print( "No Bible to search" )
+            return
+        self._prepareInternalBible()
+
+        key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        self.textBox.update()
+        self.textBox.focus()
+        self.lastfind = key
+        if key:
+            nocase = self.optionsDict['caseinsens']
+            #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
+            where = self.internalBible.searchText( key, noCase=nocase )
+            if not where:                                          # don't wrap
+                errorBeep()
+                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            else:
+                print( "  Got search result: {}".format( where ) )
+                #pastkey = where + '+%dc' % len(key)           # index past key
+                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
+                #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
+                #self.textBox.see( where )                          # scroll display
+    # end of USFMEditWindow.doBibleFind
+
+
     def _prepareInternalBible( self ):
         """
-        Prepare to do some of the exports or checks available in BibleOrgSysGlobals.
+        Prepare to do a search on the Internal Bible object
+            or to do some of the exports or checks available in BibleOrgSysGlobals.
 
         Leaves the wait cursor displayed.
         """

@@ -28,10 +28,10 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-05-12' # by RJH
 ShortProgName = "Help"
 ProgName = "Help Box"
-ProgVersion = '0.31'
+ProgVersion = '0.35'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -67,7 +67,11 @@ import BibleOrgSysGlobals
 
 
 class HelpBox( tk.Toplevel ):
-    def __init__( self, parent=None, progName=None, text=None ):
+    """
+    """
+    def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
+        """
+        """
         #if BibleOrgSysGlobals.debugFlag: print( "HelpBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_HELP_SIZE
@@ -76,15 +80,21 @@ class HelpBox( tk.Toplevel ):
         self.maxsize( *parseWindowSize( self.maximumSize ) )
         if parent: centreWindowOnWindow( self, parent )
 
-        self.okButton = Button( self, text='Ok', command=self.destroy )
-        self.okButton.pack( side=tk.BOTTOM )
-
         self.title( 'Help for '+progName )
-        self.textBox = ScrolledText( self ) #, state=tk.DISABLED )
+
+        self.textBox = ScrolledText( self, height=12 ) #, state=tk.DISABLED )
         self.textBox['wrap'] = 'word'
         self.textBox.insert( tk.END, text )
         self.textBox['state'] = tk.DISABLED # Don't allow editing
         self.textBox.pack( expand=tk.YES )
+
+        if logoPath:
+            self.logo = tk.PhotoImage( file=logoPath )
+            self.label = tk.Label( self, image=self.logo )
+            self.label.pack( side=tk.LEFT )
+
+        self.okButton = Button( self, text='Ok', command=self.destroy )
+        self.okButton.pack( side=tk.RIGHT )
 
         self.focus_set() # take over input focus,
         self.grab_set() # disable other windows while I'm open,
@@ -94,28 +104,38 @@ class HelpBox( tk.Toplevel ):
 
 
 class HelpBox2():
-    def __init__( self, parent=None, progName=None, text=None ):
+    """
+    """
+    def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: print( "HelpBox2.__init__( {} )".format( parent ) )
         hb = tk.Toplevel( parent )
         self.minimumXSize, self.minimumYSize = MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE
         hb.minsize( self.minimumXSize, self.minimumYSize )
         if parent: centreWindowOnWindow( hb, parent )
 
-        self.okButton = Button( hb, text='Ok', command=hb.destroy )
-        self.okButton.pack( side=tk.BOTTOM )
-
         hb.title( 'Help for '+progName )
-        textBox = ScrolledText( hb ) #, state=tk.DISABLED )
+
+        textBox = ScrolledText( hb, height=12 ) #, state=tk.DISABLED )
         textBox['wrap'] = 'word'
         textBox.pack( expand=tk.YES )
         textBox.insert( tk.END, text )
         textBox['state'] = tk.DISABLED # Don't allow editing
 
+        if logoPath:
+            self.logo = tk.PhotoImage( file=logoPath )
+            self.label = tk.Label( hb, image=self.logo )
+            self.label.pack( side=tk.LEFT )
+
+        self.okButton = Button( hb, text='Ok', command=hb.destroy )
+        self.okButton.pack( side=tk.RIGHT )
+
         hb.focus_set() # take over input focus,
         hb.grab_set() # disable other windows while I'm open,
         hb.wait_window() # and wait here until win destroyed
     # end of HelpBox.__init__
-# end of class HelpBox
+# end of class HelpBox2
 
 
 def demo():
@@ -129,8 +149,8 @@ def demo():
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
-    ab = HelpBox( tkRootWindow, ProgName, ProgNameVersion )
-    ab = HelpBox2( tkRootWindow, ProgName, ProgNameVersion )
+    ab = HelpBox( tkRootWindow, ProgName, ProgNameVersion, 'BiblelatorLogoSmall.gif' )
+    ab = HelpBox2( tkRootWindow, ProgName, ProgNameVersion, 'BiblelatorLogoSmall.gif' )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
