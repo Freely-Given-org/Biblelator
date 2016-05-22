@@ -57,11 +57,11 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
     createMenuBar( self )
     refreshTitle( self )
     doRename( self )
-    doOpenDBPBibleResource( self )
+    doOpenDBPBibleResourceBox( self )
     openDBPBibleResourceBox( self, moduleAbbreviation, windowGeometry=None )
-    doOpenSwordResource( self )
+    doOpenSwordResourceBox( self )
     openSwordBibleResourceBox( self, moduleAbbreviation, windowGeometry=None )
-    doOpenInternalBibleResource( self )
+    doOpenInternalBibleResourceBox( self )
     openInternalBibleResourceBox( self, modulePath, windowGeometry=None )
     openBox( self, boxType, boxSource )
     updateShownBCV( self, newReferenceVerseKey, originator=None )
@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-18' # by RJH
+LastModifiedDate = '2016-05-19' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -837,9 +837,9 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
-        resourcesMenu.add_command( label=_('Online (DBP)…'), underline=0, command=self.doOpenDBPBibleResource )
-        resourcesMenu.add_command( label=_('Sword module…'), underline=0, command=self.doOpenSwordResource )
-        resourcesMenu.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenInternalBibleResource )
+        resourcesMenu.add_command( label=_('Online (DBP)…'), underline=0, command=self.doOpenDBPBibleResourceBox )
+        resourcesMenu.add_command( label=_('Sword module…'), underline=0, command=self.doOpenSwordResourceBox )
+        resourcesMenu.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenInternalBibleResourceBox )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
@@ -881,38 +881,44 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
     # end if BibleResourceCollectionWindow.doRename
 
 
-    def doOpenDBPBibleResource( self ):
+    def doOpenDBPBibleResourceBox( self ):
         """
         Open an online DigitalBiblePlatform Bible (called from a menu/GUI action).
 
         Requests a version name from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doOpenDBPBibleResource()") )
-            self.parentApp.setDebugText( "doOpenDBPBibleResource…" )
-        self.parentApp.setWaitStatus( "doOpenDBPBibleResource…" )
-        if self.parentApp.DBPInterface is None:
-            try: self.parentApp.DBPInterface = DBPBibles()
-            except FileNotFoundError: # probably the key file wasn't found
-                showerror( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
-                return
+            print( exp("doOpenDBPBibleResourceBox()") )
+            self.parentApp.setDebugText( "doOpenDBPBibleResourceBox…" )
 
-            availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
-            #print( "aV1", repr(availableVolumes) )
-            if availableVolumes:
-                srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
-                #print( "srbResult", repr(srb.result) )
-                if srb.result:
-                    for entry in srb.result:
-                        self.openDBPBibleResourceBox( entry[1] )
-                    #self.acceptNewBnCV()
-                    #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-                elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenDBPBibleResource: no resource selected!") )
-            else:
-                logging.critical( exp("doOpenDBPBibleResource: no volumes available") )
-                self.parentApp.setStatus( "Digital Bible Platform unavailable (offline?)" )
-        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished doOpenDBPBibleResource" )
-    # end of BibleResourceCollectionWindow.doOpenDBPBibleResource
+        if self.parentApp.internetAccessEnabled:
+            self.parentApp.setWaitStatus( "doOpenDBPBibleResourceBox…" )
+            if self.parentApp.DBPInterface is None:
+                try: self.parentApp.DBPInterface = DBPBibles()
+                except FileNotFoundError: # probably the key file wasn't found
+                    showerror( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
+                    return
+
+                availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
+                #print( "aV1", repr(availableVolumes) )
+                if availableVolumes:
+                    srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
+                    #print( "srbResult", repr(srb.result) )
+                    if srb.result:
+                        for entry in srb.result:
+                            self.openDBPBibleResourceBox( entry[1] )
+                        #self.acceptNewBnCV()
+                        #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
+                    elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenDBPBibleResourceBox: no resource selected!") )
+                else:
+                    logging.critical( exp("doOpenDBPBibleResourceBox: no volumes available") )
+                    self.parentApp.setStatus( "Digital Bible Platform unavailable (offline?)" )
+        else: # no Internet allowed
+            logging.critical( exp("doOpenDBPBibleResourceBox: Internet not enabled") )
+            self.parentApp.setStatus( "Digital Bible Platform unavailable (You have disabled Internet access.)" )
+
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished doOpenDBPBibleResourceBox" )
+    # end of BibleResourceCollectionWindow.doOpenDBPBibleResourceBox
 
     def openDBPBibleResourceBox( self, moduleAbbreviation, windowGeometry=None ):
         """
@@ -943,7 +949,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
     # end of BibleResourceCollectionWindow.openDBPBibleResourceBox
 
 
-    def doOpenSwordResource( self ):
+    def doOpenSwordResourceBox( self ):
         """
         Open a local Sword Bible (called from a menu/GUI action).
 
@@ -951,12 +957,12 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openSwordResource()") )
-            self.parentApp.setDebugText( "doOpenSwordResource…" )
-        self.parentApp.setStatus( "doOpenSwordResource…" )
+            self.parentApp.setDebugText( "doOpenSwordResourceBox…" )
+        self.parentApp.setStatus( "doOpenSwordResourceBox…" )
         if self.parentApp.SwordInterface is None and SwordType is not None:
             self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
         if self.parentApp.SwordInterface is None: # still
-            logging.critical( exp("doOpenSwordResource: no Sword interface available") )
+            logging.critical( exp("doOpenSwordResourceBox: no Sword interface available") )
             showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
 
@@ -979,9 +985,9 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
                     self.parentApp.addRecentFile( (requestedModuleName,'','SwordBibleResourceBox') )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-            elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResource: no resource selected!") )
+            elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResourceBox: no resource selected!") )
         else:
-            logging.critical( exp("doOpenSwordResource: no list available") )
+            logging.critical( exp("doOpenSwordResourceBox: no list available") )
             showerror( self, APP_NAME, _("No Sword resources discovered") )
 
         ## Old code
@@ -1000,13 +1006,13 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
                     #self.openSwordBibleResourceBox( entry )
                 ##self.acceptNewBnCV()
                 ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-            #elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResource: no resource selected!") )
+            #elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResourceBox: no resource selected!") )
         #else:
-            #logging.critical( exp("doOpenSwordResource: no list available") )
+            #logging.critical( exp("doOpenSwordResourceBox: no list available") )
             #showerror( self, APP_NAME, _("No Sword resources discovered") )
         ##self.acceptNewBnCV()
         ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-    # end of BibleResourceCollectionWindow.doOpenSwordResource
+    # end of BibleResourceCollectionWindow.doOpenSwordResourceBox
 
     def openSwordBibleResourceBox( self, moduleAbbreviation, windowGeometry=None ):
         """
@@ -1030,7 +1036,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
     # end of BibleResourceCollectionWindow.openSwordBibleResourceBox
 
 
-    def doOpenInternalBibleResource( self ):
+    def doOpenInternalBibleResourceBox( self ):
         """
         Open a local Bible (called from a menu/GUI action).
 
@@ -1038,8 +1044,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openInternalBibleResource()") )
-            self.parentApp.setDebugText( "doOpenInternalBibleResource…" )
-        self.parentApp.setStatus( "doOpenInternalBibleResource…" )
+            self.parentApp.setDebugText( "doOpenInternalBibleResourceBox…" )
+        self.parentApp.setStatus( "doOpenInternalBibleResourceBox…" )
 
         #requestedFolder = askdirectory()
         openDialog = Directory( initialdir=self.parentApp.lastInternalBibleDir, parent=self )
@@ -1049,7 +1055,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.openInternalBibleResourceBox( requestedFolder )
             #self.acceptNewBnCV()
             #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-    # end of BibleResourceCollectionWindow.doOpenInternalBibleResource
+    # end of BibleResourceCollectionWindow.doOpenInternalBibleResourceBox
 
     def openInternalBibleResourceBox( self, modulePath, windowGeometry=None ):
         """

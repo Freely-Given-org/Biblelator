@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# BOSManager.py
+# BiblelatorSettingsEditor.py
 #
 # BOS (Bible Organizational System) manager program
 #
@@ -30,9 +30,9 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 from gettext import gettext as _
 
 LastModifiedDate = '2016-05-22' # by RJH
-ShortProgName = "BOSManager"
-ProgName = "BOS Manager"
-ProgVersion = '0.05' # Separate versioning from Biblelator
+ShortProgName = "BiblelatorSettingsEditor"
+ProgName = "Biblelator Settings Editor"
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -48,7 +48,7 @@ from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry,
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, START, \
+from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, findUsername, \
@@ -113,7 +113,7 @@ def exp( messageString ):
 
 
 
-class BOSManager( Frame ):
+class BiblelatorSettingsEditor( Frame ):
     """
     This is the main application window (well, actually a frame in the root toplevel window).
 
@@ -128,7 +128,7 @@ class BOSManager( Frame ):
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
+            print( exp("BiblelatorSettingsEditor.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage = rootWindow, homeFolderPath, loggingFolderPath, iconImage
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -151,11 +151,6 @@ class BOSManager( Frame ):
 
         if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
         if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
-
-        # We rely on the parseAndApplySettings() call below to do this
-        ## Set-up our Bible system and our callables
-        #self.genericBibleOrganizationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
-        #self.setGenericBibleOrganizationalSystem( self.genericBibleOrganizationalSystemName )
 
         self.stylesheet = BibleStylesheet().loadDefault()
         Frame.__init__( self, self.rootWindow )
@@ -223,7 +218,7 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
-    # end of BOSManager.__init__
+    # end of BiblelatorSettingsEditor.__init__
 
 
     def setGenericBibleOrganizationalSystem( self, BOSname ):
@@ -260,7 +255,7 @@ class BOSManager( Frame ):
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
         #print( self.bookNumberTable )
-    # end of BOSManager.setGenericBibleOrganizationalSystem
+    # end of BiblelatorSettingsEditor.setGenericBibleOrganizationalSystem
 
 
     def createNormalMenuBar( self ):
@@ -350,7 +345,7 @@ class BOSManager( Frame ):
         helpMenu.add_command( label=_('Submit bug…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doSubmitBug )
         helpMenu.add_separator()
         helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
-    # end of BOSManager.createNormalMenuBar
+    # end of BiblelatorSettingsEditor.createNormalMenuBar
 
     def createTouchMenuBar( self ):
         """
@@ -360,7 +355,7 @@ class BOSManager( Frame ):
             assert self.touchMode
 
         self.createNormalMenuBar()
-    # end of BOSManager.createTouchMenuBar
+    # end of BiblelatorSettingsEditor.createTouchMenuBar
 
 
     def createNormalNavigationBar( self ):
@@ -471,7 +466,7 @@ class BOSManager( Frame ):
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
         navigationBar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createNormalNavigationBar
+    # end of BiblelatorSettingsEditor.createNormalNavigationBar
 
     def createTouchNavigationBar( self ):
         """
@@ -598,7 +593,7 @@ class BOSManager( Frame ):
 
         #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
         navigationBar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createTouchNavigationBar
+    # end of BiblelatorSettingsEditor.createTouchNavigationBar
 
 
     def createToolBar( self ):
@@ -626,7 +621,7 @@ class BOSManager( Frame ):
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createToolBar
+    # end of BiblelatorSettingsEditor.createToolBar
 
 
     def createNotebook( self ):
@@ -639,292 +634,387 @@ class BOSManager( Frame ):
 
         # Adding Frames as pages for the ttk.Notebook
 
-        # Bible books codes page
-        print( "Create codes page" )
-        self.BibleBooksCodesList = BibleOrgSysGlobals.BibleBooksCodes.getAllReferenceAbbreviations()
-        self.codesPage = Frame( self.notebook )
-        codesLabel = Label( self.codesPage, text="Books Codes ({})".format( len(self.BibleBooksCodesList) ) )
-        codesLabel.grid( row=0, column=0, columnspan=2 )
-        searchBBBLabel = Label( self.codesPage, text=_("Search BBB:") )
-        searchBBBLabel.grid( row=1, column=0 )
-        self.codesBBBSearch = Entry( self.codesPage, width=5 )
-        self.codesBBBSearch.bind( '<Return>', self.searchBBBCode )
-        self.codesBBBSearch.grid( row=1, column=1 )
-        searchLabel = Label( self.codesPage, text=_("Search (all):") )
-        searchLabel.grid( row=2, column=0 )
-        self.codesSearch = Entry( self.codesPage, width=8 )
-        self.codesSearch.bind( '<Return>', self.searchCode )
-        self.codesSearch.grid( row=2, column=1 )
-        sbar = Scrollbar( self.codesPage )
-        self.codesListbox = tk.Listbox( self.codesPage, width=5, relief=tk.SUNKEN )
-        sbar.config( command=self.codesListbox.yview )
-        self.codesListbox.config( yscrollcommand=sbar.set )
-        self.codesListbox.bind('<<ListboxSelect>>', self.gotoNewCode )
-        #self.codesListbox.bind( '<Return>', self.gotoNewCode )
-        sbar.grid( row=0, column=3, rowspan=3, sticky=tk.N+tk.S )
-        self.codesListbox.grid( row=0, column=2, rowspan=3, sticky=tk.N+tk.S )
-        self.codeTextBox = ScrolledText( self.codesPage, bg='lightblue' )
-        self.codeTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.codeTextBox.insert( tk.END, 'Codes' )
-        self.codeTextBox.grid( row=0, column=4, rowspan=3, sticky=tk.N+tk.S+tk.E )
-        for BBB in self.BibleBooksCodesList:
-            self.codesListbox.insert( tk.END, BBB ) # fill the listbox
-        self.codesSearch.insert( tk.END, 'GEN' )
-        self.searchCode( None ) # Go to the above
-        self.codesSearch.delete( 0, tk.END ) # Clear the search box again
+        # Main settings files page
+        print( "Create main settings files page" )
+        self.settingsFilesPage = Frame( self.notebook )
+        self.fdrVar = tk.StringVar()
+        fdrLabel = Label( self.settingsFilesPage, text=_("Standard folder:") )
+        fdrLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.fdrEntry = Entry( self.settingsFilesPage, width=50, textvariable=self.fdrVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.fdrEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.fnVar = tk.StringVar()
+        fnLabel = Label( self.settingsFilesPage, text=_("Settings name:") )
+        fnLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        self.fnEntry = Entry( self.settingsFilesPage, width=15, textvariable=self.fnVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.fnEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
 
-        # Bible punctuations systems page
-        print( "Create punct page" )
-        self.BiblePunctuationSystems = BiblePunctuationSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BiblePunctuationsList = sorted( self.BiblePunctuationSystems.getAvailablePunctuationSystemNames() )
-        self.punctuationPage = Frame( self.notebook )
-        punctuationLabel = Label( self.punctuationPage, text="Books Punctuations ({})".format( len(self.BiblePunctuationsList) ) )
-        punctuationLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.punctuationPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.punctuationsSearch = Entry( self.punctuationPage, width=12 )
-        self.punctuationsSearch.bind( '<Return>', self.searchPunctuation )
-        self.punctuationsSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.punctuationPage )
-        self.punctuationsListbox = tk.Listbox( self.punctuationPage, width=12, relief=tk.SUNKEN )
-        sbar.config( command=self.punctuationsListbox.yview )
-        self.punctuationsListbox.config( yscrollcommand=sbar.set )
-        self.punctuationsListbox.bind('<<ListboxSelect>>', self.gotoNewPunctuation )
-        #self.punctuationListbox.bind( '<Return>', self.gotoNewPunctuation )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.punctuationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.punctuationTextBox = ScrolledText( self.punctuationPage, bg='lightgreen' )
-        self.punctuationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.punctuationTextBox.insert( tk.END, 'Punctuations' )
-        self.punctuationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for pName in self.BiblePunctuationsList:
-            self.punctuationsListbox.insert( tk.END, pName ) # fill the listbox
-        self.punctuationsSearch.insert( tk.END, 'English' )
-        self.searchPunctuation( None ) # Go to the above
-        self.punctuationsSearch.delete( 0, tk.END ) # Clear the search box again
+        # Main settings page
+        print( "Create main settings page" )
+        self.mainPage = Frame( self.notebook )
+        self.svVar = tk.StringVar()
+        svLabel = Label( self.mainPage, text=_("Settings version:") )
+        svLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.svEntry = Entry( self.mainPage, width=8, textvariable=self.svVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.svEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.pvVar = tk.StringVar()
+        pvLabel = Label( self.mainPage, text=_("Program version:") )
+        pvLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        self.pvEntry = Entry( self.mainPage, width=8, textvariable=self.pvVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.pvEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
+        self.thnVar = tk.StringVar()
+        thnLabel = Label( self.mainPage, text=_("Theme name:") )
+        thnLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
+        self.thnEntry = Entry( self.mainPage, width=20, textvariable=self.thnVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.thnEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
+        self.wszVar = tk.StringVar()
+        wszLabel = Label( self.mainPage, text=_("Window size:") )
+        wszLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
+        self.wszEntry = Entry( self.mainPage, width=12, textvariable=self.wszVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.wszEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
+        self.wposVar = tk.StringVar()
+        wposLabel = Label( self.mainPage, text=_("Window position:") )
+        wposLabel.grid( row=4, column=0, padx=0, pady=2, sticky=tk.E )
+        self.wposEntry = Entry( self.mainPage, width=12, textvariable=self.wposVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.wposEntry.grid( row=4, column=1, padx=2, pady=2, sticky=tk.W )
+        self.minszVar = tk.StringVar()
+        minszLabel = Label( self.mainPage, text=_("Minimum size:") )
+        minszLabel.grid( row=5, column=0, padx=0, pady=2, sticky=tk.E )
+        self.minszEntry = Entry( self.mainPage, width=12, textvariable=self.minszVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.minszEntry.grid( row=5, column=1, padx=2, pady=2, sticky=tk.W )
+        self.maxszVar = tk.StringVar()
+        maxszLabel = Label( self.mainPage, text=_("Maximum size:") )
+        maxszLabel.grid( row=6, column=0, padx=0, pady=2, sticky=tk.E )
+        self.maxszEntry = Entry( self.mainPage, width=12, textvariable=self.maxszVar, state=tk.DISABLED )
+        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.maxszEntry.grid( row=6, column=1, padx=2, pady=2, sticky=tk.W )
 
-        # Bible versification systems page
-        print( "Create vers page" )
-        self.BibleVersificationsSystems = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleVersificationsSystemsList = sorted( self.BibleVersificationsSystems.getAvailableVersificationSystemNames() )
-        self.versificationsPage = Frame( self.notebook )
-        versificationsLabel = Label( self.versificationsPage, text="Bible Versification Systems ({})".format( len(self.BibleVersificationsSystemsList) ) )
-        versificationsLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.versificationsPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.versificationsSearch = Entry( self.versificationsPage, width=15 )
-        self.versificationsSearch.bind( '<Return>', self.searchVersification )
-        self.versificationsSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.versificationsPage )
-        self.versificationsListbox = tk.Listbox( self.versificationsPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.versificationsListbox.yview )
-        self.versificationsListbox.config( yscrollcommand=sbar.set )
-        self.versificationsListbox.bind('<<ListboxSelect>>', self.gotoNewVersification )
-        #self.versificationsListbox.bind( '<Return>', self.gotoNewVersification )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.versificationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.versificationTextBox = ScrolledText( self.versificationsPage, bg='orange' )
-        self.versificationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.versificationTextBox.insert( tk.END, 'Versifications' )
-        self.versificationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for vName in self.BibleVersificationsSystemsList:
-            self.versificationsListbox.insert( tk.END, vName ) # fill the listbox
-        self.versificationsSearch.insert( tk.END, 'KJV' ) # Select KJV
-        self.searchVersification( None ) # Go to KJV
-        self.versificationsSearch.delete( 0, tk.END ) # Clear the search box again
+        # Interface page
+        print( "Create interface page" )
+        self.interfacePage = Frame( self.notebook )
+        self.ilVar = tk.StringVar()
+        ilLabel = Label( self.interfacePage, text=_("Language:") )
+        ilLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.ilEntry = Entry( self.interfacePage, width=25, textvariable=self.ilVar, state=tk.DISABLED )
+        #self.ilEntry.bind( '<Return>', self.searchBBBCode )
+        self.ilEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.icVar = tk.StringVar()
+        icLabel = Label( self.interfacePage, text=_("Complexity:") )
+        icLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        self.icEntry = Entry( self.interfacePage, width=25, textvariable=self.icVar, state=tk.DISABLED )
+        #self.icEntry.bind( '<Return>', self.searchBBBCode )
+        self.icEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
+        self.tchVar = tk.IntVar()
+        tchCb = tk.Checkbutton( self.interfacePage, text=_("Touch mode:"), variable=self.tchVar, command=self.flagChange )
+        tchCb.grid( row=2, column=1, padx=0, pady=2, sticky=tk.W )
+        self.tabVar = tk.IntVar()
+        tabCb = tk.Checkbutton( self.interfacePage, text=_("Tablet mode:"), variable=self.tabVar, command=self.flagChange )
+        tabCb.grid( row=3, column=1, padx=0, pady=2, sticky=tk.W )
 
-        # Bible versification mappings page
-        print( "Create mappings page" )
-        #self.BibleMappingsSystems = BibleMappingSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleMappingsSystemsList = []
-        self.mappingsPage = Frame( self.notebook )
-        mappingsLabel = Label( self.mappingsPage, text="Mapping Mappings ({})".format( len(self.BibleMappingsSystemsList) ) )
-        mappingsLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.mappingsPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.mappingsSearch = Entry( self.mappingsPage, width=15 )
-        self.mappingsSearch.bind( '<Return>', self.searchMapping )
-        self.mappingsSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.mappingsPage )
-        self.mappingsListbox = tk.Listbox( self.mappingsPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.mappingsListbox.yview )
-        self.mappingsListbox.config( yscrollcommand=sbar.set )
-        self.mappingsListbox.bind('<<ListboxSelect>>', self.gotoNewMapping )
-        #self.mappingsListbox.bind( '<Return>', self.gotoNewMapping )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.mappingsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.mappingTextBox = ScrolledText( self.mappingsPage, bg='brown' )
-        self.mappingTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.mappingTextBox.insert( tk.END, 'Mappings' )
-        self.mappingTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for mName in self.BibleMappingsSystemsList:
-            self.mappingsListbox.insert( tk.END, mName ) # fill the listbox
-        self.mappingsSearch.insert( tk.END, 'KJV' ) # Select KJV
-        self.searchMapping( None ) # Go to KJV
-        self.mappingsSearch.delete( 0, tk.END ) # Clear the search box again
+        # Internet communications page
+        print( "Create Internet page" )
+        self.internetPage = Frame( self.notebook )
+        self.iaVar = tk.IntVar()
+        iaCb = tk.Checkbutton( self.internetPage, text=_("Internet access enabled"), variable=self.iaVar, command=self.flagChange )
+        iaCb.grid( row=0, column=0, padx=0, pady=2, sticky=tk.W )
+        self.ifVar = tk.IntVar()
+        ifCb = tk.Checkbutton( self.internetPage, text=_("Internet is fast"), variable=self.ifVar, command=self.flagChange )
+        ifCb.grid( row=1, column=0, padx=20, pady=2, sticky=tk.W )
+        self.ieVar = tk.IntVar()
+        ieCb = tk.Checkbutton( self.internetPage, text=_("Internet is expensive"), variable=self.ieVar, command=self.flagChange )
+        ieCb.grid( row=2, column=0, padx=20, pady=2, sticky=tk.W )
+        self.cbVar = tk.IntVar()
+        cbCb = tk.Checkbutton( self.internetPage, text=_("Cloud backup enabled"), variable=self.cbVar, command=self.flagChange )
+        cbCb.grid( row=3, column=0, padx=20, pady=2, sticky=tk.W )
+        self.cdVar = tk.IntVar()
+        cdCb = tk.Checkbutton( self.internetPage, text=_("Check for developer messages"), variable=self.cdVar, command=self.flagChange )
+        cdCb.grid( row=4, column=0, padx=20, pady=2, sticky=tk.W )
+        self.lmVar = tk.StringVar()
+        lmLabel = Label( self.internetPage, text=_("Last message number read:") )
+        lmLabel.grid( row=5, column=0, sticky=tk.E )
+        self.lmEntry = Entry( self.internetPage, width=5, textvariable=self.lmVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.lmEntry.grid( row=5, column=1 )
+        self.usVar = tk.IntVar()
+        usCb = tk.Checkbutton( self.internetPage, text=_("Send usage statistics"), variable=self.usVar, command=self.flagChange )
+        usCb.grid( row=6, column=0, padx=20, pady=2, sticky=tk.W )
+        self.auVar = tk.IntVar()
+        auCb = tk.Checkbutton( self.internetPage, text=_("Automatic updates"), variable=self.auVar, command=self.flagChange )
+        auCb.grid( row=7, column=0, padx=20, pady=2, sticky=tk.W )
+        self.dvVar = tk.IntVar()
+        dvCb = tk.Checkbutton( self.internetPage, text=_("Use development versions"), variable=self.dvVar, command=self.flagChange )
+        dvCb.grid( row=8, column=0, padx=40, pady=2, sticky=tk.W )
 
-        # Bible book order systems page
-        print( "Create orders page" )
-        self.BibleOrdersSystems = BibleBookOrderSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleOrdersSystemsList = sorted( self.BibleOrdersSystems.getAvailableBookOrderSystemNames() )
-        self.ordersPage = Frame( self.notebook )
-        ordersLabel = Label( self.ordersPage, text="Bible Order Systems ({})".format( len(self.BibleOrdersSystemsList) ) )
-        ordersLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.ordersPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.ordersSearch = Entry( self.ordersPage, width=15 )
-        self.ordersSearch.bind( '<Return>', self.searchOrder )
-        self.ordersSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.ordersPage )
-        self.ordersListbox = tk.Listbox( self.ordersPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.ordersListbox.yview )
-        self.ordersListbox.config( yscrollcommand=sbar.set )
-        self.ordersListbox.bind('<<ListboxSelect>>', self.gotoNewOrder )
-        #self.ordersListbox.bind( '<Return>', self.gotoNewOrder )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.ordersListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.orderTextBox = ScrolledText( self.ordersPage, bg='yellow' )
-        self.orderTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.orderTextBox.insert( tk.END, 'Orders' )
-        self.orderTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for oName in self.BibleOrdersSystemsList:
-            self.ordersListbox.insert( tk.END, oName ) # fill the listbox
-        self.ordersSearch.insert( tk.END, 'LutheranBible' )
-        self.searchOrder( None ) # Go to the above
-        self.ordersSearch.delete( 0, tk.END ) # Clear the search box again
+        # Projects page
+        print( "Create projects page" )
+        self.projectsPage = Frame( self.notebook )
+        self.cpVar = tk.StringVar()
+        cpLabel = Label( self.projectsPage, text=_("Current project name:") )
+        cpLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.cpEntry = Entry( self.projectsPage, width=25, textvariable=self.cpVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.cpEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
 
-        # Bible book name systems page
-        print( "Create names page" )
-        self.BibleNamesSystems = BibleBooksNamesSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleNamesSystemsList = sorted( self.BibleNamesSystems.getAvailableBooksNamesSystemNames() )
-        self.namesPage = Frame( self.notebook )
-        namesLabel = Label( self.namesPage, text="Bible Name Systems ({})".format( len(self.BibleNamesSystemsList) ) )
-        namesLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.namesPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.namesSearch = Entry( self.namesPage, width=15 )
-        self.namesSearch.bind( '<Return>', self.searchName )
-        self.namesSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.namesPage )
-        self.namesListbox = tk.Listbox( self.namesPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.namesListbox.yview )
-        self.namesListbox.config( yscrollcommand=sbar.set )
-        self.namesListbox.bind('<<ListboxSelect>>', self.gotoNewName )
-        #self.namesListbox.bind( '<Return>', self.gotoNewName )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.namesListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.nameTextBox = ScrolledText( self.namesPage, bg='orange' )
-        self.nameTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.nameTextBox.insert( tk.END, 'Names' )
-        self.nameTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for nName in self.BibleNamesSystemsList:
-            self.namesListbox.insert( tk.END, nName ) # fill the listbox
-        self.namesSearch.insert( tk.END, 'eng_traditional' )
-        self.searchName( None ) # Go to the above
-        self.namesSearch.delete( 0, tk.END ) # Clear the search box again
+        # Users page
+        print( "Create users page" )
+        self.usersPage = Frame( self.notebook )
+        self.unVar = tk.StringVar()
+        unLabel = Label( self.usersPage, text=_("Current user name:") )
+        unLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.unEntry = Entry( self.usersPage, width=25, textvariable=self.unVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.unEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.uemVar = tk.StringVar()
+        uemLabel = Label( self.usersPage, text=_("User email:") )
+        uemLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        self.uemEntry = Entry( self.usersPage, width=25, textvariable=self.uemVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.uemEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
+        self.urVar = tk.StringVar()
+        urLabel = Label( self.usersPage, text=_("User role:") )
+        urLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
+        self.urEntry = Entry( self.usersPage, width=20, textvariable=self.urVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.urEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
+        self.uasVar = tk.StringVar()
+        uasLabel = Label( self.usersPage, text=_("User assignments:") )
+        uasLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
+        self.uasEntry = Entry( self.usersPage, width=20, textvariable=self.uasVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.uasEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
 
-        # Bible organizational systems page
-        print( "Create Bibles page" )
-        self.BibleOrganizationalSystems = BibleOrganizationalSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleOrganizationalSystemsList = sorted( self.BibleOrganizationalSystems.getAvailableOrganizationalSystemNames() )
-        self.organizationsPage = Frame( self.notebook )
-        organizationsLabel = Label( self.organizationsPage, text="Bible Organization Systems ({})".format( len(self.BibleOrganizationalSystemsList) ) )
-        organizationsLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.organizationsPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.organizationsSearch = Entry( self.organizationsPage, width=18 )
-        self.organizationsSearch.bind( '<Return>', self.searchOrganization )
-        self.organizationsSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.organizationsPage )
-        self.organizationsListbox = tk.Listbox( self.organizationsPage, width=18, relief=tk.SUNKEN )
-        sbar.config( command=self.organizationsListbox.yview )
-        self.organizationsListbox.config( yscrollcommand=sbar.set )
-        self.organizationsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
-        #self.organizationsListbox.bind( '<Return>', self.gotoNewOrganization )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.organizationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.organizationTextBox = ScrolledText( self.organizationsPage, bg='pink' )
-        self.organizationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.organizationTextBox.insert( tk.END, 'Organizations' )
-        self.organizationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for orgName in self.BibleOrganizationalSystemsList:
-            self.organizationsListbox.insert( tk.END, orgName ) # fill the listbox
-        self.organizationsSearch.insert( tk.END, 'RSV71' )
-        self.searchOrganization( None ) # Go to above
-        self.organizationsSearch.delete( 0, tk.END ) # Clear the search box again
+        # Paths page
+        print( "Create paths page" )
+        self.pathsPage = Frame( self.notebook )
+        self.ltfVar = tk.StringVar()
+        ltfLabel = Label( self.pathsPage, text=_("Last text folder:") )
+        ltfLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.ltfEntry = Entry( self.pathsPage, width=35, textvariable=self.ltfVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.ltfEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.lbfVar = tk.StringVar()
+        lbfLabel = Label( self.pathsPage, text=_("Last Biblelator folder:") )
+        lbfLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        self.lbfEntry = Entry( self.pathsPage, width=35, textvariable=self.lbfVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.lbfEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
+        self.lpfVar = tk.StringVar()
+        lpfLabel = Label( self.pathsPage, text=_("Last Paratext folder:") )
+        lpfLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
+        self.lpfEntry = Entry( self.pathsPage, width=35, textvariable=self.lpfVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.lpfEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
+        self.libfVar = tk.StringVar()
+        libfLabel = Label( self.pathsPage, text=_("Last internal Bible folder:") )
+        libfLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
+        self.libfEntry = Entry( self.pathsPage, width=35, textvariable=self.libfVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.libfEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
 
-        # Bible reference systems page
-        print( "Create refs page" )
-        #self.BibleReferenceSystems = BibleReferenceSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleReferenceSystemsList = []
-        self.referencesPage = Frame( self.notebook )
-        referencesLabel = Label( self.referencesPage, text="Bible Reference Systems ({})".format( len(self.BibleReferenceSystemsList) ) )
-        referencesLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.referencesPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.referenceSearch = Entry( self.referencesPage, width=18 )
-        self.referenceSearch.bind( '<Return>', self.searchReference )
-        self.referenceSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.referencesPage )
-        self.referencesListbox = tk.Listbox( self.referencesPage, width=18, relief=tk.SUNKEN )
-        sbar.config( command=self.referencesListbox.yview )
-        self.referencesListbox.config( yscrollcommand=sbar.set )
-        self.referencesListbox.bind('<<ListboxSelect>>', self.gotoNewReference )
-        #self.referencesListbox.bind( '<Return>', self.gotoNewReference )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.referencesListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.referenceTextBox = ScrolledText( self.referencesPage, bg='orange' )
-        self.referenceTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.referenceTextBox.insert( tk.END, 'References' )
-        self.referenceTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for rName in self.BibleReferenceSystemsList:
-            self.referencesListbox.insert( tk.END, rName ) # fill the listbox
-        self.referenceSearch.insert( tk.END, 'KJV' ) # Select KJV
-        self.searchReference( None ) # Go to KJV
-        self.referenceSearch.delete( 0, tk.END ) # Clear the search box again
+        # Recent files page
+        print( "Create recent files page" )
+        self.recentFilesPage = Frame( self.notebook )
+        self.rffnVars, self.rffldVars, self.rftypVars = [], [], []
+        for rr in range( 0, MAX_RECENT_FILES ):
+            self.rffnVars.append( tk.StringVar() ); self.rffldVars.append( tk.StringVar() ); self.rftypVars.append( tk.StringVar() );
+            Label( self.recentFilesPage, text='{}:'.format(rr+1) ).grid( row=2*rr, column=0, padx=0, pady=3, sticky=tk.E )
+            Entry( self.recentFilesPage, width=30, textvariable=self.rffnVars[rr] ).grid( row=2*rr, column=1, padx=2, pady=3, sticky=tk.W )
+            Entry( self.recentFilesPage, width=30, textvariable=self.rftypVars[rr] ).grid( row=2*rr, column=2, padx=2, pady=3, sticky=tk.W )
+            Entry( self.recentFilesPage, width=60, textvariable=self.rffldVars[rr] ).grid( row=2*rr+1, column=1, columnspan=2, padx=2, pady=1, sticky=tk.W )
 
-        # Bible stylesheet systems page
-        print( "Create stylesheets page" )
-        #self.BibleStylesheetSystems = BibleStylesheetSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleStylesheetSystemsList = []
-        self.stylesheetsPage = Frame( self.notebook )
-        stylesheetsLabel = Label( self.stylesheetsPage, text="Bible Stylesheet Systems ({})".format( len(self.BibleStylesheetSystemsList) ) )
-        stylesheetsLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.stylesheetsPage, text=_("Search:") )
-        searchLabel.grid( row=1, column=0 )
-        self.stylesheetSearch = Entry( self.stylesheetsPage, width=18 )
-        self.stylesheetSearch.bind( '<Return>', self.searchOrganization )
-        self.stylesheetSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.stylesheetsPage )
-        self.stylesheetsListbox = tk.Listbox( self.stylesheetsPage, width=18, relief=tk.SUNKEN )
-        sbar.config( command=self.stylesheetsListbox.yview )
-        self.stylesheetsListbox.config( yscrollcommand=sbar.set )
-        self.stylesheetsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
-        #self.stylesheetsListbox.bind( '<Return>', self.gotoNewOrganization )
-        sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.stylesheetsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.stylesheetTextBox = ScrolledText( self.stylesheetsPage, bg='orange' )
-        self.stylesheetTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.stylesheetTextBox.insert( tk.END, 'Organizations' )
-        self.stylesheetTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for ssName in self.BibleStylesheetSystemsList:
-            self.stylesheetsListbox.insert( tk.END, ssName ) # fill the listbox
-        self.stylesheetSearch.insert( tk.END, 'KJV' ) # Select KJV
-        self.searchOrganization( None ) # Go to KJV
-        self.stylesheetSearch.delete( 0, tk.END ) # Clear the search box again
+        # Bible BCV (book/chapter/verse) page
+        print( "Create BCV page" )
+        self.BCVGroupsPage = Frame( self.notebook )
+        self.gBOSVar = tk.StringVar()
+        gBOSLabel = Label( self.BCVGroupsPage, text=_("Generic BOS name:") )
+        gBOSLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.gBOSEntry = Entry( self.BCVGroupsPage, width=35, textvariable=self.gBOSVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.gBOSEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.cgVar = tk.StringVar()
+        cgLabel = Label( self.BCVGroupsPage, text=_("Current group:") )
+        cgLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        self.cgEntry = Entry( self.BCVGroupsPage, width=3, textvariable=self.cgVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.cgEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
+        self.gaVar = tk.StringVar()
+        gaLabel = Label( self.BCVGroupsPage, text=_("Group A:") )
+        gaLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
+        self.gaEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gaVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.gaEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
+        self.gbVar = tk.StringVar()
+        gbLabel = Label( self.BCVGroupsPage, text=_("Group B:") )
+        gbLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
+        self.gbEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gbVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.gbEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
+        self.gcVar = tk.StringVar()
+        gcLabel = Label( self.BCVGroupsPage, text=_("Group C:") )
+        gcLabel.grid( row=4, column=0, padx=0, pady=2, sticky=tk.E )
+        self.gcEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gcVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.gcEntry.grid( row=4, column=1, padx=2, pady=2, sticky=tk.W )
+        self.gdVar = tk.StringVar()
+        gdLabel = Label( self.BCVGroupsPage, text=_("Group D:") )
+        gdLabel.grid( row=5, column=0, padx=0, pady=2, sticky=tk.E )
+        self.gdEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gdVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.gdEntry.grid( row=5, column=1, padx=2, pady=2, sticky=tk.W )
+
+        # Current windows page
+        print( "Create current windows page" )
+        self.currentWindowsPage = Frame( self.notebook )
+        if __name__ == '__main__':
+            pass
+        else:
+            self.currentWindowsTextBox = ScrolledText( self.currentWindowsPage, bg='orange' )
+            self.currentWindowsTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+            #self.currentWindowsTextBox.insert( tk.END, 'Organizations' )
+            self.currentWindowsTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+            self.currentWindowsTextBox.insert( tk.END, "We cannot adjust the current windows from inside Biblelator.\n\nIf you wish to adjust current windows, please close Biblelator and run BiblelatorSettingsEditor.py in stand-alone mode." )
 
         print( "Add all pages" )
-        self.notebook.add( self.codesPage, text='Codes')
-        self.notebook.add( self.punctuationPage, text='Punctuation')
-        self.notebook.add( self.versificationsPage, text='Versifications')
-        self.notebook.add( self.mappingsPage, text='Mappings')
-        self.notebook.add( self.ordersPage, text='Orders')
-        self.notebook.add( self.namesPage, text='Names')
-        self.notebook.add( self.organizationsPage, text='Bibles')
-        self.notebook.add( self.referencesPage, text='References')
-        self.notebook.add( self.stylesheetsPage, text='StyleSheets')
+        self.notebook.add( self.settingsFilesPage, text='Settings files')
+        self.notebook.add( self.mainPage, text='Main')
+        self.notebook.add( self.interfacePage, text='Interface')
+        self.notebook.add( self.internetPage, text='Internet')
+        self.notebook.add( self.projectsPage, text='Projects')
+        self.notebook.add( self.usersPage, text='Users')
+        self.notebook.add( self.pathsPage, text='Paths')
+        self.notebook.add( self.recentFilesPage, text='Recent files')
+        self.notebook.add( self.BCVGroupsPage, text='BCV groups')
+        self.notebook.add( self.currentWindowsPage, text='Current windows')
         self.notebook.pack( expand=1, fill='both' )
-    # end of BOSManager.createNotebook
+
+        self.loadSettingsIntoTabs()
+        self.somethingChanged = False
+    # end of BiblelatorSettingsEditor.createNotebook
+
+
+    def flagChange( self ): self.somethingChanged = True
+
+
+    def loadSettingsIntoTabs( self ):
+        """
+        Take the current settings and load them into the variables for our editor.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("loadSettingsIntoTabs()") )
+
+        self.fdrVar.set( self.settings.settingsFolder )
+        self.fnVar.set( self.INIname )
+
+        try: self.svVar.set( self.settings.data[MAIN_APP_NAME]['settingsVersion'] )
+        except KeyError: pass # self.svVar.set( 'Default' )
+        try: self.pvVar.set( self.settings.data[MAIN_APP_NAME]['programVersion'] )
+        except KeyError: pass # self.pvVar.set( 'Default' )
+        try: self.thnVar.set( self.settings.data['Interface']['themeName'] )
+        except KeyError: self.thnVar.set( 'default' )
+        try: self.wszVar.set( self.settings.data[MAIN_APP_NAME]['windowSize'] )
+        except KeyError: pass # self.pvVar.set( 'Default' )
+        try: self.wposVar.set( self.settings.data[MAIN_APP_NAME]['windowPosition'] )
+        except KeyError: pass # self.pvVar.set( 'Default' )
+        try: self.minszVar.set( self.settings.data[MAIN_APP_NAME]['minimumSize'] )
+        except KeyError: pass # self.pvVar.set( 'Default' )
+        try: self.maxszVar.set( self.settings.data[MAIN_APP_NAME]['maximumSize'] )
+        except KeyError: pass # self.pvVar.set( 'Default' )
+
+        try: self.ilVar.set( self.settings.data['Interface']['interfaceLanguage'] )
+        except KeyError: self.ilVar.set( 'Default' )
+        try: self.icVar.set( self.settings.data['Interface']['interfaceComplexity'] )
+        except KeyError: self.icVar.set( 'Default' )
+        try: self.iaVar.set( self.settings.data['Interface']['touchMode'] == 'True' )
+        except KeyError: self.iaVar.set( False )
+        try: self.iaVar.set( self.settings.data['Interface']['tabletMode'] == 'True' )
+        except KeyError: self.iaVar.set( False )
+
+        try: self.iaVar.set( self.settings.data['Internet']['internetAccess'] == 'Enabled' )
+        except KeyError: self.iaVar.set( True )
+        try: self.ifVar.set( self.settings.data['Internet']['internetFast'].lower() in ('true' ,'yes',) )
+        except KeyError: self.ifVar.set( True )
+        try: self.ieVar.set( self.settings.data['Internet']['internetExpensive'].lower() in ('true' ,'yes',) )
+        except KeyError: self.ieVar.set( True )
+        try: self.cbVar.set( self.settings.data['Internet']['cloudBackups'] == 'Enabled' )
+        except KeyError: self.cbVar.set( True )
+        try: self.cdVar.set( self.settings.data['Internet']['checkForDeveloperMessages'] == 'Enabled' )
+        except KeyError: self.cdVar.set( True )
+        try: self.lmVar.set( self.settings.data['Internet']['lastMessageNumberRead'] )
+        except KeyError: self.lmVar.set( 0 )
+        try: self.usVar.set( self.settings.data['Internet']['sendUsageStatistics'] == 'Enabled' )
+        except KeyError: self.suVar.set( True )
+        try: self.auVar.set( self.settings.data['Internet']['automaticUpdates'] == 'Enabled' )
+        except KeyError: self.auVar.set( True )
+        try: self.dvVar.set( self.settings.data['Internet']['useDevelopmentVersions'] == 'Enabled' )
+        except KeyError: self.dvVar.set( False )
+
+        try: self.cpVar.set( self.settings.data['Project']['currentProjectName'] )
+        except KeyError: pass
+
+        try: self.unVar.set( self.settings.data['Users']['currentUserName'] )
+        except KeyError: pass
+        try: self.uemVar.set( self.settings.data['Users']['currentUserEmail'] )
+        except KeyError: pass
+        try: self.urVar.set( self.settings.data['Users']['currentUserRole'] )
+        except KeyError: self.urVar.set( 'Translator' )
+        try: self.uasVar.set( self.settings.data['Users']['currentUserAssignments'] )
+        except KeyError: self.uasVar.set( 'ALL' )
+
+        try: self.ltfVar.set( self.settings.data['Paths']['lastFileDir'] )
+        except KeyError: pass
+        try: self.lbfVar.set( self.settings.data['Paths']['lastBiblelatorFileDir'] )
+        except KeyError: pass
+        try: self.lpfVar.set( self.settings.data['Paths']['lastParatextFileDir'] )
+        except KeyError: pass
+        try: self.libfVar.set( self.settings.data['Paths']['lastInternalBibleDir'] )
+        except KeyError: pass
+
+        for rr in range( 0, MAX_RECENT_FILES ):
+            try:
+                self.rffnVars[rr].set( self.settings.data['RecentFiles']['recent{}Filename'.format(rr+1)] )
+                self.rffldVars[rr].set( self.settings.data['RecentFiles']['recent{}Folder'.format(rr+1)] )
+                self.rftypVars[rr].set( self.settings.data['RecentFiles']['recent{}Type'.format(rr+1)] )
+            except KeyError: pass
+
+        try: self.gBOSVar.set( self.settings.data['BCVGroups']['genericBibleOrganisationalSystemName'] )
+        except KeyError: pass
+        try: self.cgVar.set( self.settings.data['BCVGroups']['currentGroup'] )
+        except KeyError: self.cgVar.set( 'A' )
+        try: self.gaVar.set( '{} {}:{}'.format( self.settings.data['BCVGroups']['A-Book'], self.settings.data['BCVGroups']['A-Chapter'], self.settings.data['BCVGroups']['A-Verse'] ) )
+        except KeyError: self.gaVar.set( 'GEN 1:1' )
+        try: self.gbVar.set( '{} {}:{}'.format( self.settings.data['BCVGroups']['B-Book'], self.settings.data['BCVGroups']['B-Chapter'], self.settings.data['BCVGroups']['B-Verse'] ) )
+        except KeyError: self.gbVar.set( 'GEN 1:1' )
+        try: self.gcVar.set( '{} {}:{}'.format( self.settings.data['BCVGroups']['C-Book'], self.settings.data['BCVGroups']['C-Chapter'], self.settings.data['BCVGroups']['C-Verse'] ) )
+        except KeyError: self.gcVar.set( 'GEN 1:1' )
+        try: self.gdVar.set( '{} {}:{}'.format( self.settings.data['BCVGroups']['D-Book'], self.settings.data['BCVGroups']['D-Chapter'], self.settings.data['BCVGroups']['D-Verse'] ) )
+        except KeyError: self.gdVar.set( 'GEN 1:1' )
+    # end of BiblelatorSettingsEditor.loadSettingsIntoTabs
+
+
+    def updateSettingsFromTabs( self ):
+        """
+        Update the settings from the editor, and return True/False if they have changed.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("updateSettingsFromTabs()") )
+
+        changed = False
+
+        last = self.settings.data['Internet']['internetAccess']
+        now = 'Enabled' if self.iaVar.get() else 'Disabled'
+        self.settings.data['Internet']['internetAccess'] = now
+        if now!=last: changed = True
+
+        if changed: assert self.somethingChanged
+        return changed
+    # end of BiblelatorSettingsEditor.updateSettingsFromTabs
 
 
     def halt( self ):
@@ -934,7 +1024,7 @@ class BOSManager( Frame ):
         """
         logging.critical( "User selected HALT in DEBUG MODE. Not saving any files or settings!" )
         self.quit()
-    # end of BOSManager.halt
+    # end of BiblelatorSettingsEditor.halt
 
 
     def createDebugToolBar( self ):
@@ -956,7 +1046,7 @@ class BOSManager( Frame ):
         Button( toolbar, text='Save settings', command=lambda: writeSettingsFile(self) ) \
                         .pack( side=tk.RIGHT, padx=xPad, pady=yPad )
         toolbar.pack( side=tk.TOP, fill=tk.X )
-    # end of BOSManager.createDebugToolBar
+    # end of BiblelatorSettingsEditor.createDebugToolBar
 
 
     def createStatusBar( self ):
@@ -977,7 +1067,7 @@ class BOSManager( Frame ):
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
         self.setWaitStatus( "Starting up…" )
-    # end of BOSManager.createStatusBar
+    # end of BiblelatorSettingsEditor.createStatusBar
 
 
     def createMainKeyboardBindings( self ):
@@ -1002,7 +1092,7 @@ class BOSManager( Frame ):
         #self.bind_all( '<Alt-period>', self.doGotoNextChapter )
         #self.bind_all( '<Alt-bracketleft>', self.doGotoPreviousBook )
         #self.bind_all( '<Alt-bracketright>', self.doGotoNextBook )
-    # end of BOSManager.createMainKeyboardBindings()
+    # end of BiblelatorSettingsEditor.createMainKeyboardBindings()
 
 
     #def addRecentFile( self, threeTuple ):
@@ -1018,13 +1108,13 @@ class BOSManager( Frame ):
         #self.recentFiles.insert( 0, threeTuple ) # Put this one at the beginning of the lis
         #if len(self.recentFiles)>MAX_RECENT_FILES: self.recentFiles.pop() # Remove the last one if necessary
         #self.createNormalMenuBar()
-    ## end of BOSManager.addRecentFile()
+    ## end of BiblelatorSettingsEditor.addRecentFile()
 
 
     def notWrittenYet( self ):
         errorBeep()
         showerror( self, _("Not implemented"), _("Not yet available, sorry") )
-    # end of BOSManager.notWrittenYet
+    # end of BiblelatorSettingsEditor.notWrittenYet
 
 
     def setStatus( self, newStatusText='' ):
@@ -1045,7 +1135,7 @@ class BOSManager( Frame ):
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
-    # end of BOSManager.setStatus
+    # end of BiblelatorSettingsEditor.setStatus
 
     def setErrorStatus( self, newStatusText ):
         """
@@ -1059,7 +1149,7 @@ class BOSManager( Frame ):
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
-    # end of BOSManager.setErrorStatus
+    # end of BiblelatorSettingsEditor.setErrorStatus
 
     def setWaitStatus( self, newStatusText ):
         """
@@ -1073,7 +1163,7 @@ class BOSManager( Frame ):
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
-    # end of BOSManager.setWaitStatus
+    # end of BiblelatorSettingsEditor.setWaitStatus
 
     def setReadyStatus( self ):
         """
@@ -1088,7 +1178,7 @@ class BOSManager( Frame ):
             self.setStatus( _("Ready") )
             Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
             self.config( cursor='' )
-    # end of BOSManager.setReadyStatus
+    # end of BiblelatorSettingsEditor.setReadyStatus
 
 
     def setDebugText( self, newMessage=None ):
@@ -1125,7 +1215,7 @@ class BOSManager( Frame ):
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
         self.debugTextBox['state'] = tk.DISABLED # Don't allow editing
-    # end of BOSManager.setDebugText
+    # end of BiblelatorSettingsEditor.setDebugText
 
 
     def doChangeTheme( self, newThemeName ):
@@ -1142,7 +1232,7 @@ class BOSManager( Frame ):
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
             showerror( self, 'Error', err )
-    # end of BOSManager.doChangeTheme
+    # end of BiblelatorSettingsEditor.doChangeTheme
 
 
     def searchBBBCode( self, event ):
@@ -1175,7 +1265,7 @@ class BOSManager( Frame ):
         self.codesListbox.select_set( index )
         self.codesListbox.see( index )
         self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
-    # end of BOSManager.searchBBBCode
+    # end of BiblelatorSettingsEditor.searchBBBCode
 
 
     def searchCode( self, event ):
@@ -1208,7 +1298,7 @@ class BOSManager( Frame ):
         self.codesListbox.select_set( index )
         self.codesListbox.see( index )
         self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
-    # end of BOSManager.searchCode
+    # end of BiblelatorSettingsEditor.searchCode
 
 
     def gotoNewCode( self, event=None ):
@@ -1232,7 +1322,7 @@ class BOSManager( Frame ):
         for field,value in sorted( codeDict.items() ):
             if field not in ( 'referenceNumber', 'nameEnglish', ):
                 self.codeTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewCode
+    # end of BiblelatorSettingsEditor.gotoNewCode
 
 
     def searchPunctuation( self, event ):
@@ -1259,7 +1349,7 @@ class BOSManager( Frame ):
         self.punctuationsListbox.select_set( index )
         self.punctuationsListbox.see( index )
         self.punctuationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewPunctuation below
-    # end of BOSManager.searchPunctuation
+    # end of BiblelatorSettingsEditor.searchPunctuation
 
 
     def gotoNewPunctuation( self, event=None ):
@@ -1283,7 +1373,7 @@ class BOSManager( Frame ):
         for field,value in sorted( punctuationDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
                 self.punctuationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewPunctuation
+    # end of BiblelatorSettingsEditor.gotoNewPunctuation
 
 
     def searchVersification( self, event ):
@@ -1310,7 +1400,7 @@ class BOSManager( Frame ):
         self.versificationsListbox.select_set( index )
         self.versificationsListbox.see( index )
         self.versificationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewVersification below
-    # end of BOSManager.searchVersification
+    # end of BiblelatorSettingsEditor.searchVersification
 
 
     def gotoNewVersification( self, event=None ):
@@ -1334,7 +1424,7 @@ class BOSManager( Frame ):
         #for field,value in sorted( versificationDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
                 #self.versificationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewVersification
+    # end of BiblelatorSettingsEditor.gotoNewVersification
 
 
     def searchMapping( self, event ):
@@ -1361,7 +1451,7 @@ class BOSManager( Frame ):
         self.mappingsListbox.select_set( index )
         self.mappingsListbox.see( index )
         self.mappingsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewMapping below
-    # end of BOSManager.searchMapping
+    # end of BiblelatorSettingsEditor.searchMapping
 
 
     def gotoNewMapping( self, event=None ):
@@ -1384,7 +1474,7 @@ class BOSManager( Frame ):
         #for field,value in sorted( mappingDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
                 #self.mappingTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewMapping
+    # end of BiblelatorSettingsEditor.gotoNewMapping
 
 
     def searchOrder( self, event ):
@@ -1411,7 +1501,7 @@ class BOSManager( Frame ):
         self.ordersListbox.select_set( index )
         self.ordersListbox.see( index )
         self.ordersListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrder below
-    # end of BOSManager.searchOrder
+    # end of BiblelatorSettingsEditor.searchOrder
 
 
     def gotoNewOrder( self, event=None ):
@@ -1435,7 +1525,7 @@ class BOSManager( Frame ):
         #for field,value in sorted( orderDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
                 #self.orderTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewOrder
+    # end of BiblelatorSettingsEditor.gotoNewOrder
 
 
     def searchName( self, event ):
@@ -1462,7 +1552,7 @@ class BOSManager( Frame ):
         self.namesListbox.select_set( index )
         self.namesListbox.see( index )
         self.namesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewNames below
-    # end of BOSManager.searchName
+    # end of BiblelatorSettingsEditor.searchName
 
 
     def gotoNewName( self, event=None ):
@@ -1486,7 +1576,7 @@ class BOSManager( Frame ):
         #for field,value in sorted( nameDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
                 #self.nameTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewName
+    # end of BiblelatorSettingsEditor.gotoNewName
 
 
     def searchOrganization( self, event ):
@@ -1513,7 +1603,7 @@ class BOSManager( Frame ):
         self.organizationsListbox.select_set( index )
         self.organizationsListbox.see( index )
         self.organizationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrganization below
-    # end of BOSManager.searchOrganization
+    # end of BiblelatorSettingsEditor.searchOrganization
 
 
     def gotoNewOrganization( self, event=None ):
@@ -1536,7 +1626,7 @@ class BOSManager( Frame ):
         for field,value in sorted( organizationalSystemDict.items() ):
             if field not in ( 'type', ):
                 self.organizationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewOrganization
+    # end of BiblelatorSettingsEditor.gotoNewOrganization
 
 
     def searchReference( self, event ):
@@ -1563,7 +1653,7 @@ class BOSManager( Frame ):
         self.referencesListbox.select_set( index )
         self.referencesListbox.see( index )
         self.referencesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewReference below
-    # end of BOSManager.searchReference
+    # end of BiblelatorSettingsEditor.searchReference
 
 
     def gotoNewReference( self, event=None ):
@@ -1586,7 +1676,7 @@ class BOSManager( Frame ):
         #for field,value in sorted( referenceDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
                 #self.referenceTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewReference
+    # end of BiblelatorSettingsEditor.gotoNewReference
 
 
     def searchStylesheet( self, event ):
@@ -1613,7 +1703,7 @@ class BOSManager( Frame ):
         self.stylesheetsListbox.select_set( index )
         self.stylesheetsListbox.see( index )
         self.stylesheetsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewStylesheet below
-    # end of BOSManager.searchStylesheet
+    # end of BiblelatorSettingsEditor.searchStylesheet
 
 
     def gotoNewStylesheet( self, event=None ):
@@ -1636,7 +1726,7 @@ class BOSManager( Frame ):
         #for field,value in sorted( stylesheetDict.items() ):
             #if field not in ( 'referenceNumber', 'nameEnglish', ):
                 #self.stylesheetTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewStylesheet
+    # end of BiblelatorSettingsEditor.gotoNewStylesheet
 
 
     def doViewSettings( self ):
@@ -1658,7 +1748,7 @@ class BOSManager( Frame ):
             #self.childWindows.append( tEW )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Finished doViewSettings" )
         #self.setReadyStatus()
-    # end of BOSManager.doViewSettings
+    # end of BiblelatorSettingsEditor.doViewSettings
 
 
     def doViewLog( self ):
@@ -1682,7 +1772,7 @@ class BOSManager( Frame ):
             self.childWindows.append( tEW )
             #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
         self.setReadyStatus()
-    # end of BOSManager.doViewLog
+    # end of BiblelatorSettingsEditor.doViewLog
 
 
     def doGotoInfo( self, event=None ):
@@ -1690,7 +1780,7 @@ class BOSManager( Frame ):
         Pop-up dialog giving goto/reference info.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doGotoInfo( {} )").format( event ) )
+            print( exp("BiblelatorSettingsEditor.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organizational System (BOS):\n' \
@@ -1700,7 +1790,7 @@ class BOSManager( Frame ):
                  + '  Book Names: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
                  + '  Books: {}'.format( self.genericBibleOrganizationalSystem.getBookList() )
         showinfo( self, 'Goto Information', infoString )
-    # end of BOSManager.doGotoInfo
+    # end of BiblelatorSettingsEditor.doGotoInfo
 
 
     def logUsage( self, p1, p2, p3 ):
@@ -1708,19 +1798,21 @@ class BOSManager( Frame ):
         Not required in this app.
         """
         pass
-    # end of BOSManager.logUsage
+    # end of BiblelatorSettingsEditor.logUsage
 
 
     def doHelp( self, event=None ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doHelp()") )
         from Help import HelpBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doHelp()") )
 
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
-        helpInfo += "\n  Click on a tab to view that subset of the Bible Organisational System (BOS)."
+        helpInfo += "\n  Click on a tab to view that subset of the Biblelator settings."
+        helpInfo += "\n\nNOTE: It is also possible to edit the settings file(s) directly, but the editor should give you more context help with the various options."
         helpInfo += "\n\nKeyboard shortcuts:"
         #for name,shortcut in self.myKeyboardBindingsList:
             #helpInfo += "\n  {}\t{}".format( name, shortcut )
@@ -1730,8 +1822,9 @@ class BOSManager( Frame ):
         #helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
         #helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
         #helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
-        hb = HelpBox( self.rootWindow, ShortProgName, helpInfo )
-    # end of BOSManager.doHelp
+        helpImage = 'BiblelatorLogoSmall.gif'
+        hb = HelpBox( self.rootWindow, ShortProgName, helpInfo, helpImage )
+    # end of BiblelatorSettingsEditor.doHelp
 
 
     def doSubmitBug( self, event=None ):
@@ -1740,7 +1833,8 @@ class BOSManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
             showerror( self, ShortProgName, 'You need to allow Internet access first!' )
@@ -1751,22 +1845,24 @@ class BOSManager( Frame ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
         ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
-    # end of BOSManager.doSubmitBug
+    # end of BiblelatorSettingsEditor.doSubmitBug
 
 
     def doAbout( self, event=None ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doAbout()") )
         from About import AboutBox
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doAbout()") )
 
         aboutInfo = ProgNameVersion
-        aboutInfo += "\nA display manager for the Bible Organisational System (BOS)." \
-            + "\n\nThis is still an unfinished alpha test version, but it should allow you to select and display various sets of information from the BOS." \
-            + "\n\n{} is written in Python. For more information see our web pages at Freely-Given.org/Software/BibleOrgSys and Freely-Given.org/Software/Biblelator".format( ShortProgName )
-        ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
-    # end of BOSManager.doAbout
+        aboutInfo += "\nAn editor for the Biblelator (Bible translation editor) settings." \
+            + "\n\nThis is still an unfinished alpha test version, but it should allow you to view (not yet alter/save) various settings in Biblelator." \
+            + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( ShortProgName )
+        aboutImage = 'BiblelatorLogoSmall.gif'
+        ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo, aboutImage )
+    # end of BiblelatorSettingsEditor.doAbout
 
 
     #def doProjectClose( self ):
@@ -1774,7 +1870,7 @@ class BOSManager( Frame ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doProjectClose()") )
         #self.notWrittenYet()
-    ## end of BOSManager.doProjectClose
+    ## end of BiblelatorSettingsEditor.doProjectClose
 
 
     #def doWriteSettingsFile( self ):
@@ -1782,7 +1878,7 @@ class BOSManager( Frame ):
         #Update our program settings and save them.
         #"""
         #writeSettingsFile( self )
-    ### end of BOSManager.writeSettingsFile
+    ### end of BiblelatorSettingsEditor.writeSettingsFile
 
 
     def doCloseMyChildWindows( self ):
@@ -1790,7 +1886,7 @@ class BOSManager( Frame ):
         Save files first, and then close child windows.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doCloseMyChildWindows()") )
+            print( exp("BiblelatorSettingsEditor.doCloseMyChildWindows()") )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows[:]:
@@ -1814,7 +1910,7 @@ class BOSManager( Frame ):
         for appWin in self.childWindows[:]:
             appWin.doClose()
         return True
-    # end of BOSManager.doCloseMyChildWindows
+    # end of BiblelatorSettingsEditor.doCloseMyChildWindows
 
 
     def doCloseMe( self ):
@@ -1822,30 +1918,30 @@ class BOSManager( Frame ):
         Save files first, and then end the application.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BOSManager.doCloseMe()") )
+            print( exp("BiblelatorSettingsEditor.doCloseMe()") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
             print( _("{} is closing down…").format( ShortProgName ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
             self.rootWindow.destroy()
-    # end of BOSManager.doCloseMe
-# end of class BOSManager
+    # end of BiblelatorSettingsEditor.doCloseMe
+# end of class BiblelatorSettingsEditor
 
 
 
-def openBOSManager( parent ):
+def openBiblelatorSettingsEditor( parent ):
     """
     Open the BOS Manager as a child window.
 
     This is used when the BOS Manager is used inside another program.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("BOSManager.openBOSManager( {} )").format( parent ) )
+        print( exp("BiblelatorSettingsEditor.openBiblelatorSettingsEditor( {} )").format( parent ) )
 
     myWin = tk.Toplevel( parent )
-    application = BOSManager( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage, parent.settings )
-# end of BOSManager.openBOSManager
+    application = BiblelatorSettingsEditor( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage, parent.settings )
+# end of BiblelatorSettingsEditor.openBiblelatorSettingsEditor
 
 
 
@@ -1873,7 +1969,7 @@ def demo():
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     settings.load()
 
-    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
+    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -1883,7 +1979,7 @@ def demo():
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of BOSManager.demo
+# end of BiblelatorSettingsEditor.demo
 
 
 def main( homeFolderPath, loggingFolderPath ):
@@ -1939,14 +2035,14 @@ def main( homeFolderPath, loggingFolderPath ):
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
-    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
+    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of BOSManager.main
+# end of BiblelatorSettingsEditor.main
 
 
 if __name__ == '__main__':
@@ -1974,4 +2070,4 @@ if __name__ == '__main__':
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
-# end of BOSManager.py
+# end of BiblelatorSettingsEditor.py
