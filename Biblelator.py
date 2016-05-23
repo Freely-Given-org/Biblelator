@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-22' # by RJH
+LastModifiedDate = '2016-05-23' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.36'
@@ -341,7 +341,7 @@ class Application( Frame ):
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Save all…'), underline=0, command=self.notWrittenYet )
+        fileMenu.add_command( label=_('Save all…'), underline=0, command=self.doSaveAll )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Save settings'), underline=0, command=lambda: writeSettingsFile(self) )
         fileMenu.add_separator()
@@ -493,7 +493,7 @@ class Application( Frame ):
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Save all…'), underline=0, command=self.notWrittenYet )
+        fileMenu.add_command( label=_('Save all…'), underline=0, command=self.doSaveAll )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Save settings'), underline=0, command=lambda: writeSettingsFile(self) )
         fileMenu.add_separator()
@@ -2580,6 +2580,7 @@ class Application( Frame ):
         """
         Bring all of our windows close.
         """
+        self.logUsage( ProgName, debuggingThisModule, 'doBringAll' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doBringAll' )
         x, y = parseWindowGeometry( self.rootWindow.winfo_geometry() )[2:4]
         if x > 30: x = x - 20
@@ -2595,6 +2596,16 @@ class Application( Frame ):
             win.geometry( assembleWindowGeometryFromList( geometrySet ) )
         self.doShowAll()
     # end of Application.doBringAll
+
+
+    def doSaveAll( self ):
+        """
+        Save any changed files in all of our (edit) windows.
+        """
+        self.logUsage( ProgName, debuggingThisModule, 'doSaveAll' )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doSaveAll' )
+        self.childWindows.saveAll()
+    # end of Application.doSaveAll
 
 
     def onGrep( self ):
@@ -2995,7 +3006,7 @@ class Application( Frame ):
 
 
 
-def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName, iniName ):
+def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     """
     The lock file was still there when we started, so maybe we didn't close cleanly.
 
@@ -3004,11 +3015,12 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName, ini
     from collections import OrderedDict
     from USFMBookCompare import USFMBookCompare
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("Application.handlePossibleCrash( {}, {}, {}, {} )").format( homeFolderPath, dataFolderName, settingsFolderName, iniName ) )
+        print( exp("Application.handlePossibleCrash( {}, {}, {} )").format( homeFolderPath, dataFolderName, settingsFolderName ) )
 
     print( '\n' + _("Is there another copy of {} already running?").format( APP_NAME ) )
     print( '\n' + _("If not, perhaps {} didn't close nicely (i.e., crashed?) last time?").format( APP_NAME ) )
 
+    iniName = APP_NAME if BibleOrgSysGlobals.commandLineArguments.override is None else BibleOrgSysGlobals.commandLineArguments.override
     if not iniName.lower().endswith( '.ini' ): iniName += '.ini'
     iniFilepath = os.path.join( homeFolderPath, dataFolderName, settingsFolderName, iniName )
     currentWindowDict = OrderedDict()
@@ -3090,7 +3102,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName, ini
                                 hadAny = True
     if hadAny:
         print( '  ' + _("You might want to copy the above AutoSave files???") )
-    else: print( '  ' + _("Seems that your files are ok / up-to-date (as far was we can tell)") )
+    else: print( '  ' + _("Seems that your files are ok / up-to-date (as far as we can tell)") )
 
     print( '\n' + _("{} will not open while the lock file exists.").format( APP_NAME ) )
     print( "    " + _("(Remove {!r} from {!r} after backing-up / recovering any files first)").format( LOCK_FILENAME, os.getcwd() ) )
@@ -3203,7 +3215,7 @@ def main( homeFolderPath, loggingFolderPath ):
         #halt
 
     if os.path.exists( LOCK_FILENAME ): # perhaps the program crashed last time
-        handlePossibleCrash( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
+        handlePossibleCrash( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME )
 
     # Create the lock file on normal startup
     with open( LOCK_FILENAME, 'wt' ) as lockFile:

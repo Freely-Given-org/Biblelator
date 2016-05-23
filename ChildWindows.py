@@ -34,10 +34,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-26' # by RJH
+LastModifiedDate = '2016-05-23' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -546,12 +546,12 @@ class ChildWindows( list ):
     #end of ChildWindows.deiconifyAll
 
 
-    #def deiconifyAllResources( self ):
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindows.deiconifyAllResources()") )
-        #for appWin in self:
-            #if 'Resource' in appWin.genericWindowType:
-                #appWin.iconify()
-    ##end of ChildWindows.deiconifyAllResources
+    def saveAll( self ):
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("ChildWindows.saveAll()") )
+        for appWin in self:
+            if 'Edit' in appWin.genericWindowType:
+                appWin.doSave()
+    #end of ChildWindows.saveAll
 
 
     def updateThisBibleGroup( self, groupCode, newVerseKey, originator=None ):
