@@ -860,15 +860,16 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createToolBar()") )
 
-        xPad, yPad = 6, 8
+        xPad, yPad = (6, 8) if self.touchMode else (4, 4)
 
         Style().configure( 'ToolBar.TFrame', background='green' )
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
 
-        Style().configure( 'ShowAll.TButton', background='lightgreen' )
-        Style().configure( 'HideResources.TButton', background='lightblue' )
+        Style().configure( 'ShowAll.TButton', background='lightGreen' )
+        Style().configure( 'HideResources.TButton', background='lightBlue' )
         Style().configure( 'HideProjects.TButton', background='pink' )
         Style().configure( 'HideAll.TButton', background='orange' )
+        Style().configure( 'SaveAll.TButton', background='royalBlue1' )
         Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
@@ -876,6 +877,8 @@ class Application( Frame ):
         Button( toolbar, text='Hide Projects', style='HideProjects.TButton', command=self.doHideAllProjects ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
+                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        Button( toolbar, text='Save All', style='SaveAll.TButton', command=self.doSaveAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
