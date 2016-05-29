@@ -75,7 +75,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-19' # by RJH
+LastModifiedDate = '2016-05-29' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.36'
@@ -210,6 +210,7 @@ class BibleBox( ChildBox ):
             # This needs fixing -- indents, etc. should be in stylesheet not hard-coded
             #hadVerseText = False
             endMarkers = []
+            lastParagraphMarker = None
             for entry in verseDataList:
                 if isinstance( entry, InternalBibleEntry ):
                     marker, cleanText = entry.getMarker(), entry.getCleanText()
@@ -227,7 +228,7 @@ class BibleBox( ChildBox ):
                     else:
                         marker, cleanText = None, entry
                 elif BibleOrgSysGlobals.debugFlag: halt
-                #print( "  displayAppendVerse", haveTextFlag, marker, repr(cleanText) )
+                print( "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
 
                 if self.formatViewMode == 'Unformatted':
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
@@ -276,32 +277,41 @@ class BibleBox( ChildBox ):
                     elif marker == 'r':
                         self.textBox.insert( tk.END, ('\n' if haveTextFlag else '')+cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('p','ip',):
-                        self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                        lastCharWasSpace = True
+                    elif marker in ('p','ip','mi', 'q1','q2','q3','q4', 'pi1','pi2','pi3','pi4',):
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        #self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                        #lastCharWasSpace = True
                         if cleanText:
-                            self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else 'v~' )
+                            halt
+                            self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
                             lastCharWasSpace = False
+                        lastParagraphMarker = marker
                         haveTextFlag = True
                     #elif marker == 'p#' and self.windowType=='DBPBibleResourceWindow':
                     elif marker == 'p#' and self.boxType=='DBPBibleResourceBox':
                         pass # Just ignore these for now
-                    elif marker in ('q1','q2','q3','q4',):
-                        self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
-                        lastCharWasSpace = True
-                        if cleanText:
-                            self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
-                            lastCharWasSpace = False
-                        haveTextFlag = True
+                    #elif marker in ('q1','q2','q3','q4',):
+                        #if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        ##self.textBox.insert ( tk.END, '\n  ' if haveTextFlag else '  ' )
+                        ##lastCharWasSpace = True
+                        #if cleanText:
+                            #self.textBox.insert( tk.END, cleanText, '*'+marker if currentVerse else marker )
+                            #lastCharWasSpace = False
+                        #lastParagraphMarker = marker
+                        #haveTextFlag = True
                     elif marker == 'v':
                         if haveTextFlag:
                             self.textBox.insert( tk.END, ' ', 'v-' )
                         self.textBox.insert( tk.END, cleanText, marker )
-                        self.textBox.insert( tk.END, ' ', 'v+' )
+                        self.textBox.insert( tk.END, '\u2009', 'v+' ) # narrow space
                         lastCharWasSpace = haveTextFlag = True
                     elif marker in ('v~','p~'):
-                        self.textBox.insert( tk.END, cleanText, '*v~' if currentVerse else marker )
+                        self.textBox.insert( tk.END, cleanText, '*'+lastParagraphMarker if currentVerse else lastParagraphMarker )
                         haveTextFlag = True
+                    #elif marker == 'p~':
+                        #self.textBox.insert( tk.END, cleanText, '*p' if currentVerse else 'p' )
+                        #lastParagraphMarker = 'p'
+                        #haveTextFlag = True
                     elif marker == 'b':
                         self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
                     elif marker in ('m','im'):

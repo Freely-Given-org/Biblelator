@@ -879,7 +879,7 @@ class Application( Frame ):
         Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Save All', style='SaveAll.TButton', command=self.doSaveAll ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+                    .pack( side=tk.RIGHT, padx=xPad, pady=yPad )
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of Application.createToolBar
