@@ -30,11 +30,12 @@ Base windows to allow display and manipulation of
     class ChildWindow
     class ChildWindows
     class HTMLWindow
+    class ResultWindow
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-23' # by RJH
+LastModifiedDate = '2016-05-31' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
@@ -53,7 +54,8 @@ from tkinter.ttk import Style, Frame, Scrollbar, Label, Button
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, parseWindowSize, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
-                             INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE
+                             INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE, \
+                             INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
 from BiblelatorDialogs import errorBeep, showerror, showinfo
 from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
 from TextBoxes import HTMLText
@@ -997,6 +999,474 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )
     # end of HTMLWindow.doClose
 # end of class HTMLWindow
+
+
+
+class ResultWindow( tk.Toplevel, ChildBox ):
+    """
+    """
+    def __init__( self, parentWindow, resultList ):
+        """
+        """
+        from tkinter.ttk import Treeview
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
+            assert parentWindow
+            assert resultList
+
+        self.parentWindow, self.resultList = parentWindow, resultList
+        tk.Toplevel.__init__( self, self.parentWindow )
+        ChildBox.__init__( self, self.parentWindow )
+        self.protocol( "WM_DELETE_WINDOW", self.doClose )
+        self.title( '{} Search Results ({} entries for {!r})'.format( self.resultList[0]['work'], len(self.resultList)-1, self.resultList[0]['givenText'] ) )
+        self.genericWindowType = 'ResultWindow'
+        self.windowType = 'ResultWindow'
+        self.moduleID = 'HTML'
+
+        self.geometry( INITIAL_RESULT_WINDOW_SIZE )
+        self.minimumSize, self.maximumSize = MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
+        self.minsize( *parseWindowSize( self.minimumSize ) )
+        self.maxsize( *parseWindowSize( self.maximumSize ) )
+
+        self._showStatusBarVar = tk.BooleanVar()
+        self._showStatusBarVar.set( True )
+        self._statusTextVar = tk.StringVar()
+        self._statusTextVar.set( '' ) # first initial value
+
+        #self.createMenuBar()
+        #self.createToolBar()
+        #self.createContextMenu()
+        #if self._showStatusBarVar.get(): self.createStatusBar()
+
+        self.formatViewMode = DEFAULT
+        self.settings = None
+
+        # Create a scroll bar to fill the right-hand side of the window
+        self.vScrollbar = Scrollbar( self )
+        self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+
+        #if 'textBox' in dir(self): # we have one already -- presumably a specialised one
+            #halt # We have one already
+        #else: # let's make one
+
+        self.tree = Treeview( self, yscrollcommand=self.vScrollbar.set )
+        self.tree.pack( expand=tk.YES, fill=tk.BOTH )
+        self.vScrollbar.config( command=self.tree.yview ) # link the scrollbar to the text box
+        self.fillTree()
+
+        #self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
+        #self.textBox['wrap'] = 'word'
+        #self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        #self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        #self.createStandardKeyboardBindings()
+        #self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
+
+        # Options for find, etc.
+        #self.optionsDict = {}
+        #self.optionsDict['caseinsens'] = True
+    # end of ResultWindow.__init__
+
+
+    def notWrittenYet( self ):
+        errorBeep()
+        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+    # end of ResultWindow.notWrittenYet
+
+
+    def fillTree( self ):
+        """
+        Fill the tree with our result list.
+
+        First entry of self.result list is a dictionary containing the search parameters.
+
+        Following entries are 4-tuples or 5-tuples:
+            Verse reference (including an index within the verse)
+            Marker
+            Text before
+            Actual text found (only if noCase was True)
+            Text after
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("ResultWindow.fillTree()") )
+            assert self.resultList
+
+        fText = self.resultList[0]['givenText']
+
+        self.tree['columns'] = ('ref', 'marker', 'before', 'fText', 'after')
+        self.tree.column( '#0', width=50, stretch=False, anchor='w' )
+        self.tree.heading( '#0', text='BBB' )
+        self.tree.column( 'ref', width=75, stretch=False, anchor='w' )
+        self.tree.heading( 'ref', text='Ref.' )
+        self.tree.column( 'marker', width=50, stretch=False, anchor='center' )
+        self.tree.heading( 'marker', text='Mkr' )
+        self.tree.column( 'before', width=120, anchor='e' )
+        self.tree.heading( 'before', text='Before' )
+        self.tree.column( 'fText', width=len(fText)*10+10, stretch=False, anchor='center' )
+        self.tree.heading( 'fText', text='Found' )
+        self.tree.column( 'after', width=120, anchor='w' )
+        self.tree.heading( 'after', text='After' )
+
+        lastBBB = None
+        for j,resultEntry in enumerate(self.resultList[1:]):
+            if len(resultEntry) == 5:
+                ref,marker,before,fText,after = resultEntry
+            elif len(resultEntry) == 4:
+                ref,marker,before,after = resultEntry
+            else: halt # programming error
+            BBB,C,V = ref.getBCV()
+            if BBB != lastBBB:
+                self.tree.insert( '', 'end', BBB, text=BBB, open=True)
+                lastBBB = BBB
+            self.tree.insert( BBB, 'end', j, tags='BCV',
+                    values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after) )
+
+        self.tree.tag_bind( 'BCV', '<Double-Button-1>', self.itemSelected )
+    # end of ResultWindow.fillTree
+
+
+    def itemSelected( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("itemSelected( {} )").format( event ) )
+            #print( "ITEM SELECTED" )
+            #print( dir(event) )
+            #print( self.tree.focus() )
+
+        j = self.tree.focus()
+        ref = self.resultList[int(j)+1][0]
+        BBB,C,V = ref.getBCV()
+        #print( 'itemSelected', j, ref, BBB, C, V )
+        self.parentApp.gotoBCV( BBB, C, V )
+        # NOTE: Ideally we should select the actual text here also
+    # end of ResultWindow.itemSelected
+
+
+    def createMenuBar( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.createMenuBar()") )
+
+        try: kBD = self.parentWindow.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentApp.keyBindingDict
+
+        self.menubar = tk.Menu( self )
+        #self['menu'] = self.menubar
+        self.config( menu=self.menubar ) # alternative
+
+        fileMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
+        #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label=_('Open…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #subfileMenuImport = tk.Menu( fileMenu )
+        #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
+        #subfileMenuExport = tk.Menu( fileMenu )
+        #subfileMenuExport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #subfileMenuExport.add_command( label=_('HTML'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Export'), underline=0, menu=subfileMenuExport )
+        #fileMenu.add_separator()
+        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=kBD[_('Info')][0] )
+        fileMenu.add_separator()
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=kBD[_('Close')][0] ) # close this window
+
+        editMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
+        editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=kBD[_('Copy')][0] )
+        editMenu.add_separator()
+        editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
+
+        searchMenu = tk.Menu( self.menubar )
+        self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=kBD[_('Line')][0] )
+        searchMenu.add_separator()
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=kBD[_('Refind')][0] )
+
+        viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
+        viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
+
+        gotoMenu = tk.Menu( self.menubar )
+        self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
+        gotoMenu.add_command( label=_('Back'), underline=0, command=self.doGoBackward )
+        gotoMenu.add_command( label=_('Forward'), underline=0, command=self.doGoForward )
+
+        toolsMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
+        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+
+        windowMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
+        windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        windowMenu.add_separator()
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=kBD[_('ShowMain')][0] )
+
+        helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
+        self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=kBD[_('Help')][0] )
+        helpMenu.add_separator()
+        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=kBD[_('About')][0] )
+    # end of ResultWindow.createMenuBar
+
+
+    def createContextMenu( self ):
+        """
+        Can be overriden if necessary.
+        """
+        try: kBD = self.parentWindow.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentApp.keyBindingDict
+
+        self.contextMenu = tk.Menu( self, tearoff=0 )
+        self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=kBD[_('Copy')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
+
+        self.bind( '<Button-3>', self.showContextMenu ) # right-click
+        #self.pack()
+    # end of ResultWindow.createContextMenu
+
+
+    def showContextMenu( self, event ):
+        self.contextMenu.post( event.x_root, event.y_root )
+    # end of ResultWindow.showContextMenu
+
+
+    def createToolBar( self ):
+        """
+        Designed to be overridden.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("This 'createToolBar' method can be overridden!") )
+        pass
+    # end of ResultWindow.createToolBar
+
+
+    def createStatusBar( self ):
+        """
+        Create a status bar containing only one text label at the bottom of the main window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.createStatusBar()") )
+
+        Style().configure('HTMLStatusBar.TFrame', background='yellow')
+        Style().configure( 'StatusBar.TLabel', background='white' )
+        #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
+                                            #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+
+        self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
+
+        self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
+                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
+                                    #, font=('arial',16,tk.NORMAL) )
+        self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
+
+        # style='Halt.TButton',
+        self.forwardButton = Button( self.statusBar, text='Forward', command=self.doGoForward )
+        self.forwardButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        self.backButton = Button( self.statusBar, text='Back', command=self.doGoBackward )
+        self.backButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
+
+        #self.setReadyStatus()
+        self.setStatus() # Clear it
+    # end of ResultWindow.createStatusBar
+
+
+    def setStatus( self, newStatusText='' ):
+        """
+        Set (or clear) the status bar text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.setStatus( {} )").format( repr(newStatusText) ) )
+
+        #print( "SB is", repr( self._statusTextVar.get() ) )
+        if newStatusText != self._statusTextVar.get(): # it's changed
+            #self.statusBarTextWidget['state'] = tk.NORMAL
+            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #if newStatusText:
+                #self.statusBarTextWidget.insert( '1.0', newStatusText )
+            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+            #self.statusText = newStatusText
+            self._statusTextVar.set( newStatusText )
+            if self._showStatusBarVar.get(): self.statusTextLabel.update()
+    # end of ResultWindow.setStatus
+
+
+    #def setWaitStatus( self, newStatusText ):
+        #"""
+        #Set the status bar text and change the cursor to the wait/hourglass cursor.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("setWaitStatus( {} )").format( repr(newStatusText) ) )
+        ##self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.setStatus( newStatusText )
+        #self.update()
+    ## end of ResultWindow.setWaitStatus
+
+
+    def setReadyStatus( self ):
+        """
+        Sets the status line to "Ready"
+            and sets the cursor to the normal cursor.
+        """
+        self.setStatus( _("Ready") )
+        #self.config( cursor='' )
+    # end of ResultWindow.setReadyStatus
+
+
+    def doToggleStatusBar( self ):
+        """
+        Display or hide the status bar.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.doToggleStatusBar()") )
+
+        if self._showStatusBarVar.get():
+            self.createStatusBar()
+        else:
+            self.statusBar.destroy()
+    # end of ResultWindow.doToggleStatusBar
+
+
+    def load( self, filepath ):
+        """
+        Loads the given HTML file into the window
+            and also finds and sets the window title
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.load( {} )").format( filepath ) )
+
+        self.folderPath, self.filename = os.path.split( filepath )
+        with open( filepath, 'rt', encoding='utf-8' ) as HTMLFile:
+            fileContents = HTMLFile.read()
+        match = re.search( '<title>(.+?)</title>', fileContents )
+        if match:
+            #print( '0', repr(match.group(0)) ) # This includes the entire match, i.e., with the <title> tags, etc.
+            #print( '1', repr(match.group(1)) ) # This is just the title
+            title = match.group(1).replace( '\n', ' ' ).replace( '\r', ' ' ).replace( '  ', ' ' )
+            #print( "title", repr(title) )
+            self.title( title )
+        else: self.title( 'ResultWindow' )
+        self.setAllText( fileContents )
+    # end of ResultWindow.load
+
+
+    def gotoLink( self, link ):
+        """
+        Loads the given HTML file into the window
+            and also finds and sets the window title
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.gotoLink( {} )").format( link ) )
+
+        if not os.path.isabs( link ): # relative filepath
+            link = os.path.join( self.folderPath, link )
+        self.load( link )
+        self.historyList.append( link )
+        self.historyIndex = 1
+    # end of ResultWindow.gotoLink
+
+
+    def overLink( self, link ):
+        """
+        Loads the given HTML file into the window
+            and also finds and sets the window title
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.overLink( {} )").format( link ) )
+
+        self.setStatus( link ) # Display it
+    # end of ResultWindow.overLink
+
+
+    def leaveLink( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.leaveLink()") )
+
+        self.setStatus() # Clear it
+    # end of ResultWindow.leaveLink
+
+
+    def doGoForward( self ):
+        """
+        """
+        if self.historyIndex > 1:
+            self.historyIndex -= 1
+            self.load( self.historyList[ -self.historyIndex ] )
+    # end of BibleResourceWindow.doGoForward
+
+
+    def doGoBackward( self ):
+        """
+        """
+        if self.historyIndex < len( self.historyList ):
+            self.historyIndex += 1
+            self.load( self.historyList[ -self.historyIndex ] )
+    # end of BibleResourceWindow.doGoBackward
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.doHelp( {} )").format( event ) )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += "\nHelp for {}".format( self.windowType )
+        helpInfo += "\n  Keyboard shortcuts:"
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+    # end of ResultWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.doAbout( {} )").format( event ) )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.windowType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+    # end of ResultWindow.doAbout
+
+
+    def doClose( self, event=None ):
+        """
+        Called from the GUI.
+
+        Can be overridden.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ResultWindow.doClose( {} )").format( event ) )
+
+        try: cWs = self.parentWindow.parentApp.childWindows
+        except AttributeError: cWs = self.parentApp.childWindows
+        if self in cWs:
+            cWs.remove( self )
+            self.destroy()
+        else: # we might not have finished making our window yet
+            if BibleOrgSysGlobals.debugFlag:
+                print( exp("ResultWindow.doClose() for {} wasn't in list").format( self.windowType ) )
+            try: self.destroy()
+            except tk.TclError: pass # never mind
+        if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )
+    # end of ResultWindow.doClose
+# end of class ResultWindow
 
 
 

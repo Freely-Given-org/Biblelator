@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-15' # by RJH
+LastModifiedDate = '2016-05-31' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -52,7 +52,7 @@ from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBo
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
 from TextBoxes import CustomText
-from ChildWindows import HTMLWindow
+from ChildWindows import HTMLWindow, ResultWindow
 from BibleResourceWindows import BibleResourceWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
 from TextEditWindow import TextEditWindow, NO_TYPE_TIME
@@ -1006,26 +1006,25 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if self.internalBible is None:
             print( "No Bible to search" )
             return
-        self._prepareInternalBible()
+        #print( "intBib", self.internalBible )
 
-        key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        self.parentApp.setStatus( _("Waiting for user input…") )
+        key = lastkey or askstring( APP_NAME, _("Enter search string"), parent=self )
         self.textBox.update()
         self.textBox.focus()
         self.lastfind = key
         if key:
             nocase = self.optionsDict['caseinsens']
-            #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
-            where = self.internalBible.searchText( key, noCase=nocase )
-            if not where:                                          # don't wrap
+            self._prepareInternalBible() # Make sure that all books are loaded
+            searchResults = self.internalBible.searchText( key, noCase=nocase )
+            if not searchResults:                                          # don't wrap
                 errorBeep()
                 showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
-                print( "  Got search result: {}".format( where ) )
-                #pastkey = where + '+%dc' % len(key)           # index past key
-                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
-                #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
-                #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
-                #self.textBox.see( where )                          # scroll display
+                #print( "  Using: {}".format( searchResults[0] ) )
+                #print( "  Got {} search results: {}".format( len(searchResults)-1, searchResults[1:] ) )
+                self.resultWindow = ResultWindow( self, searchResults )
+        self.parentApp.setReadyStatus()
     # end of USFMEditWindow.doBibleFind
 
 
