@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-19' # by RJH
+LastModifiedDate = '2016-06-02' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.36'
@@ -958,7 +958,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openSwordResource()") )
             self.parentApp.setDebugText( "doOpenSwordResourceBox…" )
-        self.parentApp.setStatus( "doOpenSwordResourceBox…" )
+        self.parentApp.setWaitStatus( "doOpenSwordResourceBox…" )
         if self.parentApp.SwordInterface is None and SwordType is not None:
             self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
         if self.parentApp.SwordInterface is None: # still
@@ -1045,7 +1045,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openInternalBibleResource()") )
             self.parentApp.setDebugText( "doOpenInternalBibleResourceBox…" )
-        self.parentApp.setStatus( "doOpenInternalBibleResourceBox…" )
+        self.parentApp.setWaitStatus( "doOpenInternalBibleResourceBox…" )
 
         #requestedFolder = askdirectory()
         openDialog = Directory( initialdir=self.parentApp.lastInternalBibleDir, parent=self )

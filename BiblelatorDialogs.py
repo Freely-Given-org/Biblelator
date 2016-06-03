@@ -40,14 +40,15 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class GetNewCollectionNameDialog( ModalDialog )
     class RenameResourceCollectionDialog( ModalDialog )
     class GetBibleBookRangeDialog( ModalDialog )
+    class GetBibleSearchTextDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-17'
+LastModifiedDate = '2016-06-03'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -272,6 +273,12 @@ class BookNameDialog( ModalDialog ):
 
 
     def apply( self, buttonNumber ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
         #if buttonNumber!='CANCEL': self.result = buttonNumber
         self.result = buttonNumber
         self.cancel() # We want to exit the dialog immediately
@@ -379,6 +386,12 @@ class SaveWindowNameDialog( ModalDialog ):
 
 
     def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Returns True or False.
+        """
         result = self.cb.get()
         if not result: return False
         if not isinstance( result, str ): return False
@@ -389,6 +402,12 @@ class SaveWindowNameDialog( ModalDialog ):
 
 
     def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
         self.result = self.cb.get()
         #print( exp("New window set-up name is: {!r}").format( self.result ) )
     # end of SaveWindowNameDialog.apply
@@ -425,6 +444,12 @@ class DeleteWindowNameDialog( ModalDialog ):
 
 
     def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Returns True or False.
+        """
         result = self.cb.get()
         if not result: return False
         if not isinstance( result, str ): return False
@@ -433,6 +458,12 @@ class DeleteWindowNameDialog( ModalDialog ):
 
 
     def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
         self.result = self.cb.get()
         print( exp("Requested window set-up name is: {!r}").format( self.result ) )
     # end of DeleteWindowNameDialog.apply
@@ -480,13 +511,24 @@ class SelectResourceBoxDialog( ModalDialog ):
 
     def validate( self ):
         """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
         Must be at least one selected (otherwise force them to select CANCEL).
+
+        Returns True or False.
         """
         return self.lb.curselection()
     # end of SelectResourceBoxDialog.validate
 
 
     def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
         items = self.lb.curselection()
         print( "items", repr(items) ) # a tuple
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
@@ -527,6 +569,8 @@ class GetNewProjectNameDialog( ModalDialog ):
         """
         Override the empty ModalDialog.validate function
             to check that the results are how we need them.
+
+        Returns True or False.
         """
         fullname = self.e1.get()
         lenF = len( fullname )
@@ -549,6 +593,8 @@ class GetNewProjectNameDialog( ModalDialog ):
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.
+
+        Results are left in self.result
         """
         fullname = self.e1.get()
         abbreviation = self.e2.get()
@@ -623,6 +669,8 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         """
         Override the empty ModalDialog.validate function
             to check that the results are how we need them.
+
+        Returns True or False.
         """
         result1Number, result2Number = self.selectVariable1.get(), self.selectVariable2.get() # ints
         #cb1result, cb2result = self.cb1.get(), self.cb2.get() # strings
@@ -642,6 +690,8 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.
+
+        Results are left in self.result
         """
         result1Number, result2Number = self.selectVariable1.get(), self.selectVariable2.get() # ints
         #cb1result, cb2result = self.cb1.get(), self.cb2.get() # strings
@@ -683,6 +733,8 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         Override the empty ModalDialog.validate function
             to check that the results are how we need them.
+
+        Returns True or False.
         """
         name = self.e1.get()
         lenN = len( name )
@@ -701,6 +753,8 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.
+
+        Results are left in self.result
         """
         self.result = self.e1.get()
     # end of GetNewCollectionName.apply
@@ -738,6 +792,8 @@ class RenameResourceCollectionDialog( ModalDialog ):
         """
         Override the empty ModalDialog.validate function
             to check that the results are how we need them.
+
+        Returns True or False.
         """
         newName = self.e1.get()
         lenName = len( newName )
@@ -756,6 +812,8 @@ class RenameResourceCollectionDialog( ModalDialog ):
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.
+
+        Results are left in self.result
         """
         self.result = self.e1.get()
     # end of RenameResourceCollectionDialog.apply
@@ -780,18 +838,18 @@ class GetBibleBookRangeDialog( ModalDialog ):
         Override the empty ModalDialog.body function
             to set up the dialog how we want it.
         """
-        self.selectVariable = tk.IntVar()
+        self.booksSelectVariable = tk.IntVar()
 
-        self.rb1 = Radiobutton( master, text=_("Current book")+" ({})".format( self.currentBBB ), variable=self.selectVariable, value=1 )
+        self.rb1 = Radiobutton( master, text=_("Current book")+" ({})".format( self.currentBBB ), variable=self.booksSelectVariable, value=1 )
         self.rb1.grid( row=0, column=0, sticky=tk.W )
         allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
-        self.rb2 = Radiobutton( master, text=allText, variable=self.selectVariable, value=2 )
+        self.rb2 = Radiobutton( master, text=allText, variable=self.booksSelectVariable, value=2 )
         self.rb2.grid( row=1, column=0, sticky=tk.W )
-        self.rb3 = Radiobutton( master, text=_("OT books"), variable=self.selectVariable, value=3 )
+        self.rb3 = Radiobutton( master, text=_("OT books"), variable=self.booksSelectVariable, value=3 )
         self.rb3.grid( row=2, column=0, sticky=tk.W )
-        self.rb4 = Radiobutton( master, text=_("NT books"), variable=self.selectVariable, value=4 )
+        self.rb4 = Radiobutton( master, text=_("NT books"), variable=self.booksSelectVariable, value=4 )
         self.rb4.grid( row=3, column=0, sticky=tk.W )
-        self.rb5 = Radiobutton( master, text=_("DC books"), variable=self.selectVariable, value=5 )
+        self.rb5 = Radiobutton( master, text=_("DC books"), variable=self.booksSelectVariable, value=5 )
         self.rb5.grid( row=4, column=0, sticky=tk.W )
 
         return self.rb1 # initial focus
@@ -802,8 +860,10 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         Override the empty ModalDialog.validate function
             to check that the results are how we need them.
+
+        Returns True or False.
         """
-        resultNumber = self.selectVariable.get()
+        resultNumber = self.booksSelectVariable.get()
         return 1 <= resultNumber <= 5
     # end of GetBibleBookRangeDialog.validate
 
@@ -812,8 +872,10 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.
+
+        Results are left in self.result
         """
-        resultNumber = self.selectVariable.get()
+        resultNumber = self.booksSelectVariable.get()
         if resultNumber == 1: self.result = [self.currentBBB]
         elif resultNumber == 2: self.result = [book.BBB for book in self.givenBible] # all
         elif resultNumber == 3: self.result = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR(book.BBB)] # OT
@@ -823,6 +885,216 @@ class GetBibleBookRangeDialog( ModalDialog ):
             halt # Unexpected result value
     # end of GetBibleBookRangeDialog.apply
 # end of class GetBibleBookRangeDialog
+
+
+
+class GetBibleSearchTextDialog( ModalDialog ):
+    """
+    Get the search string (and options) for Bible search.
+    """
+    def __init__( self, parent, givenBible, optionsDict, title ):
+        """
+        optionsDict must already contain 'currentBCV'
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            parent.parentApp.setDebugText( "GetBibleSearchTextDialog…" )
+            #assert currentBBB in givenBible -- no, it might not be loaded yet!
+            assert isinstance( optionsDict, dict )
+            assert 'currentBCV' in optionsDict
+        self.givenBible, self.optionsDict = givenBible, optionsDict
+
+        # Set-up default search options
+        if 'work' not in self.optionsDict: self.optionsDict['work'] = givenBible.abbreviation if givenBible.abbreviation else givenBible.name
+        if 'searchHistoryList' not in self.optionsDict: self.optionsDict['searchHistoryList'] = [] # Oldest first
+        if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'Ends'
+        if 'caselessFlag' not in self.optionsDict: self.optionsDict['caselessFlag'] = True
+        if 'ignoreDiacriticsFlag' not in self.optionsDict: self.optionsDict['ignoreDiacriticsFlag'] = False
+        if 'includeMarkersFlag' not in self.optionsDict: self.optionsDict['includeMarkersFlag'] = False
+        if 'includeExtrasFlag' not in self.optionsDict: self.optionsDict['includeExtrasFlag'] = False
+        if 'includeIntroFlag' not in self.optionsDict: self.optionsDict['includeIntroFlag'] = True
+        if 'contextLength' not in self.optionsDict: self.optionsDict['contextLength'] = 30 # each side
+        if 'bookList' not in self.optionsDict: self.optionsDict['bookList'] = 'ALL' # or BBB or a list
+        if 'chapterList' not in self.optionsDict: self.optionsDict['chapterList'] = None
+        self.optionsDict['regexFlag'] = False
+
+        ModalDialog.__init__( self, parent, title )
+    # end of GetBibleSearchTextDialog.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        #print( "GetBibleSearchTextDialog.body", self.optionsDict )
+        Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
+        self.projectNameVar = tk.StringVar()
+        self.projectNameVar.set( self.optionsDict['work'] )
+        self.projectNameBox = Combobox( master, width=30, textvariable=self.projectNameVar )
+        #self.projectNameBox['values'] = self.bookNames
+        #self.projectNameBox['width'] = len( 'Deuteronomy' )
+        #self.projectNameBox.bind('<<ComboboxSelected>>', self.ok )
+        #self.projectNameBox.bind( '<Return>', self.ok )
+        #self.projectNameBox.pack( side=tk.LEFT )
+        self.projectNameBox.grid( row=0, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+
+        Label( master, text=_("Find:") ).grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
+        self.searchStringVar = tk.StringVar()
+        try: self.searchStringVar.set( self.optionsDict['searchHistoryList'][-1] )
+        except IndexError: pass
+        self.searchStringBox = Combobox( master, width=30, textvariable=self.searchStringVar )
+        self.searchStringBox['values'] = self.optionsDict['searchHistoryList']
+        #self.searchStringBox['width'] = len( 'Deuteronomy' )
+        self.searchStringBox.bind('<<ComboboxSelected>>', self.ok )
+        self.searchStringBox.bind( '<Return>', self.ok )
+        #self.searchStringBox.pack( side=tk.LEFT )
+        self.searchStringBox.grid( row=1, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+
+        wmFrame = tk.LabelFrame( master, text=_("Word limits"), padx=5, pady=5 )
+        wmFrame.grid( row=2, column=0, padx=10, pady=10, sticky=tk.W )
+
+        self.wordModeSelectVariable = tk.IntVar()
+        if self.optionsDict['wordMode'] == 'Any': self.wordModeSelectVariable.set( 1 )
+        elif self.optionsDict['wordMode'] == 'Whole': self.wordModeSelectVariable.set( 2 )
+        elif self.optionsDict['wordMode'] == 'Begins': self.wordModeSelectVariable.set( 3 )
+        elif self.optionsDict['wordMode'] == 'Ends': self.wordModeSelectVariable.set( 4 )
+        else: halt # programming error
+
+        self.rwmb1 = Radiobutton( master, text=_("No restriction" ), variable=self.wordModeSelectVariable, value=1 )
+        self.rwmb1.pack( in_=wmFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb1.grid( row=2, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb2 = Radiobutton( master, text=_("Whole words only" ), variable=self.wordModeSelectVariable, value=2 )
+        self.rwmb2.pack( in_=wmFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb2.grid( row=3, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb3 = Radiobutton( master, text=_("Beginning of word" ), variable=self.wordModeSelectVariable, value=3 )
+        self.rwmb3.pack( in_=wmFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb3.grid( row=4, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb4 = Radiobutton( master, text=_("End of word" ), variable=self.wordModeSelectVariable, value=4 )
+        self.rwmb4.pack( in_=wmFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb4.grid( row=5, column=0, padx=2, pady=1, sticky=tk.W )
+
+        self.mcaseVar = tk.IntVar()
+        if not self.optionsDict['caselessFlag']: self.mcaseVar.set( 1 )
+        mcaseCb = tk.Checkbutton( master, text=_("Match case"), variable=self.mcaseVar )
+        #mcaseCb.grid( row=6, column=0, padx=0, pady=5, sticky=tk.W )
+        mcaseCb.pack( in_=wmFrame, side=tk.TOP, anchor=tk.W, fill=tk.X, padx=2, pady=1 )
+        self.diaVar = tk.IntVar()
+        if self.optionsDict['ignoreDiacriticsFlag']: self.diaVar.set( 1 )
+        diaCb = tk.Checkbutton( master, text=_("Ignore diacritics"), variable=self.diaVar )
+        #diaCb.grid( row=6, column=2, padx=0, pady=5, sticky=tk.W )
+        diaCb.pack( in_=wmFrame, side=tk.TOP, fill=tk.X, padx=2, pady=1 )
+
+        rangeFrame = tk.LabelFrame( master, text=_("Range limits"), padx=5, pady=5 )
+        rangeFrame.grid( row=2, column=2, padx=10, pady=10, sticky=tk.W )
+
+        self.booksSelectVariable = tk.IntVar()
+        if self.optionsDict['bookList'] == 'ALL': self.booksSelectVariable.set( 1 )
+        elif self.optionsDict['bookList'] == self.optionsDict['currentBCV'][0]:
+            if self.optionsDict['chapterList'] == None: self.booksSelectVariable.set( 2 )
+            else: self.booksSelectVariable.set( 3 )
+        elif isinstance( self.optionsDict['bookList'], list ): self.booksSelectVariable.set( 4 )
+        else: halt # programming error
+
+        allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
+        self.rbb1 = Radiobutton( master, text=allText, variable=self.booksSelectVariable, value=1 )
+        self.rbb1.pack( in_=rangeFrame, side=tk.TOP, fill=tk.X )
+        #self.rbb3.grid( row=4, column=2, padx=2, pady=1, sticky=tk.W )
+        if isinstance( self.optionsDict['bookList'], list ):
+            if len( self.optionsDict['bookList'] ) == 1: sbText = self.optionsDict['bookList'][0]
+            else: sbText = len( self.optionsDict['bookList'] )
+        else: sbText = 0
+        self.rbb2 = Radiobutton( master, text=_("Current book")+" ({})".format( self.optionsDict['currentBCV'][0] ), variable=self.booksSelectVariable, value=2 )
+        self.rbb2.pack( in_=rangeFrame, side=tk.TOP, fill=tk.X )
+        #self.rbb2.grid( row=2, column=2, padx=2, pady=1, sticky=tk.W )
+        self.rbb3 = Radiobutton( master, text=_("Current chapter")+" ({} {})".format( self.optionsDict['currentBCV'][0], self.optionsDict['currentBCV'][1] ), variable=self.booksSelectVariable, value=3 )
+        self.rbb3.pack( in_=rangeFrame, side=tk.TOP, fill=tk.X )
+        #self.rbb3.grid( row=3, column=2, padx=2, pady=1, sticky=tk.W )
+        self.rbb4 = Radiobutton( master, text=_("Selected books ({})").format( sbText ), variable=self.booksSelectVariable, value=4 )
+        #self.rbb4.grid( row=5, column=2, padx=2, pady=1, sticky=tk.W )
+        self.rbb4.pack( in_=rangeFrame, side=tk.TOP, fill=tk.X )
+        bb = Button( master, text=_("Select"), command=self.selectBooks )
+        bb.pack( in_=rangeFrame, side=tk.TOP )
+
+        self.introVar = tk.IntVar()
+        if self.optionsDict['includeIntroFlag']: self.introVar.set( 1 )
+        introCb = tk.Checkbutton( master, text=_("Include intro"), variable=self.introVar )
+        #introCb.grid( row=6, column=0, padx=0, pady=5, sticky=tk.W )
+        introCb.pack( in_=rangeFrame, side=tk.TOP, anchor=tk.W, fill=tk.X, padx=2, pady=1 )
+        self.extrasVar = tk.IntVar()
+        if self.optionsDict['includeExtrasFlag']: self.extrasVar.set( 1 )
+        extrasCb = tk.Checkbutton( master, text=_("Include notes"), variable=self.extrasVar )
+        #extrasCb.grid( row=6, column=0, padx=0, pady=5, sticky=tk.W )
+        extrasCb.pack( in_=rangeFrame, side=tk.TOP, anchor=tk.W, fill=tk.X, padx=2, pady=1 )
+        self.markersVar = tk.IntVar()
+        if self.optionsDict['includeMarkersFlag']: self.markersVar.set( 1 )
+        markersCb = tk.Checkbutton( master, text=_("Include markers"), variable=self.markersVar )
+        #markersCb.grid( row=6, column=0, padx=0, pady=5, sticky=tk.W )
+        markersCb.pack( in_=rangeFrame, side=tk.TOP, anchor=tk.W, fill=tk.X, padx=2, pady=1 )
+
+        return self.searchStringBox # initial focus
+    # end of GetBibleSearchTextDialog.apply
+
+
+    def selectBooks( self ): pass
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Returns True or False.
+        """
+        #print( "GetBibleSearchTextDialog.validate()" )
+        givenText = self.searchStringVar.get()
+        if not givenText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
+        if givenText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        bookResultNumber = self.booksSelectVariable.get()
+        return 1 <= bookResultNumber <= 5
+    # end of GetBibleSearchTextDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        #print( "GetBibleSearchTextDialog.apply()" )
+        self.optionsDict['givenText'] = self.searchStringVar.get()
+
+        wordModeResultNumber = self.wordModeSelectVariable.get()
+        if wordModeResultNumber == 1: self.optionsDict['wordMode'] = 'Any'
+        elif wordModeResultNumber == 2: self.optionsDict['wordMode'] = 'Whole'
+        elif wordModeResultNumber == 3: self.optionsDict['wordMode'] = 'Begins'
+        elif wordModeResultNumber == 4: self.optionsDict['wordMode'] = 'Ends'
+        else:
+            halt # Unexpected result value
+
+        bookResultNumber = self.booksSelectVariable.get()
+        self.optionsDict['chapterList'] = None
+        if bookResultNumber == 1: self.optionsDict['bookList'] = 'ALL'
+        elif bookResultNumber == 2: self.optionsDict['bookList'] = self.optionsDict['currentBCV'][0]
+        elif bookResultNumber == 3:
+            self.optionsDict['bookList'] = self.optionsDict['currentBCV'][0]
+            self.optionsDict['chapterList'] = [self.optionsDict['currentBCV'][1]]
+        elif bookResultNumber == 4: self.optionsDict['bookList'] = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR(book.BBB)] # OT
+        #elif bookResultNumber == 5: self.optionsDict['bookList'] = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isNewTestament_NR(book.BBB)] # NT
+        #elif bookResultNumber == 6: self.optionsDict['bookList'] = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isDeuterocanon_NR(book.BBB)] # DC
+        else:
+            halt # Unexpected result value
+
+        # Checkboxes
+        self.optionsDict['caselessFlag'] = not self.mcaseVar.get()
+        self.optionsDict['ignoreDiacriticsFlag'] = bool( self.diaVar.get() )
+        self.optionsDict['includeIntroFlag'] = bool( self.introVar.get() )
+        self.optionsDict['includeExtrasFlag'] = bool( self.extrasVar.get() )
+        self.optionsDict['includeMarkersFlag'] = bool( self.markersVar.get() )
+
+        self.result = self.optionsDict
+    # end of GetBibleSearchTextDialog.apply
+# end of class GetBibleSearchTextDialog
 
 
 

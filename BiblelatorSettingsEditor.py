@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-22' # by RJH
+LastModifiedDate = '2016-06-02' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.36'
@@ -188,7 +188,7 @@ class BiblelatorSettingsEditor( Frame ):
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
-            if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( self.INIname ) )
+            if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
         self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         self.settings.load()
         #parseAndApplySettings( self )
@@ -892,7 +892,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.notebook.add( self.recentFilesPage, text='Recent files')
         self.notebook.add( self.BCVGroupsPage, text='BCV groups')
         self.notebook.add( self.currentWindowsPage, text='Current windows')
-        self.notebook.pack( expand=1, fill='both' )
+        self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
 
         self.loadSettingsIntoTabs()
         self.somethingChanged = False

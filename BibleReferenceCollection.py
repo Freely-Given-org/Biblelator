@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-06' # by RJH
+LastModifiedDate = '2016-06-02' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -522,7 +522,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.vsb = Scrollbar( self, orient="vertical", command=self.canvas.yview )
         self.canvas.configure( yscrollcommand=self.vsb.set )
         self.vsb.pack( side="right", fill="y" )
-        self.canvas.pack( side=tk.LEFT, fill=tk.BOTH, expand=True )
+        self.canvas.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )
         self.canvas.create_window( (4,4), window=self.frame, anchor="nw", tags="self.frame" )
         self.frame.bind( "<Configure>", self.OnFrameConfigure )
 

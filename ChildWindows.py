@@ -35,7 +35,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-31' # by RJH
+LastModifiedDate = '2016-06-03' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
@@ -49,7 +49,7 @@ import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.simpledialog import askstring, askinteger
-from tkinter.ttk import Style, Frame, Scrollbar, Label, Button
+from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, parseWindowSize, \
@@ -1008,7 +1008,6 @@ class ResultWindow( tk.Toplevel, ChildBox ):
     def __init__( self, parentWindow, resultList ):
         """
         """
-        from tkinter.ttk import Treeview
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ResultWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
             assert parentWindow
@@ -1018,7 +1017,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         tk.Toplevel.__init__( self, self.parentWindow )
         ChildBox.__init__( self, self.parentWindow )
         self.protocol( "WM_DELETE_WINDOW", self.doClose )
-        self.title( '{} Search Results ({} entries for {!r})'.format( self.resultList[0]['work'], len(self.resultList)-1, self.resultList[0]['givenText'] ) )
+        self.title( '{} Search Results'.format( self.resultList[0]['work'] ) )
         self.genericWindowType = 'ResultWindow'
         self.windowType = 'ResultWindow'
         self.moduleID = 'HTML'
@@ -1033,7 +1032,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self._statusTextVar = tk.StringVar()
         self._statusTextVar.set( '' ) # first initial value
 
-        #self.createMenuBar()
+        self.createMenuBar()
         #self.createToolBar()
         #self.createContextMenu()
         #if self._showStatusBarVar.get(): self.createStatusBar()
@@ -1041,29 +1040,29 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.formatViewMode = DEFAULT
         self.settings = None
 
+        # Make a frame at the top and then put our options inside it
+        top = Frame( self )
+        top.pack( side=tk.TOP, fill=tk.X )
+
+        self.modeVar = tk.IntVar()
+        self.modeVar.set( 0 ) # This sets the default 0:Line mode, 1:Column mode
+        modeCb = tk.Checkbutton( self, text=_("Column mode"), variable=self.modeVar, command=self.makeTree )
+        #modeCb.pack( in_=top, side=tk.LEFT )
+        modeCb.grid( in_=top, row=0, column=0, padx=20, pady=2, sticky=tk.W )
+
+        infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList)-1, self.resultList[0]['givenText'] ) )
+        #infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
+        infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=2 )
+
+        closeButton = Button( self, text=_("Close"), command=self.doClose )
+        #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+        closeButton.grid( in_=top, row=0, column=2, padx=20, pady=2, sticky=tk.E )
+
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        #if 'textBox' in dir(self): # we have one already -- presumably a specialised one
-            #halt # We have one already
-        #else: # let's make one
-
-        self.tree = Treeview( self, yscrollcommand=self.vScrollbar.set )
-        self.tree.pack( expand=tk.YES, fill=tk.BOTH )
-        self.vScrollbar.config( command=self.tree.yview ) # link the scrollbar to the text box
-        self.fillTree()
-
-        #self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
-        #self.textBox['wrap'] = 'word'
-        #self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
-        #self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
-        #self.createStandardKeyboardBindings()
-        #self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
-
-        # Options for find, etc.
-        #self.optionsDict = {}
-        #self.optionsDict['caseinsens'] = True
+        self.makeTree()
     # end of ResultWindow.__init__
 
 
@@ -1073,9 +1072,9 @@ class ResultWindow( tk.Toplevel, ChildBox ):
     # end of ResultWindow.notWrittenYet
 
 
-    def fillTree( self ):
+    def makeTree( self ):
         """
-        Fill the tree with our result list.
+        Make the tree and fill it with our result list.
 
         First entry of self.result list is a dictionary containing the search parameters.
 
@@ -1087,24 +1086,39 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             Text after
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("ResultWindow.fillTree()") )
+            if debuggingThisModule: print( exp("ResultWindow.makeTree()") )
             assert self.resultList
 
-        fText = self.resultList[0]['givenText']
+        self.lineMode = not self.modeVar.get()
 
-        self.tree['columns'] = ('ref', 'marker', 'before', 'fText', 'after')
+        try: self.tree.destroy(); del self.tree
+        except AttributeError: pass # it may not have existed yet
+        self.tree = Treeview( self, yscrollcommand=self.vScrollbar.set )
+        self.tree.pack( expand=tk.YES, fill=tk.BOTH )
+        self.vScrollbar.config( command=self.tree.yview ) # link the scrollbar to the text box
+
+        fText = self.resultList[0]['givenText']
+        lenFText = len( fText )
+        contextLength = self.resultList[0]['contextLength']
+
+        self.tree['columns'] = ('ref','marker','fText') if self.lineMode else ('ref','marker','before','fText','after')
         self.tree.column( '#0', width=50, stretch=False, anchor='w' )
-        self.tree.heading( '#0', text='BBB' )
+        self.tree.heading( '#0', text=_("Bk") )
         self.tree.column( 'ref', width=75, stretch=False, anchor='w' )
-        self.tree.heading( 'ref', text='Ref.' )
+        self.tree.heading( 'ref', text=_("Ref") )
         self.tree.column( 'marker', width=50, stretch=False, anchor='center' )
-        self.tree.heading( 'marker', text='Mkr' )
-        self.tree.column( 'before', width=120, anchor='e' )
-        self.tree.heading( 'before', text='Before' )
-        self.tree.column( 'fText', width=len(fText)*10+10, stretch=False, anchor='center' )
-        self.tree.heading( 'fText', text='Found' )
-        self.tree.column( 'after', width=120, anchor='w' )
-        self.tree.heading( 'after', text='After' )
+        self.tree.heading( 'marker', text=_("Mkr") )
+        if self.lineMode:
+            self.tree.column( 'fText', width=contextLength*8+lenFText*10+5, anchor='w' )
+            self.tree.heading( 'fText', text=_("Found") )
+        else: # column mode
+            self.tree.column( 'before', width=contextLength*5, anchor='e' )
+            self.tree.heading( 'before', text=_("Before") )
+            self.tree.column( 'fText', width=lenFText*10+5, stretch=False, anchor='center' )
+            cText = _("Found") if lenFText>=len( _("Found") ) else None # Leave off column heading for short fields
+            self.tree.heading( 'fText', text=cText )
+            self.tree.column( 'after', width=contextLength*5, anchor='w' )
+            self.tree.heading( 'after', text=_("After") )
 
         lastBBB = None
         for j,resultEntry in enumerate(self.resultList[1:]):
@@ -1117,11 +1131,15 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             if BBB != lastBBB:
                 self.tree.insert( '', 'end', BBB, text=BBB, open=True)
                 lastBBB = BBB
-            self.tree.insert( BBB, 'end', j, tags='BCV',
+            if self.lineMode:
+                self.tree.insert( BBB, 'end', j, tags='BCV',
+                    values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before+fText+after) )
+            else: # column mode
+                self.tree.insert( BBB, 'end', j, tags='BCV',
                     values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after) )
 
         self.tree.tag_bind( 'BCV', '<Double-Button-1>', self.itemSelected )
-    # end of ResultWindow.fillTree
+    # end of ResultWindow.makeTree
 
 
     def itemSelected( self, event=None ):
@@ -1158,8 +1176,8 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
         #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
-        #fileMenu.add_command( label=_('Open…'), underline=0, command=self.notWrittenYet )
-        #fileMenu.add_separator()
+        fileMenu.add_command( label=_('Save…'), underline=0, command=self.notWrittenYet )
+        fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
@@ -1185,24 +1203,24 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
         searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=kBD[_('Refind')][0] )
 
-        viewMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-        viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
+        #viewMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
+        #viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
-        gotoMenu = tk.Menu( self.menubar )
-        self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
-        gotoMenu.add_command( label=_('Back'), underline=0, command=self.doGoBackward )
-        gotoMenu.add_command( label=_('Forward'), underline=0, command=self.doGoForward )
+        #gotoMenu = tk.Menu( self.menubar )
+        #self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
+        #gotoMenu.add_command( label=_('Back'), underline=0, command=self.doGoBackward )
+        #gotoMenu.add_command( label=_('Forward'), underline=0, command=self.doGoForward )
 
-        toolsMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
-        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+        #toolsMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
+        #toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
 
-        windowMenu = tk.Menu( self.menubar, tearoff=False )
-        self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
-        windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
-        windowMenu.add_separator()
-        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=kBD[_('ShowMain')][0] )
+        #windowMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
+        #windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        #windowMenu.add_separator()
+        #windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=kBD[_('ShowMain')][0] )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )

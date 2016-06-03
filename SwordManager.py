@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-22' # by RJH
+LastModifiedDate = '2016-06-02' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.03' # Separate versioning from Biblelator
@@ -697,7 +697,7 @@ class SwordManager( Frame ):
         self.notebook.add( self.installPage, text=_("Install new") )
         self.notebook.add( self.updatePage, text=_("Update") )
         self.notebook.add( self.modulesPage, text=_("View modules") )
-        self.notebook.pack( expand=1, fill='both' )
+        self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
     # end of SwordManager.createNotebook
 
 

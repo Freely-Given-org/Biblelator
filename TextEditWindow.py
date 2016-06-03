@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-02' # by RJH
+LastModifiedDate = '2016-06-03' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -558,7 +558,7 @@ class TextEditWindow( ChildWindow ):
                                 frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
                                 frame.pack( fill=tk.BOTH, expand=tk.YES )
                                 autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
-                                autocompleteScrollbar.pack( side=tk.RIGHT, fill='y' )
+                                autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
                                 self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
                                                             relief="flat",
                                                             yscrollcommand=autocompleteScrollbar.set,

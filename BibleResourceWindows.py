@@ -75,7 +75,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-31' # by RJH
+LastModifiedDate = '2016-06-01' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.36'
@@ -274,38 +274,50 @@ class BibleBox( ChildBox ):
                     else: endMarkers = [] # Reset when we have normal markers
 
                     if marker.startswith( '¬' ): pass # Ignore end markers for now
-                    elif marker in ('chapters',): pass # Ignore added markers for now
-                    elif marker in ('h','toc1','toc2','toc3',): pass # Ignore administrative markers for now
+                    elif marker in ('intro','chapters',): pass # Ignore added markers for now
+                    elif marker in ('h','toc1','toc2','toc3','cl¤',): pass # Ignore administrative markers for now
                     elif marker == 'id':
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
                     elif marker in ('ide','rem',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
                     elif marker in ('mt1','mt2','mt3','mt4', 'imt1','imt2','imt3','imt4', 'iot','io1','io2','io3','io4',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('s1','s2','s3','s4', 'is1','is2','is3','is4',):
+                    elif marker in ('ip','ipi','im','imi','ipq','imq','ipr', 'iq1','iq2','iq3','iq4',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('s1','s2','s3','s4', 'is1','is2','is3','is4', 'ms1','ms2','ms3','ms4', 'cl',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
                     elif marker in ('d','sp',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker == 'r':
+                    elif marker in ('r','mr',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker in BibleOrgSysGlobals.USFMParagraphMarkers: #('p','ip','mi', 'q1','q2','q3','q4', 'pi1','pi2','pi3','pi4',):
+                    elif marker in BibleOrgSysGlobals.USFMParagraphMarkers:
                         assert not cleanText # No text expected with these markers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         lastParagraphMarker = marker
                         haveTextFlag = True
-                    elif marker == 'b':
+                    elif marker in ('b','ib'):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         assert not cleanText # No text expected with this marker
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                     #elif marker in ('m','im'):
@@ -470,6 +482,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.getBookList = self.BibleOrganisationalSystem.getBookList
         self.maxChaptersThisBook, self.maxVersesThisChapter = 150, 150 # temp
 
+        self.BibleFindOptionsDict = {}
         self.verseCache = OrderedDict()
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:

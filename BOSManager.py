@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-22' # by RJH
+LastModifiedDate = '2016-06-02' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -193,7 +193,7 @@ class BOSManager( Frame ):
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
-            if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( self.INIname ) )
+            if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
         self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         self.settings.load()
         #parseAndApplySettings( self )
@@ -923,7 +923,7 @@ class BOSManager( Frame ):
         self.notebook.add( self.organizationsPage, text='Bibles')
         self.notebook.add( self.referencesPage, text='References')
         self.notebook.add( self.stylesheetsPage, text='StyleSheets')
-        self.notebook.pack( expand=1, fill='both' )
+        self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
     # end of BOSManager.createNotebook
 
 

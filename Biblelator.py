@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-23' # by RJH
+LastModifiedDate = '2016-06-02' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.36'
@@ -233,7 +233,7 @@ class Application( Frame ):
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
-            if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( self.INIname ) )
+            if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
         self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         self.settings.load()
         parseAndApplySettings( self )
@@ -1495,7 +1495,7 @@ class Application( Frame ):
             print( exp("doOpenBibleReferenceCollection()") )
             self.setDebugText( "doOpenBibleReferenceCollection…" )
 
-        self.setStatus( "doOpenBibleReferenceCollection…" )
+        self.setWaitStatus( "doOpenBibleReferenceCollection…" )
         existingNames = []
         for cw in self.childWindows:
             existingNames.append( cw.moduleID.upper() )
@@ -2745,7 +2745,7 @@ class Application( Frame ):
         """
         import queue
         try:
-            matches = myqueue.get(block=False)
+            matches = myqueue.get( block=False )
         except queue.Empty:
             myargs  = (grepkey, encoding, myqueue, mypopup)
             self.after(250, self.grepThreadConsumer, *myargs)
@@ -2755,7 +2755,7 @@ class Application( Frame ):
             if not matches:
                 showinfo( self, APP_NAME, 'Grep found no matches for: %r' % grepkey)
             else:
-                self.grepMatchesList(matches, grepkey, encoding)
+                self.grepMatchesList( matches, grepkey, encoding )
     # end of Application.grepThreadConsumer
 
 
@@ -2768,9 +2768,9 @@ class Application( Frame ):
         #from tkinter import Tk, tk.Listbox, tk.SUNKEN, Y
         from tkinter.ttk import Scrollbar
         class ScrolledList( Frame ):
-            def __init__(self, options, parent=None):
-                Frame.__init__(self, parent)
-                self.pack(expand=tk.YES, fill=tk.BOTH)                   # make me expandable
+            def __init__( self, options, parent=None ):
+                Frame.__init__( self, parent )
+                self.pack( expand=tk.YES, fill=tk.BOTH )                   # make me expandable
                 self.makeWidgets(options)
 
             def handleList(self, event):
@@ -2779,15 +2779,15 @@ class Application( Frame ):
                 self.runCommand(label)                             # and call action here
                                                                    # or get(tk.ACTIVE)
             def makeWidgets(self, options):
-                sbar = Scrollbar(self)
-                matchBox = tk.Listbox(self, relief=tk.SUNKEN)
-                sbar.config(command=matchBox.yview)                    # xlink sbar and list
-                matchBox.config(yscrollcommand=sbar.set)               # move one moves other
+                sbar = Scrollbar( self )
+                matchBox = tk.Listbox( self, relief=tk.SUNKEN )
+                sbar.config( command=matchBox.yview )                    # xlink sbar and list
+                matchBox.config( yscrollcommand=sbar.set )               # move one moves other
                 sbar.pack( side=tk.RIGHT, fill=tk.Y )                      # pack first=clip last
                 matchBox.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )        # list clipped first
                 pos = 0
                 for label in options:                              # add to tk.Listbox
-                    matchBox.insert(pos, label)                        # or insert(tk.END,label)
+                    matchBox.insert( pos, label )                        # or insert(tk.END,label)
                     pos += 1                                       # or enumerate(options)
                #list.config(selectmode=SINGLE, setgrid=1)          # select,resize modes
                 matchBox.bind('<Double-1>', self.handleList)           # set event handler

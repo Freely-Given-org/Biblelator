@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-05-17 RJH
+Last updated: 2016-06-03 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -13,7 +13,13 @@ Things nearer the top of the list are higher in priority
 (and due to my situation often only having smallish chunks of time available,
 smaller jobs often get done before larger ones unfortunately).
 
-Biblelator bugs
+Biblelator bugs / unfinished
+* Bible find SELECT button not live yet
+* Could put "Include main text" in Bible find range options
+* Does Bible Find have a short-cut key?
+* Bible find can default to any currently selected text in edit window?
+* Book select needs to allow choice of individual books
+* Bible replace not started yet
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
@@ -35,6 +41,7 @@ Biblelator bugs
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
+* What happens if scripture file contains conflicts <<< ==== >>>>
 * Need to set-up some special .ini files for testing
 * Systematically work through all menus
 
