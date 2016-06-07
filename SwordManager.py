@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-02' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.03' # Separate versioning from Biblelator
@@ -45,7 +45,7 @@ from collections import OrderedDict
 
 
 import tkinter as tk
-from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
+#from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
 from tkinter.scrolledtext import ScrolledText
 
@@ -53,7 +53,7 @@ from tkinter.scrolledtext import ScrolledText
 from BiblelatorGlobals import DEFAULT, START, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolderPath, findUsername, \
+        findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
@@ -67,12 +67,12 @@ from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
 from ChildWindows import ChildWindows
-from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
-from BibleResourceCollection import BibleResourceCollectionWindow
-from BibleReferenceCollection import BibleReferenceCollectionWindow
-from LexiconResourceWindows import BibleLexiconResourceWindow
+#from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
+#from BibleResourceCollection import BibleResourceCollectionWindow
+#from BibleReferenceCollection import BibleReferenceCollectionWindow
+#from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
-from USFMEditWindow import USFMEditWindow
+#from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
 
 # BibleOrgSys imports

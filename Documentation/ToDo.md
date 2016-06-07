@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-03 RJH
+Last updated: 2016-06-06 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,10 +14,10 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
-* Bible find SELECT button not live yet
-* Could put "Include main text" in Bible find range options
+* Bible find needs intro set if book in FRT, GLO, etc.
 * Does Bible Find have a short-cut key?
 * Bible find can default to any currently selected text in edit window?
+* Bible find can't seem to jump to FRT/GLO lines
 * Book select needs to allow choice of individual books
 * Bible replace not started yet
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
@@ -47,7 +47,7 @@ Biblelator testing required
 
 
 BOS bugs
-* Had 3 default mode failures: TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola3
+* Had default mode failures: 'TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola2', 'TestHaiola3
 * Doesn't create a log file on Windows
 * Why do warnings show on Windows console (yet not on Linux)?
 * Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p

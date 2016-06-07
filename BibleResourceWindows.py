@@ -75,7 +75,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-01' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.36'
@@ -90,7 +90,7 @@ from collections import OrderedDict
 import tkinter as tk
 
 # Biblelator imports
-from BiblelatorGlobals import START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
+from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
 from ChildWindows import ChildBox, ChildWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
 from BiblelatorDialogs import showinfo
@@ -99,7 +99,7 @@ from BiblelatorDialogs import showinfo
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
-from USFMFile import splitMarkerText
+#from USFMFile import splitMarkerText
 from SwordResources import SwordType
 from DigitalBiblePlatform import DBPBible
 from UnknownBible import UnknownBible
@@ -306,7 +306,7 @@ class BibleBox( ChildBox ):
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('r','mr',):
+                    elif marker in ('r','mr','sr',):
                         assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )

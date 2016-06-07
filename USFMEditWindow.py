@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-02' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.36'
@@ -42,7 +42,7 @@ import os.path, logging
 from collections import OrderedDict
 
 import tkinter as tk
-from tkinter.simpledialog import askstring #, askinteger
+#from tkinter.simpledialog import askstring #, askinteger
 from tkinter.ttk import Style
 
 # Biblelator imports
@@ -52,11 +52,11 @@ from BiblelatorDialogs import showerror, showinfo, errorBeep, \
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
-from TextBoxes import CustomText
+#from TextBoxes import CustomText
 from ChildWindows import HTMLWindow, ResultWindow
 from BibleResourceWindows import BibleResourceWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
-from TextEditWindow import TextEditWindow, NO_TYPE_TIME
+from TextEditWindow import TextEditWindow #, NO_TYPE_TIME
 from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
@@ -478,7 +478,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #print( "USFMEditWindow.onTextNoChange" )
 
         # Check the text for formatting errors
-        self.checkTextForErrors( includeFormatting=True )
+        try: self.checkTextForErrors( includeFormatting=True )
+        except KeyboardError: self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow.onTextNoChange
 
 
@@ -887,7 +888,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                numChaps = self.getNumChapters( BBB )
+                if numChaps is None: numChaps = 0
+                for thisC in range( 0, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -906,7 +909,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                numChaps = self.getNumChapters( BBB )
+                if numChaps is None: numChaps = 0
+                for thisC in range( 0, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -1011,7 +1016,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #print( "intBib", self.internalBible )
 
         self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
-        gBSTD = GetBibleSearchTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        gBSTD = GetBibleSearchTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         if gBSTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
@@ -1149,18 +1154,18 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.doCheckProject()") )
 
-        #self._prepareInternalBible()
+        self._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.currentVerseKey.getBBB()
-        gBBRD = GetBibleBookRangeDialog( self, self.internalBible, currentBBB, title=_('Books to be checked') )
+        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.internalBible, currentBBB, title=_('Books to be checked') )
         #if BibleOrgSysGlobals.debugFlag: print( "gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
-            if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
-                # It's just the current book to check
-                if self.modified(): self.doSave()
-                self.internalBible.loadBookIfNecessary( currentBBB )
-            else: # load all books
-                self._prepareInternalBible()
+            #if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
+                ## It's just the current book to check
+                #if self.modified(): self.doSave()
+                #self.internalBible.loadBookIfNecessary( currentBBB )
+            #else: # load all books
+                #self._prepareInternalBible()
             self.parentApp.setWaitStatus( _("Doing Bible checks…") )
             self.internalBible.check( gBBRD.result )
             displayExternally = False

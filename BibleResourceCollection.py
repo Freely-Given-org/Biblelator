@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-02' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.36'
@@ -89,7 +89,7 @@ from tkinter.filedialog import Directory #, SaveAs
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
 from BiblelatorDialogs import showerror, showinfo, SelectResourceBoxDialog, RenameResourceCollectionDialog

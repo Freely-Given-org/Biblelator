@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-03' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.36'
@@ -43,7 +43,7 @@ from datetime import datetime
 
 import tkinter as tk
 from tkinter import font
-from tkinter.simpledialog import askstring, askinteger
+#from tkinter.simpledialog import askstring, askinteger
 from tkinter.filedialog import asksaveasfilename
 from tkinter.ttk import Button, Label, Entry
 

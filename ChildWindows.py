@@ -35,7 +35,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-03' # by RJH
+LastModifiedDate = '2016-06-05' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
@@ -1112,12 +1112,12 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             self.tree.column( 'fText', width=contextLength*8+lenFText*10+5, anchor='w' )
             self.tree.heading( 'fText', text=_("Found") )
         else: # column mode
-            self.tree.column( 'before', width=contextLength*5, anchor='e' )
+            self.tree.column( 'before', width=contextLength*6, anchor='e' )
             self.tree.heading( 'before', text=_("Before") )
             self.tree.column( 'fText', width=lenFText*10+5, stretch=False, anchor='center' )
             cText = _("Found") if lenFText>=len( _("Found") ) else None # Leave off column heading for short fields
             self.tree.heading( 'fText', text=cText )
-            self.tree.column( 'after', width=contextLength*5, anchor='w' )
+            self.tree.column( 'after', width=contextLength*6, anchor='w' )
             self.tree.heading( 'after', text=_("After") )
 
         lastBBB = None
@@ -1144,6 +1144,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
 
     def itemSelected( self, event=None ):
         """
+        They've double-clicked on a line in the search result window.
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("itemSelected( {} )").format( event ) )
@@ -1152,7 +1153,9 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             #print( self.tree.focus() )
 
         j = self.tree.focus()
-        ref = self.resultList[int(j)+1][0]
+        #print( "j", repr(j) )
+        if j == 'I001': j=0 # Not sure why this is happening for the first entry???
+        ref = self.resultList[int(j)+1][0] # Add one to skip past the optionDict which is the first results item
         BBB,C,V = ref.getBCV()
         #print( 'itemSelected', j, ref, BBB, C, V )
         self.parentApp.gotoBCV( BBB, C, V )
