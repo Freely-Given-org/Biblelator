@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-08' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.36'
@@ -48,7 +48,8 @@ from tkinter.ttk import Style
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
 from BiblelatorDialogs import showerror, showinfo, errorBeep, \
-                                YesNoDialog, GetBibleBookRangeDialog, GetBibleSearchTextDialog
+                                YesNoDialog, GetBibleBookRangeDialog, \
+                                GetBibleSearchTextDialog, GetBibleReplaceTextDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
@@ -147,6 +148,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             self.textBox['highlightbackground'] = 'orange'
             self.textBox['inactiveselectbackground'] = 'green'
 
+        # Temporarily include some default invalid values
+        self.invalidCombinations = ['__',',,',' ,','..',' .',';;',' ;','!!',' !',
+                                    '"',] # characters or character combinations that shouldn't occur
+        # Temporarily include some default invalid values
+
         #self.textBox.bind( '<1>', self.onTextChange )
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
@@ -196,6 +202,33 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     ## end of USFMEditWindow.doAbout
 
 
+    def createEditorKeyboardBindings( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.createEditorKeyboardBindings()") )
+
+        for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
+                             ('Undo',self.doUndo), ('Redo',self.doRedo),
+                             ('Save',self.doSave),
+                             ('Find',self.doBibleFind), ('Replace',self.doBibleReplace), ):
+            assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
+            if name in self.parentApp.keyBindingDict:
+                for keyCode in self.parentApp.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    self.textBox.bind( keyCode, command )
+                    if BibleOrgSysGlobals.debugFlag:
+                        assert keyCode not in self.myKeyboardShortcutsList
+                        self.myKeyboardShortcutsList.append( keyCode )
+                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
+            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+        #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
+        #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
+        #self.textBox.bind('<Control-x>', self.doCut ); self.textBox.bind('<Control-X>', self.doCut )
+        #self.textBox.bind('<Control-g>', self.doWindowRefind ); self.textBox.bind('<Control-G>', self.doWindowRefind )
+    # end of USFMEditWindow.createEditorKeyboardBindings()
+
+
     def createMenuBar( self ):
         """
         """
@@ -242,9 +275,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         #subsearchMenuBible = tk.Menu( searchMenu, tearoff=False )
-        searchMenu.add_command( label=_('Bible Find…'), underline=0, command=self.doBibleFind )
+        searchMenu.add_command( label=_('Bible Find…'), underline=0, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
         #subsearchMenuBible.add_command( label=_('Find again'), underline=5, command=self.notWrittenYet )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.notWrittenYet )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doBibleReplace, accelerator=self.parentApp.keyBindingDict[_('Replace')][0] )
         #searchMenu.add_cascade( label=_('Bible'), underline=0, menu=subsearchMenuBible )
         searchMenu.add_separator()
         subSearchMenuWindow = tk.Menu( searchMenu, tearoff=False )
@@ -537,6 +570,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             #print( warningMessage )
         elif includeFormatting and ' \n' in editedText:
             suggestionMessage = _("No good reason to have a line ending with a space in a USFM book")
+
+        if not errorMessage and not warningMessage: # and not suggestionMessage:
+            for segment in self.invalidCombinations:
+                if segment in editedText:
+                    warningMessage = _("Found {!r} invalid character(s) in USFM text").format( segment ); break
 
         if errorMessage:
             self.parentApp.setErrorStatus( errorMessage )
@@ -1027,18 +1065,59 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             #self.lastfind = key
             self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleFind {}'.format( self.BibleFindOptionsDict ) )
             self._prepareInternalBible() # Make sure that all books are loaded
+            # We search the loaded Bible processed lines
             searchResults = self.internalBible.searchText( self.BibleFindOptionsDict )
             #print( "Got searchResults", searchResults )
             assert len(searchResults) >= 1
             self.BibleFindOptionsDict = searchResults[0]
             if len(searchResults) <= 1: # Firstresult is updated optionsDict
                 errorBeep()
-                key = gBSTD.result['givenText']
+                key = gBSTD.result['searchText']
                 showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
                 self.resultWindow = ResultWindow( self, searchResults )
         self.parentApp.setReadyStatus()
     # end of USFMEditWindow.doBibleFind
+
+
+    def doBibleReplace( self, event=None ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow doBibleReplace' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doBibleReplace( {} )").format( event ) )
+
+        if self.internalBible is None:
+            logging.critical( _("No Bible to search") )
+            return
+        #print( "intBib", self.internalBible )
+
+        self.BibleReplaceOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        gBRTD = GetBibleReplaceTextDialog( self, self.parentApp, self.internalBible, self.BibleReplaceOptionsDict, title=_('Replace in Bible') )
+        if BibleOrgSysGlobals.debugFlag: print( "gBRTDResult", repr(gBRTD.result) )
+        if gBRTD.result:
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBRTD.result, dict )
+            self.BibleReplaceOptionsDict = gBRTD.result # Update our search options dictionary
+            self.parentApp.setWaitStatus( _("Searching/Replacing…") )
+            #self.textBox.update()
+            #self.textBox.focus()
+            #self.lastReplace = key
+            self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleReplace {}'.format( self.BibleReplaceOptionsDict ) )
+            #self._prepareInternalBible() # Make sure that all books are loaded
+            self.doSave() # Make sure that any saves are made to disk
+            # We load and search/replace the actual text files
+            searchResults = self.internalBible.searchText( self.BibleReplaceOptionsDict )
+            #print( "Got searchResults", searchResults )
+            assert len(searchResults) >= 1
+            self.BibleReplaceOptionsDict = searchResults[0]
+            if len(searchResults) <= 1: # Firstresult is updated optionsDict
+                errorBeep()
+                key = gBRTD.result['searchText']
+                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            else:
+                self.resultWindow = ResultWindow( self, searchResults )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doBibleReplace
 
 
     def _prepareInternalBible( self ):

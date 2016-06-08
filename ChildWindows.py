@@ -35,7 +35,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-05' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
@@ -1050,7 +1050,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         #modeCb.pack( in_=top, side=tk.LEFT )
         modeCb.grid( in_=top, row=0, column=0, padx=20, pady=2, sticky=tk.W )
 
-        infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList)-1, self.resultList[0]['givenText'] ) )
+        infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList)-1, self.resultList[0]['searchText'] ) )
         #infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
         infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=2 )
 
@@ -1097,7 +1097,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.tree.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.tree.yview ) # link the scrollbar to the text box
 
-        fText = self.resultList[0]['givenText']
+        fText = self.resultList[0]['searchText']
         lenFText = len( fText )
         contextLength = self.resultList[0]['contextLength']
 

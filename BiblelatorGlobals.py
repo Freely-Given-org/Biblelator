@@ -40,7 +40,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-31' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.36'
@@ -129,6 +129,7 @@ DEFAULT_KEY_BINDING_DICT = {
     _('SelectAll'):('Ctrl+a','<Control-A>','<Control-a>'),
     _('Find'):('Ctrl+f','<Control-F>','<Control-f>'),
     _('Refind'):('F3/Ctrl+g','<Control-G>','<Control-g>','<F3>'),
+    _('Replace'):('Ctrl+r','<Control-R>','<Control-r>'),
     _('Undo'):('Ctrl+z','<Control-Z>','<Control-z>'),
     _('Redo'):('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
     _('Line'):('Ctrl+l','<Control-L>','<Control-l>'),

@@ -482,7 +482,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
         self.getBookList = self.BibleOrganisationalSystem.getBookList
         self.maxChaptersThisBook, self.maxVersesThisChapter = 150, 150 # temp
 
-        self.BibleFindOptionsDict = {}
+        self.BibleFindOptionsDict, self.BibleReplaceOptionsDict = {}, {}
         self.verseCache = OrderedDict()
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:

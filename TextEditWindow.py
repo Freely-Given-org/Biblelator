@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-08' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.36'
@@ -140,6 +140,10 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteMinLength = 3 # Show the window after this many characters have been typed
         self.autocompleteMaxLength = 12 # Remove window after this many characters have been typed
         self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
+
+        self.invalidCombinations = [] # characters or character combinations that shouldn't occur
+        # Temporarily include some default invalid values
+        self.invalidCombinations = [',,',' ,',] # characters or character combinations that shouldn't occur
 
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # temporarily put some words in
             #from AutocompleteFunctions import setAutocompleteWords
@@ -449,13 +453,13 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.acceptAutocompleteSelection
 
 
-    def removeAutocompleteBox( self ):
+    def removeAutocompleteBox( self, event=None ):
         """
         Remove the pop-up Listbox (in a Frame in a Toplevel) when it's no longer required.
         Used by autocomplete routines in onTextChange.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.removeAutocompleteBox()") )
+            #print( exp("TextEditWindow.removeAutocompleteBox( {} )").format( event ) )
             assert self.autocompleteBox is not None
 
         self.textBox.focus()
@@ -569,6 +573,7 @@ class TextEditWindow( ChildWindow ):
                                 #self.autocompleteBox.focus()
                                 self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
                                 self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
+                                self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
                                 #else: # old code
                                     #self.autocompleteBox = tk.Listbox( self.textBox )
                                     #self.autocompleteBox.bind( '<Double-Button-1>', self.acceptAutocompleteSelection )

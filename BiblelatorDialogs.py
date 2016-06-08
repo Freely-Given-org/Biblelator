@@ -45,7 +45,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-06'
+LastModifiedDate = '2016-06-07'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.36'
@@ -1126,12 +1126,12 @@ class GetBibleSearchTextDialog( ModalDialog ):
             self.theseMarkersOnlyVar.set( 0 )
 
         # Now check for bad combinations
-        givenText = self.searchStringVar.get()
-        if not givenText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
-        if givenText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        searchText = self.searchStringVar.get()
+        if not searchText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
+        if searchText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and ( not self.optionsDict['bookList'] or not isinstance(self.optionsDict['bookList'], list) ):
-            showwarning( self.parent, APP_NAME, _("No books selected to search for!") ); return False
+            showwarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
         if self.theseMarkersOnlyVar.get():
             if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
                 showwarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
@@ -1147,7 +1147,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         Results are left in self.result
         """
         #print( "GetBibleSearchTextDialog.apply()" )
-        self.optionsDict['givenText'] = self.searchStringVar.get()
+        self.optionsDict['searchText'] = self.searchStringVar.get()
 
         wordModeResultNumber = self.wordModeSelectVariable.get()
         if wordModeResultNumber == 1: self.optionsDict['wordMode'] = 'Any'
@@ -1197,6 +1197,330 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.result = self.optionsDict
     # end of GetBibleSearchTextDialog.apply
 # end of class GetBibleSearchTextDialog
+
+
+
+class GetBibleReplaceTextDialog( ModalDialog ):
+    """
+    Get the Search and Replace strings (and options) for Bible Replace.
+    """
+    def __init__( self, parent, parentApp, givenBible, optionsDict, title ):
+        """
+        optionsDict must already contain 'currentBCV'
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            parentApp.setDebugText( "GetBibleReplaceTextDialog…" )
+            #assert currentBBB in givenBible -- no, it might not be loaded yet!
+            assert isinstance( optionsDict, dict )
+            assert 'currentBCV' in optionsDict
+        self.parent, self.parentApp, self.givenBible, self.optionsDict = parent, parentApp, givenBible, optionsDict
+
+        # Set-up default Replace options
+        if 'work' not in self.optionsDict: self.optionsDict['work'] = givenBible.abbreviation if givenBible.abbreviation else givenBible.name
+        if 'SearchHistoryList' not in self.optionsDict: self.optionsDict['SearchHistoryList'] = [] # Oldest first
+        if 'ReplaceHistoryList' not in self.optionsDict: self.optionsDict['ReplaceHistoryList'] = [] # Oldest first
+        if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'Ends'
+        if 'caselessFlag' not in self.optionsDict: self.optionsDict['caselessFlag'] = True
+        if 'ignoreDiacriticsFlag' not in self.optionsDict: self.optionsDict['ignoreDiacriticsFlag'] = False
+        if 'includeIntroFlag' not in self.optionsDict: self.optionsDict['includeIntroFlag'] = True
+        if 'includeMainTextFlag' not in self.optionsDict: self.optionsDict['includeMainTextFlag'] = True
+        if 'includeMarkerTextFlag' not in self.optionsDict: self.optionsDict['includeMarkerTextFlag'] = False
+        if 'includeExtrasFlag' not in self.optionsDict: self.optionsDict['includeExtrasFlag'] = False
+        if 'contextLength' not in self.optionsDict: self.optionsDict['contextLength'] = 30 # each side
+        if 'bookList' not in self.optionsDict: self.optionsDict['bookList'] = 'ALL' # or BBB or a list
+        if 'chapterList' not in self.optionsDict: self.optionsDict['chapterList'] = None
+        if 'markerList' not in self.optionsDict: self.optionsDict['markerList'] = None
+        self.optionsDict['regexFlag'] = False
+
+        ModalDialog.__init__( self, parent, title )
+    # end of GetBibleReplaceTextDialog.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        #print( "GetBibleReplaceTextDialog.body", self.optionsDict )
+        Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
+        self.projectNameVar = tk.StringVar()
+        self.projectNameVar.set( self.optionsDict['work'] )
+        self.projectNameBox = Combobox( master, width=30, textvariable=self.projectNameVar )
+        #self.projectNameBox['values'] = self.bookNames
+        #self.projectNameBox['width'] = len( 'Deuteronomy' )
+        #self.projectNameBox.bind('<<ComboboxSelected>>', self.ok )
+        #self.projectNameBox.bind( '<Return>', self.ok )
+        #self.projectNameBox.pack( side=tk.LEFT )
+        self.projectNameBox.grid( row=0, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+
+        Label( master, text=_("Find:") ).grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
+        self.SearchStringVar = tk.StringVar()
+        try: self.SearchStringVar.set( self.optionsDict['SearchHistoryList'][-1] )
+        except IndexError: pass
+        self.SearchStringBox = Combobox( master, width=30, textvariable=self.SearchStringVar )
+        self.SearchStringBox['values'] = self.optionsDict['SearchHistoryList']
+        #self.SearchStringBox['width'] = len( 'Deuteronomy' )
+        self.SearchStringBox.bind('<<ComboboxSelected>>', self.ok )
+        self.SearchStringBox.bind( '<Return>', self.ok )
+        #self.SearchStringBox.pack( side=tk.LEFT )
+        self.SearchStringBox.grid( row=1, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+
+        Label( master, text=_("Replace:") ).grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
+        self.ReplaceStringVar = tk.StringVar()
+        try: self.ReplaceStringVar.set( self.optionsDict['ReplaceHistoryList'][-1] )
+        except IndexError: pass
+        self.ReplaceStringBox = Combobox( master, width=30, textvariable=self.ReplaceStringVar )
+        self.ReplaceStringBox['values'] = self.optionsDict['ReplaceHistoryList']
+        #self.ReplaceStringBox['width'] = len( 'Deuteronomy' )
+        self.ReplaceStringBox.bind('<<ComboboxSelected>>', self.ok )
+        self.ReplaceStringBox.bind( '<Return>', self.ok )
+        #self.ReplaceStringBox.pack( side=tk.LEFT )
+        self.ReplaceStringBox.grid( row=2, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+
+        wordLimitsFrame = tk.LabelFrame( master, text=_("Word limits"), padx=5, pady=5 )
+        wordLimitsFrame.grid( row=3, column=0, padx=10, pady=10, sticky=tk.W )
+
+        self.wordModeSelectVariable = tk.IntVar()
+        if self.optionsDict['wordMode'] == 'Any': self.wordModeSelectVariable.set( 1 )
+        elif self.optionsDict['wordMode'] == 'Whole': self.wordModeSelectVariable.set( 2 )
+        elif self.optionsDict['wordMode'] == 'Begins': self.wordModeSelectVariable.set( 3 )
+        elif self.optionsDict['wordMode'] == 'Ends': self.wordModeSelectVariable.set( 4 )
+        else: halt # programming error
+
+        self.rwmb1 = Radiobutton( master, text=_("No restriction" ), variable=self.wordModeSelectVariable, value=1 )
+        self.rwmb1.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb1.grid( row=3, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb2 = Radiobutton( master, text=_("Whole words only" ), variable=self.wordModeSelectVariable, value=2 )
+        self.rwmb2.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb2.grid( row=4, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb3 = Radiobutton( master, text=_("Beginning of word" ), variable=self.wordModeSelectVariable, value=3 )
+        self.rwmb3.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb3.grid( row=5, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb4 = Radiobutton( master, text=_("End of word" ), variable=self.wordModeSelectVariable, value=4 )
+        self.rwmb4.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        #self.rwmb4.grid( row=6, column=0, padx=2, pady=1, sticky=tk.W )
+
+        self.mcaseVar = tk.IntVar()
+        if not self.optionsDict['caselessFlag']: self.mcaseVar.set( 1 )
+        mcaseCb = tk.Checkbutton( master, text=_("Match case"), variable=self.mcaseVar )
+        #mcaseCb.grid( row=7, column=0, padx=0, pady=5, sticky=tk.W )
+        mcaseCb.pack( in_=wordLimitsFrame, side=tk.TOP, anchor=tk.W, padx=0, pady=1 )
+        self.diaVar = tk.IntVar()
+        if self.optionsDict['ignoreDiacriticsFlag']: self.diaVar.set( 1 )
+        diaCb = tk.Checkbutton( master, text=_("Ignore diacritics"), variable=self.diaVar )
+        #diaCb.grid( row=7, column=2, padx=0, pady=5, sticky=tk.W )
+        diaCb.pack( in_=wordLimitsFrame, side=tk.TOP, anchor=tk.W, padx=0, pady=1 )
+
+        bookLimitsFrame = tk.LabelFrame( master, text=_("Book limits"), padx=5, pady=5 )
+        bookLimitsFrame.grid( row=3, column=2, padx=10, pady=10, sticky=tk.W )
+
+        self.booksSelectVariable = tk.IntVar()
+        if self.optionsDict['bookList'] == 'ALL': self.booksSelectVariable.set( 1 )
+        elif self.optionsDict['bookList'] == self.optionsDict['currentBCV'][0]:
+            if self.optionsDict['chapterList'] == None: self.booksSelectVariable.set( 2 )
+            else: self.booksSelectVariable.set( 3 )
+        elif isinstance( self.optionsDict['bookList'], list ): self.booksSelectVariable.set( 4 )
+        else: halt # programming error
+
+        allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
+        self.rbb1 = Radiobutton( master, text=allText, variable=self.booksSelectVariable, value=1 )
+        self.rbb1.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
+        #self.rbb3.grid( row=5, column=2, padx=2, pady=1, sticky=tk.W )
+        if isinstance( self.optionsDict['bookList'], list ):
+            if len( self.optionsDict['bookList'] ) == 1: sbText = self.optionsDict['bookList'][0]
+            else: sbText = len( self.optionsDict['bookList'] )
+        else: sbText = 0
+        self.rbb2 = Radiobutton( master, text=_("Current book")+" ({})".format( self.optionsDict['currentBCV'][0] ), variable=self.booksSelectVariable, value=2 )
+        self.rbb2.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
+        #self.rbb2.grid( row=3, column=2, padx=2, pady=1, sticky=tk.W )
+        self.rbb3 = Radiobutton( master, text=_("Current chapter")+" ({} {})".format( self.optionsDict['currentBCV'][0], self.optionsDict['currentBCV'][1] ), variable=self.booksSelectVariable, value=3 )
+        self.rbb3.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
+        #self.rbb3.grid( row=4, column=2, padx=2, pady=1, sticky=tk.W )
+        self.rbb4 = Radiobutton( master, text=_("Selected books ({})").format( sbText ), variable=self.booksSelectVariable, value=4 )
+        #self.rbb4.grid( row=6, column=2, padx=2, pady=1, sticky=tk.W )
+        self.rbb4.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
+        bb = Button( master, text=_("Select books…"), command=self.selectBooks )
+        bb.pack( in_=bookLimitsFrame, side=tk.TOP, anchor=tk.E )
+
+        fieldLimitsFrame = tk.LabelFrame( master, text=_("Field limits"), padx=5, pady=5 )
+        fieldLimitsFrame.grid( row=4, column=2, padx=10, pady=10, sticky=tk.W )
+
+        self.introVar = tk.IntVar()
+        if self.optionsDict['includeIntroFlag']: self.introVar.set( 1 )
+        introCb = tk.Checkbutton( master, text=_("Include introductions"), variable=self.introVar )
+        #introCb.grid( row=7, column=0, padx=0, pady=5, sticky=tk.W )
+        introCb.pack( in_=fieldLimitsFrame, side=tk.TOP, anchor=tk.W, padx=2, pady=1 )
+        self.mainTextVar = tk.IntVar()
+        if self.optionsDict['includeMainTextFlag']: self.mainTextVar.set( 1 )
+        mainTextCb = tk.Checkbutton( master, text=_("Include main text"), variable=self.mainTextVar )
+        #mainTextCb.grid( row=7, column=0, padx=0, pady=5, sticky=tk.W )
+        mainTextCb.pack( in_=fieldLimitsFrame, side=tk.TOP, anchor=tk.W, padx=2, pady=1 )
+        self.markersTextVar = tk.IntVar()
+        if self.optionsDict['includeMarkerTextFlag']: self.markersTextVar.set( 1 )
+        markersCb = tk.Checkbutton( master, text=_("Include text of markers"), variable=self.markersTextVar )
+        #markersCb.grid( row=7, column=0, padx=0, pady=5, sticky=tk.W )
+        markersCb.pack( in_=fieldLimitsFrame, side=tk.TOP, anchor=tk.W, padx=2, pady=1 )
+        self.extrasVar = tk.IntVar()
+        if self.optionsDict['includeExtrasFlag']: self.extrasVar.set( 1 )
+        extrasCb = tk.Checkbutton( master, text=_("Include footnotes & cross-references"), variable=self.extrasVar )
+        #extrasCb.grid( row=7, column=0, padx=0, pady=5, sticky=tk.W )
+        extrasCb.pack( in_=fieldLimitsFrame, side=tk.TOP, anchor=tk.W, padx=2, pady=1 )
+
+        markerListFrame = tk.Frame( master, padx=5, pady=5 )
+        markerListFrame.pack( in_=fieldLimitsFrame, side=tk.TOP, anchor=tk.W, fill=tk.X, padx=2, pady=1 )
+        self.theseMarkersOnlyVar = tk.IntVar()
+        if self.optionsDict['markerList']:
+            self.theseMarkersOnlyVar.set( 1 )
+            self.introVar.set( 0 ); self.mainTextVar.set( 0 ); self.markersTextVar.set( 0 ); self.extrasVar.set( 0 )
+        theseMarkersCb = tk.Checkbutton( master, text=_("Only this marker(s):"), variable=self.theseMarkersOnlyVar )
+        theseMarkersCb.pack( in_=markerListFrame, side=tk.LEFT, padx=2, pady=1 )
+        self.theseMarkersListVar = tk.StringVar()
+        self.theseMarkersListVar.set( ','.join(mkr for mkr in self.optionsDict['markerList']) if self.optionsDict['markerList'] else '' )
+        registeredFunction = self.register( self.doMarkerListentry )
+        theseMarkersEntry = Entry( master, textvariable=self.theseMarkersListVar, validate='all', validatecommand=(registeredFunction,'%P') )
+        theseMarkersEntry.pack( in_=markerListFrame, side=tk.RIGHT, padx=2, pady=1 )
+
+        return self.SearchStringBox # initial focus
+    # end of GetBibleReplaceTextDialog.body
+
+
+    def selectBooks( self ):
+        """
+        """
+        self.parent._prepareInternalBible() # Slow but must be called before the dialog
+        currentBBB = self.optionsDict['currentBCV'][0]
+        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.givenBible, currentBBB, title=_('Books to be Replaceed') )
+        if BibleOrgSysGlobals.debugFlag: print( "selectBooks gBBRDResult", repr(gBBRD.result) )
+        if gBBRD.result: # Returns a list of books
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
+            if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
+                # It's just the current book to Replace
+                self.booksSelectVariable.set( 2 )
+            else:
+                self.booksSelectVariable.set( 4 )
+                self.optionsDict['bookList'] = gBBRD.result
+                self.rbb4['text'] = _("Selected books ({})").format( len(self.optionsDict['bookList']) )
+            #self.update()
+        else: print( "selectBooks: No books selected!" )
+    # end of GetBibleReplaceTextDialog.apply
+
+
+    def doMarkerListentry( self, willBe ):
+        """
+        """
+        #print( "doMarkerListentry( {!r} )".format( willBe ) )
+        #thisText = self.theseMarkersListVar.get()
+        if willBe: # There's something in the entry
+            self.theseMarkersOnlyVar.set( 1 )
+            self.introVar.set( 0 ); self.mainTextVar.set( 0 ); self.markersTextVar.set( 0 ); self.extrasVar.set( 0 )
+        else: self.theseMarkersOnlyVar.set( 0 )
+        for char in willBe:
+            if char not in ' abcdefghijklmnopqrstuvwxyz1234,': return False
+        return True # accept it
+    # end of GetBibleReplaceTextDialog.doMarkerListentry
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Returns True or False.
+        """
+        #print( "GetBibleReplaceTextDialog.validate()" )
+
+        # Do some normalization first
+        theseMarkersOnlyText = self.theseMarkersListVar.get()
+        if theseMarkersOnlyText: # check that they're valid newline markers
+            # First normalize the entries
+            theseMarkersOnlyText = theseMarkersOnlyText.strip().replace('  ',' ').replace(' ',',').replace(',,,',',').replace(',,',',').replace(',',', ')
+            self.theseMarkersListVar.set( theseMarkersOnlyText )
+            self.theseMarkersOnlyVar.set( 1 )
+        if theseMarkersOnlyText: # check that they're valid newline markers
+            markerList = []
+            for marker in theseMarkersOnlyText.split( ',' ):
+                #print( "marker", marker )
+                marker = marker.strip()
+                if marker in BibleOrgSysGlobals.USFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
+                    markerList.append( marker )
+                else: # not a valid newline marker
+                    showwarning( self.parent, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
+        else: # Nothing in the entry
+            self.theseMarkersOnlyVar.set( 0 )
+
+        # Now check for bad combinations
+        searchText = self.ReplaceStringVar.get()
+        if not searchText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
+        if searchText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        bookResultNumber = self.booksSelectVariable.get()
+        if bookResultNumber==4 and ( not self.optionsDict['bookList'] or not isinstance(self.optionsDict['bookList'], list) ):
+            showwarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
+        if self.theseMarkersOnlyVar.get():
+            if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
+                showwarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
+        return True # Must be ok
+    # end of GetBibleReplaceTextDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        #print( "GetBibleReplaceTextDialog.apply()" )
+        self.optionsDict['searchText'] = self.SearchStringVar.get()
+        self.optionsDict['replaceText'] = self.ReplaceStringVar.get()
+
+        wordModeResultNumber = self.wordModeSelectVariable.get()
+        if wordModeResultNumber == 1: self.optionsDict['wordMode'] = 'Any'
+        elif wordModeResultNumber == 2: self.optionsDict['wordMode'] = 'Whole'
+        elif wordModeResultNumber == 3: self.optionsDict['wordMode'] = 'Begins'
+        elif wordModeResultNumber == 4: self.optionsDict['wordMode'] = 'Ends'
+        else:
+            halt # Unexpected result value
+
+        bookResultNumber = self.booksSelectVariable.get()
+        self.optionsDict['chapterList'] = None
+        if bookResultNumber == 1: self.optionsDict['bookList'] = 'ALL'
+        elif bookResultNumber == 2: self.optionsDict['bookList'] = self.optionsDict['currentBCV'][0]
+        elif bookResultNumber == 3:
+            self.optionsDict['bookList'] = self.optionsDict['currentBCV'][0]
+            self.optionsDict['chapterList'] = [self.optionsDict['currentBCV'][1]]
+        elif bookResultNumber == 4: #self.optionsDict['bookList'] should already be set
+            pass
+        else:
+            halt # Unexpected result value
+
+        # Checkboxes
+        self.optionsDict['caselessFlag'] = not self.mcaseVar.get()
+        self.optionsDict['ignoreDiacriticsFlag'] = bool( self.diaVar.get() )
+        self.optionsDict['includeIntroFlag'] = bool( self.introVar.get() )
+        self.optionsDict['includeMainTextFlag'] = bool( self.mainTextVar.get() )
+        self.optionsDict['includeExtrasFlag'] = bool( self.extrasVar.get() )
+        self.optionsDict['includeMarkerTextFlag'] = bool( self.markersTextVar.get() )
+        if self.optionsDict['includeIntroFlag'] or self.optionsDict['includeMainTextFlag'] \
+        or self.optionsDict['includeExtrasFlag'] or self.optionsDict['includeMarkerTextFlag']:
+            self.optionsDict['markerList'] = None
+        else:
+            theseMarkersOnlyText = self.theseMarkersListVar.get()
+            if theseMarkersOnlyText: # check that they're valid newline markers
+                # First normalize the entries
+                theseMarkersOnlyText = theseMarkersOnlyText.strip().replace('  ',' ').replace(' ',',').replace(',,,',',').replace(',,',',').replace(',',', ')
+            if theseMarkersOnlyText: # check that they're valid newline markers
+                markerList = []
+                for marker in theseMarkersOnlyText.split( ',' ):
+                    #print( "marker", marker )
+                    marker = marker.strip()
+                    if marker in BibleOrgSysGlobals.USFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
+                        markerList.append( marker )
+                    else: halt # not a valid newline marker
+                if markerList: self.optionsDict['markerList'] = markerList
+
+        self.result = self.optionsDict
+    # end of GetBibleReplaceTextDialog.apply
+# end of class GetBibleReplaceTextDialog
 
 
 

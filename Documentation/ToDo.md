@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-06 RJH
+Last updated: 2016-06-08 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -15,11 +15,10 @@ smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
 * Bible find needs intro set if book in FRT, GLO, etc.
-* Does Bible Find have a short-cut key?
 * Bible find can default to any currently selected text in edit window?
 * Bible find can't seem to jump to FRT/GLO lines
 * Book select needs to allow choice of individual books
-* Bible replace not started yet
+* Bible replace not worked out yet
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
@@ -36,7 +35,6 @@ Biblelator bugs / unfinished
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
-* Need to close autocomplete pop-up if window loses focus
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
 
 Biblelator testing required
