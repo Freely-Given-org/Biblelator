@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-10' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -161,7 +161,7 @@ class BOSManager( Frame ):
         Frame.__init__( self, self.rootWindow )
         self.pack()
 
-        self.rootWindow.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
+        self.rootWindow.protocol( 'WM_DELETE_WINDOW', self.doCloseMe ) # Catch when app is closed
 
         self.childWindows = ChildWindows( self )
 

@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-10' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.03' # Separate versioning from Biblelator
@@ -161,7 +161,7 @@ class SwordManager( Frame ):
         Frame.__init__( self, self.rootWindow )
         self.pack()
 
-        self.rootWindow.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
+        self.rootWindow.protocol( 'WM_DELETE_WINDOW', self.doCloseMe ) # Catch when app is closed
 
         self.childWindows = ChildWindows( self )
 

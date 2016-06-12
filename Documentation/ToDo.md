@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-08 RJH
+Last updated: 2016-06-12 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -17,8 +17,8 @@ Biblelator bugs / unfinished
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
 * Bible find can't seem to jump to FRT/GLO lines
+* Bible replace needs more work on reloading open books/Bibles
 * Book select needs to allow choice of individual books
-* Bible replace not worked out yet
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
@@ -36,6 +36,7 @@ Biblelator bugs / unfinished
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
+* BOSManager is not finished
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
@@ -45,12 +46,12 @@ Biblelator testing required
 
 
 BOS bugs
-* Had default mode failures: 'TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola2', 'TestHaiola3
 * Doesn't create a log file on Windows
 * Why do warnings show on Windows console (yet not on Linux)?
-* Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
+* Why do we get some long/wrong (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
 * Don't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
+
 
 BOS improvements for Biblelator
 * Upgrade to USX 2.5
@@ -67,15 +68,18 @@ BOS improvements for Biblelator
 * Increased multiprocessing
 * Investigate creating a plug-in structure
 * Add check for over-long paragraphs (and sentence length?)
-* Write a GUI for the BOS (esp. to display BOSs)
+* Write a GUI for Bible search and search/replace ???
+
 
 BOS testing required
+* Had 3 default mode failures: ['TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola3']
 
 
 BOSManager / SwordManager stuff
 * Make Bible fields in BOSManager into clickable links (to go to other tabs)
 * Work on final three tabs in BOSManager
 * Get SwordManager working to list/install/update modules
+
 
 Biblelator stuff
 * USFM editor still only aware of basic/common USFM tags
@@ -84,6 +88,7 @@ Biblelator stuff
 * Make a proper icon
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
+* Use checkboxes to allow individual exports
 * Allow an edit window to have an optional status bar???
 * Get Sword resources displaying nicer
 * Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)

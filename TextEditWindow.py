@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-08' # by RJH
+LastModifiedDate = '2016-06-11' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.36'
@@ -99,7 +99,7 @@ class TextEditWindow( ChildWindow ):
         ChildWindow.__init__( self, self.parentApp, 'TextEditor' ) # calls refreshTitle
         self.moduleID = None
         self.windowType = 'PlainTextEditWindow'
-        self.protocol( "WM_DELETE_WINDOW", self.doClose ) # Catch when window is closed
+        self.protocol( 'WM_DELETE_WINDOW', self.doClose ) # Catch when window is closed
 
         self.loading = True
 
@@ -621,30 +621,6 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.onTextNoChange
 
 
-    def checkForDiskChanges( self ):
-        """
-        Check if the file has changed on disk.
-
-        If it has, and the user hasn't yet made any changes, offer to reload.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.checkForDiskChanges()") )
-
-        if self.filepath and os.path.isfile( self.filepath ) \
-        and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
-          or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
-            if self.modified():
-                showerror( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
-            else: # We haven't modified the file since loading it
-                ynd = YesNoDialog( self, _("File {} has changed on disk. Reload?").format( repr(self.filename) ), title=_('Reload?') )
-                #print( "yndResult", repr(ynd.result) )
-                if ynd.result == True: # Yes was chosen
-                    self.loadText() # reload
-            self.rememberFileTimeAndSize()
-        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges ) # Redo it so we keep checking
-    # end if TextEditWindow.checkForDiskChanges
-
-
     def doShowInfo( self, event=None ):
         """
         Pop-up dialog giving text statistics and cursor location;
@@ -1002,28 +978,32 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.getEntireText
 
 
-    #def setAutocompleteWords( self, wordList, append=False ):
-        #"""
-        #Given a word list, set the entries into the autocomplete words
-            #and then do necessary house-keeping.
+    def checkForDiskChanges( self, autoloadText=False ):
+        """
+        Check if the file has changed on disk.
 
-        #Note that the original word order is preserved (if the wordList has an order)
-            #so that more common/likely words can appear at the top of the list if desired.
-        #"""
+        If it has, and the user hasn't yet made any changes, offer to reload.
+        """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.setAutocompleteWords( {} )").format( wordList, append ) )
-            #print( exp("TextEditWindow.setAutocompleteWords()") )
+            #print( exp("TextEditWindow.checkForDiskChanges()") )
 
-        #if not append: self.autocompleteWords = {}
-
-        #for word in wordList:
-            #firstLetter, remainder = word[0], word[1:]
-            #if firstLetter not in self.autocompleteWords: self.autocompleteWords[firstLetter] = []
-            #self.autocompleteWords[firstLetter].append( remainder )
-            #for char in word:
-                #if char not in self.autocompleteWordChars:
-                    #self.autocompleteWordChars += char
-    ## end of TextEditWindow.setAutocompleteWords
+        if self.filepath and os.path.isfile( self.filepath ) \
+        and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
+          or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
+            if self.modified():
+                showerror( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
+            else: # We haven't modified the file since loading it
+                yndResult = False
+                if autoloadText: yndResult = True
+                else: # ask the user
+                    ynd = YesNoDialog( self, _("File {} has changed on disk. Reload?").format( repr(self.filename) ), title=_('Reload?') )
+                    #print( "yndResult", repr(ynd.result) )
+                    if ynd.result == True: yndResult = True # Yes was chosen
+                if yndResult:
+                    self.loadText() # reload
+            self.rememberFileTimeAndSize()
+        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges ) # Redo it so we keep checking
+    # end if TextEditWindow.checkForDiskChanges
 
 
     def doSaveAs( self, event=None ):

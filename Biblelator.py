@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-02' # by RJH
+LastModifiedDate = '2016-06-10' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.36'
@@ -175,7 +175,7 @@ class Application( Frame ):
         Frame.__init__( self, self.rootWindow )
         self.pack()
 
-        self.rootWindow.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
+        self.rootWindow.protocol( 'WM_DELETE_WINDOW', self.doCloseMe ) # Catch when app is closed
 
         self.childWindows = ChildWindows( self )
 

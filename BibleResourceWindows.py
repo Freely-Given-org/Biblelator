@@ -66,16 +66,27 @@ class DBPBibleResourceWindow( BibleResourceWindow )
     getContextVerseData( self, verseKey )
 
 class InternalBibleResourceWindow( BibleResourceWindow )
-    __init__( self, parentApp, modulePath )
+    __init__( self, parentApp, modulePath, optionalWindowType=None )
     refreshTitle( self )
     getContextVerseData( self, verseKey )
+    doShowInfo( self, event=None )
+    doBibleFind( self, event=None )
+    _prepareInternalBible( self )
+    _prepareForExports( self )
+    doMostExports( self )
+    doPhotoBibleExport( self )
+    doODFsExport( self )
+    doPDFsExport( self )
+    doAllExports( self )
+    _doneExports( self )
+    doCheckProject( self )
 
 demo()
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-10' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.36'
@@ -85,15 +96,15 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = False
 
 
-import sys, logging
+import os, sys, logging
 from collections import OrderedDict
 import tkinter as tk
 
 # Biblelator imports
 from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
-from ChildWindows import ChildBox, ChildWindow
+from ChildWindows import ChildBox, ChildWindow, ResultWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
-from BiblelatorDialogs import showinfo
+from BiblelatorDialogs import showinfo, GetBibleSearchTextDialog, GetBibleBookRangeDialog
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -105,6 +116,7 @@ from DigitalBiblePlatform import DBPBible
 from UnknownBible import UnknownBible
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
+from BibleWriter import setDefaultControlFolder
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -436,7 +448,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
     The superclass must provide a getContextVerseData function.
     """
     def __init__( self, parentApp, windowType, moduleID ):
-        if BibleOrgSysGlobals.debugFlag: print( exp("BibleResourceWindow.__init__( {}, {}, {} )").format( parentApp, windowType, moduleID ) )
+        if BibleOrgSysGlobals.debugFlag: print( exp("BibleResourceWindow.__init__( {}, wt={}, m={} )").format( parentApp, windowType, moduleID ) )
         self.parentApp, self.windowType, self.moduleID = parentApp, windowType, moduleID
 
         # Set some dummy values required soon (esp. by refreshTitle)
@@ -1041,6 +1053,9 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         if self.SwordModule is None:
             logging.error( exp("SwordBibleResourceWindow.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("SwordBibleResourceWindow.__init__ finished.") )
     # end of SwordBibleResourceWindow.__init__
 
 
@@ -1130,6 +1145,9 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
         except ConnectionError:
             logging.error( exp("DBPBibleResourceWindow.__init__ Unable to connect to Digital Bible Platform") )
             self.DBPModule = None
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("DBPBibleResourceWindow.__init__ finished.") )
     # end of DBPBibleResourceWindow.__init__
 
 
@@ -1183,27 +1201,32 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        if BibleOrgSysGlobals.debugFlag: print( "InternalBibleResourceWindow.__init__( {}, {} )".format( parentApp, modulePath ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( "InternalBibleResourceWindow.__init__( {}, m={} )".format( parentApp, modulePath ) )
         self.parentApp, self.modulePath = parentApp, modulePath
 
         self.internalBible = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, 'InternalBibleResourceWindow', self.modulePath )
         #self.windowType = 'InternalBibleResourceWindow'
 
-        try: self.UnknownBible = UnknownBible( self.modulePath )
-        except FileNotFoundError:
-            logging.error( exp("InternalBibleResourceWindow.__init__ Unable to find module path: {!r}").format( self.modulePath ) )
-            self.UnknownBible = None
-        if self.UnknownBible:
-            result = self.UnknownBible.search( autoLoadAlways=True )
-            if isinstance( result, str ):
-                print( "Unknown Bible returned: {!r}".format( result ) )
-                self.internalBible = None
-            else:
-                self.internalBible = handleInternalBibles( self.parentApp, result, self )
+        if self.modulePath is not None:
+            try: self.UnknownBible = UnknownBible( self.modulePath )
+            except FileNotFoundError:
+                logging.error( exp("InternalBibleResourceWindow.__init__ Unable to find module path: {!r}").format( self.modulePath ) )
+                self.UnknownBible = None
+            if self.UnknownBible:
+                result = self.UnknownBible.search( autoLoadAlways=True )
+                if isinstance( result, str ):
+                    print( "Unknown Bible returned: {!r}".format( result ) )
+                    self.internalBible = None
+                else:
+                    self.internalBible = handleInternalBibles( self.parentApp, result, self )
         if self.internalBible is not None: # Define which functions we use by default
             self.getNumVerses = self.internalBible.getNumVerses
             self.getNumChapters = self.internalBible.getNumChapters
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.__init__ finished.") )
     # end of InternalBibleResourceWindow.__init__
 
 
@@ -1249,6 +1272,196 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                  + '  Path:\t{}'.format( self.modulePath )
         showinfo( self, 'Window Information', infoString )
     # end of InternalBibleResourceWindow.doShowInfo
+
+
+    def doBibleFind( self, event=None ):
+        """
+        Note that BibleFind works on the imported files,
+            so it can work from any Window that has an internalBible.
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow doBibleFind' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doBibleFind( {} )").format( event ) )
+
+        if self.internalBible is None:
+            logging.critical( _("No Bible to search") )
+            return
+        #print( "intBib", self.internalBible )
+
+        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        gBSTD = GetBibleSearchTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
+        if gBSTD.result:
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
+            self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
+            self.parentApp.setWaitStatus( _("Searching…") )
+            #self.textBox.update()
+            #self.textBox.focus()
+            #self.lastfind = key
+            self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleFind {}'.format( self.BibleFindOptionsDict ) )
+            self._prepareInternalBible() # Make sure that all books are loaded
+            # We search the loaded Bible processed lines
+            self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
+            #print( "Got searchResults", searchResults )
+            if len(searchResultList) == 0: # nothing found
+                errorBeep()
+                key = self.BibleFindOptionsDict['searchText']
+                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            else:
+                self.resultWindow = ResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doBibleFind
+
+
+    def _prepareInternalBible( self ):
+        """
+        Prepare to do a search on the Internal Bible object
+            or to do some of the exports or checks available in BibleOrgSysGlobals.
+
+        Leaves the wait cursor displayed.
+        """
+        logging.debug( exp("USFMEditWindow._prepareInternalBible()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow._prepareInternalBible()") )
+
+        if self.modified(): self.doSave()
+        if self.internalBible is not None:
+            self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
+            self.internalBible.load()
+    # end of USFMEditWindow._prepareInternalBible
+
+    def _prepareForExports( self ):
+        """
+        Prepare to do some of the exports available in BibleOrgSysGlobals.
+        """
+        logging.info( exp("USFMEditWindow.prepareForExports()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.prepareForExports()") )
+
+        self._prepareInternalBible()
+        if self.internalBible is not None:
+            self.parentApp.setWaitStatus( _("Preparing for export…") )
+            if self.exportFolderPathname is None:
+                fp = self.folderPath
+                if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
+                self.exportFolderPathname = fp + 'Export/'
+                #print( "eFolder", repr(self.exportFolderPathname) )
+                if not os.path.exists( self.exportFolderPathname ):
+                    os.mkdir( self.exportFolderPathname )
+            setDefaultControlFolder( '../BibleOrgSys/ControlFiles/' )
+            self.parentApp.setWaitStatus( _("Export in process…") )
+    # end of USFMEditWindow._prepareForExports
+
+    def doMostExports( self ):
+        """
+        Do most of the quicker exports available in BibleOrgSysGlobals.
+        """
+        logging.info( exp("USFMEditWindow.doMostExports()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doMostExports()") )
+
+        self._prepareForExports()
+        self.internalBible.doAllExports( self.exportFolderPathname )
+        self._doneExports()
+    # end of USFMEditWindow.doMostExports
+
+    def doPhotoBibleExport( self ):
+        """
+        Do the BibleOrgSys PhotoBible export.
+        """
+        logging.info( exp("USFMEditWindow.doPhotoBibleExport()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doPhotoBibleExport()") )
+
+        self._prepareForExports()
+        self.internalBible.toPhotoBible( os.path.join( self.exportFolderPathname, 'BOS_PhotoBible_Export/' ) )
+        self._doneExports()
+    # end of USFMEditWindow.doPhotoBibleExport
+
+    def doODFsExport( self ):
+        """
+        Do the BibleOrgSys ODFsExport export.
+        """
+        logging.info( exp("USFMEditWindow.doODFsExport()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doODFsExport()") )
+
+        self._prepareForExports()
+        self.internalBible.toODF( os.path.join( self.exportFolderPathname, 'BOS_ODF_Export/' ) )
+        self._doneExports()
+    # end of USFMEditWindow.doODFsExport
+
+    def doPDFsExport( self ):
+        """
+        Do the BibleOrgSys PDFsExport export.
+        """
+        logging.info( exp("USFMEditWindow.doPDFsExport()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doPDFsExport()") )
+
+        self._prepareForExports()
+        self.internalBible.toTeX( os.path.join( self.exportFolderPathname, 'BOS_PDF(TeX)_Export/' ) )
+        self._doneExports()
+    # end of USFMEditWindow.doPDFsExport
+
+    def doAllExports( self ):
+        """
+        Do all exports available in BibleOrgSysGlobals.
+        """
+        logging.info( exp("USFMEditWindow.doAllExports()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doAllExports()") )
+
+        self._prepareForExports()
+        self.internalBible.doAllExports( self.exportFolderPathname, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
+        self._doneExports()
+    # end of USFMEditWindow.doAllExports
+
+
+    def _doneExports( self ):
+        """
+        """
+        self.parentApp.setStatus( _("Waiting for user input…") )
+        infoString = _("Results should be in {}").format( self.exportFolderPathname )
+        showinfo( self, 'Folder Information', infoString )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doAllExports
+
+
+    def doCheckProject( self ):
+        """
+        Run the BibleOrgSys checks on the project.
+        """
+        logging.info( exp("USFMEditWindow.doCheckProject()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doCheckProject()") )
+
+        self._prepareInternalBible() # Slow but must be called before the dialog
+        currentBBB = self.currentVerseKey.getBBB()
+        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.internalBible, currentBBB, title=_('Books to be checked') )
+        #if BibleOrgSysGlobals.debugFlag: print( "gBBRDResult", repr(gBBRD.result) )
+        if gBBRD.result:
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
+            #if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
+                ## It's just the current book to check
+                #if self.modified(): self.doSave()
+                #self.internalBible.loadBookIfNecessary( currentBBB )
+            #else: # load all books
+                #self._prepareInternalBible()
+            self.parentApp.setWaitStatus( _("Doing Bible checks…") )
+            self.internalBible.check( gBBRD.result )
+            displayExternally = False
+            if displayExternally: # Call up a browser window
+                import webbrowser
+                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                webbrowser.open( indexFile )
+            else: # display internally in our HTMLDialog
+                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                hW = HTMLWindow( self, indexFile )
+                self.parentApp.childWindows.append( hW )
+                if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doCheckProject
 # end of InternalBibleResourceWindow class
 
 

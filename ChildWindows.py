@@ -35,7 +35,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-10' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
@@ -354,7 +354,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
         ChildBox.__init__( self, self.parentApp )
-        self.protocol( "WM_DELETE_WINDOW", self.doClose )
+        self.protocol( 'WM_DELETE_WINDOW', self.doClose )
 
         self.geometry( INITIAL_RESOURCE_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
@@ -615,7 +615,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.parentWindow, self.initialFilename = parentWindow, filename
         tk.Toplevel.__init__( self, self.parentWindow )
         ChildBox.__init__( self, self.parentWindow )
-        self.protocol( "WM_DELETE_WINDOW", self.doClose )
+        self.protocol( 'WM_DELETE_WINDOW', self.doClose )
         self.title( 'HTMLWindow' )
         self.genericWindowType = 'HTMLWindow'
         self.windowType = 'HTMLWindow'
@@ -1005,19 +1005,22 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 class ResultWindow( tk.Toplevel, ChildBox ):
     """
     """
-    def __init__( self, parentWindow, resultList ):
+    def __init__( self, parentWindow, optionDict, resultSummaryDict, resultList ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ResultWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
+            print( exp("ResultWindow.__init__( {}, {}, {}, {} )").format( parentWindow, optionDict, resultSummaryDict, len(resultList) ) )
             assert parentWindow
-            assert resultList
+            assert optionDict and isinstance( optionDict, dict )
+            assert resultSummaryDict and isinstance( resultSummaryDict, dict )
+            assert resultList and isinstance( resultList, list )
 
-        self.parentWindow, self.resultList = parentWindow, resultList
+        self.parentWindow, self.optionDict, self.resultSummaryDict, self.resultList = parentWindow, optionDict, resultSummaryDict, resultList
         tk.Toplevel.__init__( self, self.parentWindow )
         ChildBox.__init__( self, self.parentWindow )
-        self.protocol( "WM_DELETE_WINDOW", self.doClose )
-        self.title( '{} Search Results'.format( self.resultList[0]['work'] ) )
+        self.protocol( 'WM_DELETE_WINDOW', self.doClose )
+        self.parentApp = self.parentWindow.parentApp
+        self.title( '{} Search Results'.format( self.optionDict['work'] ) )
         self.genericWindowType = 'ResultWindow'
         self.windowType = 'ResultWindow'
         self.moduleID = 'HTML'
@@ -1050,7 +1053,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         #modeCb.pack( in_=top, side=tk.LEFT )
         modeCb.grid( in_=top, row=0, column=0, padx=20, pady=2, sticky=tk.W )
 
-        infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList)-1, self.resultList[0]['searchText'] ) )
+        infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList), self.optionDict['searchText'] ) )
         #infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
         infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=2 )
 
@@ -1097,9 +1100,9 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.tree.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.tree.yview ) # link the scrollbar to the text box
 
-        fText = self.resultList[0]['searchText']
+        fText = self.optionDict['searchText']
         lenFText = len( fText )
-        contextLength = self.resultList[0]['contextLength']
+        contextLength = self.optionDict['contextLength']
 
         self.tree['columns'] = ('ref','marker','fText') if self.lineMode else ('ref','marker','before','fText','after')
         self.tree.column( '#0', width=50, stretch=False, anchor='w' )
@@ -1121,7 +1124,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             self.tree.heading( 'after', text=_("After") )
 
         lastBBB = None
-        for j,resultEntry in enumerate(self.resultList[1:]):
+        for j,resultEntry in enumerate(self.resultList):
             if len(resultEntry) == 5:
                 ref,marker,before,fText,after = resultEntry
             elif len(resultEntry) == 4:
@@ -1155,7 +1158,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         j = self.tree.focus()
         #print( "j", repr(j) )
         if j == 'I001': j=0 # Not sure why this is happening for the first entry???
-        ref = self.resultList[int(j)+1][0] # Add one to skip past the optionDict which is the first results item
+        ref = self.resultList[int(j)][0] # Add one to skip past the optionDict which is the first results item
         BBB,C,V = ref.getBCV()
         #print( 'itemSelected', j, ref, BBB, C, V )
         self.parentApp.gotoBCV( BBB, C, V )

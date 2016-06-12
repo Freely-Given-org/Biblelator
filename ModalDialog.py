@@ -30,7 +30,7 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-02' # by RJH
+LastModifiedDate = '2016-06-10' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
 ProgVersion = '0.36'
@@ -95,7 +95,7 @@ class ModalDialog( tk.Toplevel ):
         if not self.initial_focus:
             self.initial_focus = self
 
-        self.protocol( "WM_DELETE_WINDOW", self.cancel ) # Ensure that closing the dialog does a cancel
+        self.protocol( 'WM_DELETE_WINDOW', self.cancel ) # Ensure that closing the dialog does a cancel
 
         self.geometry( "+{}+{}".format(parent.winfo_rootx()+50, parent.winfo_rooty()+50) )
 
