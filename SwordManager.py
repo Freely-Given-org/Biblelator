@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-08' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.03' # Separate versioning from Biblelator
@@ -45,7 +45,7 @@ from collections import OrderedDict
 
 
 import tkinter as tk
-from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
+#from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
 from tkinter.scrolledtext import ScrolledText
 
@@ -53,7 +53,7 @@ from tkinter.scrolledtext import ScrolledText
 from BiblelatorGlobals import DEFAULT, START, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolderPath, findUsername, \
+        findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
@@ -67,12 +67,12 @@ from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
 from ChildWindows import ChildWindows
-from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
-from BibleResourceCollection import BibleResourceCollectionWindow
-from BibleReferenceCollection import BibleReferenceCollectionWindow
-from LexiconResourceWindows import BibleLexiconResourceWindow
+#from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
+#from BibleResourceCollection import BibleResourceCollectionWindow
+#from BibleReferenceCollection import BibleReferenceCollectionWindow
+#from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
-from USFMEditWindow import USFMEditWindow
+#from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
 
 # BibleOrgSys imports
@@ -91,6 +91,7 @@ from SwordInstallManager import SwordInstallManager
 
 
 
+MAIN_APP_NAME = 'Biblelator'
 # Default window size settings (Note: X=width, Y=height)
 INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x376', '607x460', '550x375', '700x600'
 
@@ -160,7 +161,7 @@ class SwordManager( Frame ):
         Frame.__init__( self, self.rootWindow )
         self.pack()
 
-        self.rootWindow.protocol( "WM_DELETE_WINDOW", self.doCloseMe ) # Catch when app is closed
+        self.rootWindow.protocol( 'WM_DELETE_WINDOW', self.doCloseMe ) # Catch when app is closed
 
         self.childWindows = ChildWindows( self )
 
@@ -626,15 +627,15 @@ class SwordManager( Frame ):
             cb.grid( row=j+1, column=4, sticky=tk.W )
             e0 = Entry( self.sourcesPage, width=5 )
             e0.insert( tk.END, repoData[0] )
-            e0['state'] = tk.DISABLED
+            e0.config( state=tk.DISABLED )
             e0.grid( row=j+1, column=5, sticky=tk.W )
             e1 = Entry( self.sourcesPage, width=15 )
             e1.insert( tk.END, repoData[1] )
-            e1['state'] = tk.DISABLED
+            e1.config( state=tk.DISABLED )
             e1.grid( row=j+1, column=6, sticky=tk.W )
             e2 = Entry( self.sourcesPage, width=20 )
             e2.insert( tk.END, repoData[2] )
-            e2['state'] = tk.DISABLED
+            e2.config( state=tk.DISABLED )
             e2.grid( row=j+1, column=7, sticky=tk.W )
 
         # Folders page
@@ -696,7 +697,7 @@ class SwordManager( Frame ):
         self.notebook.add( self.installPage, text=_("Install new") )
         self.notebook.add( self.updatePage, text=_("Update") )
         self.notebook.add( self.modulesPage, text=_("View modules") )
-        self.notebook.pack( expand=1, fill='both' )
+        self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
     # end of SwordManager.createNotebook
 
 
@@ -809,11 +810,11 @@ class SwordManager( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget['state'] = tk.NORMAL
-            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( '1.0', newStatusText )
-            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -872,8 +873,8 @@ class SwordManager( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox['state'] = tk.NORMAL # Allow editing
-        self.debugTextBox.delete( '1.0', tk.END ) # Clear everything
+        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -897,7 +898,7 @@ class SwordManager( Frame ):
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox['state'] = tk.DISABLED # Don't allow editing
+        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
     # end of SwordManager.setDebugText
 
 
@@ -961,7 +962,7 @@ class SwordManager( Frame ):
         codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
 
         # Clear the text box
-        self.codeTextBox['state'] = tk.NORMAL
+        self.codeTextBox.config( state=tk.NORMAL )
         self.codeTextBox.delete( START, tk.END )
         self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
         self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
@@ -1197,12 +1198,17 @@ def demo():
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( ProgNameVersion )
 
+    # Set the window icon and title
+    iconImage = tk.PhotoImage( file='Biblelator.gif' )
+    tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
+    tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
+
     homeFolderPath = findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = SwordManagerSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
+    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     settings.load()
 
-    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
+    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -1268,17 +1274,7 @@ def main( homeFolderPath, loggingFolderPath ):
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
-
-    if BibleOrgSysGlobals.commandLineArguments.override is None:
-        INIname = ShortProgName
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( INIname ) )
-    else:
-        INIname = BibleOrgSysGlobals.commandLineArguments.override
-        if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using user-specified {!r} ini file").format( INIname ) )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, INIname )
-    settings.load()
-
-    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
+    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

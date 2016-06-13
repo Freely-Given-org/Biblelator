@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-05-17 RJH
+Last updated: 2016-06-13 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -13,12 +13,17 @@ Things nearer the top of the list are higher in priority
 (and due to my situation often only having smallish chunks of time available,
 smaller jobs often get done before larger ones unfortunately).
 
-Biblelator bugs
+Biblelator bugs / unfinished
+* Bible find needs intro set if book in FRT, GLO, etc.
+* Bible find can default to any currently selected text in edit window?
+* Bible find can't seem to jump to FRT/GLO lines
+* Extend button in Bible find doesn't prompt yet if multiple Bibles available
+* Bible replace needs more work on reloading open books/Bibles
+* Book select needs to allow choice of individual books
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
 * When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
-* Pressing DEL at autocomplete box inserts some weird character
 * \p at end of verse really belongs with next verse
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
@@ -29,23 +34,23 @@ Biblelator bugs
 * Prevent autocomplete if editing in the middle of a word ???
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
-* Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
-* Need to close autocomplete pop-up if window loses focus
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
+* BOSManager is not finished
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
-* Need to set-up some special .ini files for testing
+* What happens if scripture file contains conflicts <<< ==== >>>>
+* Need to set-up some special .ini files for testing (with every kind of window/box open)
 * Systematically work through all menus
 
 
 BOS bugs
-* Had 3 default mode failures: TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola3
 * Doesn't create a log file on Windows
 * Why do warnings show on Windows console (yet not on Linux)?
-* Why do we get some (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
+* Why do we get some long/wrong (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
 * Don't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
+
 
 BOS improvements for Biblelator
 * Upgrade to USX 2.5
@@ -62,15 +67,18 @@ BOS improvements for Biblelator
 * Increased multiprocessing
 * Investigate creating a plug-in structure
 * Add check for over-long paragraphs (and sentence length?)
-* Write a GUI for the BOS (esp. to display BOSs)
+* Write a GUI for Bible search and search/replace ???
+
 
 BOS testing required
+* Had 3 default mode failures: ['TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola3']
 
 
 BOSManager / SwordManager stuff
 * Make Bible fields in BOSManager into clickable links (to go to other tabs)
 * Work on final three tabs in BOSManager
 * Get SwordManager working to list/install/update modules
+
 
 Biblelator stuff
 * USFM editor still only aware of basic/common USFM tags
@@ -79,12 +87,13 @@ Biblelator stuff
 * Make a proper icon
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
+* Use checkboxes to allow individual exports
 * Allow an edit window to have an optional status bar???
 * Get Sword resources displaying nicer
 * Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
 * Investigate tix widgets
 * Cache DBP to disk (if have expensive Internet)???
-* Need keyboard shortcuts for verse up/down
+* Need keyboard shortcuts for list up/down
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste

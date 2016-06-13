@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-02' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -43,7 +43,7 @@ from datetime import datetime
 
 import tkinter as tk
 from tkinter import font
-from tkinter.simpledialog import askstring, askinteger
+#from tkinter.simpledialog import askstring, askinteger
 from tkinter.filedialog import asksaveasfilename
 from tkinter.ttk import Button, Label, Entry
 
@@ -99,7 +99,7 @@ class TextEditWindow( ChildWindow ):
         ChildWindow.__init__( self, self.parentApp, 'TextEditor' ) # calls refreshTitle
         self.moduleID = None
         self.windowType = 'PlainTextEditWindow'
-        self.protocol( "WM_DELETE_WINDOW", self.doClose ) # Catch when window is closed
+        self.protocol( 'WM_DELETE_WINDOW', self.doClose ) # Catch when window is closed
 
         self.loading = True
 
@@ -118,7 +118,7 @@ class TextEditWindow( ChildWindow ):
         self.textBox['highlightbackground'] = 'orange'
         self.textBox['inactiveselectbackground'] = 'green'
 
-        self.textBox['wrap'] = 'word'
+        self.textBox.config( wrap='word' )
         self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
@@ -141,10 +141,9 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteMaxLength = 12 # Remove window after this many characters have been typed
         self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
 
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # temporarily put some words in
-            #from AutocompleteFunctions import setAutocompleteWords
-            #self.autocompleteMode = 'GivenList'
-            #setAutocompleteWords( self, ('a','an','ate','apple','bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
+        self.invalidCombinations = [] # characters or character combinations that shouldn't occur
+        # Temporarily include some default invalid values
+        self.invalidCombinations = [',,',' ,',] # characters or character combinations that shouldn't occur
 
         self.saveChangesAutomatically = False # different from AutoSave (which is in different files)
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
@@ -183,10 +182,6 @@ class TextEditWindow( ChildWindow ):
                         self.myKeyboardShortcutsList.append( keyCode )
                 self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-        #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
-        #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
-        #self.textBox.bind('<Control-x>', self.doCut ); self.textBox.bind('<Control-X>', self.doCut )
-        #self.textBox.bind('<Control-g>', self.doWindowRefind ); self.textBox.bind('<Control-G>', self.doWindowRefind )
     # end of TextEditWindow.createEditorKeyboardBindings()
 
 
@@ -392,7 +387,12 @@ class TextEditWindow( ChildWindow ):
         if event.keysym == 'BackSpace':
             row, column = self.textBox.index(tk.INSERT).split('.')
             column = str( int(column) - 1 )
-            self.textBox.delete( row + '.' + column, tk.INSERT )
+            self.textBox.delete( row + '.' + column, tk.INSERT ) # parameters are fromPoint, toPoint
+        elif event.keysym == 'Delete':
+            row, column = self.textBox.index(tk.INSERT).split('.')
+            column = str( int(column) + 1 ) # Only works as far as the end of the line (won't delete a \n)
+            # Change the call below to a single parameter if you want it to work across lines
+            self.textBox.delete( tk.INSERT, row + '.' + column ) # parameters are fromPoint, toPoint
         elif event.keysym == 'Return':
             self.acceptAutocompleteSelection( includeTrailingSpace=False )
         #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
@@ -401,6 +401,7 @@ class TextEditWindow( ChildWindow ):
             #pass
         elif event.keysym == 'Escape':
             self.removeAutocompleteBox()
+        #elif event.keysym in ( 'Delete', ): pass # Just ignore these keypresses
         elif event.char:
             #if event.char in '.,': self.acceptAutocompleteSelection( includeTrailingSpace=False )
             self.textBox.insert( tk.INSERT, event.char )
@@ -449,13 +450,13 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.acceptAutocompleteSelection
 
 
-    def removeAutocompleteBox( self ):
+    def removeAutocompleteBox( self, event=None ):
         """
         Remove the pop-up Listbox (in a Frame in a Toplevel) when it's no longer required.
         Used by autocomplete routines in onTextChange.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.removeAutocompleteBox()") )
+            #print( exp("TextEditWindow.removeAutocompleteBox( {} )").format( event ) )
             assert self.autocompleteBox is not None
 
         self.textBox.focus()
@@ -558,7 +559,7 @@ class TextEditWindow( ChildWindow ):
                                 frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
                                 frame.pack( fill=tk.BOTH, expand=tk.YES )
                                 autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
-                                autocompleteScrollbar.pack( side=tk.RIGHT, fill='y' )
+                                autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
                                 self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
                                                             relief="flat",
                                                             yscrollcommand=autocompleteScrollbar.set,
@@ -569,11 +570,7 @@ class TextEditWindow( ChildWindow ):
                                 #self.autocompleteBox.focus()
                                 self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
                                 self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
-                                #else: # old code
-                                    #self.autocompleteBox = tk.Listbox( self.textBox )
-                                    #self.autocompleteBox.bind( '<Double-Button-1>', self.acceptAutocompleteSelection )
-                                    #self.autocompleteBox.bind( '<Right>', self.acceptAutocompleteSelection )
-                                    #self.autocompleteBox.place( x=self.winfo_x(), y=self.winfo_y()+self.winfo_height() )
+                                self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
                             else: # the Listbox is already made -- just empty it
                                 #print( 'empty listbox' )
                                 self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
@@ -586,8 +583,6 @@ class TextEditWindow( ChildWindow ):
                             #self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
                             self.autocompleteBox.select_set( '0' )
                             self.autocompleteBox.focus()
-                            #self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
-                            #self.autocompleteBox.bind( '<Double-1>', self.acceptAutocompleteSelection )
 
                         elif self.autocompleteBox is not None:
                             #print( 'destroy1 autocomplete listbox -- no possible words' )
@@ -614,30 +609,6 @@ class TextEditWindow( ChildWindow ):
         #print( "TextEditWindow.onTextNoChange" )
         pass
     # end of TextEditWindow.onTextNoChange
-
-
-    def checkForDiskChanges( self ):
-        """
-        Check if the file has changed on disk.
-
-        If it has, and the user hasn't yet made any changes, offer to reload.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.checkForDiskChanges()") )
-
-        if self.filepath and os.path.isfile( self.filepath ) \
-        and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
-          or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
-            if self.modified():
-                showerror( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
-            else: # We haven't modified the file since loading it
-                ynd = YesNoDialog( self, _("File {} has changed on disk. Reload?").format( repr(self.filename) ), title=_('Reload?') )
-                #print( "yndResult", repr(ynd.result) )
-                if ynd.result == True: # Yes was chosen
-                    self.loadText() # reload
-            self.rememberFileTimeAndSize()
-        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges ) # Redo it so we keep checking
-    # end if TextEditWindow.checkForDiskChanges
 
 
     def doShowInfo( self, event=None ):
@@ -997,28 +968,32 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.getEntireText
 
 
-    #def setAutocompleteWords( self, wordList, append=False ):
-        #"""
-        #Given a word list, set the entries into the autocomplete words
-            #and then do necessary house-keeping.
+    def checkForDiskChanges( self, autoloadText=False ):
+        """
+        Check if the file has changed on disk.
 
-        #Note that the original word order is preserved (if the wordList has an order)
-            #so that more common/likely words can appear at the top of the list if desired.
-        #"""
+        If it has, and the user hasn't yet made any changes, offer to reload.
+        """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.setAutocompleteWords( {} )").format( wordList, append ) )
-            #print( exp("TextEditWindow.setAutocompleteWords()") )
+            #print( exp("TextEditWindow.checkForDiskChanges()") )
 
-        #if not append: self.autocompleteWords = {}
-
-        #for word in wordList:
-            #firstLetter, remainder = word[0], word[1:]
-            #if firstLetter not in self.autocompleteWords: self.autocompleteWords[firstLetter] = []
-            #self.autocompleteWords[firstLetter].append( remainder )
-            #for char in word:
-                #if char not in self.autocompleteWordChars:
-                    #self.autocompleteWordChars += char
-    ## end of TextEditWindow.setAutocompleteWords
+        if self.filepath and os.path.isfile( self.filepath ) \
+        and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
+          or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
+            if self.modified():
+                showerror( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
+            else: # We haven't modified the file since loading it
+                yndResult = False
+                if autoloadText: yndResult = True
+                else: # ask the user
+                    ynd = YesNoDialog( self, _("File {} has changed on disk. Reload?").format( repr(self.filename) ), title=_('Reload?') )
+                    #print( "yndResult", repr(ynd.result) )
+                    if ynd.result == True: yndResult = True # Yes was chosen
+                if yndResult:
+                    self.loadText() # reload
+            self.rememberFileTimeAndSize()
+        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges ) # Redo it so we keep checking
+    # end if TextEditWindow.checkForDiskChanges
 
 
     def doSaveAs( self, event=None ):

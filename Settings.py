@@ -44,10 +44,10 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-23' # by RJH
+LastModifiedDate = '2016-05-22' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = '0.34'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -204,6 +204,7 @@ class ApplicationSettings( Settings ):
                 self.settingsFolder = os.path.join( self.dataFolderPath, settingsFolderName )
                 os.mkdir( self.settingsFolder )
         if not self.settingsFilepath:
+            logging.info( exp("No settings file found") )
             self.settingsFilepath = os.path.join( self.settingsFolder, self.settingsFilename )
     # end of ApplicationSettings.__init__
 # end of class ApplicationSettings

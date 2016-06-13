@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-15' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -42,27 +42,28 @@ import os.path, logging
 from collections import OrderedDict
 
 import tkinter as tk
-from tkinter.simpledialog import askstring #, askinteger
+#from tkinter.simpledialog import askstring #, askinteger
 from tkinter.ttk import Style
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
-from BiblelatorDialogs import showerror, showinfo, YesNoDialog, GetBibleBookRangeDialog
+from BiblelatorDialogs import showerror, showinfo, errorBeep, \
+                                YesNoDialog, GetBibleReplaceTextDialog, ReplaceConfirmDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
-from TextBoxes import CustomText
+#from TextBoxes import CustomText
 from ChildWindows import HTMLWindow
-from BibleResourceWindows import BibleResourceWindow
+from BibleResourceWindows import InternalBibleResourceWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
-from TextEditWindow import TextEditWindow, NO_TYPE_TIME
+from TextEditWindow import TextEditWindow #, NO_TYPE_TIME
 from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
-from BibleWriter import setDefaultControlFolder
+from USFMBible import searchReplaceText
 
 
 
@@ -82,7 +83,7 @@ def exp( messageString ):
 
 
 
-class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
+class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
     """
     self.genericWindowType will be BibleEditor
     self.windowType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
@@ -95,48 +96,38 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
         self.parentApp = parentApp
-        self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
-
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( USFMBible.sourceFolder ) )
 
+        # Set some dummy values required soon (esp. by refreshTitle)
+        self.editMode = DEFAULT
+        self.bookTextModified = False
+        self.projectName = 'NoProjectName'
+        InternalBibleResourceWindow.__init__( self, parentApp, None )
+        TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
+
+        # Now we need to override a few critical variables
+        self.genericWindowType = 'BibleEditor' # from 'TextEditor'
+        self.windowType = 'USFMBibleEditWindow' # from 'PlainTextEditWindow'
+        if editMode is not None: self.editMode = editMode
+        self.formatViewMode = 'Unformatted' # Only option done so far
+        self.verseCache = OrderedDict()
+
+        self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
         if self.internalBible is not None:
             self.projectName = self.internalBible.shortName if self.internalBible.shortName else self.internalBible.givenName
             if not self.projectName:
                 self.projectName = self.internalBible.name if self.internalBible.name else self.internalBible.abbreviation
         #try: print( "\n\n\n\nUEW settings for {}:".format( self.projectName ), self.settings )
         #except: print( "\n\n\n\nUEW has no settings!" )
-        if not self.projectName: self.projectName = 'NoProjectName'
+        #if not self.projectName: self.projectName = 'NoProjectName'
 
-        # Set some dummy values required soon (esp. by refreshTitle)
-        self.editMode = DEFAULT
-        self.bookTextModified = False
-        BibleResourceWindow.__init__( self, parentApp, 'USFMBibleEditWindow', None )
-        TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
-        #BibleBox.__init__( self, parentApp )
-        self.formatViewMode = 'Unformatted'
-
-        # Make our own custom textBox which allows callbacks
-        #self.textBox.destroy()
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
-
-
-        #self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
-        #self.textBox.setTextChangeCallback( self.onTextChange )
-        #self.textBox['wrap'] = 'word'
-        #self.textBox.config( undo=True, autoseparators=True )
-        #self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
 
         Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='green' )
         self.vScrollbar.config( command=self.textBox.yview, style=self.projectName+'USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
-
-        # Now we need to override a few critical variables
-        self.genericWindowType = 'BibleEditor'
-        #self.windowType = 'USFMBibleEditWindow'
-        self.verseCache = OrderedDict()
-        if editMode is not None: self.editMode = editMode
 
         self.defaultBackgroundColour = 'plum1'
         if self.internalBible is None: self.editMode = None
@@ -146,7 +137,10 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             self.textBox['highlightbackground'] = 'orange'
             self.textBox['inactiveselectbackground'] = 'green'
 
-        #self.textBox.bind( '<1>', self.onTextChange )
+        # Temporarily include some default invalid values
+        self.invalidCombinations = ['__',',,',' ,','..',' .',';;',' ;','!!',' !',
+                                    '"',] # characters or character combinations that shouldn't occur
+
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
@@ -195,6 +189,29 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     ## end of USFMEditWindow.doAbout
 
 
+    def createEditorKeyboardBindings( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.createEditorKeyboardBindings()") )
+
+        for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
+                             ('Undo',self.doUndo), ('Redo',self.doRedo),
+                             ('Save',self.doSave),
+                             ('Find',self.doBibleFind), ('Replace',self.doBibleReplace), ):
+            assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
+            if name in self.parentApp.keyBindingDict:
+                for keyCode in self.parentApp.keyBindingDict[name][1:]:
+                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    self.textBox.bind( keyCode, command )
+                    if BibleOrgSysGlobals.debugFlag:
+                        assert keyCode not in self.myKeyboardShortcutsList
+                        self.myKeyboardShortcutsList.append( keyCode )
+                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
+            else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+    # end of USFMEditWindow.createEditorKeyboardBindings()
+
+
     def createMenuBar( self ):
         """
         """
@@ -240,14 +257,15 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine )
-        subsearchMenuBible = tk.Menu( searchMenu, tearoff=False )
-        subsearchMenuBible.add_command( label=_('Find…'), underline=0, command=self.doBibleFind )
-        subsearchMenuBible.add_command( label=_('Find again'), underline=5, command=self.notWrittenYet )
-        subsearchMenuBible.add_command( label=_('Replace…'), underline=0, command=self.notWrittenYet )
-        searchMenu.add_cascade( label=_('Bible'), underline=0, menu=subsearchMenuBible )
+        #subsearchMenuBible = tk.Menu( searchMenu, tearoff=False )
+        searchMenu.add_command( label=_('Bible Find…'), underline=0, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #subsearchMenuBible.add_command( label=_('Find again'), underline=5, command=self.notWrittenYet )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doBibleReplace, accelerator=self.parentApp.keyBindingDict[_('Replace')][0] )
+        #searchMenu.add_cascade( label=_('Bible'), underline=0, menu=subsearchMenuBible )
         searchMenu.add_separator()
         subSearchMenuWindow = tk.Menu( searchMenu, tearoff=False )
+        subSearchMenuWindow.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine )
+        subSearchMenuWindow.add_separator()
         subSearchMenuWindow.add_command( label=_('Find…'), underline=0, command=self.doWindowFind )
         subSearchMenuWindow.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind )
         subSearchMenuWindow.add_command( label=_('Replace…'), underline=0, command=self.doWindowFindReplace )
@@ -476,7 +494,8 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         #print( "USFMEditWindow.onTextNoChange" )
 
         # Check the text for formatting errors
-        self.checkTextForErrors( includeFormatting=True )
+        try: self.checkTextForErrors( includeFormatting=True )
+        except KeyboardError: self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow.onTextNoChange
 
 
@@ -534,6 +553,11 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             #print( warningMessage )
         elif includeFormatting and ' \n' in editedText:
             suggestionMessage = _("No good reason to have a line ending with a space in a USFM book")
+
+        if not errorMessage and not warningMessage: # and not suggestionMessage:
+            for segment in self.invalidCombinations:
+                if segment in editedText:
+                    warningMessage = _("Found {!r} invalid character(s) in USFM text").format( segment ); break
 
         if errorMessage:
             self.parentApp.setErrorStatus( errorMessage )
@@ -847,7 +871,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             if oldVerseKey is not None:
                 if self.bookTextModified: self.doSave() # resets bookTextModified flag
                 self.clearText() # Leaves the text box enabled
-                self.textBox['state'] = tk.DISABLED # Don't allow editing
+                self.textBox.config( state=tk.DISABLED ) # Don't allow editing
                 self.textBox.edit_modified( False ) # clear modified flag (otherwise we could empty the book file)
                 self.refreshTitle()
             return
@@ -885,7 +909,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                numChaps = self.getNumChapters( BBB )
+                if numChaps is None: numChaps = 0
+                for thisC in range( 0, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -904,7 +930,9 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                numChaps = self.getNumChapters( BBB )
+                if numChaps is None: numChaps = 0
+                for thisC in range( 0, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -996,180 +1024,6 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
     # end of USFMEditWindow.updateShownBCV
 
 
-    def doBibleFind( self, event=None, lastkey=None ):
-        """
-        """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow doBibleFind {!r}'.format( lastkey ) )
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doBibleFind( {}, {!r} )").format( event, lastkey ) )
-
-        if self.internalBible is None:
-            print( "No Bible to search" )
-            return
-        self._prepareInternalBible()
-
-        key = lastkey or askstring( APP_NAME, _("Enter search string") )
-        self.textBox.update()
-        self.textBox.focus()
-        self.lastfind = key
-        if key:
-            nocase = self.optionsDict['caseinsens']
-            #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
-            where = self.internalBible.searchText( key, noCase=nocase )
-            if not where:                                          # don't wrap
-                errorBeep()
-                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
-            else:
-                print( "  Got search result: {}".format( where ) )
-                #pastkey = where + '+%dc' % len(key)           # index past key
-                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
-                #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
-                #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
-                #self.textBox.see( where )                          # scroll display
-    # end of USFMEditWindow.doBibleFind
-
-
-    def _prepareInternalBible( self ):
-        """
-        Prepare to do a search on the Internal Bible object
-            or to do some of the exports or checks available in BibleOrgSysGlobals.
-
-        Leaves the wait cursor displayed.
-        """
-        logging.debug( exp("USFMEditWindow._prepareInternalBible()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow._prepareInternalBible()") )
-
-        if self.modified(): self.doSave()
-        if self.internalBible is not None:
-            self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
-            self.internalBible.load()
-    # end of USFMEditWindow._prepareInternalBible
-
-    def _prepareForExports( self ):
-        """
-        Prepare to do some of the exports available in BibleOrgSysGlobals.
-        """
-        logging.info( exp("USFMEditWindow.prepareForExports()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.prepareForExports()") )
-
-        self._prepareInternalBible()
-        if self.internalBible is not None:
-            self.parentApp.setWaitStatus( _("Preparing for export…") )
-            if self.exportFolderPathname is None:
-                fp = self.folderPath
-                if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
-                self.exportFolderPathname = fp + 'Export/'
-                #print( "eFolder", repr(self.exportFolderPathname) )
-                if not os.path.exists( self.exportFolderPathname ):
-                    os.mkdir( self.exportFolderPathname )
-            setDefaultControlFolder( '../BibleOrgSys/ControlFiles/' )
-            self.parentApp.setStatus( _("Export in process…") )
-    # end of USFMEditWindow._prepareForExports
-
-    def doMostExports( self ):
-        """
-        Do most of the quicker exports available in BibleOrgSysGlobals.
-        """
-        logging.info( exp("USFMEditWindow.doMostExports()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doMostExports()") )
-
-        self._prepareForExports()
-        self.internalBible.doAllExports( self.exportFolderPathname )
-        self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.doMostExports
-
-    def doPhotoBibleExport( self ):
-        """
-        Do the BibleOrgSys PhotoBible export.
-        """
-        logging.info( exp("USFMEditWindow.doPhotoBibleExport()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doPhotoBibleExport()") )
-
-        self._prepareForExports()
-        self.internalBible.toPhotoBible( os.path.join( self.exportFolderPathname, 'BOS_PhotoBible_Export/' ) )
-        self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.doPhotoBibleExport
-
-    def doODFsExport( self ):
-        """
-        Do the BibleOrgSys ODFsExport export.
-        """
-        logging.info( exp("USFMEditWindow.doODFsExport()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doODFsExport()") )
-
-        self._prepareForExports()
-        self.internalBible.toODF( os.path.join( self.exportFolderPathname, 'BOS_ODF_Export/' ) )
-        self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.doODFsExport
-
-    def doPDFsExport( self ):
-        """
-        Do the BibleOrgSys PDFsExport export.
-        """
-        logging.info( exp("USFMEditWindow.doPDFsExport()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doPDFsExport()") )
-
-        self._prepareForExports()
-        self.internalBible.toTeX( os.path.join( self.exportFolderPathname, 'BOS_PDF(TeX)_Export/' ) )
-        self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.doPDFsExport
-
-    def doAllExports( self ):
-        """
-        Do all exports available in BibleOrgSysGlobals.
-        """
-        logging.info( exp("USFMEditWindow.doAllExports()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doAllExports()") )
-
-        self._prepareForExports()
-        self.internalBible.doAllExports( self.exportFolderPathname, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
-        self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.doAllExports
-
-
-    def doCheckProject( self ):
-        """
-        Run the BibleOrgSys checks on the project.
-        """
-        logging.info( exp("USFMEditWindow.doCheckProject()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("USFMEditWindow.doCheckProject()") )
-
-        #self._prepareInternalBible()
-        currentBBB = self.currentVerseKey.getBBB()
-        gBBRD = GetBibleBookRangeDialog( self, self.internalBible, currentBBB, title=_('Books to be checked') )
-        #if BibleOrgSysGlobals.debugFlag: print( "gBBRDResult", repr(gBBRD.result) )
-        if gBBRD.result:
-            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
-            if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
-                # It's just the current book to check
-                if self.modified(): self.doSave()
-                self.internalBible.loadBookIfNecessary( currentBBB )
-            else: # load all books
-                self._prepareInternalBible()
-            self.parentApp.setWaitStatus( _("Doing Bible checks…") )
-            self.internalBible.check( gBBRD.result )
-            displayExternally = False
-            if displayExternally: # Call up a browser window
-                import webbrowser
-                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
-                webbrowser.open( indexFile )
-            else: # display internally in our HTMLDialog
-                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
-                hW = HTMLWindow( self, indexFile )
-                self.parentApp.childWindows.append( hW )
-                if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
-        self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.doCheckProject
-
-
     def getEntireText( self ):
         """
         Gets the displayed text and adds it to the surrounding text.
@@ -1181,6 +1035,64 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         entireText = self.bookTextBefore + editBoxText + self.bookTextAfter
         return entireText
     # end of USFMEditWindow.getEntireText
+
+
+    def doBibleReplace( self, event=None ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow doBibleReplace' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("USFMEditWindow.doBibleReplace( {} )").format( event ) )
+
+        if self.internalBible is None:
+            logging.critical( _("No Bible to search") )
+            return
+        #print( "intBib", self.internalBible )
+
+        self.BibleReplaceOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        gBRTD = GetBibleReplaceTextDialog( self, self.parentApp, self.internalBible, self.BibleReplaceOptionsDict, title=_('Replace in Bible') )
+        if BibleOrgSysGlobals.debugFlag: print( "gBRTDResult", repr(gBRTD.result) )
+        if gBRTD.result:
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBRTD.result, dict )
+            self.BibleReplaceOptionsDict = gBRTD.result # Update our search options dictionary
+            self.parentApp.setWaitStatus( _("Searching/Replacing…") )
+            #self.textBox.update()
+            #self.textBox.focus()
+            #self.lastReplace = key
+            self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleReplace {}'.format( self.BibleReplaceOptionsDict ) )
+            #self._prepareInternalBible() # Make sure that all books are loaded
+            self.doSave() # Make sure that any saves are made to disk
+            # We load and search/replace the actual text files
+            self.BibleReplaceOptionsDict, resultSummaryDict = searchReplaceText( self.internalBible, self.BibleReplaceOptionsDict, self.searchReplaceCallback )
+            #print( "Got searchReplaceResults", resultSummaryDict )
+            if resultSummaryDict['numFinds'] == 0:
+                errorBeep()
+                key = self.BibleReplaceOptionsDict['searchText']
+                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            else:
+                self.checkForDiskChanges( autoloadText=True )
+                if len(resultSummaryDict['replacedBookList']) == 1:
+                    showinfo( self, APP_NAME, _("Made {} replacements in {}").format( resultSummaryDict['numReplaces'], resultSummaryDict['replacedBookList'][0] ) )
+                elif resultSummaryDict['numReplaces'] == 0:
+                    showinfo( self, APP_NAME, _("No replacements made") )
+                else: # more than one book
+                    showinfo( self, APP_NAME, _("Made {} replacements in {} books").format( resultSummaryDict['numReplaces'], len(resultSummaryDict['replacedBookList']) ) )
+        self.parentApp.setReadyStatus()
+    # end of USFMEditWindow.doBibleReplace
+
+
+    def searchReplaceCallback( self, ref, contextBefore, ourSearchText, contextAfter, willBeText, haveUndosFlag ):
+        """
+        Asks the user if they want to do the replace.
+
+        Returns a single UPPERCASE character
+            'N' (no), 'Y' (yes), 'A' (all), or 'S' (stop).
+        """
+        rcd = ReplaceConfirmDialog( self, self.parentApp, ref, contextBefore, ourSearchText, contextAfter, willBeText, haveUndosFlag, _("Replace {!r}?").format( ourSearchText ) )
+        if rcd.result is None: rcd.result = 'N' # ESC pressed
+        assert rcd.result in 'YNASU'
+        return rcd.result
+    # end of searchReplaceCallback
 
 
     def doSave( self, event=None ):
@@ -1224,6 +1136,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and then link A->B to show OT references from the NT (etc.)
         """
         logging.info( exp("USFMEditWindow.startReferenceMode()") )
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.startReferenceMode' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.startReferenceMode()") )
 
@@ -1255,6 +1168,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and then link A->BCD to show synoptic gospel parallels (etc.)
         """
         logging.info( exp("USFMEditWindow.startParallelMode()") )
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.startParallelMode' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.startParallelMode()") )
 
@@ -1287,6 +1201,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
             and then link A->B to show OT references from the NT (etc.)
         """
         logging.info( exp("USFMEditWindow.startReferencesMode()") )
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.startReferencesMode' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.startReferencesMode()") )
 
@@ -1318,6 +1233,7 @@ class USFMEditWindow( TextEditWindow, BibleResourceWindow ): #, BibleBox ):
         Open a pop-up text window with the current settings displayed.
         """
         logging.debug( exp("doViewSettings()") )
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.doViewSettings' )
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doViewSettings()") )
             self.parentApp.setDebugText( "doViewSettings…" )

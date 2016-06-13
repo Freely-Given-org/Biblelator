@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-06' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -132,11 +132,11 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
         self.textBox = tk.Text( self, height=4, yscrollcommand=self.vScrollbar.set )
-        self.textBox['wrap'] = 'word'
+        self.textBox.config( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.X ) # Full width
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
-        self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
+        self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Set-up our standard Bible styles
         for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -406,7 +406,7 @@ class BibleReferenceBox( Frame, BibleBox ):
             #logging.critical( exp("BibleReferenceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
             #if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
-        self.textBox['state'] = tk.DISABLED # Don't allow editing
+        self.textBox.config( state=tk.DISABLED ) # Don't allow editing
     # end of BibleReferenceBox.updateShownReferences
 
 
@@ -522,9 +522,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.vsb = Scrollbar( self, orient="vertical", command=self.canvas.yview )
         self.canvas.configure( yscrollcommand=self.vsb.set )
         self.vsb.pack( side="right", fill="y" )
-        self.canvas.pack( side=tk.LEFT, fill=tk.BOTH, expand=True )
+        self.canvas.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )
         self.canvas.create_window( (4,4), window=self.frame, anchor="nw", tags="self.frame" )
-        self.frame.bind( "<Configure>", self.OnFrameConfigure )
+        self.frame.bind( '<Configure>', self.OnFrameConfigure )
 
         #self.BCVUpdateType = 'ReferencesMode' # Leave as default
         self.folderPath = self.filename = self.filepath = None

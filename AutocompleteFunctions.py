@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-17' # by RJH
+LastModifiedDate = '2016-06-07' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -51,7 +51,7 @@ from collections import defaultdict
 # BibleOrgSys imports
 if __name__ == '__main__': sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-from InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
+#from InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
 from USFMMarkers import USFM_PRINTABLE_MARKERS
 
 

@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-26' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.35'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -209,7 +209,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
             #if txt: self.textBox.insert( tk.END, '\n'+txt )
             txt = self.BibleLexicon.getEntryHTML( self.lexiconWord )
             if txt: self.textBox.insert( tk.END, '<p>'+txt+'</p>' )
-        self.textBox['state'] = tk.DISABLED # Don't allow editing
+        self.textBox.config( state=tk.DISABLED ) # Don't allow editing
         self.refreshTitle()
     # end of BibleLexiconResourceWindow.updateLexiconWord
 # end of BibleLexiconResourceWindow class
