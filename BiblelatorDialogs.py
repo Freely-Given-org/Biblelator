@@ -45,7 +45,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-11'
+LastModifiedDate = '2016-06-12'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.36'
@@ -1588,7 +1588,7 @@ class ReplaceConfirmDialog( ModalDialog ):
         cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
         undoButton = Button( box, text=_("Undo all"), width=10, command=self.doUndo )
         undoButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        if not self.haveUndos: undoButton.state = tk.DISABLED
+        if not self.haveUndos: undoButton['state'] = tk.DISABLED
 
         self.bind( "<Return>", self.doYes )
         self.bind( "<Escape>", self.doStop )

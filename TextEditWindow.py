@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-11' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.36'
@@ -144,11 +144,6 @@ class TextEditWindow( ChildWindow ):
         self.invalidCombinations = [] # characters or character combinations that shouldn't occur
         # Temporarily include some default invalid values
         self.invalidCombinations = [',,',' ,',] # characters or character combinations that shouldn't occur
-
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # temporarily put some words in
-            #from AutocompleteFunctions import setAutocompleteWords
-            #self.autocompleteMode = 'GivenList'
-            #setAutocompleteWords( self, ('a','an','ate','apple','bicycle','banana','cat','caterpillar','catastrophic','catrionic','opportunity') )
 
         self.saveChangesAutomatically = False # different from AutoSave (which is in different files)
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
@@ -396,7 +391,12 @@ class TextEditWindow( ChildWindow ):
         if event.keysym == 'BackSpace':
             row, column = self.textBox.index(tk.INSERT).split('.')
             column = str( int(column) - 1 )
-            self.textBox.delete( row + '.' + column, tk.INSERT )
+            self.textBox.delete( row + '.' + column, tk.INSERT ) # parameters are fromPoint, toPoint
+        elif event.keysym == 'Delete':
+            row, column = self.textBox.index(tk.INSERT).split('.')
+            column = str( int(column) + 1 ) # Only works as far as the end of the line (won't delete a \n)
+            # Change the call below to a single parameter if you want it to work across lines
+            self.textBox.delete( tk.INSERT, row + '.' + column ) # parameters are fromPoint, toPoint
         elif event.keysym == 'Return':
             self.acceptAutocompleteSelection( includeTrailingSpace=False )
         #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
@@ -405,6 +405,7 @@ class TextEditWindow( ChildWindow ):
             #pass
         elif event.keysym == 'Escape':
             self.removeAutocompleteBox()
+        #elif event.keysym in ( 'Delete', ): pass # Just ignore these keypresses
         elif event.char:
             #if event.char in '.,': self.acceptAutocompleteSelection( includeTrailingSpace=False )
             self.textBox.insert( tk.INSERT, event.char )

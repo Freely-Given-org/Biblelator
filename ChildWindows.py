@@ -35,7 +35,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-10' # by RJH
+LastModifiedDate = '2016-06-12' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
@@ -498,7 +498,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         Called to finally and irreversibly remove this window from our list and close it.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.doClose( {} ) ({})").format( event, self.genericWindowType ) )
+            print( exp("ChildWindow.doClose( {} ) for {}").format( event, self.genericWindowType ) )
 
         if self in self.parentApp.childWindows:
             self.parentApp.childWindows.remove( self )
@@ -1043,6 +1043,14 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.formatViewMode = DEFAULT
         self.settings = None
 
+        #print( 'All internalBibles', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
+        self.availableInternalBibles = []
+        for internalBible,windowList in self.parentApp.internalBibles:
+            if internalBible is not self.parentWindow.internalBible:
+                self.availableInternalBibles.append( internalBible )
+        #print( 'Available internalBibles', len(self.availableInternalBibles), self.availableInternalBibles )
+        self.extendedTo = None
+
         # Make a frame at the top and then put our options inside it
         top = Frame( self )
         top.pack( side=tk.TOP, fill=tk.X )
@@ -1051,15 +1059,20 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.modeVar.set( 0 ) # This sets the default 0:Line mode, 1:Column mode
         modeCb = tk.Checkbutton( self, text=_("Column mode"), variable=self.modeVar, command=self.makeTree )
         #modeCb.pack( in_=top, side=tk.LEFT )
-        modeCb.grid( in_=top, row=0, column=0, padx=20, pady=2, sticky=tk.W )
+        modeCb.grid( in_=top, row=0, column=0, padx=20, pady=5, sticky=tk.W )
 
         infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList), self.optionDict['searchText'] ) )
         #infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
-        infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=2 )
+        infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=5 )
+
+        if self.availableInternalBibles:
+            self.extendButton = Button( self, text=_("Extend{}").format( '' if len(self.availableInternalBibles)==1 else '…' ), command=self.doExtend )
+            #extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+            self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
 
         closeButton = Button( self, text=_("Close"), command=self.doClose )
         #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
-        closeButton.grid( in_=top, row=0, column=2, padx=20, pady=2, sticky=tk.E )
+        closeButton.grid( in_=top, row=0, column=3, padx=5, pady=5, sticky=tk.E )
 
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
@@ -1104,7 +1117,10 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         lenFText = len( fText )
         contextLength = self.optionDict['contextLength']
 
-        self.tree['columns'] = ('ref','marker','fText') if self.lineMode else ('ref','marker','before','fText','after')
+        if self.extendedTo is None:
+            self.tree['columns'] = ('ref','marker','fText') if self.lineMode else ('ref','marker','before','fText','after')
+        else: # extended
+            self.tree['columns'] = ('ref','marker','fText','extend') if self.lineMode else ('ref','marker','before','fText','after','extend')
         self.tree.column( '#0', width=50, stretch=False, anchor='w' )
         self.tree.heading( '#0', text=_("Bk") )
         self.tree.column( 'ref', width=75, stretch=False, anchor='w' )
@@ -1122,6 +1138,10 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             self.tree.heading( 'fText', text=cText )
             self.tree.column( 'after', width=contextLength*6, anchor='w' )
             self.tree.heading( 'after', text=_("After") )
+        if self.extendedTo is not None:
+            self.tree.column( 'extend', width=contextLength*6, anchor='w' )
+            extendName = self.extendedTo.abbreviation if self.extendedTo.abbreviation else self.extendedTo.name
+            self.tree.heading( 'extend', text=extendName )
 
         lastBBB = None
         for j,resultEntry in enumerate(self.resultList):
@@ -1134,12 +1154,21 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             if BBB != lastBBB:
                 self.tree.insert( '', 'end', BBB, text=BBB, open=True)
                 lastBBB = BBB
-            if self.lineMode:
-                self.tree.insert( BBB, 'end', j, tags='BCV',
-                    values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before+fText+after) )
-            else: # column mode
-                self.tree.insert( BBB, 'end', j, tags='BCV',
-                    values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after) )
+            if self.extendedTo is None:
+                if self.lineMode:
+                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                        values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before+fText+after) )
+                else: # column mode
+                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                        values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after) )
+            else:
+                extend = self.extendedTo.getVerseText( ref )
+                if self.lineMode:
+                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                        values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before+fText+after, extend) )
+                else: # column mode
+                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                        values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after, extend) )
 
         self.tree.tag_bind( 'BCV', '<Double-Button-1>', self.itemSelected )
     # end of ResultWindow.makeTree
@@ -1164,6 +1193,21 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.parentApp.gotoBCV( BBB, C, V )
         # NOTE: Ideally we should select the actual text here also
     # end of ResultWindow.itemSelected
+
+
+    def doExtend( self, event=None ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doExtend( {} )").format( event ) )
+
+        if len(self.availableInternalBibles) == 1:
+            self.extendedTo = self.availableInternalBibles[0]
+        else: # Should let user choose an internal Bible
+            self.extendedTo = self.availableInternalBibles[0]
+        self.extendButton['state'] = tk.DISABLED
+        self.makeTree() # Redisplay everything
+    # end of ResultWindow.doExtend
 
 
     def createMenuBar( self ):

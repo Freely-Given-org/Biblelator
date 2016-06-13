@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-12 RJH
+Last updated: 2016-06-13 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -23,7 +23,6 @@ Biblelator bugs / unfinished
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
 * When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
-* Pressing DEL at autocomplete box inserts some weird character
 * \p at end of verse really belongs with next verse
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
@@ -34,14 +33,13 @@ Biblelator bugs / unfinished
 * Prevent autocomplete if editing in the middle of a word ???
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
-* Remove leading zeroes off Strongs numbers (e.g., G0123) if they're not found in lexicon
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
 * BOSManager is not finished
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
 * What happens if scripture file contains conflicts <<< ==== >>>>
-* Need to set-up some special .ini files for testing
+* Need to set-up some special .ini files for testing (with every kind of window/box open)
 * Systematically work through all menus
 
 
@@ -94,7 +92,7 @@ Biblelator stuff
 * Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
 * Investigate tix widgets
 * Cache DBP to disk (if have expensive Internet)???
-* Need keyboard shortcuts for verse up/down
+* Need keyboard shortcuts for list up/down
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste

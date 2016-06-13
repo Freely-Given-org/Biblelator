@@ -86,7 +86,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-10' # by RJH
+LastModifiedDate = '2016-06-12' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.36'
@@ -1462,6 +1462,33 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                 if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
         self.parentApp.setReadyStatus()
     # end of USFMEditWindow.doCheckProject
+
+
+    def doClose( self, event=None ):
+        """
+        Called to finally and irreversibly remove this window from our list and close it.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.doClose( {} ) for {}").format( event, self.genericWindowType ) )
+
+        # Remove ourself from the list of internal Bibles (and their controlling windows)
+        #print( 'internalBibles initially', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
+        newBibleList = []
+        for internalBible,windowList in self.parentApp.internalBibles:
+            if internalBible is self.internalBible:
+                newWindowList = []
+                for controllingWindow in windowList:
+                    if controllingWindow is not self: # leave other windows alone
+                        newWindowList.append( controllingWindow )
+                if newWindowList: newBibleList.append( (internalBible,windowList) )
+            else: # leave this one unchanged
+                newBibleList.append( (internalBible,windowList) )
+        self.parentApp.internalBibles = newBibleList
+        #print( 'internalBibles now', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
+
+        BibleResourceWindow.doClose( self, event )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed InternalBibleResourceWindow" )
+    # end of ChildWindow.doClose
 # end of InternalBibleResourceWindow class
 
 
