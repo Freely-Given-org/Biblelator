@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2016-04-25 RJH
+Last updated: 2016-06-14 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -86,7 +86,15 @@ follow my own instructions on a different computer.
         inside your BiblelatorFiles folder from step #3.
 
 
-6. Install OpenScriptures HebrewLexicon.
+6. A note about the Biblelator development version:
+    If you installed the Biblelator program files using git clone in #5 above, you have
+    the option of using the master (stable) version, or the later development version.
+    The development version is likely to have more features, and at any point in time,
+    might have more or less bugs. If you want to do this, use:
+            git checkout development
+
+
+7. Install OpenScriptures HebrewLexicon.
     Open https://github.com/openscriptures/HebrewLexicon
     On the right-hand side of the page are links to either:
         a. Download (clone) HebrewLexicon with Git (using either HTTPS or SSH (if you have a GitHub account).
@@ -98,7 +106,7 @@ follow my own instructions on a different computer.
         inside your BiblelatorFiles folder from step #3.
 
 
-7. Install morphgnt Greek Strongs info.
+8. Install morphgnt Greek Strongs info.
     Open https://github.com/morphgnt/strongs-dictionary-xml
     On the right-hand side of the page are links to either:
         a. Download (clone) strongs-dictionary-xml with Git (using either HTTPS or SSH (if you have a GitHub account).
@@ -110,14 +118,14 @@ follow my own instructions on a different computer.
         inside your BiblelatorFiles folder from step #3.
 
 
-8. Make Biblelator.py executable -- only on Linux.
+9. Make Biblelator.py executable -- only on Linux.
     Navigate to the 2nd Biblelator folder either in a command line window or a file manager.
         If on a command line, type "chmod +x Biblelator.py" (without the quotes), or
         if in a file manager, right-click on Biblelator.py, choose Properties,
             and Permissions (or similar) and set the Executable flag.
 
 
-9. Try a test run of the Biblelator program.
+10. Try a test run of the Biblelator program.
     Open a command prompt window and navigate to your second Biblelator folder using the cd command,
         e.g.,   cd /home/fred/Biblelator/Biblelator (a Linux example), or
                 cd \Users\Public\Documents\Biblelator\Biblelator (a Windows example).
@@ -135,7 +143,19 @@ follow my own instructions on a different computer.
         and paste them into the comment box at http://Freely-Given.org/Contact.html.
 
 
-10. View optional parameters.
+11. A note about the lock file:
+    Biblelator creates a Biblelator.lock file in its home folder when it's running.
+    This enables it to detect if you start Biblelator twice at the same time, and/or
+        if the program crashed last time (because the file won't have been
+        automatically deleted).
+    When restarted after a crash, Biblelator tries to check if the autosave files
+        contain valuable edit data. Then you can recover the files if they contain
+        a lot of work.
+    Then the Biblelator.lock file must be manually deleted before the program will
+        run again.
+
+
+12. View optional parameters.
     On Linux, type ".\Biblelator.py --help" (without the quotes), or
     on Windows, the command is something like:
             "Biblelator.py --help" (without the quotes)
@@ -145,7 +165,8 @@ follow my own instructions on a different computer.
     This test run of the program should display the Biblelator command prompt
         help page and then exit immediately.
 
-11. Run Biblelator in the normal mode for normal working.
+
+13. Run Biblelator in the normal mode for normal working.
     If everything seems to be working correctly,
         next time you run Biblelator you might not need to run it in debug mode,
     i.e., simply omit the "--version" or "--help" parameters in order to run in normal mode.
@@ -155,7 +176,7 @@ follow my own instructions on a different computer.
         which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/ folder.
 
 
-12. IF #11 ABOVE CRASHED IMMEDIATELY, or if you need more info on what's going wrong,
+14. IF #12 ABOVE CRASHED IMMEDIATELY, or if you need more info on what's going wrong,
         try starting the Biblelator program in debug mode.
     Using a command similar to what worked in the previous step,
         replace "--version" with "--debug" to actually run the program
@@ -176,7 +197,7 @@ follow my own instructions on a different computer.
         and a BiblelatorLogs folder should contain a log file.
 
 
-13. In order to keep people safe who might be working on Bibles in sensitive locations, the
+15. In order to keep people safe who might be working on Bibles in sensitive locations, the
         default settings have all Internet access disabled.
     We recommend that most people enable Internet access. Unfortunately, this can't yet be
         done inside the program, so you need to find the settings file and edit it. The
@@ -187,18 +208,18 @@ follow my own instructions on a different computer.
         "internetAccess" to Enabled (and then save the file of course).
 
 
-14. Eventually (once the program is working fully and reliably) you might like to
+16. Eventually (once the program is working fully and reliably) you might like to
     make a desktop or toolbar shortcut to run Biblelator on your system so it can be started easier
     (without having to open a command prompt window and manually navigate to files and folders).
     Meanwhile though, it's probably useful to have the command prompt window open.
 
 
-15. If you wish to access online Scripture resources from the Digital Bible Platform
+17. If you wish to access online Scripture resources from the Digital Bible Platform
     (Faith Comes By Hearing FCBH), request further information from the Biblelator programmer(s)
     via http://Freely-Given.org/Contact.html.
 
 
-16. If you wish to access offline Scripture resources from the Crosswire Sword project,
+18. If you wish to access offline Scripture resources from the Crosswire Sword project,
     you should download and install/unzip the resources from the Crosswire or other repositories.
     You might already have these installed if you use a Sword-based Bible program such as
         Xiphos, Bibletime, BPBible, etc.
@@ -208,14 +229,15 @@ follow my own instructions on a different computer.
     Then hopefully we can get you started with basic access to these modules.
 
 
-17. PhotoBible
-    If you wish to use the PhotoBible export option for your USFM projects, you need to install
+19. PhotoBible
+    If you wish to use the PhotoBible export option (converts each few verses into JPG files
+    for use on "feature phones" with cameras) for your USFM projects, you need to install
 	the free ImageMagick package. For Linux, this can usually be installed from your package
 	manager, and for Windows (untested), the exe installation files can be downloaded from
 	http://www.imagemagick.org/download/binaries.
 
 
-18. Program updates
+20. Program updates
     If you used Git to install Biblelator and/or BibleOrgSys, you should regularly update each
         of them with "git pull" on each folder (or the equivalent command from the GUI if you
         use TortoiseGit or equivalent).
