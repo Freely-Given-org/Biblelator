@@ -404,7 +404,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             in order to set the window geometry correctly.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.geometry("), *args, *kwargs, ')' )
+            print( exp("ChildWindow.geometry( {}, … )").format( *args ) )
 
         if 'win' in sys.platform:  # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
             self.update()
