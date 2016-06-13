@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-11' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.36'
@@ -104,8 +104,13 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.projectName = 'NoProjectName'
         InternalBibleResourceWindow.__init__( self, parentApp, None )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
-        self.windowType = 'USFMBibleEditWindow'
-        self.formatViewMode = 'Unformatted'
+
+        # Now we need to override a few critical variables
+        self.genericWindowType = 'BibleEditor' # from 'TextEditor'
+        self.windowType = 'USFMBibleEditWindow' # from 'PlainTextEditWindow'
+        if editMode is not None: self.editMode = editMode
+        self.formatViewMode = 'Unformatted' # Only option done so far
+        self.verseCache = OrderedDict()
 
         self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
         if self.internalBible is not None:
@@ -116,28 +121,13 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #except: print( "\n\n\n\nUEW has no settings!" )
         #if not self.projectName: self.projectName = 'NoProjectName'
 
-        # Make our own custom textBox which allows callbacks
-        #self.textBox.destroy()
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
-
-
-        #self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
-        #self.textBox.setTextChangeCallback( self.onTextChange )
-        #self.textBox['wrap'] = 'word'
-        #self.textBox.config( undo=True, autoseparators=True )
-        #self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
 
         Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='green' )
         self.vScrollbar.config( command=self.textBox.yview, style=self.projectName+'USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
-
-        # Now we need to override a few critical variables
-        self.genericWindowType = 'BibleEditor'
-        #self.windowType = 'USFMBibleEditWindow'
-        self.verseCache = OrderedDict()
-        if editMode is not None: self.editMode = editMode
 
         self.defaultBackgroundColour = 'plum1'
         if self.internalBible is None: self.editMode = None
@@ -150,9 +140,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         # Temporarily include some default invalid values
         self.invalidCombinations = ['__',',,',' ,','..',' .',';;',' ;','!!',' !',
                                     '"',] # characters or character combinations that shouldn't occur
-        # Temporarily include some default invalid values
 
-        #self.textBox.bind( '<1>', self.onTextChange )
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
@@ -221,10 +209,6 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         self.myKeyboardShortcutsList.append( keyCode )
                 self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-        #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
-        #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
-        #self.textBox.bind('<Control-x>', self.doCut ); self.textBox.bind('<Control-X>', self.doCut )
-        #self.textBox.bind('<Control-g>', self.doWindowRefind ); self.textBox.bind('<Control-G>', self.doWindowRefind )
     # end of USFMEditWindow.createEditorKeyboardBindings()
 
 
@@ -887,7 +871,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             if oldVerseKey is not None:
                 if self.bookTextModified: self.doSave() # resets bookTextModified flag
                 self.clearText() # Leaves the text box enabled
-                self.textBox['state'] = tk.DISABLED # Don't allow editing
+                self.textBox.config( state=tk.DISABLED ) # Don't allow editing
                 self.textBox.edit_modified( False ) # clear modified flag (otherwise we could empty the book file)
                 self.refreshTitle()
             return

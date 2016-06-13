@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-10' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -1036,11 +1036,11 @@ class BOSManager( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget['state'] = tk.NORMAL
-            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( '1.0', newStatusText )
-            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -1099,8 +1099,8 @@ class BOSManager( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox['state'] = tk.NORMAL # Allow editing
-        self.debugTextBox.delete( '1.0', tk.END ) # Clear everything
+        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -1124,7 +1124,7 @@ class BOSManager( Frame ):
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox['state'] = tk.DISABLED # Don't allow editing
+        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
     # end of BOSManager.setDebugText
 
 
@@ -1225,7 +1225,7 @@ class BOSManager( Frame ):
         codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
 
         # Clear the text box
-        self.codeTextBox['state'] = tk.NORMAL
+        self.codeTextBox.config( state=tk.NORMAL )
         self.codeTextBox.delete( START, tk.END )
         self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
         self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
@@ -1276,7 +1276,7 @@ class BOSManager( Frame ):
         punctuationDict =  self.BiblePunctuationSystems.getPunctuationSystem( self.punctuationSystemName )
 
         # Clear the text box
-        self.punctuationTextBox['state'] = tk.NORMAL
+        self.punctuationTextBox.config( state=tk.NORMAL )
         self.punctuationTextBox.delete( START, tk.END )
         self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( self.punctuationSystemName ) )
         #self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( punctuationDict['nameEnglish'] ) )
@@ -1327,7 +1327,7 @@ class BOSManager( Frame ):
         versificationSystem =  self.BibleVersificationsSystems.getVersificationSystem( self.versificationSystemName )
 
         # Clear the text box
-        self.versificationTextBox['state'] = tk.NORMAL
+        self.versificationTextBox.config( state=tk.NORMAL )
         self.versificationTextBox.delete( START, tk.END )
         self.versificationTextBox.insert( tk.END, '{}\n\n'.format( self.versificationSystemName ) )
         self.versificationTextBox.insert( tk.END, '{}\n\n'.format( versificationSystem ) )
@@ -1377,7 +1377,7 @@ class BOSManager( Frame ):
         mappingSystem =  self.BibleMappingsSystems.getMappingSystem( self.mappingSystemName )
 
         # Clear the text box
-        self.mappingTextBox['state'] = tk.NORMAL
+        self.mappingTextBox.config( state=tk.NORMAL )
         self.mappingTextBox.delete( START, tk.END )
         self.mappingTextBox.insert( tk.END, '{}\n\n'.format( self.mappingSystemName ) )
         self.mappingTextBox.insert( tk.END, '{}\n\n'.format( mappingSystem ) )
@@ -1428,7 +1428,7 @@ class BOSManager( Frame ):
         orderSystem =  self.BibleOrdersSystems.getBookOrderSystem( self.orderSystemName )
 
         # Clear the text box
-        self.orderTextBox['state'] = tk.NORMAL
+        self.orderTextBox.config( state=tk.NORMAL )
         self.orderTextBox.delete( START, tk.END )
         self.orderTextBox.insert( tk.END, '{}\n\n'.format( self.orderSystemName ) )
         self.orderTextBox.insert( tk.END, '{}\n\n'.format( orderSystem ) )
@@ -1479,7 +1479,7 @@ class BOSManager( Frame ):
         nameSystem =  self.BibleNamesSystems.getBooksNamesSystem( self.nameSystemName )
 
         # Clear the text box
-        self.nameTextBox['state'] = tk.NORMAL
+        self.nameTextBox.config( state=tk.NORMAL )
         self.nameTextBox.delete( START, tk.END )
         self.nameTextBox.insert( tk.END, '{}\n\n'.format( self.nameSystemName ) )
         self.nameTextBox.insert( tk.END, '{}\n\n'.format( nameSystem ) )
@@ -1529,7 +1529,7 @@ class BOSManager( Frame ):
         organizationalSystemDict =  self.BibleOrganizationalSystems.getOrganizationalSystem( self.organizationSystemName )
 
         # Clear the text box
-        self.organizationTextBox['state'] = tk.NORMAL
+        self.organizationTextBox.config( state=tk.NORMAL )
         self.organizationTextBox.delete( START, tk.END )
         self.organizationTextBox.insert( tk.END, '{} ({})\n\n'.format( self.organizationSystemName, organizationalSystemDict['type'] ) )
         self.organizationTextBox.insert( tk.END, '{}\n\n'.format( organizationalSystemDict['name'][0] ) )
@@ -1579,7 +1579,7 @@ class BOSManager( Frame ):
         referenceSystem =  self.BibleReferenceSystems.getReferenceSystem( self.referenceSystemName )
 
         # Clear the text box
-        self.referenceTextBox['state'] = tk.NORMAL
+        self.referenceTextBox.config( state=tk.NORMAL )
         self.referenceTextBox.delete( START, tk.END )
         self.referenceTextBox.insert( tk.END, '{}\n\n'.format( self.referenceSystemName ) )
         self.referenceTextBox.insert( tk.END, '{}\n\n'.format( referenceSystem ) )
@@ -1629,7 +1629,7 @@ class BOSManager( Frame ):
         stylesheetSystem =  self.BibleStylesheetsSystems.getStylesheetSystem( self.stylesheetSystemName )
 
         # Clear the text box
-        self.stylesheetTextBox['state'] = tk.NORMAL
+        self.stylesheetTextBox.config( state=tk.NORMAL )
         self.stylesheetTextBox.delete( START, tk.END )
         self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( self.stylesheetSystemName ) )
         self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( stylesheetSystem ) )

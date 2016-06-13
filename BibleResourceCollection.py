@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.36'
@@ -176,11 +176,11 @@ class BibleResourceBox( Frame, BibleBox ):
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
         self.textBox = tk.Text( self, height=1, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
-        self.textBox['wrap'] = 'word'
+        self.textBox.config( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
-        self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
+        self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Set-up our standard Bible styles
         for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -545,7 +545,7 @@ class BibleResourceBox( Frame, BibleBox ):
             logging.critical( exp("BibleResourceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
             if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
-        self.textBox['state'] = tk.DISABLED # Don't allow editing
+        self.textBox.config( state=tk.DISABLED ) # Don't allow editing
 
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )

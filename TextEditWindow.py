@@ -118,7 +118,7 @@ class TextEditWindow( ChildWindow ):
         self.textBox['highlightbackground'] = 'orange'
         self.textBox['inactiveselectbackground'] = 'green'
 
-        self.textBox['wrap'] = 'word'
+        self.textBox.config( wrap='word' )
         self.textBox.config( undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
@@ -182,10 +182,6 @@ class TextEditWindow( ChildWindow ):
                         self.myKeyboardShortcutsList.append( keyCode )
                 self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-        #self.textBox.bind('<Control-v>', self.doPaste ); self.textBox.bind('<Control-V>', self.doPaste )
-        #self.textBox.bind('<Control-s>', self.doSave ); self.textBox.bind('<Control-S>', self.doSave )
-        #self.textBox.bind('<Control-x>', self.doCut ); self.textBox.bind('<Control-X>', self.doCut )
-        #self.textBox.bind('<Control-g>', self.doWindowRefind ); self.textBox.bind('<Control-G>', self.doWindowRefind )
     # end of TextEditWindow.createEditorKeyboardBindings()
 
 
@@ -575,11 +571,6 @@ class TextEditWindow( ChildWindow ):
                                 self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
                                 self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
                                 self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
-                                #else: # old code
-                                    #self.autocompleteBox = tk.Listbox( self.textBox )
-                                    #self.autocompleteBox.bind( '<Double-Button-1>', self.acceptAutocompleteSelection )
-                                    #self.autocompleteBox.bind( '<Right>', self.acceptAutocompleteSelection )
-                                    #self.autocompleteBox.place( x=self.winfo_x(), y=self.winfo_y()+self.winfo_height() )
                             else: # the Listbox is already made -- just empty it
                                 #print( 'empty listbox' )
                                 self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
@@ -592,8 +583,6 @@ class TextEditWindow( ChildWindow ):
                             #self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
                             self.autocompleteBox.select_set( '0' )
                             self.autocompleteBox.focus()
-                            #self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
-                            #self.autocompleteBox.bind( '<Double-1>', self.acceptAutocompleteSelection )
 
                         elif self.autocompleteBox is not None:
                             #print( 'destroy1 autocomplete listbox -- no possible words' )

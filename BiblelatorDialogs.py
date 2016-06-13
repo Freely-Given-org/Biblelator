@@ -45,7 +45,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-12'
+LastModifiedDate = '2016-06-13'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.36'
@@ -226,7 +226,7 @@ class BookNameDialog( ModalDialog ):
         box = Frame( self )
         w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
-        self.bind( "<Escape>", self.cancel )
+        self.bind( '<Escape>', self.cancel )
         box.pack()
     # end of BookNameDialog.buttonBox
 
@@ -304,7 +304,7 @@ class NumberButtonDialog( ModalDialog ):
         box = Frame( self )
         w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
-        self.bind( "<Escape>", self.cancel )
+        self.bind( '<Escape>', self.cancel )
         box.pack()
     # end of NumberButtonDialog.buttonBox
 
@@ -1546,13 +1546,13 @@ class ReplaceConfirmDialog( ModalDialog ):
         label2.pack( side=tk.TOP, anchor=tk.W )
         textBox1 = tk.Text( master, height=5 )
         textBox1.insert( tk.END, self.contextBefore+self.searchText+self.contextAfter )
-        textBox1['state'] = tk.DISABLED
+        textBox1.config( state=tk.DISABLED )
         textBox1.pack( side=tk.TOP, fill=tk.X )
         label3 = Label( master, text=_("After") )
         label3.pack( side=tk.TOP, anchor=tk.W )
         textBox2 = tk.Text( master, height=5 )
         textBox2.insert( tk.END, self.finalText )
-        textBox2['state'] = tk.DISABLED
+        textBox2.config( state=tk.DISABLED )
         textBox2.pack( side=tk.TOP, fill=tk.X )
 
         #buttonFrame = tk.Frame( master, padx=5, pady=5 )
@@ -1588,10 +1588,10 @@ class ReplaceConfirmDialog( ModalDialog ):
         cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
         undoButton = Button( box, text=_("Undo all"), width=10, command=self.doUndo )
         undoButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        if not self.haveUndos: undoButton['state'] = tk.DISABLED
+        if not self.haveUndos: undoButton.config( state=tk.DISABLED )
 
-        self.bind( "<Return>", self.doYes )
-        self.bind( "<Escape>", self.doStop )
+        self.bind( '<Return>', self.doYes )
+        self.bind( '<Escape>', self.doStop )
 
         box.pack( anchor=tk.E )
     # end of ModalDialog.buttonBox

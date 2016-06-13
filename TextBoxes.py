@@ -41,10 +41,10 @@ class CustomText( tk.Text ):
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-03-21' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.31'
+ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -171,9 +171,9 @@ class HTMLText( tk.Text ):
             if tag.endswith( '_a' ): assert tag in aTags
         for tag in aTags:
             assert tag in self.styleDict
-            self.tag_bind( tag, "<Button-1>", self.openHyperlink )
-            #self.tag_bind( tag, "<Enter>", self.overHyperlink )
-            #self.tag_bind( tag, "<Leave>", self.leaveHyperlink )
+            self.tag_bind( tag, '<Button-1>', self.openHyperlink )
+            #self.tag_bind( tag, '<Enter>', self.overHyperlink )
+            #self.tag_bind( tag, '<Leave>', self.leaveHyperlink )
 
         self._lastOverLink = None
     # end of HTMLText.__init__
@@ -235,8 +235,8 @@ class HTMLText( tk.Text ):
                         if link:
                             hypertag = 'href' + link
                             tk.Text.insert( self, point, insertText, (combinedFormats, hypertag,) )
-                            self.tag_bind( hypertag, "<Enter>", self.overHyperlink )
-                            self.tag_bind( hypertag, "<Leave>", self.leaveHyperlink )
+                            self.tag_bind( hypertag, '<Enter>', self.overHyperlink )
+                            self.tag_bind( hypertag, '<Leave>', self.leaveHyperlink )
                         else: tk.Text.insert( self, point, insertText, combinedFormats )
                         #first = False
                     remainingText = remainingText[ix:]

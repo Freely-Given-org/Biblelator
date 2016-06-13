@@ -263,7 +263,7 @@ class ChildBox():
     ############################################################################
 
     def clearText( self ): # Leaves in normal state
-        self.textBox['state'] = tk.NORMAL
+        self.textBox.config( state=tk.NORMAL )
         self.textBox.delete( START, tk.END )
     # end of ChildBox.updateText
 
@@ -297,7 +297,7 @@ class ChildBox():
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.setAllText( {!r} )").format( newText ) )
 
-        self.textBox['state'] = tk.NORMAL
+        self.textBox.config( state=tk.NORMAL )
         self.textBox.delete( START, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
         self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
@@ -377,11 +377,11 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         #else: # let's make one
 
         self.textBox = tk.Text( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
-        self.textBox['wrap'] = 'word'
+        self.textBox.config( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
-        self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
+        self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Options for find, etc.
         self.optionsDict = {}
@@ -648,11 +648,11 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #else: # let's make one
 
         self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
-        self.textBox['wrap'] = 'word'
+        self.textBox.config( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
-        self.textBox.bind( "<Button-1>", self.setFocus ) # So disabled text box can still do select and copy functions
+        self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Options for find, etc.
         self.optionsDict = {}
@@ -820,11 +820,11 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
-            #self.statusBarTextWidget['state'] = tk.NORMAL
-            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( '1.0', newStatusText )
-            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
             if self._showStatusBarVar.get(): self.statusTextLabel.update()
@@ -1068,7 +1068,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.extendButton = Button( self, text=_("Extend{}").format( '…' if len(self.availableInternalBibles)>1 else '' ), command=self.doExtend )
         #extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
         self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
-        if not self.availableInternalBibles: self.extendButton['state'] = tk.DISABLED
+        if not self.availableInternalBibles: self.extendButton.config( state=tk.DISABLED )
 
         closeButton = Button( self, text=_("Close"), command=self.doClose )
         #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
@@ -1205,7 +1205,7 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             self.extendedTo = self.availableInternalBibles[0]
         else: # Should let user choose an internal Bible
             self.extendedTo = self.availableInternalBibles[0]
-        self.extendButton['state'] = tk.DISABLED
+        self.extendButton.config( state=tk.DISABLED )
         self.makeTree() # Redisplay everything
     # end of ResultWindow.doExtend
 
@@ -1356,11 +1356,11 @@ class ResultWindow( tk.Toplevel, ChildBox ):
 
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
-            #self.statusBarTextWidget['state'] = tk.NORMAL
-            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( '1.0', newStatusText )
-            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
             if self._showStatusBarVar.get(): self.statusTextLabel.update()

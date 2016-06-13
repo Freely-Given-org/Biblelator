@@ -30,7 +30,7 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-10' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
 ProgVersion = '0.36'
@@ -129,8 +129,8 @@ class ModalDialog( tk.Toplevel ):
         w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
 
-        self.bind( "<Return>", self.ok )
-        self.bind( "<Escape>", self.cancel )
+        self.bind( '<Return>', self.ok )
+        self.bind( '<Escape>', self.cancel )
 
         box.pack()
     # end of ModalDialog.buttonBox

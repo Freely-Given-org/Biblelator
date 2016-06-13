@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-10' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.36'
@@ -50,7 +50,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, START, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, \
@@ -707,15 +707,11 @@ class Application( Frame ):
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
         self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
-        self.wordBox.bind( '<Return>', self.acceptNewWord )
+        self.wordBox.bind( '<Return>', self.acceptNewLexiconWord )
         self.wordBox.pack( side=tk.LEFT )
 
         if 0: # I don't think we should need this button if everything else works right
-            self.updateButton = Button( navigationBar )
-            self.updateButton['text'] = 'Update'
-            self.updateButton['command'] = self.acceptNewBnCV
-            #self.updateButton.grid( row=0, column=7 )
+            self.updateButton = Button( navigationBar, text="Update", command=self.acceptNewBnCV )
             self.updateButton.pack( side=tk.LEFT )
 
         Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
@@ -829,7 +825,7 @@ class Application( Frame ):
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
         self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
         #self.wordBox['width'] = 12
-        self.wordBox.bind( '<Return>', self.acceptNewWord )
+        self.wordBox.bind( '<Return>', self.acceptNewLexiconWord )
         #self.wordBox.pack( side=tk.LEFT )
 
         Style().configure( 'word.TButton', background='brown' )
@@ -1006,11 +1002,11 @@ class Application( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget['state'] = tk.NORMAL
-            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( '1.0', newStatusText )
-            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -1069,8 +1065,8 @@ class Application( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox['state'] = tk.NORMAL # Allow editing
-        self.debugTextBox.delete( '1.0', tk.END ) # Clear everything
+        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -1094,7 +1090,7 @@ class Application( Frame ):
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox['state'] = tk.DISABLED # Don't allow editing
+        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
     # end of Application.setDebugText
 
 
@@ -2486,19 +2482,28 @@ class Application( Frame ):
     # end of Application.updateGUIBCVControls
 
 
-    def acceptNewWord( self, event=None ):
+    def acceptNewLexiconWord( self, event=None ):
         """
         Handle a new lexicon word setting from the GUI.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'acceptNewWord' )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("acceptNewWord()") )
+        self.logUsage( ProgName, debuggingThisModule, 'acceptNewLexiconWord' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("acceptNewLexiconWord()") )
         #print( dir(event) )
 
         newWord = self.wordVar.get()
-        self.gotoWord( newWord )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "acceptNewWord {}".format( newWord ) )
+        #print( "Got newWord", repr(newWord) )
+
+        # Adjust the word a bit
+        adjWord = newWord.replace( ' ', '' ) # Remove any spaces
+        if len(adjWord)>=2 and adjWord[0] in 'GgHh' and adjWord[1:].isdigit():
+            adjWord = adjWord[0].upper() + str( int( adjWord[1:] ) ) # Capitalize and remove any leading zeroes
+        #print( "Got adjWord", repr(adjWord) )
+        if adjWord != newWord: self.wordVar.set( adjWord )
+
+        self.gotoWord( adjWord )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "acceptNewLexiconWord {}".format( adjWord ) )
         self.setReadyStatus()
-    # end of Application.acceptNewWord
+    # end of Application.acceptNewLexiconWord
 
 
     def gotoWord( self, lexiconWord ):

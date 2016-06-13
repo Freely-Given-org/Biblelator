@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-10' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.03' # Separate versioning from Biblelator
@@ -627,15 +627,15 @@ class SwordManager( Frame ):
             cb.grid( row=j+1, column=4, sticky=tk.W )
             e0 = Entry( self.sourcesPage, width=5 )
             e0.insert( tk.END, repoData[0] )
-            e0['state'] = tk.DISABLED
+            e0.config( state=tk.DISABLED )
             e0.grid( row=j+1, column=5, sticky=tk.W )
             e1 = Entry( self.sourcesPage, width=15 )
             e1.insert( tk.END, repoData[1] )
-            e1['state'] = tk.DISABLED
+            e1.config( state=tk.DISABLED )
             e1.grid( row=j+1, column=6, sticky=tk.W )
             e2 = Entry( self.sourcesPage, width=20 )
             e2.insert( tk.END, repoData[2] )
-            e2['state'] = tk.DISABLED
+            e2.config( state=tk.DISABLED )
             e2.grid( row=j+1, column=7, sticky=tk.W )
 
         # Folders page
@@ -810,11 +810,11 @@ class SwordManager( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget['state'] = tk.NORMAL
-            #self.statusBarTextWidget.delete( '1.0', tk.END )
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( '1.0', newStatusText )
-            #self.statusBarTextWidget['state'] = tk.DISABLED # Don't allow editing
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -873,8 +873,8 @@ class SwordManager( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox['state'] = tk.NORMAL # Allow editing
-        self.debugTextBox.delete( '1.0', tk.END ) # Clear everything
+        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -898,7 +898,7 @@ class SwordManager( Frame ):
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox['state'] = tk.DISABLED # Don't allow editing
+        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
     # end of SwordManager.setDebugText
 
 
@@ -962,7 +962,7 @@ class SwordManager( Frame ):
         codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
 
         # Clear the text box
-        self.codeTextBox['state'] = tk.NORMAL
+        self.codeTextBox.config( state=tk.NORMAL )
         self.codeTextBox.delete( START, tk.END )
         self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
         self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
