@@ -35,7 +35,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-12' # by RJH
+LastModifiedDate = '2016-06-13' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
@@ -1065,10 +1065,10 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         #infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
         infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=5 )
 
-        if self.availableInternalBibles:
-            self.extendButton = Button( self, text=_("Extend{}").format( '' if len(self.availableInternalBibles)==1 else '…' ), command=self.doExtend )
-            #extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
-            self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
+        self.extendButton = Button( self, text=_("Extend{}").format( '…' if len(self.availableInternalBibles)>1 else '' ), command=self.doExtend )
+        #extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+        self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
+        if not self.availableInternalBibles: self.extendButton['state'] = tk.DISABLED
 
         closeButton = Button( self, text=_("Close"), command=self.doClose )
         #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )

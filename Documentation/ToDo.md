@@ -17,6 +17,7 @@ Biblelator bugs / unfinished
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
 * Bible find can't seem to jump to FRT/GLO lines
+* Extend button in Bible find doesn't prompt yet if multiple Bibles available
 * Bible replace needs more work on reloading open books/Bibles
 * Book select needs to allow choice of individual books
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
