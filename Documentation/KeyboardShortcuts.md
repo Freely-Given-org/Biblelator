@@ -1,7 +1,7 @@
 Biblelator Keyboard Shortcuts
 =============================
 
-Last updated: 2016-03-24 RJH
+Last updated: 2016-06-14 RJH
 
 
 Biblelator still only has a few working keyboard shortcuts
@@ -15,5 +15,11 @@ Files
 =====
     Ctrl+S  Save file       From an edit window
 
-    
+
+Standard editor shortcuts
+=========================
+    Ctrl+left       Previous word
+    Ctrl+right      Next word
+
+
 Eventually we hope to make these keyboard shortcuts adjustable by the user.

@@ -153,6 +153,8 @@ follow my own instructions on a different computer.
         a lot of work.
     Then the Biblelator.lock file must be manually deleted before the program will
         run again.
+    So if you were testing the program, or know that you hadn't done a lot of work
+        since the last save, just go ahead and delete the Biblelator.lock file.
 
 
 12. View optional parameters.

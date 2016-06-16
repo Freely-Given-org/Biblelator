@@ -1,7 +1,7 @@
 Biblelator Notes for Programmers
 ================================
 
-Last updated: 2016-06-14 RJH
+Last updated: 2016-06-15 RJH
 
 
 I won't repeat what's in the other documentation files here. You should certainly study these
@@ -47,7 +47,18 @@ others first:
     to make it hackable, I try to make the code as understandable as possible.
 
 
-3. Algorithmic efficiency
+4. Quote marks
+
+    I tend to try to use double quotes for strings which is text, e.g., "Too many words."
+    Text which should be translated is also fed through the gettext function like this:
+        _("Too many words.")
+    I try to use single quotes for program strings which are not presented to the user,
+        e.g., lastPressed = 'EnterKey'
+    I use sets of three double quotes for function and class documentation strings,
+        e.g., """This function does this and that."""
+
+
+5. Algorithmic efficiency
 
     Don't mock the inefficiency (either execution time or memory use) of any of my code. This
     is definitely prototype code -- everything so far has been written to get it working as
@@ -55,7 +66,8 @@ others first:
     and I don't plan to even consider this until AFTER the release of v1.0. That's not to say
     that patches from others to improve efficiency won't be accepted. But for me, NEW FEATURES
     are currently my priority, followed by removing bugs. Further automated testing will be
-    next, and then efficiency improvements are last.
+    next, following by packaging for distribution, and then restructuring and efficiency
+    improvements are last.
 
 
 Robert Hunt.

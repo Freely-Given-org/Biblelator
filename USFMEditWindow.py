@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-06-15' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -89,7 +89,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
     self.windowType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
 
     Even though it contains a link to an USFMBible (InternalBible) object,
-        this class always works directly with the USFM (text) files.
+        this class always works directly with the USFM (text) files for editing
+            and also for search/replace (but does use the InternalBible object for search).
     """
     def __init__( self, parentApp, USFMBible, editMode=None ):
         logging.debug( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
@@ -132,14 +133,19 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.defaultBackgroundColour = 'plum1'
         if self.internalBible is None: self.editMode = None
         else:
-            self.textBox['background'] = self.defaultBackgroundColour
-            self.textBox['selectbackground'] = 'blue'
-            self.textBox['highlightbackground'] = 'orange'
-            self.textBox['inactiveselectbackground'] = 'green'
+            self.textBox.config( background=self.defaultBackgroundColour )
+            self.textBox.config( selectbackground='blue' )
+            self.textBox.config( highlightbackground='orange' )
+            self.textBox.config( inactiveselectbackground='green' )
 
         # Temporarily include some default invalid values
         self.invalidCombinations = ['__',',,',' ,','..',' .',';;',' ;','!!',' !',
                                     '"',] # characters or character combinations that shouldn't occur
+
+        self.checkForPairs = [] # tuples with pairs of characters that should normally be together in the same verse
+                                # NOTE: don't include pairs (like quotes) that frequently occur across multiple verses
+        # Temporarily include some pairs
+        self.checkForPairs = [ ('(',')'), ('[',']'), ('_ ',' _'), ]
 
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
@@ -313,6 +319,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         viewMenu.add_separator()
         viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
         viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
+        viewMenu.add_separator()
+        viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
         #viewMenu.entryconfigure( 'Before and after…', state=tk.DISABLED )
         #viewMenu.entryconfigure( 'One section', state=tk.DISABLED )
@@ -495,7 +503,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         # Check the text for formatting errors
         try: self.checkTextForErrors( includeFormatting=True )
-        except KeyboardError: self.doSave() # Sometimes the above seems to lock up
+        except KeyboardInterrupt:
+            print( "USFMEditWindow: Got keyboard interrupt -- saving my file" )
+            self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow.onTextNoChange
 
 
@@ -559,20 +569,46 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 if segment in editedText:
                     warningMessage = _("Found {!r} invalid character(s) in USFM text").format( segment ); break
 
+        if not errorMessage and not warningMessage and not suggestionMessage:
+            for pairStart,pairEnd in self.checkForPairs:
+                if editedText.count( pairStart ) != editedText.count( pairEnd ):
+                    warningMessage = _("Counts of {!r} and {!r} differ in USFM text").format( pairStart, pairEnd ); break
+                # NOTE: Code below doesn't give error with ( ( ) -- that's why we have the counts above
+                ixl = -1
+                while True:
+                    ixl = editedText.find( pairStart, ixl+1 )
+                    if ixl == -1: break # none / no more found
+                    ixr = editedText.find( pairEnd, ixl+len(pairStart) )
+                    if ixr == -1: # no matching pair
+                        warningMessage = _("Found {!r} without matching {!r} in USFM text").format( pairStart, pairEnd ); break
+                if warningMessage: break # from outer loop
+                ixr = 99999 # No work backwards
+                while True:
+                    ixr = editedText.rfind( pairEnd, 0, ixr )
+                    if ixr == -1: break
+                    ixl = editedText.rfind( pairStart, 0, ixr )
+                    if ixl == -1:
+                        warningMessage = _("Found {!r} without previous {!r} in USFM text").format( pairEnd, pairStart ); break
+                if warningMessage: break # from outer loop
+
         if errorMessage:
+            self.setErrorStatus( errorMessage )
             self.parentApp.setErrorStatus( errorMessage )
-            self.textBox['background'] = 'firebrick1'
+            self.textBox.config( background='firebrick1' )
             self.hadTextWarning = True
         elif warningMessage:
+            self.setErrorStatus( warningMessage )
             self.parentApp.setErrorStatus( warningMessage )
-            self.textBox['background'] = 'chocolate1'
+            self.textBox.config( background='chocolate1' )
             self.hadTextWarning = True
         elif suggestionMessage:
+            self.setErrorStatus( suggestionMessage )
             self.parentApp.setErrorStatus( suggestionMessage )
-            self.textBox['background'] = 'orchid1' # Make this one not too dissimilar from the default
+            self.textBox.config( background='orchid1' ) # Make this one not too dissimilar from the default
             self.hadTextWarning = True
         elif self.hadTextWarning: # last time but not now
-            self.textBox['background'] = self.defaultBackgroundColour
+            self.textBox.config( background=self.defaultBackgroundColour )
+            self.setReadyStatus()
             self.parentApp.setReadyStatus()
     # end of USFMEditWindow.checkTextForErrors
 
@@ -607,9 +643,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             + '  Chapts:\t{:,}\n  Verses:\t{:,}\n  Sections:\t{:,}\n'.format( numChaps, numVerses, numSectionHeadings ) \
             + '  Chars:\t{:,}\n  Lines:\t{:,}\n  Words:\t{:,}\n'.format( numChars, numLines, numWords ) \
             + '\nFile info:\n' \
-            + '  Name:\t{}\n  Folder:\t{}\n  BookFN:\t{}\n  SourceFldr:\t{}\n'.format( self.filename, self.filepath, self.bookFilename, self.internalBible.sourceFolder ) \
+            + '  Name:\t{}\n  Folder:\t{}\n  BookFN:\t{}\n  SourceFldr:\t{}\n' \
+                    .format( self.filename, self.filepath, self.bookFilename, self.internalBible.sourceFolder ) \
             + '\nSettings:\n' \
-            + '  Autocorrect entries:\t{:,}\n  Autocomplete:\t{}\n  Autosave time:\t{} secs\n  Save changes automatically:\t{}'.format( len(self.autocorrectEntries), self.autocompleteMode, round(self.autosaveTime/1000), self.saveChangesAutomatically )
+            + '  Autocorrect entries:\t{:,}\n  Autocomplete mode:\t{}\n  Autosave time:\t{} secs\n  Save changes automatically:\t{}' \
+                .format( len(self.autocorrectEntries), self.autocompleteMode, round(self.autosaveTime/1000), self.saveChangesAutomatically )
         showinfo( self, '{} Window Information'.format( BBB ), infoString )
     # end of USFMEditWindow.doShowInfo
 
@@ -762,7 +800,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             #print( "contextViewMode", self.contextViewMode )
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
-        self.textBox['background'] = self.defaultBackgroundColour # Go back to default background
+        self.textBox.config( background=self.defaultBackgroundColour ) # Go back to default background
 
         oldVerseKey = self.currentVerseKey
         oldBBB, oldC, oldV = (None,None,None) if oldVerseKey is None else oldVerseKey.getBCV()

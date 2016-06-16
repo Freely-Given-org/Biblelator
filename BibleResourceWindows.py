@@ -86,7 +86,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-06-15' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.36'
@@ -102,7 +102,7 @@ import tkinter as tk
 
 # Biblelator imports
 from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
-from ChildWindows import ChildBox, ChildWindow, ResultWindow
+from ChildWindows import ChildBox, ChildWindow, ResultWindow, HTMLWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
 from BiblelatorDialogs import showinfo, GetBibleSearchTextDialog, GetBibleBookRangeDialog
 

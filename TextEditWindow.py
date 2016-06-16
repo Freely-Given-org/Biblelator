@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-06-15' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -113,13 +113,11 @@ class TextEditWindow( ChildWindow ):
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word', font=self.customFont )
 
         self.defaultBackgroundColour = 'gold2'
-        self.textBox['background'] = self.defaultBackgroundColour
-        self.textBox['selectbackground'] = 'blue'
-        self.textBox['highlightbackground'] = 'orange'
-        self.textBox['inactiveselectbackground'] = 'green'
-
-        self.textBox.config( wrap='word' )
-        self.textBox.config( undo=True, autoseparators=True )
+        self.textBox.config( background=self.defaultBackgroundColour )
+        self.textBox.config( selectbackground='blue' )
+        self.textBox.config( highlightbackground='orange' )
+        self.textBox.config( inactiveselectbackground='green' )
+        self.textBox.config( wrap='word', undo=True, autoseparators=True )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.textBox.setTextChangeCallback( self.onTextChange )
@@ -137,8 +135,8 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteBox, self.autocompleteWords, self.existingAutocompleteWordText = None, {}, ''
         self.autocompleteWordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
         # Note: I guess we could have used non-word chars instead (to stop the backwards word search)
-        self.autocompleteMinLength = 3 # Show the window after this many characters have been typed
-        self.autocompleteMaxLength = 12 # Remove window after this many characters have been typed
+        self.autocompleteMinLength = 2 # Show the window after this many characters have been typed
+        self.autocompleteMaxLength = 15 # Remove window after this many characters have been typed
         self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
 
         self.invalidCombinations = [] # characters or character combinations that shouldn't occur
@@ -255,6 +253,8 @@ class TextEditWindow( ChildWindow ):
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
         viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
         viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
+        viewMenu.add_separator()
+        viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )

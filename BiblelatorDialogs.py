@@ -45,10 +45,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13'
+LastModifiedDate = '2016-06-15'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -178,7 +178,7 @@ class YesNoDialog( ModalDialog ):
     """
     def __init__( self, parent, message, title=None ):
         self.message = message
-        ModalDialog.__init__( self, parent, title, okText=_('Yes'), cancelText=_('No') )
+        ModalDialog.__init__( self, parent, title, okText=_("Yes"), cancelText=_("No") )
     # end of YesNoDialog.__init__
 
 
@@ -196,7 +196,7 @@ class OkCancelDialog( ModalDialog ):
     """
     def __init__( self, parent, message, title=None ):
         self.message = message
-        ModalDialog.__init__( self, parent, title, okText=_('Ok'), cancelText=_('Cancel') )
+        ModalDialog.__init__( self, parent, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of OkCancelDialog.__init__
 
 
@@ -215,7 +215,7 @@ class BookNameDialog( ModalDialog ):
     def __init__( self, parent, bookNameList, currentIndex ): #, message, title=None ):
         #print( 'currentIndex', currentIndex )
         self.bookNameList, self.currentIndex = bookNameList, currentIndex
-        ModalDialog.__init__( self, parent ) #, title, okText=_('Ok'), cancelText=_('Cancel') )
+        ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of BookNameDialog.__init__
 
 
@@ -293,7 +293,7 @@ class NumberButtonDialog( ModalDialog ):
     def __init__( self, parent, startNumber, endNumber, currentNumber ): #, message, title=None ):
         #print( 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
         self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
-        ModalDialog.__init__( self, parent ) #, title, okText=_('Ok'), cancelText=_('Cancel') )
+        ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of NumberButtonDialog.__init__
 
 

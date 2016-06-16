@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-13 RJH
+Last updated: 2016-06-15 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* When did HTML stop working?
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
 * Bible find can't seem to jump to FRT/GLO lines
@@ -104,6 +105,8 @@ Biblelator stuff
 * Send verse links to Paratext
 * Fix flashing SSF open window for Open / Paratext project
 * Don't allow two projects with the same name
+* Optional hints at start-up
+* Pop up a select box if previous/next buttons are held down
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Add debug menu to edit windows to display settings/log
 * Get some different views working on the edit window

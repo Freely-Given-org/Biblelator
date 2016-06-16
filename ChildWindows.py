@@ -35,14 +35,14 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-14' # by RJH
+LastModifiedDate = '2016-06-15' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.36'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import sys, os.path, logging, re
@@ -361,6 +361,13 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.minsize( *parseWindowSize( self.minimumSize ) )
         self.maxsize( *parseWindowSize( self.maximumSize ) )
 
+        # Allow child windows to have an optional status bar
+        self._showStatusBarVar = tk.BooleanVar()
+        self._showStatusBarVar.set( False ) # defaults to off
+        self._statusTextVar = tk.StringVar()
+        self._statusTextVar.set( '' ) # first initial value
+        # You have to create self.statusTextLabel in order to display the status somewhere
+
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
@@ -404,7 +411,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             in order to set the window geometry correctly.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.geometry( {}, … )").format( *args ) )
+            #print( exp("ChildWindow.geometry("), *args, *kwargs, ')' )
+            print( exp("ChildWindow.geometry( …, … )") )
 
         if 'win' in sys.platform:  # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
             self.update()
@@ -460,6 +468,110 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             #print( exp("This 'createToolBar' method can be overridden!") )
         pass
     # end of ChildWindow.createToolBar
+
+
+    # NOTE: The child window may not even have a status bar, but we allow for it
+    def createStatusBar( self ):
+        """
+        Create a status bar containing only one text label at the bottom of the main window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.createStatusBar()") )
+
+        #Style().configure('ChildWindowStatusBar.TFrame', background='yellow')
+        Style().configure( 'StatusBar.TLabel', background='white' )
+        #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
+                                            #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+
+        #self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ChildWindowStatusBar.TFrame' )
+
+        self.statusTextLabel = Label( self, relief=tk.SUNKEN,
+                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
+                                    #, font=('arial',16,tk.NORMAL) )
+        self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
+
+        #self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
+
+        #self.setReadyStatus()
+        self.setStatus() # Clear it
+    # end of ChildWindow.createStatusBar
+
+
+    def doToggleStatusBar( self ):
+        """
+        Display or hide the status bar.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.doToggleStatusBar()") )
+
+        if self._showStatusBarVar.get():
+            self.createStatusBar()
+        else:
+            self.statusTextLabel.destroy()
+    # end of ChildWindow.doToggleStatusBar
+
+
+    def setStatus( self, newStatusText='' ):
+        """
+        Set (or clear) the status bar text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("setStatus( {!r} )").format( newStatusText ) )
+
+        #print( "SB is", repr( self._statusTextVar.get() ) )
+        if newStatusText != self._statusTextVar.get(): # it's changed
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
+            #if newStatusText:
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusText = newStatusText
+            Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
+            self._statusTextVar.set( newStatusText )
+            try: self.statusTextLabel.update()
+            except AttributeError: pass # if there's no such thing as self.statusTextLabel (i.e., no status bar for this window)
+    # end of Application.setStatus
+
+    def setErrorStatus( self, newStatusText ):
+        """
+        Set the status bar text and change the cursor to the wait/hourglass cursor.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
+
+        #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        self.setStatus( newStatusText )
+        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
+        self.update()
+    # end of Application.setErrorStatus
+
+    def setWaitStatus( self, newStatusText ):
+        """
+        Set the status bar text and change the cursor to the wait/hourglass cursor.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
+
+        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        self.setStatus( newStatusText )
+        Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
+        self.update()
+    # end of Application.setWaitStatus
+
+    def setReadyStatus( self ):
+        """
+        Sets the status line to "Ready"
+            and sets the cursor to the normal cursor
+        unless we're still starting
+            (this covers any slow start-up functions that don't yet set helpful statuses)
+        """
+        #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
+        self.setStatus( _("Ready") )
+        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
+        self.config( cursor='' )
+    # end of Application.setReadyStatus
 
 
     def doHelp( self, event=None ):
@@ -1387,20 +1499,6 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.setStatus( _("Ready") )
         #self.config( cursor='' )
     # end of ResultWindow.setReadyStatus
-
-
-    def doToggleStatusBar( self ):
-        """
-        Display or hide the status bar.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ResultWindow.doToggleStatusBar()") )
-
-        if self._showStatusBarVar.get():
-            self.createStatusBar()
-        else:
-            self.statusBar.destroy()
-    # end of ResultWindow.doToggleStatusBar
 
 
     def load( self, filepath ):
