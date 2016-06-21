@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-15 RJH
+Last updated: 2016-06-21 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -82,6 +82,7 @@ BOSManager / SwordManager stuff
 
 
 Biblelator stuff
+* Find a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
