@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-15' # by RJH
+LastModifiedDate = '2016-06-22' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.37'
@@ -591,25 +591,26 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         warningMessage = _("Found {!r} without previous {!r} in USFM text").format( pairEnd, pairStart ); break
                 if warningMessage: break # from outer loop
 
+        haveOwnStatusBar = self._showStatusBarVar.get()
         if errorMessage:
-            self.setErrorStatus( errorMessage )
-            self.parentApp.setErrorStatus( errorMessage )
+            if haveOwnStatusBar: self.setErrorStatus( errorMessage )
+            else: self.parentApp.setErrorStatus( errorMessage )
             self.textBox.config( background='firebrick1' )
             self.hadTextWarning = True
         elif warningMessage:
-            self.setErrorStatus( warningMessage )
-            self.parentApp.setErrorStatus( warningMessage )
+            if haveOwnStatusBar: self.setErrorStatus( warningMessage )
+            else: self.parentApp.setErrorStatus( warningMessage )
             self.textBox.config( background='chocolate1' )
             self.hadTextWarning = True
         elif suggestionMessage:
-            self.setErrorStatus( suggestionMessage )
-            self.parentApp.setErrorStatus( suggestionMessage )
+            if haveOwnStatusBar: self.setErrorStatus( suggestionMessage )
+            else: self.parentApp.setErrorStatus( suggestionMessage )
             self.textBox.config( background='orchid1' ) # Make this one not too dissimilar from the default
             self.hadTextWarning = True
         elif self.hadTextWarning: # last time but not now
             self.textBox.config( background=self.defaultBackgroundColour )
-            self.setReadyStatus()
-            self.parentApp.setReadyStatus()
+            if haveOwnStatusBar: self.setReadyStatus()
+            else: self.parentApp.setReadyStatus()
     # end of USFMEditWindow.checkTextForErrors
 
 

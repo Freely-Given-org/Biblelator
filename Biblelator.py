@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-06-22' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.37'
@@ -920,13 +920,13 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createStatusBar()") )
 
-        #Style().configure( 'StatusBar.TLabel', background='pink' )
-        #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
-        Style().configure( 'StatusBar.TLabel', background='forest green' )
+        #Style().configure( 'MainStatusBar.TLabel', background='pink' )
+        #Style().configure( 'MainStatusBar.TLabel', background='DarkOrange1' )
+        Style().configure( 'MainStatusBar.TLabel', background='forest green' )
 
         self.statusTextVariable = tk.StringVar()
         self.statusTextLabel = Label( self.rootWindow, relief=tk.SUNKEN,
-                                    textvariable=self.statusTextVariable, style='StatusBar.TLabel' )
+                                    textvariable=self.statusTextVariable, style='MainStatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
@@ -1008,7 +1008,7 @@ class Application( Frame ):
                 #self.statusBarTextWidget.insert( START, newStatusText )
             #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
-            Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
+            Style().configure( 'MainStatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
     # end of Application.setStatus
@@ -1021,9 +1021,9 @@ class Application( Frame ):
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.statusTextLabel.config( style='MainStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
+        Style().configure( 'MainStatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
     # end of Application.setErrorStatus
 
@@ -1035,9 +1035,9 @@ class Application( Frame ):
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.statusTextLabel.config( style='MainStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
+        Style().configure( 'MainStatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
     # end of Application.setWaitStatus
 
@@ -1050,9 +1050,9 @@ class Application( Frame ):
         """
         if self.starting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
-            #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
+            #self.statusTextLabel.config( style='MainStatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
-            Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
+            Style().configure( 'MainStatusBar.TLabel', foreground='yellow', background='forest green' )
             self.config( cursor='' )
     # end of Application.setReadyStatus
 

@@ -35,10 +35,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-15' # by RJH
+LastModifiedDate = '2016-06-22' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -385,7 +385,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
         self.textBox = tk.Text( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
         self.textBox.config( wrap='word' )
-        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
@@ -471,6 +471,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
 
     # NOTE: The child window may not even have a status bar, but we allow for it
+    # TODO: Because we set the colour in the style, all child status bars will change colour together :-(
     def createStatusBar( self ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
@@ -479,14 +480,14 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             print( exp("ChildWindow.createStatusBar()") )
 
         #Style().configure('ChildWindowStatusBar.TFrame', background='yellow')
-        Style().configure( 'StatusBar.TLabel', background='white' )
+        Style().configure( 'ChildStatusBar.TLabel', background='purple' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         #self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ChildWindowStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='ChildStatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
 
@@ -499,15 +500,19 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
     def doToggleStatusBar( self ):
         """
-        Display or hide the status bar.
+        Display or hide the status bar for the child window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.doToggleStatusBar()") )
 
+        #print( "pack1", self.textBox.pack_info() )
         if self._showStatusBarVar.get():
+            self.textBox.pack_forget() # Make sure the status bar gets the priority at the bottom of the window
             self.createStatusBar()
+            self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         else:
             self.statusTextLabel.destroy()
+        #print( "pack2", self.textBox.pack_info() )
     # end of ChildWindow.doToggleStatusBar
 
 
@@ -526,7 +531,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
                 #self.statusBarTextWidget.insert( START, newStatusText )
             #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
-            Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
+            Style().configure( 'ChildStatusBar.TLabel', foreground='white', background='purple' )
             self._statusTextVar.set( newStatusText )
             try: self.statusTextLabel.update()
             except AttributeError: pass # if there's no such thing as self.statusTextLabel (i.e., no status bar for this window)
@@ -540,9 +545,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
+        Style().configure( 'ChildStatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
     # end of Application.setErrorStatus
 
@@ -554,22 +559,22 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
+        Style().configure( 'ChildStatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
     # end of Application.setWaitStatus
 
     def setReadyStatus( self ):
         """
-        Sets the status line to "Ready"
+        Sets the status line to blank
             and sets the cursor to the normal cursor
         unless we're still starting
             (this covers any slow start-up functions that don't yet set helpful statuses)
         """
-        #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
-        self.setStatus( _("Ready") )
-        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
+        #self.statusTextLabel.config( style='ChildStatusBar.TLabelReady' )
+        self.setStatus( '' )
+        Style().configure( 'ChildStatusBar.TLabel', foreground='yellow', background='forest green' )
         self.config( cursor='' )
     # end of Application.setReadyStatus
 
@@ -900,14 +905,14 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             print( exp("HTMLWindow.createStatusBar()") )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
-        Style().configure( 'StatusBar.TLabel', background='white' )
+        Style().configure( 'ChildStatusBar.TLabel', background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='ChildStatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
@@ -1436,14 +1441,14 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             print( exp("ResultWindow.createStatusBar()") )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
-        Style().configure( 'StatusBar.TLabel', background='white' )
+        Style().configure( 'ChildStatusBar.TLabel', background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='ChildStatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
