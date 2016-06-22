@@ -486,15 +486,17 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
         #self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ChildWindowStatusBar.TFrame' )
 
+        self.textBox.pack_forget() # Make sure the status bar gets the priority at the bottom of the window
+        self.vScrollbar.pack_forget()
         self.statusTextLabel = Label( self, relief=tk.SUNKEN,
                                     textvariable=self._statusTextVar, style='ChildStatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
+        self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+        self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
 
-        #self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
-
-        #self.setReadyStatus()
         self.setStatus() # Clear it
+        self.parentApp.setReadyStatus() # So it doesn't get left with an error message on it
     # end of ChildWindow.createStatusBar
 
 
@@ -505,14 +507,10 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.doToggleStatusBar()") )
 
-        #print( "pack1", self.textBox.pack_info() )
         if self._showStatusBarVar.get():
-            self.textBox.pack_forget() # Make sure the status bar gets the priority at the bottom of the window
             self.createStatusBar()
-            self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         else:
             self.statusTextLabel.destroy()
-        #print( "pack2", self.textBox.pack_info() )
     # end of ChildWindow.doToggleStatusBar
 
 

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-2' # by RJH
+LastModifiedDate = '2016-06-22' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.37'
@@ -254,7 +254,7 @@ class TextEditWindow( ChildWindow ):
         viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
         viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
         viewMenu.add_separator()
-        viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
+        viewMenu.add_checkbutton( label=_('Status bar'), underline=9, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
