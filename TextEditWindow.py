@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-22' # by RJH
+LastModifiedDate = '2016-06-27' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.37'
@@ -596,7 +596,10 @@ class TextEditWindow( ChildWindow ):
             # end of auto-complete section
 
         #self.lastTextChangeTime = time()
-        self.after( NO_TYPE_TIME, self.onTextNoChange ) # Redo it so we keep checking
+        try: self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule myself so we keep checking
+        except KeyboardInterrupt:
+            print( "TextEditWindow: Got keyboard interrupt-- saving my file" )
+            self.doSave() # Sometimes the above seems to lock up
     # end of TextEditWindow.onTextChange
 
 

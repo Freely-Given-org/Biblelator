@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-22' # by RJH
+LastModifiedDate = '2016-06-27' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.37'
@@ -465,7 +465,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 #if mark6!=mark5:
                     #print( "mark6", mark6 )
 
-        TextEditWindow.onTextChange( self, result, *args ) # Handles autocorrect and autocomplete
+        try: TextEditWindow.onTextChange( self, result, *args ) # Handles autocorrect and autocomplete
+        except KeyboardInterrupt:
+            print( "USFMEditWindow: Got keyboard interrupt (1) -- saving my file" )
+            self.doSave() # Sometimes the above seems to lock up
+            return
 
         if self.textBox.edit_modified():
             self.bookTextModified = True
@@ -504,7 +508,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         # Check the text for formatting errors
         try: self.checkTextForErrors( includeFormatting=True )
         except KeyboardInterrupt:
-            print( "USFMEditWindow: Got keyboard interrupt -- saving my file" )
+            print( "USFMEditWindow: Got keyboard interrupt (2) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow.onTextNoChange
 

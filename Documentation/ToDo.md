@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-22 RJH
+Last updated: 2016-06-27 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -34,7 +34,6 @@ Biblelator bugs / unfinished
 * Ctrl+V seems to paste double in text edit windows (paste from menu or right-click only does it once)
 * Text file open and Biblelator project open dialogs flash for a while and then go smaller
 * Seems that Alt up and down do different things if a spinbox or the bookname box is selected
-* Prevent autocomplete if editing in the middle of a word ???
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
@@ -102,6 +101,7 @@ Biblelator stuff
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste
 * Need to remove autocorrect settings from code and put into files (with an editor???)
+* Prevent autocomplete if editing in the middle of a word -- maybe make this an option
 * Display toolbox dictionary???
 * Allow windows to lock together (e.g., two or more project edit windows)
 * Send BCV updates from HTML window
