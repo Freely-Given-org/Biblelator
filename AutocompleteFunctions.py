@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-07' # by RJH
+LastModifiedDate = '2016-06-30' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -56,7 +56,7 @@ from USFMMarkers import USFM_PRINTABLE_MARKERS
 
 
 
-AVOID_BOOKS = ( 'FRT', 'BAK', 'GLS', 'XXA', 'XXB', 'XXC', 'XXD', 'XXE', 'XXF', 'NDX', 'UNK', )
+AVOID_BOOKS = ( 'FRT', 'BAK', 'GLS', 'XXA','XXB','XXC','XXD','XXE','XXF','XXG', 'NDX', 'UNK', )
 END_CHARS_TO_REMOVE = ',—.–!?”:;'
 HUNSPELL_DICTIONARY_FOLDERS = ( '/usr/share/hunspell/', )
 

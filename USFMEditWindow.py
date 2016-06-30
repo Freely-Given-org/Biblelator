@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-27' # by RJH
+LastModifiedDate = '2016-06-30' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.37'
@@ -46,8 +46,8 @@ import tkinter as tk
 from tkinter.ttk import Style
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES
-from BiblelatorDialogs import showerror, showinfo, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, errorBeep
+from BiblelatorDialogs import showerror, showinfo, \
                                 YesNoDialog, GetBibleReplaceTextDialog, ReplaceConfirmDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
@@ -112,6 +112,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if editMode is not None: self.editMode = editMode
         self.formatViewMode = 'Unformatted' # Only option done so far
         self.verseCache = OrderedDict()
+
+        self._showStatusBarVar.set( True ) # defaults to off in ChildWindow
+        self.doToggleStatusBar()
 
         self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
         if self.internalBible is not None:
@@ -537,6 +540,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         elif self.contextViewMode == 'ByVerse':
             minChapterMarkers = maxChapterMarkers = 1 if V=='0' and C!='0' else 0
             if C == '0': minVerseMarkers = maxVerseMarkers = 0
+            elif V == '0': minVerseMarkers = maxVerseMarkers = 0
             else: minVerseMarkers = maxVerseMarkers = 1
         elif self.contextViewMode == 'BySection':
             minChapterMarkers, maxChapterMarkers = 0, 1
@@ -765,13 +769,17 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                     startedVerseEarly = False
             elif C=='0' and line.startswith( '\\' ):
                 if currentEntry:
+                    halt # Should never happen
                     addCacheEntry( BBB, C, V, currentEntry )
                     currentEntry = ''
+                addCacheEntry( BBB, C, V, line + '\n' )
                 V = str( int(V) + 1 )
+                continue # Don't save current entry in next line
             currentEntry += line + '\n'
-        if currentEntry:
+        if currentEntry: # cache the final verse
             addCacheEntry( BBB, C, V, currentEntry )
-        #print( BBB, "verseCache:", self.verseCache )
+        #from itertools import islice
+        #print( "USFMEditWindow.cacheBook", BBB, "verseCache:", list( islice( self.verseCache, 0, 20 ) ) )
     # end of USFMEditWindow.cacheBook
 
 

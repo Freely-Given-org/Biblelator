@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-22' # by RJH
+LastModifiedDate = '2016-06-30' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.37'
@@ -50,7 +50,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, START, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, START, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, \
@@ -59,7 +59,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, START, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
 # assembleWindowSize, parseWindowSize,
-from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
+from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
         BookNameDialog, NumberButtonDialog
@@ -1879,7 +1879,7 @@ class Application( Frame ):
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     #print( 'ssD2', repr(ssfDirectory) )
         if not os.path.exists( ssfDirectory ):
-            showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
+            showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ssfDirectory ) )
             self.setReadyStatus()
             return
         ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
@@ -2211,7 +2211,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doGotoPreviousListItem( {} ) from {} {}:{}").format( eventBBB, C, V ) )
+            print( exp("doGotoPreviousListItem( {} ) from {} {}:{}").format( event, BBB, C, V ) )
             self.setDebugText( "doGotoPreviousListItem…" )
         self.notWrittenYet()
     # end of Application.doGotoPreviousListItem

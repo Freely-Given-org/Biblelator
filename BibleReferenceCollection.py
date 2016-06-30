@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-06-30' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -53,7 +53,6 @@ from tkinter.ttk import Frame, Button, Scrollbar
 from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, \
                 INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
                 parseWindowSize
-#from BiblelatorDialogs import showerror #, showwarning, showinfo, errorBeep
 from BiblelatorHelpers import mapReferencesVerseKey
 from BibleResourceWindows import BibleBox, BibleResourceWindow
 
@@ -175,7 +174,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
                              ('Info',self.doShowInfo), ('Close',self.doClose) ):
-            self.createStandardKeyboardBinding( name, command )
+            self._createStandardKeyboardBinding( name, command )
     # end of BibleReferenceBox.createStandardKeyboardBindings()
 
 
@@ -234,82 +233,6 @@ class BibleReferenceBox( Frame, BibleBox ):
             self.verseCache.popitem( last=False )
         return verseContextData
     # end of BibleReferenceBox.getCachedVerseData
-
-
-    def XXXXgetBeforeAndAfterBibleData( self, newVerseKey ):
-        """
-        Returns the requested verse, the previous verse, and the next n verses.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("BibleReferenceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
-            assert isinstance( newVerseKey, SimpleVerseKey )
-
-        BBB, C, V = newVerseKey.getBCV()
-        intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-
-        prevBBB, prevIntC, prevIntV = BBB, intC, intV
-        previousVersesData = []
-        for n in range( -self.parentWindow.viewVersesBefore, 0 ):
-            failed = False
-            #print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
-            if prevIntV > 0: prevIntV -= 1
-            elif prevIntC > 0:
-                prevIntC -= 1
-                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                except KeyError:
-                    if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
-                    failed = True
-                #if not failed:
-                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
-            else:
-                prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
-                if prevBBB is None: failed = True
-                else:
-                    prevIntC = self.getNumChapters( prevBBB )
-                    prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
-            if not failed and prevIntV is not None:
-                #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
-                assert prevBBB and isinstance(prevBBB, str)
-                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
-                previousVerseData = self.getCachedVerseData( previousVerseKey )
-                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
-
-        # Determine the next valid verse numbers
-        nextBBB, nextIntC, nextIntV = BBB, intC, intV
-        nextVersesData = []
-        for n in range( 0, self.parentWindow.viewVersesAfter ):
-            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
-            except KeyError: numVerses = None # for an invalid BBB
-            nextIntV += 1
-            if numVerses is None or nextIntV > numVerses:
-                nextIntV = 1
-                nextIntC += 1 # Need to check................................
-            nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
-            nextVerseData = self.getCachedVerseData( nextVerseKey )
-            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
-
-        verseData = self.getCachedVerseData( newVerseKey )
-
-        return verseData, previousVersesData, nextVersesData
-    # end of BibleReferenceBox.getBeforeAndAfterBibleData
-
-
-    def XXXsetCurrentVerseKey( self, newVerseKey ):
-        """
-        Called to set the current verse key.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
-            self.parentApp.setDebugText( "BRW setCurrentVerseKey…" )
-            assert isinstance( newVerseKey, SimpleVerseKey )
-        self.currentVerseKey = newVerseKey
-
-        BBB = self.currentVerseKey.getBBB()
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
-    # end of BibleReferenceBox.setCurrentVerseKey
 
 
     def updateShownReferences( self, newReferenceObject ):
@@ -831,6 +754,7 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    import sys
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         from io import TextIOWrapper
         sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )

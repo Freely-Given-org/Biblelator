@@ -36,14 +36,15 @@ Global variables and functions for program
     parseWindowSize( geometry )
     centreWindow( self, width=400, height=250 )
     centreWindowOnWindow( self, parentWindow, width=400, height=250 )
+    errorBeep()
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-12' # by RJH
+LastModifiedDate = '2016-06-30' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -62,7 +63,7 @@ import BibleOrgSysGlobals
 
 
 
-def ex( messageString ):
+def exp( messageString ):
     """
     Expands the message string in debug mode.
     Prepends the module name to a error or warning message string
@@ -74,7 +75,7 @@ def ex( messageString ):
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
         nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, errorBit )
-# end of ex
+# end of exp
 
 
 
@@ -247,6 +248,22 @@ def centreWindowOnWindow( self, parentWindow, width=400, height=250 ):
 # end of BiblelatorGlobals.centreWindowOnWindow
 
 
+def errorBeep():
+    """
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("errorBeep()") )
+
+    # Does nothing yet :-(
+
+    #import sys
+    #from subprocess import call
+    #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
+    #elif sys.platform == 'darwin': call(["afplay","dialog-error.ogg"])
+    #else: print( "errorBeep: sp", sys.platform )
+# end of errorBeep
+
+
 def demo():
     """
     Demo program to handle command line parameters and then run what they want.
@@ -255,7 +272,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( ex("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     print( "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"

@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-27 RJH
+Last updated: 2016-06-30 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.

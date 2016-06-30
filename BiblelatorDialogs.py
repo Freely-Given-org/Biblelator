@@ -25,11 +25,10 @@
 """
 Various modal dialog windows for Biblelator Bible display/editing.
 
-    def errorBeep()
     def showerror( parent, title, errorText )
     def showwarning( parent, title, warningText )
     def showinfo( parent, title, infoText )
-    class HTMLDialog( ModalDialog )
+    #class HTMLDialog( ModalDialog )
     class YesNoDialog( ModalDialog )
     class OkCancelDialog( ModalDialog )
     class SaveWindowNameDialog( ModalDialog )
@@ -45,14 +44,14 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-15'
+LastModifiedDate = '2016-06-30'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import logging
@@ -62,7 +61,7 @@ import tkinter.messagebox as tkmb
 from tkinter.ttk import Style, Label, Combobox, Entry, Radiobutton, Button, Frame
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME
+from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
 from TextBoxes import HTMLText
 
@@ -85,22 +84,6 @@ def exp( messageString ):
     return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
-
-
-def errorBeep():
-    """
-    """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("errorBeep()") )
-
-    # Does nothing yet :-(
-
-    #import sys
-    #from subprocess import call
-    #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
-    #elif sys.platform == 'darwin': call(["afplay","dialog-error.ogg"])
-    #else: print( "errorBeep: sp", sys.platform )
-# end of errorBeep
 
 
 def showerror( parent, title, errorText ):
@@ -154,22 +137,32 @@ def showinfo( parent, title, infoText ):
 
 
 
-class HTMLDialog( ModalDialog ):
-    """
-    """
-    def __init__( self, parent, text, title=None ):
-        self.text = text
-        ModalDialog.__init__( self, parent, title )
-    # end of HTMLDialog.__init__
+#class HTMLDialog( ModalDialog ):
+    #"""
+    #"""
+    #def __init__( self, parent, text, title=None ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("HTMLDialog.__init__( {}, {!r}, {!r} )").format( parent, text, title ) )
+
+        #self.text = text
+        #ModalDialog.__init__( self, parent, title )
+    ## end of HTMLDialog.__init__
 
 
-    def body( self, master ):
-        html = HTMLText( master )
-        html.grid( row=0 )
-        html.insert( tk.END, self.text )
-        return html
-    # end of HTMLDialog.body
-# end of class HTMLDialog
+    #def body( self, master ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("HTMLDialog.body( {} )").format( master ) )
+
+        #html = HTMLText( master )
+        #html.grid( row=0 )
+        #html.insert( tk.END, self.text )
+        #return html
+    ## end of HTMLDialog.body
+## end of class HTMLDialog
 
 
 

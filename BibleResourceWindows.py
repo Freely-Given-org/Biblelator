@@ -86,10 +86,10 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-15' # by RJH
+LastModifiedDate = '2016-06-30' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -101,10 +101,11 @@ from collections import OrderedDict
 import tkinter as tk
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES
-from ChildWindows import ChildBox, ChildWindow, ResultWindow, HTMLWindow
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, errorBeep
+from TextBoxes import ChildBox
+from ChildWindows import ChildWindow, ResultWindow, HTMLWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
-from BiblelatorDialogs import showinfo, GetBibleSearchTextDialog, GetBibleBookRangeDialog
+from BiblelatorDialogs import showinfo, showerror, GetBibleSearchTextDialog, GetBibleBookRangeDialog
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -245,9 +246,12 @@ class BibleBox( ChildBox ):
             #self.textBox.insert( tk.END, '--' )
         else:
             #hadVerseText = False
-            endMarkers = []
+            try: cVM = self.contextViewMode
+            except AttributeError: cVM = self.parentWindow.contextViewMode
             lastParagraphMarker = context[-1] if context and context[-1] in BibleOrgSysGlobals.USFMParagraphMarkers \
                                         else 'v~' # If we don't know the format of a verse (or for unformatted Bibles)
+            endMarkers = []
+
             for entry in verseDataList:
                 if isinstance( entry, InternalBibleEntry ):
                     marker, cleanText = entry.getMarker(), entry.getCleanText()
@@ -285,15 +289,28 @@ class BibleBox( ChildBox ):
                         if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
                     else: endMarkers = [] # Reset when we have normal markers
 
-                    if marker.startswith( '¬' ): pass # Ignore end markers for now
-                    elif marker in ('intro','chapters',): pass # Ignore added markers for now
-                    elif marker in ('h','toc1','toc2','toc3','cl¤',): pass # Ignore administrative markers for now
+                    if marker.startswith( '¬' ):
+                        pass # Ignore end markers for now
+                        #assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        #if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        #insertEnd( cleanText, marker )
+                        #haveTextFlag = True
                     elif marker == 'id':
                         assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
                     elif marker in ('ide','rem',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('h','toc1','toc2','toc3','cl¤',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('intro','chapters',):
                         assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
@@ -350,11 +367,12 @@ class BibleBox( ChildBox ):
                             insertEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
                             lastCharWasSpace = False
                     elif marker == 'v':
-                        if haveTextFlag:
-                            insertEnd( ' ', (lastParagraphMarker,'v-',) if lastParagraphMarker else ('v-',) )
-                        insertEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
-                        insertEnd( '\u2009', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
-                        lastCharWasSpace = haveTextFlag = True
+                        if cleanText != '1': # Don't display verse number for v1 in default view
+                            if haveTextFlag:
+                                insertEnd( ' ', (lastParagraphMarker,'v-',) if lastParagraphMarker else ('v-',) )
+                            insertEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
+                            insertEnd( '\u2009', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
+                            lastCharWasSpace = haveTextFlag = True
                     elif marker in ('v~','p~'):
                         insertEnd( cleanText, '*'+lastParagraphMarker if currentVerse else lastParagraphMarker )
                         haveTextFlag = True
@@ -367,8 +385,6 @@ class BibleBox( ChildBox ):
                     logging.critical( exp("BibleBox.displayAppendVerse: Unknown {!r} format view mode").format( self.formatViewMode ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
-            try: cVM = self.contextViewMode
-            except AttributeError: cVM = self.parentWindow.contextViewMode
             if lastFlag and cVM=='ByVerse' and endMarkers:
                 #print( "endMarkers", endMarkers )
                 insertEnd( " End context:", 'contextHeader' )
@@ -392,18 +408,20 @@ class BibleBox( ChildBox ):
         BBB, C, V = newVerseKey.getBCV()
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
 
+        # Determine the PREVIOUS valid verse numbers
         prevBBB, prevIntC, prevIntV = BBB, intC, intV
         previousVersesData = []
         for n in range( -self.parentApp.viewVersesBefore, 0 ):
             failed = False
-            #print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
             if prevIntV > 0: prevIntV -= 1
             elif prevIntC > 0:
                 prevIntC -= 1
                 try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
                 except KeyError:
                     if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( exp("BibleBox.getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
+                        logging.error( exp("BibleBox.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
                     failed = True
                 #if not failed:
                     #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
@@ -413,7 +431,12 @@ class BibleBox( ChildBox ):
                 else:
                     prevIntC = self.getNumChapters( prevBBB )
                     prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                        print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+                    if prevIntC is None or prevIntV is None:
+                        logging.error( exp("BibleBox.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
+                        #failed = True
+                        break
             if not failed and prevIntV is not None:
                 #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
                 assert prevBBB and isinstance(prevBBB, str)
@@ -421,7 +444,7 @@ class BibleBox( ChildBox ):
                 previousVerseData = self.getCachedVerseData( previousVerseKey )
                 if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
 
-        # Determine the next valid verse numbers
+        # Determine the NEXT valid verse numbers
         nextBBB, nextIntC, nextIntV = BBB, intC, intV
         nextVersesData = []
         for n in range( 0, self.parentApp.viewVersesAfter ):
@@ -435,6 +458,7 @@ class BibleBox( ChildBox ):
             nextVerseData = self.getCachedVerseData( nextVerseKey )
             if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
 
+        # Get the CURRENT verse data
         verseData = self.getCachedVerseData( newVerseKey )
 
         return verseData, previousVersesData, nextVersesData
@@ -750,7 +774,7 @@ class BibleResourceWindow( ChildWindow, BibleBox ):
                 return
             else:
                 intC1 -= 1
-                intV1 = self.getNumVerses( BBB, C1)
+                intV1 = self.getNumVerses( BBB, intC1)
         else: intV1 -= 1
         # Now find the start of this previous section
         sectionStart2, sectionEnd2 = findCurrentSection( SimpleVerseKey( BBB, intC1, intV1), self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
@@ -1455,7 +1479,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                 import webbrowser
                 indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
                 webbrowser.open( indexFile )
-            else: # display internally in our HTMLDialog
+            else: # display internally in our HTMLWindow
                 indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
                 hW = HTMLWindow( self, indexFile )
                 self.parentApp.childWindows.append( hW )
