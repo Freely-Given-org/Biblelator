@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-30 RJH
+Last updated: 2016-07-03 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -27,7 +27,6 @@ Biblelator bugs / unfinished
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
 * When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
-* \p at end of verse really belongs with next verse
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)

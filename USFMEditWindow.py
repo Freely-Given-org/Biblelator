@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-07-03' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.37'
@@ -38,11 +38,9 @@ ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), La
 debuggingThisModule = True
 
 import os.path, logging
-#from time import time
 from collections import OrderedDict
 
 import tkinter as tk
-#from tkinter.simpledialog import askstring #, askinteger
 from tkinter.ttk import Style
 
 # Biblelator imports
@@ -728,17 +726,36 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                     .format( verseKeyHash, data, self.verseCache[verseKeyHash] ) )
                     data = self.verseCache[verseKeyHash] + '\n' + data
             self.verseCache[verseKeyHash] = data.replace( '\n\n', '\n' ) # Weed out blank lines
-        # end of add_cascade
+        # end of USFMEditWindow.cacheBook.addCacheEntry
+
+        def getMarkerText( blIndex ):
+            """
+            Given an index to (nonlocal) bookLines,
+                get that line and break into marker, text.
+            """
+            gmtLine = bookLines[blIndex]
+            #marker = text = None
+            if gmtLine and gmtLine[0] == '\\':
+                try: marker, text = gmtLine[1:].split( None, 1 )
+                except ValueError: marker, text = gmtLine[1:].split( None, 1 )[0], ''
+            else: marker, text = None, gmtLine
+            return marker, text
+        # end of USFMEditWindow.cacheBook.getMarkerText
 
         # Main code for cacheBook
+        sectionHeadings = ( 's', 's1', 's2', 's3', 's4', )
         C = V = '0'
         startedVerseEarly = False
         currentEntry = ''
-        for line in self.bookText.split( '\n' ):
-            if line and line[0] == '\\':
-                try: marker, text = line[1:].split( None, 1 )
-                except ValueError: marker, text = line[1:].split( None, 1 )[0], ''
-            else: marker, text = None, line
+        bookLines = self.bookText.split( '\n' )
+        numLines = len( bookLines )
+        for j in range( 0, numLines): # Do it this way to make it easy to look-ahead
+            line = bookLines[j]
+            marker, text = getMarkerText( j )
+            #if line and line[0] == '\\':
+                #try: marker, text = line[1:].split( None, 1 )
+                #except ValueError: marker, text = line[1:].split( None, 1 )[0], ''
+            #else: marker, text = None, line
             #print( "cacheBook line", repr(marker), repr(text) )
 
             if marker in ( 'c', 'C' ):
@@ -751,11 +768,17 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         addCacheEntry( BBB, C, V, currentEntry )
                         currentEntry = ''
                     C, V = newC, '0'
-            elif marker in ( 's', 's1', 's2', 's3', 's4', ):
-                if currentEntry:
-                    addCacheEntry( BBB, C, V, currentEntry )
-                    currentEntry = ''
-                    startedVerseEarly = True
+            elif marker in sectionHeadings:
+                if j<numLines-2:
+                    marker1, text1 = getMarkerText( j+1 )
+                    if marker1 in BibleOrgSysGlobals.USFMParagraphMarkers and not text1:
+                        marker2, text2 = getMarkerText( j+2 )
+                        if marker2 in ( 'v', 'V' ):
+                            # Start a new verse entry here if we have a section heading, empty paragraph marker, then the next verse
+                            if currentEntry: # Save the previous CV entry
+                                addCacheEntry( BBB, C, V, currentEntry )
+                                currentEntry = ''
+                                startedVerseEarly = True
             elif marker in ( 'v', 'V' ):
                 newV = ''
                 for char in line[3:]:
@@ -767,6 +790,15 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         currentEntry = ''
                     V = newV
                     startedVerseEarly = False
+            elif marker in BibleOrgSysGlobals.USFMParagraphMarkers and not text and not startedVerseEarly: # already
+                if j<numLines-1:
+                    marker1, text1 = getMarkerText( j+1 )
+                    if marker1 in ( 'v', 'V' ):
+                        # We want to move this empty paragraph marker into the next verse
+                        if currentEntry:
+                            addCacheEntry( BBB, C, V, currentEntry )
+                            currentEntry = ''
+                            startedVerseEarly = True
             elif C=='0' and line.startswith( '\\' ):
                 if currentEntry:
                     halt # Should never happen
@@ -1072,6 +1104,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.loading = False # Turns onTextChange notifications back on
 
         self.refreshTitle()
+        if self._showStatusBarVar.get(): self.setReadyStatus()
     # end of USFMEditWindow.updateShownBCV
 
 
