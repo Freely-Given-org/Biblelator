@@ -303,19 +303,27 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
+        if   self.contextViewMode == 'BeforeAndAfter': self._contextRadioVar.set( 1 )
+        elif self.contextViewMode == 'BySection': self._contextRadioVar.set( 2 )
+        elif self.contextViewMode == 'ByVerse': self._contextRadioVar.set( 3 )
+        elif self.contextViewMode == 'ByBook': self._contextRadioVar.set( 4 )
+        elif self.contextViewMode == 'ByChapter': self._contextRadioVar.set( 5 )
+
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-        if   self.contextViewMode == 'BeforeAndAfter': self._viewRadioVar.set( 1 )
-        elif self.contextViewMode == 'BySection': self._viewRadioVar.set( 2 )
-        elif self.contextViewMode == 'ByVerse': self._viewRadioVar.set( 3 )
-        elif self.contextViewMode == 'ByBook': self._viewRadioVar.set( 4 )
-        elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
+        viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextRadioVar, command=self.changeBibleContextView )
 
-        viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        #if   self.formatViewMode == 'Formatted': self._formatRadioVar.set( 1 )
+        #elif self.formatViewMode == 'Unformatted': self._formatRadioVar.set( 2 )
+        #else: print( self.formatViewMode ); halt
+
+        #viewMenu.add_separator()
+        #viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatRadioVar, command=self.changeBibleFormatView )
+        #viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatRadioVar, command=self.changeBibleFormatView )
 
         viewMenu.add_separator()
         viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
@@ -476,7 +484,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.bookTextModified = True
 
             # Check the text for USFM errors
-            self.checkTextForErrors()
+            self.checkTextForProblems()
 
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
@@ -507,20 +515,20 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #print( "USFMEditWindow.onTextNoChange" )
 
         # Check the text for formatting errors
-        try: self.checkTextForErrors( includeFormatting=True )
+        try: self.checkTextForProblems( includeFormatting=True )
         except KeyboardInterrupt:
             print( "USFMEditWindow: Got keyboard interrupt (2) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow.onTextNoChange
 
 
-    def checkTextForErrors( self, includeFormatting=False ):
+    def checkTextForProblems( self, includeFormatting=False ):
         """
         Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
 
         Checks for some types of formatting errors.
         """
-        #print( "USFMEditWindow.checkTextForErrors", includeFormatting )
+        #print( "USFMEditWindow.checkTextForProblems", includeFormatting )
 
         editedText = self.getAllText()
 
@@ -617,7 +625,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.textBox.config( background=self.defaultBackgroundColour )
             if haveOwnStatusBar: self.setReadyStatus()
             else: self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.checkTextForErrors
+    # end of USFMEditWindow.checkTextForProblems
 
 
     def doShowInfo( self, event=None ):
@@ -843,6 +851,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
             #print( "contextViewMode", self.contextViewMode )
+            assert self.formatViewMode == 'Unformatted' # Only option done so far
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
         self.textBox.config( background=self.defaultBackgroundColour ) # Go back to default background

@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-07-03' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.37'
@@ -57,7 +57,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, parseWindowS
                              INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
 from BiblelatorDialogs import showerror, showinfo
 from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
-from TextBoxes import ChildBox, HTMLText
+from TextBoxes import ChildBox, BibleBox, HTMLText
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -83,6 +83,8 @@ def exp( messageString ):
 
 class ChildWindow( tk.Toplevel, ChildBox ):
     """
+    This is a base class for any toplevel window that contains a
+        ChildBox, i.e., it contains a self.textBox memember.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -367,6 +369,33 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed child window" )
     # end of ChildWindow.doClose
 # end of class ChildWindow
+
+
+
+class BibleWindow( ChildWindow, BibleBox ):
+    """
+    This is a base class for any toplevel window that contains a
+        ChildBox, i.e., it contains a self.textBox memember.
+    """
+    def __init__( self, parentApp, genericWindowType ):
+        """
+        The genericWindowType is set here,
+            but the more specific windowType is set later by the subclass.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+            assert parentApp
+            assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',)
+        self.parentApp, self.genericWindowType = parentApp, genericWindowType
+
+        self.formatViewMode = DEFAULT
+        ChildWindow.__init__( self, self.parentApp, self.genericWindowType )
+        BibleBox.__init__( self, self.parentApp )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.__init__ finished.") )
+    # end of BibleWindow.__init__
+# end of class BibleWindow
 
 
 

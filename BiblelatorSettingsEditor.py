@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-07-03' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.37'
@@ -1201,7 +1201,7 @@ class BiblelatorSettingsEditor( Frame ):
         for j, appWin in enumerate( self.childWindows ):
             #try: extra = ' ({})'.format( appWin.BCVUpdateType )
             #except AttributeError: extra = ''
-            self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} BCV={}" \
+            self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} fVM={} BCV={}" \
                                     .format( j+1,
                                         appWin.windowType,
                                         #appWin.windowType.replace('ChildWindow',''),
@@ -1209,6 +1209,7 @@ class BiblelatorSettingsEditor( Frame ):
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
                                         appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin.formatViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )

@@ -41,7 +41,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-07-03' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.37'
@@ -107,6 +107,7 @@ MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SI
 
 BIBLE_GROUP_CODES = ( 'A', 'B', 'C', 'D' )
 BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'BySection', 'ByVerse', 'ByBook', 'ByChapter' )
+BIBLE_FORMAT_VIEW_MODES = ( 'Formatted', 'Unformatted', )
 
 
 # Constants
