@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-04' # by RJH
+LastModifiedDate = '2016-07-08' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.37'
@@ -93,7 +93,8 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEX
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 parseWindowSize
 from BiblelatorDialogs import showerror, showinfo, SelectResourceBoxDialog, RenameResourceCollectionDialog
-from BibleResourceWindows import BibleBox, BibleResourceWindow
+from BibleResourceWindows import BibleResourceWindow
+from TextBoxes import BibleBox
 from BiblelatorHelpers import handleInternalBibles
 
 # BibleOrgSys imports

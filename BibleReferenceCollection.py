@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-07-08' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.37'
@@ -54,7 +54,8 @@ from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, \
                 INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
                 parseWindowSize
 from BiblelatorHelpers import mapReferencesVerseKey
-from BibleResourceWindows import BibleBox, BibleResourceWindow
+from BibleResourceWindows import BibleResourceWindow
+from TextBoxes import BibleBox
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )

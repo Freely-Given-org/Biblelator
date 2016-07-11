@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30'
+LastModifiedDate = '2016-07-06'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.37'
@@ -63,7 +63,7 @@ from tkinter.ttk import Style, Label, Combobox, Entry, Radiobutton, Button, Fram
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
-from TextBoxes import HTMLText
+#from TextBoxes import HTMLText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals

@@ -82,7 +82,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-07-06' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.37'
@@ -99,7 +99,7 @@ import tkinter as tk
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, errorBeep, \
                                 BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES
-from TextBoxes import BibleBox
+#from TextBoxes import BibleBox
 from ChildWindows import BibleWindow, ResultWindow, HTMLWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
 from BiblelatorDialogs import showinfo, showerror, GetBibleSearchTextDialog, GetBibleBookRangeDialog
@@ -162,6 +162,7 @@ class BibleResourceWindow( BibleWindow ):
             #self.changeBibleFormatView()
 
         # Set-up our standard Bible styles
+        # TODO: Why do we need this for a window
         for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
             self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
         # Add our extra specialised styles

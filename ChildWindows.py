@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-07-11' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.37'
@@ -214,16 +214,18 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
 
     # NOTE: The child window may not even have a status bar, but we allow for it
-    # TODO: Because we set the colour in the style, all child status bars will change colour together :-(
     def createStatusBar( self ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
+
+        We use the window label to name the status bar style,
+            so that each status bar style is unique for each different window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.createStatusBar()") )
 
         #Style().configure('ChildWindowStatusBar.TFrame', background='yellow')
-        Style().configure( 'ChildStatusBar.TLabel', background='purple' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='purple' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
@@ -232,7 +234,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.textBox.pack_forget() # Make sure the status bar gets the priority at the bottom of the window
         self.vScrollbar.pack_forget()
         self.statusTextLabel = Label( self, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='ChildStatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
@@ -243,17 +245,21 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     # end of ChildWindow.createStatusBar
 
 
-    def doToggleStatusBar( self ):
+    def doToggleStatusBar( self, setOn=None ):
         """
         Display or hide the status bar for the child window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.doToggleStatusBar()") )
 
+        if setOn is not None:
+            self._showStatusBarVar.set( setOn )
+
         if self._showStatusBarVar.get():
             self.createStatusBar()
         else:
-            self.statusTextLabel.destroy()
+            try: self.statusTextLabel.destroy()
+            except AttributeError: pass # no such thing
     # end of ChildWindow.doToggleStatusBar
 
 
@@ -272,11 +278,11 @@ class ChildWindow( tk.Toplevel, ChildBox ):
                 #self.statusBarTextWidget.insert( START, newStatusText )
             #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
-            Style().configure( 'ChildStatusBar.TLabel', foreground='white', background='purple' )
+            Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='white', background='purple' )
             self._statusTextVar.set( newStatusText )
             try: self.statusTextLabel.update()
             except AttributeError: pass # if there's no such thing as self.statusTextLabel (i.e., no status bar for this window)
-    # end of Application.setStatus
+    # end of ChildWindow.setStatus
 
     def setErrorStatus( self, newStatusText ):
         """
@@ -288,9 +294,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'ChildStatusBar.TLabel', foreground='yellow', background='red' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='yellow', background='red' )
         self.update()
-    # end of Application.setErrorStatus
+    # end of ChildWindow.setErrorStatus
 
     def setWaitStatus( self, newStatusText ):
         """
@@ -302,9 +308,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'ChildStatusBar.TLabel', foreground='black', background='DarkOrange1' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='black', background='DarkOrange1' )
         self.update()
-    # end of Application.setWaitStatus
+    # end of ChildWindow.setWaitStatus
 
     def setReadyStatus( self ):
         """
@@ -315,9 +321,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         #self.statusTextLabel.config( style='ChildStatusBar.TLabelReady' )
         self.setStatus( '' )
-        Style().configure( 'ChildStatusBar.TLabel', foreground='yellow', background='forest green' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='yellow', background='forest green' )
         self.config( cursor='' )
-    # end of Application.setReadyStatus
+    # end of ChildWindow.setReadyStatus
 
 
     def doHelp( self, event=None ):
@@ -375,7 +381,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 class BibleWindow( ChildWindow, BibleBox ):
     """
     This is a base class for any toplevel window that contains a
-        ChildBox, i.e., it contains a self.textBox memember.
+        BibleBox, i.e., it contains a self.textBox memember that understands BCV references.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -673,14 +679,14 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             print( exp("HTMLWindow.createStatusBar()") )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
-        Style().configure( 'ChildStatusBar.TLabel', background='white' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='ChildStatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
@@ -694,6 +700,23 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #self.setReadyStatus()
         self.setStatus() # Clear it
     # end of HTMLWindow.createStatusBar
+
+
+    def doToggleStatusBar( self, setOn=None ):
+        """
+        Display or hide the status bar.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.doToggleStatusBar()") )
+
+        if setOn is not None:
+            self._showStatusBarVar.set( setOn )
+
+        if self._showStatusBarVar.get():
+            self.createStatusBar()
+        else:
+            self.statusBar.destroy()
+    # end of HTMLWindow.doToggleStatusBar
 
 
     def setStatus( self, newStatusText='' ):
@@ -736,20 +759,6 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.setStatus( _("Ready") )
         #self.config( cursor='' )
     # end of HTMLWindow.setReadyStatus
-
-
-    def doToggleStatusBar( self ):
-        """
-        Display or hide the status bar.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("HTMLWindow.doToggleStatusBar()") )
-
-        if self._showStatusBarVar.get():
-            self.createStatusBar()
-        else:
-            self.statusBar.destroy()
-    # end of HTMLWindow.doToggleStatusBar
 
 
     def load( self, filepath ):
@@ -1213,14 +1222,14 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             print( exp("ResultWindow.createStatusBar()") )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
-        Style().configure( 'ChildStatusBar.TLabel', background='white' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='ChildStatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 

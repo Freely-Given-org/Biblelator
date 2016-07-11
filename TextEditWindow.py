@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-27' # by RJH
+LastModifiedDate = '2016-07-11' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.37'
@@ -102,6 +102,7 @@ class TextEditWindow( ChildWindow ):
         self.protocol( 'WM_DELETE_WINDOW', self.doClose ) # Catch when window is closed
 
         self.loading = True
+        self.onTextNoChangeID = None
 
         # Make our own custom textBox which allows a callback function
         #   Delete these four lines and the callback line if you don't need either autocorrect or autocomplete
@@ -472,7 +473,9 @@ class TextEditWindow( ChildWindow ):
         Checks to see if they have moved to a new chapter/verse,
             and if so, informs the parent app.
         """
-        self.after_cancel( self.onTextNoChange ) # Cancel any delayed checks which are scheduled
+        if self.onTextNoChangeID:
+            self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed checks which are scheduled
+            self.onTextNoChangeID = None
         if self.loading: return # So we don't get called a million times for nothing
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
@@ -596,7 +599,7 @@ class TextEditWindow( ChildWindow ):
             # end of auto-complete section
 
         #self.lastTextChangeTime = time()
-        try: self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule myself so we keep checking
+        try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule myself so we keep checking
         except KeyboardInterrupt:
             print( "TextEditWindow: Got keyboard interrupt-- saving my file" )
             self.doSave() # Sometimes the above seems to lock up

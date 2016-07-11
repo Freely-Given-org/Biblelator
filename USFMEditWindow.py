@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-07-11' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.37'
@@ -111,8 +111,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.formatViewMode = 'Unformatted' # Only option done so far
         self.verseCache = OrderedDict()
 
-        self._showStatusBarVar.set( True ) # defaults to off in ChildWindow
-        self.doToggleStatusBar()
+        #self.doToggleStatusBar( True ) # defaults to off in ChildWindow
 
         self.internalBible = handleInternalBibles( self.parentApp, USFMBible, self )
         if self.internalBible is not None:

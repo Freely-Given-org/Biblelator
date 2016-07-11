@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-07-08' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.37'
@@ -3246,7 +3246,8 @@ def main( homeFolderPath, loggingFolderPath ):
     tkRootWindow.mainloop()
 
     # Remove the lock file when we close
-    os.remove( LOCK_FILENAME )
+    try: os.remove( LOCK_FILENAME )
+    except FileNotFoundError: logging.error( "Seems the Biblelator lock file was already deleted!" )
 # end of Biblelator.main
 
 
