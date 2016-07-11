@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-16' # by RJH
+LastModifiedDate = '2016-06-21' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.35'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -93,10 +93,13 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
     bookText += '\\ide UTF-8\n'
     bookText += '\\h Bookname\n'
     bookText += '\\mt Book Title\n'
-    for C in range( 1, getNumChapters(BBB)+1 ):
-        bookText += '\\c {}\n'.format( C )
-        for V in range( 1, getNumVerses(BBB,C)+1 ):
-            bookText += '\\v {} \n'.format( V )
+    try:
+        for C in range( 1, getNumChapters(BBB)+1 ):
+            bookText += '\\c {}\n'.format( C )
+            for V in range( 1, getNumVerses(BBB,C)+1 ):
+                bookText += '\\v {} \n'.format( V )
+    except TypeError: # if something is None (i.e., a book without chapters or verses)
+        pass
     return bookText
 # end of BiblelatorHelpers.createEmptyUSFMBookText
 
@@ -223,7 +226,7 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
         for C in range( 1, getNumChapters(BBB)+1 ):
             totalVerses += getNumVerses( BBB, C )
         return totalVerses
-    except TypeError: # if something is None (i.e., a book without chapters or verses
+    except TypeError: # if something is None (i.e., a book without chapters or verses)
         return 1
 # end of BiblelatorHelpers.calculateTotalVersesForBook
 

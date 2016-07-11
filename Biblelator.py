@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-07-08' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -50,7 +50,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, START, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, START, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, \
@@ -59,7 +59,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, START, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
 # assembleWindowSize, parseWindowSize,
-from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
+from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
         BookNameDialog, NumberButtonDialog
@@ -920,13 +920,13 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createStatusBar()") )
 
-        #Style().configure( 'StatusBar.TLabel', background='pink' )
-        #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
-        Style().configure( 'StatusBar.TLabel', background='forest green' )
+        #Style().configure( 'MainStatusBar.TLabel', background='pink' )
+        #Style().configure( 'MainStatusBar.TLabel', background='DarkOrange1' )
+        Style().configure( 'MainStatusBar.TLabel', background='forest green' )
 
         self.statusTextVariable = tk.StringVar()
         self.statusTextLabel = Label( self.rootWindow, relief=tk.SUNKEN,
-                                    textvariable=self.statusTextVariable, style='StatusBar.TLabel' )
+                                    textvariable=self.statusTextVariable, style='MainStatusBar.TLabel' )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
@@ -1008,7 +1008,7 @@ class Application( Frame ):
                 #self.statusBarTextWidget.insert( START, newStatusText )
             #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
-            Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
+            Style().configure( 'MainStatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
     # end of Application.setStatus
@@ -1021,9 +1021,9 @@ class Application( Frame ):
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.statusTextLabel.config( style='MainStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
+        Style().configure( 'MainStatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
     # end of Application.setErrorStatus
 
@@ -1035,9 +1035,9 @@ class Application( Frame ):
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.statusTextLabel.config( style='MainStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
-        Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
+        Style().configure( 'MainStatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
     # end of Application.setWaitStatus
 
@@ -1050,9 +1050,9 @@ class Application( Frame ):
         """
         if self.starting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
-            #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
+            #self.statusTextLabel.config( style='MainStatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
-            Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
+            Style().configure( 'MainStatusBar.TLabel', foreground='yellow', background='forest green' )
             self.config( cursor='' )
     # end of Application.setReadyStatus
 
@@ -1879,7 +1879,7 @@ class Application( Frame ):
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     #print( 'ssD2', repr(ssfDirectory) )
         if not os.path.exists( ssfDirectory ):
-            showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
+            showerror( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ssfDirectory ) )
             self.setReadyStatus()
             return
         ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
@@ -2211,7 +2211,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doGotoPreviousListItem( {} ) from {} {}:{}").format( eventBBB, C, V ) )
+            print( exp("doGotoPreviousListItem( {} ) from {} {}:{}").format( event, BBB, C, V ) )
             self.setDebugText( "doGotoPreviousListItem…" )
         self.notWrittenYet()
     # end of Application.doGotoPreviousListItem
@@ -3246,7 +3246,8 @@ def main( homeFolderPath, loggingFolderPath ):
     tkRootWindow.mainloop()
 
     # Remove the lock file when we close
-    os.remove( LOCK_FILENAME )
+    try: os.remove( LOCK_FILENAME )
+    except FileNotFoundError: logging.error( "Seems the Biblelator lock file was already deleted!" )
 # end of Biblelator.main
 
 

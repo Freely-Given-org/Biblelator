@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-07-08' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -53,9 +53,9 @@ from tkinter.ttk import Frame, Button, Scrollbar
 from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, \
                 INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
                 parseWindowSize
-#from BiblelatorDialogs import showerror #, showwarning, showinfo, errorBeep
 from BiblelatorHelpers import mapReferencesVerseKey
-from BibleResourceWindows import BibleBox, BibleResourceWindow
+from BibleResourceWindows import BibleResourceWindow
+from TextBoxes import BibleBox
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -99,7 +99,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         BibleBox.__init__( self, self.parentApp )
 
         # Set some dummy values required soon
-        self._viewRadioVar, self._groupRadioVar = tk.IntVar(), tk.StringVar()
+        self._contextRadioVar, self._formatRadioVar, self._groupRadioVar = tk.IntVar(), tk.IntVar(), tk.StringVar()
         self.groupCode = BIBLE_GROUP_CODES[0] # Put into first/default BCV group
         self.contextViewMode = DEFAULT
         self.formatViewMode = DEFAULT
@@ -108,6 +108,8 @@ class BibleReferenceBox( Frame, BibleBox ):
         if self.contextViewMode == DEFAULT:
             self.contextViewMode = 'ByVerse'
             self.parentWindow.viewVersesBefore, self.parentWindow.viewVersesAfter = 2, 6
+        if self.formatViewMode == DEFAULT:
+            self.formatViewMode = 'Formatted'
 
         # Create a title bar
         titleBar = Frame( self )
@@ -175,7 +177,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
                              ('Info',self.doShowInfo), ('Close',self.doClose) ):
-            self.createStandardKeyboardBinding( name, command )
+            self._createStandardKeyboardBinding( name, command )
     # end of BibleReferenceBox.createStandardKeyboardBindings()
 
 
@@ -236,82 +238,6 @@ class BibleReferenceBox( Frame, BibleBox ):
     # end of BibleReferenceBox.getCachedVerseData
 
 
-    def XXXXgetBeforeAndAfterBibleData( self, newVerseKey ):
-        """
-        Returns the requested verse, the previous verse, and the next n verses.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("BibleReferenceBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
-            assert isinstance( newVerseKey, SimpleVerseKey )
-
-        BBB, C, V = newVerseKey.getBCV()
-        intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-
-        prevBBB, prevIntC, prevIntV = BBB, intC, intV
-        previousVersesData = []
-        for n in range( -self.parentWindow.viewVersesBefore, 0 ):
-            failed = False
-            #print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
-            if prevIntV > 0: prevIntV -= 1
-            elif prevIntC > 0:
-                prevIntC -= 1
-                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                except KeyError:
-                    if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.critical( exp("getBeforeAndAfterBibleData failed at"), prevBBB, prevIntC )
-                    failed = True
-                #if not failed:
-                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
-            else:
-                prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
-                if prevBBB is None: failed = True
-                else:
-                    prevIntC = self.getNumChapters( prevBBB )
-                    prevIntV = self.getNumVerses( prevBBB, prevIntC )
-                    if BibleOrgSysGlobals.debugFlag: print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
-            if not failed and prevIntV is not None:
-                #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
-                assert prevBBB and isinstance(prevBBB, str)
-                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
-                previousVerseData = self.getCachedVerseData( previousVerseKey )
-                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
-
-        # Determine the next valid verse numbers
-        nextBBB, nextIntC, nextIntV = BBB, intC, intV
-        nextVersesData = []
-        for n in range( 0, self.parentWindow.viewVersesAfter ):
-            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
-            except KeyError: numVerses = None # for an invalid BBB
-            nextIntV += 1
-            if numVerses is None or nextIntV > numVerses:
-                nextIntV = 1
-                nextIntC += 1 # Need to check................................
-            nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
-            nextVerseData = self.getCachedVerseData( nextVerseKey )
-            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
-
-        verseData = self.getCachedVerseData( newVerseKey )
-
-        return verseData, previousVersesData, nextVersesData
-    # end of BibleReferenceBox.getBeforeAndAfterBibleData
-
-
-    def XXXsetCurrentVerseKey( self, newVerseKey ):
-        """
-        Called to set the current verse key.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
-            self.parentApp.setDebugText( "BRW setCurrentVerseKey…" )
-            assert isinstance( newVerseKey, SimpleVerseKey )
-        self.currentVerseKey = newVerseKey
-
-        BBB = self.currentVerseKey.getBBB()
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.currentVerseKey.getChapterNumber() )
-    # end of BibleReferenceBox.setCurrentVerseKey
-
-
     def updateShownReferences( self, newReferenceObject ):
         """
         Updates self in various ways depending on the contextViewMode held by the enclosing window.
@@ -346,7 +272,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         ## Safety-check in case they edited the settings file
         #if 'DBP' in self.boxType and self.contextViewMode in ('ByBook','ByChapter',):
             #print( exp("updateShownReferences: Safety-check converted {} contextViewMode for DBP").format( repr(self.contextViewMode) ) )
-            #self._viewRadioVar.set( 3 ) # ByVerse
+            #self._contextRadioVar.set( 3 ) # ByVerse
             #self.changeBibleContextView()
 
         #if self.contextViewMode == 'BeforeAndAfter':
@@ -606,20 +532,29 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
+        if self.contextViewMode == 'BeforeAndAfter': self._contextRadioVar.set( 1 )
+        #elif self.contextViewMode == 'BySection': self._contextRadioVar.set( 2 )
+        elif self.contextViewMode == 'ByVerse': self._contextRadioVar.set( 3 )
+        #elif self.contextViewMode == 'ByBook': self._contextRadioVar.set( 4 )
+        #elif self.contextViewMode == 'ByChapter': self._contextRadioVar.set( 5 )
+# XXX BAD that this happens        else: print( self.contextViewMode ); halt
+
         self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
         self.menubar.add_cascade( menu=self.viewMenu, label=_('View'), underline=0 )
-        if   self.contextViewMode == 'BeforeAndAfter': self._viewRadioVar.set( 1 )
-        #elif self.contextViewMode == 'BySection': self._viewRadioVar.set( 2 )
-        elif self.contextViewMode == 'ByVerse': self._viewRadioVar.set( 3 )
-        #elif self.contextViewMode == 'ByBook': self._viewRadioVar.set( 4 )
-        #elif self.contextViewMode == 'ByChapter': self._viewRadioVar.set( 5 )
-        else: print( self.contextViewMode ); halt
+        self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextRadioVar, command=self.changeBibleContextView )
 
-        self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._viewRadioVar, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._viewRadioVar, command=self.changeBibleContextView )
+        if self.formatViewMode == DEFAULT: self.formatViewMode = BIBLE_FORMAT_VIEW_MODES[0]
+        if self.formatViewMode == 'Formatted': self._formatRadioVar.set( 1 )
+        elif self.formatViewMode == 'Unformatted': self._formatRadioVar.set( 2 )
+# XXX BAD that this happens        else: print( self.formatViewMode ); halt
+
+        self.viewMenu.add_separator()
+        self.viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatRadioVar, command=self.changeBibleFormatView )
+        self.viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatRadioVar, command=self.changeBibleFormatView )
 
         #if 'DBP' in self.windowType: # disable excessive online use
             #self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
@@ -831,6 +766,7 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
+    import sys
     if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
         from io import TextIOWrapper
         sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )

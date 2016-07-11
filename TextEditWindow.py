@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-07-11' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -102,10 +102,11 @@ class TextEditWindow( ChildWindow ):
         self.protocol( 'WM_DELETE_WINDOW', self.doClose ) # Catch when window is closed
 
         self.loading = True
+        self.onTextNoChangeID = None
 
         # Make our own custom textBox which allows a callback function
         #   Delete these four lines and the callback line if you don't need either autocorrect or autocomplete
-        self.textBox.destroy()
+        self.textBox.destroy() # from the ChildWindow default
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
 
@@ -113,14 +114,12 @@ class TextEditWindow( ChildWindow ):
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word', font=self.customFont )
 
         self.defaultBackgroundColour = 'gold2'
-        self.textBox['background'] = self.defaultBackgroundColour
-        self.textBox['selectbackground'] = 'blue'
-        self.textBox['highlightbackground'] = 'orange'
-        self.textBox['inactiveselectbackground'] = 'green'
-
-        self.textBox.config( wrap='word' )
-        self.textBox.config( undo=True, autoseparators=True )
-        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.textBox.config( background=self.defaultBackgroundColour )
+        self.textBox.config( selectbackground='blue' )
+        self.textBox.config( highlightbackground='orange' )
+        self.textBox.config( inactiveselectbackground='green' )
+        self.textBox.config( wrap='word', undo=True, autoseparators=True )
+        self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.textBox.setTextChangeCallback( self.onTextChange )
         #self.createStandardKeyboardBindings()
@@ -137,8 +136,8 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteBox, self.autocompleteWords, self.existingAutocompleteWordText = None, {}, ''
         self.autocompleteWordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
         # Note: I guess we could have used non-word chars instead (to stop the backwards word search)
-        self.autocompleteMinLength = 3 # Show the window after this many characters have been typed
-        self.autocompleteMaxLength = 12 # Remove window after this many characters have been typed
+        self.autocompleteMinLength = 2 # Show the window after this many characters have been typed
+        self.autocompleteMaxLength = 15 # Remove window after this many characters have been typed
         self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
 
         self.invalidCombinations = [] # characters or character combinations that shouldn't occur
@@ -255,6 +254,8 @@ class TextEditWindow( ChildWindow ):
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
         viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
         viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
+        viewMenu.add_separator()
+        viewMenu.add_checkbutton( label=_('Status bar'), underline=9, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
@@ -472,7 +473,9 @@ class TextEditWindow( ChildWindow ):
         Checks to see if they have moved to a new chapter/verse,
             and if so, informs the parent app.
         """
-        self.after_cancel( self.onTextNoChange ) # Cancel any delayed checks which are scheduled
+        if self.onTextNoChangeID:
+            self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed checks which are scheduled
+            self.onTextNoChangeID = None
         if self.loading: return # So we don't get called a million times for nothing
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
@@ -596,7 +599,10 @@ class TextEditWindow( ChildWindow ):
             # end of auto-complete section
 
         #self.lastTextChangeTime = time()
-        self.after( NO_TYPE_TIME, self.onTextNoChange ) # Redo it so we keep checking
+        try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule myself so we keep checking
+        except KeyboardInterrupt:
+            print( "TextEditWindow: Got keyboard interrupt-- saving my file" )
+            self.doSave() # Sometimes the above seems to lock up
     # end of TextEditWindow.onTextChange
 
 

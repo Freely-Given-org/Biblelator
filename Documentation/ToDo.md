@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-06-13 RJH
+Last updated: 2016-07-11 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,10 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* When did HTML stop working?
+* Clicking in edit window while still starting can cause a spinbox error
+* Remember status bar setting for child windows
+* Window settings don't work well for text collections, etc. (need to be nested???)
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
 * Bible find can't seem to jump to FRT/GLO lines
@@ -24,14 +28,12 @@ Biblelator bugs / unfinished
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
 * When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
-* \p at end of verse really belongs with next verse
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu or right-click only does it once)
 * Text file open and Biblelator project open dialogs flash for a while and then go smaller
 * Seems that Alt up and down do different things if a spinbox or the bookname box is selected
-* Prevent autocomplete if editing in the middle of a word ???
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
@@ -81,6 +83,7 @@ BOSManager / SwordManager stuff
 
 
 Biblelator stuff
+* Find a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
@@ -88,7 +91,6 @@ Biblelator stuff
 * Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
 * Use checkboxes to allow individual exports
-* Allow an edit window to have an optional status bar???
 * Get Sword resources displaying nicer
 * Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
 * Investigate tix widgets
@@ -98,12 +100,16 @@ Biblelator stuff
 * Paste doesn't replace the selection
 * Remove double-spaces at either end of a paste
 * Need to remove autocorrect settings from code and put into files (with an editor???)
+* Prevent autocomplete if editing in the middle of a word -- maybe make this an option
 * Display toolbox dictionary???
 * Allow windows to lock together (e.g., two or more project edit windows)
 * Send BCV updates from HTML window
+* Allow a very simple edit mode (for users who find USFM way too complex)
 * Send verse links to Paratext
 * Fix flashing SSF open window for Open / Paratext project
 * Don't allow two projects with the same name
+* Optional hints at start-up
+* Pop up a select box if previous/next buttons are held down
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Add debug menu to edit windows to display settings/log
 * Get some different views working on the edit window
@@ -127,12 +133,11 @@ Biblelator stuff
 * Improve Sword module display (Bibles and Commentaries)
 * Improve Strongs (lexicon) HTML display
 * Look at doing some windows updates in idle time
-* Design an icon
 * Make a splash screen (turned off/on in settings file)
 * Release version 0.5
 * Allow users to "log-on" with usernames (passwords?)
 * Allow setting of roles (administrator/project leader/superintendent/overseer, translator, consultant/reviewer/archivist/typesetter, contributor/friend/critic/observer)
-* Make logging more useful (including ability to automatically email latest log???)
+* Make logging more useful
 * Project sharing (Hg vs Git) -- requires server set-up
 * Write autocompletion settings load/edit routines
 * Allow autocomplete to use: Bible or Bible book, current text file, only spell-checked words, external dictionary for language, external file, etc.
@@ -148,7 +153,7 @@ Biblelator stuff
 * Investigate integrating more online resources
 * From a Bible edit window, have a menu item to view the current chapter/section typeset on a page (pop-up window)
 * Improve the about page(s)
-* Turn chapter/verse spin buttons 90 degrees
+* Turn chapter/verse spin buttons 90 degrees (maybe)
 * Learn how to install Biblelator on OS X
 * Create back-translation windows with special features
 * Allow more settings to be edited within the program (full settings editor)

@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-07-03' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -48,7 +48,7 @@ from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry,
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, \
+from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, \
@@ -56,7 +56,7 @@ from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, \
         parseWindowSize
 # BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
 # assembleWindowSize, ,
-from BiblelatorDialogs import errorBeep, showerror, showwarning, showinfo, \
+from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
         BookNameDialog, NumberButtonDialog
@@ -1201,7 +1201,7 @@ class BiblelatorSettingsEditor( Frame ):
         for j, appWin in enumerate( self.childWindows ):
             #try: extra = ' ({})'.format( appWin.BCVUpdateType )
             #except AttributeError: extra = ''
-            self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} BCV={}" \
+            self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} fVM={} BCV={}" \
                                     .format( j+1,
                                         appWin.windowType,
                                         #appWin.windowType.replace('ChildWindow',''),
@@ -1209,6 +1209,7 @@ class BiblelatorSettingsEditor( Frame ):
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
                                         appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin.formatViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )

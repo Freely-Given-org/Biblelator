@@ -39,15 +39,15 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-22' # by RJH
+LastModifiedDate = '2016-07-11' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.36'
-SettingsVersion = '0.36' # Only need to change this if the settings format has changed
+ProgVersion = '0.37'
+SettingsVersion = '0.37' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os, logging
@@ -56,7 +56,7 @@ import os, logging
 from BiblelatorGlobals import APP_NAME, DEFAULT, \
     DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
-    BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+    BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
     findHomeFolderPath, parseWindowSize, assembleWindowSize
 from BiblelatorDialogs import showerror, SaveWindowNameDialog, DeleteWindowNameDialog
 from TextEditWindow import TextEditWindow
@@ -339,6 +339,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
             windowPosition = thisStuff['Position'] if 'Position' in thisStuff else None
             windowGeometry = windowSize+'+'+windowPosition if windowSize and windowPosition else None
             #print( "applyGivenWindowsSettings", windowType, windowGeometry )
+
             if windowType == 'SwordBibleResourceWindow':
                 rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
                 #except: logging.critical( "Unable to read all SwordBibleResourceWindow {} settings".format( j ) )
@@ -431,13 +432,22 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 if contextViewMode:
                     if BibleOrgSysGlobals.debugFlag: assert contextViewMode in BIBLE_CONTEXT_VIEW_MODES
                     rw.contextViewMode = contextViewMode
-                    rw.createMenuBar() # in order to show the correct contextViewMode
+                    #rw.createMenuBar() # in order to show the correct contextViewMode
+                formatViewMode = thisStuff['FormatViewMode'] if 'FormatViewMode' in thisStuff else None
+                if formatViewMode:
+                    if BibleOrgSysGlobals.debugFlag: assert formatViewMode in BIBLE_FORMAT_VIEW_MODES
+                    rw.formatViewMode = formatViewMode
+                    #rw.createMenuBar() # in order to show the correct contextViewMode
                 autocompleteMode = convertToPython( thisStuff['AutocompleteMode'] ) if 'AutocompleteMode' in thisStuff else None
                 #if autocompleteMode == 'None': autocompleteMode = None
                 if autocompleteMode:
                     if BibleOrgSysGlobals.debugFlag: assert windowType.endswith( 'EditWindow' )
                     rw.autocompleteMode = autocompleteMode
                     rw.prepareAutocomplete()
+                statusBarMode = thisStuff['StatusBar'] if 'StatusBar' in thisStuff else None
+                if statusBarMode:
+                    statusBarOn = statusBarMode.lower() in ('on', 'true' ,'yes', 'enabled',)
+                    rw.doToggleStatusBar( statusBarOn )
 # end of applyGivenWindowsSettings
 
 
@@ -473,8 +483,11 @@ def getCurrentChildWindowSettings( self ):
         thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
         if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
             thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "Corrected {} window position from '0+0' to {}".format( appWin.windowType, thisOne['Position'] ) )
         thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
         thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
+        thisOne['StatusBar'] = 'On' if appWin._showStatusBarVar.get() else 'Off'
 
         if appWin.windowType == 'SwordBibleResourceWindow':
             thisOne['ModuleAbbreviation'] = appWin.moduleID
@@ -509,6 +522,8 @@ def getCurrentChildWindowSettings( self ):
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.windowType ) )
             try: thisOne['ContextViewMode'] = appWin.contextViewMode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.windowType ) )
+            try: thisOne['FormatViewMode'] = appWin.formatViewMode
+            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no formatViewMode in {}").format( appWin.windowType ) )
 
         if appWin.windowType.endswith( 'EditWindow' ):
             thisOne['AutocompleteMode'] = appWin.autocompleteMode

@@ -26,7 +26,6 @@
 Base windows to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
 
-    class ChildBox
     class ChildWindow
     class ChildWindows
     class HTMLWindow
@@ -35,14 +34,14 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-07-11' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.36'
+ProgVersion = '0.37'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import sys, os.path, logging, re
@@ -52,13 +51,13 @@ from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, parseWindowSize, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, parseWindowSize, errorBeep, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
                              INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE, \
                              INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
-from BiblelatorDialogs import errorBeep, showerror, showinfo
+from BiblelatorDialogs import showerror, showinfo
 from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
-from TextBoxes import HTMLText
+from TextBoxes import ChildBox, BibleBox, HTMLText
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -82,265 +81,10 @@ def exp( messageString ):
 
 
 
-class ChildBox():
-    """
-    A set of functions that work for any frame or window that has a member: self.textBox
-    """
-    def __init__( self, parentApp ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.__init__( {} )").format( parentApp ) )
-            assert parentApp
-        self.parentApp = parentApp
-
-        self.myKeyboardBindingsList = []
-        if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = [] # Just for catching setting of duplicates
-
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.__init__ finished.") )
-    # end of ChildBox.__init__
-
-
-    def createStandardKeyboardBinding( self, name, command ):
-        """
-        Called from createStandardKeyboardBindings to do the actual work.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("ChildBox.createStandardKeyboardBinding( {} )").format( name ) )
-
-        try: kBD = self.parentApp.keyBindingDict
-        except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
-        assert (name,kBD[name][0],) not in self.myKeyboardBindingsList
-        if name in kBD:
-            for keyCode in kBD[name][1:]:
-                #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                self.textBox.bind( keyCode, command )
-                if BibleOrgSysGlobals.debugFlag:
-                    assert keyCode not in self.myKeyboardShortcutsList
-                    self.myKeyboardShortcutsList.append( keyCode )
-            self.myKeyboardBindingsList.append( (name,kBD[name][0],) )
-        else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-    # end of ChildBox.createStandardKeyboardBinding()
-
-    def createStandardKeyboardBindings( self ):
-        """
-        Create keyboard bindings for this widget.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.createStandardKeyboardBindings()") )
-        for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
-                             ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
-                             ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
-                             ('Close',self.doClose), ('ShowMain',self.doShowMainWindow), ):
-            self.createStandardKeyboardBinding( name, command )
-    # end of ChildBox.createStandardKeyboardBindings()
-
-
-    def setFocus( self, event ):
-        '''Explicitly set focus, so user can select and copy text'''
-        self.textBox.focus_set()
-
-
-    def doCopy( self, event=None ):
-        """
-        Copy the selected text onto the clipboard.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doCopy( {} )").format( event ) )
-
-        if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
-            errorBeep()
-            showerror( self, APP_NAME, _("No text selected") )
-        else:
-            copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
-            print( "  copied text", repr(copyText) )
-            self.clipboard_clear()
-            self.clipboard_append( copyText )
-    # end of ChildBox.doCopy
-
-
-    def doSelectAll( self, event=None ):
-        """
-        Select all the text in the text box.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doSelectAll( {} )").format( event ) )
-
-        self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
-        self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
-        self.textBox.see( tk.INSERT )                      # scroll to top
-    # end of ChildBox.doSelectAll
-
-
-    def doGotoWindowLine( self, event=None, forceline=None ):
-        """
-        """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doGotoWindowLine {}'.format( forceline ) )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doGotoWindowLine( {}, {} )").format( event, forceline ) )
-
-        line = forceline or askinteger( APP_NAME, _("Enter line number") )
-        self.textBox.update()
-        self.textBox.focus()
-        if line is not None:
-            maxindex = self.textBox.index( tk.END+'-1c' )
-            maxline  = int( maxindex.split('.')[0] )
-            if line > 0 and line <= maxline:
-                self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
-                self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
-                self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert+1l' )  # select line
-                self.textBox.see( tk.INSERT )                          # scroll to line
-            else:
-                errorBeep()
-                showerror( self, APP_NAME, _("No such line number") )
-    # end of ChildBox.doGotoWindowLine
-
-
-    def doWindowFind( self, event=None, lastkey=None ):
-        """
-        """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doWindowFind {!r}'.format( lastkey ) )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doWindowFind( {}, {!r} )").format( event, lastkey ) )
-
-        key = lastkey or askstring( APP_NAME, _("Enter search string") )
-        self.textBox.update()
-        self.textBox.focus()
-        self.lastfind = key
-        if key:
-            nocase = self.optionsDict['caseinsens']
-            where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
-            if not where:                                          # don't wrap
-                errorBeep()
-                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
-            else:
-                pastkey = where + '+%dc' % len(key)           # index past key
-                self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
-                self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
-                self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
-                self.textBox.see( where )                          # scroll display
-    # end of ChildBox.doWindowFind
-
-
-    def doWindowRefind( self, event=None ):
-        """
-        """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doWindowRefind' )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doWindowRefind( {} ) for {!r}").format( event, self.lastfind ) )
-
-        self.doWindowFind( lastkey=self.lastfind )
-    # end of ChildBox.doWindowRefind
-
-
-    def doShowInfo( self, event=None ):
-        """
-        Pop-up dialog giving text statistics and cursor location;
-        caveat (2.1): Tk insert position column counts a tab as one
-        character: translate to next multiple of 8 to match visual?
-        """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doShowInfo' )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doShowInfo( {} )").format( event ) )
-
-        text  = self.getAllText()
-        numChars = len( text )
-        numLines = len( text.split('\n') )
-        numWords = len( text.split() )
-        index = self.textBox.index( tk.INSERT )
-        atLine, atColumn = index.split('.')
-        infoString = 'Current location:\n' \
-                 + '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) \
-                 + '\nFile text statistics:\n' \
-                 + '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}'.format( numChars, numLines, numWords )
-        showinfo( self, 'Window Information', infoString )
-    # end of ChildBox.doShowInfo
-
-
-    ############################################################################
-    # Utilities, useful outside this class
-    ############################################################################
-
-    def clearText( self ): # Leaves in normal state
-        self.textBox.config( state=tk.NORMAL )
-        self.textBox.delete( START, tk.END )
-    # end of ChildBox.updateText
-
-
-    def isEmpty( self ):
-        return not self.getAllText()
-    # end of ChildBox.isEmpty
-
-
-    def modified( self ):
-        return self.textBox.edit_modified()
-    # end of ChildBox.modified
-
-
-    def getAllText( self ):
-        """
-        Returns all the text as a string.
-        """
-        return self.textBox.get( START, tk.END+'-1c' )
-    # end of ChildBox.getAllText
-
-
-    def setAllText( self, newText ):
-        """
-        Sets the textBox (assumed to be enabled) to the given text
-            then positions the insert cursor at the BEGINNING of the text.
-
-        caller: call self.update() first if just packed, else the
-        initial position may be at line 2, not line 1 (2.1; Tk bug?)
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.setAllText( {!r} )").format( newText ) )
-
-        self.textBox.config( state=tk.NORMAL )
-        self.textBox.delete( START, tk.END ) # Delete everything that's existing
-        self.textBox.insert( tk.END, newText )
-        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
-        self.textBox.see( tk.INSERT ) # scroll to top, insert is set
-
-        self.textBox.edit_reset() # clear undo/redo stks
-        self.textBox.edit_modified( tk.FALSE ) # clear modified flag
-    # end of ChildBox.setAllText
-
-
-    def doShowMainWindow( self, event=None ):
-        """
-        Display the main window (it might be minimised or covered).
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doShowMainWindow( {} )").format( event ) )
-
-        #self.parentApp.rootWindow.iconify() # Didn't help
-        self.parentApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
-        self.parentApp.rootWindow.update()
-        self.parentApp.rootWindow.deiconify()
-        #self.parentApp.rootWindow.focus_set()
-        self.parentApp.rootWindow.lift() # aboveThis=self )
-    # end of ChildBox.doShowMainWindow
-
-
-    def doClose( self, event=None ):
-        """
-        Called from the GUI.
-
-        Can be overridden if an edit box needs to save files first.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doClose( {} )").format( event ) )
-
-        self.destroy()
-    # end of ChildBox.doClose
-# end of ChildBox class
-
-
-
 class ChildWindow( tk.Toplevel, ChildBox ):
     """
+    This is a base class for any toplevel window that contains a
+        ChildBox, i.e., it contains a self.textBox memember.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -361,6 +105,13 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.minsize( *parseWindowSize( self.minimumSize ) )
         self.maxsize( *parseWindowSize( self.maximumSize ) )
 
+        # Allow child windows to have an optional status bar
+        self._showStatusBarVar = tk.BooleanVar()
+        self._showStatusBarVar.set( False ) # defaults to off
+        self._statusTextVar = tk.StringVar()
+        self._statusTextVar.set( '' ) # first initial value
+        # You have to create self.statusTextLabel in order to display the status somewhere
+
         self.createMenuBar()
         self.createToolBar()
         self.createContextMenu()
@@ -378,7 +129,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
         self.textBox = tk.Text( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
         self.textBox.config( wrap='word' )
-        self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
+        self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
@@ -404,7 +155,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             in order to set the window geometry correctly.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.geometry("), *args, *kwargs, ')' )
+            print( exp("ChildWindow.geometry( {}, {} )").format( args, kwargs ) )
 
         if 'win' in sys.platform:  # Make sure that the window has finished being created (but unfortunately it briefly flashes up the empty window)
             self.update()
@@ -462,6 +213,119 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     # end of ChildWindow.createToolBar
 
 
+    # NOTE: The child window may not even have a status bar, but we allow for it
+    def createStatusBar( self ):
+        """
+        Create a status bar containing only one text label at the bottom of the main window.
+
+        We use the window label to name the status bar style,
+            so that each status bar style is unique for each different window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.createStatusBar()") )
+
+        #Style().configure('ChildWindowStatusBar.TFrame', background='yellow')
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='purple' )
+        #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
+                                            #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+
+        #self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ChildWindowStatusBar.TFrame' )
+
+        self.textBox.pack_forget() # Make sure the status bar gets the priority at the bottom of the window
+        self.vScrollbar.pack_forget()
+        self.statusTextLabel = Label( self, relief=tk.SUNKEN,
+                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
+                                    #, font=('arial',16,tk.NORMAL) )
+        self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
+        self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+        self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
+
+        self.setStatus() # Clear it
+        self.parentApp.setReadyStatus() # So it doesn't get left with an error message on it
+    # end of ChildWindow.createStatusBar
+
+
+    def doToggleStatusBar( self, setOn=None ):
+        """
+        Display or hide the status bar for the child window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.doToggleStatusBar()") )
+
+        if setOn is not None:
+            self._showStatusBarVar.set( setOn )
+
+        if self._showStatusBarVar.get():
+            self.createStatusBar()
+        else:
+            try: self.statusTextLabel.destroy()
+            except AttributeError: pass # no such thing
+    # end of ChildWindow.doToggleStatusBar
+
+
+    def setStatus( self, newStatusText='' ):
+        """
+        Set (or clear) the status bar text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("setStatus( {!r} )").format( newStatusText ) )
+
+        #print( "SB is", repr( self._statusTextVar.get() ) )
+        if newStatusText != self._statusTextVar.get(): # it's changed
+            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( START, tk.END )
+            #if newStatusText:
+                #self.statusBarTextWidget.insert( START, newStatusText )
+            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusText = newStatusText
+            Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='white', background='purple' )
+            self._statusTextVar.set( newStatusText )
+            try: self.statusTextLabel.update()
+            except AttributeError: pass # if there's no such thing as self.statusTextLabel (i.e., no status bar for this window)
+    # end of ChildWindow.setStatus
+
+    def setErrorStatus( self, newStatusText ):
+        """
+        Set the status bar text and change the cursor to the wait/hourglass cursor.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
+
+        #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
+        self.setStatus( newStatusText )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='yellow', background='red' )
+        self.update()
+    # end of ChildWindow.setErrorStatus
+
+    def setWaitStatus( self, newStatusText ):
+        """
+        Set the status bar text and change the cursor to the wait/hourglass cursor.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
+
+        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
+        self.setStatus( newStatusText )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='black', background='DarkOrange1' )
+        self.update()
+    # end of ChildWindow.setWaitStatus
+
+    def setReadyStatus( self ):
+        """
+        Sets the status line to blank
+            and sets the cursor to the normal cursor
+        unless we're still starting
+            (this covers any slow start-up functions that don't yet set helpful statuses)
+        """
+        #self.statusTextLabel.config( style='ChildStatusBar.TLabelReady' )
+        self.setStatus( '' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='yellow', background='forest green' )
+        self.config( cursor='' )
+    # end of ChildWindow.setReadyStatus
+
+
     def doHelp( self, event=None ):
         """
         Display a help box.
@@ -511,6 +375,33 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed child window" )
     # end of ChildWindow.doClose
 # end of class ChildWindow
+
+
+
+class BibleWindow( ChildWindow, BibleBox ):
+    """
+    This is a base class for any toplevel window that contains a
+        BibleBox, i.e., it contains a self.textBox memember that understands BCV references.
+    """
+    def __init__( self, parentApp, genericWindowType ):
+        """
+        The genericWindowType is set here,
+            but the more specific windowType is set later by the subclass.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+            assert parentApp
+            assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',)
+        self.parentApp, self.genericWindowType = parentApp, genericWindowType
+
+        self.formatViewMode = DEFAULT
+        ChildWindow.__init__( self, self.parentApp, self.genericWindowType )
+        BibleBox.__init__( self, self.parentApp )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.__init__ finished.") )
+    # end of BibleWindow.__init__
+# end of class BibleWindow
 
 
 
@@ -652,7 +543,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
-        self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
+        #self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Options for find, etc.
         self.optionsDict = {}
@@ -788,14 +679,14 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             print( exp("HTMLWindow.createStatusBar()") )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
-        Style().configure( 'StatusBar.TLabel', background='white' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
@@ -809,6 +700,23 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #self.setReadyStatus()
         self.setStatus() # Clear it
     # end of HTMLWindow.createStatusBar
+
+
+    def doToggleStatusBar( self, setOn=None ):
+        """
+        Display or hide the status bar.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.doToggleStatusBar()") )
+
+        if setOn is not None:
+            self._showStatusBarVar.set( setOn )
+
+        if self._showStatusBarVar.get():
+            self.createStatusBar()
+        else:
+            self.statusBar.destroy()
+    # end of HTMLWindow.doToggleStatusBar
 
 
     def setStatus( self, newStatusText='' ):
@@ -853,20 +761,6 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
     # end of HTMLWindow.setReadyStatus
 
 
-    def doToggleStatusBar( self ):
-        """
-        Display or hide the status bar.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("HTMLWindow.doToggleStatusBar()") )
-
-        if self._showStatusBarVar.get():
-            self.createStatusBar()
-        else:
-            self.statusBar.destroy()
-    # end of HTMLWindow.doToggleStatusBar
-
-
     def load( self, filepath ):
         """
         Loads the given HTML file into the window
@@ -908,8 +802,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
     def overLink( self, link ):
         """
-        Loads the given HTML file into the window
-            and also finds and sets the window title
+        The cursor is hovering over a link.
+
+        Display the link address in the status bar.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HTMLWindow.overLink( {} )").format( link ) )
@@ -920,6 +815,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
     def leaveLink( self ):
         """
+        The user has moved the cursor away from the link.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HTMLWindow.leaveLink()") )
@@ -930,6 +826,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
     def doGoForward( self ):
         """
+        Go forward in HTML link history.
         """
         if self.historyIndex > 1:
             self.historyIndex -= 1
@@ -939,6 +836,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
     def doGoBackward( self ):
         """
+        Go backward in HTML link history.
         """
         if self.historyIndex < len( self.historyList ):
             self.historyIndex += 1
@@ -1324,14 +1222,14 @@ class ResultWindow( tk.Toplevel, ChildBox ):
             print( exp("ResultWindow.createStatusBar()") )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
-        Style().configure( 'StatusBar.TLabel', background='white' )
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
         #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
                                             #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
         self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
         self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='StatusBar.TLabel' )
+                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
@@ -1387,20 +1285,6 @@ class ResultWindow( tk.Toplevel, ChildBox ):
         self.setStatus( _("Ready") )
         #self.config( cursor='' )
     # end of ResultWindow.setReadyStatus
-
-
-    def doToggleStatusBar( self ):
-        """
-        Display or hide the status bar.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ResultWindow.doToggleStatusBar()") )
-
-        if self._showStatusBarVar.get():
-            self.createStatusBar()
-        else:
-            self.statusBar.destroy()
-    # end of ResultWindow.doToggleStatusBar
 
 
     def load( self, filepath ):
