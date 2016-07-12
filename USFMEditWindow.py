@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-11' # by RJH
+LastModifiedDate = '2016-07-12' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -144,8 +144,24 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         self.checkForPairs = [] # tuples with pairs of characters that should normally be together in the same verse
                                 # NOTE: don't include pairs (like quotes) that frequently occur across multiple verses
+                                #   i.e., are often NOT closed within the same line or verse.
         # Temporarily include some pairs
-        self.checkForPairs = [ ('(',')'), ('[',']'), ('_ ',' _'), ]
+        self.checkForPairs.extend( ( ('(',')'), ('[',']'), ('_ ',' _'),) )
+        self.checkForPairs.extend( ( ('\\f ','\\f*'), ('\\x ','\\x*'), ('\\fe ','\\fe*'),) )
+        self.checkForPairs.extend( ( # Special text
+                                     ('\\add ','\\add*'), ('\\bk ','\\bk*'), ('\\dc ','\\dc*'),
+                                     ('\\k ','\\k*'), ('\\nd ','\\nd*'), ('\\ord ','\\ord*'),
+                                     ('\\pn ','\\pn*'), ('\\qt ','\\qt*'), ('\\sig ','\\sig*'),
+                                     ('\\sls ','\\sls*'), ('\\tl ','\\tl*'), ('\\wj ','\\wj*'),
+
+                                     # Character formatting
+                                     ('\\em ','\\em*'), ('\\bd ','\\bd*'), ('\\it ','\\it*'),
+                                     ('\\bdit ','\\bdit*'), ('\\no ','\\no*'), ('\\sc ','\\sc*'),
+
+                                     # Special features
+                                     ('\\fig ','\\fig*'), ('\\ndx ','\\ndx*'), ('\\pro ','\\pro*'),
+                                     ('\\w ','\\w*'), ('\\wg ','\\wg*'), ('\\wh ','\\wh*'),
+                                    ) )
 
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
@@ -475,7 +491,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         try: TextEditWindow.onTextChange( self, result, *args ) # Handles autocorrect and autocomplete
         except KeyboardInterrupt:
-            print( "USFMEditWindow: Got keyboard interrupt (1) -- saving my file" )
+            print( "USFMEditWindow: Got keyboard interrupt (1) -- saving my file…" )
             self.doSave() # Sometimes the above seems to lock up
             return
 
@@ -483,7 +499,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.bookTextModified = True
 
             # Check the text for USFM errors
-            self.checkTextForProblems()
+            self.checkUSFMTextForProblems()
 
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
@@ -514,20 +530,20 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #print( "USFMEditWindow.onTextNoChange" )
 
         # Check the text for formatting errors
-        try: self.checkTextForProblems( includeFormatting=True )
+        try: self.checkUSFMTextForProblems( includeFormatting=True )
         except KeyboardInterrupt:
             print( "USFMEditWindow: Got keyboard interrupt (2) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow.onTextNoChange
 
 
-    def checkTextForProblems( self, includeFormatting=False ):
+    def checkUSFMTextForProblems( self, includeFormatting=False ):
         """
         Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
 
         Checks for some types of formatting errors.
         """
-        #print( "USFMEditWindow.checkTextForProblems", includeFormatting )
+        #print( "USFMEditWindow.checkUSFMTextForProblems", includeFormatting )
 
         editedText = self.getAllText()
 
@@ -578,6 +594,24 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             suggestionMessage = _("No good reason to have a line ending with a space in a USFM book")
 
         if not errorMessage and not warningMessage: # and not suggestionMessage:
+            adjText = editedText
+            if adjText and adjText[-1]=='\n': adjText = adjText[:-1] # Remove the final newline character
+            for line in adjText.split( '\n' ):
+                #print( "checkUSFMTextForProblems got line: {!r}".format( line ) )
+                if not line:
+                    warningMessage = _("No good reason to have a blank line in a USFM book")
+                if line:
+                    if line[0] == '\\':
+                        marker = line.split( None, 1)[0][1:] # First token, but without the first (backslash) character
+                        #print( "  Found marker: {!r}".format( marker ) )
+                        if marker not in BibleOrgSysGlobals.USFMMarkers:
+                            errorMessage = _("Not a recognized USFM marker {!r}").format( marker )
+                            break
+                    else:
+                        errorMessage = _("Line should start with backslash, not '{}{}'").format( line[:8], '…' if len(line)>8 else '' )
+                        break
+
+        if not errorMessage and not warningMessage: # and not suggestionMessage:
             for segment in self.invalidCombinations:
                 if segment in editedText:
                     warningMessage = _("Found {!r} invalid character(s) in USFM text").format( segment ); break
@@ -624,7 +658,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.textBox.config( background=self.defaultBackgroundColour )
             if haveOwnStatusBar: self.setReadyStatus()
             else: self.parentApp.setReadyStatus()
-    # end of USFMEditWindow.checkTextForProblems
+    # end of USFMEditWindow.checkUSFMTextForProblems
 
 
     def doShowInfo( self, event=None ):

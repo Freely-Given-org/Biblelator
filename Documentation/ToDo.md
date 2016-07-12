@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-07-11 RJH
+Last updated: 2016-07-12 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -16,7 +16,7 @@ smaller jobs often get done before larger ones unfortunately).
 Biblelator bugs / unfinished
 * When did HTML stop working?
 * Clicking in edit window while still starting can cause a spinbox error
-* Remember status bar setting for child windows
+* View (format) menu can be wrong after start-up
 * Window settings don't work well for text collections, etc. (need to be nested???)
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
