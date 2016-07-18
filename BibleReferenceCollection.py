@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-08' # by RJH
+LastModifiedDate = '2016-07-18' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -50,7 +50,7 @@ import tkinter as tk
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, \
+from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
                 INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
                 parseWindowSize
 from BiblelatorHelpers import mapReferencesVerseKey
@@ -152,7 +152,8 @@ class BibleReferenceBox( Frame, BibleBox ):
         # Set-up our Bible system and our callables
         self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
@@ -198,11 +199,12 @@ class BibleReferenceBox( Frame, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleReferenceBox.getContextVerseData( {} )").format( verseKey ) )
+
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
-            except KeyError:
+            except KeyError: # Could be after a verse-bridge ???
                 if verseKey.getChapterNumber() != '0':
-                    logging.critical( exp("BibleReferenceBox.getContextVerseData for {} {} got a KeyError!") \
+                    logging.error( exp("BibleReferenceBox.getContextVerseData for {} {} got a KeyError") \
                                                                 .format( self.boxType, verseKey ) )
     # end of BibleReferenceBox.getContextVerseData
 
@@ -364,51 +366,6 @@ class BibleReferenceBox( Frame, BibleBox ):
 
 
 
-#class InternalBibleReferenceBox( BibleReferenceBox ):
-    #def __init__( self, parentWindow, modulePath ):
-        #"""
-        #Given a folder, try to open an UnknownBible.
-        #If successful, set self.internalBible to point to the loaded Bible.
-        #"""
-        #if BibleOrgSysGlobals.debugFlag: print( "InternalBibleReferenceBox.__init__( {}, {} )".format( parentWindow, modulePath ) )
-        #self.parentWindow, self.modulePath = parentWindow, modulePath
-
-        #self.internalBible = None
-        #BibleReferenceBox.__init__( self, self.parentWindow, 'InternalBibleReferenceBox', self.modulePath )
-        ##self.boxType = 'InternalBibleReferenceBox'
-
-        #try: self.UnknownBible = UnknownBible( self.modulePath )
-        #except FileNotFoundError:
-            #logging.error( exp("InternalBibleReferenceBox.__init__ Unable to find module path: {}").format( repr(self.modulePath) ) )
-            #self.UnknownBible = None
-        #if self.UnknownBible:
-            #result = self.UnknownBible.search( autoLoadAlways=True )
-            #if isinstance( result, str ):
-                #print( "Unknown Bible returned: {}".format( repr(result) ) )
-                #self.internalBible = None
-            #else: self.internalBible = result
-        #if self.internalBible is not None: # Define which functions we use by default
-            #self.getNumVerses = self.internalBible.getNumVerses
-            #self.getNumChapters = self.internalBible.getNumChapters
-    ## end of InternalBibleReferenceBox.__init__
-
-
-    #def getContextVerseData( self, verseKey ):
-        #"""
-        #Fetches and returns the internal Bible data for the given reference.
-        #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("InternalBibleReferenceBox.getContextVerseData( {} )").format( verseKey ) )
-        #if self.internalBible is not None:
-            #try: return self.internalBible.getContextVerseData( verseKey )
-            #except KeyError:
-                #logging.critical( exp("InternalBibleReferenceBox.getContextVerseData for {} {} got a KeyError!") \
-                                                                #.format( self.boxType, verseKey ) )
-    ## end of InternalBibleReferenceBox.getContextVerseData
-## end of InternalBibleReferenceBox class
-
-
-
 class BibleReferenceBoxes( list ):
     """
     Just keeps a list of the resource (Text) boxes.
@@ -422,7 +379,8 @@ class BibleReferenceBoxes( list ):
 
 
 class BibleReferenceCollectionWindow( BibleResourceWindow ):
-#class BibleReferenceCollectionWindow( ChildWindow ):
+    """
+    """
     def __init__( self, parentApp, internalBible ):
         """
         Given a collection name, try to open an empty Bible resource collection window.
@@ -459,7 +417,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
 
     def OnFrameConfigure( self, event ):
-        '''Reset the scroll region to encompass the inner frame'''
+        """
+        Reset the scroll region to encompass the inner frame.
+        """
         self.canvas.configure( scrollregion=self.canvas.bbox("all") )
 
 

@@ -41,10 +41,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-07-17' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -93,6 +93,8 @@ START = '1.0' # constant for tkinter
 
 MAX_WINDOWS = 20
 MAX_RECENT_FILES = 9
+MAX_PSEUDOVERSES = 999 # in a non-chapter book like a glossary or something (or before the chapter one marker )
+    # NOTE: SimpleVerseKey does not currently handle larger numbers than this.
 
 
 # Default window size settings (Note: X=width, Y=height)

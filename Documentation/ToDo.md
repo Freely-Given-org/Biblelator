@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-07-12 RJH
+Last updated: 2016-07-18 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -15,12 +15,13 @@ smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
 * When did HTML stop working?
+* Don't load entire Bible if only searching/replacing in current book
 * Clicking in edit window while still starting can cause a spinbox error
 * View (format) menu can be wrong after start-up
 * Window settings don't work well for text collections, etc. (need to be nested???)
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
-* Bible find can't seem to jump to FRT/GLO lines
+* Bible find can't seem to jump to GLO lines
 * Extend button in Bible find doesn't prompt yet if multiple Bibles available
 * Bible replace needs more work on reloading open books/Bibles
 * Book select needs to allow choice of individual books
@@ -38,6 +39,7 @@ Biblelator bugs / unfinished
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
 * BOSManager is not finished
+* SwordManager is not finished
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
@@ -49,7 +51,6 @@ Biblelator testing required
 BOS bugs
 * Doesn't create a log file on Windows
 * Why do warnings show on Windows console (yet not on Linux)?
-* Why do we get some long/wrong (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
 * Don't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
 

@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-07-17' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -50,7 +50,7 @@ from tkinter.scrolledtext import ScrolledText
 # Biblelator imports
 from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-        DEFAULT_KEY_BINDING_DICT, \
+        DEFAULT_KEY_BINDING_DICT, MAX_PSEUDOVERSES, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
@@ -234,7 +234,8 @@ class BiblelatorSettingsEditor( Frame ):
         self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
+                                        else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode

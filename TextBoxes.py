@@ -65,10 +65,10 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-04' # by RJH
+LastModifiedDate = '2016-07-17' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1073,7 +1073,8 @@ class BibleBox( ChildBox ):
                 #if not failed:
                     #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
             else:
-                prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                try: prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                except KeyError: prevBBB = None
                 if prevBBB is None: failed = True
                 else:
                     prevIntC = self.getNumChapters( prevBBB )

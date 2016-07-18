@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-12' # by RJH
+LastModifiedDate = '2016-07-17' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -53,7 +53,7 @@ from tkinter.ttk import Style, Frame, Button, Combobox, Label, Entry
 from BiblelatorGlobals import APP_NAME, DEFAULT, START, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
-        BIBLE_GROUP_CODES, \
+        BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, findUsername, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
@@ -291,7 +291,8 @@ class Application( Frame ):
         self.genericBookList = self.genericBibleOrganisationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganisationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
+                                        else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
@@ -2087,7 +2088,7 @@ class Application( Frame ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("getNumVerses( {}, {} )").format( BBB, C ) )
 
-        #if C=='0' or C==0: return 99
+        #if C=='0' or C==0: return MAX_PSEUDOVERSES
         #try: return self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
         #except KeyError: return 0
     ## end of Application.getNumVerses
@@ -2249,7 +2250,7 @@ class Application( Frame ):
         infoString = 'Current location:\n' \
                  + '  {}\n'.format( self.currentVerseKey.getShortText() ) \
                  + '  {} verses in chapter\n'.format( self.maxVersesThisChapter ) \
-                 + '  {} chapters in book\n'.format( self.maxChaptersThisBook ) \
+                 + '  {} chapters in book\n'.format( "No" if self.maxChaptersThisBook is None else self.maxChaptersThisBook ) \
                  + '\nCurrent references:\n' \
                  + '  A: {}\n'.format( self.GroupA_VerseKey.getShortText() ) \
                  + '  B: {}\n'.format( self.GroupB_VerseKey.getShortText() ) \
@@ -2386,8 +2387,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("gotoBCV( {} {}:{} {} ) = {} from {}").format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
 
-        self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
         self.setWaitStatus( _("Moving to new Bible reference ({} {}:{})…").format( BBB, C, V ) )
+        self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
         self.update_idletasks() # Try to make the main window respond even before child windows can react
         if BibleOrgSysGlobals.debugFlag:
             if self.bookNumberTable[BBB] > 0: # Preface and stuff might fail this

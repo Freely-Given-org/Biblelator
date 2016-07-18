@@ -82,10 +82,10 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-06' # by RJH
+LastModifiedDate = '2016-07-18' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -97,10 +97,10 @@ from collections import OrderedDict
 import tkinter as tk
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, MAX_PSEUDOVERSES, errorBeep, \
                                 BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES
 #from TextBoxes import BibleBox
-from ChildWindows import BibleWindow, ResultWindow, HTMLWindow
+from ChildWindows import BibleWindow, FindResultWindow, HTMLWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
 from BiblelatorDialogs import showinfo, showerror, GetBibleSearchTextDialog, GetBibleBookRangeDialog
 
@@ -182,7 +182,8 @@ class BibleResourceWindow( BibleWindow ):
         # Set-up our Bible system and our callables
         self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if b=='UNK' or c=='0' or c==0 else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if b=='UNK' or c=='0' or c==0 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
@@ -977,11 +978,12 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("InternalBibleResourceWindow.getContextVerseData( {} )").format( verseKey ) )
+
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
-            except KeyError:
+            except KeyError: # Could be after a verse-bridge ???
                 if verseKey.getChapterNumber() != '0':
-                    logging.critical( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError!") \
+                    logging.error( exp("InternalBibleResourceWindow.getContextVerseData for {} {} got a KeyError") \
                                                                 .format( self.windowType, verseKey ) )
     # end of InternalBibleResourceWindow.getContextVerseData
 
@@ -1035,7 +1037,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                 key = self.BibleFindOptionsDict['searchText']
                 showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
-                self.resultWindow = ResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList )
+                self.FindResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList )
         self.parentApp.setReadyStatus()
     # end of InternalBibleResourceWindow.doBibleFind
 

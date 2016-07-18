@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-12' # by RJH
+LastModifiedDate = '2016-07-18' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -103,6 +103,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.projectName = 'NoProjectName'
         InternalBibleResourceWindow.__init__( self, parentApp, None )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
+        #self.overrideredirect( 1 ) # Remove the title bar
 
         # Now we need to override a few critical variables
         self.genericWindowType = 'BibleEditor' # from 'TextEditor'
@@ -595,7 +596,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         if not errorMessage and not warningMessage: # and not suggestionMessage:
             adjText = editedText
-            if adjText and adjText[-1]=='\n': adjText = adjText[:-1] # Remove the final newline character
+            if adjText and adjText[-1] in ('\n','\r',): adjText = adjText[:-1] # Remove the final newline character
             for line in adjText.split( '\n' ):
                 #print( "checkUSFMTextForProblems got line: {!r}".format( line ) )
                 if not line:
@@ -629,7 +630,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                     if ixr == -1: # no matching pair
                         warningMessage = _("Found {!r} without matching {!r} in USFM text").format( pairStart, pairEnd ); break
                 if warningMessage: break # from outer loop
-                ixr = 99999 # No work backwards
+                ixr = 99999 # Now work backwards
                 while True:
                     ixr = editedText.rfind( pairEnd, 0, ixr )
                     if ixr == -1: break
@@ -763,7 +764,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 if data == self.verseCache[verseKeyHash]:
                     logging.critical( "cacheBook: We have an identical duplicate {}: {!r}".format( verseKeyHash, data ) )
                 else:
-                    logging.critical( "cacheBook: We have a duplicate {} -- appending {!r} to {!r}" \
+                    logging.critical( "cacheBook: We have a duplicate {} -- appending {!r} to previous {!r}" \
                                     .format( verseKeyHash, data, self.verseCache[verseKeyHash] ) )
                     data = self.verseCache[verseKeyHash] + '\n' + data
             self.verseCache[verseKeyHash] = data.replace( '\n\n', '\n' ) # Weed out blank lines
@@ -772,7 +773,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         def getMarkerText( blIndex ):
             """
             Given an index to (nonlocal) bookLines,
-                get that line and break into marker, text.
+                get that line and break into 2-tuple (marker,text).
             """
             gmtLine = bookLines[blIndex]
             #marker = text = None
@@ -793,15 +794,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         for j in range( 0, numLines): # Do it this way to make it easy to look-ahead
             line = bookLines[j]
             marker, text = getMarkerText( j )
-            #if line and line[0] == '\\':
-                #try: marker, text = line[1:].split( None, 1 )
-                #except ValueError: marker, text = line[1:].split( None, 1 )[0], ''
-            #else: marker, text = None, line
             #print( "cacheBook line", repr(marker), repr(text) )
 
             if marker in ( 'c', 'C' ):
                 newC = ''
-                for char in line[3:]:
+                for char in line[3:]: # Get chapter number digits
                     if char.isdigit(): newC += char
                     else: break
                 if newC:
@@ -841,9 +838,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                             currentEntry = ''
                             startedVerseEarly = True
             elif C=='0' and line.startswith( '\\' ):
-                if currentEntry:
-                    halt # Should never happen
-                    addCacheEntry( BBB, C, V, currentEntry )
+                if currentEntry: # Should only happen if the file has blank lines before any chapter markers
+                    assert currentEntry == '\n' # Warn programmer if it's anything different
+                    addCacheEntry( BBB, C, V, currentEntry ) # Will give a duplicate entry error adding to newline
                     currentEntry = ''
                 addCacheEntry( BBB, C, V, line + '\n' )
                 V = str( int(V) + 1 )
@@ -1025,6 +1022,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             if self.bookText is not None: self.cacheBook( newBBB )
 
         # Now load the desired part of the book into the edit window
+        #   while at the same time, setting self.bookTextBefore and self.bookTextAfter
+        #   (so that combining these three components, would reconstitute the entire file).
         if self.bookText is not None:
             self.loading = True # Turns off USFMEditWindow onTextChange notifications for now
             self.clearText() # Leaves the text box enabled
@@ -1070,6 +1069,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         else:
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
                                                 currentVerse=thisC==intC and thisV==intV )
+                # Try to set the cursor to the end of the first line
+                #self.textBox.mark_set( tk.INSERT, '1.999' )
+                savedCursorPosition = '1.end'
 
             elif self.contextViewMode == 'BySection':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
@@ -1191,7 +1193,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             # We load and search/replace the actual text files
             self.BibleReplaceOptionsDict, resultSummaryDict = searchReplaceText( self.internalBible, self.BibleReplaceOptionsDict, self.searchReplaceCallback )
             #print( "Got searchReplaceResults", resultSummaryDict )
-            if resultSummaryDict['numFinds'] == 0:
+            if 'hadRegexError' in resultSummaryDict and resultSummaryDict['hadRegexError']:
+                errorBeep()
+                showerror( self, APP_NAME, _("Regex error with {!r} or {!r}") \
+                    .format( self.BibleReplaceOptionsDict['searchText'], self.BibleReplaceOptionsDict['replaceText'] ) )
+            elif resultSummaryDict['numFinds'] == 0:
                 errorBeep()
                 key = self.BibleReplaceOptionsDict['searchText']
                 showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )

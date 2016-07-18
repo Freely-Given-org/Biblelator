@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-08' # by RJH
+LastModifiedDate = '2016-07-18' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -91,7 +91,7 @@ from tkinter.ttk import Frame, Button, Scrollbar
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
-                parseWindowSize
+                MAX_PSEUDOVERSES, parseWindowSize
 from BiblelatorDialogs import showerror, showinfo, SelectResourceBoxDialog, RenameResourceCollectionDialog
 from BibleResourceWindows import BibleResourceWindow
 from TextBoxes import BibleBox
@@ -184,7 +184,8 @@ class BibleResourceBox( Frame, BibleBox ):
         # Set-up our default Bible system and our callables
         self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
@@ -446,9 +447,11 @@ class SwordBibleResourceBox( BibleResourceBox ):
 
 class DBPBibleResourceBox( BibleResourceBox ):
     """
+    This is a box displaying a versified Bible that was downloaded from the online Digital Bible Platform.
     """
     def __init__( self, parentWindow, moduleAbbreviation ):
         """
+        Given a Bible abbreviation, try to set up a connection to the online Digital Bible Platform.
         """
         if BibleOrgSysGlobals.debugFlag:
             print( "DBPBibleResourceBox.__init__( {}, {} )".format( parentWindow, moduleAbbreviation ) )
@@ -475,6 +478,7 @@ class DBPBibleResourceBox( BibleResourceBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("DBPBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
+
         if self.DBPModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 return self.DBPModule.getContextVerseData( verseKey )
@@ -485,6 +489,7 @@ class DBPBibleResourceBox( BibleResourceBox ):
 
 class InternalBibleResourceBox( BibleResourceBox ):
     """
+    This is a box displaying a versified Bible that was loaded from the internal file system.
     """
     def __init__( self, parentWindow, modulePath ):
         """
@@ -522,11 +527,12 @@ class InternalBibleResourceBox( BibleResourceBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("InternalBibleResourceBox.getContextVerseData( {} )").format( verseKey ) )
+
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError: # Could be after a verse-bridge ???
                 if verseKey.getChapterNumber() != '0':
-                    logging.critical( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError!") \
+                    logging.error( exp("InternalBibleResourceBox.getContextVerseData for {} {} got a KeyError") \
                                                                 .format( self.boxType, verseKey ) )
     # end of InternalBibleResourceBox.getContextVerseData
 # end of InternalBibleResourceBox class

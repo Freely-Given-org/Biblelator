@@ -44,10 +44,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-06'
+LastModifiedDate = '2016-07-18'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1483,7 +1483,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         elif bookResultNumber == 4: #self.optionsDict['bookList'] should already be set
             pass
         else:
-            halt # Unexpected result value
+            if BibleOrgSysGlobals.debugFlag: halt # Unexpected result value
 
         # Checkboxes
         #self.optionsDict['caselessFlag'] = not self.mcaseVar.get()
