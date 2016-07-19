@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-18' # by RJH
+LastModifiedDate = '2016-07-19' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -494,13 +494,21 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         except KeyboardInterrupt:
             print( "USFMEditWindow: Got keyboard interrupt (1) -- saving my file…" )
             self.doSave() # Sometimes the above seems to lock up
+            self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+            self.onTextNoChangeID = None
             return
 
         if self.textBox.edit_modified():
             self.bookTextModified = True
 
             # Check the text for USFM errors
-            self.checkUSFMTextForProblems()
+            try: self.checkUSFMTextForProblems()
+            except KeyboardInterrupt:
+                print( "USFMEditWindow: Got keyboard interrupt (2) -- saving my file…" )
+                self.doSave() # Sometimes the above seems to lock up
+                self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+                self.onTextNoChangeID = None
+                return
 
         # Try to determine the CV mark
         # It seems that we have to try various strategies because
@@ -533,7 +541,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         # Check the text for formatting errors
         try: self.checkUSFMTextForProblems( includeFormatting=True )
         except KeyboardInterrupt:
-            print( "USFMEditWindow: Got keyboard interrupt (2) -- saving my file" )
+            print( "USFMEditWindow: Got keyboard interrupt (3) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow.onTextNoChange
 
@@ -809,7 +817,17 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             elif marker in sectionHeadings:
                 if j<numLines-2:
                     marker1, text1 = getMarkerText( j+1 )
-                    if marker1 in BibleOrgSysGlobals.USFMParagraphMarkers and not text1:
+                    if marker1 in ('r','sr','mr',):
+                        marker2, text2 = getMarkerText( j+2 )
+                        if marker2 in BibleOrgSysGlobals.USFMParagraphMarkers and not text2:
+                            marker3, text3 = getMarkerText( j+3 )
+                            if marker3 in ( 'v', 'V' ):
+                                # Start a new verse entry here if we have a section heading, cross-reference, empty paragraph marker, then the next verse
+                                if currentEntry: # Save the previous CV entry
+                                    addCacheEntry( BBB, C, V, currentEntry )
+                                    currentEntry = ''
+                                    startedVerseEarly = True
+                    elif marker1 in BibleOrgSysGlobals.USFMParagraphMarkers and not text1:
                         marker2, text2 = getMarkerText( j+2 )
                         if marker2 in ( 'v', 'V' ):
                             # Start a new verse entry here if we have a section heading, empty paragraph marker, then the next verse

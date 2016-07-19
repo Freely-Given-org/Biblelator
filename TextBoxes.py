@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-17' # by RJH
+LastModifiedDate = '2016-07-19' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.38'
@@ -914,7 +914,7 @@ class BibleBox( ChildBox ):
 
                 if fVM == 'Unformatted':
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
-                    elif marker in ('intro','chapters',): pass # Ignore added markers for now
+                    elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
                     else:
                         if isinstance( entry, str ): # from a Bible text editor window
                             #print( "marker={!r}, entry={!r}".format( marker, entry ) )
@@ -957,7 +957,7 @@ class BibleBox( ChildBox ):
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('intro','chapters',):
+                    elif marker in ('intro','chapters','list',):
                         assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
