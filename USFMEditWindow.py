@@ -772,8 +772,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 if data == self.verseCache[verseKeyHash]:
                     logging.critical( "cacheBook: We have an identical duplicate {}: {!r}".format( verseKeyHash, data ) )
                 else:
-                    logging.critical( "cacheBook: We have a duplicate {} -- appending {!r} to previous {!r}" \
-                                    .format( verseKeyHash, data, self.verseCache[verseKeyHash] ) )
+                    logging.critical( "cacheBook: We have a duplicate {} -- already had {!r} and now appending {!r}" \
+                                    .format( verseKeyHash, self.verseCache[verseKeyHash], data ) )
                     data = self.verseCache[verseKeyHash] + '\n' + data
             self.verseCache[verseKeyHash] = data.replace( '\n\n', '\n' ) # Weed out blank lines
         # end of USFMEditWindow.cacheBook.addCacheEntry
