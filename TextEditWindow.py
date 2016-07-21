@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-11' # by RJH
+LastModifiedDate = '2016-07-21' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -103,6 +103,7 @@ class TextEditWindow( ChildWindow ):
 
         self.loading = True
         self.onTextNoChangeID = None
+        self.editStatus = 'Editable'
 
         # Make our own custom textBox which allows a callback function
         #   Delete these four lines and the callback line if you don't need either autocorrect or autocomplete
@@ -325,8 +326,8 @@ class TextEditWindow( ChildWindow ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("TextEditWindow.refreshTitle()") )
 
-        self.title( "{}[{}] {} ({}) Editable".format( '*' if self.modified() else '',
-                                            _("Text"), self.filename, self.folderPath ) )
+        self.title( "{}[{}] {} ({}) {}".format( '*' if self.modified() else '',
+                                            _("Text"), self.filename, self.folderPath, self.editStatus ) )
         self.refreshTitleContinue()
     # end if TextEditWindow.refreshTitle
 
@@ -984,7 +985,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow._checkFilepath()") )
 
         if not os.path.isfile( self.filepath ):
-            showerror( self, APP_NAME, _("No such file path: {!r}").format( self.filepath ) )
+            showerror( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
             return False
         if not os.access( self.filepath, os.R_OK ):
             showerror( self, APP_NAME, _("No permission to read {!r} in {!r}").format( self.filename, self.folderPath ) )

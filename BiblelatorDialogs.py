@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-18'
+LastModifiedDate = '2016-07-21'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.38'
@@ -705,9 +705,11 @@ class GetNewCollectionNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, existingNames, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
-        print( "eNs", self.existingNames )
+        print( "GetNewCollectionNameDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
     # end of GetNewCollectionNameDialog.__init__
 
@@ -762,9 +764,11 @@ class RenameResourceCollectionDialog( ModalDialog ):
     Get the new name for a resource collection.
     """
     def __init__( self, parent, existingName, existingNames, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "RenameResourceCollectionDialog…" )
         self.existingName, self.existingNames = existingName, existingNames
-        print( "eNs", self.existingNames )
+        print( "RenameResourceCollectionDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
     # end of RenameResourceCollectionDialog.__init__
 

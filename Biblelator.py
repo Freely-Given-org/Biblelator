@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-17' # by RJH
+LastModifiedDate = '2016-07-21' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -2871,8 +2871,8 @@ class Application( Frame ):
 
         with open( self.usageLogPath, 'at', encoding='utf-8' ) as logFile: # Append puts the file pointer at the end of the file
             if dateString:
-                logFile.write( "\nNew start or new day: {} for {!r} as {!r} on {!r}\n". \
-                    format( dateString, self.currentUserName, self.currentUserRole, self.currentProjectName ) )
+                logFile.write( "\nNew start or new day: {} for {!r} as {!r} on {!r} on {}\n". \
+                    format( dateString, self.currentUserName, self.currentUserRole, self.currentProjectName, ProgNameVersion ) )
             if timeString:
                 if timeString.endswith( '00' ):
                     logFile.write( "New time: {} for {}\n".format( timeString, dateString ) )
@@ -3171,6 +3171,7 @@ def main( homeFolderPath, loggingFolderPath ):
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
         #print( 'linux processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
+            # NOTE: Following line assumes that all Python interpreters contain the string 'python'
             if 'python' in line and ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
                 numMyInstancesFound += 1
@@ -3190,7 +3191,10 @@ def main( homeFolderPath, loggingFolderPath ):
             #print( "tasklist line", repr(line) )
             if ProgName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
-                numMyInstancesFound += 1
+                # Could possibly check that the line startswith 'cmd.exe' but would need to test that on all Windows versions
+                # NOTE: If .py files have an association, 'python.exe' doesn't necessarily appear in the line
+                if 'python.exe' in line or not line.startswith( 'notepad' ): # includes Notepad++
+                    numMyInstancesFound += 1
             if 'Paratext.exe' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numParatextInstancesFound += 1

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-19' # by RJH
+LastModifiedDate = '2016-07-21' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -45,7 +45,7 @@ from tkinter.ttk import Style
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, errorBeep
-from BiblelatorDialogs import showerror, showinfo, \
+from BiblelatorDialogs import showerror, showinfo, OkCancelDialog, \
                                 YesNoDialog, GetBibleReplaceTextDialog, ReplaceConfirmDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
@@ -99,6 +99,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
+        self.editStatus = 'Editable'
         self.bookTextModified = False
         self.projectName = 'NoProjectName'
         InternalBibleResourceWindow.__init__( self, parentApp, None )
@@ -191,10 +192,10 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         referenceBit = '' if self.currentVerseKey is None else '{} {}:{} ' \
             .format( self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber() )
-        self.title( '{}[{}] {} {}({}) Editable {}'.format( '*' if self.modified() else '',
+        self.title( '{}[{}] {} {}({}) {} {}'.format( '*' if self.modified() else '',
                                     self.groupCode, self.projectName,
                                     '' if self.currentVerseKey is None else referenceBit,
-                                    self.editMode, self.contextViewMode ) )
+                                    self.editMode, self.editStatus, self.contextViewMode ) )
         Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
         self.refreshTitleContinue() # handle Autosave
     # end if USFMEditWindow.refreshTitle
@@ -733,15 +734,20 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             except (AttributeError,KeyError) as err: # we have no books, or at least, not this book!
                 #print( "  getBookDataFromDisk error: {}".format( err ) )
                 #return None
-                self.bookFilename = '{}-{}.USFM'.format( BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber(BBB),
-                            BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation(BBB) )
-            self.bookFilepath = os.path.join( self.internalBible.sourceFolder, self.bookFilename )
-            if self.setFilepath( self.bookFilepath ): # For title displays, etc.
-                #print( exp('gVD'), BBB, repr(self.bookFilepath), repr(self.internalBible.encoding) )
-                bookText = open( self.bookFilepath, 'rt', encoding=self.internalBible.encoding ).read()
-                if bookText == None:
-                    showerror( self, APP_NAME, 'Could not decode and open file ' + self.bookFilepath + ' with encoding ' + self.internalBible.encoding )
-                return bookText
+                uNumber, uAbbrev = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber(BBB), BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation(BBB)
+                if uNumber is None or uAbbrev is None: self.bookFilename = None
+                else: self.bookFilename = '{}-{}.USFM'.format( uNumber, uAbbrev )
+            if self.bookFilename:
+                self.bookFilepath = os.path.join( self.internalBible.sourceFolder, self.bookFilename )
+                if self.setFilepath( self.bookFilepath ): # For title displays, etc.
+                    #print( exp('gVD'), BBB, repr(self.bookFilepath), repr(self.internalBible.encoding) )
+                    bookText = open( self.bookFilepath, 'rt', encoding=self.internalBible.encoding ).read()
+                    if bookText == None:
+                        showerror( self, APP_NAME, _("Couldn't decode and open file {} with encoding {}").format( self.bookFilepath, self.internalBible.encoding ) )
+                    return bookText
+            else:
+                showerror( self, APP_NAME, _("Couldn't determine USFM filename for {!r} book").format( BBB ) )
+                return None
     # end of USFMEditWindow.getBookDataFromDisk
 
 
@@ -761,9 +767,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if clearFirst:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  Clearing cache first!" )
             self.verseCache = OrderedDict()
-
+        
         def addCacheEntry( BBB, C, V, data ):
             """
+            Check for duplicates before
+                adding a new BCV entry to the book cache.
             """
             #print( "addCacheEntry", BBB, C, V, data )
             assert BBB and C and V and data
@@ -1025,19 +1033,29 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #markAsUnmodified = True
         if newBBB != oldBBB: # we've switched books
             if self.bookTextModified: self.doSave() # resets bookTextModified flag
+            self.editStatus = 'Editable'
             self.bookText = self.getBookDataFromDisk( newBBB )
             if self.bookText is None:
-                showerror( self, _("USFM Editor"), _("We need to create the book: {} in {}").format( newBBB, self.internalBible.sourceFolder ) )
-                #ocd = OkCancelDialog( self, _("We need to create the book: {}".format( newBBB ) ), title=_('Create?') )
-                #print( "ocdResult", repr(ocd.result) )
-                #if ocd.result == True: # Ok was chosen
-                self.setFilename( '{}-{}.USFM'.format( BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber(newBBB),
-                            BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation(newBBB) ), createFile=True )
-                self.bookText = createEmptyUSFMBookText( newBBB, self.getNumChapters, self.getNumVerses )
-                #markAsUnmodified = False
-                self.bookTextModified = True
-                #self.doSave() # Save the chapter/verse markers (blank book outline) ## Doesn't work -- saves a blank file
-            if self.bookText is not None: self.cacheBook( newBBB )
+                uNumber, uAbbrev = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber(newBBB), BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation(newBBB)
+                if uNumber is None or uAbbrev is None: # no use asking about creating the book
+                    # NOTE: I think we've already shown this error in getBookDataFromDisk()
+                    #showerror( self, APP_NAME, _("Couldn't determine USFM filename for {!r} book").format( newBBB ) )
+                    self.clearText() # Leaves the text box enabled
+                    self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
+                    self.bookTextModified = False
+                    self.textBox.config( state=tk.DISABLED ) # Don't allow editing
+                    self.editStatus = 'DISABLED'
+                else:
+                    #showerror( self, _("USFM Editor"), _("We need to create the book: {} in {}").format( newBBB, self.internalBible.sourceFolder ) )
+                    ocd = OkCancelDialog( self, _("We need to create the book: {} in {}".format( newBBB, self.internalBible.sourceFolder ) ), title=_('Create?') )
+                    print( "ocdResult", repr(ocd.result) )
+                    if ocd.result == True: # Ok was chosen
+                        self.setFilename( '{}-{}.USFM'.format( uNumber, uAbbrev ), createFile=True )
+                        self.bookText = createEmptyUSFMBookText( newBBB, self.getNumChapters, self.getNumVerses )
+                        #markAsUnmodified = False
+                        self.bookTextModified = True
+                        #self.doSave() # Save the chapter/verse markers (blank book outline) ## Doesn't work -- saves a blank file
+            else: self.cacheBook( newBBB )
 
         # Now load the desired part of the book into the edit window
         #   while at the same time, setting self.bookTextBefore and self.bookTextAfter
@@ -1157,7 +1175,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
         try: self.textBox.see( desiredMark )
-        except tk.TclError: print( exp("USFMEditWindow.updateShownBCV couldn't find {}").format( repr( desiredMark ) ) )
+        except tk.TclError: print( exp("USFMEditWindow.updateShownBCV couldn't find {} mark {!r}").format( newVerseKey.getBBB(), desiredMark ) )
         self.lastCVMark = desiredMark
 
         # Put the cursor back where it was (if necessary)
