@@ -3276,14 +3276,16 @@ if __name__ == '__main__':
         #BibleOrgSysGlobals.maxProcesses = 1
     #print( 'MP', BibleOrgSysGlobals.maxProcesses )
 
-    if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???
-        print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
-        print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
-        print( exp("Running main…") )
+    if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag:
+        # Why don't these show in Windows until the program closes?
+        #   Ah, coz of TextIOWrapper above.
+        print( exp("Platform is"), sys.platform ) # e.g., 'linux, or 'win32' for my Windows-10 (64-bit)
+        print( exp("OS name is"), os.name ) # e.g., 'posix', or 'nt' for my Windows-10
+        if sys.platform == 'linux': print( exp("OS uname is"), os.uname() ) # gives about five fields
         import locale
-        print( "default locale", locale.getdefaultlocale() )
-        print( "preferredEncoding", locale.getpreferredencoding() )
+        print( "default locale", locale.getdefaultlocale() ) # ('en_NZ', 'cp1252') for my Windows-10
+        print( "preferredEncoding", locale.getpreferredencoding() ) # cp1252 for my Windows-10
+        print( exp("About to run main()…") )
 
     main( homeFolderPath, loggingFolderPath )
 

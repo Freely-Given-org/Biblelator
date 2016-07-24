@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-21'
+LastModifiedDate = '2016-07-24'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.38'
@@ -282,8 +282,13 @@ class BookNameDialog( ModalDialog ):
 
 class NumberButtonDialog( ModalDialog ):
     """
+    A dialog box which allows the user to select a number from a given range.
+    
+    This is used in touch mode to select chapter and/or verse numbers.
     """
     def __init__( self, parent, startNumber, endNumber, currentNumber ): #, message, title=None ):
+        """
+        """
         #print( 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
         self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
         ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )

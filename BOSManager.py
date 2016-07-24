@@ -23,13 +23,16 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow viewing of various BOS (Bible Organizational System) subsystems
+Tabbed dialog box to allow viewing of various BOS (Bible Organizational System) subsystems
     such as versification systems, books names systems, etc.
+    
+This is opened as a TopLevel window in Biblelator
+    but can also be run as a stand-alone program.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-17' # by RJH
+LastModifiedDate = '2016-07-24' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator

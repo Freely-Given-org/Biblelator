@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-07-18 RJH
+Last updated: 2016-07-24 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,9 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Do Tools/Options for edit window to set autocomplete mode, etc.
+* Can't open NET Bible in Windows (encode errors)
+* Make edit window status bar default (if screen is big enough)
 * When did HTML stop working?
 * Don't load entire Bible if only searching/replacing in current book
 * Clicking in edit window while still starting can cause a spinbox error

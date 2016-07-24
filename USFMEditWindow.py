@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-21' # by RJH
+LastModifiedDate = '2016-07-24' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -50,7 +50,7 @@ from BiblelatorDialogs import showerror, showinfo, OkCancelDialog, \
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
-#from TextBoxes import CustomText
+from ModalDialog import ModalDialog
 from ChildWindows import HTMLWindow
 from BibleResourceWindows import InternalBibleResourceWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
@@ -78,6 +78,77 @@ def exp( messageString ):
         nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
+
+
+
+class ToolsOptionsDialog( ModalDialog ):
+    """
+    """
+    from tkinter.ttk import Notebook
+    #def __init__( self, parent ): #, message, title=None ):
+        #print( 'ToolsOptionsDialog' )
+        #self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
+        #ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
+    ## end of ToolsOptionsDialog.__init__
+
+
+    def buttonBox( self ):
+        """
+        Do our custom buttonBox (without an ok button)
+        """
+        box = Frame( self )
+        w = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        w.pack( side=tk.LEFT, padx=5, pady=5 )
+        self.bind( '<Escape>', self.cancel )
+        box.pack()
+    # end of ToolsOptionsDialog.buttonBox
+
+
+    def body( self, master ):
+        """
+        Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
+        """
+        buttonsAcross = 5
+        if self.endNumber > 90: buttonsAcross = 8
+        elif self.endNumber > 30: buttonsAcross = 6
+        xPad, yPad = 6, 8
+
+        grid=Frame( master )
+        grid.grid( column=0, row=7, columnspan=2, sticky=tk.N+tk.S+tk.E+tk.W )
+        tk.Grid.rowconfigure( master, 7, weight=1 )
+        tk.Grid.columnconfigure( master, 0, weight=1 )
+
+        Style().configure( 'n.TButton', background='lightgreen' )
+        Style().configure( 'selectedN.TButton', background='orange' )
+        for j in range( self.startNumber, self.endNumber+1 ):
+            row, col = j // buttonsAcross, j % buttonsAcross
+            #print( j, row, col )
+            Button( master, width=3, text=j,
+                                style='selectedN.TButton' if j==self.currentNumber else 'n.TButton', \
+                                command=lambda which=j: self.apply(which) ) \
+                        .grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+        #col += 1
+        #if col >= buttonsAcross: row +=1; col=0
+        #Button( master, text=_("Cancel"), command=lambda which='CANCEL': self.apply(which) ) \
+                    #.grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+
+        for x in range(10):
+            tk.Grid.columnconfigure( master, x, weight=1 )
+        for y in range(5):
+            tk.Grid.rowconfigure( master, y, weight=1 )
+        #for j,bookName in enumerate(self.bookNameList):
+            #Button( master, width=6, text=bookName, style='bN.TButton', command=lambda which=j: self.apply(which) ) \
+                        #.grid()
+        #return 0
+    # end of ToolsOptionsDialog.body
+
+
+    def apply( self, buttonNumber ):
+        #if buttonNumber!='CANCEL': self.result = buttonNumber
+        self.result = buttonNumber
+        self.cancel() # We want to exit the dialog immediately
+    # end of ToolsOptionsDialog.apply
+# end of class ToolsOptionsDialog
 
 
 
@@ -357,7 +428,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
         toolsMenu.add_command( label=_('Check project…'), underline=0, command=self.doCheckProject )
         toolsMenu.add_separator()
-        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.doAdjustOptions )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
@@ -414,6 +485,21 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #Button( toolbar, text='Show All', command=self.showAll ).pack( side=tk.LEFT )
         #Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=tk.LEFT )
     ## end of USFMEditWindow.createToolBar
+
+
+    def doAdjustOptions( self ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'doAdjustOptions' )
+        logging.debug( exp("doAdjustOptions()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doAdjustOptions()") )
+            self.parentApp.setDebugText( "doAdjustOptions…" )
+        #self.parentApp.setWaitStatus( "Preparing autocomplete words…" )
+
+        tOD = ToolsOptionsDialog( self ) # This is a modal dialog
+    # end of USFMEditWindow.doAdjustOptions
+
 
 
     def prepareAutocomplete( self ):
