@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-07-18 RJH
+Last updated: 2016-07-21 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -43,15 +43,12 @@ Biblelator bugs / unfinished
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
-* What happens if scripture file contains conflicts <<< ==== >>>>
 * Need to set-up some special .ini files for testing (with every kind of window/box open)
 * Systematically work through all menus
 
 
 BOS bugs
-* Doesn't create a log file on Windows
-* Why do warnings show on Windows console (yet not on Linux)?
-* Don't know about Sword NRSVA versification yet
+* Doesn't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
 
 
@@ -120,7 +117,7 @@ Biblelator stuff
 * Make a full project properties dialog and do project setting properly
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
-* Release version 0.4
+* Release version 0.40
 * Include some sample folders and sample ini files
 * Setting max window sizes prevents maximizing -- is this what we really want?
 * Consider when the same project/file is opened multiple times
@@ -135,7 +132,7 @@ Biblelator stuff
 * Improve Strongs (lexicon) HTML display
 * Look at doing some windows updates in idle time
 * Make a splash screen (turned off/on in settings file)
-* Release version 0.5
+* Release version 0.50
 * Allow users to "log-on" with usernames (passwords?)
 * Allow setting of roles (administrator/project leader/superintendent/overseer, translator, consultant/reviewer/archivist/typesetter, contributor/friend/critic/observer)
 * Make logging more useful
