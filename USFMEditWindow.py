@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-21' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -41,16 +41,16 @@ import os.path, logging
 from collections import OrderedDict
 
 import tkinter as tk
-from tkinter.ttk import Style
+from tkinter.ttk import Style, Notebook, Frame, Label, Radiobutton
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, errorBeep
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, errorBeep
 from BiblelatorDialogs import showerror, showinfo, OkCancelDialog, \
                                 YesNoDialog, GetBibleReplaceTextDialog, ReplaceConfirmDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
-#from TextBoxes import CustomText
+from ModalDialog import ModalDialog
 from ChildWindows import HTMLWindow
 from BibleResourceWindows import InternalBibleResourceWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
@@ -81,6 +81,88 @@ def exp( messageString ):
 
 
 
+class ToolsOptionsDialog( ModalDialog ):
+    """
+    """
+    #def __init__( self, parent ): #, message, title=None ):
+        #print( 'ToolsOptionsDialog' )
+        #self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
+        #ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
+    ## end of ToolsOptionsDialog.__init__
+
+
+    #def buttonBox( self ):
+        #"""
+        #Do our custom buttonBox (without an ok button)
+        #"""
+        #box = Frame( self )
+        #w = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        #w.pack( side=tk.LEFT, padx=5, pady=5 )
+        #self.bind( '<Escape>', self.cancel )
+        #box.pack()
+    ## end of ToolsOptionsDialog.buttonBox
+
+
+    acValues = None, 'Bible', 'BibleBook', 'Dictionary1', 'Dictionary2'
+
+    def body( self, master ):
+        """
+        Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
+        """
+        self.notebook = Notebook( master )
+
+        # Adding Frames as pages for the ttk.Notebook
+
+        # General page
+        print( "Create general page" )
+        self.generalPage = Frame( self.notebook )
+        mcaseCb = tk.Checkbutton( self.generalPage, text=_("Show status bar"), variable=self.parent._showStatusBarVar )
+        mcaseCb.grid( row=0, column=0 )
+
+        # Autocomplete page
+        print( "Create autocomplete page" )
+        self.autocompletePage = Frame( self.notebook )
+
+        Label( self.autocompletePage, text=_("Autocomplete mode: Use words from") ).grid( row=0 )
+        self.selectVariable1 = tk.IntVar()
+        acValue = ToolsOptionsDialog.acValues.index( self.parent.autocompleteMode )
+        self.selectVariable1.set( acValue + 1 )
+        self.rb1a = Radiobutton( self.autocompletePage, text=_("None/Off"), variable=self.selectVariable1, value=1 )
+        self.rb1a.grid( row=0, column=1, sticky=tk.W )
+        self.rb1a = Radiobutton( self.autocompletePage, text=_("Current Bible ({})").format( self.parent.projectName ), variable=self.selectVariable1, value=2 )
+        self.rb1a.grid( row=1, column=1, sticky=tk.W )
+        self.rb1a = Radiobutton( self.autocompletePage, text=_("Current Bible book ({})").format( self.parent.currentVerseKey.getBBB() ), variable=self.selectVariable1, value=3 )
+        self.rb1a.grid( row=2, column=1, sticky=tk.W )
+        self.rb1b = Radiobutton( self.autocompletePage, text=_("Dictionary1"), variable=self.selectVariable1, value=4 )
+        self.rb1b.grid( row=3, column=1, sticky=tk.W )
+        self.rb1c = Radiobutton( self.autocompletePage, text=_("Dictionary2"), variable=self.selectVariable1, value=5 )
+        self.rb1c.grid( row=4, column=1, sticky=tk.W )
+
+        print( "Add all pages" )
+        self.notebook.add( self.generalPage, text=_("General") )
+        self.notebook.add( self.autocompletePage, text=_("AutoComplete") )
+        self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
+    # end of ToolsOptionsDialog.body
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        existingAutocompleteMode = self.parent.autocompleteMode
+        self.parent.autocompleteMode = ToolsOptionsDialog.acValues[self.selectVariable1.get()-1]
+        if self.parent.autocompleteMode != existingAutocompleteMode:
+            print( "Switching to {!r} autocomplete mode (from {!r})".format( self.parent.autocompleteMode, existingAutocompleteMode ) )
+
+        self.result = True
+    # end of ToolsOptionsDialog.apply
+# end of class ToolsOptionsDialog
+
+
+
 class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
     """
     self.genericWindowType will be BibleEditor
@@ -98,6 +180,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( USFMBible.sourceFolder ) )
 
         # Set some dummy values required soon (esp. by refreshTitle)
+        self.defaultContextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # BeforeAndAfter
+        self.defaultFormatViewMode = 'Unformatted' # Only option done so far
         self.editMode = DEFAULT
         self.editStatus = 'Editable'
         self.bookTextModified = False
@@ -110,7 +194,6 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.genericWindowType = 'BibleEditor' # from 'TextEditor'
         self.windowType = 'USFMBibleEditWindow' # from 'PlainTextEditWindow'
         if editMode is not None: self.editMode = editMode
-        self.formatViewMode = 'Unformatted' # Only option done so far
         self.verseCache = OrderedDict()
 
         #self.doToggleStatusBar( True ) # defaults to off in ChildWindow
@@ -193,9 +276,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         referenceBit = '' if self.currentVerseKey is None else '{} {}:{} ' \
             .format( self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber() )
         self.title( '{}[{}] {} {}({}) {} {}'.format( '*' if self.modified() else '',
-                                    self.groupCode, self.projectName,
+                                    self._groupCode, self.projectName,
                                     '' if self.currentVerseKey is None else referenceBit,
-                                    self.editMode, self.editStatus, self.contextViewMode ) )
+                                    self.editMode, self.editStatus, self._contextViewMode ) )
         Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
         self.refreshTitleContinue() # handle Autosave
     # end if USFMEditWindow.refreshTitle
@@ -314,33 +397,33 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Book'), underline=0, command=self.notWrittenYet )
         gotoMenu.add_separator()
-        self._groupRadioVar.set( self.groupCode )
+        self._groupRadioVar.set( self._groupCode )
         gotoMenu.add_radiobutton( label=_('Group A'), underline=6, value='A', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group B'), underline=6, value='B', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
-        if   self.contextViewMode == 'BeforeAndAfter': self._contextRadioVar.set( 1 )
-        elif self.contextViewMode == 'BySection': self._contextRadioVar.set( 2 )
-        elif self.contextViewMode == 'ByVerse': self._contextRadioVar.set( 3 )
-        elif self.contextViewMode == 'ByBook': self._contextRadioVar.set( 4 )
-        elif self.contextViewMode == 'ByChapter': self._contextRadioVar.set( 5 )
+        if   self._contextViewMode == 'BeforeAndAfter': self._contextViewRadioVar.set( 1 )
+        elif self._contextViewMode == 'BySection': self._contextViewRadioVar.set( 2 )
+        elif self._contextViewMode == 'ByVerse': self._contextViewRadioVar.set( 3 )
+        elif self._contextViewMode == 'ByBook': self._contextViewRadioVar.set( 4 )
+        elif self._contextViewMode == 'ByChapter': self._contextViewRadioVar.set( 5 )
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-        viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
 
-        #if   self.formatViewMode == 'Formatted': self._formatRadioVar.set( 1 )
-        #elif self.formatViewMode == 'Unformatted': self._formatRadioVar.set( 2 )
-        #else: print( self.formatViewMode ); halt
+        #if   self._formatViewMode == 'Formatted': self._formatViewRadioVar.set( 1 )
+        #elif self._formatViewMode == 'Unformatted': self._formatViewRadioVar.set( 2 )
+        #else: print( self._formatViewMode ); halt
 
         #viewMenu.add_separator()
-        #viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatRadioVar, command=self.changeBibleFormatView )
-        #viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatRadioVar, command=self.changeBibleFormatView )
+        #viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
+        #viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
 
         viewMenu.add_separator()
         viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
@@ -357,7 +440,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
         toolsMenu.add_command( label=_('Check project…'), underline=0, command=self.doCheckProject )
         toolsMenu.add_separator()
-        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label=_('Options…'), underline=0, command=self.doAdjustOptions )
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
@@ -414,6 +497,21 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #Button( toolbar, text='Show All', command=self.showAll ).pack( side=tk.LEFT )
         #Button( toolbar, text='Bring All', command=self.bringAll ).pack( side=tk.LEFT )
     ## end of USFMEditWindow.createToolBar
+
+
+    def doAdjustOptions( self ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'doAdjustOptions' )
+        logging.debug( exp("doAdjustOptions()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doAdjustOptions()") )
+            self.parentApp.setDebugText( "doAdjustOptions…" )
+        #self.parentApp.setWaitStatus( "Preparing autocomplete words…" )
+
+        tOD = ToolsOptionsDialog( self ) # This is a modal dialog
+    # end of USFMEditWindow.doAdjustOptions
+
 
 
     def prepareAutocomplete( self ):
@@ -526,8 +624,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if gotCV and mark != self.lastCVMark:
             self.lastCVMark = mark
             C, V = mark[1:].split( 'V', 1 )
-            #self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V )
-            self.after_idle( lambda: self.parentApp.gotoGroupBCV( self.groupCode, self.currentVerseKey.getBBB(), C, V, originator=self ) )
+            #self.parentApp.gotoGroupBCV( self._groupCode, self.currentVerseKey.getBBB(), C, V )
+            self.after_idle( lambda: self.parentApp.gotoGroupBCV( self._groupCode, self.currentVerseKey.getBBB(), C, V, originator=self ) )
     # end of USFMEditWindow.onTextChange
 
 
@@ -563,23 +661,23 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         BBB, C, V = self.currentVerseKey.getBCV()
         #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
 
-        if self.contextViewMode == 'BeforeAndAfter':
+        if self._contextViewMode == 'BeforeAndAfter':
             minChapterMarkers, maxChapterMarkers = 0, 1
             if C == '0': minVerseMarkers = maxVerseMarkers = 0
             elif C=='1' and V=='1': minVerseMarkers = maxVerseMarkers = 2
             else: minVerseMarkers = maxVerseMarkers = 3
-        elif self.contextViewMode == 'ByVerse':
+        elif self._contextViewMode == 'ByVerse':
             minChapterMarkers = maxChapterMarkers = 1 if V=='0' and C!='0' else 0
             if C == '0': minVerseMarkers = maxVerseMarkers = 0
             elif V == '0': minVerseMarkers = maxVerseMarkers = 0
             else: minVerseMarkers = maxVerseMarkers = 1
-        elif self.contextViewMode == 'BySection':
+        elif self._contextViewMode == 'BySection':
             minChapterMarkers, maxChapterMarkers = 0, 1
             minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,10)
-        elif self.contextViewMode == 'ByBook':
+        elif self._contextViewMode == 'ByBook':
             minChapterMarkers = maxChapterMarkers = self.getNumChapters( BBB )
             minVerseMarkers = maxVerseMarkers = self.numTotalVerses
-        elif self.contextViewMode == 'ByChapter':
+        elif self._contextViewMode == 'ByChapter':
             minChapterMarkers = maxChapterMarkers = 0 if C=='0' else 1
             minVerseMarkers = maxVerseMarkers = 0 if C=='0' else self.getNumVerses( BBB, C )
         else: halt
@@ -767,7 +865,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if clearFirst:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  Clearing cache first!" )
             self.verseCache = OrderedDict()
-        
+
         def addCacheEntry( BBB, C, V, data ):
             """
             Check for duplicates before
@@ -906,8 +1004,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         logging.debug( "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
-            #print( "contextViewMode", self.contextViewMode )
-            assert self.formatViewMode == 'Unformatted' # Only option done so far
+            #print( "contextViewMode", self._contextViewMode )
+            assert self._formatViewMode == 'Unformatted' # Only option done so far
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
         self.textBox.config( background=self.defaultBackgroundColour ) # Go back to default background
@@ -941,7 +1039,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 self.cacheBook( newBBB )
 
             #editedText = self.getAllText()
-            #if self.contextViewMode == 'BeforeAndAfter':
+            #if self._contextViewMode == 'BeforeAndAfter':
                 #print( "We need to extract the BeforeAndAfter changes into self.bookText!!!")
                 #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
                 #if newBBB == oldBBB: # We haven't changed books
@@ -957,7 +1055,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                     ##for verseKey,nextVerseData in nextVerses:
                         ##self.displayAppendVerse( False, verseKey, nextVerseData )
 
-            #elif self.contextViewMode == 'BySection':
+            #elif self._contextViewMode == 'BySection':
                 #print( "We need to extract the BySection changes into self.bookText!!!")
                 #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
                 #if newBBB == oldBBB: # We haven't changed books
@@ -977,7 +1075,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                                 ##currentVerse=thisC==intC and thisV==intV )
                         ##startingFlag = False
 
-            #elif self.contextViewMode == 'ByVerse':
+            #elif self._contextViewMode == 'ByVerse':
                 #print( "We need to extract the ByVerse changes into self.bookText!!!")
                 #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
                 #if newBBB == oldBBB: # We haven't changed books
@@ -986,14 +1084,14 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 ##C, V = self.currentVerseKey.getCV()
                 ##self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
 
-            #elif self.contextViewMode == 'ByBook':
+            #elif self._contextViewMode == 'ByBook':
                 #print( 'USFMEditWindow.updateShownBCV', 'ByBook1' )
                 #self.bookText = editedText
                 #if newBBB == oldBBB: # We haven't changed books
                     #self.verseCache = OrderedDict()
                     #self.cacheBook( oldBBB )
 
-            #elif self.contextViewMode == 'ByChapter':
+            #elif self._contextViewMode == 'ByChapter':
                 #print( "We need to extract the ByChapter changes into self.bookText!!!")
                 #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
                 #if newBBB == oldBBB: # We haven't changed books
@@ -1011,7 +1109,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                     ##startingFlag = False
 
             #else:
-                #logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+                #logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self._contextViewMode ) )
                 #if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
             #self.bookTextModified = True
 
@@ -1065,7 +1163,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.clearText() # Leaves the text box enabled
             startingFlag = True
 
-            if self.contextViewMode == 'BeforeAndAfter':
+            if self._contextViewMode == 'BeforeAndAfter':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
@@ -1086,7 +1184,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                                 currentVerse=thisC==intC and thisV==intV )
                             startingFlag = False
 
-            elif self.contextViewMode == 'ByVerse':
+            elif self._contextViewMode == 'ByVerse':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
@@ -1109,7 +1207,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 #self.textBox.mark_set( tk.INSERT, '1.999' )
                 savedCursorPosition = '1.end'
 
-            elif self.contextViewMode == 'BySection':
+            elif self._contextViewMode == 'BySection':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 sectionStart, sectionEnd = findCurrentSection( newVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
@@ -1131,7 +1229,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                                     currentVerse=thisC==intC and thisV==intV )
                             startingFlag = False
 
-            elif self.contextViewMode == 'ByBook':
+            elif self._contextViewMode == 'ByBook':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
@@ -1146,7 +1244,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                                 currentVerse=thisC==intC and thisV==intV )
                         startingFlag = False
 
-            elif self.contextViewMode == 'ByChapter':
+            elif self._contextViewMode == 'ByChapter':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
@@ -1164,7 +1262,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                             startingFlag = False
 
             else:
-                logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+                logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self._contextViewMode ) )
                 if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
         self.textBox.edit_reset() # clear undo/redo stks
@@ -1308,12 +1406,12 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.startReferenceMode()") )
 
-        if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
-            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
+        if self._groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
+            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self._groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
             #print( "yndResult", repr(ynd.result) )
             if ynd.result != True: return
-            self.groupCode = BIBLE_GROUP_CODES[0]
-        assert self.groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
+            self.setWindowGroup( BIBLE_GROUP_CODES[0] )
+        assert self._groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
         uEW = USFMEditWindow( self.parentApp, self.internalBible, editMode=self.editMode )
         #if windowGeometry: uEW.geometry( windowGeometry )
         uEW.windowType = self.windowType # override the default
@@ -1321,7 +1419,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         uEW.setFolderPath( self.folderPath )
         uEW.settings = self.settings
         #uEW.settings.loadUSFMMetadataInto( uB )
-        uEW.groupCode = BIBLE_GROUP_CODES[1]
+        uEW.setWindowGroup( BIBLE_GROUP_CODES[1] )
         uEW.BCVUpdateType = 'ReferenceMode'
         uEW.updateShownBCV( mapReferenceVerseKey( self.currentVerseKey ) )
         self.parentApp.childWindows.append( uEW )
@@ -1340,12 +1438,12 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.startParallelMode()") )
 
-        if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
-            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
+        if self._groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
+            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self._groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
             #print( "yndResult", repr(ynd.result) )
             if ynd.result != True: return
-            self.groupCode = BIBLE_GROUP_CODES[0]
-        assert self.groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
+            self.setWindowGroup( BIBLE_GROUP_CODES[0] )
+        assert self._groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
         for j in range( 1, len(BIBLE_GROUP_CODES) ):
             uEW = USFMEditWindow( self.parentApp, self.internalBible, editMode=self.editMode )
             #if windowGeometry: uEW.geometry( windowGeometry )
@@ -1354,7 +1452,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             uEW.setFolderPath( self.folderPath )
             uEW.settings = self.settings
             #uEW.settings.loadUSFMMetadataInto( uB )
-            uEW.groupCode = BIBLE_GROUP_CODES[j]
+            uEW.setWindowGroup( BIBLE_GROUP_CODES[j] )
             uEW.BCVUpdateType = 'ParallelMode'
             uEW.updateShownBCV( mapParallelVerseKey( BIBLE_GROUP_CODES[j], self.currentVerseKey ) )
             self.parentApp.childWindows.append( uEW )
@@ -1373,12 +1471,12 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.startReferencesMode()") )
 
-        if self.groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
-            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self.groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
+        if self._groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
+            ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self._groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
             #print( "yndResult", repr(ynd.result) )
             if ynd.result != True: return
-            self.groupCode = BIBLE_GROUP_CODES[0]
-        assert self.groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
+            self.setWindowGroup( BIBLE_GROUP_CODES[0] )
+        assert self._groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
         BRCW = BibleReferenceCollectionWindow( self.parentApp, self.internalBible )
         #if windowGeometry: uEW.geometry( windowGeometry )
         BRCW.windowType = self.windowType # override the default
@@ -1386,7 +1484,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         BRCW.setFolderPath( self.folderPath )
         BRCW.settings = self.settings
         #BRCW.settings.loadUSFMMetadataInto( uB )
-        BRCW.groupCode = BIBLE_GROUP_CODES[0] # Stays the same as the source window!
+        BRCW.setWindowGroup( BIBLE_GROUP_CODES[0] ) # Stays the same as the source window!
         #BRCW.BCVUpdateType = 'ReferencesMode' # Leave as default
         BRCW.updateShownBCV( self.currentVerseKey )
         self.parentApp.childWindows.append( BRCW )

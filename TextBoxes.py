@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-19' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.38'
@@ -816,9 +816,9 @@ class BibleBox( ChildBox ):
 
 
         # Start of main code for BibleBox.displayAppendVerse
-        try: cVM, fVM = self.contextViewMode, self.formatViewMode
+        try: cVM, fVM = self._contextViewMode, self._formatViewMode
         except AttributeError: # Must be called from a box, not a window so get settings from parent
-            cVM, fVM = self.parentWindow.contextViewMode, self.parentWindow.formatViewMode
+            cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerse, fVM, cVM ) )
 
@@ -885,8 +885,8 @@ class BibleBox( ChildBox ):
             #self.textBox.insert( tk.END, '--' )
         else:
             #hadVerseText = False
-            #try: cVM = self.contextViewMode
-            #except AttributeError: cVM = self.parentWindow.contextViewMode
+            #try: cVM = self._contextViewMode
+            #except AttributeError: cVM = self.parentWindow._contextViewMode
             lastParagraphMarker = context[-1] if context and context[-1] in BibleOrgSysGlobals.USFMParagraphMarkers \
                                         else 'v~' # If we don't know the format of a verse (or for unformatted Bibles)
             endMarkers = []

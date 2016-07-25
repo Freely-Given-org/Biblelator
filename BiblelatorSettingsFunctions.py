@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-20' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.38'
@@ -427,16 +427,16 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
                 if groupCode:
                     if BibleOrgSysGlobals.debugFlag: assert groupCode in BIBLE_GROUP_CODES
-                    rw.groupCode = groupCode
+                    rw.setWindowGroup( groupCode )
                 contextViewMode = thisStuff['ContextViewMode'] if 'ContextViewMode' in thisStuff else None
                 if contextViewMode:
                     if BibleOrgSysGlobals.debugFlag: assert contextViewMode in BIBLE_CONTEXT_VIEW_MODES
-                    rw.contextViewMode = contextViewMode
+                    rw.setContextViewMode( contextViewMode )
                     #rw.createMenuBar() # in order to show the correct contextViewMode
                 formatViewMode = thisStuff['FormatViewMode'] if 'FormatViewMode' in thisStuff else None
                 if formatViewMode:
                     if BibleOrgSysGlobals.debugFlag: assert formatViewMode in BIBLE_FORMAT_VIEW_MODES
-                    rw.formatViewMode = formatViewMode
+                    rw.setFormatViewMode( formatViewMode )
                     #rw.createMenuBar() # in order to show the correct contextViewMode
                 autocompleteMode = convertToPython( thisStuff['AutocompleteMode'] ) if 'AutocompleteMode' in thisStuff else None
                 #if autocompleteMode == 'None': autocompleteMode = None
@@ -518,11 +518,11 @@ def getCurrentChildWindowSettings( self ):
             if BibleOrgSysGlobals.debugFlag: halt
 
         if 'Bible' in appWin.genericWindowType:
-            try: thisOne['GroupCode'] = appWin.groupCode
+            try: thisOne['GroupCode'] = appWin._groupCode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.windowType ) )
-            try: thisOne['ContextViewMode'] = appWin.contextViewMode
+            try: thisOne['ContextViewMode'] = appWin._contextViewMode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.windowType ) )
-            try: thisOne['FormatViewMode'] = appWin.formatViewMode
+            try: thisOne['FormatViewMode'] = appWin._formatViewMode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no formatViewMode in {}").format( appWin.windowType ) )
 
         if appWin.windowType.endswith( 'EditWindow' ):

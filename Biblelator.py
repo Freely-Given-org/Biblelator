@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-21' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -57,8 +57,6 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, START, errorBeep, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, findUsername, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
-# BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, parseWindowSize,
 from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -228,6 +226,7 @@ class Application( Frame ):
         #halt
 
         # Read and apply the saved settings
+        self.viewVersesBefore, self.viewVersesAfter = 2, 6 # TODO: Not really the right place to have this
         if BibleOrgSysGlobals.commandLineArguments.override is None:
             self.INIname = APP_NAME
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( self.INIname ) )
@@ -262,7 +261,7 @@ class Application( Frame ):
                 if BibleOrgSysGlobals.debugFlag: assert isinstance( groupVerseKey, SimpleVerseKey )
                 for appWin in self.childWindows:
                     if 'Bible' in appWin.genericWindowType:
-                        if appWin.groupCode == groupCode:
+                        if appWin._groupCode == groupCode:
                             appWin.updateShownBCV( groupVerseKey )
         self.updateBCVGroup( self.currentVerseKeyGroup ) # Does an acceptNewBnCV
 
@@ -1085,7 +1084,7 @@ class Application( Frame ):
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
-                                        appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
@@ -1263,7 +1262,7 @@ class Application( Frame ):
             self.setReadyStatus()
             return None
         else:
-            dBRW.updateShownBCV( self.getVerseKey( dBRW.groupCode ) )
+            dBRW.updateShownBCV( self.getVerseKey( dBRW._groupCode ) )
             self.childWindows.append( dBRW )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openDBPBibleResourceWindow" )
             self.setReadyStatus()
@@ -1329,7 +1328,7 @@ class Application( Frame ):
             self.SwordInterface = SwordInterface() # Load the Sword library
         swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: swBRW.geometry( windowGeometry )
-        swBRW.updateShownBCV( self.getVerseKey( swBRW.groupCode ) )
+        swBRW.updateShownBCV( self.getVerseKey( swBRW._groupCode ) )
         self.childWindows.append( swBRW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openSwordBibleResourceWindow" )
         self.setReadyStatus()
@@ -1380,7 +1379,7 @@ class Application( Frame ):
             self.setReadyStatus()
             return None
         else:
-            iBRW.updateShownBCV( self.getVerseKey( iBRW.groupCode ) )
+            iBRW.updateShownBCV( self.getVerseKey( iBRW._groupCode ) )
             self.childWindows.append( iBRW )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openInternalBibleResourceWindow" )
             self.setReadyStatus()
@@ -1476,7 +1475,7 @@ class Application( Frame ):
         #    self.setReadyStatus()
         #    return None
         #else:
-        BRC.updateShownBCV( self.getVerseKey( BRC.groupCode ) )
+        BRC.updateShownBCV( self.getVerseKey( BRC._groupCode ) )
         self.childWindows.append( BRC )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBibleResourceCollection" )
         self.setReadyStatus()
@@ -1705,7 +1704,7 @@ class Application( Frame ):
             uEW.settings = ProjectSettings( newFolderPath )
             uEW.settings.saveNameAndAbbreviation( projName, projAbbrev )
             if cnpf.result: uEW.settings.saveNewBookSettings( cnpf.result )
-            uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
+            uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
             self.childWindows.append( uEW )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doStartNewProject" )
             self.setReadyStatus()
@@ -1757,7 +1756,7 @@ class Application( Frame ):
         uEW.setFolderPath( projectFolderPath )
         uEW.settings = ProjectSettings( projectFolderPath )
         uEW.settings.loadUSFMMetadataInto( uB )
-        uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
+        uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
         self.childWindows.append( uEW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBiblelatorBibleEditWindow" )
         self.setReadyStatus()
@@ -1891,7 +1890,7 @@ class Application( Frame ):
         uEW.windowType = 'ParatextUSFMBibleEditWindow' # override the default
         uEW.moduleID = SSFFilepath
         uEW.setFilepath( SSFFilepath )
-        uEW.updateShownBCV( self.getVerseKey( uEW.groupCode ) )
+        uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
         self.childWindows.append( uEW )
         if uEW.autocompleteMode: uEW.prepareAutocomplete()
 
@@ -3276,14 +3275,16 @@ if __name__ == '__main__':
         #BibleOrgSysGlobals.maxProcesses = 1
     #print( 'MP', BibleOrgSysGlobals.maxProcesses )
 
-    if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag: # Why don't these show in Windows until the program closes ???
-        print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
-        print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
-        print( exp("Running main…") )
+    if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag:
+        # Why don't these show in Windows until the program closes?
+        #   Ah, coz of TextIOWrapper above.
+        print( exp("Platform is"), sys.platform ) # e.g., 'linux, or 'win32' for my Windows-10 (64-bit)
+        print( exp("OS name is"), os.name ) # e.g., 'posix', or 'nt' for my Windows-10
+        if sys.platform == 'linux': print( exp("OS uname is"), os.uname() ) # gives about five fields
         import locale
-        print( "default locale", locale.getdefaultlocale() )
-        print( "preferredEncoding", locale.getpreferredencoding() )
+        print( "default locale", locale.getdefaultlocale() ) # ('en_NZ', 'cp1252') for my Windows-10
+        print( "preferredEncoding", locale.getpreferredencoding() ) # cp1252 for my Windows-10
+        print( exp("About to run main()…") )
 
     main( homeFolderPath, loggingFolderPath )
 

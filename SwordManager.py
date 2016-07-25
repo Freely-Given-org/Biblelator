@@ -23,16 +23,19 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow viewing of various BOS (Bible Organisational System) subsystems
+Tabbed dialog box to allow viewing of various BOS (Bible Organisational System) subsystems
     such as versification systems, books names systems, etc.
+
+This is opened as a TopLevel window in Biblelator
+    but can also be run as a stand-alone program.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-17' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
-ProgVersion = '0.03' # Separate versioning from Biblelator
+ProgVersion = '0.04' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -56,8 +59,6 @@ from BiblelatorGlobals import DEFAULT, START, MAX_PSEUDOVERSES, errorBeep, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-# BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, parseWindowSize,
 from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -67,13 +68,7 @@ from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
 from ChildWindows import ChildWindows
-#from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
-#from BibleResourceCollection import BibleResourceCollectionWindow
-#from BibleReferenceCollection import BibleReferenceCollectionWindow
-#from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
-#from USFMEditWindow import USFMEditWindow
-#from ESFMEditWindow import ESFMEditWindow
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
@@ -81,13 +76,10 @@ sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 #from BibleVersificationSystems import BibleVersificationSystems
-#from DigitalBiblePlatform import DBPBibles
 #from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from SwordInstallManager import SwordInstallManager
-#from USFMBible import USFMBible
-#from PTXBible import PTXBible, loadPTXSSFData
 
 
 
@@ -191,7 +183,7 @@ class SwordManager( Frame ):
 
         # Read and apply the saved settings
         #parseAndApplySettings( self )
-        if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
+        if not self.settings or ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
             initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
@@ -893,7 +885,7 @@ class SwordManager( Frame ):
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
-                                        appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
@@ -1275,7 +1267,7 @@ def main( homeFolderPath, loggingFolderPath ):
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
-    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
+    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, None )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

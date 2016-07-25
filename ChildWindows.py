@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-15' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.38'
@@ -51,7 +51,8 @@ from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, parseWindowSize, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
+                             parseWindowSize, errorBeep, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
                              INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE, \
                              INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
@@ -116,7 +117,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.createToolBar()
         self.createContextMenu()
 
-        self.formatViewMode = DEFAULT
+        #self._formatViewMode = DEFAULT
         self.settings = None
 
         # Create a scroll bar to fill the right-hand side of the window
@@ -387,20 +388,73 @@ class BibleWindow( ChildWindow, BibleBox ):
         """
         The genericWindowType is set here,
             but the more specific windowType is set later by the subclass.
+
+        Default view modes should be set by the derived class before this is called.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindow.__init__( {} {} )").format( parentApp, repr(genericWindowType) ) )
+            print( exp("BibleWindow.__init__( {} {!r} )").format( parentApp, genericWindowType ) )
             assert parentApp
             assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',)
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
 
-        self.formatViewMode = DEFAULT
+        # The radio vars are used by the window menus
+        self._contextViewRadioVar, self._formatViewRadioVar, self._groupRadioVar = tk.IntVar(), tk.IntVar(), tk.StringVar()
+        self.setContextViewMode( DEFAULT )
+        #self.parentApp.viewVersesBefore, self.parentApp.viewVersesAfter = 2, 6
+        self.setFormatViewMode( DEFAULT )
+        self.setWindowGroup( DEFAULT )
+
         ChildWindow.__init__( self, self.parentApp, self.genericWindowType )
         BibleBox.__init__( self, self.parentApp )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleWindow.__init__ finished.") )
     # end of BibleWindow.__init__
+
+
+    def setContextViewMode( self, newMode ):
+        """
+        Set the Bible context view mode for the window.
+
+        Ideally we wouldn't need this info to be stored in both of these class variables.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.setContextViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
+            assert newMode==DEFAULT or newMode in BIBLE_CONTEXT_VIEW_MODES
+
+        self._contextViewMode = self.defaultContextViewMode if newMode==DEFAULT else newMode
+        self._contextViewRadioVar.set( BIBLE_CONTEXT_VIEW_MODES.index( self._contextViewMode ) + 1 )
+    # end of BibleWindow.setContextViewMode
+
+
+    def setFormatViewMode( self, newMode ):
+        """
+        Set the Bible format view mode for the window.
+
+        Ideally we wouldn't need this info to be stored in both of these class variables.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.setFormatViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
+            assert newMode==DEFAULT or newMode in BIBLE_FORMAT_VIEW_MODES
+
+        self._formatViewMode = self.defaultFormatViewMode if newMode==DEFAULT else newMode
+        self._formatViewRadioVar.set( BIBLE_FORMAT_VIEW_MODES.index( self._formatViewMode ) + 1 )
+    # end of BibleWindow.setFormatViewMode
+
+
+    def setWindowGroup( self, newGroup ):
+        """
+        Set the Bible group for the window.
+
+        Ideally we wouldn't need this info to be stored in both of these class variables.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
+            assert newGroup==DEFAULT or newGroup in BIBLE_GROUP_CODES
+
+        self._groupCode = BIBLE_GROUP_CODES[0] if newGroup==DEFAULT else newGroup
+        self._groupRadioVar.set( BIBLE_GROUP_CODES.index( self._groupCode ) + 1 )
+    # end of BibleWindow.setWindowGroup
 # end of class BibleWindow
 
 
@@ -458,21 +512,21 @@ class ChildWindows( list ):
 
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
-                if appWin.BCVUpdateType==DEFAULT and appWin.groupCode==groupCode:
+                if appWin.BCVUpdateType==DEFAULT and appWin._groupCode==groupCode:
                     # The following line doesn't work coz it only updates ONE window
                     #self.ChildWindowsParent.after_idle( lambda: appWin.updateShownBCV( newVerseKey ) )
                     appWin.updateShownBCV( newVerseKey, originator=originator )
-                    #print( '  Normal', appWin.groupCode, newVerseKey, appWin.moduleID )
+                    #print( '  Normal', appWin._groupCode, newVerseKey, appWin.moduleID )
                 elif groupCode == BIBLE_GROUP_CODES[0]:
-                    if appWin.BCVUpdateType=='ReferenceMode' and appWin.groupCode==BIBLE_GROUP_CODES[1]:
+                    if appWin.BCVUpdateType=='ReferenceMode' and appWin._groupCode==BIBLE_GROUP_CODES[1]:
                         appWin.updateShownBCV( mapReferenceVerseKey( newVerseKey ), originator=originator )
-                        #print( '  Reference', appWin.groupCode, mapReferenceVerseKey( newVerseKey ), appWin.moduleID )
-                    elif appWin.BCVUpdateType=='ParallelMode' and appWin.groupCode!=BIBLE_GROUP_CODES[0]:
-                        appWin.updateShownBCV( mapParallelVerseKey( appWin.groupCode, newVerseKey ), originator=originator )
-                        #print( '  Parallel', appWin.groupCode, mapParallelVerseKey( appWin.groupCode, newVerseKey ), appWin.moduleID )
+                        #print( '  Reference', appWin._groupCode, mapReferenceVerseKey( newVerseKey ), appWin.moduleID )
+                    elif appWin.BCVUpdateType=='ParallelMode' and appWin._groupCode!=BIBLE_GROUP_CODES[0]:
+                        appWin.updateShownBCV( mapParallelVerseKey( appWin._groupCode, newVerseKey ), originator=originator )
+                        #print( '  Parallel', appWin._groupCode, mapParallelVerseKey( appWin._groupCode, newVerseKey ), appWin.moduleID )
                     #elif appWin.BCVUpdateType=='ReferencesMode':
                         #appWin.updateShownReferences( mapReferencesVerseKey( newVerseKey ) )
-                        ##print( '  Parallel', appWin.groupCode, mapParallelVerseKey( appWin.groupCode, newVerseKey ), appWin.moduleID )
+                        ##print( '  Parallel', appWin._groupCode, mapParallelVerseKey( appWin._groupCode, newVerseKey ), appWin.moduleID )
     # end of ChildWindows.updateThisBibleGroup
 
 
@@ -527,7 +581,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.createContextMenu()
         if self._showStatusBarVar.get(): self.createStatusBar()
 
-        self.formatViewMode = DEFAULT
+        #self._formatViewMode = DEFAULT
         self.settings = None
 
         # Create a scroll bar to fill the right-hand side of the window
@@ -947,7 +1001,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         #self.createContextMenu()
         #if self._showStatusBarVar.get(): self.createStatusBar()
 
-        self.formatViewMode = DEFAULT
+        #self._formatViewMode = DEFAULT
         self.settings = None
 
         #print( 'All internalBibles', len(self.parentApp.internalBibles), self.parentApp.internalBibles )

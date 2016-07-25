@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-17' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.38'
@@ -54,8 +54,6 @@ from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, errorBeep, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-# BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, ,
 from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -65,29 +63,14 @@ from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
 from ChildWindows import ChildWindows
-#from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
-#from BibleResourceCollection import BibleResourceCollectionWindow
-#from BibleReferenceCollection import BibleReferenceCollectionWindow
-#from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
-#from USFMEditWindow import USFMEditWindow
-#from ESFMEditWindow import ESFMEditWindow
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
-#from BibleVersificationSystems import BibleVersificationSystems
-#from BibleBookOrders import BibleBookOrderSystems
-#from BibleBooksNames import BibleBooksNamesSystems
-#from BiblePunctuationSystems import BiblePunctuationSystems
-#from DigitalBiblePlatform import DBPBibles
-#from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
-#from SwordResources import SwordType, SwordInterface
-#from USFMBible import USFMBible
-#from PTXBible import PTXBible, loadPTXSSFData
 
 
 
@@ -883,16 +866,16 @@ class BiblelatorSettingsEditor( Frame ):
             self.currentWindowsTextBox.insert( tk.END, "We cannot adjust the current windows from inside Biblelator.\n\nIf you wish to adjust current windows, please close Biblelator and run BiblelatorSettingsEditor.py in stand-alone mode." )
 
         print( "Add all pages" )
-        self.notebook.add( self.settingsFilesPage, text='Settings files')
-        self.notebook.add( self.mainPage, text='Main')
-        self.notebook.add( self.interfacePage, text='Interface')
-        self.notebook.add( self.internetPage, text='Internet')
-        self.notebook.add( self.projectsPage, text='Projects')
-        self.notebook.add( self.usersPage, text='Users')
-        self.notebook.add( self.pathsPage, text='Paths')
-        self.notebook.add( self.recentFilesPage, text='Recent files')
-        self.notebook.add( self.BCVGroupsPage, text='BCV groups')
-        self.notebook.add( self.currentWindowsPage, text='Current windows')
+        self.notebook.add( self.settingsFilesPage, text=_("Settings files") )
+        self.notebook.add( self.mainPage, text=_("Main") )
+        self.notebook.add( self.interfacePage, text=_("Interface") )
+        self.notebook.add( self.internetPage, text=_("Internet") )
+        self.notebook.add( self.projectsPage, text=_("Projects") )
+        self.notebook.add( self.usersPage, text=_("Users") )
+        self.notebook.add( self.pathsPage, text=_("Paths") )
+        self.notebook.add( self.recentFilesPage, text=_("Recent files") )
+        self.notebook.add( self.BCVGroupsPage, text=_("BCV groups") )
+        self.notebook.add( self.currentWindowsPage, text=_("Current windows") )
         self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
 
         self.loadSettingsIntoTabs()
@@ -1209,8 +1192,8 @@ class BiblelatorSettingsEditor( Frame ):
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
-                                        appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
-                                        appWin.formatViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._formatViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )

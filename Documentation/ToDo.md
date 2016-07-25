@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-07-21 RJH
+Last updated: 2016-07-25 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,10 +14,12 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Do Tools/Options for edit window to set autocomplete mode, etc.
+* Can't open NET Bible in Windows (encode errors)
+* Make edit window status bar default (if screen is big enough)
 * When did HTML stop working?
 * Don't load entire Bible if only searching/replacing in current book
 * Clicking in edit window while still starting can cause a spinbox error
-* View (format) menu can be wrong after start-up
 * Window settings don't work well for text collections, etc. (need to be nested???)
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
@@ -48,6 +50,7 @@ Biblelator testing required
 
 
 BOS bugs
+* Sword conf files don't load versioned history lines correctly
 * Doesn't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
 
@@ -175,3 +178,7 @@ Biblelator stuff
 * Do NT/OT reference mode (Groups A/B work together)
 * Do synoptic gospel mode (Groups A/B/C/D work together)
 * Make a child window mode (all windows stay within the main window)
+
+
+Jobs for others
+* Work on lists (Bible people, animals, birds, vegetation, etc., etc.)

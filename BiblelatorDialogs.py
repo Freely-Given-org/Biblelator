@@ -44,7 +44,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-21'
+LastModifiedDate = '2016-07-25'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.38'
@@ -282,8 +282,13 @@ class BookNameDialog( ModalDialog ):
 
 class NumberButtonDialog( ModalDialog ):
     """
+    A dialog box which allows the user to select a number from a given range.
+
+    This is used in touch mode to select chapter and/or verse numbers.
     """
     def __init__( self, parent, startNumber, endNumber, currentNumber ): #, message, title=None ):
+        """
+        """
         #print( 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
         self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
         ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
@@ -342,6 +347,12 @@ class NumberButtonDialog( ModalDialog ):
 
 
     def apply( self, buttonNumber ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
         #if buttonNumber!='CANCEL': self.result = buttonNumber
         self.result = buttonNumber
         self.cancel() # We want to exit the dialog immediately
@@ -618,7 +629,6 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         """
         Label( master, text=_("Create book files:") ).grid( row=0 )
         self.selectVariable1 = tk.IntVar()
-
         self.rb1a = Radiobutton( master, text=_("Current book ({})").format( self.currentBBB ), variable=self.selectVariable1, value=1 )
         self.rb1a.grid( row=0, column=1, sticky=tk.W )
         self.rb1b = Radiobutton( master, text=_("All books"), variable=self.selectVariable1, value=2 )
@@ -632,7 +642,6 @@ class CreateNewProjectFilesDialog( ModalDialog ):
 
         Label( master, text=_("Files will contain:") ).grid( row=6, sticky=tk.W )
         self.selectVariable2 = tk.IntVar()
-
         self.rb2a = Radiobutton( master, text=_("CV markers from versification"), variable=self.selectVariable2, value=1,
                                 state = tk.NORMAL if self.availableVersifications else tk.DISABLED )
         self.rb2a.grid( row=7, column=0, sticky=tk.W )

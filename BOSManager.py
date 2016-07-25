@@ -23,13 +23,16 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow viewing of various BOS (Bible Organizational System) subsystems
+Tabbed dialog box to allow viewing of various BOS (Bible Organizational System) subsystems
     such as versification systems, books names systems, etc.
+
+This is opened as a TopLevel window in Biblelator
+    but can also be run as a stand-alone program.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-17' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -54,8 +57,6 @@ from BiblelatorGlobals import DEFAULT, START, MAX_PSEUDOVERSES, errorBeep, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-# BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, ,
 from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -121,7 +122,7 @@ class BOSManager( Frame ):
         and use that to inform child windows of BCV movements.
     """
     global settings
-    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage ):
+    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings ):
         """
         Main app initialisation function.
 
@@ -129,7 +130,7 @@ class BOSManager( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
-        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage = rootWindow, homeFolderPath, loggingFolderPath, iconImage
+        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage, self.settings = rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
 
@@ -194,10 +195,10 @@ class BOSManager( Frame ):
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
-        self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
-        self.settings.load()
+        #self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        #self.settings.load()
         #parseAndApplySettings( self )
-        if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
+        if not self.settings or ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
             initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
@@ -915,15 +916,15 @@ class BOSManager( Frame ):
         self.stylesheetSearch.delete( 0, tk.END ) # Clear the search box again
 
         print( "Add all pages" )
-        self.notebook.add( self.codesPage, text='Codes')
-        self.notebook.add( self.punctuationPage, text='Punctuation')
-        self.notebook.add( self.versificationsPage, text='Versifications')
-        self.notebook.add( self.mappingsPage, text='Mappings')
-        self.notebook.add( self.ordersPage, text='Orders')
-        self.notebook.add( self.namesPage, text='Names')
-        self.notebook.add( self.organizationsPage, text='Bibles')
-        self.notebook.add( self.referencesPage, text='References')
-        self.notebook.add( self.stylesheetsPage, text='StyleSheets')
+        self.notebook.add( self.codesPage, text=_("Codes") )
+        self.notebook.add( self.punctuationPage, text=_("Punctuation") )
+        self.notebook.add( self.versificationsPage, text=_("Versifications") )
+        self.notebook.add( self.mappingsPage, text=_("Mappings") )
+        self.notebook.add( self.ordersPage, text=_("Orders") )
+        self.notebook.add( self.namesPage, text=_("Names") )
+        self.notebook.add( self.organizationsPage, text=_("Bibles") )
+        self.notebook.add( self.referencesPage, text=_("References") )
+        self.notebook.add( self.stylesheetsPage, text=_("StyleSheets") )
         self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
     # end of BOSManager.createNotebook
 
@@ -1119,7 +1120,7 @@ class BOSManager( Frame ):
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
-                                        appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
@@ -1940,7 +1941,7 @@ def main( homeFolderPath, loggingFolderPath ):
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
-    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
+    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, None )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

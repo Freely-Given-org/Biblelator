@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-18' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.38'
@@ -219,7 +219,7 @@ class BibleResourceBox( Frame, BibleBox ):
         #if BibleOrgSysGlobals.debugFlag: print( exp("BibleResourceBox.gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
         ## We really need to convert versification systems here
         #adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
-        #self.parentWindow.gotoGroupBCV( self.groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
+        #self.parentWindow.gotoGroupBCV( self._groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
     ## end of BibleResourceBox.gotoBCV
 
 
@@ -284,7 +284,7 @@ class BibleResourceBox( Frame, BibleBox ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleResourceBox.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
-            #print( "contextViewMode", self.contextViewMode )
+            #print( "contextViewMode", self._contextViewMode )
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
         refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()
@@ -296,12 +296,12 @@ class BibleResourceBox( Frame, BibleBox ):
         startingFlag = True
 
         # Safety-check in case they edited the settings file
-        if 'DBP' in self.boxType and self.parentWindow.contextViewMode in ('ByBook','ByChapter',):
-            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.parentWindow.contextViewMode) ) )
-            self.parentWindow._contextRadioVar.set( 3 ) # ByVerse
+        if 'DBP' in self.boxType and self.parentWindow._contextViewMode in ('ByBook','ByChapter',):
+            print( exp("updateShownBCV: Safety-check converted {} contextViewMode for DBP").format( repr(self.parentWindow._contextViewMode) ) )
+            self.parentWindow._contextViewRadioVar.set( 3 ) # ByVerse
             self.parentWindow.changeBibleContextView()
 
-        if self.parentWindow.contextViewMode == 'BeforeAndAfter':
+        if self.parentWindow._contextViewMode == 'BeforeAndAfter':
             bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
             if bibleData:
                 verseData, previousVerses, nextVerses = bibleData
@@ -312,10 +312,10 @@ class BibleResourceBox( Frame, BibleBox ):
                 for verseKey,nextVerseData in nextVerses:
                     self.displayAppendVerse( False, verseKey, nextVerseData )
 
-        elif self.parentWindow.contextViewMode == 'ByVerse':
+        elif self.parentWindow._contextViewMode == 'ByVerse':
             self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
 
-        #elif self.parentWindow.contextViewMode == 'BySection':
+        #elif self.parentWindow._contextViewMode == 'BySection':
             #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
             #BBB, C, V = newVerseKey.getBCV()
             #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
@@ -330,7 +330,7 @@ class BibleResourceBox( Frame, BibleBox ):
                                             ##currentVerse=thisC==intC and thisV==intV )
                     ##startingFlag = False
 
-        #elif self.parentWindow.contextViewMode == 'ByBook':
+        #elif self.parentWindow._contextViewMode == 'ByBook':
             #BBB, C, V = newVerseKey.getBCV()
             #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
             #for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
@@ -343,7 +343,7 @@ class BibleResourceBox( Frame, BibleBox ):
                                             #currentVerse=thisC==intC and thisV==intV )
                     #startingFlag = False
 
-        #elif self.parentWindow.contextViewMode == 'ByChapter':
+        #elif self.parentWindow._contextViewMode == 'ByChapter':
             #BBB, C, V = newVerseKey.getBCV()
             #intV = newVerseKey.getVerseNumberInt()
             #try: numVerses = self.getNumVerses( BBB, C )
@@ -355,7 +355,7 @@ class BibleResourceBox( Frame, BibleBox ):
                 #startingFlag = False
 
         else:
-            logging.critical( exp("BibleResourceBox.updateShownBCV: Bad context view mode {}").format( self.contextViewMode ) )
+            logging.critical( exp("BibleResourceBox.updateShownBCV: Bad context view mode {}").format( self.parentWindow._contextViewMode ) )
             if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
         self.textBox.config( state=tk.DISABLED ) # Don't allow editing
@@ -628,36 +628,35 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Book'), underline=0, command=self.doGotoBook )
         gotoMenu.add_separator()
-        self._groupRadioVar.set( self.groupCode )
+        self._groupRadioVar.set( self._groupCode )
         gotoMenu.add_radiobutton( label=_('Group A'), underline=6, value='A', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group B'), underline=6, value='B', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
-        #if self.contextViewMode == DEFAULT: self.contextViewMode = BIBLE_CONTEXT_VIEW_MODES[0]
-        if self.contextViewMode == 'BeforeAndAfter': self._contextRadioVar.set( 1 )
-        #elif self.contextViewMode == 'BySection': self._contextRadioVar.set( 2 )
-        elif self.contextViewMode == 'ByVerse': self._contextRadioVar.set( 3 )
-        #elif self.contextViewMode == 'ByBook': self._contextRadioVar.set( 4 )
-        #elif self.contextViewMode == 'ByChapter': self._contextRadioVar.set( 5 )
-# XXX BAD that this happens        else: print( self.contextViewMode ); halt
-
         self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
         self.menubar.add_cascade( menu=self.viewMenu, label=_('View'), underline=0 )
-        self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextRadioVar, command=self.changeBibleContextView )
-        #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextRadioVar, command=self.changeBibleContextView )
 
-        if self.formatViewMode == DEFAULT: self.formatViewMode = BIBLE_FORMAT_VIEW_MODES[0]
-        if self.formatViewMode == 'Formatted': self._formatRadioVar.set( 1 )
-        elif self.formatViewMode == 'Unformatted': self._formatRadioVar.set( 2 )
-# XXX BAD that this happens        else: print( self.formatViewMode ); halt
+        #if self._contextViewMode == 'BeforeAndAfter': self._contextViewRadioVar.set( 1 )
+        ##elif self._contextViewMode == 'BySection': self._contextViewRadioVar.set( 2 )
+        #elif self._contextViewMode == 'ByVerse': self._contextViewRadioVar.set( 3 )
+        ##elif self._contextViewMode == 'ByBook': self._contextViewRadioVar.set( 4 )
+        ##elif self._contextViewMode == 'ByChapter': self._contextViewRadioVar.set( 5 )
+        #else: print( self._contextViewMode ); halt
+
+        self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+
+        #if self._formatViewMode == 'Formatted': self._formatViewRadioVar.set( 1 )
+        #elif self._formatViewMode == 'Unformatted': self._formatViewRadioVar.set( 2 )
+        #else: print( self._formatViewMode ); halt
 
         self.viewMenu.add_separator()
-        self.viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatRadioVar, command=self.changeBibleFormatView )
-        self.viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatRadioVar, command=self.changeBibleFormatView )
+        self.viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
+        self.viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
 
         #if 'DBP' in self.windowType: # disable excessive online use
             #self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
@@ -688,7 +687,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
 
     def refreshTitle( self ):
-        self.title( "[{}] {} Bible Resource Collection {} {}:{}".format( self.groupCode,
+        self.title( "[{}] {} Bible Resource Collection {} {}:{}".format( self._groupCode,
                         self.moduleID,
                         self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber() ) )
     # end if BibleResourceCollectionWindow.refreshTitle
@@ -769,7 +768,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.parentApp.setReadyStatus()
             return None
         else:
-            dBRB.updateShownBCV( self.parentApp.getVerseKey( self.groupCode ) )
+            dBRB.updateShownBCV( self.parentApp.getVerseKey( self._groupCode ) )
             self.resourceBoxes.append( dBRB )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openDBPBibleResourceBox" )
             self.parentApp.setReadyStatus()
@@ -856,7 +855,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         swBRB = SwordBibleResourceBox( self, moduleAbbreviation )
         if windowGeometry: halt; swBRB.geometry( windowGeometry )
-        swBRB.updateShownBCV( self.parentApp.getVerseKey( self.groupCode ) )
+        swBRB.updateShownBCV( self.parentApp.getVerseKey( self._groupCode ) )
         self.resourceBoxes.append( swBRB )
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openSwordBibleResourceBox" )
         self.parentApp.setReadyStatus()
@@ -906,7 +905,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.parentApp.setReadyStatus()
             return None
         else:
-            iBRB.updateShownBCV( self.parentApp.getVerseKey( self.groupCode ) )
+            iBRB.updateShownBCV( self.parentApp.getVerseKey( self._groupCode ) )
             self.resourceBoxes.append( iBRB )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openInternalBibleResourceBox" )
             self.parentApp.setReadyStatus()
@@ -935,7 +934,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleResourceCollectionWindow.updateShownBCV( {}, {} ) for {}").format( newReferenceVerseKey, originator, self.moduleID ) )
-            #print( "contextViewMode", self.contextViewMode )
+            #print( "contextViewMode", self._contextViewMode )
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
         #refBBB, refC, refV, refS = newReferenceVerseKey.getBCVS()

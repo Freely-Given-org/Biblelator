@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -57,7 +57,7 @@ from USFMMarkers import USFM_PRINTABLE_MARKERS
 
 
 AVOID_BOOKS = ( 'FRT', 'BAK', 'GLS', 'XXA','XXB','XXC','XXD','XXE','XXF','XXG', 'NDX', 'UNK', )
-END_CHARS_TO_REMOVE = ',—.–!?”:;'
+END_CHARS_TO_REMOVE = ',—.–!?”:;' # NOTE: This intentionally doesn't include close parenthesis and similar
 HUNSPELL_DICTIONARY_FOLDERS = ( '/usr/share/hunspell/', )
 
 
@@ -204,7 +204,8 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
             if not word: continue
             if 'XXX' in word: continue # This is used in the Matigsalug project to mark errors
             singleWord = word
-            while singleWord and singleWord[-1] in END_CHARS_TO_REMOVE: singleWord = singleWord[:-1] # Remove certain final punctuation
+            while singleWord and singleWord[-1] in END_CHARS_TO_REMOVE:
+                singleWord = singleWord[:-1] # Remove certain final punctuation
             if len(singleWord) > 2: wordCounts[singleWord] += countIncrement
 
             #if word[-1] not in '—.–':

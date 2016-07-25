@@ -30,10 +30,10 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-07-25' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = '0.36'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -225,6 +225,8 @@ class MyTestDialog( ModalDialog ):
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.
+
+        Results are left in self.result
         """
         first = int( self.e1.get() )
         second = int( self.e2.get() )
