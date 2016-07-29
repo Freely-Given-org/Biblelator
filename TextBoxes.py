@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-29' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.38'
@@ -113,6 +113,14 @@ KNOWN_HTML_TAGS = ('!DOCTYPE','html','head','meta','link','title','body','div',
                    'h1','h2','h3','p','li','a','span','table','tr','td','i','b','em','small')
 NON_FORMATTING_TAGS = 'html','head','body','div','table','tr','td', # Not sure about div yet...........
 HTML_REPLACEMENTS = ('&nbsp;',' '),('&lt;','<'),('&gt;','>'),('&amp;','&'),
+TRAILING_SPACE_SUBSTITUTE = '⦻' # Must not normally occur in Bible text
+MULTIPLE_SPACE_SUBSTITUTE = '⧦' # Must not normally occur in Bible text
+DOUBLE_SPACE_SUBSTITUTE = MULTIPLE_SPACE_SUBSTITUTE + MULTIPLE_SPACE_SUBSTITUTE
+CLEANUP_LAST_MULTIPLE_SPACE = MULTIPLE_SPACE_SUBSTITUTE + ' '
+TRAILING_SPACE_LINE = ' \n'
+TRAILING_SPACE_LINE_SUBSTITUTE = TRAILING_SPACE_SUBSTITUTE + '\n'
+ALL_POSSIBLE_SPACE_CHARS = ' ' + TRAILING_SPACE_SUBSTITUTE + MULTIPLE_SPACE_SUBSTITUTE
+
 
 
 class HTMLText( tk.Text ):
@@ -781,7 +789,7 @@ class BibleBox( ChildBox ):
     A set of functions that work for any Bible frame or window that has a member: self.textBox
         and also uses verseKeys
     """
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False ):
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
         """
         Add the requested verse to the end of self.textBox.
 
@@ -792,7 +800,7 @@ class BibleBox( ChildBox ):
         """
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
-                print( "displayAppendVerse( {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerse ) )
+                print( "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerse, substituteTrailingSpaces, substituteMultipleSpaces ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
             if verseContextData:
@@ -811,6 +819,16 @@ class BibleBox( ChildBox ):
                     print( "insertEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
                 assert isinstance( ieTags, (str,tuple) )
+                assert TRAILING_SPACE_SUBSTITUTE not in ieText
+                assert MULTIPLE_SPACE_SUBSTITUTE not in ieText
+
+            # Make any requested substitutions
+            if substituteMultipleSpaces:
+                ieText = ieText.replace( '  ', DOUBLE_SPACE_SUBSTITUTE )
+                ieText = ieText.replace( CLEANUP_LAST_MULTIPLE_SPACE, DOUBLE_SPACE_SUBSTITUTE )
+            if substituteTrailingSpaces:
+                ieText = ieText.replace( TRAILING_SPACE_LINE, TRAILING_SPACE_LINE_SUBSTITUTE )
+
             self.textBox.insert( tk.END, ieText, ieTags )
         # end of BibleBox.displayAppendVerse.insertEnd
 
@@ -1025,9 +1043,9 @@ class BibleBox( ChildBox ):
                         haveTextFlag = True
                     else:
                         if BibleOrgSysGlobals.debugFlag:
-                            logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
+                            logging.critical( exp("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
                         else:
-                            logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r}").format( marker, cleanText ) )
+                            logging.critical( exp("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
                 else:
                     logging.critical( exp("BibleBox.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
                     if BibleOrgSysGlobals.debugFlag: halt

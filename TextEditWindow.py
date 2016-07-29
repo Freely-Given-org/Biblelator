@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-28' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.38'
@@ -50,7 +50,8 @@ from tkinter.ttk import Button, Label, Entry
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT
 from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog
-from TextBoxes import CustomText
+from TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE, \
+                                DOUBLE_SPACE_SUBSTITUTE, ALL_POSSIBLE_SPACE_CHARS
 from ChildWindows import ChildWindow #, HTMLWindow
 from AutocorrectFunctions import setDefaultAutocorrectEntries # setAutocorrectEntries
 from AutocompleteFunctions import END_CHARS_TO_REMOVE
@@ -107,7 +108,7 @@ class TextEditWindow( ChildWindow ):
         self.editStatus = 'Editable'
 
         # Make our own custom textBox which allows a callback function
-        #   Delete these four lines and the callback line if you don't need either autocorrect or autocomplete
+        #   Delete these five lines and the callback line if you don't need either autocorrect or autocomplete
         self.textBox.destroy() # from the ChildWindow default
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
@@ -129,6 +130,9 @@ class TextEditWindow( ChildWindow ):
 
         self.lastFiletime = self.lastFilesize = None
         self.clearText()
+
+        self.markMultipleSpacesFlag = True
+        self.markTrailingSpacesFlag = True
 
         self.autocorrectEntries = []
         # Temporarily include some default autocorrect values
@@ -374,6 +378,19 @@ class TextEditWindow( ChildWindow ):
     # end if TextEditWindow.OnFontSmaller
 
 
+    def getAllText( self ):
+        """
+        Returns all the text as a string.
+        """
+        allText = self.textBox.get( START, tk.END+'-1c' )
+        #if self.markMultipleSpacesFlag:
+        allText = allText.replace( MULTIPLE_SPACE_SUBSTITUTE, ' ' )
+        #if self.markTrailingSpacesFlag:
+        allText = allText.replace( TRAILING_SPACE_SUBSTITUTE, ' ' )
+        return allText
+    # end of USFMEditWindow.getAllText
+
+
     def getCharactersBeforeCursor( self, charCount=1 ):
         """
         Needed for auto-correct functions.
@@ -421,7 +438,7 @@ class TextEditWindow( ChildWindow ):
 
         previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
         #print( "previousText1", repr(previousText) )
-        assert previousText and previousText[-1] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS
+        assert previousText and previousText[-1] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE
         previousText = previousText[:-1] # Drop the character that ended the word
         #print( "previousText2", repr(previousText) )
         wordText = ''
@@ -618,6 +635,70 @@ class TextEditWindow( ChildWindow ):
 
 
         if self.textBox.edit_modified():
+            #if 1:
+                #print( 'args[0]', repr(args[0]) )
+                #print( 'args[1]', repr(args[1]) )
+                #try: print( 'args[2]', repr(args[2]) ) # Can be multiple characters (after autocomplete)
+                #except IndexError: print( "No args[2]" ) # when deleting
+
+            # Handle substituted space characters
+            saveIndex = self.textBox.index( tk.INSERT ) # Remember where the cursor was
+            if args[0]=='insert' and args[1]=='insert':
+                before1, newChar, after1 = self.textBox.get( tk.INSERT+'-2c', tk.INSERT+'+1c' ) # Get the characters before and after
+                #print( '3', repr(before1), repr(newChar), repr(after1) )
+                # FALSE AFTER AUTOCOMPLETE assert newChar == args[2] # Char before cursor should be char just typed
+                if self.markMultipleSpacesFlag and newChar == ' ': # Check if we've typed multiple spaces
+                    # NOTE: We DON'T make this into a TRAILING_SPACE_SUBSTITUTE -- too disruptive during regular typing
+                    #elf.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
+                    if before1 in ALL_POSSIBLE_SPACE_CHARS:
+                        self.textBox.delete( tk.INSERT+'-2c', tk.INSERT ) # Delete previous space/substitute plus new space
+                        self.textBox.insert( tk.INSERT, DOUBLE_SPACE_SUBSTITUTE ) # Replace with substitute
+                    else: # check after the cursor also
+                        nextChar = self.textBox.get( tk.INSERT, tk.INSERT+'+1c' ) # Get the following character
+                        if nextChar in ALL_POSSIBLE_SPACE_CHARS:
+                            self.textBox.delete( tk.INSERT+'-1c', tk.INSERT+'+1c' ) # Delete chars around cursor
+                            self.textBox.insert( tk.INSERT, DOUBLE_SPACE_SUBSTITUTE ) # Replace with substitute
+                            self.textBox.mark_set( tk.INSERT, saveIndex ) # Put the cursor back
+                elif newChar not in ' \n\r': # Check if we followed a trailing space substitute
+                    if before1 == TRAILING_SPACE_SUBSTITUTE:
+                        self.textBox.delete( tk.INSERT+'-2c', tk.INSERT ) # Delete trailing space substitute plus new char
+                        self.textBox.insert( tk.INSERT, ' '+newChar ) # Replace with proper space and new char
+                    before3After2 = self.textBox.get( tk.INSERT+'-3c', tk.INSERT+'+2c' ) # Get the pairs of characters before and after
+                    if before1 == MULTIPLE_SPACE_SUBSTITUTE and before3After2[0] not in ALL_POSSIBLE_SPACE_CHARS:
+                        self.textBox.delete( tk.INSERT+'-2c', tk.INSERT ) # Delete previous space substitute plus new char
+                        self.textBox.insert( tk.INSERT, ' '+newChar ) # Replace with normal space plus new char
+                    if before3After2[3] == MULTIPLE_SPACE_SUBSTITUTE and before3After2[4] not in ALL_POSSIBLE_SPACE_CHARS:
+                        self.textBox.delete( tk.INSERT, tk.INSERT+'+1c' ) # Delete following space substitute
+                        self.textBox.insert( tk.INSERT, ' ' ) # Replace with normal space
+                        self.textBox.mark_set( tk.INSERT, saveIndex ) # Put the cursor back
+                #previousText = self.getSubstitutedChararactersBeforeCursor()
+            elif args[0] == 'delete':
+                #if args[1] == 'insert': # we used the delete key
+                    #print( "Deleted" )
+                #elif args[1] == 'insert-1c': # we used the backspace key
+                    #print( "Backspaced" )
+                #else: print( "What's this!", repr(args[1]) )
+                before2, before1, after1, after2 = self.textBox.get( tk.INSERT+'-2c', tk.INSERT+'+2c' ) # Get the characters (now forced together) around the cursor
+                #before1 = before2After2[1]
+                #after1 = before2After2[2]
+                #print( "Got before1After1: {!r}".format( before1After1 ) )
+                if before1 == ' ' and after1 == '\n': # Put trailing substitute
+                    if self.markTrailingSpacesFlag:
+                        self.textBox.delete( tk.INSERT+'-1c', tk.INSERT ) # Delete the space
+                        self.textBox.insert( tk.INSERT, TRAILING_SPACE_SUBSTITUTE ) # Replace with trailing substitute
+                elif before1 in ALL_POSSIBLE_SPACE_CHARS and after1 in ALL_POSSIBLE_SPACE_CHARS: # Put multiple substitute
+                    if self.markMultipleSpacesFlag:
+                        self.textBox.delete( tk.INSERT+'-1c', tk.INSERT+'+1c' ) # Delete chars around cursor
+                        self.textBox.insert( tk.INSERT, DOUBLE_SPACE_SUBSTITUTE ) # Replace with substitute
+                        self.textBox.mark_set( tk.INSERT, saveIndex ) # Put the cursor back
+                if before1 == MULTIPLE_SPACE_SUBSTITUTE and after1 not in ALL_POSSIBLE_SPACE_CHARS and before2 not in ALL_POSSIBLE_SPACE_CHARS:
+                    self.textBox.delete( tk.INSERT+'-1c', tk.INSERT ) # Delete the space substitute
+                    self.textBox.insert( tk.INSERT, ' ' ) # Replace with normal space
+                if after1 == MULTIPLE_SPACE_SUBSTITUTE and before1 not in ALL_POSSIBLE_SPACE_CHARS and after2 not in ALL_POSSIBLE_SPACE_CHARS:
+                    self.textBox.delete( tk.INSERT, tk.INSERT+'+1c' ) # Delete the space substitute
+                    self.textBox.insert( tk.INSERT, ' ' ) # Replace with normal space
+                    self.textBox.mark_set( tk.INSERT, saveIndex ) # Put the cursor back
+
             # Handle auto-correct
             if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
                 #print( "Handle autocorrect" )
@@ -633,11 +714,6 @@ class TextEditWindow( ChildWindow ):
 
 
             # Handle auto-complete
-            #if 1:
-                #print( 'args[0]', repr(args[0]) )
-                #print( 'args[1]', repr(args[1]) )
-                #try: print( 'args[2]', repr(args[2]) )
-                #except IndexError: print( "No args[2]" ) # when deleting
             if self.autocompleteMode is not None and self.autocompleteWords and args[0] in ('insert','delete',):
                 #print( "Handle autocomplete1" )
                 lastAutocompleteWordText = self.existingAutocompleteWordText

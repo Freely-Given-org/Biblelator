@@ -14,7 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
-* Do Tools/Options for edit window to set autocomplete mode, etc.
+* Work more on Tools/Options for edit window to set autocomplete mode, etc.
 * Can't open NET Bible in Windows (encode errors)
 * Make edit window status bar default (if screen is big enough)
 * When did HTML stop working?

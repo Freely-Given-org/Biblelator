@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-29' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.38'
@@ -232,6 +232,8 @@ def parseAndApplySettings( self ):
 
     # Parse users
     try: self.currentUserName = self.settings.data['Users']['currentUserName']
+    except KeyError: pass # use program default
+    try: self.currentUserInitials = self.settings.data['Users']['currentUserInitials']
     except KeyError: pass # use program default
     try: self.currentUserEmail = self.settings.data['Users']['currentUserEmail']
     except KeyError: pass # use program default
@@ -673,6 +675,7 @@ def writeSettingsFile( self ):
     self.settings.data['Users'] = {}
     users = self.settings.data['Users']
     users['currentUserName'] = self.currentUserName
+    users['currentUserInitials'] = self.currentUserInitials
     users['currentUserEmail'] = self.currentUserEmail
     users['currentUserRole'] = self.currentUserRole
     users['currentUserAssignments'] = self.currentUserAssignments

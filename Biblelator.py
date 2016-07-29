@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-29' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -196,6 +196,7 @@ class Application( Frame ):
         self.currentProjectName = 'TranslationTest'
 
         self.currentUserName = findUsername().title()
+        self.currentUserInitials = self.currentUserName[0] # Default to first letter
         self.currentUserEmail = 'Unknown'
         self.currentUserRole = 'Translator'
         self.currentUserAssignments = 'ALL'
@@ -314,6 +315,18 @@ class Application( Frame ):
         #print( self.bookNumberTable )
     # end of Application.setGenericBibleOrganisationalSystem
 
+
+    def createMenuBar( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createMenuBar()") )
+
+        if self.touchMode:
+            self.createTouchMenuBar()
+        else: # assume it's regular desktop mode
+            self.createNormalMenuBar()
+    # end of Application.createMenuBar
 
     def createNormalMenuBar( self ):
         """
@@ -439,7 +452,7 @@ class Application( Frame ):
             windowMenu.add_separator()
             for savedName in self.windowsSettingsDict:
                 if savedName != 'Current':
-                    windowMenu.add_command( label=savedName, underline=0, command=lambda sN=savedName: applyGivenWindowsSettings(self,sN) )
+                    windowMenu.add_command( label=savedName, command=lambda sN=savedName: applyGivenWindowsSettings(self,sN) )
         windowMenu.add_separator()
         submenuWindowStyle = tk.Menu( windowMenu, tearoff=False )
         windowMenu.add_cascade( label=_('Theme'), underline=0, menu=submenuWindowStyle )

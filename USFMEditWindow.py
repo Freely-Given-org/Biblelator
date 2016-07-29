@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-29' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -44,7 +44,8 @@ import tkinter as tk
 from tkinter.ttk import Style, Notebook, Frame, Label, Radiobutton
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, errorBeep
+from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+                                errorBeep
 from BiblelatorDialogs import showerror, showinfo, OkCancelDialog, \
                                 YesNoDialog, GetBibleReplaceTextDialog, ReplaceConfirmDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
@@ -1005,10 +1006,14 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
             #print( "contextViewMode", self._contextViewMode )
-            assert self._formatViewMode == 'Unformatted' # Only option done so far
+            #assert self._formatViewMode == 'Unformatted' # Only option done so far
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
         self.textBox.config( background=self.defaultBackgroundColour ) # Go back to default background
+        if self._formatViewMode != 'Unformatted': # Only option done so far
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "Ignoring {!r} mode for USFMEditWindow".format( self._formatViewMode ) )
+            return
 
         oldVerseKey = self.currentVerseKey
         oldBBB, oldC, oldV = (None,None,None) if oldVerseKey is None else oldVerseKey.getBCV()
@@ -1179,13 +1184,28 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         elif thisC > intC: self.bookTextAfter += thisVerseData if thisVerseData else ''
                         elif thisV < intV-1: self.bookTextBefore += thisVerseData if thisVerseData else ''
                         elif thisV > intV+1: self.bookTextAfter += thisVerseData if thisVerseData else ''
-                        else:
+                        else: # these are the displayed verses
+                            RC = self.textBox.index( tk.INSERT ) # Something like 55.6 for line 55, before column 6
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                currentVerse=thisC==intC and thisV==intV )
+                                                currentVerse=thisC==intC and thisV==intV,
+                                                substituteTrailingSpaces=self.markTrailingSpacesFlag,
+                                                substituteMultipleSpaces=self.markMultipleSpacesFlag )
+                            if thisC==intC and thisV==intV and thisVerseData: # this is the current verse
+                                row, col = RC.split( '.', 1 ) # Get our starting row/column
+                                #print( 'R.C', repr(RC), repr(row), repr(col), 'tVD', repr(thisVerseData) )
+                                lines = thisVerseData.split( '\n' )
+                                offset = 0
+                                if lines[0] and lines[0][0]=='\\' and lines[0][1:] in BibleOrgSysGlobals.USFMParagraphMarkers:
+                                    # Assume the first line is just a USFM paragraph marker (with no other info)
+                                    #print( "Move to 2.end after", repr(lines[0]), "for", self.moduleID )
+                                    offset = 1
+                                savedCursorPosition = '{}.end'.format( int(row) + offset ) # Move the cursor to the end of the SECOND line in the verse
+                                #print( "Move to {!r} after {!r} for {}".format( savedCursorPosition, lines[0], self.moduleID ) )
                             startingFlag = False
 
             elif self._contextViewMode == 'ByVerse':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
+                savedCursorPosition = '1.end' # Default the cursor to the end of the first line
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 numChaps = self.getNumChapters( BBB )
@@ -1200,12 +1220,18 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         elif thisC > intC: self.bookTextAfter += thisVerseData if thisVerseData else ''
                         elif thisV < intV: self.bookTextBefore += thisVerseData if thisVerseData else ''
                         elif thisV > intV: self.bookTextAfter += thisVerseData if thisVerseData else ''
-                        else:
+                        else: # this is the current verse
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                currentVerse=thisC==intC and thisV==intV )
-                # Try to set the cursor to the end of the first line
-                #self.textBox.mark_set( tk.INSERT, '1.999' )
-                savedCursorPosition = '1.end'
+                                                currentVerse=thisC==intC and thisV==intV,
+                                                substituteTrailingSpaces=self.markTrailingSpacesFlag,
+                                                substituteMultipleSpaces=self.markMultipleSpacesFlag )
+                            #print( 'tVD', repr(thisVerseData) )
+                            if thisVerseData:
+                                lines = thisVerseData.split( '\n' )
+                                if lines[0] and lines[0][0]=='\\' and lines[0][1:] in BibleOrgSysGlobals.USFMParagraphMarkers:
+                                    # Assume the first line is just a USFM paragraph marker (with no other info)
+                                    #print( "Move to 2.end after", repr(lines[0]), "for", self.moduleID )
+                                    savedCursorPosition = '2.end' # Move the cursor to the end of the SECOND line
 
             elif self._contextViewMode == 'BySection':
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'BySection2' )
@@ -1293,7 +1319,10 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("USFMEditWindow.getEntireText()") )
 
-        editBoxText = self.getAllText() # from the edit window
+        # Get the text from the edit box and clean it up
+        editBoxText = self.getAllText()
+
+        # Add the stuff that wasn't displayed before and after the currently displayed verses
         entireText = self.bookTextBefore + editBoxText + self.bookTextAfter
         return entireText
     # end of USFMEditWindow.getEntireText

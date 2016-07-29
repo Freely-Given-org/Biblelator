@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-29' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.38'
@@ -755,6 +755,12 @@ class BiblelatorSettingsEditor( Frame ):
         self.unEntry = Entry( self.usersPage, width=25, textvariable=self.unVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.unEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.uiVar = tk.StringVar()
+        uiLabel = Label( self.usersPage, text=_("Current user initials:") )
+        uiLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
+        self.uiEntry = Entry( self.usersPage, width=5, textvariable=self.uiVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.uiEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
         self.uemVar = tk.StringVar()
         uemLabel = Label( self.usersPage, text=_("User email:") )
         uemLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
@@ -943,6 +949,8 @@ class BiblelatorSettingsEditor( Frame ):
         except KeyError: pass
 
         try: self.unVar.set( self.settings.data['Users']['currentUserName'] )
+        except KeyError: pass
+        try: self.uiVar.set( self.settings.data['Users']['currentUserInitials'] )
         except KeyError: pass
         try: self.uemVar.set( self.settings.data['Users']['currentUserEmail'] )
         except KeyError: pass
