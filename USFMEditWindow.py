@@ -793,18 +793,22 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         numVerses = text.count( '\\v ' )
         numSectionHeadings = text.count('\\s ')+text.count('\\s1 ')+text.count('\\s2 ')+text.count('\\s3 ')+text.count('\\s4 ')
 
+        grandtotal = 0
+        for firstLetter in self.autocompleteWords:
+            grandtotal += len( self.autocompleteWords[firstLetter] )
+
         infoString = 'Current location:\n' \
-            + '  BCV:\t{} {}:{}\n'.format( BBB, C, V ) \
-            + '  Line, Column:\t{}, {}\n'.format( atLine, atColumn ) \
+            + '  BCV: {} {}:{}\n'.format( BBB, C, V ) \
+            + '  Line, column: {}, {}\n'.format( atLine, atColumn ) \
             + '\nFile text statistics:\n' \
-            + '  Chapts:\t{:,}\n  Verses:\t{:,}\n  Sections:\t{:,}\n'.format( numChaps, numVerses, numSectionHeadings ) \
-            + '  Chars:\t{:,}\n  Lines:\t{:,}\n  Words:\t{:,}\n'.format( numChars, numLines, numWords ) \
+            + '  Chapts: {:,}\n  Verses: {:,}\n  Sections: {:,}\n'.format( numChaps, numVerses, numSectionHeadings ) \
+            + '  Chars: {:,}\n  Lines: {:,}\n  Words: {:,}\n'.format( numChars, numLines, numWords ) \
             + '\nFile info:\n' \
-            + '  Name:\t{}\n  Folder:\t{}\n  BookFN:\t{}\n  SourceFldr:\t{}\n' \
+            + '  Name: {}\n  Folder: {}\n  BookFN: {}\n  SourceFldr: {}\n' \
                     .format( self.filename, self.filepath, self.bookFilename, self.internalBible.sourceFolder ) \
             + '\nSettings:\n' \
-            + '  Autocorrect entries:\t{:,}\n  Autocomplete mode:\t{}\n  Autosave time:\t{} secs\n  Save changes automatically:\t{}' \
-                .format( len(self.autocorrectEntries), self.autocompleteMode, round(self.autosaveTime/1000), self.saveChangesAutomatically )
+            + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
+                .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, round(self.autosaveTime/1000), self.saveChangesAutomatically )
         showinfo( self, '{} Window Information'.format( BBB ), infoString )
     # end of USFMEditWindow.doShowInfo
 

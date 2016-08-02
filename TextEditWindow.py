@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-01' # by RJH
+LastModifiedDate = '2016-08-02' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.38'
@@ -827,15 +827,21 @@ class TextEditWindow( ChildWindow ):
         index = self.textBox.index( tk.INSERT )
         atLine, atColumn = index.split('.')
 
+        grandtotal = 0
+        for firstLetter in self.autocompleteWords:
+            print( "fL", firstLetter )
+            grandtotal += len( self.autocompleteWords[firstLetter] )
+
         infoString = 'Current location:\n' \
-            + '  Line, Column:\t{}, {}\n'.format( atLine, atColumn ) \
+            + '  Line, column: {}, {}\n'.format( atLine, atColumn ) \
             + '\nFile text statistics:\n' \
-            + '  Chars:\t{:,}\n  Lines:\t{:,}\n  Words:\t{:,}\n'.format( numChars, numLines, numWords ) \
+            + '  Chars: {:,}\n  Lines: {:,}\n  Words: {:,}\n'.format( numChars, numLines, numWords ) \
             + '\nFile info:\n' \
-            + '  Name:\t{}\n'.format( self.filename ) \
-            + '  Folder:\t{}\n'.format( self.folderPath ) \
+            + '  Name: {}\n'.format( self.filename ) \
+            + '  Folder: {}\n'.format( self.folderPath ) \
             + '\nSettings:\n' \
-            + '  Autocorrect entries:\t{:,}\n  Autocomplete:\t{}\n  Autosave time:\t{} secs\n  Save changes automatically:\t{}'.format( len(self.autocorrectEntries), self.autocompleteMode, round(self.autosaveTime/1000), self.saveChangesAutomatically )
+            + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
+                    .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, round(self.autosaveTime/1000), self.saveChangesAutomatically )
 
         showinfo( self, _("Window Information"), infoString )
     # end of TextEditWindow.doShowInfo

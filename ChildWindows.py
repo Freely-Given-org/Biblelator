@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-31' # by RJH
+LastModifiedDate = '2016-08-02' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.38'
@@ -1010,7 +1010,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         for internalBible,windowList in self.parentApp.internalBibles:
             if internalBible is not self.parentWindow.internalBible:
                 self.availableInternalBibles.append( internalBible )
-        print( 'Available internalBibles', len(self.availableInternalBibles), self.availableInternalBibles )
+        #print( 'Available internalBibles', len(self.availableInternalBibles), self.availableInternalBibles )
         self.extendedTo = None
 
         # Make a frame at the top and then put our options inside it
