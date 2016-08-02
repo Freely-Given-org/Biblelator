@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-01' # by RJH
+LastModifiedDate = '2016-08-02' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -964,7 +964,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                             startedVerseEarly = True
             elif C=='0' and line.startswith( '\\' ):
                 if currentEntry: # Should only happen if the file has blank lines before any chapter markers
-                    assert currentEntry == '\n' # Warn programmer if it's anything different
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                        print( "cE", currentEntry )
+                        # NOTE: This can fail if there's a line in the file NOT beginning with a USFM
+                        #   i.e., a continuation line
+                        assert currentEntry == '\n' # Warn programmer if it's anything different
                     addCacheEntry( BBB, C, V, currentEntry ) # Will give a duplicate entry error adding to newline
                     currentEntry = ''
                 addCacheEntry( BBB, C, V, line + '\n' )
@@ -1146,6 +1150,15 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                         elif thisV < intV: self.bookTextBefore += thisVerseData if thisVerseData else ''
                         elif thisV > intV: self.bookTextAfter += thisVerseData if thisVerseData else ''
                         else: # this is the current verse
+                            #print( "tVD for", self.moduleID, thisVerseKey, thisVerseData )
+                            if thisVerseData is None: # We might have a missing or bridged verse
+                                intV = int( thisV )
+                                while intV > 1:
+                                    intV -= 1 # Go back looking for bridged verses to display
+                                    thisVerseData = self.getCachedVerseData( SimpleVerseKey( BBB, thisC, intV ) )
+                                    #print( "  tVD for", self.moduleID, intV, thisVerseData )
+                                    if thisVerseData is not None: # it seems to have worked
+                                        break # Might have been nice to check/confirm that it was actually a bridged verse???
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
                                                 currentVerse=thisC==intC and thisV==intV,
                                                 substituteTrailingSpaces=self.markTrailingSpacesFlag,

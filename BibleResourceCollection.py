@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-01' # by RJH
+LastModifiedDate = '2016-08-02' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.38'
@@ -323,7 +323,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     cachedVerseData = self.getCachedVerseData( SimpleVerseKey( BBB, C, intV, S ) )
                     #print( "  cVD for", self.moduleID, intV, cachedVerseData )
                     if cachedVerseData is not None: # it seems to have worked
-                        break # Might have been nice to check that it was a bridged verse???
+                        break # Might have been nice to check/confirm that it was actually a bridged verse???
             self.displayAppendVerse( True, newVerseKey, cachedVerseData, currentVerse=True )
 
         #elif self.parentWindow._contextViewMode == 'BySection':
