@@ -29,7 +29,7 @@
     mapReferenceVerseKey( mainVerseKey )
     mapParallelVerseKey( forGroupCode, mainVerseKey )
     findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
-    logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
+    logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText )
     parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction )
 
 TODO: Can some of these functions be (made more general and) moved to the BOS?
@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-21' # by RJH
+LastModifiedDate = '2016-08-01' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -57,6 +57,7 @@ from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 # BibleOrgSys imports
 #sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
+from Bible import Bible
 from VerseReferences import SimpleVerseKey #, FlexibleVersesKey
 from BibleReferencesLinks import BibleReferencesLinks
 from InternalBibleInternals import InternalBibleEntry
@@ -437,7 +438,8 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("handleInternalBibles( {}, {} )").format( internalBible, controllingWindow ) )
-        self.setDebugText( "handleInternalBibles" )
+        assert isinstance( internalBible, Bible )
+        #self.setDebugText( "handleInternalBibles" )
 
     result = internalBible
     #if internalBible is None:
@@ -481,12 +483,13 @@ def getChangeLogFilepath( loggingFolder, projectName ):
                         BibleOrgSysGlobals.makeSafeFilename( projectName.replace(' ','_') + '_ChangeLog.txt' ) )
 # end of BiblelatorHelpers.getChangeLogFilepath
 
-def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength ):
+
+def logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText ):
     """
     Just logs some info about the recently changed book to a log file for the project.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, textLength ) )
+        #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, len(bookText) ) )
 
     filepath = getChangeLogFilepath( loggingFolder, projectName )
 
@@ -494,8 +497,9 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, textLength )
     #try: logText = open( filepath, 'rt', encoding='utf-8' ).read()
     #except FileNotFoundError: logText = ''
 
-    logText = '{} {} {:,} characters saved by {}\n'.format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                                                            savedBBB, textLength, userName )
+    logText = '{} {} {:,} characters ({} chapters, {:,} verses) saved by {}\n' \
+                .format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    savedBBB, len(bookText), bookText.count( '\\c ' ), bookText.count( '\\v ' ), userName )
     with open( filepath, 'at', encoding='utf-8' ) as logFile: # Append puts the file pointer at the end of the file
         logFile.write( logText )
 # end of BiblelatorHelpers.logChangedFile

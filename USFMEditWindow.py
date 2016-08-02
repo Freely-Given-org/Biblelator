@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-29' # by RJH
+LastModifiedDate = '2016-08-01' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -181,13 +181,13 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( USFMBible.sourceFolder ) )
 
         # Set some dummy values required soon (esp. by refreshTitle)
-        self.defaultContextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # BeforeAndAfter
-        self.defaultFormatViewMode = 'Unformatted' # Only option done so far
+        #self.defaultContextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # BeforeAndAfter
+        #self.defaultFormatViewMode = 'Unformatted' # Only option done so far
         self.editMode = DEFAULT
         self.editStatus = 'Editable'
         self.bookTextModified = False
         self.projectName = 'NoProjectName'
-        InternalBibleResourceWindow.__init__( self, parentApp, None )
+        InternalBibleResourceWindow.__init__( self, parentApp, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
         #self.overrideredirect( 1 ) # Remove the title bar
 
@@ -404,11 +404,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
-        if   self._contextViewMode == 'BeforeAndAfter': self._contextViewRadioVar.set( 1 )
-        elif self._contextViewMode == 'BySection': self._contextViewRadioVar.set( 2 )
-        elif self._contextViewMode == 'ByVerse': self._contextViewRadioVar.set( 3 )
-        elif self._contextViewMode == 'ByBook': self._contextViewRadioVar.set( 4 )
-        elif self._contextViewMode == 'ByChapter': self._contextViewRadioVar.set( 5 )
+        #if   self._contextViewMode == 'BeforeAndAfter': self._contextViewRadioVar.set( 1 )
+        #elif self._contextViewMode == 'BySection': self._contextViewRadioVar.set( 2 )
+        #elif self._contextViewMode == 'ByVerse': self._contextViewRadioVar.set( 3 )
+        #elif self._contextViewMode == 'ByBook': self._contextViewRadioVar.set( 4 )
+        #elif self._contextViewMode == 'ByChapter': self._contextViewRadioVar.set( 5 )
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
@@ -1043,81 +1043,6 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             if newBBB == oldBBB: # We haven't changed books -- update our book cache
                 self.cacheBook( newBBB )
 
-            #editedText = self.getAllText()
-            #if self._contextViewMode == 'BeforeAndAfter':
-                #print( "We need to extract the BeforeAndAfter changes into self.bookText!!!")
-                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                #if newBBB == oldBBB: # We haven't changed books
-                    #self.verseCache = OrderedDict()
-                    #self.cacheBook( oldBBB )
-                ##bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
-                ##if bibleData:
-                    ##verseData, previousVerses, nextVerses = bibleData
-                    ##for verseKey,previousVerseData in previousVerses:
-                        ##self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
-                        ##startingFlag = False
-                    ##self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
-                    ##for verseKey,nextVerseData in nextVerses:
-                        ##self.displayAppendVerse( False, verseKey, nextVerseData )
-
-            #elif self._contextViewMode == 'BySection':
-                #print( "We need to extract the BySection changes into self.bookText!!!")
-                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                #if newBBB == oldBBB: # We haven't changed books
-                    #self.verseCache = OrderedDict()
-                    #self.cacheBook( oldBBB )
-                ##self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-                ##BBB, C, V = newVerseKey.getBCV()
-                ##intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                ##print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                ##for thisC in range( 0, self.getNumChapters( BBB ) ):
-                    ##try: numVerses = self.getNumVerses( BBB, thisC )
-                    ##except KeyError: numVerses = 0
-                    ##for thisV in range( 0, numVerses ):
-                        ##thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                        ##thisVerseData = self.getCachedVerseData( thisVerseKey )
-                        ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                ##currentVerse=thisC==intC and thisV==intV )
-                        ##startingFlag = False
-
-            #elif self._contextViewMode == 'ByVerse':
-                #print( "We need to extract the ByVerse changes into self.bookText!!!")
-                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                #if newBBB == oldBBB: # We haven't changed books
-                    #self.verseCache = OrderedDict()
-                    #self.cacheBook( oldBBB )
-                ##C, V = self.currentVerseKey.getCV()
-                ##self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-
-            #elif self._contextViewMode == 'ByBook':
-                #print( 'USFMEditWindow.updateShownBCV', 'ByBook1' )
-                #self.bookText = editedText
-                #if newBBB == oldBBB: # We haven't changed books
-                    #self.verseCache = OrderedDict()
-                    #self.cacheBook( oldBBB )
-
-            #elif self._contextViewMode == 'ByChapter':
-                #print( "We need to extract the ByChapter changes into self.bookText!!!")
-                #self.bookText = self.bookTextBefore + editedText + self.bookTextAfter
-                #if newBBB == oldBBB: # We haven't changed books
-                    #self.verseCache = OrderedDict()
-                    #self.cacheBook( oldBBB )
-                ##C = self.currentVerseKey.getChapterNumber()
-                ##BBB, C, V = newVerseKey.getBCV()
-                ##intV = newVerseKey.getVerseNumberInt()
-                ##try: numVerses = self.getNumVerses( BBB, C )
-                ##except KeyError: numVerses = 0
-                ##for thisV in range( 0, numVerses ):
-                    ##thisVerseKey = SimpleVerseKey( BBB, C, thisV )
-                    ##thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
-                    ##startingFlag = False
-
-            #else:
-                #logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self._contextViewMode ) )
-                #if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
-            #self.bookTextModified = True
-
         if newReferenceVerseKey is None:
             if oldVerseKey is not None:
                 if self.bookTextModified: self.doSave() # resets bookTextModified flag
@@ -1420,7 +1345,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 #self.internalBible.reloadBook( self.currentVerseKey.getBBB() ) # coz it's now out of date -- what? why?
                 self.cacheBook( BBB ) # Wasted if we're closing the window/program, but important if we're continuing to edit
                 self.refreshTitle()
-                logChangedFile( self.parentApp.currentUserName, self.parentApp.loggingFolderPath, self.projectName, BBB, len(self.bookText) )
+                logChangedFile( self.parentApp.currentUserName, self.parentApp.loggingFolderPath, self.projectName, BBB, self.bookText )
             else: self.doSaveAs()
     # end of USFMEditWindow.doSave
 

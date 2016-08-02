@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-29' # by RJH
+LastModifiedDate = '2016-08-01' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.38'
@@ -797,6 +797,7 @@ class BibleBox( ChildBox ):
             and adds the CV marks at the same time for navigation.
 
         Usually called from updateShownBCV from the subclass.
+        Note that it's used in both formatted and unformatted (even edit) windows.
         """
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:

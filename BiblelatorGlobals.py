@@ -41,7 +41,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-17' # by RJH
+LastModifiedDate = '2016-07-31' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.38'
@@ -209,8 +209,7 @@ def parseWindowGeometry( geometry ):
 
 def parseWindowSize( geometry ):
     """
-    Given a TKinter geometry string, e,g., 493x152
-        being width, height
+    Given a TKinter geometry string, e,g., 493x152 (being width, height)
     return a list containing the two integer values.
     """
     m = re.match("(\d+)x(\d+)", geometry)

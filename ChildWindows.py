@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-31' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.38'
@@ -52,11 +52,11 @@ from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
-                             parseWindowSize, errorBeep, \
+                             parseWindowGeometry, parseWindowSize, assembleWindowGeometry, errorBeep, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
                              INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE, \
                              INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
-from BiblelatorDialogs import showerror, showinfo
+from BiblelatorDialogs import showerror, showinfo, SelectInternalBibleDialog
 from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
 from TextBoxes import ChildBox, BibleBox, HTMLText
 
@@ -438,6 +438,7 @@ class BibleWindow( ChildWindow, BibleBox ):
             assert newMode==DEFAULT or newMode in BIBLE_FORMAT_VIEW_MODES
 
         self._formatViewMode = self.defaultFormatViewMode if newMode==DEFAULT else newMode
+        #print( "Now set to", self._formatViewMode )
         self._formatViewRadioVar.set( BIBLE_FORMAT_VIEW_MODES.index( self._formatViewMode ) + 1 )
     # end of BibleWindow.setFormatViewMode
 
@@ -1009,7 +1010,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         for internalBible,windowList in self.parentApp.internalBibles:
             if internalBible is not self.parentWindow.internalBible:
                 self.availableInternalBibles.append( internalBible )
-        #print( 'Available internalBibles', len(self.availableInternalBibles), self.availableInternalBibles )
+        print( 'Available internalBibles', len(self.availableInternalBibles), self.availableInternalBibles )
         self.extendedTo = None
 
         # Make a frame at the top and then put our options inside it
@@ -1026,7 +1027,11 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         #infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
         infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=5 )
 
-        self.extendButton = Button( self, text=_("Extend{}").format( '…' if len(self.availableInternalBibles)>1 else '' ), command=self.doExtend )
+        if len(self.availableInternalBibles) == 1:
+            extendText = _(" to {}").format( self.availableInternalBibles[0].getAName() )
+        elif len(self.availableInternalBibles) > 1: extendText = '…'
+        else: extendText = ''
+        self.extendButton = Button( self, text=_("Extend{}").format( extendText ), command=self.doExtend )
         #extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
         self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
         if not self.availableInternalBibles: self.extendButton.config( state=tk.DISABLED )
@@ -1302,7 +1307,8 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
                     self.tree.insert( BBB, 'end', j, tags='BCV',
                         values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after) )
             else:
-                extend = self.extendedTo.getVerseText( ref )
+                try: extend = self.extendedTo.getVerseText( ref )
+                except KeyError: extend = '' # couldn't find that CV reference
                 if self.lineMode:
                     self.tree.insert( BBB, 'end', j, tags='BCV',
                         values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before+fText+after, extend) )
@@ -1338,14 +1344,21 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
     def doExtend( self, event=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doExtend( {} )").format( event ) )
+            assert self.availableInternalBibles # Should be at least one
 
         if len(self.availableInternalBibles) == 1:
             self.extendedTo = self.availableInternalBibles[0]
         else: # Should let user choose an internal Bible
-            self.extendedTo = self.availableInternalBibles[0]
-        self.extendButton.config( state=tk.DISABLED )
+            sIBD = SelectInternalBibleDialog( self, _("Select EXTEND version"), self.availableInternalBibles )
+            if sIBD.result is None: return # ESC pressed
+            assert sIBD.result < len(self.availableInternalBibles)
+            self.extendedTo = self.availableInternalBibles[sIBD.result]
+        self.extendButton.config( text=_("Extended"), state=tk.DISABLED )
+        #print( "doExtend", self.geometry(), INITIAL_RESULT_WINDOW_SIZE )
+        width, height, xOffset, yOffset = parseWindowGeometry( self.geometry() )
+        self.geometry( assembleWindowGeometry( int(width*1.3), height, xOffset, yOffset ) ) # Make window widen
         self.makeTree() # Redisplay everything
     # end of FindResultWindow.doExtend
 

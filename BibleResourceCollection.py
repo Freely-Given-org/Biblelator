@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-08-01' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.38'
@@ -100,6 +100,7 @@ from BiblelatorHelpers import handleInternalBibles
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
+from Bible import Bible
 from VerseReferences import SimpleVerseKey
 from DigitalBiblePlatform import DBPBibles, DBPBible
 from SwordResources import SwordType, SwordInterface
@@ -313,7 +314,17 @@ class BibleResourceBox( Frame, BibleBox ):
                     self.displayAppendVerse( False, verseKey, nextVerseData )
 
         elif self.parentWindow._contextViewMode == 'ByVerse':
-            self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+            cachedVerseData = self.getCachedVerseData( newVerseKey )
+            #print( "cVD for", self.moduleID, newVerseKey, cachedVerseData )
+            if cachedVerseData is None: # We might have a missing or bridged verse
+                intV = int( V )
+                while intV > 1:
+                    intV -= 1 # Go back looking for bridged verses to display
+                    cachedVerseData = self.getCachedVerseData( SimpleVerseKey( BBB, C, intV, S ) )
+                    #print( "  cVD for", self.moduleID, intV, cachedVerseData )
+                    if cachedVerseData is not None: # it seems to have worked
+                        break # Might have been nice to check that it was a bridged verse???
+            self.displayAppendVerse( True, newVerseKey, cachedVerseData, currentVerse=True )
 
         #elif self.parentWindow._contextViewMode == 'BySection':
             #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
@@ -412,6 +423,10 @@ class SwordBibleResourceBox( BibleResourceBox ):
         if self.SwordModule is None:
             logging.error( exp("SwordBibleResourceBox.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
+        if isinstance( self.SwordModule, Bible ):
+            #print( "Handle internalBible for SwordModule" )
+            handleInternalBibles( self.parentApp, self.SwordModule, self )
+        else: print( "SwordModule is", self.SwordModule )
     # end of SwordBibleResourceBox.__init__
 
 
@@ -469,6 +484,10 @@ class DBPBibleResourceBox( BibleResourceBox ):
         except ConnectionError:
             logging.error( exp("DBPBibleResourceBox.__init__ Unable to connect to Digital Bible Platform") )
             self.DBPModule = None
+        if isinstance( self.DBPModule, Bible ):
+            #print( "Handle internalBible for DBPModule" )
+            handleInternalBibles( self.parentApp, self.DBPModule, self )
+        else: print( "DBPModule is", self.DBPModule )
     # end of DBPBibleResourceBox.__init__
 
 
@@ -514,7 +533,9 @@ class InternalBibleResourceBox( BibleResourceBox ):
             if isinstance( result, str ):
                 print( "Unknown Bible returned: {}".format( repr(result) ) )
                 self.internalBible = None
-            else: self.internalBible = handleInternalBibles( self.parentApp, result, self )
+            else:
+                #print( "Handle internalBible for internalBible" )
+                self.internalBible = handleInternalBibles( self.parentApp, result, self )
         if self.internalBible is not None: # Define which functions we use by default
             self.getNumVerses = self.internalBible.getNumVerses
             self.getNumChapters = self.internalBible.getNumChapters
@@ -554,13 +575,13 @@ class BibleResourceBoxes( list ):
 class BibleResourceCollectionWindow( BibleResourceWindow ):
     """
     """
-    def __init__( self, parentApp, collectionName ):
+    def __init__( self, parentApp, collectionName, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
         """
         Given a collection name, try to open an empty Bible resource collection window.
         """
         if BibleOrgSysGlobals.debugFlag: print( "BibleResourceCollectionWindow.__init__( {}, {} )".format( parentApp, collectionName ) )
         self.parentApp = parentApp
-        BibleResourceWindow.__init__( self, parentApp, 'BibleResourceCollectionWindow', collectionName )
+        BibleResourceWindow.__init__( self, parentApp, 'BibleResourceCollectionWindow', collectionName, defaultContextViewMode, defaultFormatViewMode )
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.windowType = 'InternalBibleResourceBox'
 
@@ -637,22 +658,11 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
         self.menubar.add_cascade( menu=self.viewMenu, label=_('View'), underline=0 )
 
-        #if self._contextViewMode == 'BeforeAndAfter': self._contextViewRadioVar.set( 1 )
-        ##elif self._contextViewMode == 'BySection': self._contextViewRadioVar.set( 2 )
-        #elif self._contextViewMode == 'ByVerse': self._contextViewRadioVar.set( 3 )
-        ##elif self._contextViewMode == 'ByBook': self._contextViewRadioVar.set( 4 )
-        ##elif self._contextViewMode == 'ByChapter': self._contextViewRadioVar.set( 5 )
-        #else: print( self._contextViewMode ); halt
-
         self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
         self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
-
-        #if self._formatViewMode == 'Formatted': self._formatViewRadioVar.set( 1 )
-        #elif self._formatViewMode == 'Unformatted': self._formatViewRadioVar.set( 2 )
-        #else: print( self._formatViewMode ); halt
 
         self.viewMenu.add_separator()
         self.viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )

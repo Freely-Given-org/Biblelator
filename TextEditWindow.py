@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-28' # by RJH
+LastModifiedDate = '2016-08-01' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.38'
@@ -145,6 +145,7 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteMinLength = 2 # Show the window after this many characters have been typed
         self.autocompleteMaxLength = 15 # Remove window after this many characters have been typed
         self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
+        self.addAllNewWords = False
 
         self.invalidCombinations = [] # characters or character combinations that shouldn't occur
         # Temporarily include some default invalid values
@@ -770,7 +771,7 @@ class TextEditWindow( ChildWindow ):
                         if self.autocompleteBox is not None:
                             #print( 'destroy2 autocomplete listbox -- not enough typed yet' )
                             self.removeAutocompleteBox()
-                    if self.autocompleteMode in ( 'Bible', 'BibleBook', ) \
+                    if self.addAllNewWords \
                     and args[0]=='insert' and args[1]=='insert' \
                     and args[2] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS:
                         # Just finished typing a word (by typing a space or something)

@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-08-01' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.38'
@@ -266,73 +266,6 @@ class BibleReferenceBox( Frame, BibleBox ):
             # Set firstFlag as False (rather than j==0) so don't get context displayed
             self.displayAppendVerse( False, newVerseKey, self.getCachedVerseData( newVerseKey ), lastFlag=False )
 
-        #self.setCurrentVerseKey( newVerseKey )
-        #self.clearText() # Leaves the text box enabled
-        #startingFlag = True
-
-        ## Safety-check in case they edited the settings file
-        #if 'DBP' in self.boxType and self._contextViewMode in ('ByBook','ByChapter',):
-            #print( exp("updateShownReferences: Safety-check converted {} contextViewMode for DBP").format( repr(self._contextViewMode) ) )
-            #self._contextViewRadioVar.set( 3 ) # ByVerse
-            #self.changeBibleContextView()
-
-        #if self._contextViewMode == 'BeforeAndAfter':
-            #bibleData = self.getBeforeAndAfterBibleData( newVerseKey )
-            #if bibleData:
-                #verseData, previousVerses, nextVerses = bibleData
-                #for verseKey,previousVerseData in previousVerses:
-                    #self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
-                    #startingFlag = False
-                #self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
-                #for verseKey,nextVerseData in nextVerses:
-                    #self.displayAppendVerse( False, verseKey, nextVerseData )
-
-        #elif self._contextViewMode == 'ByVerse':
-            #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-
-        #elif self._contextViewMode == 'BySection':
-            #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
-            #BBB, C, V = newVerseKey.getBCV()
-            #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            #print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-            ##for thisC in range( 0, self.getNumChapters( BBB ) ):
-                ##try: numVerses = self.getNumVerses( BBB, thisC )
-                ##except KeyError: numVerses = 0
-                ##for thisV in range( 0, numVerses ):
-                    ##thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                    ##thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            ##currentVerse=thisC==intC and thisV==intV )
-                    ##startingFlag = False
-
-        #elif self._contextViewMode == 'ByBook':
-            #BBB, C, V = newVerseKey.getBCV()
-            #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            #for thisC in range( 0, self.getNumChapters( BBB ) ):
-                #try: numVerses = self.getNumVerses( BBB, thisC )
-                #except KeyError: numVerses = 0
-                #for thisV in range( 0, numVerses ):
-                    #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
-                    #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                    #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            #currentVerse=thisC==intC and thisV==intV )
-                    #startingFlag = False
-
-        #elif self._contextViewMode == 'ByChapter':
-            #BBB, C, V = newVerseKey.getBCV()
-            #intV = newVerseKey.getVerseNumberInt()
-            #try: numVerses = self.getNumVerses( BBB, C )
-            #except KeyError: numVerses = 0
-            #for thisV in range( 0, numVerses ):
-                #thisVerseKey = SimpleVerseKey( BBB, C, thisV )
-                #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
-                #startingFlag = False
-
-        #else:
-            #logging.critical( exp("BibleReferenceBox.updateShownBCV: Bad context view mode {}").format( self._contextViewMode ) )
-            #if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
-
         self.textBox.config( state=tk.DISABLED ) # Don't allow editing
     # end of BibleReferenceBox.updateShownReferences
 
@@ -491,13 +424,6 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
         gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
 
-        #if self._contextViewMode == 'BeforeAndAfter': self._contextViewRadioVar.set( 1 )
-        ##elif self._contextViewMode == 'BySection': self._contextViewRadioVar.set( 2 )
-        #elif self._contextViewMode == 'ByVerse': self._contextViewRadioVar.set( 3 )
-        ##elif self._contextViewMode == 'ByBook': self._contextViewRadioVar.set( 4 )
-        ##elif self._contextViewMode == 'ByChapter': self._contextViewRadioVar.set( 5 )
-        #else: print( self._contextViewMode ); halt
-
         self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
         self.menubar.add_cascade( menu=self.viewMenu, label=_('View'), underline=0 )
         self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
@@ -505,10 +431,6 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
         #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
-
-        ##if self._formatViewMode == 'Formatted': self._formatViewRadioVar.set( 1 )
-        ##elif self._formatViewMode == 'Unformatted': self._formatViewRadioVar.set( 2 )
-        ##else: print( self._formatViewMode ); halt
 
         self.viewMenu.add_separator()
         self.viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )

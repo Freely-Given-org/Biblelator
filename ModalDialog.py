@@ -30,7 +30,7 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-07-31' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
 ProgVersion = '0.38'
@@ -118,7 +118,7 @@ class ModalDialog( tk.Toplevel ):
 
     def buttonBox( self ):
         """
-        Add ourstandard button box
+        Add our standard button box
 
         Override if you don't want the standard buttons.
         """

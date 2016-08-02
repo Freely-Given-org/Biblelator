@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-08-01' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.38'
@@ -372,6 +372,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         #pass # Nothing for this book
     #print( 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
+    editWindowObject.addAllNewWords = True
 # end of AutocompleteFunctions.loadBibleBookAutocompleteWords
 
 
@@ -447,6 +448,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     setAutocompleteWords( editWindowObject, autocompleteWords )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "loadBibleAutocompleteWords took", time.time()-startTime )
+    editWindowObject.addAllNewWords = True
 # end of AutocompleteFunctions.loadBibleAutocompleteWords
 
 
@@ -641,6 +643,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
         print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
+    editWindowObject.addAllNewWords = False
 # end of AutocompleteFunctions.loadHunspellAutocompleteWords
 
 
@@ -701,6 +704,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
         print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
+    editWindowObject.addAllNewWords = False
 # end of AutocompleteFunctions.loadILEXAutocompleteWords
 
 
