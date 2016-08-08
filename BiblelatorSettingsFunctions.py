@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-29' # by RJH
+LastModifiedDate = '2016-08-03' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.38'
@@ -289,13 +289,15 @@ def parseAndApplySettings( self ):
     except KeyError: self.currentVerseKeyGroup = 'A'
 
     try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
-    except KeyError: self.GroupA_VerseKey = SimpleVerseKey( 'GEN', '1', '1' )
+    except (KeyError,TypeError): self.GroupA_VerseKey = SimpleVerseKey( 'GEN', '1', '1' )
     try: self.GroupB_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
-    except KeyError: self.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
+    except (KeyError,TypeError): self.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
     try: self.GroupC_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['C-Book'],self.settings.data['BCVGroups']['C-Chapter'],self.settings.data['BCVGroups']['C-Verse'])
-    except KeyError: self.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
+    except (KeyError,TypeError): self.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
     try: self.GroupD_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
-    except KeyError: self.GroupD_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
+    except (KeyError,TypeError): self.GroupD_VerseKey = SimpleVerseKey( 'CO1', '12', '12' )
+    try: self.GroupE_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['E-Book'],self.settings.data['BCVGroups']['E-Chapter'],self.settings.data['BCVGroups']['E-Verse'])
+    except (KeyError,TypeError): self.GroupE_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
 
     try: self.lexiconWord = self.settings.data['Lexicon']['currentWord']
     except KeyError: self.lexiconWord = None
@@ -714,6 +716,9 @@ def writeSettingsFile( self ):
     groups['D-Book'] = self.GroupD_VerseKey[0]
     groups['D-Chapter'] = self.GroupD_VerseKey[1]
     groups['D-Verse'] = self.GroupD_VerseKey[2]
+    groups['E-Book'] = self.GroupE_VerseKey[0]
+    groups['E-Chapter'] = self.GroupE_VerseKey[1]
+    groups['E-Verse'] = self.GroupE_VerseKey[2]
 
     # Save the lexicon info
     self.settings.data['Lexicon'] = {}

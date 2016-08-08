@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-02' # by RJH
+LastModifiedDate = '2016-08-03' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.38'
@@ -679,10 +679,9 @@ class TextEditWindow( ChildWindow ):
                 #elif args[1] == 'insert-1c': # we used the backspace key
                     #print( "Backspaced" )
                 #else: print( "What's this!", repr(args[1]) )
-                before2, before1, after1, after2 = self.textBox.get( tk.INSERT+'-2c', tk.INSERT+'+2c' ) # Get the characters (now forced together) around the cursor
-                #before1 = before2After2[1]
-                #after1 = before2After2[2]
-                #print( "Got before1After1: {!r}".format( before1After1 ) )
+                chars4 = self.textBox.get( tk.INSERT+'-2c', tk.INSERT+'+2c' ) # Get the characters (now forced together) around the cursor
+                if len(chars4) == 4: before2, before1, after1, after2 = chars4
+                else: before2 = before1 = after1 = after2 = '' # not sure about this
                 if before1 == ' ' and after1 == '\n': # Put trailing substitute
                     if self.markTrailingSpacesFlag:
                         self.textBox.delete( tk.INSERT+'-1c', tk.INSERT ) # Delete the space

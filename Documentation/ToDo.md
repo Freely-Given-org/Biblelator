@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-08-01 RJH
+Last updated: 2016-08-03 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,8 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Why doesn't one window have a name?
+* Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
 * Make edit window status bar default (if screen is big enough)
 * When did our HTML box stop working?
@@ -85,6 +87,7 @@ BOSManager / SwordManager / Settings editor stuff
 
 
 Biblelator stuff
+* Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)
 * Find a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags
 * Make Biblelator use Paratext autocorrect files for Paratext projects

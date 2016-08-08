@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-29' # by RJH
+LastModifiedDate = '2016-08-03' # by RJH
 ShortProgName = "AutocorrectFunctions"
 ProgName = "Biblelator Autocorrect Functions"
 ProgVersion = '0.38'
@@ -114,8 +114,8 @@ def setDefaultAutocorrectEntries( self ):
     ourAutocorrectEntries.append( ('fh',' \\ft In Hibruwanon: ') )
     ourAutocorrectEntries.append( ('f3','\\f*') )
 
-    from datetime import datetime # Sorry -- this is a hack
-    ourAutocorrectEntries.append( ('QAZ',' [{} {}] XXX' \
+    from datetime import datetime # Sorry -- this is a hack for our project
+    ourAutocorrectEntries.append( ('QQQ',' [{} {}] XXX' \
                 .format( self.parentApp.currentUserInitials, datetime.now().strftime( '%d%b%y' ) ) ) )
 
     # Add trailing spaces on these ones so that autocomplete doesn't kick in as well

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-29' # by RJH
+LastModifiedDate = '2016-08-08' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -384,7 +384,7 @@ class Application( Frame ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Book'), underline=0, command=self.doGotoBook )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label=_('Info…'), underline=0, command=self.doGotoInfo )
+        gotoMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo )
 
         projectMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=projectMenu, label=_('Project'), underline=0 )
@@ -536,7 +536,7 @@ class Application( Frame ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Book'), underline=0, command=self.doGotoBook )
         gotoMenu.add_separator()
-        gotoMenu.add_command( label=_('Info…'), underline=0, command=self.doGotoInfo )
+        gotoMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo )
 
         projectMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=projectMenu, label=_('Project'), underline=0 )
@@ -651,14 +651,17 @@ class Application( Frame ):
         Style().configure( 'B.TButton', background='pink' )
         Style().configure( 'C.TButton', background='orange' )
         Style().configure( 'D.TButton', background='brown' )
+        Style().configure( 'E.TButton', background='aqua' )
         self.GroupAButton = Button( navigationBar, width=2, text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
         self.GroupBButton = Button( navigationBar, width=2, text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
         self.GroupCButton = Button( navigationBar, width=2, text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
         self.GroupDButton = Button( navigationBar, width=2, text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
+        self.GroupEButton = Button( navigationBar, width=2, text='E', style='E.TButton', command=self.selectGroupE, state=tk.DISABLED )
         self.GroupAButton.pack( side=tk.LEFT )
         self.GroupBButton.pack( side=tk.LEFT )
         self.GroupCButton.pack( side=tk.LEFT )
         self.GroupDButton.pack( side=tk.LEFT )
+        self.GroupEButton.pack( side=tk.LEFT )
 
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
@@ -766,10 +769,13 @@ class Application( Frame ):
                                    text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
         self.GroupDButton = Button( navigationBar, width=minButtonCharWidth,
                                    text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
+        self.GroupEButton = Button( navigationBar, width=minButtonCharWidth,
+                                   text='E', style='D.TButton', command=self.selectGroupE, state=tk.DISABLED )
         self.GroupAButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
         self.GroupBButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
         self.GroupCButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
         self.GroupDButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        self.GroupEButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
 
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
@@ -997,11 +1003,15 @@ class Application( Frame ):
 
     def getVerseKey( self, groupCode ):
         """
+        Given a groupCode (A..E), return the appropriate verseKey.
         """
+        assert groupCode in BIBLE_GROUP_CODES
+
         if   groupCode == 'A': return self.GroupA_VerseKey
         elif groupCode == 'B': return self.GroupB_VerseKey
         elif groupCode == 'C': return self.GroupC_VerseKey
         elif groupCode == 'D': return self.GroupD_VerseKey
+        elif groupCode == 'E': return self.GroupE_VerseKey
         elif BibleOrgSysGlobals.debugFlag and debuggingThisModule: halt
     # end of Application.getVerseKey
 
@@ -2030,11 +2040,13 @@ class Application( Frame ):
             print( exp("updateBCVGroup( {} )").format( newGroupLetter ) )
             self.setDebugText( "updateBCVGroup…" )
             assert newGroupLetter in BIBLE_GROUP_CODES
+
         self.currentVerseKeyGroup = newGroupLetter
         if   self.currentVerseKeyGroup == 'A': self.currentVerseKey = self.GroupA_VerseKey
         elif self.currentVerseKeyGroup == 'B': self.currentVerseKey = self.GroupB_VerseKey
         elif self.currentVerseKeyGroup == 'C': self.currentVerseKey = self.GroupC_VerseKey
         elif self.currentVerseKeyGroup == 'D': self.currentVerseKey = self.GroupD_VerseKey
+        elif self.currentVerseKeyGroup == 'E': self.currentVerseKey = self.GroupE_VerseKey
         else: halt
         if self.currentVerseKey == ('', '1', '1'):
             self.setCurrentVerseKey( SimpleVerseKey( self.getFirstBookCode(), '1', '1' ) )
@@ -2051,11 +2063,13 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("updateBCVGroupButtons()") )
             self.setDebugText( "updateBCVGroupButtons…" )
-        groupButtons = [ self.GroupAButton, self.GroupBButton, self.GroupCButton, self.GroupDButton ]
+
+        groupButtons = [ self.GroupAButton, self.GroupBButton, self.GroupCButton, self.GroupDButton, self.GroupEButton ]
         if   self.currentVerseKeyGroup == 'A': ix = 0
         elif self.currentVerseKeyGroup == 'B': ix = 1
         elif self.currentVerseKeyGroup == 'C': ix = 2
         elif self.currentVerseKeyGroup == 'D': ix = 3
+        elif self.currentVerseKeyGroup == 'E': ix = 4
         else: halt
         selectedButton = groupButtons.pop( ix )
         selectedButton.config( state=tk.DISABLED )#, relief=tk.SUNKEN )
@@ -2091,6 +2105,9 @@ class Application( Frame ):
     def selectGroupD( self ):
         self.updateBCVGroup( 'D' )
     # end of Application.selectGroupD
+    def selectGroupE( self ):
+        self.updateBCVGroup( 'E' )
+    # end of Application.selectGroupE
 
 
     #def getNumVerses( self, BBB, C ):
@@ -2252,12 +2269,12 @@ class Application( Frame ):
     # end of Application.doGotoBook
 
 
-    def doGotoInfo( self, event=None ):
+    def doShowInfo( self, event=None ):
         """
         Pop-up dialog giving goto/reference info.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("Application.doGotoInfo( {} )").format( event ) )
+            print( exp("Application.doShowInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
                  + '  {}\n'.format( self.currentVerseKey.getShortText() ) \
@@ -2268,6 +2285,7 @@ class Application( Frame ):
                  + '  B: {}\n'.format( self.GroupB_VerseKey.getShortText() ) \
                  + '  C: {}\n'.format( self.GroupC_VerseKey.getShortText() ) \
                  + '  D: {}\n'.format( self.GroupD_VerseKey.getShortText() ) \
+                 + '  E: {}\n'.format( self.GroupE_VerseKey.getShortText() ) \
                  + '\nBible Organisational System (BOS):\n' \
                  + '  Name: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemName() ) \
                  + '  Versification: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'versificationSystem' ) ) \
@@ -2275,7 +2293,7 @@ class Application( Frame ):
                  + '  Book Names: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
                  + '  Books: {}'.format( self.genericBibleOrganisationalSystem.getBookList() )
         showinfo( self, 'Goto Information', infoString )
-    # end of Application.doGotoInfo
+    # end of Application.doShowInfo
 
 
     def spinToNewBook( self, event=None ):
@@ -2430,9 +2448,10 @@ class Application( Frame ):
             self.gotoBCV( BBB, C, V, originator=originator )
         else: # it's not the currently selected group
             if   groupCode == 'A': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
-            elif groupCode == 'B': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
-            elif groupCode == 'C': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
-            elif groupCode == 'D': oldVerseKey, self.GroupA_VerseKey = self.GroupA_VerseKey, newVerseKey
+            elif groupCode == 'B': oldVerseKey, self.GroupB_VerseKey = self.GroupB_VerseKey, newVerseKey
+            elif groupCode == 'C': oldVerseKey, self.GroupC_VerseKey = self.GroupC_VerseKey, newVerseKey
+            elif groupCode == 'D': oldVerseKey, self.GroupD_VerseKey = self.GroupD_VerseKey, newVerseKey
+            elif groupCode == 'E': oldVerseKey, self.GroupE_VerseKey = self.GroupE_VerseKey, newVerseKey
             else: halt
             if BibleOrgSysGlobals.debugFlag: assert newVerseKey != oldVerseKey # we shouldn't have even been called
             self.childWindows.updateThisBibleGroup( groupCode, newVerseKey, originator=originator )
@@ -2455,6 +2474,7 @@ class Application( Frame ):
         elif self.currentVerseKeyGroup == 'B': self.GroupB_VerseKey = self.currentVerseKey
         elif self.currentVerseKeyGroup == 'C': self.GroupC_VerseKey = self.currentVerseKey
         elif self.currentVerseKeyGroup == 'D': self.GroupD_VerseKey = self.currentVerseKey
+        elif self.currentVerseKeyGroup == 'E': self.GroupE_VerseKey = self.currentVerseKey
         else: halt
 
         self.updateGUIBCVControls()
