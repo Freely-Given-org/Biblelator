@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-02' # by RJH
+LastModifiedDate = '2016-08-09' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -226,7 +226,10 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         # Temporarily include some default invalid values
         self.invalidCombinations = ['__',',,',' ,','..',' .',';;',' ;','!!',' !',
-                                    '"',] # characters or character combinations that shouldn't occur
+                                    '"',
+                                    '\\f*,','\\f*.','\\f*:','\\f*;','\\f*?','\\f*!',
+                                    '\\x*,','\\x*.','\\x* ',
+                                    ] # characters or character combinations that shouldn't occur
 
         self.checkForPairs = [] # tuples with pairs of characters that should normally be together in the same verse
                                 # NOTE: don't include pairs (like quotes) that frequently occur across multiple verses

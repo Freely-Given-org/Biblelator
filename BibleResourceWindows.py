@@ -82,7 +82,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-02' # by RJH
+LastModifiedDate = '2016-08-09' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.38'
@@ -929,6 +929,7 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
 
 class InternalBibleResourceWindow( BibleResourceWindow ):
     """
+    A window displaying one internal (on-disk) Bible.
     """
     def __init__( self, parentApp, modulePath, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
         """
@@ -972,7 +973,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
             print( exp("InternalBibleResourceWindow.refreshTitle()") )
 
         self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self._groupCode,
-                        self.modulePath if self.internalBible is None else self.internalBible.name,
+                        self.modulePath if self.internalBible is None else self.internalBible.getAName(),
                         ' NOT FOUND' if self.internalBible is None else '',
                         self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber(),
                         self._contextViewMode ) )

@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-02' # by RJH
+LastModifiedDate = '2016-08-09' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.38'
@@ -1306,7 +1306,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
                 else: # column mode
                     self.tree.insert( BBB, 'end', j, tags='BCV',
                         values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after) )
-            else:
+            else: # we have extended the results to display a second version
                 try: extend = self.extendedTo.getVerseText( ref )
                 except KeyError: extend = '' # couldn't find that CV reference
                 if self.lineMode:
@@ -1343,6 +1343,8 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
 
     def doExtend( self, event=None ):
         """
+        Extend the find box by adding another version
+            (which the user might select if there's more than one available)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doExtend( {} )").format( event ) )
@@ -1355,11 +1357,13 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
             if sIBD.result is None: return # ESC pressed
             assert sIBD.result < len(self.availableInternalBibles)
             self.extendedTo = self.availableInternalBibles[sIBD.result]
+        self.parentApp.setWaitStatus()
         self.extendButton.config( text=_("Extended"), state=tk.DISABLED )
         #print( "doExtend", self.geometry(), INITIAL_RESULT_WINDOW_SIZE )
         width, height, xOffset, yOffset = parseWindowGeometry( self.geometry() )
         self.geometry( assembleWindowGeometry( int(width*1.3), height, xOffset, yOffset ) ) # Make window widen
         self.makeTree() # Redisplay everything
+        self.parentApp.setReadyStatus()
     # end of FindResultWindow.doExtend
 
 
