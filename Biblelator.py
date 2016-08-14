@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-08' # by RJH
+LastModifiedDate = '2016-08-11' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -1591,7 +1591,7 @@ class Application( Frame ):
             return
 
         folderPath = os.path.split( fileResult )[0]
-        print( '\n\n\nFP doOpenFileTextEditWindow', repr(folderPath) )
+        #print( '\n\n\nFP doOpenFileTextEditWindow', repr(folderPath) )
         self.lastFileDir = folderPath
 
         self.openFileTextEditWindow( fileResult )

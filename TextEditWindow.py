@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-09' # by RJH
+LastModifiedDate = '2016-08-12' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.38'
@@ -98,6 +98,7 @@ class TextEditWindow( ChildWindow ):
 
         # Set some dummy values required soon (esp. by refreshTitle)
         self.editMode = DEFAULT
+        self.editStatus = ''
         ChildWindow.__init__( self, self.parentApp, 'TextEditor' ) # calls refreshTitle
         self.moduleID = None
         self.windowType = 'PlainTextEditWindow'
@@ -114,6 +115,7 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
 
         self.customFont = tk.font.Font( family="sans-serif", size=12 )
+        self.customFontBold = tk.font.Font( family="sans-serif", size=12, weight='bold' )
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word', font=self.customFont )
 
         self.defaultBackgroundColour = 'gold2'
@@ -150,6 +152,17 @@ class TextEditWindow( ChildWindow ):
         self.invalidCombinations = [] # characters or character combinations that shouldn't occur
         # Temporarily include some default invalid values
         self.invalidCombinations = [',,',' ,',] # characters or character combinations that shouldn't occur
+
+        self.patternsToHighlight = []
+        # Temporarily include some default values -- simplistic demonstration examples
+        self.patternsToHighlight.append( (False,'import','red',{'background':'red'}) )
+        self.patternsToHighlight.append( (False,'self','green',{'foreground':'green'}) )
+        self.patternsToHighlight.append( (True,'\\d','blue',{'foreground':'blue'}) )
+        self.patternsToHighlight.append( (True,'#.*?\\n','grey',{'foreground':'grey'}) )
+        boldDict = {'font':self.customFontBold } #, 'background':'green'}
+        for pythonKeyword in ( 'from','import', 'class','def', 'if','and','or','else','elif',
+                              'for','while', 'return', 'try','accept','finally', 'assert', ):
+            self.patternsToHighlight.append( (True,'\\y'+pythonKeyword+'\\y','bold',boldDict) )
 
         self.saveChangesAutomatically = False # different from AutoSave (which is in different files)
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
@@ -670,10 +683,12 @@ class TextEditWindow( ChildWindow ):
                     if before1 == MULTIPLE_SPACE_SUBSTITUTE and before3After2[0] not in ALL_POSSIBLE_SPACE_CHARS:
                         self.textBox.delete( tk.INSERT+'-2c', tk.INSERT ) # Delete previous space substitute plus new char
                         self.textBox.insert( tk.INSERT, ' '+newChar ) # Replace with normal space plus new char
-                    if before3After2[3] == MULTIPLE_SPACE_SUBSTITUTE and before3After2[4] not in ALL_POSSIBLE_SPACE_CHARS:
-                        self.textBox.delete( tk.INSERT, tk.INSERT+'+1c' ) # Delete following space substitute
-                        self.textBox.insert( tk.INSERT, ' ' ) # Replace with normal space
-                        self.textBox.mark_set( tk.INSERT, saveIndex ) # Put the cursor back
+                    try:
+                        if before3After2[3] == MULTIPLE_SPACE_SUBSTITUTE and before3After2[4] not in ALL_POSSIBLE_SPACE_CHARS:
+                            self.textBox.delete( tk.INSERT, tk.INSERT+'+1c' ) # Delete following space substitute
+                            self.textBox.insert( tk.INSERT, ' ' ) # Replace with normal space
+                            self.textBox.mark_set( tk.INSERT, saveIndex ) # Put the cursor back
+                    except IndexError: pass # Could be working at end of file
                 #previousText = self.getSubstitutedChararactersBeforeCursor()
             elif args[0] == 'delete':
                 #if args[1] == 'insert': # we used the delete key
@@ -1106,6 +1121,30 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( " rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
     # end of TextEditWindow.rememberFileTimeAndSize
+
+
+    def setAllText( self, newText ):
+        """
+        Sets the textBox (assumed to be enabled) to the given text
+            then positions the insert cursor at the BEGINNING of the text.
+
+        caller: call self.update() first if just packed, else the
+        initial position may be at line 2, not line 1 (2.1; Tk bug?)
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.setAllText( {!r} )").format( newText ) )
+
+        self.textBox.config( state=tk.NORMAL ) # In case it was disabled
+        self.textBox.delete( START, tk.END ) # Delete everything that's existing
+        self.textBox.insert( tk.END, newText )
+        self.textBox.highlightAllPatterns( self.patternsToHighlight )
+
+        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        self.textBox.see( tk.INSERT ) # scroll to top, insert is set
+
+        self.textBox.edit_reset() # clear undo/redo stks
+        self.textBox.edit_modified( tk.FALSE ) # clear modified flag
+    # end of TextEditWindow.setAllText
 
 
     def loadText( self ):

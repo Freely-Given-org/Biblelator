@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-01' # by RJH
+LastModifiedDate = '2016-08-09' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.38'
@@ -90,7 +90,7 @@ class BibleReferenceBox( Frame, BibleBox ):
     def __init__( self, parentWindow, parentApp, internalBible, referenceObject ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("BibleReferenceBox.__init__( {}, {}, {}, {} )").format( parentWindow, parentApp, internalBible.name, referenceObject ) )
+        if BibleOrgSysGlobals.debugFlag: print( exp("BibleReferenceBox.__init__( {}, {}, {}, {} )").format( parentWindow, parentApp, internalBible.getAName(), referenceObject ) )
         self.parentWindow, self.parentApp, self.referenceObject = parentWindow, parentApp, referenceObject
         self.internalBible = self.parentApp.handleInternalBibles( internalBible )
 
@@ -251,7 +251,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         Leaves the textbox in the disabled state.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleReferenceBox.updateShownReferences( {} ) for {}".format( newReferenceObject, self.internalBible.name ) )
+            print( "BibleReferenceBox.updateShownReferences( {} ) for {}".format( newReferenceObject, self.internalBible.getAName() ) )
             assert isinstance( newReferenceObject, SimpleVerseKey ) or isinstance( newReferenceObject, SimpleVersesKey ) or isinstance( newReferenceObject, VerseRangeKey )
 
         for j, referenceVerse in enumerate( newReferenceObject ):
@@ -317,9 +317,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         Given a collection name, try to open an empty Bible resource collection window.
         """
-        if BibleOrgSysGlobals.debugFlag: print( "BibleReferenceCollectionWindow.__init__( {}, {} )".format( parentApp, internalBible.name ) )
+        if BibleOrgSysGlobals.debugFlag: print( "BibleReferenceCollectionWindow.__init__( {}, {} )".format( parentApp, internalBible.getAName() ) )
         self.parentApp, self.internalBible = parentApp, internalBible
-        BibleResourceWindow.__init__( self, self.parentApp, 'BibleReferenceCollectionWindow', internalBible.name )
+        BibleResourceWindow.__init__( self, self.parentApp, 'BibleReferenceCollectionWindow', internalBible.getAName() )
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.windowType = 'InternalBibleReferenceBox'
 
@@ -465,7 +465,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
 
     def refreshTitle( self ):
-        self.title( "[{}] {} Bible Reference Collection".format( self._groupCode, self.internalBible.name ) )
+        self.title( "[{}] {} Bible Reference Collection".format( self._groupCode, self.internalBible.getAName() ) )
                         #self.currentVerseKey.getBBB(), self.currentVerseKey.getChapterNumber(), self.currentVerseKey.getVerseNumber() ) )
     # end if BibleReferenceCollectionWindow.refreshTitle
 

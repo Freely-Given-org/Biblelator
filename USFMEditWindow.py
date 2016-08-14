@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-09' # by RJH
+LastModifiedDate = '2016-08-12' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -174,6 +174,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             and also for search/replace (but does use the InternalBible object for search).
     """
     def __init__( self, parentApp, USFMBible, editMode=None ):
+        """
+        """
         logging.debug( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
@@ -251,6 +253,18 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                      ('\\fig ','\\fig*'), ('\\ndx ','\\ndx*'), ('\\pro ','\\pro*'),
                                      ('\\w ','\\w*'), ('\\wg ','\\wg*'), ('\\wh ','\\wh*'),
                                     ) )
+
+        self.patternsToHighlight = []
+        # Temporarily include some default values
+        self.patternsToHighlight.append( (True,'\\\\.*?[ *\n]','green',{'foreground':'green'}) ) # green USFM markers
+        self.patternsToHighlight.append( (True,'\\d','blue',{'foreground':'blue'}) ) # blue digits
+        self.patternsToHighlight.append( (True,'\\\\s .*?\n','redBold',{'font':self.customFontBold, 'foreground':'red'}) ) # red section headings
+        self.patternsToHighlight.append( (True,'\\\\r .*?\n','greenBold',{'font':self.customFontBold, 'foreground':'green'}) ) # green section references
+        self.patternsToHighlight.append( (False,'XXX','redBack',{'background':'red'}) )
+        #boldDict = {'font':self.customFontBold } #, 'background':'green'}
+        #for pythonKeyword in ( 'from','import', 'class','def', 'if','and','or','else','elif',
+                              #'for','while', 'return', 'try','accept','finally', 'assert', ):
+            #self.patternsToHighlight.append( (True,'\\y'+pythonKeyword+'\\y','bold',boldDict) )
 
         self.folderPath = self.filename = self.filepath = None
         self.lastBBB = None
@@ -1235,6 +1249,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             else:
                 logging.critical( exp("USFMEditWindow.updateShownBCV: Bad context view mode {}").format( self._contextViewMode ) )
                 if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
+
+        self.textBox.highlightAllPatterns( self.patternsToHighlight )
 
         self.textBox.edit_reset() # clear undo/redo stks
         self.textBox.edit_modified( tk.FALSE ) # clear modified flag

@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-01' # by RJH
+LastModifiedDate = '2016-08-09' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.38'
@@ -415,7 +415,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
             # Load the books one by one -- assuming that they have regular Paratext style filenames
             for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
                 #if BibleOrgSysGlobals.verbosityLevel>1 or BibleOrgSysGlobals.debugFlag:
-                    #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.name, editWindowObject.internalBible.sourceFolder ) )
+                    #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.getAName(), editWindowObject.internalBible.sourceFolder ) )
                 bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible, filename, BBB==currentBBB ) # also saves it
     else:
         logging.critical( exp("No books to load in {}!").format( editWindowObject.internalBible.sourceFolder ) )

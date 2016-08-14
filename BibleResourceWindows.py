@@ -1004,7 +1004,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
             print( exp("InternalBibleResourceWindow.doShowInfo( {} )").format( event ) )
 
         infoString = 'InternalBibleResourceWindow:\n' \
-                 + '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.name ) \
+                 + '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.getAName() ) \
                  + '  Type:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.objectTypeString ) \
                  + '  Path:\t{}'.format( self.modulePath )
         showinfo( self, 'Window Information', infoString )

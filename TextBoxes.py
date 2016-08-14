@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-01' # by RJH
+LastModifiedDate = '2016-08-11' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.38'
@@ -452,6 +452,8 @@ class CustomText( tk.Text ):
     A custom Text widget which calls a user function whenever the text changes.
 
     Adapted from http://stackoverflow.com/questions/13835207/binding-to-cursor-movement-doesnt-change-insert-mark
+
+    Also contains a function to highlight specific patterns.
     """
     def __init__( self, *args, **kwargs ):
         """
@@ -518,6 +520,49 @@ class CustomText( tk.Text ):
         """
         self.callbackFunction = callableFunction
     # end of CustomText.setTextChangeCallback
+
+
+    def highlightPattern( self, pattern, styleTag, startAt=START, endAt=tk.END, regexpFlag=True ):
+        """
+        Apply the given tag to all text that matches the given pattern.
+
+        Useful for syntax highlighting, etc.
+
+        # Adapted from http://stackoverflow.com/questions/4028446/python-tkinter-help-menu
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "CustomText.highlightPattern( {}, {}, start={}, end={}, regexp={} )".format( pattern, styleTag, startAt, endAt, regexpFlag ) )
+
+        countVar = tk.IntVar()
+        matchEnd = startAt
+        while True:
+            #print( "here0 mS={!r} mE={!r} sL={!r}".format( self.index("matchStart"), self.index("matchEnd"), self.index("searchLimit") ) )
+            index = self.search( pattern, matchEnd, stopindex=endAt, count=countVar, regexp=regexpFlag )
+            #print( "here1", repr(index), repr(countVar.get()) )
+            if index == "": break
+            #print( "here2", self.index("matchStart"), self.index("matchEnd") )
+            matchEnd = "{}+{}c".format( index, countVar.get() )
+            self.tag_add( styleTag, index, matchEnd )
+    # end of CustomText.highlightPattern
+
+
+    def highlightAllPatterns( self, patternCollection ):
+        """
+        Given a collection of 4-tuples, apply the styles to the patterns in the text.
+
+        Each tuple is:
+            regexpFlag: True/False
+            pattern to search for
+            tagName
+            tagDict, e.g, {"background":"red"}
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CustomText.highlightAllPatterns( {} )").format( patternCollection ) )
+
+        for regexpFlag, pattern, tagName, tagDict in patternCollection:
+            self.tag_configure( tagName, **tagDict )
+            self.highlightPattern( pattern, tagName, regexpFlag=regexpFlag )
+    # end of CustomText.highlightAllPatterns
 # end of CustomText class
 
 
