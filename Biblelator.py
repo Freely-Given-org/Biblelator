@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-11' # by RJH
+LastModifiedDate = '2016-08-17' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -89,7 +89,7 @@ from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
-from PTXBible import PTXBible, loadPTXSSFData
+from PTX7Bible import PTX7Bible, loadPTXProjectData
 
 
 
@@ -207,9 +207,11 @@ class Application( Frame ):
         self.lastParatextFileDir = './'
         self.lastInternalBibleDir = './'
         if sys.platform.startswith( 'win' ):
-            self.lastParatextFileDir = 'C:\\My Paratext Projects\\'
-            self.lastInternalBibleDir = 'C:\\My Paratext Projects\\'
-        elif sys.platform == 'linux': # temp.........................................
+            PT8Folder = 'C:\\My Paratext 8 Projects\\'
+            PT7Folder = 'C:\\My Paratext Projects\\'
+            self.lastParatextFileDir = PT8Folder if os.path.isdir( PT8Folder ) else PT7Folder
+            self.lastInternalBibleDir = self.lastParatextFileDir
+        elif sys.platform == 'linux': # temp hack XXXXXXXXXXXXX .........................................
             #self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/'
             self.lastParatextFileDir = '../../../../../Data/Work/Matigsalug/Bible/'
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
@@ -1808,7 +1810,7 @@ class Application( Frame ):
 
         self.setWaitStatus( "doOpenParatextProject…" )
         #if not self.openDialog:
-        openDialog = Open( title=_("Select project SSF file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
+        openDialog = Open( title=_("Select project settings (XML or SSF) file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
         SSFFilepath = openDialog.show()
         if not SSFFilepath:
             self.setReadyStatus()
@@ -1817,13 +1819,13 @@ class Application( Frame ):
             showerror( self, APP_NAME, 'Could not open file ' + SSFFilepath )
             self.setReadyStatus()
             return
-        ptxBible = PTXBible( None ) # Create a blank Paratext Bible object
+        ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
         #ptxBible.loadSSFData( SSFFilepath )
-        SSFDict = loadPTXSSFData( ptxBible, SSFFilepath )
-        if SSFDict:
+        PTXSettingsDict = loadPTXProjectData( ptxBible, SSFFilepath )
+        if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
             if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
-            ptxBible.suppliedMetadata['PTX']['SSF'] = SSFDict
+            ptxBible.suppliedMetadata['PTX']['SSF'] = PTXSettingsDict
             ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to ptxBible.settingsDict
         #print( "ptx/ssf" )
         #for something in ptxBible.suppliedMetadata['PTX']['SSF']:
@@ -1878,12 +1880,12 @@ class Application( Frame ):
             assert os.path.isfile( SSFFilepath )
 
         self.setWaitStatus( "openParatextBibleEditWindow…" )
-        ptxBible = PTXBible( None ) # Create a blank Paratext Bible object
-        SSFDict = loadPTXSSFData( ptxBible, SSFFilepath )
-        if SSFDict:
+        ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
+        PTXSettingsDict = loadPTXProjectData( ptxBible, SSFFilepath )
+        if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
             if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
-            ptxBible.suppliedMetadata['PTX']['SSF'] = SSFDict
+            ptxBible.suppliedMetadata['PTX']['SSF'] = PTXSettingsDict
             ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
 
         if 'Directory' in ptxBible.suppliedMetadata['PTX']['SSF']:

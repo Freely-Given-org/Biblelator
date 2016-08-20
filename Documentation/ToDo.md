@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-08-09 RJH
+Last updated: 2016-08-15 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,7 +14,11 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Show all / hide all doesn't display/hide find results window
+* Remember find/replace lists in settings (for each window/project -- maybe not)
+* Find box can't change projects/windows
 * Get extended find working better -- need to show whole verse somehow (why can't right click or something?)
+* Remember position of last find box
 * Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
 * Make edit window status bar default (if screen is big enough)

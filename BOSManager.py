@@ -88,7 +88,6 @@ from BiblePunctuationSystems import BiblePunctuationSystems
 from BibleStylesheets import BibleStylesheet
 #from SwordResources import SwordType, SwordInterface
 #from USFMBible import USFMBible
-#from PTXBible import PTXBible, loadPTXSSFData
 
 
 

@@ -37,7 +37,7 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-01' # by RJH
+LastModifiedDate = '2016-08-15' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.38'
@@ -525,12 +525,14 @@ def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
         print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # name C:V
         match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
         if match:
-            print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
             return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
     else:
         match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
         if match:
-            print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
             return BBBfunction( match.group(1) ), match.group(2), 1
 
     #else: # assume it's just a book name
