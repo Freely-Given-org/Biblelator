@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-12' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -214,17 +214,17 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
 
         Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='green' )
-        self.vScrollbar.config( command=self.textBox.yview, style=self.projectName+'USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
+        self.vScrollbar.configure( command=self.textBox.yview, style=self.projectName+'USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
 
         self.defaultBackgroundColour = 'plum1'
         if self.internalBible is None: self.editMode = None
         else:
-            self.textBox.config( background=self.defaultBackgroundColour )
-            self.textBox.config( selectbackground='blue' )
-            self.textBox.config( highlightbackground='orange' )
-            self.textBox.config( inactiveselectbackground='green' )
+            self.textBox.configure( background=self.defaultBackgroundColour )
+            self.textBox.configure( selectbackground='blue' )
+            self.textBox.configure( highlightbackground='orange' )
+            self.textBox.configure( inactiveselectbackground='green' )
 
         # Temporarily include some default invalid values
         self.invalidCombinations = ['__',',,',' ,','..',' .',';;',' ;','!!',' !',
@@ -345,7 +345,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
-        self.config( menu=self.menubar ) # alternative
+        self.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -768,20 +768,20 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if errorMessage:
             if haveOwnStatusBar: self.setErrorStatus( errorMessage )
             else: self.parentApp.setErrorStatus( errorMessage )
-            self.textBox.config( background='firebrick1' )
+            self.textBox.configure( background='firebrick1' )
             self.hadTextWarning = True
         elif warningMessage:
             if haveOwnStatusBar: self.setErrorStatus( warningMessage )
             else: self.parentApp.setErrorStatus( warningMessage )
-            self.textBox.config( background='chocolate1' )
+            self.textBox.configure( background='chocolate1' )
             self.hadTextWarning = True
         elif suggestionMessage:
             if haveOwnStatusBar: self.setErrorStatus( suggestionMessage )
             else: self.parentApp.setErrorStatus( suggestionMessage )
-            self.textBox.config( background='orchid1' ) # Make this one not too dissimilar from the default
+            self.textBox.configure( background='orchid1' ) # Make this one not too dissimilar from the default
             self.hadTextWarning = True
         elif self.hadTextWarning: # last time but not now
-            self.textBox.config( background=self.defaultBackgroundColour )
+            self.textBox.configure( background=self.defaultBackgroundColour )
             if haveOwnStatusBar: self.setReadyStatus()
             else: self.parentApp.setReadyStatus()
     # end of USFMEditWindow.checkUSFMTextForProblems
@@ -1034,7 +1034,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             #assert self._formatViewMode == 'Unformatted' # Only option done so far
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
-        self.textBox.config( background=self.defaultBackgroundColour ) # Go back to default background
+        self.textBox.configure( background=self.defaultBackgroundColour ) # Go back to default background
         if self._formatViewMode != 'Unformatted': # Only option done so far
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 print( "Ignoring {!r} mode for USFMEditWindow".format( self._formatViewMode ) )
@@ -1072,7 +1072,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             if oldVerseKey is not None:
                 if self.bookTextModified: self.doSave() # resets bookTextModified flag
                 self.clearText() # Leaves the text box enabled
-                self.textBox.config( state=tk.DISABLED ) # Don't allow editing
+                self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
                 self.textBox.edit_modified( False ) # clear modified flag (otherwise we could empty the book file)
                 self.refreshTitle()
             return
@@ -1096,7 +1096,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                     self.clearText() # Leaves the text box enabled
                     self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
                     self.bookTextModified = False
-                    self.textBox.config( state=tk.DISABLED ) # Don't allow editing
+                    self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
                     self.editStatus = 'DISABLED'
                 else:
                     #showerror( self, _("USFM Editor"), _("We need to create the book: {} in {}").format( newBBB, self.internalBible.sourceFolder ) )

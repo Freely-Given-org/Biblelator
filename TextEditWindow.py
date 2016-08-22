@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-12' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.38'
@@ -119,13 +119,13 @@ class TextEditWindow( ChildWindow ):
         self.textBox = CustomText( self, yscrollcommand=self.vScrollbar.set, wrap='word', font=self.customFont )
 
         self.defaultBackgroundColour = 'gold2'
-        self.textBox.config( background=self.defaultBackgroundColour )
-        self.textBox.config( selectbackground='blue' )
-        self.textBox.config( highlightbackground='orange' )
-        self.textBox.config( inactiveselectbackground='green' )
-        self.textBox.config( wrap='word', undo=True, autoseparators=True )
+        self.textBox.configure( background=self.defaultBackgroundColour )
+        self.textBox.configure( selectbackground='blue' )
+        self.textBox.configure( highlightbackground='orange' )
+        self.textBox.configure( inactiveselectbackground='green' )
+        self.textBox.configure( wrap='word', undo=True, autoseparators=True )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
-        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.textBox.setTextChangeCallback( self.onTextChange )
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
@@ -212,7 +212,7 @@ class TextEditWindow( ChildWindow ):
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
-        self.config( menu=self.menubar ) # alternative
+        self.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -760,7 +760,7 @@ class TextEditWindow( ChildWindow ):
                                                             relief="flat",
                                                             yscrollcommand=autocompleteScrollbar.set,
                                                             width=20, height=6 )
-                                autocompleteScrollbar.config( command=self.autocompleteBox.yview )
+                                autocompleteScrollbar.configure( command=self.autocompleteBox.yview )
                                 self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
                                 #self.autocompleteBox.select_set( '0' )
                                 #self.autocompleteBox.focus()
@@ -1134,7 +1134,7 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.setAllText( {!r} )").format( newText ) )
 
-        self.textBox.config( state=tk.NORMAL ) # In case it was disabled
+        self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( START, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
         self.textBox.highlightAllPatterns( self.patternsToHighlight )

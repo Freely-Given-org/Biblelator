@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-25' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.04' # Separate versioning from Biblelator
@@ -261,7 +261,7 @@ class SwordManager( Frame ):
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
         #self.rootWindow['menu'] = self.menubar
-        self.rootWindow.config( menu=self.menubar ) # alternative
+        self.rootWindow.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -620,15 +620,15 @@ class SwordManager( Frame ):
             cb.grid( row=j+1, column=4, sticky=tk.W )
             e0 = Entry( self.sourcesPage, width=5 )
             e0.insert( tk.END, repoData[0] )
-            e0.config( state=tk.DISABLED )
+            e0.configure( state=tk.DISABLED )
             e0.grid( row=j+1, column=5, sticky=tk.W )
             e1 = Entry( self.sourcesPage, width=15 )
             e1.insert( tk.END, repoData[1] )
-            e1.config( state=tk.DISABLED )
+            e1.configure( state=tk.DISABLED )
             e1.grid( row=j+1, column=6, sticky=tk.W )
             e2 = Entry( self.sourcesPage, width=20 )
             e2.insert( tk.END, repoData[2] )
-            e2.config( state=tk.DISABLED )
+            e2.configure( state=tk.DISABLED )
             e2.grid( row=j+1, column=7, sticky=tk.W )
 
         # Folders page
@@ -648,8 +648,8 @@ class SwordManager( Frame ):
         self.foldersSearch2.grid( row=2, column=1 )
         sbar = Scrollbar( self.foldersPage )
         self.foldersListbox = tk.Listbox( self.foldersPage, width=5, relief=tk.SUNKEN )
-        sbar.config( command=self.foldersListbox.yview )
-        self.foldersListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.foldersListbox.yview )
+        self.foldersListbox.configure( yscrollcommand=sbar.set )
         self.foldersListbox.bind('<<ListboxSelect>>', self.gotoNewCode )
         #self.foldersListbox.bind( '<Return>', self.gotoNewCode )
         sbar.grid( row=0, column=3, rowspan=3, sticky=tk.N+tk.S )
@@ -803,11 +803,11 @@ class SwordManager( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( START, newStatusText )
-            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -821,8 +821,8 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
-        #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
@@ -835,8 +835,8 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
-        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
@@ -851,10 +851,10 @@ class SwordManager( Frame ):
         """
         if self.starting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
-            #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
+            #self.statusTextLabel.configure( style='StatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
             Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
-            self.config( cursor='' )
+            self.configure( cursor='' )
     # end of SwordManager.setReadyStatus
 
 
@@ -866,7 +866,7 @@ class SwordManager( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
         self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
@@ -891,7 +891,7 @@ class SwordManager( Frame ):
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.debugTextBox.configure( state=tk.DISABLED ) # Don't allow editing
     # end of SwordManager.setDebugText
 
 
@@ -955,7 +955,7 @@ class SwordManager( Frame ):
         codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
 
         # Clear the text box
-        self.codeTextBox.config( state=tk.NORMAL )
+        self.codeTextBox.configure( state=tk.NORMAL )
         self.codeTextBox.delete( START, tk.END )
         self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
         self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-17' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -339,7 +339,7 @@ class Application( Frame ):
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
         #self.rootWindow['menu'] = self.menubar
-        self.rootWindow.config( menu=self.menubar ) # alternative
+        self.rootWindow.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -491,7 +491,7 @@ class Application( Frame ):
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
         #self.rootWindow['menu'] = self.menubar
-        self.rootWindow.config( menu=self.menubar ) # alternative
+        self.rootWindow.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -1027,11 +1027,11 @@ class Application( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( START, newStatusText )
-            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'MainStatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -1045,8 +1045,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
-        #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='MainStatusBar.TLabelWait' )
+        #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='MainStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'MainStatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
@@ -1059,8 +1059,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
-        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='MainStatusBar.TLabelWait' )
+        self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='MainStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'MainStatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
@@ -1075,10 +1075,10 @@ class Application( Frame ):
         """
         if self.starting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
-            #self.statusTextLabel.config( style='MainStatusBar.TLabelReady' )
+            #self.statusTextLabel.configure( style='MainStatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
             Style().configure( 'MainStatusBar.TLabel', foreground='yellow', background='forest green' )
-            self.config( cursor='' )
+            self.configure( cursor='' )
     # end of Application.setReadyStatus
 
 
@@ -1090,7 +1090,7 @@ class Application( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
         self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
@@ -1115,7 +1115,7 @@ class Application( Frame ):
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.debugTextBox.configure( state=tk.DISABLED ) # Don't allow editing
     # end of Application.setDebugText
 
 
@@ -2074,9 +2074,9 @@ class Application( Frame ):
         elif self.currentVerseKeyGroup == 'E': ix = 4
         else: halt
         selectedButton = groupButtons.pop( ix )
-        selectedButton.config( state=tk.DISABLED )#, relief=tk.SUNKEN )
+        selectedButton.configure( state=tk.DISABLED )#, relief=tk.SUNKEN )
         for otherButton in groupButtons:
-            otherButton.config( state=tk.NORMAL ) #, relief=tk.RAISED )
+            otherButton.configure( state=tk.NORMAL ) #, relief=tk.RAISED )
         self.bookNameVar.set( self.getGenericBookName(self.currentVerseKey[0]) )
         self.chapterNumberVar.set( self.currentVerseKey[1] )
         self.verseNumberVar.set( self.currentVerseKey[2] )
@@ -2090,8 +2090,8 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("updatePreviousNextButtons()") )
             self.setDebugText( "updatePreviousNextButtons…" )
-        self.previousBCVButton.config( state=tk.NORMAL if self.BCVHistory and self.BCVHistoryIndex>0 else tk.DISABLED )
-        self.nextBCVButton.config( state=tk.NORMAL if self.BCVHistory and self.BCVHistoryIndex<len(self.BCVHistory)-1 else tk.DISABLED )
+        self.previousBCVButton.configure( state=tk.NORMAL if self.BCVHistory and self.BCVHistoryIndex>0 else tk.DISABLED )
+        self.nextBCVButton.configure( state=tk.NORMAL if self.BCVHistory and self.BCVHistoryIndex<len(self.BCVHistory)-1 else tk.DISABLED )
     # end of Application.updatePreviousNextButtons
 
 
@@ -2690,10 +2690,10 @@ class Application( Frame ):
                 btn = Button( row, text='browse…' )
                 btn.pack( side=tk.RIGHT )
                 if not extend:
-                    btn.config( command=lambda:
+                    btn.configure( command=lambda:
                                 var.set(askopenfilename() or var.get()) )
                 else:
-                    btn.config( command=lambda:
+                    btn.configure( command=lambda:
                                 var.set( var.get() + ' ' + askopenfilename()) )
             return var
         # end of makeFormRow
@@ -2821,15 +2821,15 @@ class Application( Frame ):
             def makeWidgets(self, options):
                 sbar = Scrollbar( self )
                 matchBox = tk.Listbox( self, relief=tk.SUNKEN )
-                sbar.config( command=matchBox.yview )                    # xlink sbar and list
-                matchBox.config( yscrollcommand=sbar.set )               # move one moves other
+                sbar.configure( command=matchBox.yview )                    # xlink sbar and list
+                matchBox.configure( yscrollcommand=sbar.set )               # move one moves other
                 sbar.pack( side=tk.RIGHT, fill=tk.Y )                      # pack first=clip last
                 matchBox.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )        # list clipped first
                 pos = 0
                 for label in options:                              # add to tk.Listbox
                     matchBox.insert( pos, label )                        # or insert(tk.END,label)
                     pos += 1                                       # or enumerate(options)
-               #list.config(selectmode=SINGLE, setgrid=1)          # select,resize modes
+               #list.configure(selectmode=SINGLE, setgrid=1)          # select,resize modes
                 matchBox.bind('<Double-1>', self.handleList)           # set event handler
                 self.tk.Listbox = matchBox
 

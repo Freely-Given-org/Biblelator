@@ -82,7 +82,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-09' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.38'
@@ -207,7 +207,7 @@ class BibleResourceWindow( BibleWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleResourceWindow.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
-        self.config( menu=self.menubar ) # alternative
+        self.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -232,12 +232,24 @@ class BibleResourceWindow( BibleWindow ):
         editMenu.add_separator()
         editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
 
+        #searchMenu = tk.Menu( self.menubar )
+        #self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
+        #searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        #searchMenu.add_separator()
+        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        searchMenu.add_command( label=_('Bible Find…'), underline=0, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #subsearchMenuBible.add_command( label=_('Find again'), underline=5, command=self.notWrittenYet )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        subSearchMenuWindow = tk.Menu( searchMenu, tearoff=False )
+        subSearchMenuWindow.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        subSearchMenuWindow.add_separator()
+        subSearchMenuWindow.add_command( label=_('Find…'), underline=0, command=self.doWindowFind )
+        subSearchMenuWindow.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind )
+        searchMenu.add_cascade( label=_('Window'), underline=0, menu=subSearchMenuWindow )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -748,7 +760,7 @@ class BibleResourceWindow( BibleWindow ):
             logging.critical( exp("BibleResourceWindow.updateShownBCV: Bad context view mode {}").format( self._contextViewMode ) )
             if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
 
-        self.textBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
 
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
@@ -966,6 +978,103 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
     # end of InternalBibleResourceWindow.__init__
 
 
+    #def createMenuBar( self ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("InternalBibleResourceWindow.createMenuBar()") )
+        #self.menubar = tk.Menu( self )
+        ##self['menu'] = self.menubar
+        #self.configure( menu=self.menubar ) # alternative
+
+        #fileMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
+        ##fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
+        ##fileMenu.add_command( label=_('Open…'), underline=0, command=self.notWrittenYet )
+        ##fileMenu.add_separator()
+        ##subfileMenuImport = tk.Menu( fileMenu )
+        ##subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        ##fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
+        ##subfileMenuExport = tk.Menu( fileMenu )
+        ##subfileMenuExport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        ##subfileMenuExport.add_command( label=_('HTML'), underline=0, command=self.notWrittenYet )
+        ##fileMenu.add_cascade( label=_('Export'), underline=0, menu=subfileMenuExport )
+        ##fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
+        #fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] ) # close this window
+
+        #editMenu = tk.Menu( self.menubar )
+        #self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
+        #editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        #editMenu.add_separator()
+        #editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+
+        #searchMenu = tk.Menu( self.menubar )
+        #self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
+        #searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        #searchMenu.add_separator()
+        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+
+        #gotoMenu = tk.Menu( self.menubar )
+        #self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
+        #gotoMenu.add_command( label=_('Previous book'), underline=-1, command=self.doGotoPreviousBook )
+        #gotoMenu.add_command( label=_('Next book'), underline=-1, command=self.doGotoNextBook )
+        #gotoMenu.add_command( label=_('Previous chapter'), underline=-1, command=self.doGotoPreviousChapter )
+        #gotoMenu.add_command( label=_('Next chapter'), underline=-1, command=self.doGotoNextChapter )
+        #gotoMenu.add_command( label=_('Previous section'), underline=-1, command=self.doGotoPreviousSection )
+        #gotoMenu.add_command( label=_('Next section'), underline=-1, command=self.doGotoNextSection )
+        #gotoMenu.add_command( label=_('Previous verse'), underline=-1, command=self.doGotoPreviousVerse )
+        #gotoMenu.add_command( label=_('Next verse'), underline=-1, command=self.doGotoNextVerse )
+        #gotoMenu.add_separator()
+        #gotoMenu.add_command( label=_('Forward'), underline=0, command=self.doGoForward )
+        #gotoMenu.add_command( label=_('Backward'), underline=0, command=self.doGoBackward )
+        #gotoMenu.add_separator()
+        #gotoMenu.add_command( label=_('Previous list item'), underline=0, state=tk.DISABLED, command=self.doGotoPreviousListItem )
+        #gotoMenu.add_command( label=_('Next list item'), underline=0, state=tk.DISABLED, command=self.doGotoNextListItem )
+        #gotoMenu.add_separator()
+        #gotoMenu.add_command( label=_('Book'), underline=0, command=self.doGotoBook )
+        #gotoMenu.add_separator()
+        #self._groupRadioVar.set( self._groupCode )
+        #gotoMenu.add_radiobutton( label=_('Group A'), underline=6, value='A', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        #gotoMenu.add_radiobutton( label=_('Group B'), underline=6, value='B', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        #gotoMenu.add_radiobutton( label=_('Group C'), underline=6, value='C', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+        #gotoMenu.add_radiobutton( label=_('Group D'), underline=6, value='D', variable=self._groupRadioVar, command=self.changeBibleGroupCode )
+
+        #self.viewMenu = tk.Menu( self.menubar, tearoff=False ) # Save this reference so we can disable entries later
+        #self.menubar.add_cascade( menu=self.viewMenu, label=_('View'), underline=0 )
+        #self.viewMenu.add_radiobutton( label=_('Before and after…'), underline=7, value=1, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('One section'), underline=4, value=2, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('Single verse'), underline=7, value=3, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('Whole book'), underline=6, value=4, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+        #self.viewMenu.add_radiobutton( label=_('Whole chapter'), underline=6, value=5, variable=self._contextViewRadioVar, command=self.changeBibleContextView )
+
+        #self.viewMenu.add_separator()
+        #self.viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
+        #self.viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
+
+        #if 'DBP' in self.windowType: # disable excessive online use
+            #self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
+            #self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
+
+        #toolsMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
+        #toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+
+        #windowMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
+        #windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        #windowMenu.add_separator()
+        #windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
+
+        #helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
+        #self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
+        #helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict[_('Help')][0] )
+        #helpMenu.add_separator()
+        #helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict[_('About')][0] )
+    ## end of InternalBibleResourceWindow.createMenuBar
+
+
     def refreshTitle( self ):
         """
         """
@@ -1045,7 +1154,8 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                 key = self.BibleFindOptionsDict['searchText']
                 showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
-                self.FindResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList )
+                findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList )
+                self.parentApp.childWindows.append( findResultWindow )
         self.parentApp.setReadyStatus()
     # end of InternalBibleResourceWindow.doBibleFind
 
@@ -1061,7 +1171,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("InternalBibleResourceWindow._prepareInternalBible()") )
 
-        if self.modified(): self.doSave()
+        if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
         if self.internalBible is not None:
             self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
             self.internalBible.load()

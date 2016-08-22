@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-09' # by RJH
+LastModifiedDate = '2016-08-23' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.38'
@@ -168,7 +168,9 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
     logging.debug( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
-    if BBB in AVOID_BOOKS: return
+    if BBB in AVOID_BOOKS:
+        #print( "Didn't load autocomplete words from {} {}".format( internalBible.getAName(), BBB ) )
+        return
 
     global internalMarkers
     if internalMarkers is None: # Get our list of markers -- note that the more common note markers are first

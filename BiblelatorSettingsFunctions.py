@@ -517,6 +517,9 @@ def getCurrentChildWindowSettings( self ):
             thisOne['SSFFilepath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
 
+        elif appWin.windowType == 'FindResultWindow':
+            pass # nothing yet
+
         else:
             logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.windowType) ) )
             if BibleOrgSysGlobals.debugFlag: halt

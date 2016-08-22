@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-11' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.38'
@@ -753,7 +753,7 @@ class ChildBox():
     ############################################################################
 
     def clearText( self ): # Leaves in normal state
-        self.textBox.config( state=tk.NORMAL )
+        self.textBox.configure( state=tk.NORMAL )
         self.textBox.delete( START, tk.END )
     # end of ChildBox.updateText
 
@@ -764,7 +764,14 @@ class ChildBox():
 
 
     def modified( self ):
-        return self.textBox.edit_modified()
+        """
+        We want this to return True if an editable (enabled) textBox has been modified.
+        """
+        #print( "Configure", self.textBox.configure() ) # Prints a large dictionary of settings
+        #print( "  State", self.textBox.configure()['state'] ) # Prints a 5-tuple
+        if self.textBox.configure()['state'][4] == 'normal':
+            return self.textBox.edit_modified()
+        else: return False
     # end of ChildBox.modified
 
 
@@ -787,7 +794,7 @@ class ChildBox():
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.setAllText( {!r} )").format( newText ) )
 
-        self.textBox.config( state=tk.NORMAL ) # In case it was disabled
+        self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( START, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
         self.textBox.mark_set( tk.INSERT, START ) # move insert point to top

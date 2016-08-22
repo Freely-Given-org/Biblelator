@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.36'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -90,7 +90,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         self.textBox.destroy()
         self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
-        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
 
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
@@ -116,7 +116,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleLexiconResourceWindow.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
-        self.config( menu=self.menubar ) # alternative
+        self.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -209,7 +209,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
             #if txt: self.textBox.insert( tk.END, '\n'+txt )
             txt = self.BibleLexicon.getEntryHTML( self.lexiconWord )
             if txt: self.textBox.insert( tk.END, '<p>'+txt+'</p>' )
-        self.textBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
         self.refreshTitle()
     # end of BibleLexiconResourceWindow.updateLexiconWord
 # end of BibleLexiconResourceWindow class

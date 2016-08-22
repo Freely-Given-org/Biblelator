@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-08-15 RJH
+Last updated: 2016-08-21 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,10 +14,11 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
-* Show all / hide all doesn't display/hide find results window
+* Window find doesn't seem to work on resource windows
+* After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
 * Find box can't change projects/windows
-* Get extended find working better -- need to show whole verse somehow (why can't right click or something?)
+* Get extended find box working better -- need to show whole verse somehow (why can't right click or something?)
 * Remember position of last find box
 * Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
@@ -43,9 +44,9 @@ Biblelator bugs / unfinished
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
-* Settings editor is not finished
-* BOSManager is not finished
-* SwordManager is not finished
+* Settings editor is not finished enough
+* BOSManager is not finished enough
+* SwordManager is not finished enough
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)

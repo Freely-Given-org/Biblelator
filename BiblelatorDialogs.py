@@ -47,7 +47,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-31'
+LastModifiedDate = '2016-08-21'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.38'
@@ -121,7 +121,7 @@ def showinfo( parent, title, infoText ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("showinfo( {}, {!r}, {!r} )").format( parent, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
-        for configKey, configTuple  in sorted(parent.config().items()): # Append the parent window config info
+        for configKey, configTuple  in sorted(parent.configure().items()): # Append the parent window config info
             if debuggingThisModule:
                 print( "showinfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
             if len(configTuple)>2: # don't append alternative names like, bg for background
@@ -1581,13 +1581,13 @@ class ReplaceConfirmDialog( ModalDialog ):
         label2.pack( side=tk.TOP, anchor=tk.W )
         textBox1 = tk.Text( master, height=5 )
         textBox1.insert( tk.END, self.contextBefore+self.searchText+self.contextAfter )
-        textBox1.config( state=tk.DISABLED )
+        textBox1.configure( state=tk.DISABLED )
         textBox1.pack( side=tk.TOP, fill=tk.X )
         label3 = Label( master, text=_("After") )
         label3.pack( side=tk.TOP, anchor=tk.W )
         textBox2 = tk.Text( master, height=5 )
         textBox2.insert( tk.END, self.finalText )
-        textBox2.config( state=tk.DISABLED )
+        textBox2.configure( state=tk.DISABLED )
         textBox2.pack( side=tk.TOP, fill=tk.X )
 
         #buttonFrame = tk.Frame( master, padx=5, pady=5 )
@@ -1623,7 +1623,7 @@ class ReplaceConfirmDialog( ModalDialog ):
         cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
         undoButton = Button( box, text=_("Undo all"), width=10, command=self.doUndo )
         undoButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        if not self.haveUndos: undoButton.config( state=tk.DISABLED )
+        if not self.haveUndos: undoButton.configure( state=tk.DISABLED )
 
         self.bind( '<Return>', self.doYes )
         self.bind( '<Escape>', self.doStop )

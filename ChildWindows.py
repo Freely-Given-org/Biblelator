@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-09' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.38'
@@ -129,9 +129,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         #else: # let's make one
 
         self.textBox = tk.Text( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
-        self.textBox.config( wrap='word' )
+        self.textBox.configure( wrap='word' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
-        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
@@ -273,11 +273,11 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
-            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( START, newStatusText )
-            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='white', background='purple' )
             self._statusTextVar.set( newStatusText )
@@ -292,8 +292,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
-        #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
+        #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='ChildStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='yellow', background='red' )
         self.update()
@@ -306,8 +306,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
-        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='ChildStatusBar.TLabelWait' )
+        self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='ChildStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='black', background='DarkOrange1' )
         self.update()
@@ -320,10 +320,10 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         unless we're still starting
             (this covers any slow start-up functions that don't yet set helpful statuses)
         """
-        #self.statusTextLabel.config( style='ChildStatusBar.TLabelReady' )
+        #self.statusTextLabel.configure( style='ChildStatusBar.TLabelReady' )
         self.setStatus( '' )
         Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='yellow', background='forest green' )
-        self.config( cursor='' )
+        self.configure( cursor='' )
     # end of ChildWindow.setReadyStatus
 
 
@@ -382,7 +382,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 class BibleWindow( ChildWindow, BibleBox ):
     """
     This is a base class for any toplevel window that contains a
-        BibleBox, i.e., it contains a self.textBox memember that understands BCV references.
+        BibleBox, i.e., it contains a self.textBox member that understands BCV references.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -594,9 +594,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #else: # let's make one
 
         self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
-        self.textBox.config( wrap='word' )
+        self.textBox.configure( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
-        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
         #self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
@@ -631,7 +631,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
-        self.config( menu=self.menubar ) # alternative
+        self.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -783,11 +783,11 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
-            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( START, newStatusText )
-            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
             if self._showStatusBarVar.get(): self.statusTextLabel.update()
@@ -800,7 +800,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("setWaitStatus( {} )").format( repr(newStatusText) ) )
-        ##self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        ##self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.setStatus( newStatusText )
         #self.update()
     ## end of HTMLWindow.setWaitStatus
@@ -812,7 +812,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             and sets the cursor to the normal cursor.
         """
         self.setStatus( _("Ready") )
-        #self.config( cursor='' )
+        #self.configure( cursor='' )
     # end of HTMLWindow.setReadyStatus
 
 
@@ -1034,7 +1034,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         self.extendButton = Button( self, text=_("Extend{}").format( extendText ), command=self.doExtend )
         #extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
         self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
-        if not self.availableInternalBibles: self.extendButton.config( state=tk.DISABLED )
+        if not self.availableInternalBibles: self.extendButton.configure( state=tk.DISABLED )
 
         closeButton = Button( self, text=_("Close"), command=self.doClose )
         #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
@@ -1065,7 +1065,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
-        self.config( menu=self.menubar ) # alternative
+        self.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -1200,11 +1200,11 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
 
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
-            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( START, newStatusText )
-            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
             if self._showStatusBarVar.get(): self.statusTextLabel.update()
@@ -1217,7 +1217,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("setWaitStatus( {} )").format( repr(newStatusText) ) )
-        ##self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
+        ##self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.setStatus( newStatusText )
         #self.update()
     ## end of FindResultWindow.setWaitStatus
@@ -1229,7 +1229,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
             and sets the cursor to the normal cursor.
         """
         self.setStatus( _("Ready") )
-        #self.config( cursor='' )
+        #self.configure( cursor='' )
     # end of FindResultWindow.setReadyStatus
 
 
@@ -1256,7 +1256,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         except AttributeError: pass # it may not have existed yet
         self.tree = Treeview( self, yscrollcommand=self.vScrollbar.set )
         self.tree.pack( expand=tk.YES, fill=tk.BOTH )
-        self.vScrollbar.config( command=self.tree.yview ) # link the scrollbar to the text box
+        self.vScrollbar.configure( command=self.tree.yview ) # link the scrollbar to the text box
 
         fText = self.optionDict['searchText']
         lenFText = len( fText )
@@ -1358,7 +1358,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
             assert sIBD.result < len(self.availableInternalBibles)
             self.extendedTo = self.availableInternalBibles[sIBD.result]
         self.parentApp.setWaitStatus()
-        self.extendButton.config( text=_("Extended"), state=tk.DISABLED )
+        self.extendButton.configure( text=_("Extended"), state=tk.DISABLED )
         #print( "doExtend", self.geometry(), INITIAL_RESULT_WINDOW_SIZE )
         width, height, xOffset, yOffset = parseWindowGeometry( self.geometry() )
         self.geometry( assembleWindowGeometry( int(width*1.3), height, xOffset, yOffset ) ) # Make window widen
