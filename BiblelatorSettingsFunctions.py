@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-03' # by RJH
+LastModifiedDate = '2016-08-23' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.38'
@@ -734,11 +734,11 @@ def writeSettingsFile( self ):
         #print( "  gT", appWin.genericWindowType )
         #print( "  wT", appWin.windowType )
         if appWin.windowType == 'BibleResourceCollectionWindow':
-            if appWin.resourceBoxes: # so we don't create just an empty heading for an empty collection
+            if appWin.resourceBoxesList: # so we don't create just an empty heading for an empty collection
                 self.settings.data['BibleResourceCollection'+appWin.moduleID] = {}
                 thisOne = self.settings.data['BibleResourceCollection'+appWin.moduleID]
                 #print( "  found", appWin.moduleID )
-                for j, box in enumerate( appWin.resourceBoxes ):
+                for j, box in enumerate( appWin.resourceBoxesList ):
                     boxNumber = 'box{}'.format( j+1 )
                     #print( "    bT", box.boxType )
                     #print( "    ID", box.moduleID )

@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-08-21 RJH
+Last updated: 2016-08-24 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* When did our HTML box stop working?
 * Window find doesn't seem to work on resource windows
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
@@ -23,7 +24,6 @@ Biblelator bugs / unfinished
 * Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
 * Make edit window status bar default (if screen is big enough)
-* When did our HTML box stop working?
 * Don't load entire Bible if only searching/replacing in current book
 * Clicking in edit window while still starting can cause a spinbox error
 * Window settings don't work well for text collections, etc. (need to be nested???)
@@ -44,6 +44,7 @@ Biblelator bugs / unfinished
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
+* Do more usage logging
 * Settings editor is not finished enough
 * BOSManager is not finished enough
 * SwordManager is not finished enough

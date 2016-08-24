@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
 ProgVersion = '0.38'
@@ -42,6 +42,7 @@ debuggingThisModule = False
 import os.path, logging
 
 import tkinter as tk
+from tkinter.ttk import Style, Frame, Button
 
 # Biblelator imports
 from TextBoxes import HTMLText
@@ -77,9 +78,14 @@ def exp( messageString ):
 
 
 class BibleLexiconResourceWindow( ChildWindow ):
+    """
+    """
     def __init__( self, parentApp, lexiconPath=None ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleLexiconResourceWindow.__init__( {}, {} )").format( parentApp, lexiconPath ) )
+
         self.lexiconWord = None
         ChildWindow.__init__( self, parentApp, 'LexiconResource' )
         self.parentApp, self.lexiconPath = parentApp, lexiconPath
@@ -169,6 +175,31 @@ class BibleLexiconResourceWindow( ChildWindow ):
         helpMenu.add_separator()
         helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict[_('About')][0] )
     # end of BibleLexiconResourceWindow.createMenuBar
+
+
+    def createToolBar( self ):
+        """
+        Create a tool bar containing several helpful buttons at the top of the main window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createToolBar()") )
+
+        xPad, yPad = (6, 8) if self.parentApp.touchMode else (4, 4)
+
+        Style().configure( 'LexToolBar.TFrame', background='wheat1' )
+        toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='LexToolBar.TFrame' )
+
+        Style().configure( 'LexPrevious.TButton', background='lightgreen' )
+        Style().configure( 'LexNext.TButton', background='pink' )
+
+        Button( toolbar, text=_("Previous"), style='LexPrevious.TButton', command=self.doGotoPreviousEntry ) \
+                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        Button( toolbar, text=_("Next"), style='LexNext.TButton', command=self.doGotoNextEntry ) \
+                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+
+        toolbar.pack( side=tk.TOP, fill=tk.X )
+    # end of BibleLexiconResourceWindow.createToolBar
 
 
     def doGotoPreviousEntry( self ):

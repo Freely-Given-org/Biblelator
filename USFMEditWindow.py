@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.38'
@@ -525,7 +525,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doAdjustOptions()") )
             self.parentApp.setDebugText( "doAdjustOptions…" )
-        #self.parentApp.setWaitStatus( "Preparing autocomplete words…" )
+        #self.parentApp.setWaitStatus( _("Preparing autocomplete words…") )
 
         tOD = ToolsOptionsDialog( self ) # This is a modal dialog
     # end of USFMEditWindow.doAdjustOptions
@@ -540,7 +540,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("prepareAutocomplete()") )
             self.parentApp.setDebugText( "prepareAutocomplete…" )
-        self.parentApp.setWaitStatus( "Preparing autocomplete words…" )
+        self.parentApp.setWaitStatus( _("Preparing autocomplete words…") )
 
         # Choose ONE of the following options
         if self.autocompleteMode == 'Bible':

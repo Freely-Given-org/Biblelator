@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.38'
@@ -862,7 +862,7 @@ class BiblelatorSettingsEditor( Frame ):
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
-        self.setWaitStatus( "Starting up…" )
+        self.setWaitStatus( _("Starting up…") )
     # end of BiblelatorSettingsEditor.createStatusBar
 
 
@@ -1111,7 +1111,7 @@ class BiblelatorSettingsEditor( Frame ):
             if debuggingThisModule: print( exp("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
-        self.setWaitStatus( "doViewLog…" )
+        self.setWaitStatus( _("doViewLog…") )
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )

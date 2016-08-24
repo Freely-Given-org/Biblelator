@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -619,6 +619,7 @@ class BOSManager( Frame ):
         Style().configure( 'ShowAll.TButton', background='lightgreen' )
         Style().configure( 'HideResources.TButton', background='pink' )
         Style().configure( 'HideAll.TButton', background='orange' )
+
         Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
@@ -626,6 +627,7 @@ class BOSManager( Frame ):
         Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of BOSManager.createToolBar
 
@@ -977,7 +979,7 @@ class BOSManager( Frame ):
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
-        self.setWaitStatus( "Starting up…" )
+        self.setWaitStatus( _("Starting up…") )
     # end of BOSManager.createStatusBar
 
 
@@ -1670,7 +1672,7 @@ class BOSManager( Frame ):
             if debuggingThisModule: print( exp("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
-        self.setWaitStatus( "doViewLog…" )
+        self.setWaitStatus( _("doViewLog…") )
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )

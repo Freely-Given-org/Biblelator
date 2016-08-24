@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.38'
@@ -423,7 +423,7 @@ class Application( Frame ):
         submenuLexiconResourceType.add_command( label=_('Bible'), underline=0, command=self.doOpenBibleLexiconResourceWindow )
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label=_('Open commentary'), underline=5, menu=submenuCommentaryResourceType )
-        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenBibleResourceCollectionWindow )
+        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenNewBibleResourceCollectionWindow )
         resourcesMenu.add_separator()
         resourcesMenu.add_command( label=_('Hide all resources'), underline=0, command=self.doHideAllResources )
         resourcesMenu.add_command( label=_('Show all resources'), underline=0, command=self.doShowAllResources )
@@ -575,7 +575,7 @@ class Application( Frame ):
         submenuLexiconResourceType.add_command( label=_('Bible'), underline=0, command=self.doOpenBibleLexiconResourceWindow )
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label=_('Open commentary'), underline=5, menu=submenuCommentaryResourceType )
-        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenBibleResourceCollectionWindow )
+        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenNewBibleResourceCollectionWindow )
         resourcesMenu.add_separator()
         resourcesMenu.add_command( label=_('Hide all resources'), underline=0, command=self.doHideAllResources )
         resourcesMenu.add_command( label=_('Show all resources'), underline=0, command=self.doShowAllResources )
@@ -879,7 +879,7 @@ class Application( Frame ):
 
         xPad, yPad = (6, 8) if self.touchMode else (4, 4)
 
-        Style().configure( 'ToolBar.TFrame', background='green' )
+        Style().configure( 'ToolBar.TFrame', background='khaki1' )
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
 
         Style().configure( 'ShowAll.TButton', background='lightGreen' )
@@ -887,17 +887,19 @@ class Application( Frame ):
         Style().configure( 'HideProjects.TButton', background='pink' )
         Style().configure( 'HideAll.TButton', background='orange' )
         Style().configure( 'SaveAll.TButton', background='royalBlue1' )
-        Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
+
+        Button( toolbar, text=_("Show All"), style='ShowAll.TButton', command=self.doShowAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
+        Button( toolbar, text=_("Hide Resources"), style='HideResources.TButton', command=self.doHideAllResources ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Hide Projects', style='HideProjects.TButton', command=self.doHideAllProjects ) \
+        Button( toolbar, text=_("Hide Projects"), style='HideProjects.TButton', command=self.doHideAllProjects ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
+        Button( toolbar, text=_("Hide All"), style='HideAll.TButton', command=self.doHideAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Save All', style='SaveAll.TButton', command=self.doSaveAll ) \
+        Button( toolbar, text=_("Save All"), style='SaveAll.TButton', command=self.doSaveAll ) \
                     .pack( side=tk.RIGHT, padx=xPad, pady=yPad )
-        #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        #Button( toolbar, text=_("Bring All"), command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of Application.createToolBar
 
@@ -951,7 +953,7 @@ class Application( Frame ):
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
-        self.setWaitStatus( "Starting up…" )
+        self.setWaitStatus( _("Starting up…") )
     # end of Application.createStatusBar
 
 
@@ -1240,7 +1242,7 @@ class Application( Frame ):
             self.setDebugText( "doOpenDBPBibleResourceWindow…" )
 
         if self.internetAccessEnabled:
-            self.setWaitStatus( "doOpenDBPBibleResourceWindow…" )
+            self.setWaitStatus( _("doOpenDBPBibleResourceWindow…") )
             if self.DBPInterface is None:
                 self.DBPInterface = DBPBibles()
                 availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
@@ -1276,7 +1278,7 @@ class Application( Frame ):
             self.setDebugText( "openDBPBibleResourceWindow…" )
             assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
 
-        self.setWaitStatus( "openDBPBibleResourceWindow…" )
+        self.setWaitStatus( _("openDBPBibleResourceWindow…") )
         dBRW = DBPBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: dBRW.geometry( windowGeometry )
         if dBRW.DBPModule is None:
@@ -1305,7 +1307,7 @@ class Application( Frame ):
             print( exp("openSwordResource()") )
             self.setDebugText( "doOpenSwordResourceWindow…" )
 
-        self.setWaitStatus( "doOpenSwordResourceWindow…" )
+        self.setWaitStatus( _("doOpenSwordResourceWindow…") )
         if self.SwordInterface is None and SwordType is not None:
             self.SwordInterface = SwordInterface() # Load the Sword library
         if self.SwordInterface is None: # still
@@ -1348,7 +1350,7 @@ class Application( Frame ):
             print( exp("openSwordBibleResourceWindow( {}, {} )").format( moduleAbbreviation, windowGeometry ) )
             self.setDebugText( "openSwordBibleResourceWindow…" )
 
-        self.setWaitStatus( "openSwordBibleResourceWindow…" )
+        self.setWaitStatus( _("openSwordBibleResourceWindow…") )
         if self.SwordInterface is None:
             self.SwordInterface = SwordInterface() # Load the Sword library
         swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
@@ -1371,7 +1373,7 @@ class Application( Frame ):
             print( exp("openInternalBibleResource()") )
             self.setDebugText( "doOpenInternalBibleResourceWindow…" )
 
-        self.setWaitStatus( "doOpenInternalBibleResourceWindow…" )
+        self.setWaitStatus( _("doOpenInternalBibleResourceWindow…") )
         #requestedFolder = askdirectory()
         openDialog = Directory( title=_("Select Bible folder"), initialdir=self.lastInternalBibleDir )
         requestedFolder = openDialog.show()
@@ -1393,7 +1395,7 @@ class Application( Frame ):
             print( exp("openInternalBibleResourceWindow()") )
             self.setDebugText( "openInternalBibleResourceWindow…" )
 
-        self.setWaitStatus( "openInternalBibleResourceWindow…" )
+        self.setWaitStatus( _("openInternalBibleResourceWindow…") )
         iBRW = InternalBibleResourceWindow( self, modulePath )
         if windowGeometry: iBRW.geometry( windowGeometry )
         if iBRW.internalBible is None:
@@ -1422,7 +1424,7 @@ class Application( Frame ):
             print( exp("doOpenBibleLexiconResourceWindow()") )
             self.setDebugText( "doOpenBibleLexiconResourceWindow…" )
 
-        self.setWaitStatus( "doOpenBibleLexiconResourceWindow…" )
+        self.setWaitStatus( _("doOpenBibleLexiconResourceWindow…") )
         #requestedFolder = askdirectory()
         #if requestedFolder:
         requestedFolder = None
@@ -1441,7 +1443,7 @@ class Application( Frame ):
             print( exp("openBibleLexiconResourceWindow()") )
             self.setDebugText( "openBibleLexiconResourceWindow…" )
 
-        self.setWaitStatus( "openBibleLexiconResourceWindow…" )
+        self.setWaitStatus( _("openBibleLexiconResourceWindow…") )
         if lexiconPath is None: lexiconPath = "../"
         bLRW = BibleLexiconResourceWindow( self, lexiconPath )
         if windowGeometry: bLRW.geometry( windowGeometry )
@@ -1461,15 +1463,15 @@ class Application( Frame ):
     # end of Application.openBibleLexiconResourceWindow
 
 
-    def doOpenBibleResourceCollectionWindow( self ):
+    def doOpenNewBibleResourceCollectionWindow( self ):
         """
         Open a collection of Bible resources (called from a menu/GUI action).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doOpenBibleResourceCollectionWindow()") )
-            self.setDebugText( "doOpenBibleResourceCollectionWindow…" )
+            print( exp("doOpenNewBibleResourceCollectionWindow()") )
+            self.setDebugText( "doOpenNewBibleResourceCollectionWindow…" )
 
-        self.setWaitStatus( "doOpenBibleResourceCollectionWindow…" )
+        self.setWaitStatus( _("doOpenNewBibleResourceCollectionWindow…") )
         existingNames = []
         for cw in self.childWindows:
             existingNames.append( cw.moduleID.upper() if cw.moduleID else 'Unknown' )
@@ -1477,7 +1479,7 @@ class Application( Frame ):
         if gncn.result:
             self.openBibleResourceCollectionWindow( gncn.result )
             self.addRecentFile( (gncn.result,'','BibleResourceCollectionWindow') )
-    # end of Application.doOpenBibleResourceCollectionWindow
+    # end of Application.doOpenNewBibleResourceCollectionWindow
 
     def openBibleResourceCollectionWindow( self, collectionName, windowGeometry=None ):
         """
@@ -1489,7 +1491,7 @@ class Application( Frame ):
             print( exp("openBibleResourceCollectionWindow( {!r} )").format( collectionName ) )
             self.setDebugText( "openBibleResourceCollectionWindow…" )
 
-        self.setWaitStatus( "openBibleResourceCollectionWindow…" )
+        self.setWaitStatus( _("openBibleResourceCollectionWindow…") )
         BRC = BibleResourceCollectionWindow( self, collectionName )
         if windowGeometry: BRC.geometry( windowGeometry )
         #if BRC.internalBible is None:
@@ -1516,7 +1518,7 @@ class Application( Frame ):
             print( exp("doOpenBibleReferenceCollection()") )
             self.setDebugText( "doOpenBibleReferenceCollection…" )
 
-        self.setWaitStatus( "doOpenBibleReferenceCollection…" )
+        self.setWaitStatus( _("doOpenBibleReferenceCollection…") )
         existingNames = []
         for cw in self.childWindows:
             existingNames.append( cw.moduleID.upper() )
@@ -1536,7 +1538,7 @@ class Application( Frame ):
             print( exp("openBibleReferenceCollectionWindow( {!r} )").format( collectionName ) )
             self.setDebugText( "openBibleReferenceCollectionWindow…" )
 
-        self.setWaitStatus( "openBibleReferenceCollectionWindow…" )
+        self.setWaitStatus( _("openBibleReferenceCollectionWindow…") )
         BRC = BibleReferenceCollectionWindow( self, collectionName )
         if windowGeometry: BRC.geometry( windowGeometry )
         #if BRC.internalBible is None:
@@ -1562,7 +1564,7 @@ class Application( Frame ):
             print( exp("doOpenNewTextEditWindow()") )
             self.setDebugText( "doOpenNewTextEditWindow…" )
 
-        self.setWaitStatus( "doOpenNewTextEditWindow…" )
+        self.setWaitStatus( _("doOpenNewTextEditWindow…") )
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
         self.childWindows.append( tEW )
@@ -1581,7 +1583,7 @@ class Application( Frame ):
             print( exp("doOpenFileTextEditWindow()") )
             self.setDebugText( "doOpenFileTextEditWindow…" )
 
-        self.setWaitStatus( "doOpenFileTextEditWindow…" )
+        self.setWaitStatus( _("doOpenFileTextEditWindow…") )
         openDialog = Open( title=_("Select text file"), initialdir=self.lastFileDir, filetypes=TEXT_FILETYPES )
         fileResult = openDialog.show()
         if not fileResult:
@@ -1607,7 +1609,7 @@ class Application( Frame ):
             if debuggingThisModule: print( exp("openFileTextEditWindow( {} )").format( filepath ) )
             self.setDebugText( "openFileTextEditWindow…" )
 
-        self.setWaitStatus( "openFileTextEditWindow…" )
+        self.setWaitStatus( _("openFileTextEditWindow…") )
         if filepath is None: # it's a blank window
             tEW = TextEditWindow( self )
             if windowGeometry: tEW.geometry( windowGeometry )
@@ -1660,7 +1662,7 @@ class Application( Frame ):
             if debuggingThisModule: print( exp("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
-        self.setWaitStatus( "doViewLog…" )
+        self.setWaitStatus( _("doViewLog…") )
         filename = APP_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1686,7 +1688,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doStartNewProject()") )
 
-        self.setWaitStatus( "doStartNewProject…" )
+        self.setWaitStatus( _("doStartNewProject…") )
         gnpn = GetNewProjectNameDialog( self, title=_("New Project Name") )
         if not gnpn.result:
             self.setReadyStatus()
@@ -1744,7 +1746,7 @@ class Application( Frame ):
             print( exp("doOpenBiblelatorProject()") )
             self.setDebugText( "doOpenBiblelatorProject…" )
 
-        self.setWaitStatus( "doOpenBiblelatorProject…" )
+        self.setWaitStatus( _("doOpenBiblelatorProject…") )
         openDialog = Open( title=_("Select project settings file"), initialdir=self.lastBiblelatorFileDir, filetypes=BIBLELATOR_PROJECT_FILETYPES )
         projectSettingsFilepath = openDialog.show()
         if not projectSettingsFilepath:
@@ -1772,7 +1774,7 @@ class Application( Frame ):
             self.setDebugText( "openBiblelatorBibleEditWindow…" )
             assert os.path.isdir( projectFolderPath )
 
-        self.setWaitStatus( "openBiblelatorBibleEditWindow…" )
+        self.setWaitStatus( _("openBiblelatorBibleEditWindow…") )
         uB = USFMBible( projectFolderPath )
         uEW = USFMEditWindow( self, uB, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
@@ -1808,7 +1810,7 @@ class Application( Frame ):
             print( exp("doOpenParatextProject()") )
             self.setDebugText( "doOpenParatextProject…" )
 
-        self.setWaitStatus( "doOpenParatextProject…" )
+        self.setWaitStatus( _("doOpenParatextProject…") )
         #if not self.openDialog:
         openDialog = Open( title=_("Select project settings (XML or SSF) file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
         SSFFilepath = openDialog.show()
@@ -1879,7 +1881,7 @@ class Application( Frame ):
             self.setDebugText( "openParatextBibleEditWindow…" )
             assert os.path.isfile( SSFFilepath )
 
-        self.setWaitStatus( "openParatextBibleEditWindow…" )
+        self.setWaitStatus( _("openParatextBibleEditWindow…") )
         ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
         PTXSettingsDict = loadPTXProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:

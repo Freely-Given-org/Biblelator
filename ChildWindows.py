@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.38'
@@ -550,9 +550,12 @@ class ChildWindows( list ):
 
 class HTMLWindow( tk.Toplevel, ChildBox ):
     """
+    A window for displaying HTML files, e.g., USFM project checking results.
+        This is effectively a primitive (very limited) browser.
     """
     def __init__( self, parentWindow, filename=None ):
         """
+        Set-up the window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HTMLWindow.__init__( {}, {} )").format( parentWindow, repr(filename) ) )
@@ -1262,6 +1265,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         lenFText = len( fText )
         contextLength = self.optionDict['contextLength']
 
+        # Set-up the columns and column headings
         if self.extendedTo is None:
             self.tree['columns'] = ('ref','marker','fText') if self.lineMode else ('ref','marker','before','fText','after')
         else: # extended
@@ -1296,9 +1300,10 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
                 ref,marker,before,after = resultEntry
             else: halt # programming error
             BBB,C,V = ref.getBCV()
-            if BBB != lastBBB:
+            if BBB != lastBBB: # display a new book heading
                 self.tree.insert( '', 'end', BBB, text=BBB, open=True)
                 lastBBB = BBB
+            # Now insert each reference under the BBB entry
             if self.extendedTo is None:
                 if self.lineMode:
                     self.tree.insert( BBB, 'end', j, tags='BCV',
@@ -1357,7 +1362,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
             if sIBD.result is None: return # ESC pressed
             assert sIBD.result < len(self.availableInternalBibles)
             self.extendedTo = self.availableInternalBibles[sIBD.result]
-        self.parentApp.setWaitStatus()
+        self.parentApp.setWaitStatus( _("Extending find results…") )
         self.extendButton.configure( text=_("Extended"), state=tk.DISABLED )
         #print( "doExtend", self.geometry(), INITIAL_RESULT_WINDOW_SIZE )
         width, height, xOffset, yOffset = parseWindowGeometry( self.geometry() )
