@@ -39,11 +39,11 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-11' # by RJH
+LastModifiedDate = '2016-08-23' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.37'
-SettingsVersion = '0.37' # Only need to change this if the settings format has changed
+ProgVersion = '0.38'
+SettingsVersion = '0.38' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -233,6 +233,8 @@ def parseAndApplySettings( self ):
     # Parse users
     try: self.currentUserName = self.settings.data['Users']['currentUserName']
     except KeyError: pass # use program default
+    try: self.currentUserInitials = self.settings.data['Users']['currentUserInitials']
+    except KeyError: pass # use program default
     try: self.currentUserEmail = self.settings.data['Users']['currentUserEmail']
     except KeyError: pass # use program default
     try: self.currentUserRole = self.settings.data['Users']['currentUserRole']
@@ -287,13 +289,15 @@ def parseAndApplySettings( self ):
     except KeyError: self.currentVerseKeyGroup = 'A'
 
     try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
-    except KeyError: self.GroupA_VerseKey = SimpleVerseKey( self.getFirstBookCode(), '1', '1' )
+    except (KeyError,TypeError): self.GroupA_VerseKey = SimpleVerseKey( 'GEN', '1', '1' )
     try: self.GroupB_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
-    except KeyError: self.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
+    except (KeyError,TypeError): self.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
     try: self.GroupC_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['C-Book'],self.settings.data['BCVGroups']['C-Chapter'],self.settings.data['BCVGroups']['C-Verse'])
-    except KeyError: self.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
+    except (KeyError,TypeError): self.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
     try: self.GroupD_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
-    except KeyError: self.GroupD_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
+    except (KeyError,TypeError): self.GroupD_VerseKey = SimpleVerseKey( 'CO1', '12', '12' )
+    try: self.GroupE_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['E-Book'],self.settings.data['BCVGroups']['E-Chapter'],self.settings.data['BCVGroups']['E-Verse'])
+    except (KeyError,TypeError): self.GroupE_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
 
     try: self.lexiconWord = self.settings.data['Lexicon']['currentWord']
     except KeyError: self.lexiconWord = None
@@ -427,16 +431,16 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 groupCode = thisStuff['GroupCode'] if 'GroupCode' in thisStuff else None
                 if groupCode:
                     if BibleOrgSysGlobals.debugFlag: assert groupCode in BIBLE_GROUP_CODES
-                    rw.groupCode = groupCode
+                    rw.setWindowGroup( groupCode )
                 contextViewMode = thisStuff['ContextViewMode'] if 'ContextViewMode' in thisStuff else None
                 if contextViewMode:
                     if BibleOrgSysGlobals.debugFlag: assert contextViewMode in BIBLE_CONTEXT_VIEW_MODES
-                    rw.contextViewMode = contextViewMode
+                    rw.setContextViewMode( contextViewMode )
                     #rw.createMenuBar() # in order to show the correct contextViewMode
                 formatViewMode = thisStuff['FormatViewMode'] if 'FormatViewMode' in thisStuff else None
                 if formatViewMode:
                     if BibleOrgSysGlobals.debugFlag: assert formatViewMode in BIBLE_FORMAT_VIEW_MODES
-                    rw.formatViewMode = formatViewMode
+                    rw.setFormatViewMode( formatViewMode )
                     #rw.createMenuBar() # in order to show the correct contextViewMode
                 autocompleteMode = convertToPython( thisStuff['AutocompleteMode'] ) if 'AutocompleteMode' in thisStuff else None
                 #if autocompleteMode == 'None': autocompleteMode = None
@@ -513,16 +517,19 @@ def getCurrentChildWindowSettings( self ):
             thisOne['SSFFilepath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
 
+        elif appWin.windowType == 'FindResultWindow':
+            pass # nothing yet
+
         else:
             logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.windowType) ) )
             if BibleOrgSysGlobals.debugFlag: halt
 
         if 'Bible' in appWin.genericWindowType:
-            try: thisOne['GroupCode'] = appWin.groupCode
+            try: thisOne['GroupCode'] = appWin._groupCode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.windowType ) )
-            try: thisOne['ContextViewMode'] = appWin.contextViewMode
+            try: thisOne['ContextViewMode'] = appWin._contextViewMode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.windowType ) )
-            try: thisOne['FormatViewMode'] = appWin.formatViewMode
+            try: thisOne['FormatViewMode'] = appWin._formatViewMode
             except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no formatViewMode in {}").format( appWin.windowType ) )
 
         if appWin.windowType.endswith( 'EditWindow' ):
@@ -673,6 +680,7 @@ def writeSettingsFile( self ):
     self.settings.data['Users'] = {}
     users = self.settings.data['Users']
     users['currentUserName'] = self.currentUserName
+    users['currentUserInitials'] = self.currentUserInitials
     users['currentUserEmail'] = self.currentUserEmail
     users['currentUserRole'] = self.currentUserRole
     users['currentUserAssignments'] = self.currentUserAssignments
@@ -711,6 +719,9 @@ def writeSettingsFile( self ):
     groups['D-Book'] = self.GroupD_VerseKey[0]
     groups['D-Chapter'] = self.GroupD_VerseKey[1]
     groups['D-Verse'] = self.GroupD_VerseKey[2]
+    groups['E-Book'] = self.GroupE_VerseKey[0]
+    groups['E-Chapter'] = self.GroupE_VerseKey[1]
+    groups['E-Verse'] = self.GroupE_VerseKey[2]
 
     # Save the lexicon info
     self.settings.data['Lexicon'] = {}
@@ -723,11 +734,11 @@ def writeSettingsFile( self ):
         #print( "  gT", appWin.genericWindowType )
         #print( "  wT", appWin.windowType )
         if appWin.windowType == 'BibleResourceCollectionWindow':
-            if appWin.resourceBoxes: # so we don't create just an empty heading for an empty collection
+            if appWin.resourceBoxesList: # so we don't create just an empty heading for an empty collection
                 self.settings.data['BibleResourceCollection'+appWin.moduleID] = {}
                 thisOne = self.settings.data['BibleResourceCollection'+appWin.moduleID]
                 #print( "  found", appWin.moduleID )
-                for j, box in enumerate( appWin.resourceBoxes ):
+                for j, box in enumerate( appWin.resourceBoxesList ):
                     boxNumber = 'box{}'.format( j+1 )
                     #print( "    bT", box.boxType )
                     #print( "    ID", box.moduleID )

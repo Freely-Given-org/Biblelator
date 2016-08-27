@@ -40,14 +40,17 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class RenameResourceCollectionDialog( ModalDialog )
     class GetBibleBookRangeDialog( ModalDialog )
     class GetBibleSearchTextDialog( ModalDialog )
+    class GetBibleReplaceTextDialog( ModalDialog )
+    class ReplaceConfirmDialog( ModalDialog )
+    class SelectInternalBibleDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-06'
+LastModifiedDate = '2016-08-21'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -118,7 +121,7 @@ def showinfo( parent, title, infoText ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( exp("showinfo( {}, {!r}, {!r} )").format( parent, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
-        for configKey, configTuple  in sorted(parent.config().items()): # Append the parent window config info
+        for configKey, configTuple  in sorted(parent.configure().items()): # Append the parent window config info
             if debuggingThisModule:
                 print( "showinfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
             if len(configTuple)>2: # don't append alternative names like, bg for background
@@ -170,12 +173,16 @@ class YesNoDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, message, title=None ):
+        """
+        """
         self.message = message
         ModalDialog.__init__( self, parent, title, okText=_("Yes"), cancelText=_("No") )
     # end of YesNoDialog.__init__
 
 
     def body( self, master ):
+        """
+        """
         label = Label( master, text=self.message )
         label.grid( row=0 )
         return label
@@ -188,12 +195,16 @@ class OkCancelDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, message, title=None ):
+        """
+        """
         self.message = message
         ModalDialog.__init__( self, parent, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of OkCancelDialog.__init__
 
 
     def body( self, master ):
+        """
+        """
         label = Label( master, text=self.message )
         label.grid( row=0 )
         return label
@@ -206,6 +217,8 @@ class BookNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, bookNameList, currentIndex ): #, message, title=None ):
+        """
+        """
         #print( 'currentIndex', currentIndex )
         self.bookNameList, self.currentIndex = bookNameList, currentIndex
         ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
@@ -282,8 +295,13 @@ class BookNameDialog( ModalDialog ):
 
 class NumberButtonDialog( ModalDialog ):
     """
+    A dialog box which allows the user to select a number from a given range.
+
+    This is used in touch mode to select chapter and/or verse numbers.
     """
     def __init__( self, parent, startNumber, endNumber, currentNumber ): #, message, title=None ):
+        """
+        """
         #print( 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
         self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
         ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
@@ -342,6 +360,12 @@ class NumberButtonDialog( ModalDialog ):
 
 
     def apply( self, buttonNumber ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
         #if buttonNumber!='CANCEL': self.result = buttonNumber
         self.result = buttonNumber
         self.cancel() # We want to exit the dialog immediately
@@ -354,6 +378,8 @@ class SaveWindowNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, existingSettings, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SaveWindowNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
@@ -362,6 +388,8 @@ class SaveWindowNameDialog( ModalDialog ):
 
 
     def body( self, master ):
+        """
+        """
         t1 = _("Enter a new name to save windows set-up")
         if self.haveExisting: t1 += ', ' + _("or choose an existing name to overwrite")
         Label( master, text=t1 ).grid( row=0 )
@@ -414,6 +442,8 @@ class DeleteWindowNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, existingSettings, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "DeleteWindowNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
@@ -422,6 +452,8 @@ class DeleteWindowNameDialog( ModalDialog ):
 
 
     def body( self, master ):
+        """
+        """
         Label( master, text=_("Use to delete a saved windows set-up") ).grid( row=0 )
 
         #cbValues = [_("Enter (optional) new name") if self.haveExisting else _("Enter new set-up name")]
@@ -471,6 +503,8 @@ class SelectResourceBoxDialog( ModalDialog ):
     Given a list of available resources, select one and return the list item.
     """
     def __init__( self, parent, availableSettingsList, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog…" )
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
@@ -538,6 +572,8 @@ class GetNewProjectNameDialog( ModalDialog ):
     Get the name and an abbreviation for a new Biblelator project.
     """
     def __init__( self, parent, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewProjectNameDialog…" )
         ModalDialog.__init__( self, parent, title )
     # end of GetNewProjectNameDialog.__init__
@@ -604,6 +640,8 @@ class CreateNewProjectFilesDialog( ModalDialog ):
     Find if they want blank files created for a new Biblelator project.
     """
     def __init__( self, parent, title, currentBBB, availableVersifications ): #, availableVersions ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "CreateNewProjectFilesDialog…" )
         #self.currentBBB, self.availableVersifications, self.availableVersions = currentBBB, availableVersifications, availableVersions
         self.currentBBB, self.availableVersifications = currentBBB, availableVersifications
@@ -618,7 +656,6 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         """
         Label( master, text=_("Create book files:") ).grid( row=0 )
         self.selectVariable1 = tk.IntVar()
-
         self.rb1a = Radiobutton( master, text=_("Current book ({})").format( self.currentBBB ), variable=self.selectVariable1, value=1 )
         self.rb1a.grid( row=0, column=1, sticky=tk.W )
         self.rb1b = Radiobutton( master, text=_("All books"), variable=self.selectVariable1, value=2 )
@@ -632,7 +669,6 @@ class CreateNewProjectFilesDialog( ModalDialog ):
 
         Label( master, text=_("Files will contain:") ).grid( row=6, sticky=tk.W )
         self.selectVariable2 = tk.IntVar()
-
         self.rb2a = Radiobutton( master, text=_("CV markers from versification"), variable=self.selectVariable2, value=1,
                                 state = tk.NORMAL if self.availableVersifications else tk.DISABLED )
         self.rb2a.grid( row=7, column=0, sticky=tk.W )
@@ -705,9 +741,11 @@ class GetNewCollectionNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parent, existingNames, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
-        print( "eNs", self.existingNames )
+        print( "GetNewCollectionNameDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
     # end of GetNewCollectionNameDialog.__init__
 
@@ -762,9 +800,11 @@ class RenameResourceCollectionDialog( ModalDialog ):
     Get the new name for a resource collection.
     """
     def __init__( self, parent, existingName, existingNames, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "RenameResourceCollectionDialog…" )
         self.existingName, self.existingNames = existingName, existingNames
-        print( "eNs", self.existingNames )
+        print( "RenameResourceCollectionDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
     # end of RenameResourceCollectionDialog.__init__
 
@@ -821,6 +861,8 @@ class GetBibleBookRangeDialog( ModalDialog ):
     Get the new name for a resource collection.
     """
     def __init__( self, parent, parentApp, givenBible, currentBBB, title ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag: parentApp.setDebugText( "GetBibleBookRangeDialog…" )
         #assert currentBBB in givenBible -- no, it might not be loaded yet!
         self.parentApp, self.givenBible, self.currentBBB = parentApp, givenBible, currentBBB
@@ -1483,7 +1525,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         elif bookResultNumber == 4: #self.optionsDict['bookList'] should already be set
             pass
         else:
-            halt # Unexpected result value
+            if BibleOrgSysGlobals.debugFlag: halt # Unexpected result value
 
         # Checkboxes
         #self.optionsDict['caselessFlag'] = not self.mcaseVar.get()
@@ -1539,13 +1581,13 @@ class ReplaceConfirmDialog( ModalDialog ):
         label2.pack( side=tk.TOP, anchor=tk.W )
         textBox1 = tk.Text( master, height=5 )
         textBox1.insert( tk.END, self.contextBefore+self.searchText+self.contextAfter )
-        textBox1.config( state=tk.DISABLED )
+        textBox1.configure( state=tk.DISABLED )
         textBox1.pack( side=tk.TOP, fill=tk.X )
         label3 = Label( master, text=_("After") )
         label3.pack( side=tk.TOP, anchor=tk.W )
         textBox2 = tk.Text( master, height=5 )
         textBox2.insert( tk.END, self.finalText )
-        textBox2.config( state=tk.DISABLED )
+        textBox2.configure( state=tk.DISABLED )
         textBox2.pack( side=tk.TOP, fill=tk.X )
 
         #buttonFrame = tk.Frame( master, padx=5, pady=5 )
@@ -1581,7 +1623,7 @@ class ReplaceConfirmDialog( ModalDialog ):
         cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
         undoButton = Button( box, text=_("Undo all"), width=10, command=self.doUndo )
         undoButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        if not self.haveUndos: undoButton.config( state=tk.DISABLED )
+        if not self.haveUndos: undoButton.configure( state=tk.DISABLED )
 
         self.bind( '<Return>', self.doYes )
         self.bind( '<Escape>', self.doStop )
@@ -1614,6 +1656,87 @@ class ReplaceConfirmDialog( ModalDialog ):
         self.cancel()
     # end of ReplaceConfirmDialog.doStop
 # end of class ReplaceConfirmDialog
+
+
+
+class SelectInternalBibleDialog( ModalDialog ):
+    """
+    Select one internal Bible from a given list.
+    """
+    def __init__( self, parent, title, internalBibles ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectInternalBibleDialog…" )
+        self.internalBibles = internalBibles
+        ModalDialog.__init__( self, parent, title )
+    # end of SelectInternalBibleDialog.__init__
+
+
+    def buttonBox( self ):
+        """
+        Do our custom buttonBox (without an ok button)
+        """
+        box = Frame( self )
+        w = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        w.pack( side=tk.LEFT, padx=5, pady=5 )
+        self.bind( '<Escape>', self.cancel )
+        box.pack()
+    # end of SelectInternalBibleDialog.buttonBox
+
+
+    def body( self, master ):
+        """
+        Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
+        """
+        buttonsAcross = 2
+        #if len(self.bookNameList) > 100: buttonsAcross = 12
+        #elif len(self.bookNameList) > 80: buttonsAcross = 10
+        #elif len(self.bookNameList) > 60: buttonsAcross = 8
+        #elif len(self.bookNameList) > 30: buttonsAcross = 6
+        xPad, yPad = 6, 8
+
+        grid=Frame( master )
+        grid.grid( column=0, row=7, columnspan=2, sticky=tk.N+tk.S+tk.E+tk.W )
+        tk.Grid.rowconfigure( master, 7, weight=1 )
+        tk.Grid.columnconfigure( master, 0, weight=1 )
+
+        Style().configure( 'iB.TButton', background='lightgreen' )
+        #Style().configure( 'selectedBN.TButton', background='orange' )
+        for j,iB in enumerate(self.internalBibles):
+            row, col = j // buttonsAcross, j % buttonsAcross
+            BibleName = iB.getAName()
+            #print( j, row, col )
+            Button( master, width=30, text=iB.getAName(), style='iB.TButton', \
+                                command=lambda which=j: self.apply(which) ) \
+                        .grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+        #col += 1
+        #if col >= buttonsAcross: row +=1; col=0
+        #Button( master, text=_("Cancel"), command=lambda which='CANCEL': self.apply(which) ) \
+                    #.grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+
+        for x in range(10):
+            tk.Grid.columnconfigure( master, x, weight=1 )
+        for y in range(5):
+            tk.Grid.rowconfigure( master, y, weight=1 )
+        #for j,bookName in enumerate(self.bookNameList):
+            #Button( master, width=6, text=bookName, style='bN.TButton', command=lambda which=j: self.apply(which) ) \
+                        #.grid()
+        #return 0
+    # end of SelectInternalBibleDialog.body
+
+
+    def apply( self, buttonNumber ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        #if buttonNumber!='CANCEL': self.result = buttonNumber
+        self.result = buttonNumber
+        self.cancel() # We want to exit the dialog immediately
+    # end of SelectInternalBibleDialog.apply
+# end of class SelectInternalBibleDialog
 
 
 

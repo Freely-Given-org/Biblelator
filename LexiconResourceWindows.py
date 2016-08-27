@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-13' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.36'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -42,6 +42,7 @@ debuggingThisModule = False
 import os.path, logging
 
 import tkinter as tk
+from tkinter.ttk import Style, Frame, Button
 
 # Biblelator imports
 from TextBoxes import HTMLText
@@ -77,9 +78,14 @@ def exp( messageString ):
 
 
 class BibleLexiconResourceWindow( ChildWindow ):
+    """
+    """
     def __init__( self, parentApp, lexiconPath=None ):
+        """
+        """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleLexiconResourceWindow.__init__( {}, {} )").format( parentApp, lexiconPath ) )
+
         self.lexiconWord = None
         ChildWindow.__init__( self, parentApp, 'LexiconResource' )
         self.parentApp, self.lexiconPath = parentApp, lexiconPath
@@ -90,7 +96,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         self.textBox.destroy()
         self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
-        self.vScrollbar.config( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
 
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
@@ -116,7 +122,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleLexiconResourceWindow.createMenuBar()") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
-        self.config( menu=self.menubar ) # alternative
+        self.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -171,6 +177,31 @@ class BibleLexiconResourceWindow( ChildWindow ):
     # end of BibleLexiconResourceWindow.createMenuBar
 
 
+    def createToolBar( self ):
+        """
+        Create a tool bar containing some helpful buttons at the top of the main window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createToolBar()") )
+
+        xPad, yPad = (6, 8) if self.parentApp.touchMode else (4, 4)
+
+        Style().configure( 'LexToolBar.TFrame', background='wheat1' )
+        toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='LexToolBar.TFrame' )
+
+        Style().configure( 'LexPrevious.TButton', background='lightgreen' )
+        Style().configure( 'LexNext.TButton', background='pink' )
+
+        Button( toolbar, text=_("Previous"), style='LexPrevious.TButton', command=self.doGotoPreviousEntry ) \
+                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        Button( toolbar, text=_("Next"), style='LexNext.TButton', command=self.doGotoNextEntry ) \
+                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+
+        toolbar.pack( side=tk.TOP, fill=tk.X )
+    # end of BibleLexiconResourceWindow.createToolBar
+
+
     def doGotoPreviousEntry( self ):
         """
         """
@@ -197,7 +228,10 @@ class BibleLexiconResourceWindow( ChildWindow ):
     # end of BibleResourceWindow.doGotoNextEntry
 
 
-    def updateLexiconWord( self, newLexiconWord ): # Leaves in disabled state
+    def updateLexiconWord( self, newLexiconWord ):
+        """
+        Leaves text box in disabled state. (Not user editable.)
+        """
         if BibleOrgSysGlobals.debugFlag: print( exp("updateLexiconWord( {} )").format( newLexiconWord ) )
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
@@ -209,7 +243,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
             #if txt: self.textBox.insert( tk.END, '\n'+txt )
             txt = self.BibleLexicon.getEntryHTML( self.lexiconWord )
             if txt: self.textBox.insert( tk.END, '<p>'+txt+'</p>' )
-        self.textBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
         self.refreshTitle()
     # end of BibleLexiconResourceWindow.updateLexiconWord
 # end of BibleLexiconResourceWindow class

@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -43,19 +43,16 @@ import sys, os, logging, subprocess
 import multiprocessing
 
 import tkinter as tk
-#from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
 from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
-        DEFAULT_KEY_BINDING_DICT, \
+        DEFAULT_KEY_BINDING_DICT, MAX_PSEUDOVERSES, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-# BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, ,
 from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -65,29 +62,14 @@ from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
 from ChildWindows import ChildWindows
-#from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
-#from BibleResourceCollection import BibleResourceCollectionWindow
-#from BibleReferenceCollection import BibleReferenceCollectionWindow
-#from LexiconResourceWindows import BibleLexiconResourceWindow
 from TextEditWindow import TextEditWindow
-#from USFMEditWindow import USFMEditWindow
-#from ESFMEditWindow import ESFMEditWindow
 
 # BibleOrgSys imports
 sys.path.append( '../BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
-#from BibleVersificationSystems import BibleVersificationSystems
-#from BibleBookOrders import BibleBookOrderSystems
-#from BibleBooksNames import BibleBooksNamesSystems
-#from BiblePunctuationSystems import BiblePunctuationSystems
-#from DigitalBiblePlatform import DBPBibles
-#from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
-#from SwordResources import SwordType, SwordInterface
-#from USFMBible import USFMBible
-#from PTXBible import PTXBible, loadPTXSSFData
 
 
 
@@ -146,8 +128,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.saveDialog = None
         self.optionsDict = {}
 
-        self.lexiconWord = None
-        self.currentProject = None
+        self.fixedSettingsFlag = False # Can the user change the settings file that we're looking at?
 
         if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
         if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
@@ -189,12 +170,11 @@ class BiblelatorSettingsEditor( Frame ):
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
-        self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
-        self.settings.load()
-        #parseAndApplySettings( self )
-        if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
-            initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
-            centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
+        #self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        #self.settings.load()
+        #if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
+        initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
+        centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
         if self.touchMode:
             if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Touch mode enabled!") )
@@ -206,6 +186,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.createToolBar()
         if BibleOrgSysGlobals.debugFlag: self.createDebugToolBar()
         self.createMainKeyboardBindings()
+        self.createMainButtons()
         self.createNotebook()
 
         # See if there's any developer messages
@@ -234,7 +215,8 @@ class BiblelatorSettingsEditor( Frame ):
         self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
+                                        else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode
@@ -267,7 +249,7 @@ class BiblelatorSettingsEditor( Frame ):
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
         #self.rootWindow['menu'] = self.menubar
-        self.rootWindow.config( menu=self.menubar ) # alternative
+        self.rootWindow.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -364,108 +346,6 @@ class BiblelatorSettingsEditor( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createNormalNavigationBar()") )
 
-        return
-
-        Style().configure('NavigationBar.TFrame', background='yellow')
-
-        navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
-
-        self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
-        self.previousBCVButton.pack( side=tk.LEFT )
-        self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
-        self.nextBCVButton.pack( side=tk.LEFT )
-
-        Style().configure( 'A.TButton', background='lightgreen' )
-        Style().configure( 'B.TButton', background='pink' )
-        Style().configure( 'C.TButton', background='orange' )
-        Style().configure( 'D.TButton', background='brown' )
-        self.GroupAButton = Button( navigationBar, width=2, text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
-        self.GroupBButton = Button( navigationBar, width=2, text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
-        self.GroupCButton = Button( navigationBar, width=2, text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
-        self.GroupDButton = Button( navigationBar, width=2, text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
-        self.GroupAButton.pack( side=tk.LEFT )
-        self.GroupBButton.pack( side=tk.LEFT )
-        self.GroupCButton.pack( side=tk.LEFT )
-        self.GroupDButton.pack( side=tk.LEFT )
-
-        self.bookNumberVar = tk.StringVar()
-        self.bookNumberVar.set( '1' )
-        self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
-        self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
-        self.bookNumberSpinbox.pack( side=tk.LEFT )
-
-        self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
-        bookName = self.bookNames[1] # Default to Genesis usually
-        self.bookNameVar = tk.StringVar()
-        self.bookNameVar.set( bookName )
-        BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
-        self.bookNameBox.bind( '<Return>', self.spinToNewBook )
-        self.bookNameBox.pack( side=tk.LEFT )
-
-        self.chapterNumberVar = tk.StringVar()
-        self.chapterNumberVar.set( '1' )
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
-        self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        self.chapterSpinbox.pack( side=tk.LEFT )
-
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = Entry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
-
-        self.verseNumberVar = tk.StringVar()
-        self.verseNumberVar.set( '1' )
-        #self.maxVersesThisChapterVar = tk.StringVar()
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
-        #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
-        # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
-        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
-        self.verseSpinbox.pack( side=tk.LEFT )
-
-        #self.verseNumberVar = tk.StringVar()
-        #self.verseNumberVar.set( '1' )
-        #self.verseNumberBox = Entry( self, textvariable=self.verseNumberVar )
-        #self.verseNumberBox['width'] = 3
-        #self.verseNumberBox.pack()
-
-        self.wordVar = tk.StringVar()
-        if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
-        self.wordBox.bind( '<Return>', self.acceptNewWord )
-        self.wordBox.pack( side=tk.LEFT )
-
-        if 0: # I don't think we should need this button if everything else works right
-            self.updateButton = Button( navigationBar )
-            self.updateButton['text'] = 'Update'
-            self.updateButton['command'] = self.acceptNewBnCV
-            #self.updateButton.grid( row=0, column=7 )
-            self.updateButton.pack( side=tk.LEFT )
-
-        Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
-                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
-        self.quitButton = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.doCloseMe )
-        self.quitButton.pack( side=tk.RIGHT )
-
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-        navigationBar.pack( side=tk.TOP, fill=tk.X )
     # end of BiblelatorSettingsEditor.createNormalNavigationBar
 
     def createTouchNavigationBar( self ):
@@ -475,124 +355,6 @@ class BiblelatorSettingsEditor( Frame ):
             print( exp("createTouchNavigationBar()") )
             assert self.touchMode
 
-        return
-
-        xPad, yPad = 6, 8
-        minButtonCharWidth = 4
-
-        Style().configure('NavigationBar.TFrame', background='yellow')
-        navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
-
-        self.previousBCVButton = Button( navigationBar, width=minButtonCharWidth, text='<-', command=self.doGoBackward, state=tk.DISABLED )
-        self.previousBCVButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.nextBCVButton = Button( navigationBar, width=minButtonCharWidth, text='->', command=self.doGoForward, state=tk.DISABLED )
-        self.nextBCVButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        Style().configure( 'A.TButton', background='lightgreen' )
-        Style().configure( 'B.TButton', background='pink' )
-        Style().configure( 'C.TButton', background='orange' )
-        Style().configure( 'D.TButton', background='brown' )
-        self.GroupAButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
-        self.GroupBButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
-        self.GroupCButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
-        self.GroupDButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
-        self.GroupAButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.GroupBButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.GroupCButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.GroupDButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        self.bookNumberVar = tk.StringVar()
-        self.bookNumberVar.set( '1' )
-        self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
-        self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
-        #self.bookNumberSpinbox.pack( side=tk.LEFT )
-
-        self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
-        bookName = self.bookNames[1] # Default to Genesis usually
-        self.bookNameVar = tk.StringVar()
-        self.bookNameVar.set( bookName )
-        BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
-        self.bookNameBox.bind( '<Return>', self.spinToNewBook )
-        #self.bookNameBox.pack( side=tk.LEFT )
-
-        Style().configure( 'bookName.TButton', background='brown' )
-        self.bookNameButton = Button( navigationBar, width=8, text=bookName, style='bookName.TButton', command=self.doBookNameButton )
-        self.bookNameButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        self.chapterNumberVar = tk.StringVar()
-        self.chapterNumberVar.set( '1' )
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
-        self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        #self.chapterSpinbox.pack( side=tk.LEFT )
-
-        Style().configure( 'chapterNumber.TButton', background='brown' )
-        self.chapterNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='chapterNumber.TButton', command=self.doChapterNumberButton )
-        self.chapterNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = Entry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
-
-        self.verseNumberVar = tk.StringVar()
-        self.verseNumberVar.set( '1' )
-        #self.maxVersesThisChapterVar = tk.StringVar()
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
-        #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
-        # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
-        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
-        #self.verseSpinbox.pack( side=tk.LEFT )
-
-        Style().configure( 'verseNumber.TButton', background='brown' )
-        self.verseNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='verseNumber.TButton', command=self.doVerseNumberButton )
-        self.verseNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        self.wordVar = tk.StringVar()
-        if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
-        self.wordBox.bind( '<Return>', self.acceptNewWord )
-        #self.wordBox.pack( side=tk.LEFT )
-
-        Style().configure( 'word.TButton', background='brown' )
-        self.wordButton = Button( navigationBar, width=8, text=self.lexiconWord, style='word.TButton', command=self.doWordButton )
-        self.wordButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        if 0: # I don't think we should need this button if everything else works right
-            self.updateButton = Button( navigationBar )
-            self.updateButton['text'] = 'Update'
-            self.updateButton['command'] = self.acceptNewBnCV
-            #self.updateButton.grid( row=0, column=7 )
-            self.updateButton.pack( side=tk.LEFT )
-
-        Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
-                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
-        self.quitButton = Button( navigationBar, text=_("QUIT"), style="Quit.TButton", command=self.doCloseMe )
-        self.quitButton.pack( side=tk.RIGHT, padx=xPad, pady=yPad )
-
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-        navigationBar.pack( side=tk.TOP, fill=tk.X )
     # end of BiblelatorSettingsEditor.createTouchNavigationBar
 
 
@@ -603,25 +365,32 @@ class BiblelatorSettingsEditor( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createToolBar()") )
 
-        return
-
-        xPad, yPad = 6, 8
-
-        Style().configure( 'ToolBar.TFrame', background='green' )
-        toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
-
-        Style().configure( 'ShowAll.TButton', background='lightgreen' )
-        Style().configure( 'HideResources.TButton', background='pink' )
-        Style().configure( 'HideAll.TButton', background='orange' )
-        Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
-        toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of BiblelatorSettingsEditor.createToolBar
+
+
+    def createMainButtons( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("createMainButtons()") )
+
+        xPad, yPad = (6, 8) if self.touchMode else (2, 2)
+
+        Style().configure( 'MainButtons.TFrame', background='red' )
+        Style().map("Ok.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
+                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+
+        buttonFrame = Frame( self, cursor='hand2', relief=tk.RAISED, style='MainButtons.TFrame' )
+
+        Button( buttonFrame, text=_("Ok"), style='Ok.TButton', command=self.doOk ) \
+                        .pack( side=tk.RIGHT, padx=xPad, pady=yPad )
+        Button( buttonFrame, text=_("Apply"), style='Ok.TButton', command=self.doApply ) \
+                        .pack( side=tk.RIGHT, padx=xPad, pady=yPad )
+        Button( buttonFrame, text=_("Cancel"), style='Ok.TButton', command=self.doCancel ) \
+                        .pack( side=tk.RIGHT, padx=xPad, pady=yPad )
+
+        buttonFrame.pack( side=tk.BOTTOM, fill=tk.X )
+    # end of BiblelatorSettingsEditor.createMainButtons
 
 
     def createNotebook( self ):
@@ -641,14 +410,20 @@ class BiblelatorSettingsEditor( Frame ):
         fdrLabel = Label( self.settingsFilesPage, text=_("Standard folder:") )
         fdrLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
         self.fdrEntry = Entry( self.settingsFilesPage, width=50, textvariable=self.fdrVar, state=tk.DISABLED )
-        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.fdrEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
-        self.fnVar = tk.StringVar()
+
         fnLabel = Label( self.settingsFilesPage, text=_("Settings name:") )
         fnLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
-        self.fnEntry = Entry( self.settingsFilesPage, width=15, textvariable=self.fnVar, state=tk.DISABLED )
-        #self.fnEntry.bind( '<Return>', self.searchBBBCode )
+        self.fnVar = tk.StringVar()
+        if self.fixedSettingsFlag:
+            self.fnEntry = Entry( self.settingsFilesPage, width=15, textvariable=self.fnVar, state=tk.DISABLED )
+        else: # not fixed settings
+            self.fnEntry = Combobox( self.settingsFilesPage, width=15, textvariable=self.fnVar )
+            #self.fnEntry['values'] = self.bookNames
+            self.fnEntry.bind('<<ComboboxSelected>>', self.selectedNewSettingsFile )
+            self.fnEntry.bind( '<Return>', self.selectedNewSettingsFile )
         self.fnEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
+
 
         # Main settings page
         print( "Create main settings page" )
@@ -771,24 +546,30 @@ class BiblelatorSettingsEditor( Frame ):
         self.unEntry = Entry( self.usersPage, width=25, textvariable=self.unVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.unEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
+        self.uiVar = tk.StringVar()
+        uiLabel = Label( self.usersPage, text=_("Current user initials:") )
+        uiLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        self.uiEntry = Entry( self.usersPage, width=5, textvariable=self.uiVar )
+        #self.lmEntry.bind( '<Return>', self.searchBBBCode )
+        self.uiEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
         self.uemVar = tk.StringVar()
         uemLabel = Label( self.usersPage, text=_("User email:") )
-        uemLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
+        uemLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
         self.uemEntry = Entry( self.usersPage, width=25, textvariable=self.uemVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
-        self.uemEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
+        self.uemEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
         self.urVar = tk.StringVar()
         urLabel = Label( self.usersPage, text=_("User role:") )
-        urLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
+        urLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
         self.urEntry = Entry( self.usersPage, width=20, textvariable=self.urVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
-        self.urEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
+        self.urEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
         self.uasVar = tk.StringVar()
         uasLabel = Label( self.usersPage, text=_("User assignments:") )
-        uasLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
+        uasLabel.grid( row=4, column=0, padx=0, pady=2, sticky=tk.E )
         self.uasEntry = Entry( self.usersPage, width=20, textvariable=self.uasVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
-        self.uasEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
+        self.uasEntry.grid( row=4, column=1, padx=2, pady=2, sticky=tk.W )
 
         # Paths page
         print( "Create paths page" )
@@ -882,16 +663,16 @@ class BiblelatorSettingsEditor( Frame ):
             self.currentWindowsTextBox.insert( tk.END, "We cannot adjust the current windows from inside Biblelator.\n\nIf you wish to adjust current windows, please close Biblelator and run BiblelatorSettingsEditor.py in stand-alone mode." )
 
         print( "Add all pages" )
-        self.notebook.add( self.settingsFilesPage, text='Settings files')
-        self.notebook.add( self.mainPage, text='Main')
-        self.notebook.add( self.interfacePage, text='Interface')
-        self.notebook.add( self.internetPage, text='Internet')
-        self.notebook.add( self.projectsPage, text='Projects')
-        self.notebook.add( self.usersPage, text='Users')
-        self.notebook.add( self.pathsPage, text='Paths')
-        self.notebook.add( self.recentFilesPage, text='Recent files')
-        self.notebook.add( self.BCVGroupsPage, text='BCV groups')
-        self.notebook.add( self.currentWindowsPage, text='Current windows')
+        self.notebook.add( self.settingsFilesPage, text=_("Settings files") )
+        self.notebook.add( self.mainPage, text=_("Main") )
+        self.notebook.add( self.interfacePage, text=_("Interface") )
+        self.notebook.add( self.internetPage, text=_("Internet") )
+        self.notebook.add( self.projectsPage, text=_("Projects") )
+        self.notebook.add( self.usersPage, text=_("Users") )
+        self.notebook.add( self.pathsPage, text=_("Paths") )
+        self.notebook.add( self.recentFilesPage, text=_("Recent files") )
+        self.notebook.add( self.BCVGroupsPage, text=_("BCV groups") )
+        self.notebook.add( self.currentWindowsPage, text=_("Current windows") )
         self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
 
         self.loadSettingsIntoTabs()
@@ -904,28 +685,41 @@ class BiblelatorSettingsEditor( Frame ):
 
     def loadSettingsIntoTabs( self ):
         """
-        Take the current settings and load them into the variables for our editor.
+        Load the current settings for self.INIname into self.settings.data
+            and then load them into the variables for our editor.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("loadSettingsIntoTabs()") )
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("loadSettingsIntoTabs() for {!r}").format( self.INIname ) )
+
+        self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        self.settings.load()
+        self.settingsChangedFlag = False
 
         self.fdrVar.set( self.settings.settingsFolder )
         self.fnVar.set( self.INIname )
+        if not self.fixedSettingsFlag:
+            self.iniList = []
+            for something in os.listdir( self.settings.settingsFolder ):
+                somepath = os.path.join( self.settings.settingsFolder, something )
+                if os.path.isfile( somepath ):
+                    if somepath.upper().endswith( '.INI' ):
+                        self.iniList.append( something[:-4] )
+            self.fnEntry['values'] = self.iniList
 
         try: self.svVar.set( self.settings.data[MAIN_APP_NAME]['settingsVersion'] )
-        except KeyError: pass # self.svVar.set( 'Default' )
+        except KeyError: self.svVar.set( '' )
         try: self.pvVar.set( self.settings.data[MAIN_APP_NAME]['programVersion'] )
-        except KeyError: pass # self.pvVar.set( 'Default' )
+        except KeyError: self.pvVar.set( '' )
         try: self.thnVar.set( self.settings.data['Interface']['themeName'] )
         except KeyError: self.thnVar.set( 'default' )
         try: self.wszVar.set( self.settings.data[MAIN_APP_NAME]['windowSize'] )
-        except KeyError: pass # self.pvVar.set( 'Default' )
+        except KeyError: self.wszVar.set( '' )
         try: self.wposVar.set( self.settings.data[MAIN_APP_NAME]['windowPosition'] )
-        except KeyError: pass # self.pvVar.set( 'Default' )
+        except KeyError: self.wposVar.set( '' )
         try: self.minszVar.set( self.settings.data[MAIN_APP_NAME]['minimumSize'] )
-        except KeyError: pass # self.pvVar.set( 'Default' )
+        except KeyError: self.minszVar.set( '' )
         try: self.maxszVar.set( self.settings.data[MAIN_APP_NAME]['maximumSize'] )
-        except KeyError: pass # self.pvVar.set( 'Default' )
+        except KeyError: self.maxszVar.set( '' )
 
         try: self.ilVar.set( self.settings.data['Interface']['interfaceLanguage'] )
         except KeyError: self.ilVar.set( 'Default' )
@@ -956,35 +750,37 @@ class BiblelatorSettingsEditor( Frame ):
         except KeyError: self.dvVar.set( False )
 
         try: self.cpVar.set( self.settings.data['Project']['currentProjectName'] )
-        except KeyError: pass
+        except KeyError: self.cpVar.set( '' )
 
         try: self.unVar.set( self.settings.data['Users']['currentUserName'] )
-        except KeyError: pass
+        except KeyError: self.unVar.set( '' )
+        try: self.uiVar.set( self.settings.data['Users']['currentUserInitials'] )
+        except KeyError: self.uiVar.set( '' )
         try: self.uemVar.set( self.settings.data['Users']['currentUserEmail'] )
-        except KeyError: pass
+        except KeyError: self.uemVar.set( '' )
         try: self.urVar.set( self.settings.data['Users']['currentUserRole'] )
         except KeyError: self.urVar.set( 'Translator' )
         try: self.uasVar.set( self.settings.data['Users']['currentUserAssignments'] )
         except KeyError: self.uasVar.set( 'ALL' )
 
         try: self.ltfVar.set( self.settings.data['Paths']['lastFileDir'] )
-        except KeyError: pass
+        except KeyError: self.ltfVar.set( '' )
         try: self.lbfVar.set( self.settings.data['Paths']['lastBiblelatorFileDir'] )
-        except KeyError: pass
+        except KeyError: self.lbfVar.set( '' )
         try: self.lpfVar.set( self.settings.data['Paths']['lastParatextFileDir'] )
-        except KeyError: pass
+        except KeyError: self.lpfVar.set( '' )
         try: self.libfVar.set( self.settings.data['Paths']['lastInternalBibleDir'] )
-        except KeyError: pass
+        except KeyError: self.libfVar.set( '' )
 
         for rr in range( 0, MAX_RECENT_FILES ):
             try:
                 self.rffnVars[rr].set( self.settings.data['RecentFiles']['recent{}Filename'.format(rr+1)] )
                 self.rffldVars[rr].set( self.settings.data['RecentFiles']['recent{}Folder'.format(rr+1)] )
                 self.rftypVars[rr].set( self.settings.data['RecentFiles']['recent{}Type'.format(rr+1)] )
-            except KeyError: pass
+            except KeyError: self.rffnVars[rr].set( '' ); self.rffldVars[rr].set( '' ); self.rftypVars[rr].set( '' )
 
         try: self.gBOSVar.set( self.settings.data['BCVGroups']['genericBibleOrganisationalSystemName'] )
-        except KeyError: pass
+        except KeyError: self.gBOSVar.set( '' )
         try: self.cgVar.set( self.settings.data['BCVGroups']['currentGroup'] )
         except KeyError: self.cgVar.set( 'A' )
         try: self.gaVar.set( '{} {}:{}'.format( self.settings.data['BCVGroups']['A-Book'], self.settings.data['BCVGroups']['A-Chapter'], self.settings.data['BCVGroups']['A-Verse'] ) )
@@ -1066,7 +862,7 @@ class BiblelatorSettingsEditor( Frame ):
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
-        self.setWaitStatus( "Starting up…" )
+        self.setWaitStatus( _("Starting up…") )
     # end of BiblelatorSettingsEditor.createStatusBar
 
 
@@ -1126,11 +922,11 @@ class BiblelatorSettingsEditor( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( START, newStatusText )
-            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -1144,8 +940,8 @@ class BiblelatorSettingsEditor( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
-        #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
@@ -1158,8 +954,8 @@ class BiblelatorSettingsEditor( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
-        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
@@ -1174,10 +970,10 @@ class BiblelatorSettingsEditor( Frame ):
         """
         if self.starting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
-            #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
+            #self.statusTextLabel.configure( style='StatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
             Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
-            self.config( cursor='' )
+            self.configure( cursor='' )
     # end of BiblelatorSettingsEditor.setReadyStatus
 
 
@@ -1189,7 +985,7 @@ class BiblelatorSettingsEditor( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
         self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
@@ -1208,14 +1004,14 @@ class BiblelatorSettingsEditor( Frame ):
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
-                                        appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
-                                        appWin.formatViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._formatViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.debugTextBox.configure( state=tk.DISABLED ) # Don't allow editing
     # end of BiblelatorSettingsEditor.setDebugText
 
 
@@ -1236,498 +1032,53 @@ class BiblelatorSettingsEditor( Frame ):
     # end of BiblelatorSettingsEditor.doChangeTheme
 
 
-    def searchBBBCode( self, event ):
+    def selectedNewSettingsFile( self, event=None ):
         """
-        Search for the given text in the 3-character (uppercase or numeric) book codes.
+        Handle a new settings files selected from the GUI dropbox.
         """
-        enteredText = self.codesSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchBBBCode…" )
+        enteredFilename = self.fnVar.get()
+        self.logUsage( ProgName, debuggingThisModule, 'selectedNewSettingsFile' )
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("selectedNewSettingsFile( {} ) for {!r}").format( event, enteredFilename ) )
+            #print( dir(event) )
 
-        if not enteredText: return
-
-        eTU = enteredText.upper()
-        if len(eTU)==3 and eTU!=enteredText and eTU in self.BibleBooksCodesList:
-            self.setErrorStatus( "Converted entered book code to UPPER CASE" )
-            enteredText = eTU
-
-        if len(enteredText)!=3: self.setErrorStatus( "Books codes must be three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books codes must have no spaces" ); return
-        elif enteredText not in self.BibleBooksCodesList:
-            self.setErrorStatus( "Unknown {!r} book code".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.BBB = enteredText
-        index = self.BibleBooksCodesList.index( self.BBB )
-
-        # Select it in the listbox
-        self.codesListbox.select_set( index )
-        self.codesListbox.see( index )
-        self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
-    # end of BiblelatorSettingsEditor.searchBBBCode
+        self.doApply() # Save any changes to current settings file
+        self.INIname = enteredFilename
+        self.loadSettingsIntoTabs()
+    # end of BiblelatorSettingsEditor.selectedNewSettingsFile
 
 
-    def searchCode( self, event ):
+    def doOk( self, event=None ):
         """
-        Search for the given text through all possible book code types.
+        Pop-up dialog
         """
-        enteredText = self.codesSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchCode( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchCode…" )
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BiblelatorSettingsEditor.doOk( {} )").format( event ) )
 
-        if not enteredText: return
+        if self.settingsChangedFlag: halt
+        self.doCloseMe()
+    # end of BiblelatorSettingsEditor.doOk
 
-        eTU = enteredText.upper()
-        if len(eTU)==3 and eTU!=enteredText and eTU in self.BibleBooksCodesList:
-            self.setErrorStatus( "Converted entered book code to UPPER CASE" )
-            enteredText = eTU
-
-        if len(enteredText)!=3: self.setErrorStatus( "Books codes must be three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books codes must have no spaces" ); return
-        elif enteredText not in self.BibleBooksCodesList:
-            self.setErrorStatus( "Unknown {!r} book code".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.BBB = enteredText
-        index = self.BibleBooksCodesList.index( self.BBB )
-
-        # Select it in the listbox
-        self.codesListbox.select_set( index )
-        self.codesListbox.see( index )
-        self.codesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewCode below
-    # end of BiblelatorSettingsEditor.searchCode
-
-
-    def gotoNewCode( self, event=None ):
+    def doApply( self, event=None ):
         """
+        Pop-up dialog
         """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewCode( {} )").format( event ) )
-            self.setDebugText( "gotoNewCode…" )
-            #print( 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BiblelatorSettingsEditor.doApply( {} )").format( event ) )
 
-        print( "code cursel", repr(self.codesListbox.curselection()) )
-        index = int( self.codesListbox.curselection()[0] ) # Top one selected
-        self.BBB = self.codesListbox.get( index )
-        codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
+        if self.settingsChangedFlag: halt
+    # end of BiblelatorSettingsEditor.doApply
 
-        # Clear the text box
-        self.codeTextBox.config( state=tk.NORMAL )
-        self.codeTextBox.delete( START, tk.END )
-        self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
-        self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
-        for field,value in sorted( codeDict.items() ):
-            if field not in ( 'referenceNumber', 'nameEnglish', ):
-                self.codeTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewCode
-
-
-    def searchPunctuation( self, event ):
+    def doCancel( self, event=None ):
         """
+        Pop-up dialog
         """
-        enteredText = self.punctuationsSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchPunctuation…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Books punctuation system names must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books punctuation system names must have no spaces" ); return
-        elif enteredText not in self.BiblePunctuationsList:
-            self.setErrorStatus( "Unknown {!r} punctuation system name".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.punctuationSystemName = enteredText
-        index = self.BiblePunctuationsList.index( self.punctuationSystemName )
-
-        # Select it in the listbox
-        self.punctuationsListbox.select_set( index )
-        self.punctuationsListbox.see( index )
-        self.punctuationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewPunctuation below
-    # end of BiblelatorSettingsEditor.searchPunctuation
-
-
-    def gotoNewPunctuation( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewPunctuation( {} )").format( event ) )
-            self.setDebugText( "gotoNewPunctuation…" )
-            #print( 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
-
-        print( "punct cursel", repr(self.punctuationsListbox.curselection()) )
-        index = int( self.punctuationsListbox.curselection()[0] ) # Top one selected
-        self.punctuationSystemName = self.punctuationsListbox.get( index )
-        punctuationDict =  self.BiblePunctuationSystems.getPunctuationSystem( self.punctuationSystemName )
-
-        # Clear the text box
-        self.punctuationTextBox.config( state=tk.NORMAL )
-        self.punctuationTextBox.delete( START, tk.END )
-        self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( self.punctuationSystemName ) )
-        #self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( punctuationDict['nameEnglish'] ) )
-        for field,value in sorted( punctuationDict.items() ):
-            #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                self.punctuationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewPunctuation
-
-
-    def searchVersification( self, event ):
-        """
-        """
-        enteredText = self.versificationsSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchVersification( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchVersification…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Books versifications must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books versifications must have no spaces" ); return
-        elif enteredText not in self.BibleVersificationsSystemsList:
-            self.setErrorStatus( "Unknown {!r} book versification".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.versificationSystemName = enteredText
-        index = self.BibleVersificationsSystemsList.index( self.versificationSystemName )
-
-        # Select it in the listbox
-        self.versificationsListbox.select_set( index )
-        self.versificationsListbox.see( index )
-        self.versificationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewVersification below
-    # end of BiblelatorSettingsEditor.searchVersification
-
-
-    def gotoNewVersification( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewVersification( {} )").format( event ) )
-            self.setDebugText( "gotoNewVersification…" )
-            #print( 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
-
-        print( "vers cursel", repr(self.versificationsListbox.curselection()) )
-        index = int( self.versificationsListbox.curselection()[0] ) # Top one selected
-        self.versificationSystemName = self.versificationsListbox.get( index )
-        versificationSystem =  self.BibleVersificationsSystems.getVersificationSystem( self.versificationSystemName )
-
-        # Clear the text box
-        self.versificationTextBox.config( state=tk.NORMAL )
-        self.versificationTextBox.delete( START, tk.END )
-        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( self.versificationSystemName ) )
-        self.versificationTextBox.insert( tk.END, '{}\n\n'.format( versificationSystem ) )
-        #for field,value in sorted( versificationDict.items() ):
-            #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.versificationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewVersification
-
-
-    def searchMapping( self, event ):
-        """
-        """
-        enteredText = self.mappingsSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchMapping( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchMapping…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Books mappings must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books mappings must have no spaces" ); return
-        elif enteredText not in self.BibleMappingsSystemsList:
-            self.setErrorStatus( "Unknown {!r} book mapping".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.mappingSystemName = enteredText
-        index = self.BibleMappingsSystemsList.index( self.mappingSystemName )
-
-        # Select it in the listbox
-        self.mappingsListbox.select_set( index )
-        self.mappingsListbox.see( index )
-        self.mappingsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewMapping below
-    # end of BiblelatorSettingsEditor.searchMapping
-
-
-    def gotoNewMapping( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewMapping( {} )").format( event ) )
-            self.setDebugText( "gotoNewMapping…" )
-            #print( 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
-
-        index = int( self.mappingsListbox.curselection()[0] ) # Top one selected
-        self.mappingSystemName = self.mappingsListbox.get( index )
-        mappingSystem =  self.BibleMappingsSystems.getMappingSystem( self.mappingSystemName )
-
-        # Clear the text box
-        self.mappingTextBox.config( state=tk.NORMAL )
-        self.mappingTextBox.delete( START, tk.END )
-        self.mappingTextBox.insert( tk.END, '{}\n\n'.format( self.mappingSystemName ) )
-        self.mappingTextBox.insert( tk.END, '{}\n\n'.format( mappingSystem ) )
-        #for field,value in sorted( mappingDict.items() ):
-            #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.mappingTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewMapping
-
-
-    def searchOrder( self, event ):
-        """
-        """
-        enteredText = self.ordersSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchOrder( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchOrder…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Books orders must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books orders must have no spaces" ); return
-        elif enteredText not in self.BibleOrdersSystemsList:
-            self.setErrorStatus( "Unknown {!r} book order".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.orderSystemName = enteredText
-        index = self.BibleOrdersSystemsList.index( self.orderSystemName )
-
-        # Select it in the listbox
-        self.ordersListbox.select_set( index )
-        self.ordersListbox.see( index )
-        self.ordersListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrder below
-    # end of BiblelatorSettingsEditor.searchOrder
-
-
-    def gotoNewOrder( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewOrder( {} )").format( event ) )
-            self.setDebugText( "gotoNewOrder…" )
-            #print( 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
-
-        print( "order cursel", repr(self.ordersListbox.curselection()) )
-        index = int( self.ordersListbox.curselection()[0] ) # Top one selected
-        self.orderSystemName = self.ordersListbox.get( index )
-        orderSystem =  self.BibleOrdersSystems.getBookOrderSystem( self.orderSystemName )
-
-        # Clear the text box
-        self.orderTextBox.config( state=tk.NORMAL )
-        self.orderTextBox.delete( START, tk.END )
-        self.orderTextBox.insert( tk.END, '{}\n\n'.format( self.orderSystemName ) )
-        self.orderTextBox.insert( tk.END, '{}\n\n'.format( orderSystem ) )
-        #for field,value in sorted( orderDict.items() ):
-            #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.orderTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewOrder
-
-
-    def searchName( self, event ):
-        """
-        """
-        enteredText = self.namesSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchName( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchName…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Books names must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books names must have no spaces" ); return
-        elif enteredText not in self.BibleNamesSystemsList:
-            self.setErrorStatus( "Unknown {!r} book name".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.nameSystemName = enteredText
-        index = self.BibleNamesSystemsList.index( self.nameSystemName )
-
-        # Select it in the listbox
-        self.namesListbox.select_set( index )
-        self.namesListbox.see( index )
-        self.namesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewNames below
-    # end of BiblelatorSettingsEditor.searchName
-
-
-    def gotoNewName( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewName( {} )").format( event ) )
-            self.setDebugText( "gotoNewName…" )
-            #print( 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
-
-        print( "name cursel", repr(self.namesListbox.curselection()) )
-        index = int( self.namesListbox.curselection()[0] ) # Top one selected
-        self.nameSystemName = self.namesListbox.get( index )
-        nameSystem =  self.BibleNamesSystems.getBooksNamesSystem( self.nameSystemName )
-
-        # Clear the text box
-        self.nameTextBox.config( state=tk.NORMAL )
-        self.nameTextBox.delete( START, tk.END )
-        self.nameTextBox.insert( tk.END, '{}\n\n'.format( self.nameSystemName ) )
-        self.nameTextBox.insert( tk.END, '{}\n\n'.format( nameSystem ) )
-        #for field,value in sorted( nameDict.items() ):
-            #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.nameTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewName
-
-
-    def searchOrganization( self, event ):
-        """
-        """
-        enteredText = self.organizationsSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchOrganization( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchOrganization…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Bible organizational system names must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Bible organizational system names must have no spaces" ); return
-        elif enteredText not in self.BibleOrganizationalSystemsList:
-            self.setErrorStatus( "Unknown {!r} Bible organizational system name".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.organizationSystemName = enteredText
-        index = self.BibleOrganizationalSystemsList.index( self.organizationSystemName )
-
-        # Select it in the listbox
-        self.organizationsListbox.select_set( index )
-        self.organizationsListbox.see( index )
-        self.organizationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrganization below
-    # end of BiblelatorSettingsEditor.searchOrganization
-
-
-    def gotoNewOrganization( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewOrganization( {} )").format( event ) )
-            self.setDebugText( "gotoNewOrganization…" )
-            #print( 'You selected items: %s'%[self.organizationsListbox.get(int(i)) for i in self.organizationsListbox.curselection()] )
-
-        index = int( self.organizationsListbox.curselection()[0] ) # Top one selected
-        self.organizationSystemName = self.organizationsListbox.get( index )
-        organizationalSystemDict =  self.BibleOrganizationalSystems.getOrganizationalSystem( self.organizationSystemName )
-
-        # Clear the text box
-        self.organizationTextBox.config( state=tk.NORMAL )
-        self.organizationTextBox.delete( START, tk.END )
-        self.organizationTextBox.insert( tk.END, '{} ({})\n\n'.format( self.organizationSystemName, organizationalSystemDict['type'] ) )
-        self.organizationTextBox.insert( tk.END, '{}\n\n'.format( organizationalSystemDict['name'][0] ) )
-        for field,value in sorted( organizationalSystemDict.items() ):
-            if field not in ( 'type', ):
-                self.organizationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewOrganization
-
-
-    def searchReference( self, event ):
-        """
-        """
-        enteredText = self.referenceSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchReference( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchReference…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Books references must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books references must have no spaces" ); return
-        elif enteredText not in self.BibleReferenceSystemsList:
-            self.setErrorStatus( "Unknown {!r} reference".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.referenceSystemName = enteredText
-        index = self.BibleReferenceSystemsList.index( self.referenceSystemName )
-
-        # Select it in the listbox
-        self.referencesListbox.select_set( index )
-        self.referencesListbox.see( index )
-        self.referencesListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewReference below
-    # end of BiblelatorSettingsEditor.searchReference
-
-
-    def gotoNewReference( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewReference( {} )").format( event ) )
-            self.setDebugText( "gotoNewReference…" )
-            #print( 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
-
-        index = int( self.referencesListbox.curselection()[0] ) # Top one selected
-        self.referenceSystemName = self.referencesListbox.get( index )
-        referenceSystem =  self.BibleReferenceSystems.getReferenceSystem( self.referenceSystemName )
-
-        # Clear the text box
-        self.referenceTextBox.config( state=tk.NORMAL )
-        self.referenceTextBox.delete( START, tk.END )
-        self.referenceTextBox.insert( tk.END, '{}\n\n'.format( self.referenceSystemName ) )
-        self.referenceTextBox.insert( tk.END, '{}\n\n'.format( referenceSystem ) )
-        #for field,value in sorted( referenceDict.items() ):
-            #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.referenceTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewReference
-
-
-    def searchStylesheet( self, event ):
-        """
-        """
-        enteredText = self.stylesheetsSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchStylesheet…" )
-
-        if not enteredText: return
-
-        if len(enteredText)<3: self.setErrorStatus( "Books stylesheets must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Books stylesheets must have no spaces" ); return
-        elif enteredText not in self.BibleStylesheetsSystemsList:
-            self.setErrorStatus( "Unknown {!r} book stylesheet".format( enteredText ) )
-            return
-
-        # Must be ok
-        self.stylesheetSystemName = enteredText
-        index = self.BibleStylesheetsSystemsList.index( self.stylesheetSystemName )
-
-        # Select it in the listbox
-        self.stylesheetsListbox.select_set( index )
-        self.stylesheetsListbox.see( index )
-        self.stylesheetsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewStylesheet below
-    # end of BiblelatorSettingsEditor.searchStylesheet
-
-
-    def gotoNewStylesheet( self, event=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewStylesheet( {} )").format( event ) )
-            self.setDebugText( "gotoNewStylesheet…" )
-            #print( 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
-
-        index = int( self.stylesheetsListbox.curselection()[0] ) # Top one selected
-        self.stylesheetSystemName = self.stylesheetsListbox.get( index )
-        stylesheetSystem =  self.BibleStylesheetsSystems.getStylesheetSystem( self.stylesheetSystemName )
-
-        # Clear the text box
-        self.stylesheetTextBox.config( state=tk.NORMAL )
-        self.stylesheetTextBox.delete( START, tk.END )
-        self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( self.stylesheetSystemName ) )
-        self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( stylesheetSystem ) )
-        #for field,value in sorted( stylesheetDict.items() ):
-            #if field not in ( 'referenceNumber', 'nameEnglish', ):
-                #self.stylesheetTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BiblelatorSettingsEditor.gotoNewStylesheet
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BiblelatorSettingsEditor.doCancel( {} )").format( event ) )
+
+        if self.settingsChangedFlag: halt
+        self.doCloseMe()
+    # end of BiblelatorSettingsEditor.doCancel
 
 
     def doViewSettings( self ):
@@ -1760,7 +1111,7 @@ class BiblelatorSettingsEditor( Frame ):
             if debuggingThisModule: print( exp("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
-        self.setWaitStatus( "doViewLog…" )
+        self.setWaitStatus( _("doViewLog…") )
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1941,7 +1292,7 @@ def openBiblelatorSettingsEditor( parent ):
         print( exp("BiblelatorSettingsEditor.openBiblelatorSettingsEditor( {} )").format( parent ) )
 
     myWin = tk.Toplevel( parent )
-    application = BiblelatorSettingsEditor( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage, parent.settings )
+    application = BiblelatorSettingsEditor( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage )
 # end of BiblelatorSettingsEditor.openBiblelatorSettingsEditor
 
 
@@ -1970,7 +1321,7 @@ def demo():
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     settings.load()
 
-    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
+    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

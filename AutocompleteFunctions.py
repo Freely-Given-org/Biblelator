@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -57,7 +57,7 @@ from USFMMarkers import USFM_PRINTABLE_MARKERS
 
 
 AVOID_BOOKS = ( 'FRT', 'BAK', 'GLS', 'XXA','XXB','XXC','XXD','XXE','XXF','XXG', 'NDX', 'UNK', )
-END_CHARS_TO_REMOVE = ',—.–!?”:;'
+END_CHARS_TO_REMOVE = ',—.–!?”:;' # NOTE: This intentionally doesn't include close parenthesis and similar
 HUNSPELL_DICTIONARY_FOLDERS = ( '/usr/share/hunspell/', )
 
 
@@ -92,7 +92,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
         print( exp("AutocompleteFunctions.setAutocompleteWords( …, {}, {} )").format( len(wordList), append ) )
         editWindowObject.parentApp.setDebugText( "setAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Setting autocomplete words…" )
+    editWindowObject.parentApp.setWaitStatus( _("Setting autocomplete words…") )
     if not append: editWindowObject.autocompleteWords = {}
 
     for word in wordList:
@@ -163,12 +163,17 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
     """
     Find all the words in the Bible book and their usage counts.
 
+    Note that this function doesn't use the internalBible books
+        but rather loads the USFM (text) files directly.
+
     Returns a dictionary containing the results for the book.
     """
     logging.debug( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
-    if BBB in AVOID_BOOKS: return
+    if BBB in AVOID_BOOKS:
+        #print( "Didn't load autocomplete words from {} {}".format( internalBible.getAName(), BBB ) )
+        return # Sometimes these books contain words from other languages, etc.
 
     global internalMarkers
     if internalMarkers is None: # Get our list of markers -- note that the more common note markers are first
@@ -204,7 +209,8 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
             if not word: continue
             if 'XXX' in word: continue # This is used in the Matigsalug project to mark errors
             singleWord = word
-            while singleWord and singleWord[-1] in END_CHARS_TO_REMOVE: singleWord = singleWord[:-1] # Remove certain final punctuation
+            while singleWord and singleWord[-1] in END_CHARS_TO_REMOVE:
+                singleWord = singleWord[:-1] # Remove certain final punctuation
             if len(singleWord) > 2: wordCounts[singleWord] += countIncrement
 
             #if word[-1] not in '—.–':
@@ -252,8 +258,7 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
 
                 if line[0]!='\\': # Not a SFM line
                     if lastMarker is None: # We don't have any SFM data lines yet
-                        if BibleOrgSysGlobals.verbosityLevel > 2:
-                            logging.error( "countBookWords: Non-USFM line in {} -- line ignored at #{}".format( USFMFilepath, lineCount) )
+                        logging.error( "countBookWords: Non-USFM line in {} -- line ignored at #{}".format( USFMFilepath, lineCount) )
                         #print( "SFMFile.py: XXZXResult is", lineDuples, len(line) )
                         #for x in range(0, min(6,len(line))):
                             #print( x, "'" + str(ord(line[x])) + "'" )
@@ -336,7 +341,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         print( exp("loadBibleBookAutocompleteWords()") )
         editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading {} Bible book words…".format( editWindowObject.projectName ) )
+    editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible book words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
     #print( "  got BBB", repr(BBB) )
     if currentBBB == 'UNK': return # UNKnown book -- no use here
@@ -371,6 +376,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         #pass # Nothing for this book
     #print( 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
+    editWindowObject.addAllNewWords = True
 # end of AutocompleteFunctions.loadBibleBookAutocompleteWords
 
 
@@ -391,7 +397,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
         print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
         editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading {} Bible words…".format( editWindowObject.projectName ) )
+    editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(currentBBB) )
 
@@ -413,7 +419,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
             # Load the books one by one -- assuming that they have regular Paratext style filenames
             for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
                 #if BibleOrgSysGlobals.verbosityLevel>1 or BibleOrgSysGlobals.debugFlag:
-                    #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.name, editWindowObject.internalBible.sourceFolder ) )
+                    #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.getAName(), editWindowObject.internalBible.sourceFolder ) )
                 bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible, filename, BBB==currentBBB ) # also saves it
     else:
         logging.critical( exp("No books to load in {}!").format( editWindowObject.internalBible.sourceFolder ) )
@@ -446,6 +452,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     setAutocompleteWords( editWindowObject, autocompleteWords )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "loadBibleAutocompleteWords took", time.time()-startTime )
+    editWindowObject.addAllNewWords = True
 # end of AutocompleteFunctions.loadBibleAutocompleteWords
 
 
@@ -465,7 +472,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
         print( exp("loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
         editWindowObject.parentApp.setDebugText( "loadHunspellAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading dictionary…" )
+    editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
     internalCount = None
     autocompleteWords = []
     lineCount = 0
@@ -640,6 +647,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
         print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
+    editWindowObject.addAllNewWords = False
 # end of AutocompleteFunctions.loadHunspellAutocompleteWords
 
 
@@ -659,7 +667,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
         print( exp("loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
         editWindowObject.parentApp.setDebugText( "loadILEXAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( "Loading dictionary…" )
+    editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
     autocompleteWords = []
     lineCount = 0
     with open( dictionaryFilepath, 'rt', encoding='utf-8' ) as dictionaryFile:
@@ -700,6 +708,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
         print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
+    editWindowObject.addAllNewWords = False
 # end of AutocompleteFunctions.loadILEXAutocompleteWords
 
 

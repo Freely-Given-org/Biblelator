@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-07-11 RJH
+Last updated: 2016-08-24 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,20 +14,27 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
-* When did HTML stop working?
+* When did our HTML box stop working?
+* Window find doesn't seem to work on resource windows
+* After moving replace box, it still keeps reappearing in the original position
+* Remember find/replace lists in settings (for each window/project -- maybe not)
+* Find box can't change projects/windows
+* Get extended find box working better -- need to show whole verse somehow (why can't right click or something?)
+* Remember position of last find box
+* Sort out USFM styles for current verse / formatted / unformatted etc.
+* Work more on Tools/Options for edit window to set autocomplete mode, etc.
+* Make edit window status bar default (if screen is big enough)
+* Don't load entire Bible if only searching/replacing in current book
 * Clicking in edit window while still starting can cause a spinbox error
-* Remember status bar setting for child windows
 * Window settings don't work well for text collections, etc. (need to be nested???)
 * Bible find needs intro set if book in FRT, GLO, etc.
 * Bible find can default to any currently selected text in edit window?
-* Bible find can't seem to jump to FRT/GLO lines
-* Extend button in Bible find doesn't prompt yet if multiple Bibles available
+* Bible find can't seem to jump to GLO lines
 * Bible replace needs more work on reloading open books/Bibles
 * Book select needs to allow choice of individual books
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
-* When stepping through verses, cursor needs to be more intelligent (seems to want to stay at current character point)
 * Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
@@ -37,20 +44,20 @@ Biblelator bugs / unfinished
 * Make opening a 2nd DBP box inside a resource collection not download everything again
 * Having a DBP window open (and slow Internet) slows all verse navigation
 * Going up and down repeatedly over a chapter marker (in single verse USFM edit window) is not consistent
-* BOSManager is not finished
+* Do more usage logging
+* Settings editor is not finished enough
+* BOSManager is not finished enough
+* SwordManager is not finished enough
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
-* What happens if scripture file contains conflicts <<< ==== >>>>
 * Need to set-up some special .ini files for testing (with every kind of window/box open)
 * Systematically work through all menus
 
 
 BOS bugs
-* Doesn't create a log file on Windows
-* Why do warnings show on Windows console (yet not on Linux)?
-* Why do we get some long/wrong (USX) context displays like: c, s1, p, c, s1, c, s1, c, s1, c, s1, c, s1, c, s1, p
-* Don't know about Sword NRSVA versification yet
+* Sword conf files don't load versioned history lines correctly
+* Doesn't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
 
 
@@ -73,22 +80,25 @@ BOS improvements for Biblelator
 
 
 BOS testing required
+* Lots of errors/warnings reading various USX Bibles
 * Had 3 default mode failures: ['TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola3']
 
 
-BOSManager / SwordManager stuff
+BOSManager / SwordManager / Settings editor stuff
 * Make Bible fields in BOSManager into clickable links (to go to other tabs)
 * Work on final three tabs in BOSManager
 * Get SwordManager working to list/install/update modules
+* Allow settings manager to edit other settings files
+* Get apply/ok/cancel working
 
 
 Biblelator stuff
+* Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)
 * Find a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
 * Make a proper icon
-* Make bridged versed show for EACH of those verse numbers
 * Save iconification state of windows
 * Use checkboxes to allow individual exports
 * Get Sword resources displaying nicer
@@ -119,7 +129,7 @@ Biblelator stuff
 * Make a full project properties dialog and do project setting properly
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
-* Release version 0.4
+* Release version 0.40
 * Include some sample folders and sample ini files
 * Setting max window sizes prevents maximizing -- is this what we really want?
 * Consider when the same project/file is opened multiple times
@@ -134,7 +144,7 @@ Biblelator stuff
 * Improve Strongs (lexicon) HTML display
 * Look at doing some windows updates in idle time
 * Make a splash screen (turned off/on in settings file)
-* Release version 0.5
+* Release version 0.50
 * Allow users to "log-on" with usernames (passwords?)
 * Allow setting of roles (administrator/project leader/superintendent/overseer, translator, consultant/reviewer/archivist/typesetter, contributor/friend/critic/observer)
 * Make logging more useful
@@ -177,3 +187,7 @@ Biblelator stuff
 * Do NT/OT reference mode (Groups A/B work together)
 * Do synoptic gospel mode (Groups A/B/C/D work together)
 * Make a child window mode (all windows stay within the main window)
+
+
+Jobs for others
+* Work on lists (Bible people, animals, birds, vegetation, etc., etc.)

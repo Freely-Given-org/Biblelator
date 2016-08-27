@@ -23,13 +23,16 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow viewing of various BOS (Bible Organizational System) subsystems
+Tabbed dialog box to allow viewing of various BOS (Bible Organizational System) subsystems
     such as versification systems, books names systems, etc.
+
+This is opened as a TopLevel window in Biblelator
+    but can also be run as a stand-alone program.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-30' # by RJH
+LastModifiedDate = '2016-08-24' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -48,14 +51,12 @@ from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry,
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, START, errorBeep, \
+from BiblelatorGlobals import DEFAULT, START, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-# BIBLE_CONTEXT_VIEW_MODES, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, EDIT_MODE_NORMAL, MAX_WINDOWS,
-# assembleWindowSize, ,
 from BiblelatorDialogs import showerror, showwarning, showinfo, \
         SelectResourceBoxDialog, \
         GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
@@ -87,7 +88,6 @@ from BiblePunctuationSystems import BiblePunctuationSystems
 from BibleStylesheets import BibleStylesheet
 #from SwordResources import SwordType, SwordInterface
 #from USFMBible import USFMBible
-#from PTXBible import PTXBible, loadPTXSSFData
 
 
 
@@ -121,7 +121,7 @@ class BOSManager( Frame ):
         and use that to inform child windows of BCV movements.
     """
     global settings
-    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage ):
+    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings ):
         """
         Main app initialisation function.
 
@@ -129,7 +129,7 @@ class BOSManager( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
-        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage = rootWindow, homeFolderPath, loggingFolderPath, iconImage
+        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage, self.settings = rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
 
@@ -194,10 +194,10 @@ class BOSManager( Frame ):
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
-        self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
-        self.settings.load()
+        #self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        #self.settings.load()
         #parseAndApplySettings( self )
-        if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
+        if not self.settings or ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
             initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
@@ -239,7 +239,8 @@ class BOSManager( Frame ):
         self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: 99 if c=='0' or c==0 else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
+                                        else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
         self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode
@@ -272,7 +273,7 @@ class BOSManager( Frame ):
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
         #self.rootWindow['menu'] = self.menubar
-        self.rootWindow.config( menu=self.menubar ) # alternative
+        self.rootWindow.configure( menu=self.menubar ) # alternative
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
@@ -618,6 +619,7 @@ class BOSManager( Frame ):
         Style().configure( 'ShowAll.TButton', background='lightgreen' )
         Style().configure( 'HideResources.TButton', background='pink' )
         Style().configure( 'HideAll.TButton', background='orange' )
+
         Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
@@ -625,6 +627,7 @@ class BOSManager( Frame ):
         Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
                     .pack( side=tk.LEFT, padx=xPad, pady=yPad )
         #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+
         toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of BOSManager.createToolBar
 
@@ -657,8 +660,8 @@ class BOSManager( Frame ):
         self.codesSearch.grid( row=2, column=1 )
         sbar = Scrollbar( self.codesPage )
         self.codesListbox = tk.Listbox( self.codesPage, width=5, relief=tk.SUNKEN )
-        sbar.config( command=self.codesListbox.yview )
-        self.codesListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.codesListbox.yview )
+        self.codesListbox.configure( yscrollcommand=sbar.set )
         self.codesListbox.bind('<<ListboxSelect>>', self.gotoNewCode )
         #self.codesListbox.bind( '<Return>', self.gotoNewCode )
         sbar.grid( row=0, column=3, rowspan=3, sticky=tk.N+tk.S )
@@ -687,8 +690,8 @@ class BOSManager( Frame ):
         self.punctuationsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.punctuationPage )
         self.punctuationsListbox = tk.Listbox( self.punctuationPage, width=12, relief=tk.SUNKEN )
-        sbar.config( command=self.punctuationsListbox.yview )
-        self.punctuationsListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.punctuationsListbox.yview )
+        self.punctuationsListbox.configure( yscrollcommand=sbar.set )
         self.punctuationsListbox.bind('<<ListboxSelect>>', self.gotoNewPunctuation )
         #self.punctuationListbox.bind( '<Return>', self.gotoNewPunctuation )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -717,8 +720,8 @@ class BOSManager( Frame ):
         self.versificationsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.versificationsPage )
         self.versificationsListbox = tk.Listbox( self.versificationsPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.versificationsListbox.yview )
-        self.versificationsListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.versificationsListbox.yview )
+        self.versificationsListbox.configure( yscrollcommand=sbar.set )
         self.versificationsListbox.bind('<<ListboxSelect>>', self.gotoNewVersification )
         #self.versificationsListbox.bind( '<Return>', self.gotoNewVersification )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -747,8 +750,8 @@ class BOSManager( Frame ):
         self.mappingsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.mappingsPage )
         self.mappingsListbox = tk.Listbox( self.mappingsPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.mappingsListbox.yview )
-        self.mappingsListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.mappingsListbox.yview )
+        self.mappingsListbox.configure( yscrollcommand=sbar.set )
         self.mappingsListbox.bind('<<ListboxSelect>>', self.gotoNewMapping )
         #self.mappingsListbox.bind( '<Return>', self.gotoNewMapping )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -777,8 +780,8 @@ class BOSManager( Frame ):
         self.ordersSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.ordersPage )
         self.ordersListbox = tk.Listbox( self.ordersPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.ordersListbox.yview )
-        self.ordersListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.ordersListbox.yview )
+        self.ordersListbox.configure( yscrollcommand=sbar.set )
         self.ordersListbox.bind('<<ListboxSelect>>', self.gotoNewOrder )
         #self.ordersListbox.bind( '<Return>', self.gotoNewOrder )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -807,8 +810,8 @@ class BOSManager( Frame ):
         self.namesSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.namesPage )
         self.namesListbox = tk.Listbox( self.namesPage, width=15, relief=tk.SUNKEN )
-        sbar.config( command=self.namesListbox.yview )
-        self.namesListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.namesListbox.yview )
+        self.namesListbox.configure( yscrollcommand=sbar.set )
         self.namesListbox.bind('<<ListboxSelect>>', self.gotoNewName )
         #self.namesListbox.bind( '<Return>', self.gotoNewName )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -837,8 +840,8 @@ class BOSManager( Frame ):
         self.organizationsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.organizationsPage )
         self.organizationsListbox = tk.Listbox( self.organizationsPage, width=18, relief=tk.SUNKEN )
-        sbar.config( command=self.organizationsListbox.yview )
-        self.organizationsListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.organizationsListbox.yview )
+        self.organizationsListbox.configure( yscrollcommand=sbar.set )
         self.organizationsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
         #self.organizationsListbox.bind( '<Return>', self.gotoNewOrganization )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -867,8 +870,8 @@ class BOSManager( Frame ):
         self.referenceSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.referencesPage )
         self.referencesListbox = tk.Listbox( self.referencesPage, width=18, relief=tk.SUNKEN )
-        sbar.config( command=self.referencesListbox.yview )
-        self.referencesListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.referencesListbox.yview )
+        self.referencesListbox.configure( yscrollcommand=sbar.set )
         self.referencesListbox.bind('<<ListboxSelect>>', self.gotoNewReference )
         #self.referencesListbox.bind( '<Return>', self.gotoNewReference )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -897,8 +900,8 @@ class BOSManager( Frame ):
         self.stylesheetSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.stylesheetsPage )
         self.stylesheetsListbox = tk.Listbox( self.stylesheetsPage, width=18, relief=tk.SUNKEN )
-        sbar.config( command=self.stylesheetsListbox.yview )
-        self.stylesheetsListbox.config( yscrollcommand=sbar.set )
+        sbar.configure( command=self.stylesheetsListbox.yview )
+        self.stylesheetsListbox.configure( yscrollcommand=sbar.set )
         self.stylesheetsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
         #self.stylesheetsListbox.bind( '<Return>', self.gotoNewOrganization )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
@@ -914,15 +917,15 @@ class BOSManager( Frame ):
         self.stylesheetSearch.delete( 0, tk.END ) # Clear the search box again
 
         print( "Add all pages" )
-        self.notebook.add( self.codesPage, text='Codes')
-        self.notebook.add( self.punctuationPage, text='Punctuation')
-        self.notebook.add( self.versificationsPage, text='Versifications')
-        self.notebook.add( self.mappingsPage, text='Mappings')
-        self.notebook.add( self.ordersPage, text='Orders')
-        self.notebook.add( self.namesPage, text='Names')
-        self.notebook.add( self.organizationsPage, text='Bibles')
-        self.notebook.add( self.referencesPage, text='References')
-        self.notebook.add( self.stylesheetsPage, text='StyleSheets')
+        self.notebook.add( self.codesPage, text=_("Codes") )
+        self.notebook.add( self.punctuationPage, text=_("Punctuation") )
+        self.notebook.add( self.versificationsPage, text=_("Versifications") )
+        self.notebook.add( self.mappingsPage, text=_("Mappings") )
+        self.notebook.add( self.ordersPage, text=_("Orders") )
+        self.notebook.add( self.namesPage, text=_("Names") )
+        self.notebook.add( self.organizationsPage, text=_("Bibles") )
+        self.notebook.add( self.referencesPage, text=_("References") )
+        self.notebook.add( self.stylesheetsPage, text=_("StyleSheets") )
         self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
     # end of BOSManager.createNotebook
 
@@ -976,7 +979,7 @@ class BOSManager( Frame ):
                                     #, font=('arial',16,tk.NORMAL) )
         self.statusTextLabel.pack( side=tk.BOTTOM, fill=tk.X )
         self.statusTextVariable.set( '' ) # first initial value
-        self.setWaitStatus( "Starting up…" )
+        self.setWaitStatus( _("Starting up…") )
     # end of BOSManager.createStatusBar
 
 
@@ -1036,11 +1039,11 @@ class BOSManager( Frame ):
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
-            #self.statusBarTextWidget.config( state=tk.NORMAL )
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( START, tk.END )
             #if newStatusText:
                 #self.statusBarTextWidget.insert( START, newStatusText )
-            #self.statusBarTextWidget.config( state=tk.DISABLED ) # Don't allow editing
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
@@ -1054,8 +1057,8 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
 
-        #self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='yellow', background='red' )
         self.update()
@@ -1068,8 +1071,8 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
 
-        self.rootWindow.config( cursor='watch' ) # 'wait' can only be used on Windows
-        #self.statusTextLabel.config( style='StatusBar.TLabelWait' )
+        self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'StatusBar.TLabel', foreground='black', background='DarkOrange1' )
         self.update()
@@ -1084,10 +1087,10 @@ class BOSManager( Frame ):
         """
         if self.starting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
-            #self.statusTextLabel.config( style='StatusBar.TLabelReady' )
+            #self.statusTextLabel.configure( style='StatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
             Style().configure( 'StatusBar.TLabel', foreground='yellow', background='forest green' )
-            self.config( cursor='' )
+            self.configure( cursor='' )
     # end of BOSManager.setReadyStatus
 
 
@@ -1099,7 +1102,7 @@ class BOSManager( Frame ):
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
-        self.debugTextBox.config( state=tk.NORMAL ) # Allow editing
+        self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
         self.debugTextBox.delete( START, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
@@ -1118,13 +1121,13 @@ class BOSManager( Frame ):
                                         appWin.genericWindowType,
                                         #appWin.genericWindowType.replace('Resource',''),
                                         appWin.winfo_geometry(), appWin.moduleID,
-                                        appWin.contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                        appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                         appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
                                         #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
-        self.debugTextBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.debugTextBox.configure( state=tk.DISABLED ) # Don't allow editing
     # end of BOSManager.setDebugText
 
 
@@ -1225,7 +1228,7 @@ class BOSManager( Frame ):
         codeDict =  BibleOrgSysGlobals.BibleBooksCodes._getFullEntry( self.BBB )
 
         # Clear the text box
-        self.codeTextBox.config( state=tk.NORMAL )
+        self.codeTextBox.configure( state=tk.NORMAL )
         self.codeTextBox.delete( START, tk.END )
         self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
         self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
@@ -1276,7 +1279,7 @@ class BOSManager( Frame ):
         punctuationDict =  self.BiblePunctuationSystems.getPunctuationSystem( self.punctuationSystemName )
 
         # Clear the text box
-        self.punctuationTextBox.config( state=tk.NORMAL )
+        self.punctuationTextBox.configure( state=tk.NORMAL )
         self.punctuationTextBox.delete( START, tk.END )
         self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( self.punctuationSystemName ) )
         #self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( punctuationDict['nameEnglish'] ) )
@@ -1327,7 +1330,7 @@ class BOSManager( Frame ):
         versificationSystem =  self.BibleVersificationsSystems.getVersificationSystem( self.versificationSystemName )
 
         # Clear the text box
-        self.versificationTextBox.config( state=tk.NORMAL )
+        self.versificationTextBox.configure( state=tk.NORMAL )
         self.versificationTextBox.delete( START, tk.END )
         self.versificationTextBox.insert( tk.END, '{}\n\n'.format( self.versificationSystemName ) )
         self.versificationTextBox.insert( tk.END, '{}\n\n'.format( versificationSystem ) )
@@ -1377,7 +1380,7 @@ class BOSManager( Frame ):
         mappingSystem =  self.BibleMappingsSystems.getMappingSystem( self.mappingSystemName )
 
         # Clear the text box
-        self.mappingTextBox.config( state=tk.NORMAL )
+        self.mappingTextBox.configure( state=tk.NORMAL )
         self.mappingTextBox.delete( START, tk.END )
         self.mappingTextBox.insert( tk.END, '{}\n\n'.format( self.mappingSystemName ) )
         self.mappingTextBox.insert( tk.END, '{}\n\n'.format( mappingSystem ) )
@@ -1428,7 +1431,7 @@ class BOSManager( Frame ):
         orderSystem =  self.BibleOrdersSystems.getBookOrderSystem( self.orderSystemName )
 
         # Clear the text box
-        self.orderTextBox.config( state=tk.NORMAL )
+        self.orderTextBox.configure( state=tk.NORMAL )
         self.orderTextBox.delete( START, tk.END )
         self.orderTextBox.insert( tk.END, '{}\n\n'.format( self.orderSystemName ) )
         self.orderTextBox.insert( tk.END, '{}\n\n'.format( orderSystem ) )
@@ -1479,7 +1482,7 @@ class BOSManager( Frame ):
         nameSystem =  self.BibleNamesSystems.getBooksNamesSystem( self.nameSystemName )
 
         # Clear the text box
-        self.nameTextBox.config( state=tk.NORMAL )
+        self.nameTextBox.configure( state=tk.NORMAL )
         self.nameTextBox.delete( START, tk.END )
         self.nameTextBox.insert( tk.END, '{}\n\n'.format( self.nameSystemName ) )
         self.nameTextBox.insert( tk.END, '{}\n\n'.format( nameSystem ) )
@@ -1529,7 +1532,7 @@ class BOSManager( Frame ):
         organizationalSystemDict =  self.BibleOrganizationalSystems.getOrganizationalSystem( self.organizationSystemName )
 
         # Clear the text box
-        self.organizationTextBox.config( state=tk.NORMAL )
+        self.organizationTextBox.configure( state=tk.NORMAL )
         self.organizationTextBox.delete( START, tk.END )
         self.organizationTextBox.insert( tk.END, '{} ({})\n\n'.format( self.organizationSystemName, organizationalSystemDict['type'] ) )
         self.organizationTextBox.insert( tk.END, '{}\n\n'.format( organizationalSystemDict['name'][0] ) )
@@ -1579,7 +1582,7 @@ class BOSManager( Frame ):
         referenceSystem =  self.BibleReferenceSystems.getReferenceSystem( self.referenceSystemName )
 
         # Clear the text box
-        self.referenceTextBox.config( state=tk.NORMAL )
+        self.referenceTextBox.configure( state=tk.NORMAL )
         self.referenceTextBox.delete( START, tk.END )
         self.referenceTextBox.insert( tk.END, '{}\n\n'.format( self.referenceSystemName ) )
         self.referenceTextBox.insert( tk.END, '{}\n\n'.format( referenceSystem ) )
@@ -1629,7 +1632,7 @@ class BOSManager( Frame ):
         stylesheetSystem =  self.BibleStylesheetsSystems.getStylesheetSystem( self.stylesheetSystemName )
 
         # Clear the text box
-        self.stylesheetTextBox.config( state=tk.NORMAL )
+        self.stylesheetTextBox.configure( state=tk.NORMAL )
         self.stylesheetTextBox.delete( START, tk.END )
         self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( self.stylesheetSystemName ) )
         self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( stylesheetSystem ) )
@@ -1669,7 +1672,7 @@ class BOSManager( Frame ):
             if debuggingThisModule: print( exp("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
-        self.setWaitStatus( "doViewLog…" )
+        self.setWaitStatus( _("doViewLog…") )
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1939,7 +1942,7 @@ def main( homeFolderPath, loggingFolderPath ):
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
-    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
+    application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, None )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( ProgNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )

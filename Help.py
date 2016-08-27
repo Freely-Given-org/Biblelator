@@ -28,10 +28,10 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-06-15' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "Help"
 ProgName = "Help Box"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -83,9 +83,9 @@ class HelpBox( tk.Toplevel ):
         self.title( 'Help for '+progName )
 
         self.textBox = ScrolledText( self, height=12 ) #, state=tk.DISABLED )
-        self.textBox.config( wrap='word' )
+        self.textBox.configure( wrap='word' )
         self.textBox.insert( tk.END, text )
-        self.textBox.config( state=tk.DISABLED ) # Don't allow editing
+        self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
         self.textBox.pack( expand=tk.YES )
 
         if logoPath:
@@ -118,10 +118,10 @@ class HelpBox2():
         hb.title( 'Help for '+progName )
 
         textBox = ScrolledText( hb, height=12 ) #, state=tk.DISABLED )
-        textBox.config( wrap='word' )
+        textBox.configure( wrap='word' )
         textBox.pack( expand=tk.YES )
         textBox.insert( tk.END, text )
-        textBox.config( state=tk.DISABLED ) # Don't allow editing
+        textBox.configure( state=tk.DISABLED ) # Don't allow editing
 
         if logoPath:
             self.logo = tk.PhotoImage( file=logoPath )

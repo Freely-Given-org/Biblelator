@@ -65,10 +65,10 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-04' # by RJH
+LastModifiedDate = '2016-08-21' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -113,6 +113,14 @@ KNOWN_HTML_TAGS = ('!DOCTYPE','html','head','meta','link','title','body','div',
                    'h1','h2','h3','p','li','a','span','table','tr','td','i','b','em','small')
 NON_FORMATTING_TAGS = 'html','head','body','div','table','tr','td', # Not sure about div yet...........
 HTML_REPLACEMENTS = ('&nbsp;',' '),('&lt;','<'),('&gt;','>'),('&amp;','&'),
+TRAILING_SPACE_SUBSTITUTE = '⦻' # Must not normally occur in Bible text
+MULTIPLE_SPACE_SUBSTITUTE = '⧦' # Must not normally occur in Bible text
+DOUBLE_SPACE_SUBSTITUTE = MULTIPLE_SPACE_SUBSTITUTE + MULTIPLE_SPACE_SUBSTITUTE
+CLEANUP_LAST_MULTIPLE_SPACE = MULTIPLE_SPACE_SUBSTITUTE + ' '
+TRAILING_SPACE_LINE = ' \n'
+TRAILING_SPACE_LINE_SUBSTITUTE = TRAILING_SPACE_SUBSTITUTE + '\n'
+ALL_POSSIBLE_SPACE_CHARS = ' ' + TRAILING_SPACE_SUBSTITUTE + MULTIPLE_SPACE_SUBSTITUTE
+
 
 
 class HTMLText( tk.Text ):
@@ -444,6 +452,8 @@ class CustomText( tk.Text ):
     A custom Text widget which calls a user function whenever the text changes.
 
     Adapted from http://stackoverflow.com/questions/13835207/binding-to-cursor-movement-doesnt-change-insert-mark
+
+    Also contains a function to highlight specific patterns.
     """
     def __init__( self, *args, **kwargs ):
         """
@@ -510,6 +520,49 @@ class CustomText( tk.Text ):
         """
         self.callbackFunction = callableFunction
     # end of CustomText.setTextChangeCallback
+
+
+    def highlightPattern( self, pattern, styleTag, startAt=START, endAt=tk.END, regexpFlag=True ):
+        """
+        Apply the given tag to all text that matches the given pattern.
+
+        Useful for syntax highlighting, etc.
+
+        # Adapted from http://stackoverflow.com/questions/4028446/python-tkinter-help-menu
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "CustomText.highlightPattern( {}, {}, start={}, end={}, regexp={} )".format( pattern, styleTag, startAt, endAt, regexpFlag ) )
+
+        countVar = tk.IntVar()
+        matchEnd = startAt
+        while True:
+            #print( "here0 mS={!r} mE={!r} sL={!r}".format( self.index("matchStart"), self.index("matchEnd"), self.index("searchLimit") ) )
+            index = self.search( pattern, matchEnd, stopindex=endAt, count=countVar, regexp=regexpFlag )
+            #print( "here1", repr(index), repr(countVar.get()) )
+            if index == "": break
+            #print( "here2", self.index("matchStart"), self.index("matchEnd") )
+            matchEnd = "{}+{}c".format( index, countVar.get() )
+            self.tag_add( styleTag, index, matchEnd )
+    # end of CustomText.highlightPattern
+
+
+    def highlightAllPatterns( self, patternCollection ):
+        """
+        Given a collection of 4-tuples, apply the styles to the patterns in the text.
+
+        Each tuple is:
+            regexpFlag: True/False
+            pattern to search for
+            tagName
+            tagDict, e.g, {"background":"red"}
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CustomText.highlightAllPatterns( {} )").format( patternCollection ) )
+
+        for regexpFlag, pattern, tagName, tagDict in patternCollection:
+            self.tag_configure( tagName, **tagDict )
+            self.highlightPattern( pattern, tagName, regexpFlag=regexpFlag )
+    # end of CustomText.highlightAllPatterns
 # end of CustomText class
 
 
@@ -700,7 +753,7 @@ class ChildBox():
     ############################################################################
 
     def clearText( self ): # Leaves in normal state
-        self.textBox.config( state=tk.NORMAL )
+        self.textBox.configure( state=tk.NORMAL )
         self.textBox.delete( START, tk.END )
     # end of ChildBox.updateText
 
@@ -711,7 +764,14 @@ class ChildBox():
 
 
     def modified( self ):
-        return self.textBox.edit_modified()
+        """
+        We want this to return True if an editable (enabled) textBox has been modified.
+        """
+        #print( "Configure", self.textBox.configure() ) # Prints a large dictionary of settings
+        #print( "  State", self.textBox.configure()['state'] ) # Prints a 5-tuple
+        if self.textBox.configure()['state'][4] == 'normal':
+            return self.textBox.edit_modified()
+        else: return False
     # end of ChildBox.modified
 
 
@@ -734,7 +794,7 @@ class ChildBox():
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.setAllText( {!r} )").format( newText ) )
 
-        self.textBox.config( state=tk.NORMAL ) # In case it was disabled
+        self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( START, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
         self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
@@ -781,7 +841,7 @@ class BibleBox( ChildBox ):
     A set of functions that work for any Bible frame or window that has a member: self.textBox
         and also uses verseKeys
     """
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False ):
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
         """
         Add the requested verse to the end of self.textBox.
 
@@ -789,10 +849,11 @@ class BibleBox( ChildBox ):
             and adds the CV marks at the same time for navigation.
 
         Usually called from updateShownBCV from the subclass.
+        Note that it's used in both formatted and unformatted (even edit) windows.
         """
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
-                print( "displayAppendVerse( {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerse ) )
+                print( "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerse, substituteTrailingSpaces, substituteMultipleSpaces ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
             if verseContextData:
@@ -811,14 +872,24 @@ class BibleBox( ChildBox ):
                     print( "insertEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
                 assert isinstance( ieTags, (str,tuple) )
+                assert TRAILING_SPACE_SUBSTITUTE not in ieText
+                assert MULTIPLE_SPACE_SUBSTITUTE not in ieText
+
+            # Make any requested substitutions
+            if substituteMultipleSpaces:
+                ieText = ieText.replace( '  ', DOUBLE_SPACE_SUBSTITUTE )
+                ieText = ieText.replace( CLEANUP_LAST_MULTIPLE_SPACE, DOUBLE_SPACE_SUBSTITUTE )
+            if substituteTrailingSpaces:
+                ieText = ieText.replace( TRAILING_SPACE_LINE, TRAILING_SPACE_LINE_SUBSTITUTE )
+
             self.textBox.insert( tk.END, ieText, ieTags )
         # end of BibleBox.displayAppendVerse.insertEnd
 
 
         # Start of main code for BibleBox.displayAppendVerse
-        try: cVM, fVM = self.contextViewMode, self.formatViewMode
+        try: cVM, fVM = self._contextViewMode, self._formatViewMode
         except AttributeError: # Must be called from a box, not a window so get settings from parent
-            cVM, fVM = self.parentWindow.contextViewMode, self.parentWindow.formatViewMode
+            cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerse, fVM, cVM ) )
 
@@ -885,8 +956,8 @@ class BibleBox( ChildBox ):
             #self.textBox.insert( tk.END, '--' )
         else:
             #hadVerseText = False
-            #try: cVM = self.contextViewMode
-            #except AttributeError: cVM = self.parentWindow.contextViewMode
+            #try: cVM = self._contextViewMode
+            #except AttributeError: cVM = self.parentWindow._contextViewMode
             lastParagraphMarker = context[-1] if context and context[-1] in BibleOrgSysGlobals.USFMParagraphMarkers \
                                         else 'v~' # If we don't know the format of a verse (or for unformatted Bibles)
             endMarkers = []
@@ -914,7 +985,7 @@ class BibleBox( ChildBox ):
 
                 if fVM == 'Unformatted':
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
-                    elif marker in ('intro','chapters',): pass # Ignore added markers for now
+                    elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
                     else:
                         if isinstance( entry, str ): # from a Bible text editor window
                             #print( "marker={!r}, entry={!r}".format( marker, entry ) )
@@ -957,7 +1028,7 @@ class BibleBox( ChildBox ):
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('intro','chapters',):
+                    elif marker in ('intro','chapters','list',):
                         assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertEnd( cleanText, marker )
@@ -1025,9 +1096,9 @@ class BibleBox( ChildBox ):
                         haveTextFlag = True
                     else:
                         if BibleOrgSysGlobals.debugFlag:
-                            logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
+                            logging.critical( exp("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
                         else:
-                            logging.critical( exp("BibleBox.displayAppendVerse: Unknown marker {!r} {!r}").format( marker, cleanText ) )
+                            logging.critical( exp("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
                 else:
                     logging.critical( exp("BibleBox.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
                     if BibleOrgSysGlobals.debugFlag: halt
@@ -1073,7 +1144,8 @@ class BibleBox( ChildBox ):
                 #if not failed:
                     #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
             else:
-                prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                try: prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                except KeyError: prevBBB = None
                 if prevBBB is None: failed = True
                 else:
                     prevIntC = self.getNumChapters( prevBBB )

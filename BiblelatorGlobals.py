@@ -41,10 +41,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-07-03' # by RJH
+LastModifiedDate = '2016-08-03' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.37'
+ProgVersion = '0.38'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -93,6 +93,8 @@ START = '1.0' # constant for tkinter
 
 MAX_WINDOWS = 20
 MAX_RECENT_FILES = 9
+MAX_PSEUDOVERSES = 999 # in a non-chapter book like a glossary or something (or before the chapter one marker )
+    # NOTE: SimpleVerseKey does not currently handle larger numbers than this.
 
 
 # Default window size settings (Note: X=width, Y=height)
@@ -105,9 +107,9 @@ INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SI
 MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE, MINIMUM_HELP_SIZE, MAXIMUM_HELP_SIZE = '350', '150', '350x150', '500x400'
 MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE = '350', '150', '350x150', '500x400'
 
-BIBLE_GROUP_CODES = ( 'A', 'B', 'C', 'D' )
-BIBLE_CONTEXT_VIEW_MODES = ( 'BeforeAndAfter', 'BySection', 'ByVerse', 'ByBook', 'ByChapter' )
-BIBLE_FORMAT_VIEW_MODES = ( 'Formatted', 'Unformatted', )
+BIBLE_GROUP_CODES = 'A', 'B', 'C', 'D', 'E'
+BIBLE_CONTEXT_VIEW_MODES = 'BeforeAndAfter', 'BySection', 'ByVerse', 'ByBook', 'ByChapter'
+BIBLE_FORMAT_VIEW_MODES = 'Formatted', 'Unformatted',
 
 
 # Constants
@@ -207,8 +209,7 @@ def parseWindowGeometry( geometry ):
 
 def parseWindowSize( geometry ):
     """
-    Given a TKinter geometry string, e,g., 493x152
-        being width, height
+    Given a TKinter geometry string, e,g., 493x152 (being width, height)
     return a list containing the two integer values.
     """
     m = re.match("(\d+)x(\d+)", geometry)
