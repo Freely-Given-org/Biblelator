@@ -179,7 +179,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
 
     def createToolBar( self ):
         """
-        Create a tool bar containing several helpful buttons at the top of the main window.
+        Create a tool bar containing some helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createToolBar()") )
@@ -228,7 +228,10 @@ class BibleLexiconResourceWindow( ChildWindow ):
     # end of BibleResourceWindow.doGotoNextEntry
 
 
-    def updateLexiconWord( self, newLexiconWord ): # Leaves in disabled state
+    def updateLexiconWord( self, newLexiconWord ):
+        """
+        Leaves text box in disabled state. (Not user editable.)
+        """
         if BibleOrgSysGlobals.debugFlag: print( exp("updateLexiconWord( {} )").format( newLexiconWord ) )
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
