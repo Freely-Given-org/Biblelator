@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-08-24 RJH
+Last updated: 2016-08-27 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -72,7 +72,7 @@ BOS improvements for Biblelator
 * Update ESFM spec (when USFM 3 is released)
 * Learn to read BCV files
 * Expand testing functions
-* Refactor to be more modular
+* Refactor code to be more modular
 * Increased multiprocessing
 * Investigate creating a plug-in structure
 * Add check for over-long paragraphs (and sentence length?)

@@ -28,10 +28,10 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-08-28' # by RJH
 ShortProgName = "Help"
 ProgName = "Help Box"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -40,7 +40,7 @@ debuggingThisModule = False
 
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import Button
+from tkinter.ttk import Frame, Button
 
 from BiblelatorGlobals import MINIMUM_HELP_SIZE, MAXIMUM_HELP_SIZE, MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE, \
                             parseWindowSize, centreWindowOnWindow
@@ -82,19 +82,19 @@ class HelpBox( tk.Toplevel ):
 
         self.title( 'Help for '+progName )
 
+        buttonFrame = Frame( self ) #, cursor='hand2', relief=tk.RAISED, style='MainButtons.TFrame' )
+        if logoPath:
+            self.logo = tk.PhotoImage( file=logoPath )
+            self.label = tk.Label( buttonFrame, image=self.logo )
+            self.label.pack( side=tk.LEFT )
+        Button( buttonFrame, text=_("Ok"), command=self.destroy ).pack( side=tk.RIGHT )
+        buttonFrame.pack( side=tk.BOTTOM, fill=tk.X )
+
         self.textBox = ScrolledText( self, height=12 ) #, state=tk.DISABLED )
         self.textBox.configure( wrap='word' )
         self.textBox.insert( tk.END, text )
         self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
         self.textBox.pack( expand=tk.YES )
-
-        if logoPath:
-            self.logo = tk.PhotoImage( file=logoPath )
-            self.label = tk.Label( self, image=self.logo )
-            self.label.pack( side=tk.LEFT )
-
-        self.okButton = Button( self, text=_("Ok"), command=self.destroy )
-        self.okButton.pack( side=tk.RIGHT )
 
         self.focus_set() # take over input focus,
         self.grab_set() # disable other windows while I'm open,
@@ -103,39 +103,41 @@ class HelpBox( tk.Toplevel ):
 # end of class HelpBox
 
 
-class HelpBox2():
-    """
-    """
-    def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag: print( "HelpBox2.__init__( {} )".format( parent ) )
-        hb = tk.Toplevel( parent )
-        self.minimumXSize, self.minimumYSize = MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE
-        hb.minsize( self.minimumXSize, self.minimumYSize )
-        if parent: centreWindowOnWindow( hb, parent )
 
-        hb.title( 'Help for '+progName )
+#class HelpBox2():
+    #"""
+    #"""
+    #def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag: print( "HelpBox2.__init__( {} )".format( parent ) )
+        #hb = tk.Toplevel( parent )
+        #self.minimumXSize, self.minimumYSize = MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE
+        #hb.minsize( self.minimumXSize, self.minimumYSize )
+        #if parent: centreWindowOnWindow( hb, parent )
 
-        textBox = ScrolledText( hb, height=12 ) #, state=tk.DISABLED )
-        textBox.configure( wrap='word' )
-        textBox.pack( expand=tk.YES )
-        textBox.insert( tk.END, text )
-        textBox.configure( state=tk.DISABLED ) # Don't allow editing
+        #hb.title( 'Help for '+progName )
 
-        if logoPath:
-            self.logo = tk.PhotoImage( file=logoPath )
-            self.label = tk.Label( hb, image=self.logo )
-            self.label.pack( side=tk.LEFT )
+        #textBox = ScrolledText( hb, height=12 ) #, state=tk.DISABLED )
+        #textBox.configure( wrap='word' )
+        #textBox.pack( expand=tk.YES )
+        #textBox.insert( tk.END, text )
+        #textBox.configure( state=tk.DISABLED ) # Don't allow editing
 
-        self.okButton = Button( hb, text=_("Ok"), command=hb.destroy )
-        self.okButton.pack( side=tk.RIGHT )
+        #if logoPath:
+            #self.logo = tk.PhotoImage( file=logoPath )
+            #self.label = tk.Label( hb, image=self.logo )
+            #self.label.pack( side=tk.LEFT )
 
-        hb.focus_set() # take over input focus,
-        hb.grab_set() # disable other windows while I'm open,
-        hb.wait_window() # and wait here until win destroyed
-    # end of HelpBox.__init__
-# end of class HelpBox2
+        #self.okButton = Button( hb, text=_("Ok"), command=hb.destroy )
+        #self.okButton.pack( side=tk.RIGHT )
+
+        #hb.focus_set() # take over input focus,
+        #hb.grab_set() # disable other windows while I'm open,
+        #hb.wait_window() # and wait here until win destroyed
+    ## end of HelpBox.__init__
+## end of class HelpBox2
+
 
 
 def demo():
@@ -150,7 +152,7 @@ def demo():
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
     ab = HelpBox( tkRootWindow, ProgName, ProgNameVersion, 'BiblelatorLogoSmall.gif' )
-    ab = HelpBox2( tkRootWindow, ProgName, ProgNameVersion, 'BiblelatorLogoSmall.gif' )
+    #ab = HelpBox2( tkRootWindow, ProgName, ProgNameVersion, 'BiblelatorLogoSmall.gif' )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
