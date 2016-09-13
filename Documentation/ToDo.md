@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-08-27 RJH
+Last updated: 2016-10-13 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,7 +14,10 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
-* When did our HTML box stop working?
+* F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
+* Windows and Bible lists need to be displayed in a window
+* HTML source box isn't listed in child windows (included in show all / hide all)
+* Bible checks HTML refers to Contact Page and also has a link to itself (Checks)
 * Window find doesn't seem to work on resource windows
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
@@ -80,6 +83,7 @@ BOS improvements for Biblelator
 
 
 BOS testing required
+* Can BOS import USFM with all books in one file?
 * Lots of errors/warnings reading various USX Bibles
 * Had 3 default mode failures: ['TestBDBSubmissions1', 'TestBDBSubmissions2', 'TestHaiola3']
 
@@ -93,6 +97,7 @@ BOSManager / SwordManager / Settings editor stuff
 
 
 Biblelator stuff
+* Make HTML window more robust (failed if meta line was missing self-closing slash)
 * Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)
 * Find a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags

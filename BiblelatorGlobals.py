@@ -41,10 +41,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-03' # by RJH
+LastModifiedDate = '2016-09-04' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -127,17 +127,17 @@ EDIT_MODE_USFM = 'USFM Edit'
 # Not all of these are used for all windows
 #
 DEFAULT_KEY_BINDING_DICT = {
-    _('Cut'):('Ctrl+x','<Control-X>','<Control-x>'),
-    _('Copy'):('Ctrl+c','<Control-C>','<Control-c>'),
-    _('Paste'):('Ctrl+v','<Control-V>','<Control-v>'),
-    _('SelectAll'):('Ctrl+a','<Control-A>','<Control-a>'),
-    _('Find'):('Ctrl+f','<Control-F>','<Control-f>'),
-    _('Refind'):('F3/Ctrl+g','<Control-G>','<Control-g>','<F3>'),
-    _('Replace'):('Ctrl+r','<Control-R>','<Control-r>'),
-    _('Undo'):('Ctrl+z','<Control-Z>','<Control-z>'),
-    _('Redo'):('Ctrl+y','<Control-Y>','<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
-    _('Line'):('Ctrl+l','<Control-L>','<Control-l>'),
-    _('Save'):('Ctrl+s','<Control-S>','<Control-s>'),
+    _('Cut'):('Ctrl+x','<Control-X>'), #,'<Control-x>'),
+    _('Copy'):('Ctrl+c','<Control-C>'), #,'<Control-c>'),
+    _('Paste'):('Ctrl+v','<Control-V>'), #,'<Control-v>'),
+    _('SelectAll'):('Ctrl+a','<Control-A>'), #,'<Control-a>'),
+    _('Find'):('Ctrl+f','<Control-F>'), #,'<Control-f>'),
+    _('Refind'):('F3/Ctrl+g','<Control-G>'), #,'<Control-g>','<F3>'),
+    _('Replace'):('Ctrl+r','<Control-R>'), #,'<Control-r>'),
+    _('Undo'):('Ctrl+z','<Control-Z>'), #,'<Control-z>'),
+    _('Redo'):('Ctrl+y','<Control-Y>'), #,'<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
+    _('Line'):('Ctrl+l','<Control-L>'), #,'<Control-l>'),
+    _('Save'):('Ctrl+s','<Control-S>'), #,'<Control-s>'),
     _('ShowMain'):('F2','<F2>'),
     _('Help'):('F1','<F1>'),
     _('Info'):('F11','<F11>'),

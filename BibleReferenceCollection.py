@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -176,7 +176,8 @@ class BibleReferenceBox( Frame, BibleBox ):
             print( exp("BibleReferenceBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
-                             ('Info',self.doShowInfo), ('Close',self.doClose) ):
+                             ('Info',self.doShowInfo), ('Close',self.doClose),
+                             ('ShowMain',self.doShowMainWindow), ):
             self._createStandardKeyboardBinding( name, command )
     # end of BibleReferenceBox.createStandardKeyboardBindings()
 

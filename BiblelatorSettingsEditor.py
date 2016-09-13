@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -121,6 +121,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.interfaceComplexity = DEFAULT
         self.touchMode = False # True makes larger buttons
         self.tabletMode = False
+        self.showDebugMenu = False
         self.internetAccessEnabled = False
 
         self.lastFind = None
@@ -492,6 +493,9 @@ class BiblelatorSettingsEditor( Frame ):
         self.tabVar = tk.IntVar()
         tabCb = tk.Checkbutton( self.interfacePage, text=_("Tablet mode:"), variable=self.tabVar, command=self.flagChange )
         tabCb.grid( row=3, column=1, padx=0, pady=2, sticky=tk.W )
+        self.sdmVar = tk.IntVar()
+        tabCb = tk.Checkbutton( self.interfacePage, text=_("Show debug mode:"), variable=self.sdmVar, command=self.flagChange )
+        tabCb.grid( row=3, column=1, padx=0, pady=2, sticky=tk.W )
 
         # Internet communications page
         print( "Create Internet page" )
@@ -725,10 +729,12 @@ class BiblelatorSettingsEditor( Frame ):
         except KeyError: self.ilVar.set( 'Default' )
         try: self.icVar.set( self.settings.data['Interface']['interfaceComplexity'] )
         except KeyError: self.icVar.set( 'Default' )
-        try: self.iaVar.set( self.settings.data['Interface']['touchMode'] == 'True' )
-        except KeyError: self.iaVar.set( False )
-        try: self.iaVar.set( self.settings.data['Interface']['tabletMode'] == 'True' )
-        except KeyError: self.iaVar.set( False )
+        try: self.tchVar.set( self.settings.data['Interface']['touchMode'] == 'True' )
+        except KeyError: self.tchVar.set( False )
+        try: self.tabVar.set( self.settings.data['Interface']['tabletMode'] == 'True' )
+        except KeyError: self.tabVar.set( False )
+        try: self.sdmVar.set( self.settings.data['Interface']['showDebugMenu'] == 'True' )
+        except KeyError: self.sdmVar.set( False )
 
         try: self.iaVar.set( self.settings.data['Internet']['internetAccess'] == 'Enabled' )
         except KeyError: self.iaVar.set( True )

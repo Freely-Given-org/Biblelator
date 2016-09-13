@@ -65,10 +65,10 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -608,14 +608,17 @@ class ChildBox():
         else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
     # end of ChildBox._createStandardKeyboardBinding()
 
-    def createStandardKeyboardBindings( self ):
+    def createStandardKeyboardBindings( self, reset=False ):
         """
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.createStandardKeyboardBindings()") )
+            print( exp("ChildBox.createStandardKeyboardBindings( {} )").format( reset ) )
 
-        for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
+        if reset:
+            self.myKeyboardBindingsList = []
+
+        for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
                              ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              ('Close',self.doClose), ('ShowMain',self.doShowMainWindow), ):
@@ -624,8 +627,11 @@ class ChildBox():
 
 
     def setFocus( self, event ):
-        '''Explicitly set focus, so user can select and copy text'''
+        """
+        Explicitly set focus, so user can select and copy text
+        """
         self.textBox.focus_set()
+    # end of ChildBox.setFocus
 
 
     def doCopy( self, event=None ):
@@ -633,7 +639,7 @@ class ChildBox():
         Copy the selected text onto the clipboard.
         """
         from BiblelatorDialogs import showerror
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doCopy( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
@@ -809,7 +815,7 @@ class ChildBox():
         """
         Display the main window (it might be minimised or covered).
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doShowMainWindow( {} )").format( event ) )
 
         #self.parentApp.rootWindow.iconify() # Didn't help

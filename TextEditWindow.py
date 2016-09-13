@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -188,14 +188,15 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.createEditorKeyboardBindings()") )
 
-        for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
+        for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              ('Undo',self.doUndo), ('Redo',self.doRedo),
-                             ('Save',self.doSave), ):
+                             ('Save',self.doSave), ('ShowMain',self.doShowMainWindow), ):
+            #print( "CheckLoop", (name,self.parentApp.keyBindingDict[name][0],) )
             assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
             if name in self.parentApp.keyBindingDict:
                 for keyCode in self.parentApp.keyBindingDict[name][1:]:
                     #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                    self.textBox.bind( keyCode, command )
+                    self.textBox.bind( keyCode, commandFunction )
                     if BibleOrgSysGlobals.debugFlag:
                         assert keyCode not in self.myKeyboardShortcutsList
                         self.myKeyboardShortcutsList.append( keyCode )
@@ -897,13 +898,13 @@ class TextEditWindow( ChildWindow ):
     def doCut( self, event=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doCut( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, _("No text selected") )
         else:
-            self.doCopy()                       # save and delete selected text
+            self.doCopy() # In ChildBox class
             self.doDelete()
     # end of TextEditWindow.doCut
 
@@ -911,8 +912,9 @@ class TextEditWindow( ChildWindow ):
     def doPaste( self, event=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doPaste( {} )").format( event ) )
+            print( "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 
         try:
             text = self.selection_get( selection='CLIPBOARD')

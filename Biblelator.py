@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-27' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -148,6 +148,7 @@ class Application( Frame ):
         self.interfaceComplexity = DEFAULT
         self.touchMode = False # True makes larger buttons
         self.tabletMode = False
+        self.showDebugMenu = False
 
         self.lastFind = None
         #self.openDialog = None
@@ -461,9 +462,12 @@ class Application( Frame ):
         for themeName in self.style.theme_names():
             submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.doChangeTheme(tN) )
 
-        if BibleOrgSysGlobals.debugFlag:
+        if self.showDebugMenu or BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
+            debugMenu.add_command( label=_('View open windows…'), underline=10, command=self.doViewWindowsList )
+            debugMenu.add_command( label=_('View open Bibles…'), underline=10, command=self.doViewBiblesList )
+            debugMenu.add_separator()
             debugMenu.add_command( label=_('View settings…'), underline=0, command=self.doViewSettings )
             debugMenu.add_separator()
             debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
@@ -613,9 +617,12 @@ class Application( Frame ):
         for themeName in self.style.theme_names():
             submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.doChangeTheme(tN) )
 
-        if BibleOrgSysGlobals.debugFlag:
+        if self.showDebugMenu or BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
+            debugMenu.add_command( label=_('View open windows…'), underline=10, command=self.doViewWindowsList )
+            debugMenu.add_command( label=_('View open Bibles…'), underline=10, command=self.doViewBiblesList )
+            debugMenu.add_separator()
             debugMenu.add_command( label=_('View settings…'), underline=0, command=self.doViewSettings )
             debugMenu.add_separator()
             debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
@@ -1632,25 +1639,59 @@ class Application( Frame ):
     # end of Application.openFileTextEditWindow
 
 
+    def doViewWindowsList( self ):
+        """
+        Open a pop-up text window with a list of all the current windows displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("doViewWindowsList()") )
+            self.setDebugText( "doViewWindowsList…" )
+
+        windowsListText = ""
+        for j, appWin in enumerate( self.childWindows ):
+            #try: extra = ' ({})'.format( appWin.BCVUpdateType )
+            #except AttributeError: extra = ''
+            windowsListText += "\n  {}/ wT={} gWT={} {} modID={} cVM={} BCV={}" \
+                                .format( j+1,
+                                    appWin.windowType,
+                                    #appWin.windowType.replace('ChildWindow',''),
+                                    appWin.genericWindowType,
+                                    #appWin.genericWindowType.replace('Resource',''),
+                                    appWin.winfo_geometry(), appWin.moduleID,
+                                    appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                    appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' )
+                                        #extra )
+        print( "windowsListText", windowsListText )
+    # end of Application.doViewWindowsList
+
+
+    def doViewBiblesList( self ):
+        """
+        Open a pop-up text window with a list of all the current Bibles displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("doViewBiblesList()") )
+            self.setDebugText( "doViewBiblesList…" )
+
+        BiblesListText = ""
+        #for something in self.internalBibles:
+            #print( "  ", something )
+            #BiblesListText += "\n{}".format( something )
+        #print( self.internalBibles )
+        for j,(iB,cWs) in enumerate( self.internalBibles ):
+            BiblesListText += "\n  {}/ {} in {}".format( j+1, iB.getAName(), cWs )
+            BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation )
+            BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension )
+            BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding )
+        print( "BiblesListText", BiblesListText )
+    # end of Application.doViewBiblesList
+
+
     def doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
         """
-        viewSettings( self )
-        #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: print( exp("doViewSettings()") )
-            #self.setDebugText( "doViewSettings…" )
-        #tEW = TextEditWindow( self )
-        ##if windowGeometry: tEW.geometry( windowGeometry )
-        #if not tEW.setFilepath( self.settings.settingsFilepath ) \
-        #or not tEW.loadText():
-            #tEW.closeChildWindow()
-            #showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
-        #else:
-            #self.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Finished doViewSettings" )
-        #self.setReadyStatus()
+        viewSettings( self ) # In BiblelatorSettingsFunctions
     # end of Application.doViewSettings
 
 
@@ -2914,7 +2955,7 @@ class Application( Frame ):
                     logFile.write( "New time: {} for {}\n".format( timeString, dateString ) )
                 else: logFile.write( "New time: {}\n".format( timeString ) )
             logFile.write( logText )
-    # end of Application.doOpenSwordManager
+    # end of Application.logUsage
 
 
     def doHelp( self, event=None ):

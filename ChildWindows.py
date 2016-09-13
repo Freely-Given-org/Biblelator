@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-27' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.39'
@@ -99,7 +99,6 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             assert genericWindowType in ('BibleResource','LexiconResource','TextEditor','BibleEditor',)
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
         tk.Toplevel.__init__( self, self.parentApp )
-        ChildBox.__init__( self, self.parentApp )
         self.protocol( 'WM_DELETE_WINDOW', self.doClose )
 
         self.geometry( INITIAL_RESOURCE_SIZE )
@@ -133,6 +132,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.textBox.configure( wrap='word' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
+        ChildBox.__init__( self, self.parentApp )
         self.createStandardKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
@@ -553,17 +553,16 @@ class TextWindow( tk.Toplevel, ChildBox ):
     """
     Displays fixed text.
     """
-    def __init__( self, parentWindow, windowTitle=None, displayText=None ):
+    def __init__( self, parentWindow, windowTitle=None, displayText=None, textSource=None ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextWindow.__init__( {}, {}, {} )").format( parentWindow, windowTitle, len(displayText) if displayText and len(displayText)>100 else displayText ) )
             assert parentWindow
 
-        self.parentWindow, self.windowTitle, self.displayText = parentWindow, windowTitle, displayText
+        self.parentWindow, self.windowTitle, self.displayText, self.textSource = parentWindow, windowTitle, displayText, textSource
         self.parentApp = self.parentWindow.parentApp
         tk.Toplevel.__init__( self, self.parentWindow )
-        ChildBox.__init__( self, self.parentApp )
         self.protocol( 'WM_DELETE_WINDOW', self.doClose )
         self.title( self.windowTitle if self.windowTitle else 'HTMLSourceWindow' )
         self.genericWindowType = 'TextWindow'
@@ -595,6 +594,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
         self.textBox = ScrolledText( self, height=20, state=tk.DISABLED )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
+        ChildBox.__init__( self, self.parentApp )
 
         if self.displayText:
             self.setAllText( self.displayText )
@@ -624,8 +624,8 @@ class TextWindow( tk.Toplevel, ChildBox ):
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
         #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_command( label=_('Save…'), underline=0, command=self.notWrittenYet )
-        fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Save…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu )
         #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
@@ -787,6 +787,32 @@ class TextWindow( tk.Toplevel, ChildBox ):
     # end of TextWindow.setReadyStatus
 
 
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog giving text statistics and cursor location;
+        caveat (2.1): Tk insert position column counts a tab as one
+        character: translate to next multiple of 8 to match visual?
+        """
+        from BiblelatorDialogs import showinfo
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextWindow doShowInfo' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildBox.doShowInfo( {} )").format( event ) )
+
+        text  = self.getAllText()
+        numChars = len( text )
+        numLines = len( text.split('\n') )
+        numWords = len( text.split() )
+        index = self.textBox.index( tk.INSERT )
+        atLine, atColumn = index.split('.')
+        infoString = 'Current source: {}\n\n'.format( self.textSource ) if self.textSource else ''
+        infoString += 'Current location:\n' \
+                 + '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) \
+                 + '\nFile text statistics:\n' \
+                 + '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}'.format( numChars, numLines, numWords )
+        showinfo( self, 'Window Information', infoString )
+    # end of TextWindow.doShowInfo
+
+
     def doHelp( self, event=None ):
         """
         Display a help box.
@@ -859,7 +885,6 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.parentWindow, self.initialFilepath = parentWindow, filepath
         self.parentApp = self.parentWindow.parentApp
         tk.Toplevel.__init__( self, self.parentWindow )
-        ChildBox.__init__( self, self.parentApp )
         self.protocol( 'WM_DELETE_WINDOW', self.doClose )
         self.title( 'HTMLWindow' )
         self.genericWindowType = 'HTMLWindow'
@@ -896,6 +921,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.textBox.configure( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
+        ChildBox.__init__( self, self.parentApp )
         self.createStandardKeyboardBindings()
         #self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
@@ -1190,7 +1216,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             print( exp("HTMLWindow.leaveLink()") )
 
         self.setStatus() # Clear it
-    # end of HTMLWindow.leaveLink
+    ## end of HTMLWindow.leaveLink
 
 
     def doGoForward( self ):
@@ -1200,7 +1226,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         if self.historyIndex > 1:
             self.historyIndex -= 1
             self.load( self.historyList[ -self.historyIndex ] )
-    # end of BibleResourceWindow.doGoForward
+    # end of HTMLWindow.doGoForward
 
 
     def doGoBackward( self ):
@@ -1210,7 +1236,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         if self.historyIndex < len( self.historyList ):
             self.historyIndex += 1
             self.load( self.historyList[ -self.historyIndex ] )
-    # end of BibleResourceWindow.doGoBackward
+    # end of HTMLWindow.doGoBackward
 
 
     def doShowSource( self, event=None ):
@@ -1220,7 +1246,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HTMLWindow.doShowSource( {} )").format( event ) )
 
-        self.srcWindow = TextWindow( self, _("Source").format( self.filename ), self.read() )
+        self.srcWindow = TextWindow( self, _("Source: {}").format( self.filename ), self.read(), self.filepath )
     # end of HTMLWindow.doShowSource
 
 
@@ -1280,7 +1306,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
 
 
-class FindResultWindow( tk.Toplevel, ChildBox ):
+class FindResultWindow( tk.Toplevel ): #, ChildBox ):
     """
     Displays the find results.
     """
@@ -1305,7 +1331,7 @@ class FindResultWindow( tk.Toplevel, ChildBox ):
         self.parentWindow, self.optionDict, self.resultSummaryDict, self.resultList = parentWindow, optionDict, resultSummaryDict, resultList
         self.parentApp = self.parentWindow.parentApp
         tk.Toplevel.__init__( self, self.parentWindow )
-        ChildBox.__init__( self, self.parentApp )
+        #ChildBox.__init__( self, self.parentApp )
         self.protocol( 'WM_DELETE_WINDOW', self.doClose )
         self.title( '{} Search Results'.format( self.optionDict['work'] ) )
         self.genericWindowType = 'FindResultWindow'

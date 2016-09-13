@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -323,7 +323,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
                              ('Undo',self.doUndo), ('Redo',self.doRedo),
                              ('Save',self.doSave),
-                             ('Find',self.doBibleFind), ('Replace',self.doBibleReplace), ):
+                             ('Find',self.doBibleFind), ('Replace',self.doBibleReplace),
+                             ('ShowMain',self.doShowMainWindow), ):
             assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
             if name in self.parentApp.keyBindingDict:
                 for keyCode in self.parentApp.keyBindingDict[name][1:]:

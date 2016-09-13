@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-27' # by RJH
+LastModifiedDate = '2016-09-05' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.39'
@@ -184,7 +184,10 @@ def parseAndApplySettings( self ):
     if BibleOrgSysGlobals.debugFlag: assert self.touchMode in ( False, True )
     try: self.tabletMode = convertToPython( self.settings.data['Interface']['tabletMode'] )
     except KeyError: self.tabletMode = False
-    if BibleOrgSysGlobals.debugFlag: assert self.tabletMode in ( False, 1, 2 )
+    if BibleOrgSysGlobals.debugFlag: assert self.tabletMode in ( False, True )
+    try: self.showDebugMenu = convertToPython( self.settings.data['Interface']['showDebugMenu'] )
+    except KeyError: self.showDebugMenu = False
+    if BibleOrgSysGlobals.debugFlag: assert self.showDebugMenu in ( False, True )
 
     # Parse Internet stuff
     try:
@@ -657,6 +660,7 @@ def writeSettingsFile( self ):
     interface['interfaceComplexity'] = self.interfaceComplexity
     interface['touchMode'] = convertToString( self.touchMode )
     interface['tabletMode'] = convertToString( self.tabletMode )
+    interface['showDebugMenu'] = convertToString( self.showDebugMenu )
 
     # Save the Internet access controls
     self.settings.data['Internet'] = {}
