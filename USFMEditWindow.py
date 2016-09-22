@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-16' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.39'
@@ -320,8 +320,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.createEditorKeyboardBindings()") )
 
-        for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
-                             ('Undo',self.doUndo), ('Redo',self.doRedo),
+        for name,command in ( #('Paste',self.doPaste), ('Cut',self.doCut),
+                             #('Undo',self.doUndo), ('Redo',self.doRedo),
                              ('Save',self.doSave),
                              ('Find',self.doBibleFind), ('Replace',self.doBibleReplace),
                              ('ShowMain',self.doShowMainWindow), ):
@@ -612,8 +612,10 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         except KeyboardInterrupt:
             print( "USFMEditWindow: Got keyboard interrupt (1) -- saving my file…" )
             self.doSave() # Sometimes the above seems to lock up
-            self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
-            self.onTextNoChangeID = None
+            #print( 'gfs', self.onTextNoChangeID )
+            if self.onTextNoChangeID:
+                self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+                self.onTextNoChangeID = None
             return
 
         if self.textBox.edit_modified():
@@ -624,8 +626,10 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             except KeyboardInterrupt:
                 print( "USFMEditWindow: Got keyboard interrupt (2) -- saving my file…" )
                 self.doSave() # Sometimes the above seems to lock up
-                self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
-                self.onTextNoChangeID = None
+                #print( 'DSDS', self.onTextNoChangeID )
+                if self.onTextNoChangeID:
+                    self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+                    self.onTextNoChangeID = None
                 return
 
         # Try to determine the CV mark

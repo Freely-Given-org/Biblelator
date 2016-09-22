@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-16' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.39'
@@ -189,7 +189,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.createEditorKeyboardBindings()") )
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
-                             ('Undo',self.doUndo), ('Redo',self.doRedo),
+                             #('Undo',self.doUndo), ('Redo',self.doRedo),
                              ('Save',self.doSave), ('ShowMain',self.doShowMainWindow), ):
             #print( "CheckLoop", (name,self.parentApp.keyBindingDict[name][0],) )
             assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
@@ -805,10 +805,11 @@ class TextEditWindow( ChildWindow ):
         #self.lastTextChangeTime = time()
         try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule no change function so we keep checking
         except KeyboardInterrupt:
-            print( "TextEditWindow: Got keyboard interrupt in onTextChange -- saving my file" )
+            print( "TextEditWindow: Got keyboard interrupt in onTextChange (A) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
-            self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
-            self.onTextNoChangeID = None
+            if self.onTextNoChangeID:
+                self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+                self.onTextNoChangeID = None
     # end of TextEditWindow.onTextChange
 
 
@@ -821,7 +822,7 @@ class TextEditWindow( ChildWindow ):
         #print( "TextEditWindow.onTextNoChange" )
         try: pass
         except KeyboardInterrupt:
-            print( "TextEditWindow: Got keyboard interrupt in onTextNoChange -- saving my file" )
+            print( "TextEditWindow: Got keyboard interrupt in onTextNoChange (B) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
             #self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
             #self.onTextNoChangeID = None

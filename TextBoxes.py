@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-19' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.39'
@@ -462,6 +462,7 @@ class CustomText( tk.Text ):
             print( exp("CustomText.__init__( {}, {} )").format( args, kwargs ) )
         tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
 
+        self.callbackFunction = None
         # All widget changes happen via an internal Tcl command with the same name as the widget:
         #       all inserts, deletes, cursor changes, etc
         #
@@ -509,7 +510,8 @@ class CustomText( tk.Text ):
         This little function does the actual call of the user routine
             to handle when the CustomText changes.
         """
-        self.callbackFunction( result, *args )
+        if self.callbackFunction is not None:
+            self.callbackFunction( result, *args )
     # end of CustomText._callback
 
 
@@ -937,20 +939,29 @@ class BibleBox( ChildBox ):
         elif BibleOrgSysGlobals.debugFlag: halt
 
         # Display the context preceding the first verse
-        if firstFlag and context:
-            #print( "context", context )
-            #print( "  Setting context mark to {}".format( previousMarkName ) )
-            #self.textBox.mark_set( previousMarkName, tk.INSERT )
-            #self.textBox.mark_gravity( previousMarkName, tk.LEFT )
-            insertEnd( "Context:", 'contextHeader' )
-            contextString, firstMarker = "", True
-            for someMarker in context:
-                #print( "  someMarker", someMarker )
-                if someMarker != 'chapters':
-                    contextString += (' ' if firstMarker else ', ') + someMarker
-                    firstMarker = False
-            insertEnd( contextString, 'context' )
-            haveTextFlag = True
+        if firstFlag:
+            if context:
+                #print( "context", context )
+                #print( "  Setting context mark to {}".format( previousMarkName ) )
+                #self.textBox.mark_set( previousMarkName, tk.INSERT )
+                #self.textBox.mark_gravity( previousMarkName, tk.LEFT )
+                insertEnd( ' '+_("Prior context")+':', 'contextHeader' )
+                contextString, firstMarker = "", True
+                for someMarker in context:
+                    #print( "  someMarker", someMarker )
+                    if someMarker != 'chapters':
+                        contextString += (' ' if firstMarker else ', ') + someMarker
+                        firstMarker = False
+                insertEnd( contextString+' ', 'context' )
+                haveTextFlag = True
+            if verseDataList:
+                firstEntry = verseDataList[0]
+                if isinstance( firstEntry, InternalBibleEntry ): marker = firstEntry.getMarker()
+                elif isinstance( firstEntry, tuple ): marker = firstEntry[0]
+                else: marker = None
+                if marker in BibleOrgSysGlobals.USFMParagraphMarkers:
+                    insertEnd( ' '+_("Current context")+':', 'contextHeader' )
+                    insertEnd( marker+' ', 'context' )
 
         #print( "  Setting mark to {}".format( currentMarkName ) )
         self.textBox.mark_set( currentMarkName, tk.INSERT )
@@ -1111,13 +1122,13 @@ class BibleBox( ChildBox ):
 
             if lastFlag and cVM=='ByVerse' and endMarkers:
                 #print( "endMarkers", endMarkers )
-                insertEnd( " End context:", 'contextHeader' )
+                insertEnd( ' '+ _("End context")+':', 'contextHeader' )
                 contextString, firstMarker = "", True
                 for someMarker in endMarkers:
                     #print( "  someMarker", someMarker )
                     contextString += (' ' if firstMarker else ', ') + someMarker
                     firstMarker = False
-                insertEnd( contextString, 'context' )
+                insertEnd( contextString+' ', 'context' )
     # end of BibleBox.displayAppendVerse
 
 

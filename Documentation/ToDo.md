@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-10-13 RJH
+Last updated: 2016-09-20 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -97,6 +97,7 @@ BOSManager / SwordManager / Settings editor stuff
 
 
 Biblelator stuff
+* Add a pop-up quick reference box (with all open translations???)
 * Make HTML window more robust (failed if meta line was missing self-closing slash)
 * Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)
 * Find a way for the program or installer to automatically download reference Bibles and other resources
@@ -154,6 +155,7 @@ Biblelator stuff
 * Allow setting of roles (administrator/project leader/superintendent/overseer, translator, consultant/reviewer/archivist/typesetter, contributor/friend/critic/observer)
 * Make logging more useful
 * Project sharing (Hg vs Git) -- requires server set-up
+* Allow user to show history of changes per verse (and per chapter???)
 * Write autocompletion settings load/edit routines
 * Allow autocomplete to use: Bible or Bible book, current text file, only spell-checked words, external dictionary for language, external file, etc.
 * Write spell-checking routines

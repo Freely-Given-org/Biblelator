@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-22' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -1161,8 +1161,10 @@ class Application( Frame ):
             with urllib.request.urlopen( url ) as response:
                 indexData = response.read() # a `bytes` object
             #print( "indexData", repr(indexData) )
-        except urllib.error.HTTPError:
-            logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url ) )
+        except urllib.error.HTTPError as err:
+            logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}: {}".format( url, err ) )
+        except urllib.error.URLError as err:
+            logging.debug( "doCheckForMessagesFromDeveloper got URLError from {}: {}".format( url, err ) )
         else: indexString = indexData.decode('utf-8')
         #print( "indexString", repr(indexString) )
 
@@ -3128,6 +3130,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     #print( currentWindowDict )
 
     hadAny = False
+    file1Name, file2Name =  _("Bible file"), _("Autosaved file")
     for num in currentWindowDict:
         if currentWindowDict[num]['Type'] == 'ParatextUSFMBibleEditWindow':
             ssfFilepath = currentWindowDict[num]['SSFFilepath']
@@ -3147,7 +3150,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
                         filepath = os.path.join( projectFolder, something )
                         if os.path.exists( filepath ):
                             #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
-                            resultDict = USFMBookCompare( filepath, somepath )
+                            resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
                             #print( resultDict )
                             haveSuggestions = False
                             for someKey,someValue in resultDict['Summary'].items():
@@ -3174,7 +3177,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
                         filepath = os.path.join( projectFolder, something )
                         if os.path.exists( filepath ):
                             #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
-                            resultDict = USFMBookCompare( filepath, somepath )
+                            resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
                             #print( resultDict )
                             haveSuggestions = False
                             for someKey,someValue in resultDict['Summary'].items():
