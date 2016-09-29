@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-22' # by RJH
+LastModifiedDate = '2016-09-28' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -1177,8 +1177,11 @@ class Application( Frame ):
         if indexString:
             while indexString.endswith( '\n' ): indexString = indexString[:-1] # Removing trailing line feeds
             n,ext = indexString.split( '.', 1 )
-            ni = int( n )
-            #print( 'ni', repr(ni), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
+            try: ni = int( n )
+            except ValueError:
+                ni = -1
+                print( "doCheckForMessagesFromDeveloper was expecting an integer!" )
+                print( 'ni', repr(ni), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
             if ni > self.lastMessageNumberRead:
                 msgString = None
                 url2 = 'http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}'.format( self.lastMessageNumberRead+1, ext )
@@ -3088,7 +3091,8 @@ class Application( Frame ):
         if self.doCloseMyChildWindows():
             self.rootWindow.destroy()
         if self.internetAccessEnabled and self.sendUsageStatisticsEnabled:
-            doSendUsageStatistics( self )
+            try: doSendUsageStatistics( self )
+            except: pass # Don't worry too much if something fails in this
     # end of Application.doCloseMe
 # end of class Application
 

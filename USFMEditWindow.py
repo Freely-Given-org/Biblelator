@@ -1474,7 +1474,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         assert self._groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
         BRCW = BibleReferenceCollectionWindow( self.parentApp, self.internalBible )
         #if windowGeometry: uEW.geometry( windowGeometry )
-        BRCW.windowType = self.windowType # override the default
+        #BRCW.windowType = self.windowType # override the default
         BRCW.moduleID = self.moduleID
         BRCW.setFolderPath( self.folderPath )
         BRCW.settings = self.settings

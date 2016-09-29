@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-26' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.39'
@@ -50,10 +50,11 @@ import tkinter as tk
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
-                INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
-                parseWindowSize
-from BiblelatorHelpers import mapReferencesVerseKey
+from BiblelatorGlobals import DEFAULT, \
+        BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, MAX_PSEUDOVERSES, \
+        INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
+        parseWindowSize
+from BiblelatorHelpers import mapReferencesVerseKey, handleInternalBibles
 from BibleResourceWindows import BibleResourceWindow
 from TextBoxes import BibleBox
 
@@ -87,15 +88,15 @@ def exp( messageString ):
 class BibleReferenceBox( Frame, BibleBox ):
     """
     """
-    def __init__( self, parentWindow, parentApp, internalBible, referenceObject ):
+    def __init__( self, parentWindow, parentFrame, parentApp, internalBible, referenceObject ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("BibleReferenceBox.__init__( {}, {}, {}, {} )").format( parentWindow, parentApp, internalBible.getAName(), referenceObject ) )
-        self.parentWindow, self.parentApp, self.referenceObject = parentWindow, parentApp, referenceObject
-        self.internalBible = self.parentApp.handleInternalBibles( internalBible )
+        if BibleOrgSysGlobals.debugFlag: print( exp("BibleReferenceBox.__init__( {}, {}. {}, {}, {} )").format( parentWindow, parentFrame, parentApp, internalBible.getAName(), referenceObject ) )
+        self.parentWindow, self.parentFrame, self.parentApp, self.referenceObject = parentWindow, parentFrame, parentApp, referenceObject
+        self.internalBible = handleInternalBibles( self.parentApp, internalBible, self )
 
-        Frame.__init__( self, parentWindow )
-        BibleBox.__init__( self, self.parentApp )
+        Frame.__init__( self, parentFrame )
+        BibleBox.__init__( self, parentApp )
 
         # Set some dummy values required soon
         #self._contextViewRadioVar, self._formatViewRadioVar, self._groupRadioVar = tk.IntVar(), tk.IntVar(), tk.StringVar()
@@ -132,7 +133,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        self.textBox = tk.Text( self, height=4, yscrollcommand=self.vScrollbar.set )
+        self.textBox = tk.Text( self, height=5, yscrollcommand=self.vScrollbar.set )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.X ) # Full width
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
@@ -314,13 +315,14 @@ class BibleReferenceBoxes( list ):
 class BibleReferenceCollectionWindow( BibleResourceWindow ):
     """
     """
-    def __init__( self, parentApp, internalBible ):
+    def __init__( self, parentApp, internalBible, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
         """
         Given a collection name, try to open an empty Bible resource collection window.
         """
-        if BibleOrgSysGlobals.debugFlag: print( "BibleReferenceCollectionWindow.__init__( {}, {} )".format( parentApp, internalBible.getAName() ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( "BibleReferenceCollectionWindow.__init__( {}, {} )".format( parentApp, internalBible.getAName() ) )
         self.parentApp, self.internalBible = parentApp, internalBible
-        BibleResourceWindow.__init__( self, self.parentApp, 'BibleReferenceCollectionWindow', internalBible.getAName() )
+        BibleResourceWindow.__init__( self, parentApp, 'BibleReferenceCollectionWindow', internalBible.getAName(), defaultContextViewMode, defaultFormatViewMode )
         #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
         #self.windowType = 'InternalBibleReferenceBox'
 
@@ -334,26 +336,51 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         self.textBox.destroy()
 
         # Make a frame inside a canvas inside our window (in order to get a scrollbar)
-        self.canvas = tk.Canvas( self, borderwidth=0, background="#ffffff" )
-        self.frame = Frame( self.canvas ) #, background="#ffffff" )
-        self.vsb = Scrollbar( self, orient="vertical", command=self.canvas.yview )
+        self.canvas = tk.Canvas( self, borderwidth=0, background='pink' ) #background="#ffffff" )
+        self.vsb = Scrollbar( self, orient='vertical', command=self.canvas.yview )
         self.canvas.configure( yscrollcommand=self.vsb.set )
-        self.vsb.pack( side="right", fill="y" )
+        self.vsb.pack( side=tk.RIGHT, fill=tk.Y )
         self.canvas.pack( side=tk.LEFT, expand=tk.YES, fill=tk.BOTH )
-        self.canvas.create_window( (4,4), window=self.frame, anchor="nw", tags="self.frame" )
-        self.frame.bind( '<Configure>', self.OnFrameConfigure )
+        self.canvasFrame = Frame( self.canvas ) #, background="#ffffff" )
+        #self.canvasFrame.columnconfigure( 0, weight=1 )
+        #self.canvasFrame.rowconfigure( 0, weight=1 )
+        self.window = self.canvas.create_window( (0,0), window=self.canvasFrame, anchor='nw', tags='self.canvasFrame' )
+        #self.columnconfigure( 0, weight=1 )
+        #self.rowconfigure( 0, weight=1 )
+        #self.canvasFrame.bind( '<Configure>', self.OnFrameConfigure )
+        self.canvas.bind('<Configure>', self.onCanvasConfigure )
 
         #self.BCVUpdateType = 'ReferencesMode' # Leave as default
         self.folderPath = self.filename = self.filepath = None
         self.referenceBoxes = BibleReferenceBoxes( self )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleReferenceCollectionWindow.__init__ finished.") )
     # end of BibleReferenceCollectionWindow.__init__
 
+    def onCanvasConfigure( self, event ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleReferenceCollectionWindow.onCanvasConfigure( {} )").format( event ) )
 
-    def OnFrameConfigure( self, event ):
-        """
-        Reset the scroll region to encompass the inner frame.
-        """
-        self.canvas.configure( scrollregion=self.canvas.bbox("all") )
+        canvas_width = event.width
+        #print( "  Set canvas width to {}".format( canvas_width ) )
+
+        self.canvas.itemconfigure( self.window, width=event.width)
+        self.canvas.configure( scrollregion=self.canvas.bbox( 'all' ) )
+        #self.canvas.itemconfigure( self.canvasFrame, width=canvas_width )
+    # end of BibleReferenceCollectionWindow.onCanvasConfigure
+
+    #def OnFrameConfigure( self, event ):
+        #"""
+        #Reset the scroll region to encompass the inner frame.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("BibleReferenceCollectionWindow.OnFrameConfigure( {} )").format( event ) )
+
+        #self.canvas.configure( scrollregion=self.canvas.bbox( 'all' ) )
+    ## end of BibleReferenceCollectionWindow.OnFrameConfigure
 
 
     def setFolderPath( self, newFolderPath ):
@@ -362,10 +389,11 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
         We're still waiting for the filename.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceCollectionWindow.setFolderPath( {} )").format( repr(newFolderPath) ) )
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleReferenceCollectionWindow.setFolderPath( {!r} )").format( newFolderPath ) )
             assert self.filename is None
             assert self.filepath is None
+
         self.folderPath = newFolderPath
     # end of BibleReferenceCollectionWindow.setFolderPath
 
@@ -373,7 +401,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleReferenceBox.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleReferenceCollectionWindow.createMenuBar()") )
+
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -542,7 +572,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
@@ -562,7 +592,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
         Leaves the textbox in the disabled state.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownReferences( {} ) for".format( newReferencesVerseKeys ), self.moduleID )
             #print( "contextViewMode", self._contextViewMode )
             assert isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None
@@ -575,11 +605,15 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         if newReferencesVerseKeys is not None: # open new resource boxes
             assert isinstance( newReferencesVerseKeys, list )
             for newReferencesVerseKey in newReferencesVerseKeys:
-                assert isinstance( newReferencesVerseKey, FlexibleVersesKey )
-                for verseKeyObject in newReferencesVerseKey:
-                    #print( "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
-                    referenceBox = BibleReferenceBox( self.frame, self.parentApp, self.internalBible, verseKeyObject )
-                    self.referenceBoxes.append( referenceBox )
+                #print( "BibleReferenceCollectionWindow.updateShownReferences.newReferencesVerseKey", newReferencesVerseKey )
+                if newReferencesVerseKey is None:
+                    print( "BibleReferenceCollectionWindow.updateShownReferences.newReferencesVerseKey: Why do we have NONE here?" ) #, newReferencesVerseKeys )
+                else:
+                    assert isinstance( newReferencesVerseKey, FlexibleVersesKey )
+                    for verseKeyObject in newReferencesVerseKey:
+                        #print( "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
+                        referenceBox = BibleReferenceBox( self, self.canvasFrame, self.parentApp, self.internalBible, verseKeyObject )
+                        self.referenceBoxes.append( referenceBox )
 
         self.currentVerseKeys = newReferencesVerseKeys # The FlexibleVersesKey object
         self.refreshTitle()

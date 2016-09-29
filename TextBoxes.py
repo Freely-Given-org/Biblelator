@@ -65,7 +65,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-19' # by RJH
+LastModifiedDate = '2016-09-27' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.39'
@@ -604,7 +604,8 @@ class ChildBox():
                 #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                 self.textBox.bind( keyCode, command )
                 if BibleOrgSysGlobals.debugFlag:
-                    assert keyCode not in self.myKeyboardShortcutsList
+                    if keyCode in self.myKeyboardShortcutsList:
+                        print( "ChildBox._createStandardKeyboardBinding wants to add duplicate {}".format( keyCode ) )
                     self.myKeyboardShortcutsList.append( keyCode )
             self.myKeyboardBindingsList.append( (name,kBD[name][0],) )
         else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
@@ -960,7 +961,7 @@ class BibleBox( ChildBox ):
                 elif isinstance( firstEntry, tuple ): marker = firstEntry[0]
                 else: marker = None
                 if marker in BibleOrgSysGlobals.USFMParagraphMarkers:
-                    insertEnd( ' '+_("Current context")+':', 'contextHeader' )
+                    insertEnd( ' '+_("Current context")+': ', 'contextHeader' )
                     insertEnd( marker+' ', 'context' )
 
         #print( "  Setting mark to {}".format( currentMarkName ) )

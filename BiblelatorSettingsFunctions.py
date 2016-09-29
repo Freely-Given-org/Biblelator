@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-28' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.39'
@@ -508,6 +508,9 @@ def getCurrentChildWindowSettings( self ):
 
         elif appWin.windowType == 'BibleResourceCollectionWindow':
             thisOne['CollectionName'] = appWin.moduleID
+        elif appWin.windowType == 'BibleReferenceCollectionWindow':
+            print( "WARNING: Doesn't save BibleReferenceCollectionWindow yet!" )
+            #thisOne['CollectionName'] = appWin.moduleID # Just copied -- not checked
 
         elif appWin.windowType == 'PlainTextEditWindow':
             try: thisOne['TextFilepath'] = appWin.filepath
@@ -843,7 +846,11 @@ def doSendUsageStatistics( self ):
     import http.client
     conn = http.client.HTTPConnection( 'Freely-Given.org' )
     conn.request( 'POST', '/Software/Biblelator/StatusInputs/SubmitAction.phtml', parameterString, headers )
-    response = conn.getresponse()
+    try: response = conn.getresponse()
+    except http.client.RemoteDisconnected:
+        print( "doSendUsageStatistics remote RemoteDisconnected -- send failed" )
+        conn.close()
+        return
     if response.status == 200:
         print( "    doSendUsageStatistics accepted by server" )
     else:

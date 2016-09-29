@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-15' # by RJH
+LastModifiedDate = '2016-09-26' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -295,8 +295,9 @@ def mapReferencesVerseKey( mainVerseKey ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "  mapReferencesVerseKey got result:", result )
     resultList = []
-    for linkType, link in result:
-        resultList.append( link )
+    if result is not None:
+        for linkType, link in result:
+            resultList.append( link )
     return resultList
     # old sample code
         #REFERENCE_VERSE_KEY_DICT = {
