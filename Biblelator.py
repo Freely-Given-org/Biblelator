@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-30' # by RJH
+LastModifiedDate = '2016-10-10' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -1179,9 +1179,9 @@ class Application( Frame ):
             n,ext = indexString.split( '.', 1 )
             try: ni = int( n )
             except ValueError:
-                ni = -1
-                print( "doCheckForMessagesFromDeveloper was expecting an integer!" )
-                print( 'ni', repr(ni), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
+                print( "doCheckForMessagesFromDeveloper was expecting an integer -- never mind." )
+                print( 'n', repr(n), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
+                ni = -1 # so that nothing at all happens below
             if ni > self.lastMessageNumberRead:
                 msgString = None
                 url2 = 'http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}'.format( self.lastMessageNumberRead+1, ext )
