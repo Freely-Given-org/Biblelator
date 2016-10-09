@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-26' # by RJH
+LastModifiedDate = '2016-09-30' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.39'
@@ -628,8 +628,8 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.windowType )
-        helpInfo += "\n  Keyboard shortcuts:"
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
@@ -643,8 +643,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleReferenceCollectionWindow.doAbout()") )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.windowType )
+        aboutInfo = ProgNameVersion + '\n'
+        aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
+        aboutInfo += '\n' + _("A Bible Reference Collection box can contain multiple different Scripture references all shown from the same resource translation or commentary.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of BibleReferenceCollectionWindow.doAbout
 # end of BibleReferenceCollectionWindow class

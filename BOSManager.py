@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-30' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -1752,9 +1752,9 @@ class BOSManager( Frame ):
 
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
-        ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
+        submitInfo = ProgNameVersion
+        submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
+        ab = AboutBox( self.rootWindow, ShortProgName, submitInfo )
     # end of BOSManager.doSubmitBug
 
 

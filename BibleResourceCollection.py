@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-26' # by RJH
+LastModifiedDate = '2016-09-30' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.39'
@@ -1084,8 +1084,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.windowType )
-        helpInfo += "\n  Keyboard shortcuts:"
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
@@ -1100,8 +1100,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             print( exp("BibleResourceCollectionWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.windowType )
+        aboutInfo = ProgNameVersion + '\n'
+        aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
+        aboutInfo += '\n' + _("A Bible Resource Collection box can contain multiple different resource translations or commentaries, all showing the same Scripture reference.") + '\n'
+        aboutInfo += '\n' + _("Use this window's Resources menu to add a/another resource to the window. Use the up and down arrows to order the resources within the window.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of BibleResourceCollectionWindow.doAbout
 # end of BibleResourceCollectionWindow class

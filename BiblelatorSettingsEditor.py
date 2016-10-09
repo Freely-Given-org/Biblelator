@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-09-30' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.39'
@@ -1200,9 +1200,9 @@ class BiblelatorSettingsEditor( Frame ):
 
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
-        ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
+        submitInfo = ProgNameVersion
+        submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
+        ab = AboutBox( self.rootWindow, ShortProgName, submitInfo )
     # end of BiblelatorSettingsEditor.doSubmitBug
 
 

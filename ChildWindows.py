@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-05' # by RJH
+LastModifiedDate = '2016-10-04' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.39'
@@ -192,8 +192,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
         #self.pack()
@@ -337,8 +337,8 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.windowType )
-        helpInfo += "\n  Keyboard shortcuts:"
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
@@ -1259,8 +1259,8 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.windowType )
-        helpInfo += "\n  Keyboard shortcuts:"
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
@@ -1770,8 +1770,8 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.windowType )
-        helpInfo += "\n  Keyboard shortcuts:"
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )

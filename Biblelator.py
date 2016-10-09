@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-28' # by RJH
+LastModifiedDate = '2016-09-30' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -1197,10 +1197,10 @@ class Application( Frame ):
 
                 if msgString:
                     from About import AboutBox
-                    aboutInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
-                    aboutInfo += '\n  via Freely-Given.org'
-                    aboutInfo += '\n\n' + msgString
-                    ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+                    msgInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
+                    msgInfo += '\n  via Freely-Given.org'
+                    msgInfo += '\n\n' + msgString
+                    ab = AboutBox( self.rootWindow, APP_NAME, msgInfo )
 
                     self.lastMessageNumberRead += 1
     # end of Application.doCheckForMessagesFromDeveloper
@@ -3004,9 +3004,9 @@ class Application( Frame ):
             showerror( self, APP_NAME, 'You need to allow Internet access first!' )
             return
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
-        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+        submitInfo = ProgNameVersion
+        submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
+        ab = AboutBox( self.rootWindow, APP_NAME, submitInfo )
     # end of Application.doSubmitBug
 
 

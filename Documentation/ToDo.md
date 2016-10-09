@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-09-20 RJH
+Last updated: 2016-09-30 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* F1 help and F12 about doesn't seem to work from most windows
 * F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
 * Windows and Bible lists need to be displayed in a window
 * HTML source box isn't listed in child windows (included in show all / hide all)
