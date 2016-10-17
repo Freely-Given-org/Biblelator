@@ -47,10 +47,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21'
+LastModifiedDate = '2016-10-18'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1486,6 +1486,8 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         searchText = self.searchStringVar.get()
         if not searchText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
         if searchText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        replaceText = self.replaceStringVar.get()
+        if replaceText.lower().startswith( 'regex:' ): showwarning( self.parent, APP_NAME, _("Don't start replace field with 'regex:'!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and ( not self.optionsDict['bookList'] or not isinstance(self.optionsDict['bookList'], list) ):
             showwarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
