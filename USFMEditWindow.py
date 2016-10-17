@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-16' # by RJH
+LastModifiedDate = '2016-10-17' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.39'
@@ -881,6 +881,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         Puts the book data from self.bookText into the self.verseCache dictionary
             accessible by verse key.
 
+        Automatically attaches section headings to the following verse
+            (rather than having them appear at the end of the current verse).
+
         Normally clears the cache before starting,
             to prevent duplicate entries.
         """
@@ -960,6 +963,12 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                     addCacheEntry( BBB, C, V, currentEntry )
                                     currentEntry = ''
                                     startedVerseEarly = True
+                    elif marker1 in ( 'v', 'V' ): # There's actually a missing paragraph marker but nevermind
+                        # Start a new verse entry here if we have a section heading, missing paragraph marker, then the next verse
+                        if currentEntry: # Save the previous CV entry
+                            addCacheEntry( BBB, C, V, currentEntry )
+                            currentEntry = ''
+                            startedVerseEarly = True
                     elif marker1 in BibleOrgSysGlobals.USFMParagraphMarkers and not text1:
                         marker2, text2 = getMarkerText( j+2 )
                         if marker2 in ( 'v', 'V' ):

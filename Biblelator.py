@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-10-10' # by RJH
+LastModifiedDate = '2016-10-14' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -1153,6 +1153,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCheckForMessagesFromDeveloper()") )
 
+        hadError = False
         import urllib.request
         # NOTE: needs to be https eventually!!!
         indexString = None
@@ -1163,8 +1164,10 @@ class Application( Frame ):
             #print( "indexData", repr(indexData) )
         except urllib.error.HTTPError as err:
             logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}: {}".format( url, err ) )
+            hadError = True
         except urllib.error.URLError as err:
             logging.debug( "doCheckForMessagesFromDeveloper got URLError from {}: {}".format( url, err ) )
+            hadError = True
         else: indexString = indexData.decode('utf-8')
         #print( "indexString", repr(indexString) )
 
@@ -1179,8 +1182,9 @@ class Application( Frame ):
             n,ext = indexString.split( '.', 1 )
             try: ni = int( n )
             except ValueError:
-                print( "doCheckForMessagesFromDeveloper was expecting an integer -- never mind." )
-                print( 'n', repr(n), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
+                logging.debug( "doCheckForMessagesFromDeveloper got an unexpected response from {}".format( url ) )
+                hadError = True
+                #print( 'n', repr(n), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
                 ni = -1 # so that nothing at all happens below
             if ni > self.lastMessageNumberRead:
                 msgString = None
@@ -1192,6 +1196,7 @@ class Application( Frame ):
                         #print( "msgData", repr(msgData) )
                 except urllib.error.HTTPError:
                     logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url2 ) )
+                    hadError = True
                 else: msgString = msgData.decode('utf-8')
                 #print( "msgString", repr(msgString) )
 
@@ -1203,6 +1208,9 @@ class Application( Frame ):
                     ab = AboutBox( self.rootWindow, APP_NAME, msgInfo )
 
                     self.lastMessageNumberRead += 1
+
+        if hadError:
+            print( "doCheckForMessagesFromDeveloper was unable to check with the server." )
     # end of Application.doCheckForMessagesFromDeveloper
 
 
