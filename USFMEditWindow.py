@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-10-17' # by RJH
+LastModifiedDate = '2016-10-23' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.39'
@@ -410,6 +410,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Forward'), underline=0, command=self.notWrittenYet )
         gotoMenu.add_command( label=_('Backward'), underline=0, command=self.notWrittenYet )
+        gotoMenu.add_separator()
+        gotoMenu.add_command( label=_('Next empty verse'), underline=5, command=self.doGotoNextEmptyVerse )
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Previous list item'), underline=0, command=self.notWrittenYet )
         gotoMenu.add_command( label=_('Next list item'), underline=0, command=self.notWrittenYet )
@@ -1026,6 +1028,61 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         try: return self.verseCache[verseKey.makeHash()]
         except KeyError: return None
     # end of USFMEditWindow.getCachedVerseData
+
+
+    def doGotoNextEmptyVerse( self, event=None ):
+        """
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoNextEmptyVerse() from {} {}:{}").format( BBB, C, V ) )
+            self.parentApp.setDebugText( "UEW doGotoNextVerse…" )
+
+        #print( "doGotoNextEmptyVerse starting at {} {}:{}".format( BBB, C, V ) )
+        intC, intV = int( C ), int( V )
+        while True:
+            #print( "  doGotoNextEmptyVerse looping at {} {}:{}".format( BBB, intC, intV ) )
+            if intV < self.maxVersesThisChapter: intV+=1 # Next verse
+            elif intC < self.maxChaptersThisBook:
+                intC, intV = intC+1, 0 # Next chapter
+                self.maxVersesThisChapter = self.getNumVerses( BBB, intC )
+            else: # need to go to the next book
+                if self.bookTextModified: self.doSave() # resets bookTextModified flag
+                BBB = self.getNextBookCode( BBB )
+                if BBB is None:
+                    #print( "    doGotoNextEmptyVerse finished all books -- stopping" )
+                    showinfo( self, APP_NAME, _("No (more) empty verses found") )
+                    break
+                else:
+                    #print( "    doGotoNextEmptyVerse going to next book {}".format( BBB ) )
+                    intC, intV = 1, 1
+                    self.maxChaptersThisBook = self.getNumChapters( BBB )
+                    self.maxVersesThisChapter = self.getNumVerses( BBB, intC )
+                    self.bookText = self.getBookDataFromDisk( BBB )
+                    if self.bookText is not None:
+                        self.cacheBook( BBB )
+            #print( "    doGotoNextEmptyVerse going to {} {}:{}".format( BBB, intC, intV ) )
+            cachedVerseData = self.getCachedVerseData( SimpleVerseKey( BBB, intC, intV ) )
+            if cachedVerseData is None: # Could be end of books OR INSIDE A VERSE BRIDGE
+                pass
+                #print( "      doGotoNextEmptyVerse got None!" )
+                #break
+            else:
+                #print( "      doGotoNextEmptyVerse got", repr(cachedVerseData) )
+                assert isinstance( cachedVerseData, str )
+                ix = cachedVerseData.find( '\\v ' )
+                if ix != -1:
+                    verseText = cachedVerseData[ix+3:]
+                    #print( "      doGotoNextEmptyVerse verseText", repr(verseText) )
+                    try: verseNumber, rest = verseText.split( ' ', 1 )
+                    except ValueError: rest = '' # Nothing there
+                    #print( "      doGotoNextEmptyVerse rest", repr(rest) )
+                    if not rest.strip():
+                        #print( "      doGotoNextEmptyVerse found empty verse at {} {}:{}!".format( BBB, intC, intV ) )
+                        self.gotoBCV( BBB, intC, intV )
+                        break # Found an empty verse -- done
+        #print( "  doGotoNextEmptyVerse done" )
+    # end of Application.doGotoNextEmptyVerse
 
 
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
