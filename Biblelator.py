@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-10-14' # by RJH
+LastModifiedDate = '2016-10-21' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -1210,7 +1210,7 @@ class Application( Frame ):
                     self.lastMessageNumberRead += 1
 
         if hadError:
-            print( "doCheckForMessagesFromDeveloper was unable to check with the server." )
+            print( "doCheckForMessagesFromDeveloper was unable to communicate with the server." )
     # end of Application.doCheckForMessagesFromDeveloper
 
 
