@@ -412,6 +412,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         gotoMenu.add_command( label=_('Backward'), underline=0, command=self.notWrittenYet )
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Next empty verse'), underline=5, command=self.doGotoNextEmptyVerse )
+        gotoMenu.add_command( label=_('Next empty marker'), underline=11, command=self.doGotoNextEmptyMarker )
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Previous list item'), underline=0, command=self.notWrittenYet )
         gotoMenu.add_command( label=_('Next list item'), underline=0, command=self.notWrittenYet )
@@ -1030,18 +1031,72 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
     # end of USFMEditWindow.getCachedVerseData
 
 
-    def doGotoNextEmptyVerse( self, event=None ):
+    def emptyVerseMatch( self, stringToSearch ):
         """
+        Goes through all chapters, verses, and books
+            searching for an existing verse marker without text.
+
+        Returns True if one is found,
+            otherwise False.
+        """
+        #print( "emptyVerseMatch searching in {!r}".format( stringToSearch ) )
+        for lineToSearch in stringToSearch.split( '\n' ):
+            #print( " emptyVerseMatch lineToSearch", repr(lineToSearch) )
+            ix = lineToSearch.find( '\\v ' )
+            if ix != -1:
+                verseText = lineToSearch[ix+3:]
+                #print( "      emptyVerseMatch verseText", repr(verseText) )
+                try: verseNumber, rest = verseText.split( ' ', 1 )
+                except ValueError: rest = '' # No space to split on
+                #print( "      emptyVerseMatch rest", repr(rest) )
+                if not rest.strip():
+                    return True
+        return False
+    # end of USFMEditWindow.getCachedVerseData
+
+    def emptyMarkerMatch( self, stringToSearch ):
+        """
+        Goes through all chapters, verses, and books
+            searching for an empty marker that should have text.
+
+        Returns True if one is found,
+            otherwise False.
+        """
+        #print( "emptyMarkerMatch searching in {!r}".format( stringToSearch ) )
+        for lineToSearch in stringToSearch.split( '\n' ):
+            #print( " emptyMarkerMatch lineToSearch", repr(lineToSearch) )
+            if lineToSearch.startswith( '\\' ):
+                try: marker, rest = lineToSearch[1:].split( ' ', 1 )
+                except ValueError: marker, rest = lineToSearch[1:], '' # No space to split on
+                #print( " emptyMarkerMatch marker", repr(marker), "rest", repr(rest) )
+                if marker == 'v':
+                    try: verseNumber, rest = rest.split( ' ', 1 )
+                    except ValueError: rest = '' # No space to split on
+                    #print( "      emptyVerseMatch rest", repr(rest) )
+                    if not rest.strip():
+                        return True
+                elif marker not in BibleOrgSysGlobals.USFMParagraphMarkers and marker not in ('b','li','li1',):
+                    if not rest.strip():
+                        return True
+        return False
+    # end of USFMEditWindow.emptyMarkerMatch
+
+    def doGotoNextEmptySomething( self, somethingName, matchFunction ):
+        """
+        Given a somethingName string (e.g., 'verse', 'marker' )
+            and a function which takes a string and returns True if the required empty field is found,
+            step through verses, chapters, and books and go to the next empty field.
+
+        Stays at the current BCV if no empty field is found.
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doGotoNextEmptyVerse() from {} {}:{}").format( BBB, C, V ) )
-            self.parentApp.setDebugText( "UEW doGotoNextVerse…" )
+            print( exp("doGotoNextEmptySomething( {!r} ) from {} {}:{}").format( somethingName, BBB, C, V ) )
 
-        #print( "doGotoNextEmptyVerse starting at {} {}:{}".format( BBB, C, V ) )
+        #print( "doGotoNextEmptySomething starting at {} {}:{}".format( BBB, C, V ) )
         intC, intV = int( C ), int( V )
         while True:
-            #print( "  doGotoNextEmptyVerse looping at {} {}:{}".format( BBB, intC, intV ) )
+            #print( "  doGotoNextEmptySomething looping at {} {}:{}".format( BBB, intC, intV ) )
             if intV < self.maxVersesThisChapter: intV+=1 # Next verse
             elif intC < self.maxChaptersThisBook:
                 intC, intV = intC+1, 0 # Next chapter
@@ -1050,39 +1105,61 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 if self.bookTextModified: self.doSave() # resets bookTextModified flag
                 BBB = self.getNextBookCode( BBB )
                 if BBB is None:
-                    #print( "    doGotoNextEmptyVerse finished all books -- stopping" )
-                    showinfo( self, APP_NAME, _("No (more) empty verses found") )
+                    #print( "    doGotoNextEmptySomething finished all books -- stopping" )
+                    showinfo( self, APP_NAME, _("No (more) empty {} found").format( somethingName ) )
                     break
                 else:
-                    #print( "    doGotoNextEmptyVerse going to next book {}".format( BBB ) )
+                    #print( "    doGotoNextEmptySomething going to next book {}".format( BBB ) )
                     intC, intV = 1, 1
                     self.maxChaptersThisBook = self.getNumChapters( BBB )
                     self.maxVersesThisChapter = self.getNumVerses( BBB, intC )
                     self.bookText = self.getBookDataFromDisk( BBB )
                     if self.bookText is not None:
                         self.cacheBook( BBB )
-            #print( "    doGotoNextEmptyVerse going to {} {}:{}".format( BBB, intC, intV ) )
+            #print( "    doGotoNextEmptySomething going to {} {}:{}".format( BBB, intC, intV ) )
             cachedVerseData = self.getCachedVerseData( SimpleVerseKey( BBB, intC, intV ) )
             if cachedVerseData is None: # Could be end of books OR INSIDE A VERSE BRIDGE
                 pass
-                #print( "      doGotoNextEmptyVerse got None!" )
+                #print( "      doGotoNextEmptySomething got None!" )
                 #break
             else:
-                #print( "      doGotoNextEmptyVerse got", repr(cachedVerseData) )
+                #print( "      doGotoNextEmptySomething got", repr(cachedVerseData) )
                 assert isinstance( cachedVerseData, str )
-                ix = cachedVerseData.find( '\\v ' )
-                if ix != -1:
-                    verseText = cachedVerseData[ix+3:]
-                    #print( "      doGotoNextEmptyVerse verseText", repr(verseText) )
-                    try: verseNumber, rest = verseText.split( ' ', 1 )
-                    except ValueError: rest = '' # Nothing there
-                    #print( "      doGotoNextEmptyVerse rest", repr(rest) )
-                    if not rest.strip():
-                        #print( "      doGotoNextEmptyVerse found empty verse at {} {}:{}!".format( BBB, intC, intV ) )
-                        self.gotoBCV( BBB, intC, intV )
-                        break # Found an empty verse -- done
-        #print( "  doGotoNextEmptyVerse done" )
+                if matchFunction( cachedVerseData ):
+                    #print( "      doGotoNextEmptySomething found empty {} at {} {}:{}!".format( somethingName, BBB, intC, intV ) )
+                    self.gotoBCV( BBB, intC, intV )
+                    break # Found an empty verse -- done
+    # end of Application.doGotoNextEmptySomething
+
+    def doGotoNextEmptyVerse( self, event=None ):
+        """
+        Go to the next verse without verse text.
+            Steps through verses, chapters, and books and go to the next empty verse.
+
+        Stays at the current BCV if no empty verse is found.
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoNextEmptyVerse() from {} {}:{}").format( BBB, C, V ) )
+            self.parentApp.setDebugText( "UEW doGotoNextEmptyVerse…" )
+
+        self.doGotoNextEmptySomething( 'verse', self.emptyVerseMatch )
     # end of Application.doGotoNextEmptyVerse
+
+    def doGotoNextEmptyMarker( self, event=None ):
+        """
+        Go to the next field without text.
+            Steps through verses, chapters, and books and go to the next empty field.
+
+        Stays at the current BCV if no empty field is found.
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoNextEmptyMarker() from {} {}:{}").format( BBB, C, V ) )
+            self.parentApp.setDebugText( "UEW doGotoNextEmptyMarker…" )
+
+        self.doGotoNextEmptySomething( 'marker', self.emptyMarkerMatch )
+    # end of Application.doGotoNextEmptyMarker
 
 
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
