@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2016-11-03' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -747,11 +747,8 @@ if __name__ == '__main__':
 
     #if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         ##from tkinter import TclVersion, TkVersion
-        #from tkinter import tix
         #print( "TclVersion is", tk.TclVersion )
         #print( "TkVersion is", tk.TkVersion )
-        #print( "tix TclVersion is", tix.TclVersion )
-        #print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-10-23 RJH
+Last updated: 2016-11-03 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -110,7 +110,6 @@ Biblelator stuff
 * Use checkboxes to allow individual exports
 * Get Sword resources displaying nicer
 * Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
-* Investigate tix widgets
 * Cache DBP to disk (if have expensive Internet)???
 * Need keyboard shortcuts for list up/down
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet

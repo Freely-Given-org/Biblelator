@@ -28,7 +28,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-28' # by RJH
+LastModifiedDate = '2016-11-03' # by RJH
 ShortProgName = "Help"
 ProgName = "Help Box"
 ProgVersion = '0.39'
@@ -172,11 +172,8 @@ if __name__ == '__main__':
 
 
     if BibleOrgSysGlobals.debugFlag:
-        from tkinter import tix
         print( "TclVersion is", tk.TclVersion )
         print( "TkVersion is", tk.TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 
