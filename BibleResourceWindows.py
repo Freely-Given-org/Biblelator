@@ -82,7 +82,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2016-12-05' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.39'
@@ -1140,30 +1140,60 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         if gBSTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
             self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
-            self.parentApp.setWaitStatus( _("Searching…") )
-            #self.textBox.update()
-            #self.textBox.focus()
-            #self.lastfind = key
-            self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleFind {}'.format( self.BibleFindOptionsDict ) )
-            self._prepareInternalBible() # Make sure that all books are loaded
-            # We search the loaded Bible processed lines
-            self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
-            #print( "Got searchResults", searchResults )
-            if len(searchResultList) == 0: # nothing found
-                errorBeep()
-                key = self.BibleFindOptionsDict['searchText']
-                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
-            else:
-                findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList )
-                self.parentApp.childWindows.append( findResultWindow )
+            self.doActualBibleFind()
+            #self.parentApp.setWaitStatus( _("Searching…") )
+            ##self.textBox.update()
+            ##self.textBox.focus()
+            ##self.lastfind = key
+            #self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleFind {}'.format( self.BibleFindOptionsDict ) )
+            #self._prepareInternalBible() # Make sure that all books are loaded
+            ## We search the loaded Bible processed lines
+            #self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
+            ##print( "Got searchResults", searchResults )
+            #if len(searchResultList) == 0: # nothing found
+                #errorBeep()
+                #key = self.BibleFindOptionsDict['searchText']
+                #showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            #else:
+                #findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList, self.doBibleFind )
+                #self.parentApp.childWindows.append( findResultWindow )
         self.parentApp.setReadyStatus()
     # end of InternalBibleResourceWindow.doBibleFind
+
+
+    def doActualBibleFind( self, extendTo=None ):
+        """
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'InternalBibleResourceWindow doActualBibleFind' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.doActualBibleFind( {} )").format( extendTo ) )
+
+        self.parentApp.setWaitStatus( _("Searching…") )
+        #self.textBox.update()
+        #self.textBox.focus()
+        #self.lastfind = key
+        self.parentApp.logUsage( ProgName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        self._prepareInternalBible() # Make sure that all books are loaded
+        # We search the loaded Bible processed lines
+        self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
+        #print( "Got searchResults", searchResults )
+        if len(searchResultList) == 0: # nothing found
+            errorBeep()
+            key = self.BibleFindOptionsDict['searchText']
+            showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+        else:
+            findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList, self.doActualBibleFind, extendTo=extendTo )
+            self.parentApp.childWindows.append( findResultWindow )
+        self.parentApp.setReadyStatus()
+    # end of InternalBibleResourceWindow.doActualBibleFind
 
 
     def _prepareInternalBible( self ):
         """
         Prepare to do a search on the Internal Bible object
             or to do some of the exports or checks available in BibleOrgSysGlobals.
+
+        Note that this function saves the current book if it's modified.
 
         Leaves the wait cursor displayed.
         """

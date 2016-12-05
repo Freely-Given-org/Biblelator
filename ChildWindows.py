@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2016-12-05' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.39'
@@ -1310,7 +1310,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
     """
     Displays the find results.
     """
-    def __init__( self, parentWindow, optionDict, resultSummaryDict, resultList ):
+    def __init__( self, parentWindow, optionDict, resultSummaryDict, resultList, findFunction, extendTo=None ):
         """
         optionDict is the dictionary of options that were given to the find function.
         resultSummaryDict is the dictionary containing summary entries (counts) for each Bible book.
@@ -1320,6 +1320,8 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
                 SimpleVerseKey, marker (none if v~), contextBefore, contextAfter
             If the search is caseless, the 5-tuples are:
                 SimpleVerseKey, marker (none if v~), contextBefore, foundWordForm, contextAfter
+        findFunction is the function that was called to create this window
+            (which is used to refresh the window)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("FindResultWindow.__init__( {}, {}, {}, {} )").format( parentWindow, optionDict, resultSummaryDict, len(resultList) ) )
@@ -1328,7 +1330,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
             assert resultSummaryDict and isinstance( resultSummaryDict, dict )
             assert resultList and isinstance( resultList, list )
 
-        self.parentWindow, self.optionDict, self.resultSummaryDict, self.resultList = parentWindow, optionDict, resultSummaryDict, resultList
+        self.parentWindow, self.optionDict, self.resultSummaryDict, self.resultList, self.findFunction, self.extendedTo = parentWindow, optionDict, resultSummaryDict, resultList, findFunction, extendTo
         self.parentApp = self.parentWindow.parentApp
         tk.Toplevel.__init__( self, self.parentWindow )
         #ChildBox.__init__( self, self.parentApp )
@@ -1362,7 +1364,6 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
             if internalBible is not self.parentWindow.internalBible:
                 self.availableInternalBibles.append( internalBible )
         #print( 'Available internalBibles', len(self.availableInternalBibles), self.availableInternalBibles )
-        self.extendedTo = None
 
         # Make a frame at the top and then put our options inside it
         top = Frame( self )
@@ -1387,15 +1388,20 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
         if not self.availableInternalBibles: self.extendButton.configure( state=tk.DISABLED )
 
-        closeButton = Button( self, text=_("Close"), command=self.doClose )
+        refreshButton = Button( self, text=_('Refresh'), command=self.doRefresh )
         #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
-        closeButton.grid( in_=top, row=0, column=3, padx=5, pady=5, sticky=tk.E )
+        refreshButton.grid( in_=top, row=0, column=3, padx=5, pady=5, sticky=tk.E )
+
+        closeButton = Button( self, text=_('Close'), command=self.doClose )
+        #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+        closeButton.grid( in_=top, row=0, column=4, padx=5, pady=5, sticky=tk.E )
 
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        self.makeTree()
+        if self.extendedTo: self.doActualExtend()
+        else: self.makeTree()
     # end of FindResultWindow.__init__
 
 
@@ -1448,9 +1454,9 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
         #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=kBD[_('Refind')][0] )
 
-        #viewMenu = tk.Menu( self.menubar, tearoff=False )
-        #self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-        #viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
+        viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
+        viewMenu.add_command( label=_('Refresh'), underline=0, command=self.doRefresh ) #, accelerator=kBD[_('Refresh')][0] ) # refresh this window
 
         #gotoMenu = tk.Menu( self.menubar )
         #self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -1710,6 +1716,17 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
             if sIBD.result is None: return # ESC pressed
             assert sIBD.result < len(self.availableInternalBibles)
             self.extendedTo = self.availableInternalBibles[sIBD.result]
+        self.doActualExtend()
+    # end of FindResultWindow.doExtend
+
+
+    def doActualExtend( self ):
+        """
+        Extend the find box by adding another version already selected by the user.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doActualExtend()") )
+
         self.parentApp.setWaitStatus( _("Extending find results…") )
         self.extendButton.configure( text=_("Extended"), state=tk.DISABLED )
         #print( "doExtend", self.geometry(), INITIAL_RESULT_WINDOW_SIZE )
@@ -1717,7 +1734,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         self.geometry( assembleWindowGeometry( int(width*1.3), height, xOffset, yOffset ) ) # Make window widen
         self.makeTree() # Redisplay everything
         self.parentApp.setReadyStatus()
-    # end of FindResultWindow.doExtend
+    # end of FindResultWindow.doActualExtend
 
 
     def doShowInfo( self, event=None ):
@@ -1813,6 +1830,19 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )
     # end of FindResultWindow.doClose
+
+
+    def doRefresh( self ):
+        """
+        Refresh the find
+            by closing this window and then calling the find function again.
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("FindResultWindow.doRefresh()") )
+
+        self.doClose()
+        self.findFunction( extendTo=self.extendedTo )
+    # end of FindResultWindow.doRefresh
 # end of class FindResultWindow
 
 
