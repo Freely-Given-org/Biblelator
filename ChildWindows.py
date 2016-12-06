@@ -34,7 +34,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-05' # by RJH
+LastModifiedDate = '2016-12-06' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.39'
@@ -1837,11 +1837,11 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         Refresh the find
             by closing this window and then calling the find function again.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("FindResultWindow.doRefresh()") )
 
         self.doClose()
-        self.findFunction( extendTo=self.extendedTo )
+        self.findFunction( extendTo=self.extendedTo ) # Run the find again
     # end of FindResultWindow.doRefresh
 # end of class FindResultWindow
 

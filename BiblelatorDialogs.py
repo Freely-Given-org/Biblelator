@@ -47,7 +47,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03'
+LastModifiedDate = '2016-12-06'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.39'
@@ -943,7 +943,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         # Set-up default search options
         if 'work' not in self.optionsDict: self.optionsDict['work'] = givenBible.abbreviation if givenBible.abbreviation else givenBible.name
         if 'searchHistoryList' not in self.optionsDict: self.optionsDict['searchHistoryList'] = [] # Oldest first
-        if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'Ends'
+        if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
         if 'caselessFlag' not in self.optionsDict: self.optionsDict['caselessFlag'] = True
         if 'ignoreDiacriticsFlag' not in self.optionsDict: self.optionsDict['ignoreDiacriticsFlag'] = False
         if 'includeIntroFlag' not in self.optionsDict: self.optionsDict['includeIntroFlag'] = True
@@ -996,7 +996,8 @@ class GetBibleSearchTextDialog( ModalDialog ):
         if self.optionsDict['wordMode'] == 'Any': self.wordModeSelectVariable.set( 1 )
         elif self.optionsDict['wordMode'] == 'Whole': self.wordModeSelectVariable.set( 2 )
         elif self.optionsDict['wordMode'] == 'Begins': self.wordModeSelectVariable.set( 3 )
-        elif self.optionsDict['wordMode'] == 'Ends': self.wordModeSelectVariable.set( 4 )
+        elif self.optionsDict['wordMode'] == 'EndsWord': self.wordModeSelectVariable.set( 4 )
+        elif self.optionsDict['wordMode'] == 'EndsLine': self.wordModeSelectVariable.set( 5 )
         else: halt # programming error
 
         self.rwmb1 = Radiobutton( master, text=_("No restriction" ), variable=self.wordModeSelectVariable, value=1 )
@@ -1011,6 +1012,8 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.rwmb4 = Radiobutton( master, text=_("End of word" ), variable=self.wordModeSelectVariable, value=4 )
         self.rwmb4.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rwmb4.grid( row=5, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb5 = Radiobutton( master, text=_("End of line" ), variable=self.wordModeSelectVariable, value=5 )
+        self.rwmb5.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
 
         self.mcaseVar = tk.IntVar()
         if not self.optionsDict['caselessFlag']: self.mcaseVar.set( 1 )
@@ -1032,7 +1035,10 @@ class GetBibleSearchTextDialog( ModalDialog ):
             if self.optionsDict['chapterList'] == None: self.booksSelectVariable.set( 2 )
             else: self.booksSelectVariable.set( 3 )
         elif isinstance( self.optionsDict['bookList'], list ): self.booksSelectVariable.set( 4 )
-        else: halt # programming error
+        else:
+            print( "booklist options", self.optionsDict['bookList'] )
+            print( "whole options dict", self.optionsDict )
+            halt # programming error
 
         allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
         self.rbb1 = Radiobutton( master, text=allText, variable=self.booksSelectVariable, value=1 )
@@ -1188,7 +1194,8 @@ class GetBibleSearchTextDialog( ModalDialog ):
         if wordModeResultNumber == 1: self.optionsDict['wordMode'] = 'Any'
         elif wordModeResultNumber == 2: self.optionsDict['wordMode'] = 'Whole'
         elif wordModeResultNumber == 3: self.optionsDict['wordMode'] = 'Begins'
-        elif wordModeResultNumber == 4: self.optionsDict['wordMode'] = 'Ends'
+        elif wordModeResultNumber == 4: self.optionsDict['wordMode'] = 'EndsWord'
+        elif wordModeResultNumber == 5: self.optionsDict['wordMode'] = 'EndsLine'
         else:
             halt # Unexpected result value
 
@@ -1254,7 +1261,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         if 'work' not in self.optionsDict: self.optionsDict['work'] = givenBible.abbreviation if givenBible.abbreviation else givenBible.name
         if 'searchHistoryList' not in self.optionsDict: self.optionsDict['searchHistoryList'] = [] # Oldest first
         if 'replaceHistoryList' not in self.optionsDict: self.optionsDict['replaceHistoryList'] = [] # Oldest first
-        if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'Ends'
+        if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
         #if 'caselessFlag' not in self.optionsDict: self.optionsDict['caselessFlag'] = True
         #if 'ignoreDiacriticsFlag' not in self.optionsDict: self.optionsDict['ignoreDiacriticsFlag'] = False
         #if 'includeIntroFlag' not in self.optionsDict: self.optionsDict['includeIntroFlag'] = True
@@ -1320,7 +1327,8 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         if self.optionsDict['wordMode'] == 'Any': self.wordModeSelectVariable.set( 1 )
         elif self.optionsDict['wordMode'] == 'Whole': self.wordModeSelectVariable.set( 2 )
         elif self.optionsDict['wordMode'] == 'Begins': self.wordModeSelectVariable.set( 3 )
-        elif self.optionsDict['wordMode'] == 'Ends': self.wordModeSelectVariable.set( 4 )
+        elif self.optionsDict['wordMode'] == 'EndsWord': self.wordModeSelectVariable.set( 4 )
+        elif self.optionsDict['wordMode'] == 'EndsLine': self.wordModeSelectVariable.set( 5 )
         else: halt # programming error
 
         self.rwmb1 = Radiobutton( master, text=_("No restriction" ), variable=self.wordModeSelectVariable, value=1 )
@@ -1335,6 +1343,8 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.rwmb4 = Radiobutton( master, text=_("End of word" ), variable=self.wordModeSelectVariable, value=4 )
         self.rwmb4.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rwmb4.grid( row=6, column=0, padx=2, pady=1, sticky=tk.W )
+        self.rwmb5 = Radiobutton( master, text=_("End of line" ), variable=self.wordModeSelectVariable, value=5 )
+        self.rwmb5.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
 
         #self.mcaseVar = tk.IntVar()
         #if not self.optionsDict['caselessFlag']: self.mcaseVar.set( 1 )
@@ -1513,7 +1523,8 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         if wordModeResultNumber == 1: self.optionsDict['wordMode'] = 'Any'
         elif wordModeResultNumber == 2: self.optionsDict['wordMode'] = 'Whole'
         elif wordModeResultNumber == 3: self.optionsDict['wordMode'] = 'Begins'
-        elif wordModeResultNumber == 4: self.optionsDict['wordMode'] = 'Ends'
+        elif wordModeResultNumber == 4: self.optionsDict['wordMode'] = 'EndsWord'
+        elif wordModeResultNumber == 5: self.optionsDict['wordMode'] = 'EndsLine'
         else:
             halt # Unexpected result value
 
