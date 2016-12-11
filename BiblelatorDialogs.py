@@ -47,7 +47,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-06'
+LastModifiedDate = '2016-12-09'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.39'
@@ -860,12 +860,12 @@ class GetBibleBookRangeDialog( ModalDialog ):
     """
     Get the new name for a resource collection.
     """
-    def __init__( self, parent, parentApp, givenBible, currentBBB, title ):
+    def __init__( self, parent, parentApp, givenBible, currentBBB, currentList, title ):
         """
         """
         if BibleOrgSysGlobals.debugFlag: parentApp.setDebugText( "GetBibleBookRangeDialog…" )
         #assert currentBBB in givenBible -- no, it might not be loaded yet!
-        self.parentApp, self.givenBible, self.currentBBB = parentApp, givenBible, currentBBB
+        self.parentApp, self.givenBible, self.currentBBB, self.currentList = parentApp, givenBible, currentBBB, currentList
         ModalDialog.__init__( self, parent, title )
     # end of GetBibleBookRangeDialog.__init__
 
@@ -888,6 +888,9 @@ class GetBibleBookRangeDialog( ModalDialog ):
         self.rb4.grid( row=3, column=0, sticky=tk.W )
         self.rb5 = Radiobutton( master, text=_("DC books"), variable=self.booksSelectVariable, value=5 )
         self.rb5.grid( row=4, column=0, sticky=tk.W )
+        if self.currentList:
+            self.rb6 = Radiobutton( master, text=str(self.currentList), variable=self.booksSelectVariable, value=6 )
+            self.rb6.grid( row=5, column=0, sticky=tk.W )
 
         return self.rb1 # initial focus
     # end of GetBibleBookRangeDialog.body
@@ -918,6 +921,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
         elif resultNumber == 3: self.result = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR(book.BBB)] # OT
         elif resultNumber == 4: self.result = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isNewTestament_NR(book.BBB)] # NT
         elif resultNumber == 5: self.result = [book.BBB for book in self.givenBible if BibleOrgSysGlobals.BibleBooksCodes.isDeuterocanon_NR(book.BBB)] # DC
+        elif resultNumber == 6: self.result = self.currentList
         else:
             halt # Unexpected result value
     # end of GetBibleBookRangeDialog.apply
@@ -988,6 +992,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.searchStringBox.bind( '<Return>', self.ok )
         #self.searchStringBox.pack( side=tk.LEFT )
         self.searchStringBox.grid( row=1, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+        self.searchStringBox.icursor( tk.END ) # Set cursor to end (makes spaces visible)
 
         wordLimitsFrame = tk.LabelFrame( master, text=_("Word limits"), padx=5, pady=5 )
         wordLimitsFrame.grid( row=2, column=0, padx=10, pady=10, sticky=tk.W )
@@ -1034,6 +1039,8 @@ class GetBibleSearchTextDialog( ModalDialog ):
         elif self.optionsDict['bookList'] == self.optionsDict['currentBCV'][0]:
             if self.optionsDict['chapterList'] == None: self.booksSelectVariable.set( 2 )
             else: self.booksSelectVariable.set( 3 )
+        elif isinstance( self.optionsDict['bookList'], str ): # Some other bookcode (but not the current one)
+            self.booksSelectVariable.set( 4 )
         elif isinstance( self.optionsDict['bookList'], list ): self.booksSelectVariable.set( 4 )
         else:
             print( "booklist options", self.optionsDict['bookList'] )
@@ -1045,8 +1052,11 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.rbb1.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rbb3.grid( row=4, column=2, padx=2, pady=1, sticky=tk.W )
         if isinstance( self.optionsDict['bookList'], list ):
-            if len( self.optionsDict['bookList'] ) == 1: sbText = self.optionsDict['bookList'][0]
+            if len( self.optionsDict['bookList'] ) == 1 and self.optionsDict['bookList'] != 'ALL':
+                sbText = self.optionsDict['bookList'][0]
             else: sbText = len( self.optionsDict['bookList'] )
+        elif isinstance( self.optionsDict['bookList'], str ) and self.optionsDict['bookList'] != 'ALL':
+            sbText = 1
         else: sbText = 0
         self.rbb2 = Radiobutton( master, text=_("Current book")+" ({})".format( self.optionsDict['currentBCV'][0] ), variable=self.booksSelectVariable, value=2 )
         self.rbb2.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
@@ -1107,7 +1117,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         """
         self.parent._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
-        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.givenBible, currentBBB, title=_('Books to be searched') )
+        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
         if BibleOrgSysGlobals.debugFlag: print( "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
@@ -1307,6 +1317,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.searchStringBox.bind( '<Return>', self.ok )
         #self.searchStringBox.pack( side=tk.LEFT )
         self.searchStringBox.grid( row=1, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+        self.searchStringBox.icursor( tk.END ) # Set cursor to end (makes spaces visible)
 
         Label( master, text=_("Replace:") ).grid( row=2, column=0, padx=2, pady=5, sticky=tk.E )
         self.replaceStringVar = tk.StringVar()
@@ -1319,6 +1330,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.replaceStringBox.bind( '<Return>', self.ok )
         #self.replaceStringBox.pack( side=tk.LEFT )
         self.replaceStringBox.grid( row=2, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+        self.replaceStringBox.icursor( tk.END ) # Set cursor to end (makes spaces visible)
 
         wordLimitsFrame = tk.LabelFrame( master, text=_("Word limits"), padx=5, pady=5 )
         wordLimitsFrame.grid( row=3, column=0, padx=10, pady=10, sticky=tk.W )
@@ -1433,7 +1445,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         """
         self.parent._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
-        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.givenBible, currentBBB, title=_('Books to be Replaceed') )
+        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be Replaceed') )
         if BibleOrgSysGlobals.debugFlag: print( "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
@@ -1590,13 +1602,13 @@ class ReplaceConfirmDialog( ModalDialog ):
     def body( self, master ):
         label1 = Label( master, text=self.referenceString )
         label1.pack( side=tk.TOP )
-        label2 = Label( master, text=_("Before") )
+        label2 = Label( master, text=_('Before') )
         label2.pack( side=tk.TOP, anchor=tk.W )
         textBox1 = tk.Text( master, height=5 )
         textBox1.insert( tk.END, self.contextBefore+self.searchText+self.contextAfter )
         textBox1.configure( state=tk.DISABLED )
         textBox1.pack( side=tk.TOP, fill=tk.X )
-        label3 = Label( master, text=_("After") )
+        label3 = Label( master, text=_('After') )
         label3.pack( side=tk.TOP, anchor=tk.W )
         textBox2 = tk.Text( master, height=5 )
         textBox2.insert( tk.END, self.finalText )
@@ -1605,13 +1617,13 @@ class ReplaceConfirmDialog( ModalDialog ):
 
         #buttonFrame = tk.Frame( master, padx=5, pady=5 )
         #buttonFrame.pack( side=tk.BOTTOM, anchor=tk.E, fill=tk.X, padx=2, pady=1 )
-        #yesButton = Button( master, text=_("Yes"), command=self.doYes )
+        #yesButton = Button( master, text=_('Yes'), command=self.doYes )
         #yesButton.pack( in_=buttonFrame, side=tk.LEFT, padx=2, pady=2 )
-        #noButton = Button( master, text=_("No"), command=self.doNo )
+        #noButton = Button( master, text=_('No'), command=self.doNo )
         #noButton.pack( in_=buttonFrame, side=tk.LEFT, padx=2, pady=2 )
-        #allButton = Button( master, text=_("All"), command=self.doAll )
+        #allButton = Button( master, text=_('All'), command=self.doAll )
         #allButton.pack( in_=buttonFrame, side=tk.LEFT, padx=2, pady=2 )
-        #cancelButton = Button( master, text=_("Stop"), command=self.doStop )
+        #cancelButton = Button( master, text=_('Stop'), command=self.doStop )
         #cancelButton.pack( in_=buttonFrame, side=tk.LEFT, padx=2, pady=2 )
 
         #return yesButton
@@ -1619,22 +1631,22 @@ class ReplaceConfirmDialog( ModalDialog ):
     # end of ReplaceConfirmDialog.body
 
     def buttonBox( self ):
-        """
+        '''
         Add ourstandard button box
 
         Override if you don't want the standard buttons.
-        """
+        '''
         box = Frame( self )
 
-        yesButton = Button( box, text=_("Yes"), width=10, command=self.doYes, default=tk.ACTIVE )
+        yesButton = Button( box, text=_('Yes (Replace)'), command=self.doYes, default=tk.ACTIVE )
         yesButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        noButton = Button( box, text=_("No"), width=10, command=self.doNo )
+        noButton = Button( box, text=_('No'), width=10, command=self.doNo )
         noButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        allButton = Button( box, text=_("All"), width=10, command=self.doAll )
+        allButton = Button( box, text=_('All (Yes)'), width=10, command=self.doAll )
         allButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        cancelButton = Button( box, text=_("Stop"), width=10, command=self.doStop )
+        cancelButton = Button( box, text=_('Stop (No more)'), command=self.doStop )
         cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        undoButton = Button( box, text=_("Undo all"), width=10, command=self.doUndo )
+        undoButton = Button( box, text=_('Undo all'), width=10, command=self.doUndo )
         undoButton.pack( side=tk.LEFT, padx=5, pady=5 )
         if not self.haveUndos: undoButton.configure( state=tk.DISABLED )
 

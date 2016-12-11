@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-12-06 RJH
+Last updated: 2016-12-09 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,9 +14,10 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Do a proper select books box
+* Bible find can't find/replace space at end of line -- why not? regex: $ or space EndLine
 * Crashes if exit program with find results box open (and crashes again when restarting)
-* Find in chapter 0 gives wrong verse (sometimes -- why???)
-* Can't find or replace spaces at ends of lines
+* Find in chapter 0 gives wrong verse (only sometimes -- why???)
 * Ctrl+F doesn't workin in edit window or resource for Bible Find
 * F1 help and F12 about doesn't seem to work from most windows
 * F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
