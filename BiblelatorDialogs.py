@@ -47,7 +47,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-09'
+LastModifiedDate = '2016-12-12'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.39'
@@ -242,10 +242,11 @@ class BookNameDialog( ModalDialog ):
         Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
         """
         buttonsAcross = 5
-        if len(self.bookNameList) > 100: buttonsAcross = 12
-        elif len(self.bookNameList) > 80: buttonsAcross = 10
-        elif len(self.bookNameList) > 60: buttonsAcross = 8
-        elif len(self.bookNameList) > 30: buttonsAcross = 6
+        numBooks = len( self.bookNameList )
+        if numBooks > 100: buttonsAcross = 12
+        elif numBooks > 80: buttonsAcross = 10
+        elif numBooks > 60: buttonsAcross = 8
+        elif numBooks > 30: buttonsAcross = 6
         xPad, yPad = 6, 8
 
         grid=Frame( master )
@@ -656,29 +657,29 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         """
         Label( master, text=_("Create book files:") ).grid( row=0 )
         self.selectVariable1 = tk.IntVar()
-        self.rb1a = Radiobutton( master, text=_("Current book ({})").format( self.currentBBB ), variable=self.selectVariable1, value=1 )
-        self.rb1a.grid( row=0, column=1, sticky=tk.W )
-        self.rb1b = Radiobutton( master, text=_("All books"), variable=self.selectVariable1, value=2 )
-        self.rb1b.grid( row=1, column=1, sticky=tk.W )
-        self.rb1c = Radiobutton( master, text=_("OT books"), variable=self.selectVariable1, value=3 )
-        self.rb1c.grid( row=2, column=1, sticky=tk.W )
-        self.rb1d = Radiobutton( master, text=_("NT books"), variable=self.selectVariable1, value=4 )
-        self.rb1d.grid( row=3, column=1, sticky=tk.W )
-        self.rb1e = Radiobutton( master, text=_("No books (not advised)"), variable=self.selectVariable1, value=5 )
-        self.rb1e.grid( row=4, column=1, sticky=tk.W )
+        rb1a = Radiobutton( master, text=_('Current book ({})').format( self.currentBBB ), variable=self.selectVariable1, value=1 )
+        rb1a.grid( row=0, column=1, sticky=tk.W )
+        rb1b = Radiobutton( master, text=_('All books'), variable=self.selectVariable1, value=2 )
+        rb1b.grid( row=1, column=1, sticky=tk.W )
+        rb1c = Radiobutton( master, text=_('OT books'), variable=self.selectVariable1, value=3 )
+        rb1c.grid( row=2, column=1, sticky=tk.W )
+        rb1d = Radiobutton( master, text=_('NT books'), variable=self.selectVariable1, value=4 )
+        rb1d.grid( row=3, column=1, sticky=tk.W )
+        rb1e = Radiobutton( master, text=_('No books (not advised)'), variable=self.selectVariable1, value=5 )
+        rb1e.grid( row=4, column=1, sticky=tk.W )
 
         Label( master, text=_("Files will contain:") ).grid( row=6, sticky=tk.W )
         self.selectVariable2 = tk.IntVar()
-        self.rb2a = Radiobutton( master, text=_("CV markers from versification"), variable=self.selectVariable2, value=1,
+        rb2a = Radiobutton( master, text=_("CV markers from versification"), variable=self.selectVariable2, value=1,
                                 state = tk.NORMAL if self.availableVersifications else tk.DISABLED )
-        self.rb2a.grid( row=7, column=0, sticky=tk.W )
-        self.rb2b = Radiobutton( master, text=_("All markers from a USFM version"), variable=self.selectVariable2, value=2 )
+        rb2a.grid( row=7, column=0, sticky=tk.W )
+        rb2b = Radiobutton( master, text=_("All markers from a USFM version"), variable=self.selectVariable2, value=2 )
                                 #state = tk.NORMAL if self.availableVersions else tk.DISABLED )
-        self.rb2b.grid( row=8, column=0, sticky=tk.W )
-        self.rb2c = Radiobutton( master, text=_("Only basic header lines (not advised)"), variable=self.selectVariable2, value=3 )
-        self.rb2c.grid( row=9, column=0, sticky=tk.W )
-        self.rb2d = Radiobutton( master, text=_("Nothing at all (not advised)"), variable=self.selectVariable2, value=4 )
-        self.rb2d.grid( row=10, column=0, sticky=tk.W )
+        rb2b.grid( row=8, column=0, sticky=tk.W )
+        rb2c = Radiobutton( master, text=_("Only basic header lines (not advised)"), variable=self.selectVariable2, value=3 )
+        rb2c.grid( row=9, column=0, sticky=tk.W )
+        rb2d = Radiobutton( master, text=_("Nothing at all (not advised)"), variable=self.selectVariable2, value=4 )
+        rb2d.grid( row=10, column=0, sticky=tk.W )
 
         #cb1Values = ["test1a","test1b","test1c"]
         self.cb1 = Combobox( master, values=self.availableVersifications,
@@ -877,22 +878,27 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         self.booksSelectVariable = tk.IntVar()
 
-        self.rb1 = Radiobutton( master, text=_("Current book")+" ({})".format( self.currentBBB ), variable=self.booksSelectVariable, value=1 )
-        self.rb1.grid( row=0, column=0, sticky=tk.W )
-        allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
-        self.rb2 = Radiobutton( master, text=allText, variable=self.booksSelectVariable, value=2 )
-        self.rb2.grid( row=1, column=0, sticky=tk.W )
-        self.rb3 = Radiobutton( master, text=_("OT books"), variable=self.booksSelectVariable, value=3 )
-        self.rb3.grid( row=2, column=0, sticky=tk.W )
-        self.rb4 = Radiobutton( master, text=_("NT books"), variable=self.booksSelectVariable, value=4 )
-        self.rb4.grid( row=3, column=0, sticky=tk.W )
-        self.rb5 = Radiobutton( master, text=_("DC books"), variable=self.booksSelectVariable, value=5 )
-        self.rb5.grid( row=4, column=0, sticky=tk.W )
-        if self.currentList:
-            self.rb6 = Radiobutton( master, text=str(self.currentList), variable=self.booksSelectVariable, value=6 )
-            self.rb6.grid( row=5, column=0, sticky=tk.W )
+        rb1 = Radiobutton( master, text=_('Current book')+" ({})".format( self.currentBBB ), variable=self.booksSelectVariable, value=1 )
+        rb1.grid( row=0, column=0, sticky=tk.W )
+        allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _('All books')
+        rb2 = Radiobutton( master, text=allText, variable=self.booksSelectVariable, value=2 )
+        rb2.grid( row=1, column=0, sticky=tk.W )
+        rb3 = Radiobutton( master, text=_('OT books'), variable=self.booksSelectVariable, value=3 )
+        rb3.grid( row=2, column=0, sticky=tk.W )
+        rb4 = Radiobutton( master, text=_('NT books'), variable=self.booksSelectVariable, value=4 )
+        rb4.grid( row=3, column=0, sticky=tk.W )
+        rb5 = Radiobutton( master, text=_('DC books'), variable=self.booksSelectVariable, value=5 )
+        rb5.grid( row=4, column=0, sticky=tk.W )
+        self.rb6 = Radiobutton( master,
+                text=str(self.currentList) if len(self.currentList)<10 else _('Selected books')+' ({})'.format( len(self.currentList) ),
+                variable=self.booksSelectVariable, value=6 ) \
+            if self.currentList and self.currentList!='ALL' else \
+            Radiobutton( master, text=_('N/A'), variable=self.booksSelectVariable, value=6, state=tk.DISABLED )
+        self.rb6.grid( row=5, column=0, sticky=tk.W )
+        b1 = Button( master, text=_('Select')+'…', command=self.doIndividual )
+        b1.grid( row=6, column=0, sticky=tk.W )
 
-        return self.rb1 # initial focus
+        return rb1 # initial focus
     # end of GetBibleBookRangeDialog.body
 
 
@@ -904,8 +910,32 @@ class GetBibleBookRangeDialog( ModalDialog ):
         Returns True or False.
         """
         resultNumber = self.booksSelectVariable.get()
-        return 1 <= resultNumber <= 5
+        return 1 <= resultNumber <= 6
     # end of GetBibleBookRangeDialog.validate
+
+
+    def doIndividual( self ):
+        """
+        """
+        self.availableList = self.givenBible.getBookList()
+        sIBBD = SelectIndividualBibleBooksDialog( self, self.parentApp, self.availableList, self.currentList, title=_('Books to be searched') )
+        if 1 or BibleOrgSysGlobals.debugFlag: print( "individualBooks sIBBDResult", repr(sIBBD.result) )
+        if sIBBD.result: # Returns a list of books
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( sIBBD.result, list )
+            resultCount = len( sIBBD.result )
+            if resultCount==1 and sIBBD.result[0]==currentBBB:
+                # It's just the current book to search
+                self.booksSelectVariable.set( 1 )
+            elif resultCount == len( self.availableList ):
+                self.booksSelectVariable.set( 2 )
+            else:
+                self.booksSelectVariable.set( 6 )
+                self.currentList = sIBBD.result
+                self.rb6['state'] = tk.NORMAL
+                self.rb6['text'] = str(self.currentList) if len(self.currentList)<10 else _('Selected books')+' ({})'.format( len(self.currentList) )
+            #self.update()
+        else: print( "selectIndividual: Nothing selected!" )
+    # end of GetBibleBookRangeDialog.doIndividual
 
 
     def apply( self ):
@@ -926,6 +956,159 @@ class GetBibleBookRangeDialog( ModalDialog ):
             halt # Unexpected result value
     # end of GetBibleBookRangeDialog.apply
 # end of class GetBibleBookRangeDialog
+
+
+
+class SelectIndividualBibleBooksDialog( ModalDialog ):
+    """
+    Get the new name for a resource collection.
+    """
+    def __init__( self, parent, parentApp, availableList, currentList, title ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag: parentApp.setDebugText( "SelectIndividualBibleBooksDialog…" )
+        self.parentApp, self.availableList, self.currentList = parentApp, availableList, currentList
+        ModalDialog.__init__( self, parent, title )
+    # end of SelectIndividualBibleBooksDialog.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        self.groupSelectVariable = tk.IntVar()
+        rb1b = Radiobutton( master, text=_('OT books'), variable=self.groupSelectVariable, value=1 )
+        rb1b.grid( row=0, column=0, sticky=tk.W )
+        rb1c = Radiobutton( master, text=_('NT books'), variable=self.groupSelectVariable, value=2 )
+        rb1c.grid( row=1, column=0, sticky=tk.W )
+        rb1d = Radiobutton( master, text=_('DC books'), variable=self.groupSelectVariable, value=3 )
+        rb1d.grid( row=2, column=0, sticky=tk.W )
+        rb1e = Radiobutton( master, text=_('Other books'), variable=self.groupSelectVariable, value=4 )
+        rb1e.grid( row=3, column=0, sticky=tk.W )
+        rb1f = Radiobutton( master, text=_('All books'), variable=self.groupSelectVariable, value=5 )
+        rb1f.grid( row=4, column=0, sticky=tk.W )
+
+        b1 = Button( master, text=_('Select'), command=self.doSelect )
+        b1.grid( row=5, column=0, sticky=tk.W )
+        b2 = Button( master, text=_('Deselect'), command=self.doDeselect )
+        b2.grid( row=6, column=0, sticky=tk.W )
+
+
+        # Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
+        numBooks = len( self.availableList )
+        if numBooks > 100: buttonsAcross = 12
+        elif numBooks > 80: buttonsAcross = 10
+        elif numBooks > 60: buttonsAcross = 8
+        elif numBooks > 30: buttonsAcross = 6
+        xPad, yPad = 6, 8
+
+        grid=Frame( master )
+        grid.grid( column=0, row=7, columnspan=2, sticky=tk.N+tk.S+tk.E+tk.W )
+        tk.Grid.rowconfigure( master, 7, weight=1 )
+        tk.Grid.columnconfigure( master, 0, weight=1 )
+
+        self.variables = []
+        for j,BBB in enumerate(self.availableList):
+            col, row = j // buttonsAcross + 1, j % buttonsAcross
+            #print( j, row, col )
+            thisVar =  tk.IntVar()
+            if BBB in self.currentList: thisVar.set( 1 ) # Preset any formerly selected books
+            self.variables.append( thisVar )
+            tk.Checkbutton( master, text=BBB, variable=thisVar ) \
+                    .grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
+
+        for x in range(10):
+            tk.Grid.columnconfigure( master, x, weight=1 )
+        for y in range(5):
+            tk.Grid.rowconfigure( master, y, weight=1 )
+
+        #return 0
+    # end of SelectIndividualBibleBooksDialog.body
+
+
+    #def validate( self ):
+        #"""
+        #Override the empty ModalDialog.validate function
+            #to check that the results are how we need them.
+
+        #Returns True or False.
+        #"""
+        #resultNumber = self.booksSelectVariable.get()
+        #return 1 <= resultNumber <= 5
+    ## end of SelectIndividualBibleBooksDialog.validate
+
+
+    def doSelect( self ):
+        """
+        Button does nothing at all if no radio buttons selected.
+        """
+        resultNumber = self.groupSelectVariable.get()
+        if resultNumber == 1: # 'OT'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR( BBB ):
+                    variable.set( 1 )
+        elif resultNumber == 2: # 'NT'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if BibleOrgSysGlobals.BibleBooksCodes.isNewTestament_NR( BBB ):
+                    variable.set( 1 )
+        elif resultNumber == 3: # 'DC'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if BibleOrgSysGlobals.BibleBooksCodes.isDeuterocanon_NR( BBB ):
+                    variable.set( 1 )
+        elif resultNumber == 4: # 'Other'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if not BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR( BBB ) \
+                and not BibleOrgSysGlobals.BibleBooksCodes.isNewTestament_NR( BBB ) \
+                and not BibleOrgSysGlobals.BibleBooksCodes.isDeuterocanon_NR( BBB ):
+                    variable.set( 1 )
+        elif resultNumber == 5: # 'ALL'
+            for variable in self.variables: variable.set( 1 )
+        self.groupSelectVariable.set( 0 ) # Turn off all radiobuttons
+    # end of SelectIndividualBibleBooksDialog.doSelect
+
+
+    def doDeselect( self ):
+        """
+        Button does nothing at all if no radio buttons selected.
+        """
+        resultNumber = self.groupSelectVariable.get()
+        if resultNumber == 1: # 'OT'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR( BBB ):
+                    variable.set( 0 )
+        elif resultNumber == 2: # 'NT'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if BibleOrgSysGlobals.BibleBooksCodes.isNewTestament_NR( BBB ):
+                    variable.set( 0 )
+        elif resultNumber == 3: # 'DC'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if BibleOrgSysGlobals.BibleBooksCodes.isDeuterocanon_NR( BBB ):
+                    variable.set( 0 )
+        elif resultNumber == 4: # 'Other'
+            for variable, BBB in zip( self.variables, self.availableList):
+                if not BibleOrgSysGlobals.BibleBooksCodes.isOldTestament_NR( BBB ) \
+                and not BibleOrgSysGlobals.BibleBooksCodes.isNewTestament_NR( BBB ) \
+                and not BibleOrgSysGlobals.BibleBooksCodes.isDeuterocanon_NR( BBB ):
+                    variable.set( 0 )
+        elif resultNumber == 5: # 'ALL'
+            for variable in self.variables: variable.set( 0 )
+        self.groupSelectVariable.set( 0 ) # Turn off all radiobuttons
+    # end of SelectIndividualBibleBooksDialog.doDeselect
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        self.result = []
+        for variable, bookName in zip( self.variables, self.availableList ):
+            if variable.get(): self.result.append( bookName )
+    # end of SelectIndividualBibleBooksDialog.apply
+# end of class SelectIndividualBibleBooksDialog
 
 
 
@@ -994,7 +1177,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.searchStringBox.grid( row=1, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
         self.searchStringBox.icursor( tk.END ) # Set cursor to end (makes spaces visible)
 
-        wordLimitsFrame = tk.LabelFrame( master, text=_("Word limits"), padx=5, pady=5 )
+        wordLimitsFrame = tk.LabelFrame( master, text=_('Word limits'), padx=5, pady=5 )
         wordLimitsFrame.grid( row=2, column=0, padx=10, pady=10, sticky=tk.W )
 
         self.wordModeSelectVariable = tk.IntVar()
@@ -1005,19 +1188,19 @@ class GetBibleSearchTextDialog( ModalDialog ):
         elif self.optionsDict['wordMode'] == 'EndsLine': self.wordModeSelectVariable.set( 5 )
         else: halt # programming error
 
-        self.rwmb1 = Radiobutton( master, text=_("No restriction" ), variable=self.wordModeSelectVariable, value=1 )
+        self.rwmb1 = Radiobutton( master, text=_('No restriction'), variable=self.wordModeSelectVariable, value=1 )
         self.rwmb1.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rwmb1.grid( row=2, column=0, padx=2, pady=1, sticky=tk.W )
-        self.rwmb2 = Radiobutton( master, text=_("Whole words only" ), variable=self.wordModeSelectVariable, value=2 )
+        self.rwmb2 = Radiobutton( master, text=_('Whole words only'), variable=self.wordModeSelectVariable, value=2 )
         self.rwmb2.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rwmb2.grid( row=3, column=0, padx=2, pady=1, sticky=tk.W )
-        self.rwmb3 = Radiobutton( master, text=_("Beginning of word" ), variable=self.wordModeSelectVariable, value=3 )
+        self.rwmb3 = Radiobutton( master, text=_('Beginning of word'), variable=self.wordModeSelectVariable, value=3 )
         self.rwmb3.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rwmb3.grid( row=4, column=0, padx=2, pady=1, sticky=tk.W )
-        self.rwmb4 = Radiobutton( master, text=_("End of word" ), variable=self.wordModeSelectVariable, value=4 )
+        self.rwmb4 = Radiobutton( master, text=_('End of word'), variable=self.wordModeSelectVariable, value=4 )
         self.rwmb4.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rwmb4.grid( row=5, column=0, padx=2, pady=1, sticky=tk.W )
-        self.rwmb5 = Radiobutton( master, text=_("End of line" ), variable=self.wordModeSelectVariable, value=5 )
+        self.rwmb5 = Radiobutton( master, text=_('End of line'), variable=self.wordModeSelectVariable, value=5 )
         self.rwmb5.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
 
         self.mcaseVar = tk.IntVar()
@@ -1058,16 +1241,16 @@ class GetBibleSearchTextDialog( ModalDialog ):
         elif isinstance( self.optionsDict['bookList'], str ) and self.optionsDict['bookList'] != 'ALL':
             sbText = 1
         else: sbText = 0
-        self.rbb2 = Radiobutton( master, text=_("Current book")+" ({})".format( self.optionsDict['currentBCV'][0] ), variable=self.booksSelectVariable, value=2 )
+        self.rbb2 = Radiobutton( master, text=_('Current book')+' ({})'.format( self.optionsDict['currentBCV'][0] ), variable=self.booksSelectVariable, value=2 )
         self.rbb2.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rbb2.grid( row=2, column=2, padx=2, pady=1, sticky=tk.W )
-        self.rbb3 = Radiobutton( master, text=_("Current chapter")+" ({} {})".format( self.optionsDict['currentBCV'][0], self.optionsDict['currentBCV'][1] ), variable=self.booksSelectVariable, value=3 )
+        self.rbb3 = Radiobutton( master, text=_('Current chapter')+' ({} {})'.format( self.optionsDict['currentBCV'][0], self.optionsDict['currentBCV'][1] ), variable=self.booksSelectVariable, value=3 )
         self.rbb3.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rbb3.grid( row=3, column=2, padx=2, pady=1, sticky=tk.W )
-        self.rbb4 = Radiobutton( master, text=_("Selected books ({})").format( sbText ), variable=self.booksSelectVariable, value=4 )
+        self.rbb4 = Radiobutton( master, text=_('Selected books'+' ({})').format( sbText ), variable=self.booksSelectVariable, value=4 )
         #self.rbb4.grid( row=5, column=2, padx=2, pady=1, sticky=tk.W )
         self.rbb4.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
-        bb = Button( master, text=_("Select books…"), command=self.selectBooks )
+        bb = Button( master, text=_('Select books')+'…', command=self.selectBooks )
         bb.pack( in_=bookLimitsFrame, side=tk.TOP, anchor=tk.E )
 
         fieldLimitsFrame = tk.LabelFrame( master, text=_("Field limits"), padx=5, pady=5 )
@@ -1600,6 +1783,8 @@ class ReplaceConfirmDialog( ModalDialog ):
 
 
     def body( self, master ):
+        """
+        """
         label1 = Label( master, text=self.referenceString )
         label1.pack( side=tk.TOP )
         label2 = Label( master, text=_('Before') )
@@ -1714,10 +1899,10 @@ class SelectInternalBibleDialog( ModalDialog ):
         Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
         """
         buttonsAcross = 2
-        #if len(self.bookNameList) > 100: buttonsAcross = 12
-        #elif len(self.bookNameList) > 80: buttonsAcross = 10
-        #elif len(self.bookNameList) > 60: buttonsAcross = 8
-        #elif len(self.bookNameList) > 30: buttonsAcross = 6
+        #if numBooks > 100: buttonsAcross = 12
+        #elif numBooks > 80: buttonsAcross = 10
+        #elif numBooks > 60: buttonsAcross = 8
+        #elif numBooks > 30: buttonsAcross = 6
         xPad, yPad = 6, 8
 
         grid=Frame( master )

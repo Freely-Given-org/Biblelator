@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-12-09 RJH
+Last updated: 2016-12-12 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,8 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
-* Do a proper select books box
-* Bible find can't find/replace space at end of line -- why not? regex: $ or space EndLine
+* Bible find can't find/replace space at end of line -- why not? because removed at load time!
 * Crashes if exit program with find results box open (and crashes again when restarting)
 * Find in chapter 0 gives wrong verse (only sometimes -- why???)
 * Ctrl+F doesn't workin in edit window or resource for Bible Find
@@ -40,7 +39,6 @@ Biblelator bugs / unfinished
 * Bible find can default to any currently selected text in edit window?
 * Bible find can't seem to jump to GLO lines
 * Bible replace needs more work on reloading open books/Bibles
-* Book select needs to allow choice of individual books
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
