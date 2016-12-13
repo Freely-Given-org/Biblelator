@@ -919,7 +919,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         self.availableList = self.givenBible.getBookList()
         sIBBD = SelectIndividualBibleBooksDialog( self, self.parentApp, self.availableList, self.currentList, title=_('Books to be searched') )
-        if 1 or BibleOrgSysGlobals.debugFlag: print( "individualBooks sIBBDResult", repr(sIBBD.result) )
+        if BibleOrgSysGlobals.debugFlag: print( "individualBooks sIBBDResult", repr(sIBBD.result) )
         if sIBBD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( sIBBD.result, list )
             resultCount = len( sIBBD.result )

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-10-23' # by RJH
+LastModifiedDate = '2016-12-14' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -89,7 +89,7 @@ from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
-from PTX7Bible import PTX7Bible, loadPTXProjectData
+from PTX7Bible import PTX7Bible, loadPTX7ProjectData
 
 
 
@@ -1877,7 +1877,7 @@ class Application( Frame ):
             return
         ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
         #ptxBible.loadSSFData( SSFFilepath )
-        PTXSettingsDict = loadPTXProjectData( ptxBible, SSFFilepath )
+        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
             if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
@@ -1937,7 +1937,7 @@ class Application( Frame ):
 
         self.setWaitStatus( _("openParatextBibleEditWindow…") )
         ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
-        PTXSettingsDict = loadPTXProjectData( ptxBible, SSFFilepath )
+        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
             if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}

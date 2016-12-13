@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-12-12 RJH
+Last updated: 2016-12-13 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -101,6 +101,7 @@ BOSManager / SwordManager / Settings editor stuff
 
 
 Biblelator stuff
+* Add AND and OR for Bible find
 * Add a pop-up quick reference box (with all open translations???)
 * Make HTML window more robust (failed if meta line was missing self-closing slash)
 * Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)

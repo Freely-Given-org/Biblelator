@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2016-12-13' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.39'
@@ -699,7 +699,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             else: minVerseMarkers = maxVerseMarkers = 1
         elif self._contextViewMode == 'BySection':
             minChapterMarkers, maxChapterMarkers = 0, 1
-            minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,10)
+            minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,30)
         elif self._contextViewMode == 'ByBook':
             minChapterMarkers = maxChapterMarkers = self.getNumChapters( BBB )
             minVerseMarkers = maxVerseMarkers = self.numTotalVerses
