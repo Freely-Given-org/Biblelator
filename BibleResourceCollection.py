@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2016-12-14' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.39'
@@ -175,6 +175,7 @@ class BibleResourceBox( Frame, BibleBox ):
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
+        self.createContextMenu() # for the box
 
         # Set-up our standard Bible styles
         for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -924,29 +925,6 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         else:
             logging.critical( exp("doOpenSwordResourceBox: no list available") )
             showerror( self, APP_NAME, _("No Sword resources discovered") )
-
-        ## Old code
-        #availableModules = self.parentApp.SwordInterface.library
-        ##print( "aM1", availableModules )
-        #ourList = None
-        #if availableModules is not None:
-            #ourList = availableModules.getAvailableModuleCodes()
-        ##print( "ourList", ourList )
-        #if ourList:
-            #srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
-            ##print( "srbResult", repr(srb.result) )
-            #if srb.result:
-                #for entry in srb.result:
-                    #self.parentApp.setWaitStatus( _("Loading {} Sword module…").format( repr(entry) ) )
-                    #self.openSwordBibleResourceBox( entry )
-                ##self.acceptNewBnCV()
-                ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-            #elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResourceBox: no resource selected!") )
-        #else:
-            #logging.critical( exp("doOpenSwordResourceBox: no list available") )
-            #showerror( self, APP_NAME, _("No Sword resources discovered") )
-        ##self.acceptNewBnCV()
-        ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of BibleResourceCollectionWindow.doOpenSwordResourceBox
 
     def openSwordBibleResourceBox( self, moduleAbbreviation, windowGeometry=None ):

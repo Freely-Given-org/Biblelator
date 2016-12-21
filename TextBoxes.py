@@ -58,14 +58,16 @@ class ChildBox
     doClose( self, event=None )
 
 class BibleBox( ChildBox )
+    createContextMenu( self )
     displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False )
     getBeforeAndAfterBibleData( self, newVerseKey )
-
+    doBibleFind( self, event=None )
+    doActualBibleFind( self, extendTo=None )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2016-12-16' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.39'
@@ -83,6 +85,8 @@ from tkinter.simpledialog import askstring, askinteger
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT, errorBeep, \
                                 BIBLE_FORMAT_VIEW_MODES
+from BiblelatorDialogs import showerror, showinfo, GetBibleSearchTextDialog
+
 
 # BibleOrgSys imports
 if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -641,7 +645,6 @@ class ChildBox():
         """
         Copy the selected text onto the clipboard.
         """
-        from BiblelatorDialogs import showerror
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doCopy( {} )").format( event ) )
 
@@ -672,7 +675,6 @@ class ChildBox():
     def doGotoWindowLine( self, event=None, forceline=None ):
         """
         """
-        from BiblelatorDialogs import showerror
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doGotoWindowLine {}'.format( forceline ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doGotoWindowLine( {}, {} )").format( event, forceline ) )
@@ -697,7 +699,6 @@ class ChildBox():
     def doWindowFind( self, event=None, lastkey=None ):
         """
         """
-        from BiblelatorDialogs import showerror
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doWindowFind {!r}'.format( lastkey ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doWindowFind( {}, {!r} )").format( event, lastkey ) )
@@ -738,7 +739,6 @@ class ChildBox():
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        from BiblelatorDialogs import showinfo
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doShowInfo( {} )").format( event ) )
@@ -850,6 +850,35 @@ class BibleBox( ChildBox ):
     A set of functions that work for any Bible frame or window that has a member: self.textBox
         and also uses verseKeys
     """
+    def createContextMenu( self ):
+        """
+        Can be overriden if necessary.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBox.createContextMenu()") )
+
+        self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
+        self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        self.textBox.contextMenu.add_separator()
+        self.textBox.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        self.textBox.contextMenu.add_separator()
+        self.textBox.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.textBox.contextMenu.add_separator()
+        self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=0, command=self.doBibleFind ) #, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+
+        self.textBox.bind( '<Button-3>', self.showContextMenu ) # right-click
+        #self.pack()
+
+        self.BibleFindOptionsDict, self.BibleReplaceOptionsDict = {}, {}
+    # end of BibleBox.createContextMenu
+
+    def showContextMenu( self, event ):
+        self.textBox.contextMenu.tk_popup( event.x_root, event.y_root )
+    # end of BibleBox.showContextMenu
+
+
     def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
         """
         Add the requested verse to the end of self.textBox.
@@ -1200,6 +1229,83 @@ class BibleBox( ChildBox ):
 
         return verseData, previousVersesData, nextVersesData
     # end of BibleBox.getBeforeAndAfterBibleData
+
+
+    def doBibleFind( self, event=None ):
+        """
+        Note that BibleFind works on the imported files,
+            so it can work from any Window that has an internalBible.
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doBibleFind' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBox.doBibleFind( {} )").format( event ) )
+
+        if self.internalBible is None:
+            logging.critical( _("No Bible to search") )
+            return
+        #print( "intBib", self.internalBible )
+
+        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        gBSTD = GetBibleSearchTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
+        if gBSTD.result:
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
+            self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
+            self.doActualBibleFind()
+        self.parentApp.setReadyStatus()
+    # end of BibleBox.doBibleFind
+
+
+    def doActualBibleFind( self, extendTo=None ):
+        """
+        """
+        from ChildWindows import FindResultWindow
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doActualBibleFind' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBox.doActualBibleFind( {} )").format( extendTo ) )
+
+        self.parentApp.setWaitStatus( _("Searching…") )
+        #self.textBox.update()
+        #self.textBox.focus()
+        #self.lastfind = key
+        self.parentApp.logUsage( ProgName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        self._prepareInternalBible() # Make sure that all books are loaded
+        # We search the loaded Bible processed lines
+        self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
+        #print( "Got searchResults", searchResults )
+        if len(searchResultList) == 0: # nothing found
+            errorBeep()
+            key = self.BibleFindOptionsDict['searchText']
+            showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+        else:
+            try: replaceFunction = self.doBibleReplace
+            except AttributeError: replaceFunction = None # Read-only Bible boxes don't have a replace function
+            findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList,
+                                    findFunction=self.doBibleFind, refindFunction=self.doActualBibleFind,
+                                    replaceFunction=replaceFunction, extendTo=extendTo )
+            self.parentApp.childWindows.append( findResultWindow )
+        self.parentApp.setReadyStatus()
+    # end of BibleBox.doActualBibleFind
+
+
+    def _prepareInternalBible( self ):
+        """
+        Prepare to do a search on the Internal Bible object
+            or to do some of the exports or checks available in BibleOrgSysGlobals.
+
+        Note that this function saves the current book if it's modified.
+
+        Leaves the wait cursor displayed.
+        """
+        logging.debug( exp("BibleBox._prepareInternalBible()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBox._prepareInternalBible()") )
+
+        if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
+        if self.internalBible is not None:
+            self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
+            self.internalBible.load()
+    # end of BibleBox._prepareInternalBible
 # end of class BibleBox
 
 

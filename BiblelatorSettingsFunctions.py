@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-28' # by RJH
+LastModifiedDate = '2016-12-21' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.39'
@@ -473,7 +473,7 @@ def getCurrentChildWindowSettings( self ):
     if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
     self.windowsSettingsDict['Current'] = {}
     for j, appWin in enumerate( self.childWindows ):
-        if appWin.windowType == 'HTMLWindow':
+        if appWin.windowType in ( 'HTMLWindow', 'FindResultWindow' ):
             continue # We don't save these
 
         winNumber = "window{}".format( j+1 )
@@ -522,9 +522,6 @@ def getCurrentChildWindowSettings( self ):
         elif appWin.windowType == 'ParatextUSFMBibleEditWindow':
             thisOne['SSFFilepath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
-
-        elif appWin.windowType == 'FindResultWindow':
-            pass # nothing yet
 
         else:
             logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.windowType) ) )

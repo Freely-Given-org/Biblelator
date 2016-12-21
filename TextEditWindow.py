@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2016-12-14' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.39'
@@ -129,6 +129,7 @@ class TextEditWindow( ChildWindow ):
         self.textBox.setTextChangeCallback( self.onTextChange )
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
+        self.createContextMenu() # Enable right-click menu
 
         self.lastFiletime = self.lastFilesize = None
         self.clearText()
@@ -315,8 +316,8 @@ class TextEditWindow( ChildWindow ):
         self.contextMenu.add_command( label=_('Paste'), underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict[_('Paste')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
     # end of TextEditWindow.createContextMenu

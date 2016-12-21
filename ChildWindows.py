@@ -26,15 +26,16 @@
 Base windows to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
 
-    class ChildWindow
-    class ChildWindows
-    class HTMLWindow
-    class FindResultWindow
+    class ChildWindow( tk.Toplevel, ChildBox )
+    class BibleWindow( ChildWindow, BibleBox )
+    class ChildWindows( list )
+    class HTMLWindow( tk.Toplevel, ChildBox )
+    class FindResultWindow( tk.Toplevel )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-06' # by RJH
+LastModifiedDate = '2016-12-16' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.39'
@@ -115,7 +116,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
         self.createMenuBar()
         self.createToolBar()
-        self.createContextMenu()
+        #self.createContextMenu() # Don't do this by default (coz window may contain boxes which want context menus)
 
         #self._formatViewMode = DEFAULT
         self.settings = None
@@ -186,6 +187,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Can be overriden if necessary.
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.createContextMenu()") )
+
         self.contextMenu = tk.Menu( self, tearoff=0 )
         self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
         self.contextMenu.add_separator()
@@ -201,7 +205,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
 
     def showContextMenu( self, event ):
-        self.contextMenu.post( event.x_root, event.y_root )
+        self.contextMenu.tk_popup( event.x_root, event.y_root )
     # end of ChildWindow.showContextMenu
 
 
@@ -682,6 +686,9 @@ class TextWindow( tk.Toplevel, ChildBox ):
         """
         Can be overriden if necessary.
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextWindow.createContextMenu()") )
+
         try: kBD = self.parentWindow.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentApp.keyBindingDict
 
@@ -691,8 +698,8 @@ class TextWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
         #self.pack()
@@ -700,7 +707,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
 
 
     def showContextMenu( self, event ):
-        self.contextMenu.post( event.x_root, event.y_root )
+        self.contextMenu.tk_popup( event.x_root, event.y_root )
     # end of TextWindow.showContextMenu
 
 
@@ -1021,6 +1028,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         """
         Can be overriden if necessary.
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HTMLWindow.createContextMenu()") )
+
         try: kBD = self.parentWindow.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentApp.keyBindingDict
 
@@ -1030,8 +1040,8 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
         #self.pack()
@@ -1039,7 +1049,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
 
     def showContextMenu( self, event ):
-        self.contextMenu.post( event.x_root, event.y_root )
+        self.contextMenu.tk_popup( event.x_root, event.y_root )
     # end of HTMLWindow.showContextMenu
 
 
@@ -1310,7 +1320,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
     """
     Displays the find results.
     """
-    def __init__( self, parentWindow, optionDict, resultSummaryDict, resultList, findFunction, extendTo=None ):
+    def __init__( self, parentWindow, optionDict, resultSummaryDict, resultList, findFunction, refindFunction, replaceFunction, extendTo=None ):
         """
         optionDict is the dictionary of options that were given to the find function.
         resultSummaryDict is the dictionary containing summary entries (counts) for each Bible book.
@@ -1330,7 +1340,8 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
             assert resultSummaryDict and isinstance( resultSummaryDict, dict )
             assert resultList and isinstance( resultList, list )
 
-        self.parentWindow, self.optionDict, self.resultSummaryDict, self.resultList, self.findFunction, self.extendedTo = parentWindow, optionDict, resultSummaryDict, resultList, findFunction, extendTo
+        self.parentWindow, self.optionDict, self.resultSummaryDict, self.resultList, self.findFunction, self.refindFunction, self.replaceFunction, self.extendedTo = \
+            parentWindow, optionDict, resultSummaryDict, resultList, findFunction, refindFunction, replaceFunction, extendTo
         self.parentApp = self.parentWindow.parentApp
         tk.Toplevel.__init__( self, self.parentWindow )
         #ChildBox.__init__( self, self.parentApp )
@@ -1383,18 +1394,29 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
             extendText = _(" to {}").format( self.availableInternalBibles[0].getAName() )
         elif len(self.availableInternalBibles) > 1: extendText = '…'
         else: extendText = ''
-        self.extendButton = Button( self, text=_("Extend{}").format( extendText ), command=self.doExtend )
+        self.extendButton = Button( self, text=_('Extend')+"{}".format( extendText ), command=self.doExtend )
         #extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
         self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
         if not self.availableInternalBibles: self.extendButton.configure( state=tk.DISABLED )
 
         refreshButton = Button( self, text=_('Refresh'), command=self.doRefresh )
-        #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
-        refreshButton.grid( in_=top, row=0, column=3, padx=5, pady=5, sticky=tk.E )
+        #refreshButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+        refreshButton.grid( in_=top, row=1, column=0, padx=5, pady=5, sticky=tk.E )
+        if self.refindFunction is None: refreshButton['state'] = tk.DISABLED
+
+        reFindButton = Button( self, text=_('Find')+'…', command=self.doRefind )
+        #reFindButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+        reFindButton.grid( in_=top, row=1, column=1, padx=5, pady=5, sticky=tk.E )
+        if self.findFunction is None: reFindButton['state'] = tk.DISABLED
+
+        replaceButton = Button( self, text=_('Replace')+'…', command=self.doReplace )
+        #replaceButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+        replaceButton.grid( in_=top, row=1, column=2, padx=5, pady=5, sticky=tk.E )
+        if self.replaceFunction is None: replaceButton['state'] = tk.DISABLED
 
         closeButton = Button( self, text=_('Close'), command=self.doClose )
         #closeButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
-        closeButton.grid( in_=top, row=0, column=4, padx=5, pady=5, sticky=tk.E )
+        closeButton.grid( in_=top, row=1, column=3, padx=5, pady=5, sticky=tk.E )
 
         # Create a scroll bar to fill the right-hand side of the window
         self.vScrollbar = Scrollbar( self )
@@ -1485,6 +1507,9 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         """
         Can be overriden if necessary.
         """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("FindResultWindow.createContextMenu()") )
+
         try: kBD = self.parentWindow.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentApp.keyBindingDict
 
@@ -1494,8 +1519,8 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
         #self.pack()
@@ -1503,7 +1528,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
 
 
     def showContextMenu( self, event ):
-        self.contextMenu.post( event.x_root, event.y_root )
+        self.contextMenu.tk_popup( event.x_root, event.y_root )
     # end of FindResultWindow.showContextMenu
 
 
@@ -1834,15 +1859,41 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
 
     def doRefresh( self ):
         """
-        Refresh the find
+        Refresh the find (without user input)
             by closing this window and then calling the find function again.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("FindResultWindow.doRefresh()") )
 
         self.doClose()
-        self.findFunction( extendTo=self.extendedTo ) # Run the find again
+        self.refindFunction( extendTo=self.extendedTo ) # Run the find again (without user input)
     # end of FindResultWindow.doRefresh
+
+
+    def doRefind( self ):
+        """
+        Refresh the find
+            by closing this window and then calling the find function again.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("FindResultWindow.doRefind()") )
+
+        self.doClose()
+        self.findFunction() # Run the find again
+    # end of FindResultWindow.doRefind
+
+
+    def doReplace( self ):
+        """
+        Take the find into a find/replace
+            by closing this window and then calling the supplied replace function.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("FindResultWindow.doReplace()") )
+
+        self.doClose()
+        self.replaceFunction() # Run the supplied find/replace function
+    # end of FindResultWindow.doReplace
 # end of class FindResultWindow
 
 

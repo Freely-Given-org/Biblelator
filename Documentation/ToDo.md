@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2016-12-13 RJH
+Last updated: 2016-12-21 RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -15,9 +15,8 @@ smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
-* Crashes if exit program with find results box open (and crashes again when restarting)
 * Find in chapter 0 gives wrong verse (only sometimes -- why???)
-* Ctrl+F doesn't workin in edit window or resource for Bible Find
+* Ctrl+F doesn't work in edit window or resource for Bible Find
 * F1 help and F12 about doesn't seem to work from most windows
 * F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
 * Windows and Bible lists need to be displayed in a window
@@ -26,9 +25,9 @@ Biblelator bugs / unfinished
 * Window find doesn't seem to work on resource windows
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
+* Remember position of last find box
 * Find box can't change projects/windows
 * Get extended find box working better -- need to show whole verse somehow (why can't right click or something?)
-* Remember position of last find box
 * Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
 * Make edit window status bar default (if screen is big enough)
@@ -105,10 +104,9 @@ Biblelator stuff
 * Add a pop-up quick reference box (with all open translations???)
 * Make HTML window more robust (failed if meta line was missing self-closing slash)
 * Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)
-* Find a way for the program or installer to automatically download reference Bibles and other resources
+* Make a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
-* Need a global search/replace (for chapter, book, allBooks, etc.) Alt+S ???
 * Make a proper icon
 * Save iconification state of windows
 * Use checkboxes to allow individual exports
