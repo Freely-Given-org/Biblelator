@@ -67,7 +67,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-16' # by RJH
+LastModifiedDate = '2016-12-22' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.39'
@@ -1233,8 +1233,10 @@ class BibleBox( ChildBox ):
 
     def doBibleFind( self, event=None ):
         """
+        Get the search parameters and then execute the search.
+
         Note that BibleFind works on the imported files,
-            so it can work from any Window that has an internalBible.
+            so it can work from any box or window that has an internalBible.
         """
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doBibleFind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -1258,6 +1260,9 @@ class BibleBox( ChildBox ):
 
     def doActualBibleFind( self, extendTo=None ):
         """
+        This function (called by the above doBibleFind),
+            invokes the actual search (or redoes the search)
+            assuming that the search parameters are already defined.
         """
         from ChildWindows import FindResultWindow
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doActualBibleFind' )
@@ -1269,7 +1274,12 @@ class BibleBox( ChildBox ):
         #self.textBox.focus()
         #self.lastfind = key
         self.parentApp.logUsage( ProgName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
-        self._prepareInternalBible() # Make sure that all books are loaded
+        #print( "bookList", repr(self.BibleFindOptionsDict['bookList']) )
+        bookCode = None
+        if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
+        and self.BibleFindOptionsDict['bookList'] != 'ALL':
+            bookCode = self.BibleFindOptionsDict['bookList']
+        self._prepareInternalBible( bookCode ) # Make sure that all books are loaded
         # We search the loaded Bible processed lines
         self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
         #print( "Got searchResults", searchResults )
@@ -1288,12 +1298,14 @@ class BibleBox( ChildBox ):
     # end of BibleBox.doActualBibleFind
 
 
-    def _prepareInternalBible( self ):
+    def _prepareInternalBible( self, bookCode=None ):
         """
         Prepare to do a search on the Internal Bible object
             or to do some of the exports or checks available in BibleOrgSysGlobals.
 
         Note that this function saves the current book if it's modified.
+
+        If a bookcode is specified, loads only that book (so the user doesn't have to wait).
 
         Leaves the wait cursor displayed.
         """
@@ -1304,7 +1316,12 @@ class BibleBox( ChildBox ):
         if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
         if self.internalBible is not None:
             self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
-            self.internalBible.load()
+            if bookCode is None:
+                self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
+                self.internalBible.load()
+            else:
+                self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
+                self.internalBible.loadBook( bookCode )
     # end of BibleBox._prepareInternalBible
 # end of class BibleBox
 

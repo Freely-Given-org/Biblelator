@@ -47,7 +47,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-12'
+LastModifiedDate = '2016-12-22'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.39'
@@ -916,6 +916,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
 
     def doIndividual( self ):
         """
+        Allow the user to select individual books(s).
         """
         self.availableList = self.givenBible.getBookList()
         sIBBD = SelectIndividualBibleBooksDialog( self, self.parentApp, self.availableList, self.currentList, title=_('Books to be searched') )
@@ -923,7 +924,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
         if sIBBD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( sIBBD.result, list )
             resultCount = len( sIBBD.result )
-            if resultCount==1 and sIBBD.result[0]==currentBBB:
+            if resultCount==1 and sIBBD.result[0]==self.currentBBB:
                 # It's just the current book to search
                 self.booksSelectVariable.set( 1 )
             elif resultCount == len( self.availableList ):
@@ -1233,20 +1234,13 @@ class GetBibleSearchTextDialog( ModalDialog ):
         allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
         self.rbb1 = Radiobutton( master, text=allText, variable=self.booksSelectVariable, value=1 )
         self.rbb1.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
-        #self.rbb3.grid( row=4, column=2, padx=2, pady=1, sticky=tk.W )
-        if isinstance( self.optionsDict['bookList'], list ):
-            if len( self.optionsDict['bookList'] ) == 1 and self.optionsDict['bookList'] != 'ALL':
-                sbText = self.optionsDict['bookList'][0]
-            else: sbText = len( self.optionsDict['bookList'] )
-        elif isinstance( self.optionsDict['bookList'], str ) and self.optionsDict['bookList'] != 'ALL':
-            sbText = 1
-        else: sbText = 0
         self.rbb2 = Radiobutton( master, text=_('Current book')+' ({})'.format( self.optionsDict['currentBCV'][0] ), variable=self.booksSelectVariable, value=2 )
         self.rbb2.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rbb2.grid( row=2, column=2, padx=2, pady=1, sticky=tk.W )
         self.rbb3 = Radiobutton( master, text=_('Current chapter')+' ({} {})'.format( self.optionsDict['currentBCV'][0], self.optionsDict['currentBCV'][1] ), variable=self.booksSelectVariable, value=3 )
         self.rbb3.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rbb3.grid( row=3, column=2, padx=2, pady=1, sticky=tk.W )
+        sbText = str(self.optionsDict['bookList']) if len(self.optionsDict['bookList'])<10 else _('Selected books')+' ({})'.format( len(self.optionsDict['bookList']) )
         self.rbb4 = Radiobutton( master, text=_('Selected books'+' ({})').format( sbText ), variable=self.booksSelectVariable, value=4 )
         #self.rbb4.grid( row=5, column=2, padx=2, pady=1, sticky=tk.W )
         self.rbb4.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
@@ -1364,7 +1358,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         if not searchText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
         if searchText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
-        if bookResultNumber==4 and ( not self.optionsDict['bookList'] or not isinstance(self.optionsDict['bookList'], list) ):
+        if bookResultNumber==4 and not self.optionsDict['bookList']:
             showwarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
         if self.theseMarkersOnlyVar.get():
             if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
@@ -1829,7 +1823,7 @@ class ReplaceConfirmDialog( ModalDialog ):
         noButton.pack( side=tk.LEFT, padx=5, pady=5 )
         allButton = Button( box, text=_('All (Yes)'), width=10, command=self.doAll )
         allButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        cancelButton = Button( box, text=_('Stop (No more)'), command=self.doStop )
+        cancelButton = Button( box, text=_('Stop (No more)') if self.haveUndos else _('Stop (None)'), command=self.doStop )
         cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
         undoButton = Button( box, text=_('Undo all'), width=10, command=self.doUndo )
         undoButton.pack( side=tk.LEFT, padx=5, pady=5 )
