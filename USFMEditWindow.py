@@ -1685,7 +1685,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.closeEditor()") )
         #if self.modified():
-            #pass # refuse to close yet (temp.........)
+            #pass # refuse to close yet (temp……)
         #else: self.closeChildWindow()
     ## end of USFMEditWindow.closeEditor
 # end of USFMEditWindow class

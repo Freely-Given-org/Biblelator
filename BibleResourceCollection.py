@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-14' # by RJH
+LastModifiedDate = '2016-12-28' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.39'
@@ -469,7 +469,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
                 SwordKey = self.getSwordVerseKey( verseKey )
                 rawContextInternalBibleData = self.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
                 rawInternalBibleData, context = rawContextInternalBibleData
-                # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
+                # Clean up the data -- not sure that it should be done here! … XXXXXXXXXXXXXXXXXXX
                 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
                 import re
                 adjustedInternalBibleData = InternalBibleEntryList()

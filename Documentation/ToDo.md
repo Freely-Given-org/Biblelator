@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
 * Find in chapter 0 gives wrong verse (only sometimes -- why???)
 * Ctrl+F doesn't work in edit window or resource for Bible Find

@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-14' # by RJH
+LastModifiedDate = '2016-12-28' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.39'
@@ -212,7 +212,7 @@ class Application( Frame ):
             PT7Folder = 'C:\\My Paratext Projects\\'
             self.lastParatextFileDir = PT8Folder if os.path.isdir( PT8Folder ) else PT7Folder
             self.lastInternalBibleDir = self.lastParatextFileDir
-        elif sys.platform == 'linux': # temp hack XXXXXXXXXXXXX .........................................
+        elif sys.platform == 'linux': # temp hack XXXXXXXXXXXXX …
             #self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/'
             self.lastParatextFileDir = '../../../../../Data/Work/Matigsalug/Bible/'
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
@@ -1155,9 +1155,10 @@ class Application( Frame ):
 
         hadError = False
         import urllib.request
+        site = 'Freely-Given.org'
         # NOTE: needs to be https eventually!!!
         indexString = None
-        url = 'http://Freely-Given.org/Software/BibleQlator/DevMsg/DevMsg.idx'
+        url = 'http://{}/Software/BibleQlator/DevMsg/DevMsg.idx'.format( site )
         try:
             with urllib.request.urlopen( url ) as response:
                 indexData = response.read() # a `bytes` object
@@ -1188,7 +1189,7 @@ class Application( Frame ):
                 ni = -1 # so that nothing at all happens below
             if ni > self.lastMessageNumberRead:
                 msgString = None
-                url2 = 'http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}'.format( self.lastMessageNumberRead+1, ext )
+                url2 = 'http://{}/Software/Biblelator/DevMsg/{}.{}'.format( site, self.lastMessageNumberRead+1, ext )
                 #print( 'url2', repr(url2) )
                 try:
                     with urllib.request.urlopen( url2 ) as response:
@@ -1203,7 +1204,7 @@ class Application( Frame ):
                 if msgString:
                     from About import AboutBox
                     msgInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
-                    msgInfo += '\n  via Freely-Given.org'
+                    msgInfo += '\n  via {}'.format( site )
                     msgInfo += '\n\n' + msgString
                     ab = AboutBox( self.rootWindow, APP_NAME, msgInfo )
 

@@ -67,7 +67,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-22' # by RJH
+LastModifiedDate = '2016-12-28' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.39'
@@ -115,7 +115,7 @@ def exp( messageString ):
 
 KNOWN_HTML_TAGS = ('!DOCTYPE','html','head','meta','link','title','body','div',
                    'h1','h2','h3','p','li','a','span','table','tr','td','i','b','em','small')
-NON_FORMATTING_TAGS = 'html','head','body','div','table','tr','td', # Not sure about div yet...........
+NON_FORMATTING_TAGS = 'html','head','body','div','table','tr','td', # Not sure about div yet…
 HTML_REPLACEMENTS = ('&nbsp;',' '),('&lt;','<'),('&gt;','>'),('&amp;','&'),
 TRAILING_SPACE_SUBSTITUTE = '⦻' # Must not normally occur in Bible text
 MULTIPLE_SPACE_SUBSTITUTE = '⧦' # Must not normally occur in Bible text
@@ -708,8 +708,9 @@ class ChildBox():
         self.textBox.focus()
         self.lastfind = key
         if key:
-            nocase = self.optionsDict['caseinsens']
-            where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
+            #nocase = self.optionsDict['caseinsens'] # Where should this come from?
+            nocase = True
+            where = self.textBox.search( key, START if lastkey is None else tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
                 errorBeep()
                 showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
@@ -1219,7 +1220,7 @@ class BibleBox( ChildBox ):
             nextIntV += 1
             if numVerses is None or nextIntV > numVerses:
                 nextIntV = 1
-                nextIntC += 1 # Need to check................................
+                nextIntC += 1 # Need to check…
             nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
             nextVerseData = self.getCachedVerseData( nextVerseKey )
             if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
