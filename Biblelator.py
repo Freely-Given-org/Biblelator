@@ -273,12 +273,18 @@ class Application( Frame ):
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForMessagesFromDeveloper()
 
-        self.rootWindow.title( ProgNameVersion + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
+        self.setMainWindowTitle()
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
         self.logUsage( ProgName, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
     # end of Application.__init__
+
+
+    def setMainWindowTitle( self ):
+        self.rootWindow.title( '[{}] {}'.format( self.currentVerseKeyGroup, ProgNameVersion ) \
+                            + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
+    # end of Application.setMainWindowTitle
 
 
     def setGenericBibleOrganisationalSystem( self, BOSname ):
@@ -2110,6 +2116,7 @@ class Application( Frame ):
         if self.currentVerseKey == ('', '1', '1'):
             self.setCurrentVerseKey( SimpleVerseKey( self.getFirstBookCode(), '1', '1' ) )
         self.updateBCVGroupButtons()
+        self.setMainWindowTitle()
         self.acceptNewBnCV()
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.updateBCVGroup
