@@ -5,7 +5,7 @@
 #
 # The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-13' # by RJH
+LastModifiedDate = '2017-01-10' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.39'
@@ -189,6 +189,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.editStatus = 'Editable'
         self.bookTextModified = False
         self.projectName = 'NoProjectName'
+        self.projectAbbreviation = 'UNKNOWN'
         InternalBibleResourceWindow.__init__( self, parentApp, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
         #self.overrideredirect( 1 ) # Remove the title bar
@@ -206,6 +207,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.projectName = self.internalBible.shortName if self.internalBible.shortName else self.internalBible.givenName
             if not self.projectName:
                 self.projectName = self.internalBible.name if self.internalBible.name else self.internalBible.abbreviation
+            self.projectAbbreviation = self.internalBible.abbreviation if self.internalBible.abbreviation else self.internalBible.shortName
+            if not self.projectAbbreviation:
+                self.projectAbbreviation = self.internalBible.givenName if self.internalBible.givenName else self.internalBible.name
         #try: print( "\n\n\n\nUEW settings for {}:".format( self.projectName ), self.settings )
         #except: print( "\n\n\n\nUEW has no settings!" )
         #if not self.projectName: self.projectName = 'NoProjectName'
@@ -909,10 +913,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             verseKeyHash = SimpleVerseKey( BBB, C, V ).makeHash()
             if verseKeyHash in self.verseCache: # Oh, how come we already have this key???
                 if data == self.verseCache[verseKeyHash]:
-                    logging.critical( "cacheBook: We have an identical duplicate {}: {!r}".format( verseKeyHash, data ) )
+                    logging.critical( "cacheBook: We have an identical duplicate {} {}: {!r}" \
+                            .format( self.projectAbbreviation, verseKeyHash, data ) )
                 else:
-                    logging.critical( "cacheBook: We have a duplicate {} -- already had {!r} and now appending {!r}" \
-                                    .format( verseKeyHash, self.verseCache[verseKeyHash], data ) )
+                    logging.critical( "cacheBook: We have a duplicate {} {} -- already had {!r} and now appending {!r}" \
+                            .format( self.projectAbbreviation, verseKeyHash, self.verseCache[verseKeyHash], data ) )
                     data = self.verseCache[verseKeyHash] + '\n' + data
             self.verseCache[verseKeyHash] = data.replace( '\n\n', '\n' ) # Weed out blank lines
         # end of USFMEditWindow.cacheBook.addCacheEntry

@@ -5,7 +5,7 @@
 #
 # Base of various textboxes for use as widgets and base classes in various windows.
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -67,7 +67,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-28' # by RJH
+LastModifiedDate = '2017-01-11' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.39'
@@ -364,7 +364,7 @@ class HTMLText( tk.Text ):
                                 formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
                             elif formatTag=='a' and bit.startswith('href="') and bit[-1]=='"':
                                 formatTag += '=' + bit[6:-1] # create a tag like 'a=http://something.com'
-                            else: logging.critical( "Ignoring {} attribute on {} tag".format( bit, repr(HTMLTag) ) )
+                            else: logging.critical( "HTMLText: Ignoring {} attribute on {!r} tag".format( bit, HTMLTag ) )
                     if not selfClosing:
                         if HTMLTag != '!DOCTYPE':
                             currentHTMLTags.append( HTMLTag )
