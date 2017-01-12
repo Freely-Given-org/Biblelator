@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-15' # by RJH
+LastModifiedDate = '2016-12-07' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -295,8 +295,9 @@ def mapReferencesVerseKey( mainVerseKey ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "  mapReferencesVerseKey got result:", result )
     resultList = []
-    for linkType, link in result:
-        resultList.append( link )
+    if result is not None:
+        for linkType, link in result:
+            resultList.append( link )
     return resultList
     # old sample code
         #REFERENCE_VERSE_KEY_DICT = {
@@ -506,7 +507,7 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText ):
 
 
 
-def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
+def parseEnteredBookname( bookNameEntry, currentBBB, Centry, Ventry, BBBfunction ):
     """
     Checks if the bookName entry is just a book name, or an entire reference (e.g., "Gn 15:2")
 
@@ -518,16 +519,20 @@ def parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction ):
         print( exp("parseEnteredBookname( {}, {}, {}, … )").format( bookNameEntry, Centry, Ventry ) )
 
     # Do a bit of preliminary cleaning-up
-    bookNameEntry = bookNameEntry.strip()
-    while '  ' in bookNameEntry: bookNameEntry.replace( '  ', ' ' )
+    bookNameEntry = bookNameEntry.strip().replace( '  ', ' ' )
 
     if ':' in bookNameEntry:
-        print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # name C:V
+        #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # name C:V
         match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
         if match:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
             return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
+        match = re.search( '(\d{1,3}):(\d{1,3})', bookNameEntry )
+        if match:
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
+            return BBBfunction( currentBBB ), match.group(1), match.group(2 )
     else:
         match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
         if match:
@@ -584,11 +589,8 @@ if __name__ == '__main__':
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
-        from tkinter import tix
         print( "TclVersion is", TclVersion )
         print( "TkVersion is", TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

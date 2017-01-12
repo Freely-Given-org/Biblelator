@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2016-11-03' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -97,6 +97,7 @@ class BibleLexiconResourceWindow( ChildWindow ):
         self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
+        self.createStandardKeyboardBindings( reset=True )
 
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
@@ -287,11 +288,8 @@ if __name__ == '__main__':
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
-        from tkinter import tix
         print( "TclVersion is", TclVersion )
         print( "TkVersion is", TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

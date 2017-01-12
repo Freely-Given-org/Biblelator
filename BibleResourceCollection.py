@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2016-12-28' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -175,6 +175,7 @@ class BibleResourceBox( Frame, BibleBox ):
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.createStandardKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
+        self.createContextMenu() # for the box
 
         # Set-up our standard Bible styles
         for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -211,7 +212,8 @@ class BibleResourceBox( Frame, BibleBox ):
             print( exp("BibleResourceBox.createStandardKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
-                             ('Info',self.doShowInfo), ('Close',self.doClose), ):
+                             ('Info',self.doShowInfo), ('Close',self.doClose),
+                             ('ShowMain',self.doShowMainWindow), ):
             self._createStandardKeyboardBinding( name, command )
     # end of BibleResourceBox.createStandardKeyboardBindings()
 
@@ -467,7 +469,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
                 SwordKey = self.getSwordVerseKey( verseKey )
                 rawContextInternalBibleData = self.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
                 rawInternalBibleData, context = rawContextInternalBibleData
-                # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
+                # Clean up the data -- not sure that it should be done here! … XXXXXXXXXXXXXXXXXXX
                 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
                 import re
                 adjustedInternalBibleData = InternalBibleEntryList()
@@ -691,6 +693,9 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         self.viewVersesBefore, self.viewVersesAfter = 1, 1
 
         self.resourceBoxesList = BibleResourceBoxesList( self )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleResourceCollectionWindow.__init__ finished.") )
     # end of BibleResourceCollectionWindow.__init__
 
 
@@ -920,29 +925,6 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         else:
             logging.critical( exp("doOpenSwordResourceBox: no list available") )
             showerror( self, APP_NAME, _("No Sword resources discovered") )
-
-        ## Old code
-        #availableModules = self.parentApp.SwordInterface.library
-        ##print( "aM1", availableModules )
-        #ourList = None
-        #if availableModules is not None:
-            #ourList = availableModules.getAvailableModuleCodes()
-        ##print( "ourList", ourList )
-        #if ourList:
-            #srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
-            ##print( "srbResult", repr(srb.result) )
-            #if srb.result:
-                #for entry in srb.result:
-                    #self.parentApp.setWaitStatus( _("Loading {} Sword module…").format( repr(entry) ) )
-                    #self.openSwordBibleResourceBox( entry )
-                ##self.acceptNewBnCV()
-                ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-            #elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResourceBox: no resource selected!") )
-        #else:
-            #logging.critical( exp("doOpenSwordResourceBox: no list available") )
-            #showerror( self, APP_NAME, _("No Sword resources discovered") )
-        ##self.acceptNewBnCV()
-        ##self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of BibleResourceCollectionWindow.doOpenSwordResourceBox
 
     def openSwordBibleResourceBox( self, moduleAbbreviation, windowGeometry=None ):
@@ -1080,8 +1062,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
-        helpInfo += "\nHelp for {}".format( self.windowType )
-        helpInfo += "\n  Keyboard shortcuts:"
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
@@ -1096,8 +1078,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             print( exp("BibleResourceCollectionWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.windowType )
+        aboutInfo = ProgNameVersion + '\n'
+        aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
+        aboutInfo += '\n' + _("A Bible Resource Collection box can contain multiple different resource translations or commentaries, all showing the same Scripture reference.") + '\n'
+        aboutInfo += '\n' + _("Use this window's Resources menu to add a/another resource to the window. Use the up and down arrows to order the resources within the window.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
     # end of BibleResourceCollectionWindow.doAbout
 # end of BibleResourceCollectionWindow class
@@ -1145,11 +1129,8 @@ if __name__ == '__main__':
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
-        from tkinter import tix
         print( "TclVersion is", TclVersion )
         print( "TkVersion is", TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-12-14' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -129,6 +129,7 @@ class TextEditWindow( ChildWindow ):
         self.textBox.setTextChangeCallback( self.onTextChange )
         #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
+        self.createContextMenu() # Enable right-click menu
 
         self.lastFiletime = self.lastFilesize = None
         self.clearText()
@@ -188,14 +189,15 @@ class TextEditWindow( ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.createEditorKeyboardBindings()") )
 
-        for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
-                             ('Undo',self.doUndo), ('Redo',self.doRedo),
-                             ('Save',self.doSave), ):
+        for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
+                             #('Undo',self.doUndo), ('Redo',self.doRedo),
+                             ('Save',self.doSave), ('ShowMain',self.doShowMainWindow), ):
+            #print( "CheckLoop", (name,self.parentApp.keyBindingDict[name][0],) )
             assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
             if name in self.parentApp.keyBindingDict:
                 for keyCode in self.parentApp.keyBindingDict[name][1:]:
                     #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                    self.textBox.bind( keyCode, command )
+                    self.textBox.bind( keyCode, commandFunction )
                     if BibleOrgSysGlobals.debugFlag:
                         assert keyCode not in self.myKeyboardShortcutsList
                         self.myKeyboardShortcutsList.append( keyCode )
@@ -314,8 +316,8 @@ class TextEditWindow( ChildWindow ):
         self.contextMenu.add_command( label=_('Paste'), underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict[_('Paste')][0] )
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
     # end of TextEditWindow.createContextMenu
@@ -804,10 +806,11 @@ class TextEditWindow( ChildWindow ):
         #self.lastTextChangeTime = time()
         try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule no change function so we keep checking
         except KeyboardInterrupt:
-            print( "TextEditWindow: Got keyboard interrupt in onTextChange -- saving my file" )
+            print( "TextEditWindow: Got keyboard interrupt in onTextChange (A) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
-            self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
-            self.onTextNoChangeID = None
+            if self.onTextNoChangeID:
+                self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+                self.onTextNoChangeID = None
     # end of TextEditWindow.onTextChange
 
 
@@ -820,7 +823,7 @@ class TextEditWindow( ChildWindow ):
         #print( "TextEditWindow.onTextNoChange" )
         try: pass
         except KeyboardInterrupt:
-            print( "TextEditWindow: Got keyboard interrupt in onTextNoChange -- saving my file" )
+            print( "TextEditWindow: Got keyboard interrupt in onTextNoChange (B) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
             #self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
             #self.onTextNoChangeID = None
@@ -897,13 +900,13 @@ class TextEditWindow( ChildWindow ):
     def doCut( self, event=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doCut( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showerror( self, APP_NAME, _("No text selected") )
         else:
-            self.doCopy()                       # save and delete selected text
+            self.doCopy() # In ChildBox class
             self.doDelete()
     # end of TextEditWindow.doCut
 
@@ -911,8 +914,9 @@ class TextEditWindow( ChildWindow ):
     def doPaste( self, event=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doPaste( {} )").format( event ) )
+            print( "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 
         try:
             text = self.selection_get( selection='CLIPBOARD')
@@ -1432,11 +1436,8 @@ if __name__ == '__main__':
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #from tkinter import TclVersion, TkVersion
-        from tkinter import tix
         print( "TclVersion is", tk.TclVersion )
         print( "TkVersion is", tk.TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

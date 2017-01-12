@@ -66,7 +66,6 @@ class InternalBibleResourceWindow( BibleResourceWindow )
     refreshTitle( self )
     getContextVerseData( self, verseKey )
     doShowInfo( self, event=None )
-    doBibleFind( self, event=None )
     _prepareInternalBible( self )
     _prepareForExports( self )
     doMostExports( self )
@@ -82,10 +81,10 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-21' # by RJH
+LastModifiedDate = '2016-12-28' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -98,10 +97,10 @@ import tkinter as tk
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, MAX_PSEUDOVERSES, errorBeep, \
-                                BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES
-from ChildWindows import BibleWindow, FindResultWindow, HTMLWindow
+                            BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES
+from ChildWindows import BibleWindow, HTMLWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
-from BiblelatorDialogs import showinfo, showerror, GetBibleSearchTextDialog, GetBibleBookRangeDialog
+from BiblelatorDialogs import showinfo, showerror, GetBibleBookRangeDialog
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -784,6 +783,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         self.parentApp, self.moduleAbbreviation = parentApp, moduleAbbreviation
         BibleResourceWindow.__init__( self, self.parentApp, 'SwordBibleResourceWindow', self.moduleAbbreviation, defaultContextViewMode, defaultFormatViewMode )
         #self.windowType = 'SwordBibleResourceWindow'
+        self.createContextMenu() # Enable right-click menu
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
         self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
@@ -825,7 +825,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
                 rawInternalBibleContextData = self.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
                 if rawInternalBibleContextData is None: return '', ''
                 rawInternalBibleData, context = rawInternalBibleContextData
-                # Clean up the data -- not sure that it should be done here! ....... XXXXXXXXXXXXXXXXXXX
+                # Clean up the data -- not sure that it should be done here! … XXXXXXXXXXXXXXXXXXX
                 #from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
                 import re
                 adjustedInternalBibleData = InternalBibleEntryList()
@@ -874,6 +874,7 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
         self.DBPModule = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, 'DBPBibleResourceWindow', self.moduleAbbreviation, defaultContextViewMode, defaultFormatViewMode )
         #self.windowType = 'DBPBibleResourceWindow'
+        self.createContextMenu() # Enable right-click menu
 
         # Disable excessive online use
         self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
@@ -955,6 +956,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         self.internalBible = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, self.parentApp, 'InternalBibleResourceWindow', self.modulePath, defaultContextViewMode, defaultFormatViewMode )
         #self.windowType = 'InternalBibleResourceWindow'
+        self.createContextMenu() # Enable right-click menu
 
         if self.modulePath is not None:
             try: self.UnknownBible = UnknownBible( self.modulePath )
@@ -1120,63 +1122,6 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
     # end of InternalBibleResourceWindow.doShowInfo
 
 
-    def doBibleFind( self, event=None ):
-        """
-        Note that BibleFind works on the imported files,
-            so it can work from any Window that has an internalBible.
-        """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'InternalBibleResourceWindow doBibleFind' )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("InternalBibleResourceWindow.doBibleFind( {} )").format( event ) )
-
-        if self.internalBible is None:
-            logging.critical( _("No Bible to search") )
-            return
-        #print( "intBib", self.internalBible )
-
-        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
-        gBSTD = GetBibleSearchTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
-        if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
-        if gBSTD.result:
-            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
-            self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
-            self.parentApp.setWaitStatus( _("Searching…") )
-            #self.textBox.update()
-            #self.textBox.focus()
-            #self.lastfind = key
-            self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleFind {}'.format( self.BibleFindOptionsDict ) )
-            self._prepareInternalBible() # Make sure that all books are loaded
-            # We search the loaded Bible processed lines
-            self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
-            #print( "Got searchResults", searchResults )
-            if len(searchResultList) == 0: # nothing found
-                errorBeep()
-                key = self.BibleFindOptionsDict['searchText']
-                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
-            else:
-                findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList )
-                self.parentApp.childWindows.append( findResultWindow )
-        self.parentApp.setReadyStatus()
-    # end of InternalBibleResourceWindow.doBibleFind
-
-
-    def _prepareInternalBible( self ):
-        """
-        Prepare to do a search on the Internal Bible object
-            or to do some of the exports or checks available in BibleOrgSysGlobals.
-
-        Leaves the wait cursor displayed.
-        """
-        logging.debug( exp("InternalBibleResourceWindow._prepareInternalBible()") )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("InternalBibleResourceWindow._prepareInternalBible()") )
-
-        if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
-        if self.internalBible is not None:
-            self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
-            self.internalBible.load()
-    # end of InternalBibleResourceWindow._prepareInternalBible
-
     def _prepareForExports( self ):
         """
         Prepare to do some of the exports available in BibleOrgSysGlobals.
@@ -1285,7 +1230,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
 
         self._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.currentVerseKey.getBBB()
-        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.internalBible, currentBBB, title=_('Books to be checked') )
+        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.internalBible, currentBBB, None, title=_('Books to be checked') )
         #if BibleOrgSysGlobals.debugFlag: print( "gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
@@ -1380,11 +1325,8 @@ if __name__ == '__main__':
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         from tkinter import TclVersion, TkVersion
-        from tkinter import tix
         print( "TclVersion is", TclVersion )
         print( "TkVersion is", TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

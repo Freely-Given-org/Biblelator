@@ -39,11 +39,11 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-23' # by RJH
+LastModifiedDate = '2016-12-21' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.38'
-SettingsVersion = '0.38' # Only need to change this if the settings format has changed
+ProgVersion = '0.39'
+SettingsVersion = '0.39' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -184,7 +184,10 @@ def parseAndApplySettings( self ):
     if BibleOrgSysGlobals.debugFlag: assert self.touchMode in ( False, True )
     try: self.tabletMode = convertToPython( self.settings.data['Interface']['tabletMode'] )
     except KeyError: self.tabletMode = False
-    if BibleOrgSysGlobals.debugFlag: assert self.tabletMode in ( False, 1, 2 )
+    if BibleOrgSysGlobals.debugFlag: assert self.tabletMode in ( False, True )
+    try: self.showDebugMenu = convertToPython( self.settings.data['Interface']['showDebugMenu'] )
+    except KeyError: self.showDebugMenu = False
+    if BibleOrgSysGlobals.debugFlag: assert self.showDebugMenu in ( False, True )
 
     # Parse Internet stuff
     try:
@@ -470,7 +473,7 @@ def getCurrentChildWindowSettings( self ):
     if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
     self.windowsSettingsDict['Current'] = {}
     for j, appWin in enumerate( self.childWindows ):
-        if appWin.windowType == 'HTMLWindow':
+        if appWin.windowType in ( 'HTMLWindow', 'FindResultWindow' ):
             continue # We don't save these
 
         winNumber = "window{}".format( j+1 )
@@ -505,6 +508,9 @@ def getCurrentChildWindowSettings( self ):
 
         elif appWin.windowType == 'BibleResourceCollectionWindow':
             thisOne['CollectionName'] = appWin.moduleID
+        elif appWin.windowType == 'BibleReferenceCollectionWindow':
+            print( "WARNING: Doesn't save BibleReferenceCollectionWindow yet!" )
+            #thisOne['CollectionName'] = appWin.moduleID # Just copied -- not checked
 
         elif appWin.windowType == 'PlainTextEditWindow':
             try: thisOne['TextFilepath'] = appWin.filepath
@@ -516,9 +522,6 @@ def getCurrentChildWindowSettings( self ):
         elif appWin.windowType == 'ParatextUSFMBibleEditWindow':
             thisOne['SSFFilepath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
-
-        elif appWin.windowType == 'FindResultWindow':
-            pass # nothing yet
 
         else:
             logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.windowType) ) )
@@ -657,6 +660,7 @@ def writeSettingsFile( self ):
     interface['interfaceComplexity'] = self.interfaceComplexity
     interface['touchMode'] = convertToString( self.touchMode )
     interface['tabletMode'] = convertToString( self.tabletMode )
+    interface['showDebugMenu'] = convertToString( self.showDebugMenu )
 
     # Save the Internet access controls
     self.settings.data['Internet'] = {}
@@ -839,7 +843,11 @@ def doSendUsageStatistics( self ):
     import http.client
     conn = http.client.HTTPConnection( 'Freely-Given.org' )
     conn.request( 'POST', '/Software/Biblelator/StatusInputs/SubmitAction.phtml', parameterString, headers )
-    response = conn.getresponse()
+    try: response = conn.getresponse()
+    except http.client.RemoteDisconnected:
+        print( "doSendUsageStatistics remote RemoteDisconnected -- send failed" )
+        conn.close()
+        return
     if response.status == 200:
         print( "    doSendUsageStatistics accepted by server" )
     else:

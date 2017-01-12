@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2016-09-30' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.04' # Separate versioning from Biblelator
@@ -130,6 +130,7 @@ class SwordManager( Frame ):
         self.interfaceComplexity = DEFAULT
         self.touchMode = False # True makes larger buttons
         self.tabletMode = False
+        self.showDebugMenu = True
         self.internetAccessEnabled = False
 
         self.lastFind = None
@@ -1075,9 +1076,9 @@ class SwordManager( Frame ):
 
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
-        ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
+        submitInfo = ProgNameVersion
+        submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
+        ab = AboutBox( self.rootWindow, ShortProgName, submitInfo )
     # end of SwordManager.doSubmitBug
 
 

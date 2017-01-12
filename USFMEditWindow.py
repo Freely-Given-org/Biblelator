@@ -5,7 +5,7 @@
 #
 # The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2017-01-10' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -189,6 +189,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.editStatus = 'Editable'
         self.bookTextModified = False
         self.projectName = 'NoProjectName'
+        self.projectAbbreviation = 'UNKNOWN'
         InternalBibleResourceWindow.__init__( self, parentApp, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
         #self.overrideredirect( 1 ) # Remove the title bar
@@ -206,6 +207,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.projectName = self.internalBible.shortName if self.internalBible.shortName else self.internalBible.givenName
             if not self.projectName:
                 self.projectName = self.internalBible.name if self.internalBible.name else self.internalBible.abbreviation
+            self.projectAbbreviation = self.internalBible.abbreviation if self.internalBible.abbreviation else self.internalBible.shortName
+            if not self.projectAbbreviation:
+                self.projectAbbreviation = self.internalBible.givenName if self.internalBible.givenName else self.internalBible.name
         #try: print( "\n\n\n\nUEW settings for {}:".format( self.projectName ), self.settings )
         #except: print( "\n\n\n\nUEW has no settings!" )
         #if not self.projectName: self.projectName = 'NoProjectName'
@@ -320,10 +324,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("USFMEditWindow.createEditorKeyboardBindings()") )
 
-        for name,command in ( ('Paste',self.doPaste), ('Cut',self.doCut),
-                             ('Undo',self.doUndo), ('Redo',self.doRedo),
+        for name,command in ( #('Paste',self.doPaste), ('Cut',self.doCut),
+                             #('Undo',self.doUndo), ('Redo',self.doRedo),
                              ('Save',self.doSave),
-                             ('Find',self.doBibleFind), ('Replace',self.doBibleReplace), ):
+                             ('Find',self.doBibleFind), ('Replace',self.doBibleReplace),
+                             ('ShowMain',self.doShowMainWindow), ):
             assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
             if name in self.parentApp.keyBindingDict:
                 for keyCode in self.parentApp.keyBindingDict[name][1:]:
@@ -409,6 +414,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Forward'), underline=0, command=self.notWrittenYet )
         gotoMenu.add_command( label=_('Backward'), underline=0, command=self.notWrittenYet )
+        gotoMenu.add_separator()
+        gotoMenu.add_command( label=_('Next empty verse'), underline=5, command=self.doGotoNextEmptyVerse )
+        gotoMenu.add_command( label=_('Next empty marker'), underline=11, command=self.doGotoNextEmptyMarker )
         gotoMenu.add_separator()
         gotoMenu.add_command( label=_('Previous list item'), underline=0, command=self.notWrittenYet )
         gotoMenu.add_command( label=_('Next list item'), underline=0, command=self.notWrittenYet )
@@ -611,8 +619,10 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         except KeyboardInterrupt:
             print( "USFMEditWindow: Got keyboard interrupt (1) -- saving my file…" )
             self.doSave() # Sometimes the above seems to lock up
-            self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
-            self.onTextNoChangeID = None
+            #print( 'gfs', self.onTextNoChangeID )
+            if self.onTextNoChangeID:
+                self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+                self.onTextNoChangeID = None
             return
 
         if self.textBox.edit_modified():
@@ -623,8 +633,10 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             except KeyboardInterrupt:
                 print( "USFMEditWindow: Got keyboard interrupt (2) -- saving my file…" )
                 self.doSave() # Sometimes the above seems to lock up
-                self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
-                self.onTextNoChangeID = None
+                #print( 'DSDS', self.onTextNoChangeID )
+                if self.onTextNoChangeID:
+                    self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
+                    self.onTextNoChangeID = None
                 return
 
         # Try to determine the CV mark
@@ -691,7 +703,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             else: minVerseMarkers = maxVerseMarkers = 1
         elif self._contextViewMode == 'BySection':
             minChapterMarkers, maxChapterMarkers = 0, 1
-            minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,10)
+            minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,30)
         elif self._contextViewMode == 'ByBook':
             minChapterMarkers = maxChapterMarkers = self.getNumChapters( BBB )
             minVerseMarkers = maxVerseMarkers = self.numTotalVerses
@@ -876,6 +888,9 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         Puts the book data from self.bookText into the self.verseCache dictionary
             accessible by verse key.
 
+        Automatically attaches section headings to the following verse
+            (rather than having them appear at the end of the current verse).
+
         Normally clears the cache before starting,
             to prevent duplicate entries.
         """
@@ -898,10 +913,11 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             verseKeyHash = SimpleVerseKey( BBB, C, V ).makeHash()
             if verseKeyHash in self.verseCache: # Oh, how come we already have this key???
                 if data == self.verseCache[verseKeyHash]:
-                    logging.critical( "cacheBook: We have an identical duplicate {}: {!r}".format( verseKeyHash, data ) )
+                    logging.critical( "cacheBook: We have an identical duplicate {} {}: {!r}" \
+                            .format( self.projectAbbreviation, verseKeyHash, data ) )
                 else:
-                    logging.critical( "cacheBook: We have a duplicate {} -- already had {!r} and now appending {!r}" \
-                                    .format( verseKeyHash, self.verseCache[verseKeyHash], data ) )
+                    logging.critical( "cacheBook: We have a duplicate {} {} -- already had {!r} and now appending {!r}" \
+                            .format( self.projectAbbreviation, verseKeyHash, self.verseCache[verseKeyHash], data ) )
                     data = self.verseCache[verseKeyHash] + '\n' + data
             self.verseCache[verseKeyHash] = data.replace( '\n\n', '\n' ) # Weed out blank lines
         # end of USFMEditWindow.cacheBook.addCacheEntry
@@ -955,6 +971,12 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                     addCacheEntry( BBB, C, V, currentEntry )
                                     currentEntry = ''
                                     startedVerseEarly = True
+                    elif marker1 in ( 'v', 'V' ): # There's actually a missing paragraph marker but nevermind
+                        # Start a new verse entry here if we have a section heading, missing paragraph marker, then the next verse
+                        if currentEntry: # Save the previous CV entry
+                            addCacheEntry( BBB, C, V, currentEntry )
+                            currentEntry = ''
+                            startedVerseEarly = True
                     elif marker1 in BibleOrgSysGlobals.USFMParagraphMarkers and not text1:
                         marker2, text2 = getMarkerText( j+2 )
                         if marker2 in ( 'v', 'V' ):
@@ -1012,6 +1034,137 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         try: return self.verseCache[verseKey.makeHash()]
         except KeyError: return None
     # end of USFMEditWindow.getCachedVerseData
+
+
+    def emptyVerseMatch( self, stringToSearch ):
+        """
+        Goes through all chapters, verses, and books
+            searching for an existing verse marker without text.
+
+        Returns True if one is found,
+            otherwise False.
+        """
+        #print( "emptyVerseMatch searching in {!r}".format( stringToSearch ) )
+        for lineToSearch in stringToSearch.split( '\n' ):
+            #print( " emptyVerseMatch lineToSearch", repr(lineToSearch) )
+            ix = lineToSearch.find( '\\v ' )
+            if ix != -1:
+                verseText = lineToSearch[ix+3:]
+                #print( "      emptyVerseMatch verseText", repr(verseText) )
+                try: verseNumber, rest = verseText.split( ' ', 1 )
+                except ValueError: rest = '' # No space to split on
+                #print( "      emptyVerseMatch rest", repr(rest) )
+                if not rest.strip():
+                    return True
+        return False
+    # end of USFMEditWindow.getCachedVerseData
+
+    def emptyMarkerMatch( self, stringToSearch ):
+        """
+        Goes through all chapters, verses, and books
+            searching for an empty marker that should have text.
+
+        Returns True if one is found,
+            otherwise False.
+        """
+        #print( "emptyMarkerMatch searching in {!r}".format( stringToSearch ) )
+        for lineToSearch in stringToSearch.split( '\n' ):
+            #print( " emptyMarkerMatch lineToSearch", repr(lineToSearch) )
+            if lineToSearch.startswith( '\\' ):
+                try: marker, rest = lineToSearch[1:].split( ' ', 1 )
+                except ValueError: marker, rest = lineToSearch[1:], '' # No space to split on
+                #print( " emptyMarkerMatch marker", repr(marker), "rest", repr(rest) )
+                if marker == 'v':
+                    try: verseNumber, rest = rest.split( ' ', 1 )
+                    except ValueError: rest = '' # No space to split on
+                    #print( "      emptyVerseMatch rest", repr(rest) )
+                    if not rest.strip():
+                        return True
+                elif marker not in BibleOrgSysGlobals.USFMParagraphMarkers and marker not in ('b','li','li1',):
+                    if not rest.strip():
+                        return True
+        return False
+    # end of USFMEditWindow.emptyMarkerMatch
+
+    def doGotoNextEmptySomething( self, somethingName, matchFunction ):
+        """
+        Given a somethingName string (e.g., 'verse', 'marker' )
+            and a function which takes a string and returns True if the required empty field is found,
+            step through verses, chapters, and books and go to the next empty field.
+
+        Stays at the current BCV if no empty field is found.
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoNextEmptySomething( {!r} ) from {} {}:{}").format( somethingName, BBB, C, V ) )
+
+        #print( "doGotoNextEmptySomething starting at {} {}:{}".format( BBB, C, V ) )
+        intC, intV = int( C ), int( V )
+        while True:
+            #print( "  doGotoNextEmptySomething looping at {} {}:{}".format( BBB, intC, intV ) )
+            if intV < self.maxVersesThisChapter: intV+=1 # Next verse
+            elif intC < self.maxChaptersThisBook:
+                intC, intV = intC+1, 0 # Next chapter
+                self.maxVersesThisChapter = self.getNumVerses( BBB, intC )
+            else: # need to go to the next book
+                if self.bookTextModified: self.doSave() # resets bookTextModified flag
+                BBB = self.getNextBookCode( BBB )
+                if BBB is None:
+                    #print( "    doGotoNextEmptySomething finished all books -- stopping" )
+                    showinfo( self, APP_NAME, _("No (more) empty {} found").format( somethingName ) )
+                    break
+                else:
+                    #print( "    doGotoNextEmptySomething going to next book {}".format( BBB ) )
+                    intC, intV = 1, 1
+                    self.maxChaptersThisBook = self.getNumChapters( BBB )
+                    self.maxVersesThisChapter = self.getNumVerses( BBB, intC )
+                    self.bookText = self.getBookDataFromDisk( BBB )
+                    if self.bookText is not None:
+                        self.cacheBook( BBB )
+            #print( "    doGotoNextEmptySomething going to {} {}:{}".format( BBB, intC, intV ) )
+            cachedVerseData = self.getCachedVerseData( SimpleVerseKey( BBB, intC, intV ) )
+            if cachedVerseData is None: # Could be end of books OR INSIDE A VERSE BRIDGE
+                pass
+                #print( "      doGotoNextEmptySomething got None!" )
+                #break
+            else:
+                #print( "      doGotoNextEmptySomething got", repr(cachedVerseData) )
+                assert isinstance( cachedVerseData, str )
+                if matchFunction( cachedVerseData ):
+                    #print( "      doGotoNextEmptySomething found empty {} at {} {}:{}!".format( somethingName, BBB, intC, intV ) )
+                    self.gotoBCV( BBB, intC, intV )
+                    break # Found an empty verse -- done
+    # end of Application.doGotoNextEmptySomething
+
+    def doGotoNextEmptyVerse( self, event=None ):
+        """
+        Go to the next verse without verse text.
+            Steps through verses, chapters, and books and go to the next empty verse.
+
+        Stays at the current BCV if no empty verse is found.
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoNextEmptyVerse() from {} {}:{}").format( BBB, C, V ) )
+            self.parentApp.setDebugText( "UEW doGotoNextEmptyVerse…" )
+
+        self.doGotoNextEmptySomething( 'verse', self.emptyVerseMatch )
+    # end of Application.doGotoNextEmptyVerse
+
+    def doGotoNextEmptyMarker( self, event=None ):
+        """
+        Go to the next field without text.
+            Steps through verses, chapters, and books and go to the next empty field.
+
+        Stays at the current BCV if no empty field is found.
+        """
+        BBB, C, V = self.currentVerseKey.getBCV()
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("doGotoNextEmptyMarker() from {} {}:{}").format( BBB, C, V ) )
+            self.parentApp.setDebugText( "UEW doGotoNextEmptyMarker…" )
+
+        self.doGotoNextEmptySomething( 'marker', self.emptyMarkerMatch )
+    # end of Application.doGotoNextEmptyMarker
 
 
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
@@ -1469,7 +1622,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         assert self._groupCode == BIBLE_GROUP_CODES[0] # In first/default BCV group
         BRCW = BibleReferenceCollectionWindow( self.parentApp, self.internalBible )
         #if windowGeometry: uEW.geometry( windowGeometry )
-        BRCW.windowType = self.windowType # override the default
+        #BRCW.windowType = self.windowType # override the default
         BRCW.moduleID = self.moduleID
         BRCW.setFolderPath( self.folderPath )
         BRCW.settings = self.settings
@@ -1537,7 +1690,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.closeEditor()") )
         #if self.modified():
-            #pass # refuse to close yet (temp.........)
+            #pass # refuse to close yet (temp……)
         #else: self.closeChildWindow()
     ## end of USFMEditWindow.closeEditor
 # end of USFMEditWindow class
@@ -1579,11 +1732,8 @@ if __name__ == '__main__':
 
     if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #from tkinter import TclVersion, TkVersion
-        from tkinter import tix
         print( "TclVersion is", tk.TclVersion )
         print( "TkVersion is", tk.TkVersion )
-        print( "tix TclVersion is", tix.TclVersion )
-        print( "tix TkVersion is", tix.TkVersion )
 
     demo()
 

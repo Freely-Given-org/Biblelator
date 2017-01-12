@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-08-24' # by RJH
+LastModifiedDate = '2016-12-28' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.38'
+ProgVersion = '0.39'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -89,7 +89,7 @@ from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
-from PTX7Bible import PTX7Bible, loadPTXProjectData
+from PTX7Bible import PTX7Bible, loadPTX7ProjectData
 
 
 
@@ -148,6 +148,7 @@ class Application( Frame ):
         self.interfaceComplexity = DEFAULT
         self.touchMode = False # True makes larger buttons
         self.tabletMode = False
+        self.showDebugMenu = False
 
         self.lastFind = None
         #self.openDialog = None
@@ -211,7 +212,7 @@ class Application( Frame ):
             PT7Folder = 'C:\\My Paratext Projects\\'
             self.lastParatextFileDir = PT8Folder if os.path.isdir( PT8Folder ) else PT7Folder
             self.lastInternalBibleDir = self.lastParatextFileDir
-        elif sys.platform == 'linux': # temp hack XXXXXXXXXXXXX .........................................
+        elif sys.platform == 'linux': # temp hack XXXXXXXXXXXXX …
             #self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/'
             self.lastParatextFileDir = '../../../../../Data/Work/Matigsalug/Bible/'
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
@@ -272,12 +273,18 @@ class Application( Frame ):
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForMessagesFromDeveloper()
 
-        self.rootWindow.title( ProgNameVersion + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
+        self.setMainWindowTitle()
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
         self.logUsage( ProgName, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
     # end of Application.__init__
+
+
+    def setMainWindowTitle( self ):
+        self.rootWindow.title( '[{}] {}'.format( self.currentVerseKeyGroup, ProgNameVersion ) \
+                            + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
+    # end of Application.setMainWindowTitle
 
 
     def setGenericBibleOrganisationalSystem( self, BOSname ):
@@ -461,9 +468,12 @@ class Application( Frame ):
         for themeName in self.style.theme_names():
             submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.doChangeTheme(tN) )
 
-        if BibleOrgSysGlobals.debugFlag:
+        if self.showDebugMenu or BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
+            debugMenu.add_command( label=_('View open windows…'), underline=10, command=self.doViewWindowsList )
+            debugMenu.add_command( label=_('View open Bibles…'), underline=10, command=self.doViewBiblesList )
+            debugMenu.add_separator()
             debugMenu.add_command( label=_('View settings…'), underline=0, command=self.doViewSettings )
             debugMenu.add_separator()
             debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
@@ -613,9 +623,12 @@ class Application( Frame ):
         for themeName in self.style.theme_names():
             submenuWindowStyle.add_command( label=themeName.title(), underline=0, command=lambda tN=themeName: self.doChangeTheme(tN) )
 
-        if BibleOrgSysGlobals.debugFlag:
+        if self.showDebugMenu or BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
+            debugMenu.add_command( label=_('View open windows…'), underline=10, command=self.doViewWindowsList )
+            debugMenu.add_command( label=_('View open Bibles…'), underline=10, command=self.doViewBiblesList )
+            debugMenu.add_separator()
             debugMenu.add_command( label=_('View settings…'), underline=0, command=self.doViewSettings )
             debugMenu.add_separator()
             debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
@@ -1146,16 +1159,22 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("Application.doCheckForMessagesFromDeveloper()") )
 
+        hadError = False
         import urllib.request
+        site = 'Freely-Given.org'
         # NOTE: needs to be https eventually!!!
         indexString = None
-        url = 'http://Freely-Given.org/Software/BibleQlator/DevMsg/DevMsg.idx'
+        url = 'http://{}/Software/BibleQlator/DevMsg/DevMsg.idx'.format( site )
         try:
             with urllib.request.urlopen( url ) as response:
                 indexData = response.read() # a `bytes` object
             #print( "indexData", repr(indexData) )
-        except urllib.error.HTTPError:
-            logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url ) )
+        except urllib.error.HTTPError as err:
+            logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}: {}".format( url, err ) )
+            hadError = True
+        except urllib.error.URLError as err:
+            logging.debug( "doCheckForMessagesFromDeveloper got URLError from {}: {}".format( url, err ) )
+            hadError = True
         else: indexString = indexData.decode('utf-8')
         #print( "indexString", repr(indexString) )
 
@@ -1168,11 +1187,15 @@ class Application( Frame ):
         if indexString:
             while indexString.endswith( '\n' ): indexString = indexString[:-1] # Removing trailing line feeds
             n,ext = indexString.split( '.', 1 )
-            ni = int( n )
-            #print( 'ni', repr(ni), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
+            try: ni = int( n )
+            except ValueError:
+                logging.debug( "doCheckForMessagesFromDeveloper got an unexpected response from {}".format( url ) )
+                hadError = True
+                #print( 'n', repr(n), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
+                ni = -1 # so that nothing at all happens below
             if ni > self.lastMessageNumberRead:
                 msgString = None
-                url2 = 'http://Freely-Given.org/Software/Biblelator/DevMsg/{}.{}'.format( self.lastMessageNumberRead+1, ext )
+                url2 = 'http://{}/Software/Biblelator/DevMsg/{}.{}'.format( site, self.lastMessageNumberRead+1, ext )
                 #print( 'url2', repr(url2) )
                 try:
                     with urllib.request.urlopen( url2 ) as response:
@@ -1180,17 +1203,21 @@ class Application( Frame ):
                         #print( "msgData", repr(msgData) )
                 except urllib.error.HTTPError:
                     logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url2 ) )
+                    hadError = True
                 else: msgString = msgData.decode('utf-8')
                 #print( "msgString", repr(msgString) )
 
                 if msgString:
                     from About import AboutBox
-                    aboutInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
-                    aboutInfo += '\n  via Freely-Given.org'
-                    aboutInfo += '\n\n' + msgString
-                    ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+                    msgInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
+                    msgInfo += '\n  via {}'.format( site )
+                    msgInfo += '\n\n' + msgString
+                    ab = AboutBox( self.rootWindow, APP_NAME, msgInfo )
 
                     self.lastMessageNumberRead += 1
+
+        if hadError:
+            print( "doCheckForMessagesFromDeveloper was unable to communicate with the server." )
     # end of Application.doCheckForMessagesFromDeveloper
 
 
@@ -1632,25 +1659,59 @@ class Application( Frame ):
     # end of Application.openFileTextEditWindow
 
 
+    def doViewWindowsList( self ):
+        """
+        Open a pop-up text window with a list of all the current windows displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("doViewWindowsList()") )
+            self.setDebugText( "doViewWindowsList…" )
+
+        windowsListText = ""
+        for j, appWin in enumerate( self.childWindows ):
+            #try: extra = ' ({})'.format( appWin.BCVUpdateType )
+            #except AttributeError: extra = ''
+            windowsListText += "\n  {}/ wT={} gWT={} {} modID={} cVM={} BCV={}" \
+                                .format( j+1,
+                                    appWin.windowType,
+                                    #appWin.windowType.replace('ChildWindow',''),
+                                    appWin.genericWindowType,
+                                    #appWin.genericWindowType.replace('Resource',''),
+                                    appWin.winfo_geometry(), appWin.moduleID,
+                                    appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
+                                    appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' )
+                                        #extra )
+        print( "windowsListText", windowsListText )
+    # end of Application.doViewWindowsList
+
+
+    def doViewBiblesList( self ):
+        """
+        Open a pop-up text window with a list of all the current Bibles displayed.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule: print( exp("doViewBiblesList()") )
+            self.setDebugText( "doViewBiblesList…" )
+
+        BiblesListText = ""
+        #for something in self.internalBibles:
+            #print( "  ", something )
+            #BiblesListText += "\n{}".format( something )
+        #print( self.internalBibles )
+        for j,(iB,cWs) in enumerate( self.internalBibles ):
+            BiblesListText += "\n  {}/ {} in {}".format( j+1, iB.getAName(), cWs )
+            BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation )
+            BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension )
+            BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding )
+        print( "BiblesListText", BiblesListText )
+    # end of Application.doViewBiblesList
+
+
     def doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
         """
-        viewSettings( self )
-        #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: print( exp("doViewSettings()") )
-            #self.setDebugText( "doViewSettings…" )
-        #tEW = TextEditWindow( self )
-        ##if windowGeometry: tEW.geometry( windowGeometry )
-        #if not tEW.setFilepath( self.settings.settingsFilepath ) \
-        #or not tEW.loadText():
-            #tEW.closeChildWindow()
-            #showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
-        #else:
-            #self.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Finished doViewSettings" )
-        #self.setReadyStatus()
+        viewSettings( self ) # In BiblelatorSettingsFunctions
     # end of Application.doViewSettings
 
 
@@ -1823,7 +1884,7 @@ class Application( Frame ):
             return
         ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
         #ptxBible.loadSSFData( SSFFilepath )
-        PTXSettingsDict = loadPTXProjectData( ptxBible, SSFFilepath )
+        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
             if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
@@ -1883,7 +1944,7 @@ class Application( Frame ):
 
         self.setWaitStatus( _("openParatextBibleEditWindow…") )
         ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
-        PTXSettingsDict = loadPTXProjectData( ptxBible, SSFFilepath )
+        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
             if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
@@ -2055,6 +2116,7 @@ class Application( Frame ):
         if self.currentVerseKey == ('', '1', '1'):
             self.setCurrentVerseKey( SimpleVerseKey( self.getFirstBookCode(), '1', '1' ) )
         self.updateBCVGroupButtons()
+        self.setMainWindowTitle()
         self.acceptNewBnCV()
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.updateBCVGroup
@@ -2360,7 +2422,7 @@ class Application( Frame ):
             print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBookname ) )
             #print( dir(event) )
 
-        BBB, C, V = parseEnteredBookname( enteredBookname, self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
+        BBB, C, V = parseEnteredBookname( enteredBookname, self.currentVerseKey.getBBB(), self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
         #enteredBookname = self.bookNameVar.get()
         #C = self.chapterNumberVar.get()
         #V = self.verseNumberVar.get()
@@ -2914,7 +2976,7 @@ class Application( Frame ):
                     logFile.write( "New time: {} for {}\n".format( timeString, dateString ) )
                 else: logFile.write( "New time: {}\n".format( timeString ) )
             logFile.write( logText )
-    # end of Application.doOpenSwordManager
+    # end of Application.logUsage
 
 
     def doHelp( self, event=None ):
@@ -2958,9 +3020,9 @@ class Application( Frame ):
             showerror( self, APP_NAME, 'You need to allow Internet access first!' )
             return
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\n  This program is not yet finished but we'll add this eventually!"
-        ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo )
+        submitInfo = ProgNameVersion
+        submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
+        ab = AboutBox( self.rootWindow, APP_NAME, submitInfo )
     # end of Application.doSubmitBug
 
 
@@ -3045,7 +3107,8 @@ class Application( Frame ):
         if self.doCloseMyChildWindows():
             self.rootWindow.destroy()
         if self.internetAccessEnabled and self.sendUsageStatisticsEnabled:
-            doSendUsageStatistics( self )
+            try: doSendUsageStatistics( self )
+            except: pass # Don't worry too much if something fails in this
     # end of Application.doCloseMe
 # end of class Application
 
@@ -3087,6 +3150,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     #print( currentWindowDict )
 
     hadAny = False
+    file1Name, file2Name =  _("Bible file"), _("Autosaved file")
     for num in currentWindowDict:
         if currentWindowDict[num]['Type'] == 'ParatextUSFMBibleEditWindow':
             ssfFilepath = currentWindowDict[num]['SSFFilepath']
@@ -3106,7 +3170,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
                         filepath = os.path.join( projectFolder, something )
                         if os.path.exists( filepath ):
                             #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
-                            resultDict = USFMBookCompare( filepath, somepath )
+                            resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
                             #print( resultDict )
                             haveSuggestions = False
                             for someKey,someValue in resultDict['Summary'].items():
@@ -3133,7 +3197,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
                         filepath = os.path.join( projectFolder, something )
                         if os.path.exists( filepath ):
                             #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
-                            resultDict = USFMBookCompare( filepath, somepath )
+                            resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
                             #print( resultDict )
                             haveSuggestions = False
                             for someKey,someValue in resultDict['Summary'].items():
