@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-01-10 by RJH
+Last updated: 2017-01-15 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -17,7 +17,7 @@ Biblelator bugs / unfinished
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
 * Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
-* Find in chapter 0 gives wrong verse (only sometimes -- why???)
+* Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs???)
 * Ctrl+F doesn't work in edit window or resource for Bible Find
 * F1 help and F12 about doesn't seem to work from most windows
 * F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
@@ -42,7 +42,6 @@ Biblelator bugs / unfinished
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource
-* Ask for a path for Sword modules if none found by automatic search
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu or right-click only does it once)
@@ -55,6 +54,7 @@ Biblelator bugs / unfinished
 * Settings editor is not finished enough
 * BOSManager is not finished enough
 * SwordManager is not finished enough
+* Make wording consistent between DIR and FOLDER
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)

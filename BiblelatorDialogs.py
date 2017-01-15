@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -43,14 +43,15 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class GetBibleReplaceTextDialog( ModalDialog )
     class ReplaceConfirmDialog( ModalDialog )
     class SelectInternalBibleDialog( ModalDialog )
+    class GetSwordPathDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-22'
+LastModifiedDate = '2017-01-15'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1941,6 +1942,77 @@ class SelectInternalBibleDialog( ModalDialog ):
         self.cancel() # We want to exit the dialog immediately
     # end of SelectInternalBibleDialog.apply
 # end of class SelectInternalBibleDialog
+
+
+
+#class GetSwordPathDialog( ModalDialog ):
+    #"""
+    #Get the folder path to search for Sword modules (none found in "normal" places).
+    #"""
+    #def __init__( self, parent, title ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetSwordPathDialog…" )
+        #self.alreadyTriedList = []
+        #ModalDialog.__init__( self, parent, title )
+    ## end of GetSwordPathDialog.__init__
+
+
+    #def setAlreadyTriedList( self, alreadyTriedList ):
+        #self.alreadyTriedList = alreadyTriedList
+    ## end of GetSwordPathDialog.setAlreadyTriedList
+
+
+    #def body( self, master ):
+        #"""
+        #Override the empty ModalDialog.body function
+            #to set up the dialog how we want it.
+        #"""
+        #Label( master, text=_("Already tried:") ).grid( row=0 )
+        #Label( master, text=_("New path to Sword modules:") ).grid( row=1 )
+
+        #l1 = Label( master, text=self.alreadyTriedList if self.alreadyTriedList else _("Unknown") )
+        #self.e1 = Entry( master )
+
+        #l1.grid( row=0, column=1 )
+        #self.e1.grid( row=1, column=1 )
+        #return self.e1 # initial focus
+    ## end of GetSwordPathDialog.body
+
+
+    #def validate( self ):
+        #"""
+        #Override the empty ModalDialog.validate function
+            #to check that the results are how we need them.
+
+        #Returns True or False.
+        #"""
+        #import os.path
+
+        #enteredPath = self.e1.get()
+        #if not os.path.isdir( enteredPath):
+            #showwarning( self.parent, APP_NAME, _("Pathname seems invalid") ); return False
+        #epAdjusted = enteredPath.lower().replace( '\\', '/' )
+        #if epAdjusted[-1] != '/': epAdjusted += '/'
+        #if epAdjusted.endswith( 'mods.d/'):
+            #showwarning( self.parent, APP_NAME, _("Pathname shouldn't include mods.d") ); return False
+        #if not os.path.isdir( os.path.join( enteredPath, 'mods.d/' ) ):
+            #showwarning( self.parent, APP_NAME, _("Pathname seems to have no 'mods.d' subfolder") ); return False
+        #return True
+    ## end of GetSwordPathDialog.validate
+
+
+    #def apply( self ):
+        #"""
+        #Override the empty ModalDialog.apply function
+            #to process the results how we need them.
+
+        #Results are left in self.result
+        #"""
+        #enteredPath = self.e1.get()
+        #self.result = enteredPath
+    ## end of GetSwordPathDialog.apply
+## end of class GetSwordPathDialog
 
 
 

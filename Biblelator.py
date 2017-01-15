@@ -5,7 +5,7 @@
 #
 # Main program for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-28' # by RJH
+LastModifiedDate = '2017-01-15' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -205,6 +205,9 @@ class Application( Frame ):
         # Set default folders
         self.lastFileDir = '.'
         self.lastBiblelatorFileDir = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME )
+        trySwordFolder = os.path.join( self.homeFolderPath, '.sword/' )
+        if not os.path.isdir( trySwordFolder ): trySwordFolder = self.homeFolderPath
+        self.lastSwordDir = trySwordFolder
         self.lastParatextFileDir = './'
         self.lastInternalBibleDir = './'
         if sys.platform.startswith( 'win' ):
@@ -1342,11 +1345,30 @@ class Application( Frame ):
             showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             self.setReadyStatus()
             return
+
         givenDupleList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
-        #print( 'givenDupleList', givenDupleList )
-        genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
-        ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
-        if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
+        if not givenDupleList: # try asking for a path
+            # Old code
+            #gspd = GetSwordPathDialog( self, _("Sword module path") )
+            #if gspd.result:
+                #self.SwordInterface.augmentModules( gspd.result )
+                ## Try again now
+                #givenDupleList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
+            # New code
+            openDialog = Directory( title=_("Select Sword module folder"), initialdir=self.lastSwordDir )
+            requestedFolder = openDialog.show()
+            if requestedFolder:
+                self.lastSwordDir = requestedFolder
+                self.SwordInterface.augmentModules( requestedFolder )
+                # Try again now
+                givenDupleList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
+        print( 'givenDupleList', givenDupleList )
+
+        ourList = None
+        if givenDupleList:
+            genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
+            ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
+            if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
         #print( "ourList", ourList )
         if ourList:
             srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
@@ -1380,7 +1402,11 @@ class Application( Frame ):
         self.setWaitStatus( _("openSwordBibleResourceWindow…") )
         if self.SwordInterface is None:
             self.SwordInterface = SwordInterface() # Load the Sword library
-        swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
+        try:
+            swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
+        except KeyError: # maybe we need to augment the path ???
+            self.SwordInterface.augmentModules( self.lastSwordDir )
+            swBRW = SwordBibleResourceWindow( self, moduleAbbreviation )
         if windowGeometry: swBRW.geometry( windowGeometry )
         swBRW.updateShownBCV( self.getVerseKey( swBRW._groupCode ) )
         self.childWindows.append( swBRW )

@@ -5,7 +5,7 @@
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -81,10 +81,10 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-28' # by RJH
+LastModifiedDate = '2017-01-15' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -786,7 +786,11 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         self.createContextMenu() # Enable right-click menu
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
-        self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
+        try:
+            self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
+        except KeyError:
+            self.doClose() # Don't leave an empty window hanging there
+            raise KeyError
         if self.SwordModule is None:
             logging.error( exp("SwordBibleResourceWindow.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
