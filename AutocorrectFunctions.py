@@ -5,7 +5,7 @@
 #
 # Functions to support the autocorrect function in text editors
 #
-# Copyright (C) 2016 Robert Hunt
+# Copyright (C) 2016-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -27,10 +27,10 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-01-25' # by RJH
 ShortProgName = "AutocorrectFunctions"
 ProgName = "Biblelator Autocorrect Functions"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -108,6 +108,7 @@ def setDefaultAutocorrectEntries( self ):
     ourAutocorrectEntries.append( ('--','–') ) # Cycle through en-dash/em-dash with hyphens
     ourAutocorrectEntries.append( ('–-','—') )
     ourAutocorrectEntries.append( ('—-','-') )
+    ourAutocorrectEntries.append( ('...','…') )
 
     ourAutocorrectEntries.append( ('f1','\\f + \\fr ') )
     ourAutocorrectEntries.append( ('f2',' \\ft ') )
