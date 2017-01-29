@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-01-15 by RJH
+Last updated: 2017-01-25 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Clicked on an apocryphal book (result of search) and MBT got into sort of a loop "Need to create book" / cancel
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
 * Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
@@ -55,6 +56,7 @@ Biblelator bugs / unfinished
 * BOSManager is not finished enough
 * SwordManager is not finished enough
 * Make wording consistent between DIR and FOLDER
+* When using custom sword module path, send it home so we can add it to the defaults???
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
