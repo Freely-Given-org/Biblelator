@@ -14,6 +14,8 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Checking window: can't click on individual errors (for goto)
+* Checking window: enable/disable Back/Forward buttons (and display link when cursor over)
 * Clicked on an apocryphal book (result of search) and MBT got into sort of a loop "Need to create book" / cancel
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
 * Editing bridged verse caused it to be added twice!!!
@@ -24,7 +26,6 @@ Biblelator bugs / unfinished
 * F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
 * Windows and Bible lists need to be displayed in a window
 * HTML source box isn't listed in child windows (included in show all / hide all)
-* Bible checks HTML refers to Contact Page and also has a link to itself (Checks)
 * Window find doesn't seem to work on resource windows
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
@@ -42,7 +43,7 @@ Biblelator bugs / unfinished
 * Bible replace needs more work on reloading open books/Bibles
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
-* Need wait status/cursor when opening a DBP resource
+* Need wait status/cursor when opening a DBP resource, doing Bible checks, etc, etc.
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu or right-click only does it once)
