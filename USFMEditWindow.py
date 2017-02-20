@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-10' # by RJH
+LastModifiedDate = '2017-02-07' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.39'
@@ -908,7 +908,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             Check for duplicates before
                 adding a new BCV entry to the book cache.
             """
-            #print( "addCacheEntry", BBB, C, V, data )
+            #if debuggingThisModule: print( "addCacheEntry", BBB, C, V, data )
             assert BBB and C and V and data
             verseKeyHash = SimpleVerseKey( BBB, C, V ).makeHash()
             if verseKeyHash in self.verseCache: # Oh, how come we already have this key???
@@ -938,7 +938,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
 
         # Main code for cacheBook
         sectionHeadings = ( 's', 's1', 's2', 's3', 's4', )
-        C = V = '0'
+        C = V = '0' # So id line starts at 0:0
         startedVerseEarly = False
         currentEntry = ''
         bookLines = self.bookText.split( '\n' )

@@ -5,7 +5,7 @@
 #
 # The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-14' # by RJH
+LastModifiedDate = '2017-02-20' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -65,6 +65,7 @@ import BibleOrgSysGlobals
 REFRESH_TITLE_TIME = 500 # msecs
 CHECK_DISK_CHANGES_TIME = 33333 # msecs
 NO_TYPE_TIME = 6000 # msecs
+NUM_AUTOCOMPLETE_POPUP_LINES = 6
 
 
 
@@ -109,7 +110,7 @@ class TextEditWindow( ChildWindow ):
         self.editStatus = 'Editable'
 
         # Make our own custom textBox which allows a callback function
-        #   Delete these five lines and the callback line if you don't need either autocorrect or autocomplete
+        #   Delete these lines and the callback line if you don't need either autocorrect or autocomplete
         self.textBox.destroy() # from the ChildWindow default
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
@@ -442,6 +443,34 @@ class TextEditWindow( ChildWindow ):
     # end of TextEditWindow.getWordCharactersBeforeCursor
 
 
+    def getCharactersAndWordBeforeCursor( self, maxCount=4 ):
+        """
+        Works backwards from the cursor finding word characters
+            INCLUDING THE PREVIOUS WORD
+            (which we might then want to autocomplete).
+
+        Needed for auto-complete functions.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("TextEditWindow.getCharactersAndWordBeforeCursor( {} )").format( maxCount ) )
+
+        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
+        #print( "previousText", repr(previousText) )
+        delimiterCount = 0
+        wordText = ''
+        for previousChar in reversed( previousText ):
+            if previousChar in self.autocompleteWordChars:
+                wordText = previousChar + wordText
+            elif previousChar in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE:
+                if delimiterCount > 0: break
+                #print( "Found delimiter {!r}".format( previousChar ) )
+                wordText = previousChar + wordText
+                delimiterCount += 1
+        #print( 'getCharactersAndWordBeforeCursor: returning wordText', repr(wordText) )
+        return wordText
+    # end of TextEditWindow.getCharactersAndWordBeforeCursor
+
+
     def getWordBeforeSpace( self, maxCount=15 ):
         """
         Works backwards from before the word ending character (e.g., a space) before the cursor
@@ -466,6 +495,38 @@ class TextEditWindow( ChildWindow ):
         #print( 'getWordBeforeSpace: returning word Text', repr(wordText) )
         return wordText
     # end of TextEditWindow.getWordBeforeSpace
+
+
+    def makeAutocompleteBox( self ):
+        """
+        Create a pop-up listbox in order to be able to display possible autocomplete words.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.makeAutocompleteBox()") )
+            assert self.autocompleteBox is None
+
+        # Create the pop-up listbox
+        x, y, cx, cy = self.textBox.bbox( tk.INSERT )
+        topLevel = tk.Toplevel( self.textBox.master )
+        topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
+        topLevel.wm_geometry( '+{}+{}' \
+            .format( x + self.textBox.winfo_rootx() + 2, y + cy + self.textBox.winfo_rooty() ) )
+        frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
+        frame.pack( fill=tk.BOTH, expand=tk.YES )
+        autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
+        autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+        self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
+                                    relief="flat",
+                                    yscrollcommand=autocompleteScrollbar.set,
+                                    width=20, height=NUM_AUTOCOMPLETE_POPUP_LINES )
+        autocompleteScrollbar.configure( command=self.autocompleteBox.yview )
+        self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
+        #self.autocompleteBox.select_set( '0' )
+        #self.autocompleteBox.focus()
+        self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
+        self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
+        self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
+    # end of TextEditWindow.makeAutocompleteBox
 
 
     def OnAutocompleteChar( self, event ):
@@ -534,10 +595,15 @@ class TextEditWindow( ChildWindow ):
         #print( '  autocompleteBox currentWord', currentWord )
         self.removeAutocompleteBox()
 
+        if self.autocompleteOverlap:
+            #print( "Have {!r} with overlap {!r}".format( currentWord, self.autocompleteOverlap ) )
+            assert currentWord.startswith( self.autocompleteOverlap )
+            #currentWord = currentWord[len(self.autocompleteOverlap):]
+
         # Autocomplete by inserting the rest of the selected word plus a space
         # NOTE: The user has to backspace over the space if they don't want it (e.g., to put a period)
         # NOTE: The box reappears with the current code if we don't append the space -- would need to add a flag
-        self.textBox.insert( tk.INSERT, currentWord[len(self.existingAutocompleteWordText):] \
+        self.textBox.insert( tk.INSERT, currentWord[len(self.autocompleteOverlap):] \
                                         + (' ' if includeTrailingSpace else '') )
 
         if ' ' in currentWord: # bring each separate word to the top
@@ -737,58 +803,51 @@ class TextEditWindow( ChildWindow ):
                 #print( "Handle autocomplete1" )
                 lastAutocompleteWordText = self.existingAutocompleteWordText
                 self.existingAutocompleteWordText = self.getWordCharactersBeforeCursor( self.autocompleteMaxLength )
+                #print( "existingAutocompleteWordText: {!r}".format( self.existingAutocompleteWordText ) )
                 if self.existingAutocompleteWordText != lastAutocompleteWordText:
+                    possibleWords = None
                     # We've had an actual change in the entered text
                     if len(self.existingAutocompleteWordText) >= self.autocompleteMinLength:
+                        #print( "Handle autocomplete1A with {!r}".format( self.existingAutocompleteWordText ) )
                         firstLetter, remainder = self.existingAutocompleteWordText[0], self.existingAutocompleteWordText[1:]
+                        #print( "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
                         try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
-                                                                if thisBit.startswith(remainder) and thisBit != remainder]
-                        except KeyError: possibleWords = None
-                        #print( 'possibleWords', possibleWords )
-                        if possibleWords:
-                            #print( "Handle autocomplete2" )
-                            if self.autocompleteBox is None:
-                                #print( 'create listbox' )
-                                x, y, cx, cy = self.textBox.bbox( tk.INSERT )
-                                topLevel = tk.Toplevel( self.textBox.master )
-                                topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
-                                topLevel.wm_geometry( '+{}+{}' \
-                                    .format( x + self.textBox.winfo_rootx() + 2, y + cy + self.textBox.winfo_rooty() ) )
-                                frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
-                                frame.pack( fill=tk.BOTH, expand=tk.YES )
-                                autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
-                                autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
-                                self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
-                                                            relief="flat",
-                                                            yscrollcommand=autocompleteScrollbar.set,
-                                                            width=20, height=6 )
-                                autocompleteScrollbar.configure( command=self.autocompleteBox.yview )
-                                self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
-                                #self.autocompleteBox.select_set( '0' )
-                                #self.autocompleteBox.focus()
-                                self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
-                                self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
-                                self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
-                            else: # the Listbox is already made -- just empty it
-                                #print( 'empty listbox' )
-                                self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
-                            # Now fill the Listbox
-                            #print( 'fill listbox' )
-                            for word in possibleWords:
-                                if BibleOrgSysGlobals.debugFlag: assert possibleWords.count( word ) == 1
-                                self.autocompleteBox.insert( tk.END, word )
-                            # Do a bit more set-up
-                            #self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
-                            self.autocompleteBox.select_set( '0' )
-                            self.autocompleteBox.focus()
+                                                            if thisBit.startswith(remainder) and thisBit != remainder]
+                        except KeyError: pass
+                        self.autocompleteOverlap = self.existingAutocompleteWordText
+                        #print( 'possibleWordsA', possibleWords )
+                    else: # we haven't typed enough yet to pop-up the standard box so we look ahead using the previous word
+                        previousStuff = self.getCharactersAndWordBeforeCursor( self.autocompleteMaxLength )
+                        #print( "Handle autocomplete1B with {!r}".format( previousStuff ) )
+                        firstLetter, remainder = previousStuff[0], previousStuff[1:]
+                        #print( "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
+                        self.autocompleteOverlap = previousStuff
+                        #try: possibleWords = [thisBit[remainderLength:] for thisBit in self.autocompleteWords[firstLetter] \
+                        try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
+                                                            if thisBit.startswith(remainder) and thisBit != remainder]
+                        except KeyError: pass
+                        self.autocompleteOverlap = previousStuff
+                        #print( 'possibleWordsB', possibleWords )
 
-                        elif self.autocompleteBox is not None:
-                            #print( 'destroy1 autocomplete listbox -- no possible words' )
-                            self.removeAutocompleteBox()
-                    else: # we haven't typed enough yet to pop-up the box
-                        if self.autocompleteBox is not None:
-                            #print( 'destroy2 autocomplete listbox -- not enough typed yet' )
-                            self.removeAutocompleteBox()
+                    if possibleWords:
+                        #print( "Handle autocomplete2" )
+                        if self.autocompleteBox is None:
+                            self.makeAutocompleteBox()
+                        else: # the Listbox is already made -- just empty it
+                            #print( 'empty listbox' )
+                            self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
+                        # Now fill the Listbox
+                        #print( 'fill listbox' )
+                        for word in possibleWords:
+                            if BibleOrgSysGlobals.debugFlag: assert possibleWords.count( word ) == 1
+                            self.autocompleteBox.insert( tk.END, word )
+                        # Do a bit more set-up
+                        #self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
+                        self.autocompleteBox.select_set( '0' )
+                        self.autocompleteBox.focus()
+                    elif self.autocompleteBox is not None:
+                        #print( 'destroy1 autocomplete listbox -- no possible words' )
+                        self.removeAutocompleteBox()
                     if self.addAllNewWords \
                     and args[0]=='insert' and args[1]=='insert' \
                     and args[2] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS:

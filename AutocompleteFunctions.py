@@ -5,7 +5,7 @@
 #
 # Functions to support the autocomplete function in text editors
 #
-# Copyright (C) 2016 Robert Hunt
+# Copyright (C) 2016-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-02-20' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -83,7 +83,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
     Given a word list, set the entries into the autocomplete words
         for an edit window and then do necessary house-keeping.
 
-    Note that the original word order is preserved (if the wordList has an order)
+    Note that the original word order is preserved (if the supplied wordList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
     logging.info( exp("AutocompleteFunctions.setAutocompleteWords( …, {}, {} )").format( len(wordList), append ) )

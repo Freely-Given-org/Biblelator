@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-01-25 by RJH
+Last updated: 2017-02-07 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Search/Replace globally didn't show the update in the open USFMEditWindow
 * Checking window: can't click on individual errors (for goto)
 * Checking window: enable/disable Back/Forward buttons (and display link when cursor over)
 * Clicked on an apocryphal book (result of search) and MBT got into sort of a loop "Need to create book" / cancel
