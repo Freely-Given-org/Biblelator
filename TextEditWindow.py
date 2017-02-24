@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-02-20' # by RJH
+LastModifiedDate = '2017-02-22' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.40'
@@ -146,7 +146,7 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteBox, self.autocompleteWords, self.existingAutocompleteWordText = None, {}, ''
         self.autocompleteWordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
         # Note: I guess we could have used non-word chars instead (to stop the backwards word search)
-        self.autocompleteMinLength = 2 # Show the window after this many characters have been typed
+        self.autocompleteMinLength = 3 # Show the normal window after this many characters have been typed
         self.autocompleteMaxLength = 15 # Remove window after this many characters have been typed
         self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
         self.addAllNewWords = False
@@ -805,9 +805,11 @@ class TextEditWindow( ChildWindow ):
                 self.existingAutocompleteWordText = self.getWordCharactersBeforeCursor( self.autocompleteMaxLength )
                 #print( "existingAutocompleteWordText: {!r}".format( self.existingAutocompleteWordText ) )
                 if self.existingAutocompleteWordText != lastAutocompleteWordText:
-                    possibleWords = None
                     # We've had an actual change in the entered text
+                    possibleWords = None
+
                     if len(self.existingAutocompleteWordText) >= self.autocompleteMinLength:
+                        # See if we have any words that start with the already typed letters
                         #print( "Handle autocomplete1A with {!r}".format( self.existingAutocompleteWordText ) )
                         firstLetter, remainder = self.existingAutocompleteWordText[0], self.existingAutocompleteWordText[1:]
                         #print( "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
@@ -816,7 +818,9 @@ class TextEditWindow( ChildWindow ):
                         except KeyError: pass
                         self.autocompleteOverlap = self.existingAutocompleteWordText
                         #print( 'possibleWordsA', possibleWords )
-                    else: # we haven't typed enough yet to pop-up the standard box so we look ahead using the previous word
+
+                    # Maybe we haven't typed enough yet to pop-up the standard box so we look ahead using the previous word
+                    if not possibleWords:
                         previousStuff = self.getCharactersAndWordBeforeCursor( self.autocompleteMaxLength )
                         #print( "Handle autocomplete1B with {!r}".format( previousStuff ) )
                         firstLetter, remainder = previousStuff[0], previousStuff[1:]
@@ -829,7 +833,7 @@ class TextEditWindow( ChildWindow ):
                         self.autocompleteOverlap = previousStuff
                         #print( 'possibleWordsB', possibleWords )
 
-                    if possibleWords:
+                    if possibleWords: # we have some word(s) to pop-up for possible selection
                         #print( "Handle autocomplete2" )
                         if self.autocompleteBox is None:
                             self.makeAutocompleteBox()

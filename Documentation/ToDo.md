@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-02-07 by RJH
+Last updated: 2017-02-22 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -73,6 +73,7 @@ BOS bugs
 
 
 BOS improvements for Biblelator
+* Start Names checking tool
 * Upgrade to USX 2.5
 * Are we able to read Sword dictionaries?
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
