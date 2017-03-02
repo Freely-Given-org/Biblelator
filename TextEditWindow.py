@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-02-22' # by RJH
+LastModifiedDate = '2017-02-28' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.40'
@@ -39,7 +39,6 @@ debuggingThisModule = True
 
 import os.path, logging, shutil #, re
 from datetime import datetime
-#from time import time
 
 import tkinter as tk
 from tkinter import font
@@ -54,7 +53,9 @@ from TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBS
                                 DOUBLE_SPACE_SUBSTITUTE, ALL_POSSIBLE_SPACE_CHARS
 from ChildWindows import ChildWindow #, HTMLWindow
 from AutocorrectFunctions import setDefaultAutocorrectEntries # setAutocorrectEntries
-from AutocompleteFunctions import END_CHARS_TO_REMOVE
+from AutocompleteFunctions import getCharactersBeforeCursor, \
+                                getWordCharactersBeforeCursor, getCharactersAndWordBeforeCursor, \
+                                getWordBeforeSpace, addNewAutocompleteWord, acceptAutocompleteSelection
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -408,95 +409,6 @@ class TextEditWindow( ChildWindow ):
     # end of USFMEditWindow.getAllText
 
 
-    def getCharactersBeforeCursor( self, charCount=1 ):
-        """
-        Needed for auto-correct functions.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getCharactersBeforeCursor( {} )").format( charCount ) )
-
-        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( charCount ), tk.INSERT )
-        #print( 'getCharactersBeforeCursor: returning previousText', repr(previousText) )
-        return previousText
-    # end of TextEditWindow.getCharactersBeforeCursor
-
-
-    def getWordCharactersBeforeCursor( self, maxCount=4 ):
-        """
-        Works backwards from the cursor finding word characters
-            (which we might then want to autocomplete).
-
-        Needed for auto-complete functions.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getWordCharactersBeforeCursor( {} )").format( maxCount ) )
-
-        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-        #print( "previousText", repr(previousText) )
-        wordText = ''
-        for previousChar in reversed( previousText ):
-            if previousChar in self.autocompleteWordChars:
-                wordText = previousChar + wordText
-            else: break
-        #print( 'getWordCharactersBeforeCursor: returning wordText', repr(wordText) )
-        return wordText
-    # end of TextEditWindow.getWordCharactersBeforeCursor
-
-
-    def getCharactersAndWordBeforeCursor( self, maxCount=4 ):
-        """
-        Works backwards from the cursor finding word characters
-            INCLUDING THE PREVIOUS WORD
-            (which we might then want to autocomplete).
-
-        Needed for auto-complete functions.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getCharactersAndWordBeforeCursor( {} )").format( maxCount ) )
-
-        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-        #print( "previousText", repr(previousText) )
-        delimiterCount = 0
-        wordText = ''
-        for previousChar in reversed( previousText ):
-            if previousChar in self.autocompleteWordChars:
-                wordText = previousChar + wordText
-            elif previousChar in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE:
-                if delimiterCount > 0: break
-                #print( "Found delimiter {!r}".format( previousChar ) )
-                wordText = previousChar + wordText
-                delimiterCount += 1
-        #print( 'getCharactersAndWordBeforeCursor: returning wordText', repr(wordText) )
-        return wordText
-    # end of TextEditWindow.getCharactersAndWordBeforeCursor
-
-
-    def getWordBeforeSpace( self, maxCount=15 ):
-        """
-        Works backwards from before the word ending character (e.g., a space) before the cursor
-            trying to find the word that was last entered.
-
-        Needed for auto-complete functions.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getWordBeforeSpace( {} )").format( maxCount ) )
-
-        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-        #print( "previousText1", repr(previousText) )
-        assert previousText and previousText[-1] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE
-        previousText = previousText[:-1] # Drop the character that ended the word
-        #print( "previousText2", repr(previousText) )
-        wordText = ''
-        if 1 or previousText and previousText[-1].isalpha():
-            for previousChar in reversed( previousText ):
-                if previousChar in self.autocompleteWordChars:
-                    wordText = previousChar + wordText
-                else: break
-        #print( 'getWordBeforeSpace: returning word Text', repr(wordText) )
-        return wordText
-    # end of TextEditWindow.getWordBeforeSpace
-
-
     def makeAutocompleteBox( self ):
         """
         Create a pop-up listbox in order to be able to display possible autocomplete words.
@@ -552,7 +464,7 @@ class TextEditWindow( ChildWindow ):
             # Change the call below to a single parameter if you want it to work across lines
             self.textBox.delete( tk.INSERT, row + '.' + column ) # parameters are fromPoint, toPoint
         elif event.keysym == 'Return':
-            self.acceptAutocompleteSelection( includeTrailingSpace=False )
+            acceptAutocompleteSelection( self, includeTrailingSpace=False )
         #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
                               #'Control_L', 'Control_R', 'Alt_L',
                               #'Alt_R', 'parenleft', 'parenright'):
@@ -561,7 +473,7 @@ class TextEditWindow( ChildWindow ):
             self.removeAutocompleteBox()
         #elif event.keysym in ( 'Delete', ): pass # Just ignore these keypresses
         elif event.char:
-            #if event.char in '.,': self.acceptAutocompleteSelection( includeTrailingSpace=False )
+            #if event.char in '.,': acceptAutocompleteSelection( self, includeTrailingSpace=False )
             self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
                                     #+ (' ' if event.char in ',' else '') )
     # end of TextEditWindow.OnAutocompleteChar
@@ -577,44 +489,8 @@ class TextEditWindow( ChildWindow ):
             #print( exp("TextEditWindow.doAcceptAutocompleteSelection({} )").format( event ) )
             assert self.autocompleteBox is not None
 
-        self.acceptAutocompleteSelection( includeTrailingSpace=False )
+        acceptAutocompleteSelection( self, includeTrailingSpace=False )
     # end of TextEditWindow.doAcceptAutocompleteSelection
-
-
-    def acceptAutocompleteSelection( self, includeTrailingSpace=False ):
-        """
-        Used by autocomplete routines in onTextChange.
-
-        Gets the chosen word and inserts the end of it into the text.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.acceptAutocompleteSelection( {} )").format( includeTrailingSpace ) )
-            assert self.autocompleteBox is not None
-
-        currentWord = self.autocompleteBox.get( tk.ACTIVE )
-        #print( '  autocompleteBox currentWord', currentWord )
-        self.removeAutocompleteBox()
-
-        if self.autocompleteOverlap:
-            #print( "Have {!r} with overlap {!r}".format( currentWord, self.autocompleteOverlap ) )
-            assert currentWord.startswith( self.autocompleteOverlap )
-            #currentWord = currentWord[len(self.autocompleteOverlap):]
-
-        # Autocomplete by inserting the rest of the selected word plus a space
-        # NOTE: The user has to backspace over the space if they don't want it (e.g., to put a period)
-        # NOTE: The box reappears with the current code if we don't append the space -- would need to add a flag
-        self.textBox.insert( tk.INSERT, currentWord[len(self.autocompleteOverlap):] \
-                                        + (' ' if includeTrailingSpace else '') )
-
-        if ' ' in currentWord: # bring each separate word to the top
-            for individualWord in currentWord.split():
-                self.addNewAutocompleteWord( individualWord )
-
-        # Put this word at the beginning of the list so it comes up on top next time
-        firstLetter, remainder = currentWord[0], currentWord[1:]
-        self.autocompleteWords[firstLetter].remove( remainder )
-        self.autocompleteWords[firstLetter].insert( 0, remainder )
-    # end of TextEditWindow.acceptAutocompleteSelection
 
 
     def removeAutocompleteBox( self, event=None ):
@@ -630,33 +506,6 @@ class TextEditWindow( ChildWindow ):
         self.textBox.focus()
         self.autocompleteBox.master.master.destroy() # master is Frame, master.master is Toplevel
         self.autocompleteBox = None
-    # end of TextEditWindow.removeAutocompleteBox
-
-
-    def addNewAutocompleteWord( self, possibleNewWord ):
-        """
-        Add the new autocomplete word if necessary,
-            or at least bring it to the top of the list.
-
-        Used by autocomplete routines in onTextChange.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.addNewAutocompleteWord( {!r} )").format( possibleNewWord ) )
-            assert isinstance( possibleNewWord, str )
-            assert possibleNewWord
-
-        while possibleNewWord and possibleNewWord[-1] in END_CHARS_TO_REMOVE:
-            possibleNewWord = possibleNewWord[:-1] # Remove certain final punctuation
-
-        if len( possibleNewWord ) > self.autocompleteMinLength:
-            #print( "Adding new autocomplete word: {!r}".format( possibleNewWord ) )
-            # Put this word at the beginning of the list so it comes up on top next time
-            firstLetter, remainder = possibleNewWord[0], possibleNewWord[1:]
-            try: self.autocompleteWords[firstLetter].remove( remainder )
-            except ValueError: pass # remove will fail if this really is a new word
-            except KeyError: # There's no list existing for this letter
-                self.autocompleteWords[firstLetter] = []
-            self.autocompleteWords[firstLetter].insert( 0, remainder )
     # end of TextEditWindow.removeAutocompleteBox
 
 
@@ -787,7 +636,7 @@ class TextEditWindow( ChildWindow ):
             # Handle auto-correct
             if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
                 #print( "Handle autocorrect" )
-                previousText = self.getCharactersBeforeCursor( self.maxAutocorrectLength )
+                previousText = getCharactersBeforeCursor( self, self.maxAutocorrectLength )
                 #print( "previousText", repr(previousText) )
                 for inChars,outChars in self.autocorrectEntries:
                     if previousText.endswith( inChars ):
@@ -802,7 +651,7 @@ class TextEditWindow( ChildWindow ):
             if self.autocompleteMode is not None and self.autocompleteWords and args[0] in ('insert','delete',):
                 #print( "Handle autocomplete1" )
                 lastAutocompleteWordText = self.existingAutocompleteWordText
-                self.existingAutocompleteWordText = self.getWordCharactersBeforeCursor( self.autocompleteMaxLength )
+                self.existingAutocompleteWordText = getWordCharactersBeforeCursor( self, self.autocompleteMaxLength )
                 #print( "existingAutocompleteWordText: {!r}".format( self.existingAutocompleteWordText ) )
                 if self.existingAutocompleteWordText != lastAutocompleteWordText:
                     # We've had an actual change in the entered text
@@ -821,7 +670,7 @@ class TextEditWindow( ChildWindow ):
 
                     # Maybe we haven't typed enough yet to pop-up the standard box so we look ahead using the previous word
                     if not possibleWords:
-                        previousStuff = self.getCharactersAndWordBeforeCursor( self.autocompleteMaxLength )
+                        previousStuff = getCharactersAndWordBeforeCursor( self, self.autocompleteMaxLength )
                         #print( "Handle autocomplete1B with {!r}".format( previousStuff ) )
                         firstLetter, remainder = previousStuff[0], previousStuff[1:]
                         #print( "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
@@ -856,10 +705,10 @@ class TextEditWindow( ChildWindow ):
                     and args[0]=='insert' and args[1]=='insert' \
                     and args[2] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS:
                         # Just finished typing a word (by typing a space or something)
-                        word = self.getWordBeforeSpace()
+                        word = getWordBeforeSpace( self )
                         if word: # in the Bible modes, we also add new words as they're typed
-                            #print( "Adding/Updating autocomplete word", repr(word) )
-                            self.addNewAutocompleteWord( word )
+                            #print( "TextEditWindow: Adding/Updating autocomplete word", repr(word) )
+                            addNewAutocompleteWord( self, word )
                             # NOTE: edited/deleted words aren't removed until the program restarts
             elif self.autocompleteBox is not None:
                 #print( 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
