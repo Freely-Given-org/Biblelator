@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-02-22 by RJH
+Last updated: 2017-03-07 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -21,6 +21,7 @@ Biblelator bugs / unfinished
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
 * Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
+* Autocorrect doesn't work in find/replace entry fields
 * Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs???)
 * Ctrl+F doesn't work in edit window or resource for Bible Find
 * F1 help and F12 about doesn't seem to work from most windows

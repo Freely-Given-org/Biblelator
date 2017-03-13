@@ -5,7 +5,7 @@
 #
 # Various non-GUI helper functions for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2016 Robert Hunt
+# Copyright (C) 2014-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-07' # by RJH
+LastModifiedDate = '2017-03-13' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -521,26 +521,27 @@ def parseEnteredBookname( bookNameEntry, currentBBB, Centry, Ventry, BBBfunction
     # Do a bit of preliminary cleaning-up
     bookNameEntry = bookNameEntry.strip().replace( '  ', ' ' )
 
-    if ':' in bookNameEntry:
-        #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # name C:V
-        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
+    if ':' in bookNameEntry or '.' in bookNameEntry: # Could be a CV specified???
+        #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # bookname C:V or C.V
+        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})[:\.](\d{1,3})', bookNameEntry )
         if match:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
             return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
-        match = re.search( '(\d{1,3}):(\d{1,3})', bookNameEntry )
+        match = re.search( '(\d{1,3})[:\.](\d{1,3})', bookNameEntry ) # (Current book) C:V or C.V
         if match:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
             return BBBfunction( currentBBB ), match.group(1), match.group(2 )
-    else:
-        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
-        if match:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
-            return BBBfunction( match.group(1) ), match.group(2), 1
 
-    #else: # assume it's just a book name
+    #else: # could be a C specified???
+    match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
+    if match:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        return BBBfunction( match.group(1) ), match.group(2), 1
+
+    #else: # assume it's just a book name (with no C or V specified)
     return BBBfunction( bookNameEntry ), Centry, Ventry
 # end of BiblelatorHelpers.parseEnteredBookname
 
