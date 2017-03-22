@@ -81,7 +81,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-15' # by RJH
+LastModifiedDate = '2017-03-21' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.40'
@@ -167,6 +167,8 @@ class BibleResourceWindow( BibleWindow ):
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
         self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
+        self.textBox.tag_configure( 'markersHeader', background='yellow3', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'markers', background='yellow3', font='helvetica 6' )
         #else:
             #self.textBox.tag_configure( 'verseNumberFormat', foreground='blue', font='helvetica 8', relief=tk.RAISED, offset='3' )
             #self.textBox.tag_configure( 'versePreSpaceFormat', background='pink', font='helvetica 8' )

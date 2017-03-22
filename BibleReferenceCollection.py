@@ -5,7 +5,7 @@
 #
 # Bible reference collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2015-2016 Robert Hunt
+# Copyright (C) 2015-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-03-21' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -146,6 +146,8 @@ class BibleReferenceBox( Frame, BibleBox ):
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
         self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
+        self.textBox.tag_configure( 'markersHeader', background='yellow3', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'markers', background='yellow3', font='helvetica 6' )
 
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 

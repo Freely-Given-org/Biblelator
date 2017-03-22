@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-15' # by RJH
+LastModifiedDate = '2017-03-22' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.40'
@@ -184,6 +184,8 @@ class BibleResourceBox( Frame, BibleBox ):
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
         self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
+        self.textBox.tag_configure( 'markersHeader', background='yellow3', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'markers', background='yellow3', font='helvetica 6' )
 
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack me into the frame
 
@@ -690,6 +692,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         # Get rid of the default widgets
         self.vScrollbar.destroy()
         self.textBox.destroy()
+        del self.textBox
 
         self.viewVersesBefore, self.viewVersesAfter = 1, 1
 
@@ -1016,7 +1019,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
         """
-        Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
+        Updates the resource boxes in various ways depending on the contextViewMode held by the enclosing window.
 
         The new verse key is in the reference versification system.
 

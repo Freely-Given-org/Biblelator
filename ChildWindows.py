@@ -1346,7 +1346,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         tk.Toplevel.__init__( self, self.parentWindow )
         #ChildBox.__init__( self, self.parentApp )
         self.protocol( 'WM_DELETE_WINDOW', self.doClose )
-        self.title( '{} Search Results'.format( self.optionDict['work'] ) )
+        self.title( '{} Search Results'.format( self.optionDict['workName'] ) )
         self.genericWindowType = 'FindResultWindow'
         self.windowType = 'FindResultWindow'
         self.moduleID = 'HTML'
@@ -1784,7 +1784,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         #           'searchHistoryList'
 
         infoString = 'Search text: {!r}\n'.format( self.optionDict['searchText'] ) \
-                 + 'In: {}\n'.format( self.optionDict['work'] ) \
+                 + 'In: {}\n'.format( self.optionDict['workName'] ) \
                  + 'Books: {}\n'.format( self.optionDict['bookList'] )
         if self.optionDict['chapterList']: infoString += 'chapters: {}\n'.format( self.optionDict['chapterList'] )
         if self.optionDict['markerList']: infoString += 'markers: {}\n'.format( self.optionDict['markerList'] )

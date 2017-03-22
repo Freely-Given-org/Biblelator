@@ -67,10 +67,10 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-11' # by RJH
+LastModifiedDate = '2017-03-21' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -765,7 +765,7 @@ class ChildBox():
     def clearText( self ): # Leaves in normal state
         self.textBox.configure( state=tk.NORMAL )
         self.textBox.delete( START, tk.END )
-    # end of ChildBox.updateText
+    # end of ChildBox.clearText
 
 
     def isEmpty( self ):
@@ -985,14 +985,27 @@ class BibleBox( ChildBox ):
                         firstMarker = False
                 insertEnd( contextString+' ', 'context' )
                 haveTextFlag = True
-            if verseDataList:
-                firstEntry = verseDataList[0]
-                if isinstance( firstEntry, InternalBibleEntry ): marker = firstEntry.getMarker()
-                elif isinstance( firstEntry, tuple ): marker = firstEntry[0]
-                else: marker = None
-                if marker in BibleOrgSysGlobals.USFMParagraphMarkers:
-                    insertEnd( ' '+_("Current context")+': ', 'contextHeader' )
-                    insertEnd( marker+' ', 'context' )
+            if verseDataList and fVM == 'Formatted':
+                # Display the first formatting marker in this segment -- don't really need this -- see below
+                #firstEntry = verseDataList[0]
+                #if isinstance( firstEntry, InternalBibleEntry ): marker = firstEntry.getMarker()
+                #elif isinstance( firstEntry, tuple ): marker = firstEntry[0]
+                #else: marker = None
+                #if marker in BibleOrgSysGlobals.USFMParagraphMarkers:
+                    #insertEnd( ' '+_("Current context")+': ', 'contextHeader' )
+                    #insertEnd( marker+' ', 'context' )
+                # Display all line markers in this segment
+                markerList = []
+                for verseData in verseDataList:
+                    if isinstance( verseData, InternalBibleEntry ): marker = verseData.getMarker()
+                    elif isinstance( verseData, tuple ): marker = verseData[0]
+                    else: marker = None
+                    if marker and not marker.startswith('¬') \
+                    and not marker.endswith('~') and not marker.endswith('#'):
+                        markerList.append( marker )
+                if markerList:
+                    insertEnd( ' '+_("Displayed markers")+': ', 'markersHeader' )
+                    insertEnd( str(markerList)[1:-1], 'markers' ) # Display list without square brackets
 
         #print( "  Setting mark to {}".format( currentMarkName ) )
         self.textBox.mark_set( currentMarkName, tk.INSERT )
@@ -1280,9 +1293,9 @@ class BibleBox( ChildBox ):
         if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
         and self.BibleFindOptionsDict['bookList'] != 'ALL':
             bookCode = self.BibleFindOptionsDict['bookList']
-        self._prepareInternalBible( bookCode ) # Make sure that all books are loaded
+        self._prepareInternalBible( bookCode, self.BibleFindOptionsDict['givenBible'] ) # Make sure that all books are loaded
         # We search the loaded Bible processed lines
-        self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.internalBible.searchText( self.BibleFindOptionsDict )
+        self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.BibleFindOptionsDict['givenBible'].searchText( self.BibleFindOptionsDict )
         #print( "Got searchResults", searchResults )
         if len(searchResultList) == 0: # nothing found
             errorBeep()
@@ -1299,7 +1312,7 @@ class BibleBox( ChildBox ):
     # end of BibleBox.doActualBibleFind
 
 
-    def _prepareInternalBible( self, bookCode=None ):
+    def _prepareInternalBible( self, bookCode=None, givenBible=None ):
         """
         Prepare to do a search on the Internal Bible object
             or to do some of the exports or checks available in BibleOrgSysGlobals.
@@ -1313,16 +1326,17 @@ class BibleBox( ChildBox ):
         logging.debug( exp("BibleBox._prepareInternalBible()") )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleBox._prepareInternalBible()") )
+        if givenBible is None: givenBible = self.internalBible
 
         if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
-        if self.internalBible is not None:
+        if givenBible is not None:
             self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
             if bookCode is None:
                 self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
-                self.internalBible.load()
+                givenBible.load()
             else:
                 self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
-                self.internalBible.loadBook( bookCode )
+                givenBible.loadBook( bookCode )
     # end of BibleBox._prepareInternalBible
 # end of class BibleBox
 

@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-02-07' # by RJH
+LastModifiedDate = '2017-02-22' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1468,7 +1468,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             #self._prepareInternalBible() # Make sure that all books are loaded
             self.doSave() # Make sure that any saves are made to disk
             # We load and search/replace the actual text files
-            self.BibleReplaceOptionsDict, resultSummaryDict = searchReplaceText( self.internalBible, self.BibleReplaceOptionsDict, self.searchReplaceCallback )
+            self.BibleReplaceOptionsDict, resultSummaryDict = searchReplaceText( self.BibleReplaceOptionsDict['givenBible'], self.BibleReplaceOptionsDict, self.searchReplaceCallback )
             #print( "Got searchReplaceResults", resultSummaryDict )
             if 'hadRegexError' in resultSummaryDict and resultSummaryDict['hadRegexError']:
                 errorBeep()

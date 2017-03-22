@@ -48,7 +48,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-15'
+LastModifiedDate = '2017-03-22'
 ShortProgName = "Biblelator"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.40'
@@ -67,7 +67,6 @@ from tkinter.ttk import Style, Label, Combobox, Entry, Radiobutton, Button, Fram
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
-#from TextBoxes import HTMLText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
@@ -1118,7 +1117,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
     """
     Get the search string (and options) for Bible search.
     """
-    def __init__( self, parent, parentApp, givenBible, optionsDict, title ):
+    def __init__( self, parentWindow, parentApp, givenBible, optionsDict, title ):
         """
         optionsDict must already contain 'currentBCV'
         """
@@ -1127,10 +1126,14 @@ class GetBibleSearchTextDialog( ModalDialog ):
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
-        self.parentApp, self.givenBible, self.optionsDict = parentApp, givenBible, optionsDict
+        self.parentWindow, self.parentApp, self.givenBible, self.optionsDict = parentWindow, parentApp, givenBible, optionsDict
+        self.optionsDict['parentWindow'] = parentWindow
+        self.optionsDict['parentBox'] = parentWindow.textBox
+        self.optionsDict['parentApp'] = parentApp
+        self.optionsDict['givenBible'] = givenBible
 
         # Set-up default search options
-        if 'work' not in self.optionsDict: self.optionsDict['work'] = givenBible.abbreviation if givenBible.abbreviation else givenBible.name
+        self.optionsDict['workName'] = givenBible.getAName() # Always revert to the original work
         if 'searchHistoryList' not in self.optionsDict: self.optionsDict['searchHistoryList'] = [] # Oldest first
         if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
         if 'caselessFlag' not in self.optionsDict: self.optionsDict['caselessFlag'] = True
@@ -1145,7 +1148,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         if 'markerList' not in self.optionsDict: self.optionsDict['markerList'] = None
         self.optionsDict['regexFlag'] = False
 
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of GetBibleSearchTextDialog.__init__
 
 
@@ -1155,15 +1158,43 @@ class GetBibleSearchTextDialog( ModalDialog ):
             to set up the dialog how we want it.
         """
         #print( "GetBibleSearchTextDialog.body", self.optionsDict )
+
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
-        self.projectNameVar.set( self.optionsDict['work'] )
+        self.projectNameVar.set( self.optionsDict['workName'] )
         self.projectNameBox = Combobox( master, width=30, textvariable=self.projectNameVar )
-        #self.projectNameBox['values'] = self.bookNames
-        #self.projectNameBox['width'] = len( 'Deuteronomy' )
-        #self.projectNameBox.bind('<<ComboboxSelected>>', self.ok )
-        #self.projectNameBox.bind( '<Return>', self.ok )
-        #self.projectNameBox.pack( side=tk.LEFT )
+        # Find other Bible boxes which might be added as possible projects
+        #print( "  parent window {}".format( self.optionsDict['parentWindow'] ) )
+        #from TextBoxes import BibleBox
+        possibilityList = []
+        self.projectDict = {}
+        for appWin in self.parentApp.childWindows:
+            #print( "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+            if 'Bible' in appWin.genericWindowType:
+                #print( "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+                # Some windows have a single text box, others have a collection of boxes
+                try: # See if we have a text box
+                    #print( "    TextBox {}/{}".format( appWin.textBox, type(appWin.textBox) ) )
+                    if appWin.textBox is not None:
+                        iB = appWin.internalBible
+                        bibleWork = iB.getAName()
+                        #print( "    BibleWork={!r}".format( bibleWork ) )
+                        if bibleWork not in possibilityList: # Don't want duplicates
+                            possibilityList.append( bibleWork )
+                            self.projectDict[bibleWork] = ('Window',appWin,appWin.textBox,iB)
+                except: pass
+                try: # See if we have a list of boxes
+                    for resourceBox in appWin.resourceBoxesList:
+                        #print( "      ResourceBox {}/{}".format( resourceBox.textBox, type(resourceBox.textBox) ) )
+                        if resourceBox.textBox is not None:
+                            iB = resourceBox.internalBible
+                            bibleWork = iB.getAName()
+                            #print( "    BibleWork={!r}".format( bibleWork ) )
+                            if bibleWork not in possibilityList: # Don't want duplicates
+                                possibilityList.append( bibleWork )
+                                self.projectDict[bibleWork] = ('Box',appWin,resourceBox,iB)
+                except: pass
+        self.projectNameBox['values'] = possibilityList
         self.projectNameBox.grid( row=0, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
 
         Label( master, text=_("Find:") ).grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
@@ -1376,6 +1407,17 @@ class GetBibleSearchTextDialog( ModalDialog ):
         Results are left in self.result
         """
         #print( "GetBibleSearchTextDialog.apply()" )
+
+        workName = self.projectNameVar.get()
+        if workName != self.optionsDict['workName']: # then they've changed it
+            self.optionsDict['workName'] = workName
+            descr,window,box,iB = self.projectDict[workName]
+            assert descr in ( 'Window', 'Box' )
+            self.optionsDict['parentWindow'] = window
+            self.optionsDict['parentBox'] = box
+            self.optionsDict['parentApp'] = window.parentApp
+            self.optionsDict['givenBible'] = iB
+
         self.optionsDict['searchText'] = self.searchStringVar.get()
 
         wordModeResultNumber = self.wordModeSelectVariable.get()
@@ -1434,7 +1476,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
     """
     Get the Search and Replace strings (and options) for Bible Replace.
     """
-    def __init__( self, parent, parentApp, givenBible, optionsDict, title ):
+    def __init__( self, parentWindow, parentApp, givenBible, optionsDict, title ):
         """
         optionsDict must already contain 'currentBCV'
         """
@@ -1443,10 +1485,14 @@ class GetBibleReplaceTextDialog( ModalDialog ):
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
-        self.parentApp, self.givenBible, self.optionsDict = parentApp, givenBible, optionsDict
+        self.parentWindow, self.parentApp, self.givenBible, self.optionsDict = parentWindow, parentApp, givenBible, optionsDict
+        self.optionsDict['parentWindow'] = parentWindow
+        self.optionsDict['parentBox'] = parentWindow.textBox
+        self.optionsDict['parentApp'] = parentApp
+        self.optionsDict['givenBible'] = givenBible
 
         # Set-up default Replace options
-        if 'work' not in self.optionsDict: self.optionsDict['work'] = givenBible.abbreviation if givenBible.abbreviation else givenBible.name
+        self.optionsDict['workName'] = givenBible.getAName() # Always revert to the original work
         if 'searchHistoryList' not in self.optionsDict: self.optionsDict['searchHistoryList'] = [] # Oldest first
         if 'replaceHistoryList' not in self.optionsDict: self.optionsDict['replaceHistoryList'] = [] # Oldest first
         if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
@@ -1463,7 +1509,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         if 'doBackups' not in optionsDict: optionsDict['doBackups'] = True # No ability to change this from the dialog
         self.optionsDict['regexFlag'] = False
 
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of GetBibleReplaceTextDialog.__init__
 
 
@@ -1475,13 +1521,38 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         #print( "GetBibleReplaceTextDialog.body", self.optionsDict )
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
-        self.projectNameVar.set( self.optionsDict['work'] )
+        self.projectNameVar.set( self.optionsDict['workName'] )
         self.projectNameBox = Combobox( master, width=30, textvariable=self.projectNameVar )
-        #self.projectNameBox['values'] = self.bookNames
-        #self.projectNameBox['width'] = len( 'Deuteronomy' )
-        #self.projectNameBox.bind('<<ComboboxSelected>>', self.ok )
-        #self.projectNameBox.bind( '<Return>', self.ok )
-        #self.projectNameBox.pack( side=tk.LEFT )
+        # Find other Bible boxes which might be added as possible projects
+        #print( "  parent window {}".format( self.optionsDict['parentWindow'] ) )
+        #from TextBoxes import BibleBox
+        possibilityList = []
+        self.projectDict = {}
+        for appWin in self.parentApp.childWindows:
+            #print( "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+            if 'Bible' in appWin.genericWindowType and 'Edit' in appWin.windowType:
+                #print( "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+                # Some windows have a single text box, others have a collection of boxes
+                try: # See if we have a text box
+                    #print( "    TextBox {}/{}".format( appWin.textBox, type(appWin.textBox) ) )
+                    if appWin.textBox is not None:
+                        iB = appWin.internalBible
+                        bibleWork = getAName()
+                        if bibleWork not in possibilityList: # Don't want duplicates
+                            possibilityList.append( bibleWork )
+                            self.projectDict[bibleWork] = ('Window',appWin,appWin.textBox,iB)
+                except: pass
+                try: # See if we have a list of boxes
+                    for resourceBox in appWin.resourceBoxesList:
+                        #print( "      ResourceBox {}/{}".format( resourceBox.textBox, type(resourceBox.textBox) ) )
+                        if resourceBox.textBox is not None:
+                            iB = resourceBox.internalBible
+                            bibleWork = getAName()
+                            if bibleWork not in possibilityList: # Don't want duplicates
+                                possibilityList.append( bibleWork )
+                                self.projectDict[bibleWork] = ('Box',appWin,resourceBox,IB)
+                except: pass
+        self.projectNameBox['values'] = possibilityList
         self.projectNameBox.grid( row=0, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
 
         Label( master, text=_("Find (match case):") ).grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
@@ -1706,6 +1777,17 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         Results are left in self.result
         """
         #print( "GetBibleReplaceTextDialog.apply()" )
+
+        workName = self.projectNameVar.get()
+        if workName != self.optionsDict['workName']: # then they've changed it
+            self.optionsDict['workName'] = workName
+            descr,window,box,iB = self.projectDict[workName]
+            assert descr in ( 'Window', 'Box' )
+            self.optionsDict['parentWindow'] = window
+            self.optionsDict['parentBox'] = box
+            self.optionsDict['parentApp'] = window.parentApp
+            self.optionsDict['givenBible'] = iB
+
         self.optionsDict['searchText'] = self.searchStringVar.get()
         self.optionsDict['replaceText'] = self.replaceStringVar.get()
 

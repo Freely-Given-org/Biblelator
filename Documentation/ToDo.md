@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-03-07 by RJH
+Last updated: 2017-03-22 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -22,7 +22,7 @@ Biblelator bugs / unfinished
 * Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
 * Autocorrect doesn't work in find/replace entry fields
-* Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs???)
+* Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs removed at load time???)
 * Ctrl+F doesn't work in edit window or resource for Bible Find
 * F1 help and F12 about doesn't seem to work from most windows
 * F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
@@ -32,7 +32,6 @@ Biblelator bugs / unfinished
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
 * Remember position of last find box
-* Find box can't change projects/windows
 * Get extended find box working better -- need to show whole verse somehow (why can't right click or something?)
 * Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
