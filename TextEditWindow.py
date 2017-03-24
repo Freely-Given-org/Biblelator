@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-02-28' # by RJH
+LastModifiedDate = '2017-03-24' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.40'
@@ -418,7 +418,7 @@ class TextEditWindow( ChildWindow ):
             assert self.autocompleteBox is None
 
         # Create the pop-up listbox
-        x, y, cx, cy = self.textBox.bbox( tk.INSERT )
+        x, y, cx, cy = self.textBox.bbox( tk.INSERT ) # Get canvas coordinates
         topLevel = tk.Toplevel( self.textBox.master )
         topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
         topLevel.wm_geometry( '+{}+{}' \
