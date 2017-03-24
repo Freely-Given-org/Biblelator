@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-15' # by RJH
+LastModifiedDate = '2017-03-24' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.40'
@@ -97,6 +97,7 @@ LOCK_FILENAME = '{}.lock'.format( APP_NAME )
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
 BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
 PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+NUM_BCV_REFERENCE_POPUP_LINES = 8
 
 
 
@@ -247,6 +248,7 @@ class Application( Frame ):
             initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
+        self.BCVNavigationBox = None
         if self.touchMode:
             if BibleOrgSysGlobals.verbosityLevel > 1: print( _("Touch mode enabled!") )
             self.createTouchMenuBar()
@@ -649,6 +651,40 @@ class Application( Frame ):
         helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
     # end of Application.createTouchMenuBar
 
+    def OnPreviousMouseDown( self, event ):
+        """
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag:
+            print( exp("OnPreviousMouseDown( {} )").format( event ) )
+
+        self.previousButtonPressed = True
+        self.previousCount = 0
+        self.poll()
+    # end of Application.OnPreviousMouseDown
+
+    def OnPreviousMouseUp( self, event ):
+        """
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag:
+            print( exp("OnPreviousMouseUp( {} )").format( event ) )
+
+        self.previousButtonPressed = False
+        self.after_cancel( self.after_id )
+    # end of Application.OnPreviousMouseUp
+
+    def poll( self ):
+        """
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("poll()") )
+
+        if self.previousButtonPressed:
+            self.previousCount += 1
+            if self.previousCount > 4:
+                self.previousButtonPressed = False
+                self.doGoBackwardMenu()
+            else: self.after_id = self.after( 250, self.poll )
+    # end of Application.poll
 
     def createNormalNavigationBar( self ):
         """
@@ -661,6 +697,8 @@ class Application( Frame ):
         navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
 
         self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
+        self.previousBCVButton.bind( "<ButtonPress-1>", self.OnPreviousMouseDown )
+        self.previousBCVButton.bind( "<ButtonRelease-1>", self.OnPreviousMouseUp )
         self.previousBCVButton.pack( side=tk.LEFT )
         self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
         self.nextBCVButton.pack( side=tk.LEFT )
@@ -1160,7 +1198,7 @@ class Application( Frame ):
         """
         logging.info( exp("Application.doCheckForMessagesFromDeveloper()") )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("Application.doCheckForMessagesFromDeveloper()") )
+            print( exp("Application.doCheckForMessagesFromDeveloper( {} )").format( event ) )
 
         hadError = False
         import urllib.request
@@ -2026,8 +2064,10 @@ class Application( Frame ):
     def doGoBackward( self, event=None ):
         """
         Used in both desktop and touch modes.
+
+        Go back to the previous BCV reference (if any).
         """
-        if BibleOrgSysGlobals.debugFlag:
+        if 1 or BibleOrgSysGlobals.debugFlag:
             print( exp("doGoBackward( {} )").format( event ) )
             #self.setDebugText( "doGoBackward…" )
 
@@ -2042,10 +2082,11 @@ class Application( Frame ):
         self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doGoBackward
 
-
     def doGoForward( self, event=None ):
         """
         Used in both desktop and touch modes.
+
+        Go back to the next BCV reference (if any).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("doGoForward( {} )").format( event ) )
@@ -2061,6 +2102,128 @@ class Application( Frame ):
         #self.acceptNewBnCV()
         self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doGoForward
+
+    def doGoBackwardMenu( self ):
+        """
+        Used in both desktop and touch modes.
+
+        Give a pop-up menu of previous BCV references (if any).
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag:
+            print( exp("doGoBackwardMenu()") )
+            #self.setDebugText( "doGoBackward…" )
+
+        #print( dir(event) )
+        assert self.BCVNavigationBox is None
+        assert self.BCVHistory
+        assert self.BCVHistoryIndex
+
+        self.makeBCVNavigationBox()
+    # end of Application.doGoBackwardMenu
+
+    def makeBCVNavigationBox( self ):
+        """
+        Create a pop-up listbox in order to be able to display possible BCV references.
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("Application.makeBCVNavigationBox()") )
+            assert self.BCVNavigationBox is None
+
+        # Create the pop-up listbox
+        x, y, cx, cy = self.previousBCVButton.bbox( tk.INSERT ) # Get canvas coordinates
+        topLevel = tk.Toplevel( self )
+        topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
+        topLevel.wm_geometry( '+{}+{}' \
+            .format( x + self.previousBCVButton.winfo_rootx() + 2, y + cy + self.previousBCVButton.winfo_rooty() ) )
+        frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
+        frame.pack( fill=tk.BOTH, expand=tk.YES )
+        autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
+        autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+        self.BCVNavigationBox = tk.Listbox( frame, highlightthickness=0,
+                                    relief="flat",
+                                    yscrollcommand=autocompleteScrollbar.set,
+                                    width=20, height=min( NUM_BCV_REFERENCE_POPUP_LINES, len(self.BCVHistory) ) )
+        autocompleteScrollbar.configure( command=self.BCVNavigationBox.yview )
+        self.BCVNavigationBox.pack( side=tk.LEFT, fill=tk.BOTH )
+        self.BCVNavigationBox.bind( '<Key>', self.OnBCVNavigationChar )
+        self.BCVNavigationBox.bind( '<Double-1>', self.doAcceptBCVNavigationSelection )
+        self.BCVNavigationBox.bind( '<FocusOut>', self.removeBCVNavigationBox )
+
+        # Now populate the box
+        assert self.BCVHistory
+        assert self.BCVHistoryIndex
+        assert self.BCVHistoryIndex < len( self.BCVHistory )
+        for reference in self.BCVHistory:
+            #print( "Got BCVRef {} {} {} ".format( reference, reference.getVerseKeyText(), reference.getShortText() ) )
+            self.BCVNavigationBox.insert( tk.END, reference.getShortText() )
+        # Do a bit more set-up
+        self.BCVNavigationBox.select_set( self.BCVHistoryIndex )
+        self.BCVNavigationBox.focus()
+    # end of Application.makeBCVNavigationBox
+
+    def OnBCVNavigationChar( self, event ):
+        """
+        Used by autocomplete routines in onTextChange.
+
+        Handles key presses entered into the pop-up word selection (list) box.
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("Application.OnBCVNavigationChar( {!r}, {!r} )").format( event.char, event.keysym ) )
+            assert self.BCVNavigationBox is not None
+
+        #if event.keysym == 'ESC':
+        #if event.char==' ' or event.char in self.autocompleteWordChars:
+            #self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
+        if event.keysym == 'BackSpace':
+            row, column = self.textBox.index(tk.INSERT).split('.')
+            column = str( int(column) - 1 )
+            self.textBox.delete( row + '.' + column, tk.INSERT ) # parameters are fromPoint, toPoint
+        elif event.keysym == 'Delete':
+            row, column = self.textBox.index(tk.INSERT).split('.')
+            column = str( int(column) + 1 ) # Only works as far as the end of the line (won't delete a \n)
+            # Change the call below to a single parameter if you want it to work across lines
+            self.textBox.delete( tk.INSERT, row + '.' + column ) # parameters are fromPoint, toPoint
+        elif event.keysym == 'Return':
+            self.doAcceptBCVNavigationSelection()
+        #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
+                              #'Control_L', 'Control_R', 'Alt_L',
+                              #'Alt_R', 'parenleft', 'parenright'):
+            #pass
+        elif event.keysym == 'Escape':
+            self.removeBCVNavigationBox()
+        #elif event.keysym in ( 'Delete', ): pass # Just ignore these keypresses
+        elif event.char:
+            #if event.char in '.,': acceptBCVNavigationSelection( self, includeTrailingSpace=False )
+            self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
+                                    #+ (' ' if event.char in ',' else '') )
+    # end of Application.OnBCVNavigationChar
+
+
+    def doAcceptBCVNavigationSelection( self, event=None ):
+        """
+        Used by autocomplete routines in onTextChange.
+
+        Gets the chosen word and inserts the end of it into the text.
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("Application.doAcceptBCVNavigationSelection({} )").format( event ) )
+            assert self.BCVNavigationBox is not None
+
+    # end of Application.doAcceptBCVNavigationSelection
+
+
+    def removeBCVNavigationBox( self, event=None ):
+        """
+        Remove the pop-up Listbox (in a Frame in a Toplevel) when it's no longer required.
+        """
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("Application.removeBCVNavigationBox( {} )").format( event ) )
+            assert self.BCVNavigationBox is not None
+
+        self.previousBCVButton.focus()
+        self.BCVNavigationBox.master.master.destroy() # master is Frame, master.master is Toplevel
+        self.BCVNavigationBox = None
+    # end of Application.removeBCVNavigationBox
 
 
     def doBookNameButton( self, event=None ):
@@ -2850,7 +3013,7 @@ class Application( Frame ):
 
         matches = []
         try:
-            for filepath in find(pattern=filenamepatt, startdir=dirname):
+            for filepath in find( pattern=filenamepatt, startdir=dirname ):
                 try:
                     textfile = open(filepath, encoding=encoding)
                     for (linenum, linestr) in enumerate(textfile):
@@ -2862,11 +3025,11 @@ class Application( Frame ):
                 except IOError as X:
                     print( 'IO error in:', filepath, X)            # eg: permission
         finally:
-            myqueue.put(matches)      # stop consumer loop on find excs: filenames?
+            myqueue.put( matches )      # stop consumer loop on find excs: filenames?
     # end of Application.grepThreadProducer
 
 
-    def grepThreadConsumer( self, grepkey, encoding, myqueue, mypopup):
+    def grepThreadConsumer( self, grepkey, encoding, myqueue, mypopup ):
         """
         in the main GUI thread: watch queue for results or [];
         there may be multiple active grep threads/loops/queues;
@@ -2878,7 +3041,7 @@ class Application( Frame ):
             matches = myqueue.get( block=False )
         except queue.Empty:
             myargs  = (grepkey, encoding, myqueue, mypopup)
-            self.after(250, self.grepThreadConsumer, *myargs)
+            self.after( 250, self.grepThreadConsumer, *myargs )
         else:
             mypopup.destroy()     # close status
             self.update()         # erase it now
