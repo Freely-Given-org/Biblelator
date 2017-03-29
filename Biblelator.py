@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-03-24' # by RJH
+LastModifiedDate = '2017-03-27' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.40'
@@ -651,40 +651,73 @@ class Application( Frame ):
         helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
     # end of Application.createTouchMenuBar
 
-    def OnPreviousMouseDown( self, event ):
+    def __OnPreviousBCVMouseDown( self, event ):
         """
         """
-        if 1 or BibleOrgSysGlobals.debugFlag:
-            print( exp("OnPreviousMouseDown( {} )").format( event ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("OnPreviousBCVBCVMouseDown( {} )").format( event ) )
 
         self.previousButtonPressed = True
         self.previousCount = 0
-        self.poll()
-    # end of Application.OnPreviousMouseDown
+        if self.BCVHistory and self.BCVHistoryIndex>0: # the button should be enabled
+            self.__longBCVPressPoll()
+        else: self.longPressAfterID = None
+    # end of Application.__OnPreviousBCVMouseDown
 
-    def OnPreviousMouseUp( self, event ):
+    def __OnNextBCVMouseDown( self, event ):
         """
         """
-        if 1 or BibleOrgSysGlobals.debugFlag:
-            print( exp("OnPreviousMouseUp( {} )").format( event ) )
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("OnNextBCVBCVMouseDown( {} )").format( event ) )
+
+        self.nextButtonPressed = True
+        self.nextCount = 0
+        if self.BCVHistory and self.BCVHistoryIndex>0: # the button should be enabled
+            self.__longBCVPressPoll()
+        else: self.longPressAfterID = None
+    # end of Application.__OnNextBCVMouseDown
+
+    def __OnPreviousBCVMouseUp( self, event ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("__OnPreviousBCVMouseUp( {} )").format( event ) )
 
         self.previousButtonPressed = False
-        self.after_cancel( self.after_id )
-    # end of Application.OnPreviousMouseUp
+        if self.longPressAfterID is not None: self.after_cancel( self.longPressAfterID )
+    # end of Application.__OnPreviousBCVMouseUp
 
-    def poll( self ):
+    def __OnNextBCVMouseUp( self, event ):
         """
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("poll()") )
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("__OnNextBCVMouseUp( {} )").format( event ) )
+
+        self.nextButtonPressed = False
+        if self.longPressAfterID is not None: self.after_cancel( self.longPressAfterID )
+    # end of Application.__OnNextBCVMouseUp
+
+    def __longBCVPressPoll( self ):
+        """
+        When the mouse is held on the Previous or Next buttons,
+            wait for a long press.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("__longBCVPressPoll()") )
 
         if self.previousButtonPressed:
             self.previousCount += 1
             if self.previousCount > 4:
                 self.previousButtonPressed = False
-                self.doGoBackwardMenu()
-            else: self.after_id = self.after( 250, self.poll )
-    # end of Application.poll
+                self.__doGoBackwardForwardMenu()
+            else: self.longPressAfterID = self.after( 250, self.__longBCVPressPoll )
+        elif self.nextButtonPressed:
+            self.nextCount += 1
+            if self.nextCount > 4:
+                self.nextButtonPressed = False
+                self.__doGoBackwardForwardMenu()
+            else: self.longPressAfterID = self.after( 250, self.__longBCVPressPoll )
+    # end of Application.__longBCVPressPoll
 
     def createNormalNavigationBar( self ):
         """
@@ -697,11 +730,15 @@ class Application( Frame ):
         navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
 
         self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
-        self.previousBCVButton.bind( "<ButtonPress-1>", self.OnPreviousMouseDown )
-        self.previousBCVButton.bind( "<ButtonRelease-1>", self.OnPreviousMouseUp )
         self.previousBCVButton.pack( side=tk.LEFT )
+        self.previousButtonPressed = False
+        self.previousBCVButton.bind( "<ButtonPress-1>", self.__OnPreviousBCVMouseDown )
+        self.previousBCVButton.bind( "<ButtonRelease-1>", self.__OnPreviousBCVMouseUp )
         self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
         self.nextBCVButton.pack( side=tk.LEFT )
+        self.nextButtonPressed = False
+        self.nextBCVButton.bind( "<ButtonPress-1>", self.__OnNextBCVMouseDown )
+        self.nextBCVButton.bind( "<ButtonRelease-1>", self.__OnNextBCVMouseUp )
 
         Style().configure( 'A.TButton', background='lightgreen' )
         Style().configure( 'B.TButton', background='pink' )
@@ -2077,7 +2114,7 @@ class Application( Frame ):
         self.BCVHistoryIndex -= 1
         assert self.BCVHistoryIndex >= 0
         self.setCurrentVerseKey( self.BCVHistory[self.BCVHistoryIndex] )
-        self.updatePreviousNextButtons()
+        self.updateBCVPreviousNextButtonsState()
         #self.acceptNewBnCV()
         self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doGoBackward
@@ -2098,20 +2135,20 @@ class Application( Frame ):
         self.BCVHistoryIndex += 1
         assert self.BCVHistoryIndex < len(self.BCVHistory)
         self.setCurrentVerseKey( self.BCVHistory[self.BCVHistoryIndex] )
-        self.updatePreviousNextButtons()
+        self.updateBCVPreviousNextButtonsState()
         #self.acceptNewBnCV()
         self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doGoForward
 
-    def doGoBackwardMenu( self ):
+    def __doGoBackwardForwardMenu( self ):
         """
         Used in both desktop and touch modes.
 
         Give a pop-up menu of previous BCV references (if any).
         """
         if 1 or BibleOrgSysGlobals.debugFlag:
-            print( exp("doGoBackwardMenu()") )
-            #self.setDebugText( "doGoBackward…" )
+            print( exp("__doGoBackwardForwardMenu()") )
+            #self.setDebugText( "__doGoBackwardForwardMenu…" )
 
         #print( dir(event) )
         assert self.BCVNavigationBox is None
@@ -2119,7 +2156,7 @@ class Application( Frame ):
         assert self.BCVHistoryIndex
 
         self.makeBCVNavigationBox()
-    # end of Application.doGoBackwardMenu
+    # end of Application.__doGoBackwardForwardMenu
 
     def makeBCVNavigationBox( self ):
         """
@@ -2145,20 +2182,21 @@ class Application( Frame ):
                                     width=20, height=min( NUM_BCV_REFERENCE_POPUP_LINES, len(self.BCVHistory) ) )
         autocompleteScrollbar.configure( command=self.BCVNavigationBox.yview )
         self.BCVNavigationBox.pack( side=tk.LEFT, fill=tk.BOTH )
-        self.BCVNavigationBox.bind( '<Key>', self.OnBCVNavigationChar )
-        self.BCVNavigationBox.bind( '<Double-1>', self.doAcceptBCVNavigationSelection )
-        self.BCVNavigationBox.bind( '<FocusOut>', self.removeBCVNavigationBox )
 
         # Now populate the box
         assert self.BCVHistory
         assert self.BCVHistoryIndex
         assert self.BCVHistoryIndex < len( self.BCVHistory )
-        for reference in self.BCVHistory:
+        for reference in self.BCVHistory: # These are SimpleVerseKey objects
             #print( "Got BCVRef {} {} {} ".format( reference, reference.getVerseKeyText(), reference.getShortText() ) )
             self.BCVNavigationBox.insert( tk.END, reference.getShortText() )
         # Do a bit more set-up
         self.BCVNavigationBox.select_set( self.BCVHistoryIndex )
+
         self.BCVNavigationBox.focus()
+        self.BCVNavigationBox.bind( '<Key>', self.OnBCVNavigationChar )
+        self.BCVNavigationBox.bind( '<Double-1>', self.doAcceptBCVNavigationSelection )
+        self.BCVNavigationBox.bind( '<FocusOut>', self.removeBCVNavigationBox )
     # end of Application.makeBCVNavigationBox
 
     def OnBCVNavigationChar( self, event ):
@@ -2168,34 +2206,13 @@ class Application( Frame ):
         Handles key presses entered into the pop-up word selection (list) box.
         """
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("Application.OnBCVNavigationChar( {!r}, {!r} )").format( event.char, event.keysym ) )
+            print( exp("Application.OnBCVNavigationChar( {!r}, {!r} )").format( event.char, event.keysym ) )
             assert self.BCVNavigationBox is not None
 
-        #if event.keysym == 'ESC':
-        #if event.char==' ' or event.char in self.autocompleteWordChars:
-            #self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
-        if event.keysym == 'BackSpace':
-            row, column = self.textBox.index(tk.INSERT).split('.')
-            column = str( int(column) - 1 )
-            self.textBox.delete( row + '.' + column, tk.INSERT ) # parameters are fromPoint, toPoint
-        elif event.keysym == 'Delete':
-            row, column = self.textBox.index(tk.INSERT).split('.')
-            column = str( int(column) + 1 ) # Only works as far as the end of the line (won't delete a \n)
-            # Change the call below to a single parameter if you want it to work across lines
-            self.textBox.delete( tk.INSERT, row + '.' + column ) # parameters are fromPoint, toPoint
-        elif event.keysym == 'Return':
+        if event.keysym == 'Return':
             self.doAcceptBCVNavigationSelection()
-        #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
-                              #'Control_L', 'Control_R', 'Alt_L',
-                              #'Alt_R', 'parenleft', 'parenright'):
-            #pass
         elif event.keysym == 'Escape':
             self.removeBCVNavigationBox()
-        #elif event.keysym in ( 'Delete', ): pass # Just ignore these keypresses
-        elif event.char:
-            #if event.char in '.,': acceptBCVNavigationSelection( self, includeTrailingSpace=False )
-            self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
-                                    #+ (' ' if event.char in ',' else '') )
     # end of Application.OnBCVNavigationChar
 
 
@@ -2206,9 +2223,31 @@ class Application( Frame ):
         Gets the chosen word and inserts the end of it into the text.
         """
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("Application.doAcceptBCVNavigationSelection({} )").format( event ) )
+            print( exp("Application.doAcceptBCVNavigationSelection({} )").format( event ) )
             assert self.BCVNavigationBox is not None
 
+        selectedBCVString = self.BCVNavigationBox.get( tk.ACTIVE ) # Returns a string 'BBB C:V'
+        print( '  BCVNavigationBox selectedBCVString', repr(selectedBCVString) )
+        self.removeBCVNavigationBox()
+
+        #BBB, CV = selectedBCV.split( None, 1 )
+        #C, V = CV.split( ':', 1 )
+        #print( '    BCVNavigationBox selectedBCV', repr(BBB), repr(C), repr(V) )
+        #self.gotoBCV( BBB, C, V )
+        #self.setReadyStatus()
+
+        found = False
+        for index, verseKey in enumerate( self.BCVHistory ):
+            if verseKey.getShortText() == selectedBCVString:
+                found = True; break
+        if not found: halt # programming error
+        print( "  Heading to #{}={} {}".format( index, selectedBCVString, self.BCVHistory[index] ) )
+        assert 0 <= index <= len( self.BCVHistory )
+        self.BCVHistoryIndex = index
+
+        self.setCurrentVerseKey( self.BCVHistory[self.BCVHistoryIndex] )
+        self.updateBCVPreviousNextButtonsState()
+        self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doAcceptBCVNavigationSelection
 
 
@@ -2217,7 +2256,7 @@ class Application( Frame ):
         Remove the pop-up Listbox (in a Frame in a Toplevel) when it's no longer required.
         """
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("Application.removeBCVNavigationBox( {} )").format( event ) )
+            print( exp("Application.removeBCVNavigationBox( {} )").format( event ) )
             assert self.BCVNavigationBox is not None
 
         self.previousBCVButton.focus()
@@ -2336,16 +2375,17 @@ class Application( Frame ):
     # end of Application.updateBCVGroupButtons
 
 
-    def updatePreviousNextButtons( self ):
+    def updateBCVPreviousNextButtonsState( self ):
         """
         Updates the display showing the previous/next buttons as enabled or disabled.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("updatePreviousNextButtons()") )
-            self.setDebugText( "updatePreviousNextButtons…" )
+            print( exp("updateBCVPreviousNextButtonsState()") )
+            self.setDebugText( "updateBCVPreviousNextButtonsState…" )
+
         self.previousBCVButton.configure( state=tk.NORMAL if self.BCVHistory and self.BCVHistoryIndex>0 else tk.DISABLED )
         self.nextBCVButton.configure( state=tk.NORMAL if self.BCVHistory and self.BCVHistoryIndex<len(self.BCVHistory)-1 else tk.DISABLED )
-    # end of Application.updatePreviousNextButtons
+    # end of Application.updateBCVPreviousNextButtonsState
 
 
     def selectGroupA( self ):
@@ -2467,28 +2507,6 @@ class Application( Frame ):
         if intV < self.maxVersesThisChapter: self.gotoBCV( BBB, C, intV+1 )
         else: self.doGotoNextChapter()
     # end of Application.doGotoNextVerse
-
-
-    #def doGoForward( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGoForward() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGoForward…" )
-        #self.notWrittenYet()
-    ## end of Application.doGoForward
-
-
-    #def doGoBackward( self ):
-        #"""
-        #"""
-        #BBB, C, V = self.currentVerseKey.getBCV()
-        #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doGoBackward() from {} {}:{}").format( BBB, C, V ) )
-            #self.setDebugText( "doGoBackward…" )
-        #self.notWrittenYet()
-    ## end of Application.doGoBackward
 
 
     def doGotoPreviousListItem( self, event=None ):
@@ -2766,7 +2784,7 @@ class Application( Frame ):
         if self.currentVerseKey not in self.BCVHistory:
             self.BCVHistoryIndex = len( self.BCVHistory )
             self.BCVHistory.append( self.currentVerseKey )
-            self.updatePreviousNextButtons()
+            self.updateBCVPreviousNextButtonsState()
     # end of Application.updateGUIBCVControls
 
 

@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-03-22 by RJH
+Last updated: 2017-03-29 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -73,6 +73,8 @@ BOS bugs
 
 
 BOS improvements for Biblelator
+* Cache Bible books as pickles
+* Make a class for a list of search results (being able to combine lists in various ways)
 * Start Names checking tool
 * Upgrade to USX 2.5
 * Are we able to read Sword dictionaries?
@@ -109,7 +111,7 @@ Biblelator stuff
 * Add AND and OR for Bible find
 * Add a pop-up quick reference box (with all open translations???)
 * Make HTML window more robust (failed if meta line was missing self-closing slash)
-* Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)
+* Do we need separate visited lists for each group code?
 * Make a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
