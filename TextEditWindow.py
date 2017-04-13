@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-03-24' # by RJH
+LastModifiedDate = '2017-04-11' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.40'
@@ -48,7 +48,8 @@ from tkinter.ttk import Button, Label, Entry
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, START, DEFAULT
-from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog
+from BiblelatorSimpleDialogs import showError, showInfo
+from BiblelatorDialogs import YesNoDialog, OkCancelDialog
 from TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE, \
                                 DOUBLE_SPACE_SUBSTITUTE, ALL_POSSIBLE_SPACE_CHARS
 from ChildWindows import ChildWindow #, HTMLWindow
@@ -87,6 +88,8 @@ def exp( messageString ):
 
 
 class TextEditWindow( ChildWindow ):
+    """
+    """
     def __init__( self, parentApp, folderPath=None, filename=None ):
         """
         """
@@ -129,7 +132,6 @@ class TextEditWindow( ChildWindow ):
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.textBox.setTextChangeCallback( self.onTextChange )
-        #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
         self.createContextMenu() # Enable right-click menu
 
@@ -193,12 +195,15 @@ class TextEditWindow( ChildWindow ):
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
-                             ('Save',self.doSave), ('ShowMain',self.doShowMainWindow), ):
-            #print( "CheckLoop", (name,self.parentApp.keyBindingDict[name][0],) )
+                             ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
+                             ('Save',self.doSave),
+                             ('ShowMain',self.doShowMainWindow),
+                             ):
+            #print( "TEW CheckLoop", (name,self.parentApp.keyBindingDict[name][0],self.parentApp.keyBindingDict[name][1],) )
             assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
             if name in self.parentApp.keyBindingDict:
                 for keyCode in self.parentApp.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #print( "  TEW Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.textBox.bind( keyCode, commandFunction )
                     if BibleOrgSysGlobals.debugFlag:
                         assert keyCode not in self.myKeyboardShortcutsList
@@ -251,9 +256,9 @@ class TextEditWindow( ChildWindow ):
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doWindowFindReplace )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doBoxFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label=_('Grep…'), underline=0, command=self.onGrep )
 
@@ -435,7 +440,7 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
         #self.autocompleteBox.select_set( '0' )
         #self.autocompleteBox.focus()
-        self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
+        self.autocompleteBox.bind( '<KeyPress>', self.OnAutocompleteChar )
         self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
         self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
     # end of TextEditWindow.makeAutocompleteBox
@@ -644,6 +649,7 @@ class TextEditWindow( ChildWindow ):
                         # Delete the typed character(s) and replace with the new one(s)
                         self.textBox.delete( tk.INSERT+'-{}c'.format( len(inChars) ), tk.INSERT )
                         self.textBox.insert( tk.INSERT, outChars )
+                        break
             # end of auto-correct section
 
 
@@ -774,7 +780,7 @@ class TextEditWindow( ChildWindow ):
             + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
                     .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, round(self.autosaveTime/1000), self.saveChangesAutomatically )
 
-        showinfo( self, _("Window Information"), infoString )
+        showInfo( self, _("Window Information"), infoString )
     # end of TextEditWindow.doShowInfo
 
 
@@ -783,7 +789,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doUndo( {} )").format( event ) )
 
         try: self.textBox.edit_undo()
-        except tk.TclError: showinfo( self, APP_NAME, _("Nothing to undo") )
+        except tk.TclError: showInfo( self, APP_NAME, _("Nothing to undo") )
         self.textBox.update() # force refresh
     # end of TextEditWindow.doUndo
 
@@ -793,7 +799,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doRedo( {} )").format( event ) )
 
         try: self.textBox.edit_redo()
-        except tk.TclError: showinfo( self, APP_NAME, _("Nothing to redo") )
+        except tk.TclError: showInfo( self, APP_NAME, _("Nothing to redo") )
         self.textBox.update() # force refresh
     # end of TextEditWindow.doRedo
 
@@ -803,7 +809,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doDelete( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
-            showerror( self, APP_NAME, _("No text selected") )
+            showError( self, APP_NAME, _("No text selected") )
         else:
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST )
     # end of TextEditWindow.doDelete
@@ -816,7 +822,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doCut( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
-            showerror( self, APP_NAME, _("No text selected") )
+            showError( self, APP_NAME, _("No text selected") )
         else:
             self.doCopy() # In ChildBox class
             self.doDelete()
@@ -833,7 +839,7 @@ class TextEditWindow( ChildWindow ):
         try:
             text = self.selection_get( selection='CLIPBOARD')
         except tk.TclError:
-            showerror( self, APP_NAME, _("Nothing to paste") )
+            showError( self, APP_NAME, _("Nothing to paste") )
             return
         self.textBox.insert( tk.INSERT, text)          # add at current insert cursor
         self.textBox.tag_remove( tk.SEL, START, tk.END )
@@ -859,11 +865,11 @@ class TextEditWindow( ChildWindow ):
                 #self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
                 #self.textBox.see( tk.INSERT )                          # scroll to line
             #else:
-                #showerror( self, APP_NAME, _("No such line number") )
+                #showError( self, APP_NAME, _("No such line number") )
     ## end of TextEditWindow.doGotoWindowLine
 
 
-    #def xxxdoWindowFind( self, lastkey=None):
+    #def xxxdoBoxFind( self, lastkey=None):
         #key = lastkey or askstring( APP_NAME, _("Enter search string") )
         #self.textBox.update()
         #self.textBox.focus()
@@ -872,22 +878,22 @@ class TextEditWindow( ChildWindow ):
             #nocase = self.optionsDict['caseinsens']
             #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
             #if not where:                                          # don't wrap
-                #showerror( self, APP_NAME, _("String not found") )
+                #showError( self, APP_NAME, _("String not found") )
             #else:
                 #pastkey = where + '+%dc' % len(key)           # index past key
                 #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
                 #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 #self.textBox.see( where )                          # scroll display
-    ## end of TextEditWindow.doWindowFind
+    ## end of TextEditWindow.doBoxFind
 
 
-    #def xxxdoWindowRefind( self ):
-        #self.doWindowFind( self.lastfind)
-    ## end of TextEditWindow.doWindowRefind
+    #def xxxdoBoxRefind( self ):
+        #self.doBoxFind( self.lastfind)
+    ## end of TextEditWindow.doBoxRefind
 
 
-    def doWindowFindReplace( self ):
+    def doBoxFindReplace( self ):
         """
         Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
@@ -896,21 +902,21 @@ class TextEditWindow( ChildWindow ):
         newPopupWindow.title( '{} - change'.format( APP_NAME ) )
         Label( newPopupWindow, text='Find text?', relief=tk.RIDGE, width=15).grid( row=0, column=0 )
         Label( newPopupWindow, text='Change to?', relief=tk.RIDGE, width=15).grid( row=1, column=0 )
-        entry1 = Entry( newPopupWindow )
-        entry2 = Entry( newPopupWindow )
+        entry1 = BEntry( newPopupWindow )
+        entry2 = BEntry( newPopupWindow )
         entry1.grid( row=0, column=1, sticky=tk.EW )
         entry2.grid( row=1, column=1, sticky=tk.EW )
 
-        def doWindowFind():                         # use my entry in enclosing scope
-            self.doWindowFind( entry1.get() )         # runs normal find dialog callback
+        def doBoxFind():                         # use my entry in enclosing scope
+            self.doBoxFind( entry1.get() )         # runs normal find dialog callback
 
         def onApply():
             self.onDoChange( entry1.get(), entry2.get() )
 
-        Button( newPopupWindow, text='Find',  command=doWindowFind ).grid(row=0, column=2, sticky=tk.EW )
+        Button( newPopupWindow, text='Find',  command=doBoxFind ).grid(row=0, column=2, sticky=tk.EW )
         Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=tk.EW )
         newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
-    # end of TextEditWindow.doWindowFindReplace
+    # end of TextEditWindow.doBoxFindReplace
 
 
     def onDoChange( self, findtext, changeto):
@@ -921,7 +927,7 @@ class TextEditWindow( ChildWindow ):
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
             self.textBox.insert( tk.INSERT, changeto)             # deletes if empty
             self.textBox.see( tk.INSERT )
-            self.doWindowFind( findtext )                          # goto next appear
+            self.doBoxFind( findtext )                          # goto next appear
             self.textBox.update() # force refresh
     # end of TextEditWindow.onDoChange
 
@@ -1011,13 +1017,13 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow._checkFilepath()") )
 
         if not os.path.isfile( self.filepath ):
-            showerror( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
+            showError( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
             return False
         if not os.access( self.filepath, os.R_OK ):
-            showerror( self, APP_NAME, _("No permission to read {!r} in {!r}").format( self.filename, self.folderPath ) )
+            showError( self, APP_NAME, _("No permission to read {!r} in {!r}").format( self.filename, self.folderPath ) )
             return False
         if not os.access( self.filepath, os.W_OK ):
-            showerror( self, APP_NAME, _("No permission to write {!r} in {!r}").format( self.filename, self.folderPath ) )
+            showError( self, APP_NAME, _("No permission to write {!r} in {!r}").format( self.filename, self.folderPath ) )
             return False
 
         self.rememberFileTimeAndSize()
@@ -1077,7 +1083,7 @@ class TextEditWindow( ChildWindow ):
         self.loading = True
         text = open( self.filepath, 'rt', encoding='utf-8' ).read()
         if text == None:
-            showerror( self, APP_NAME, 'Could not decode and open file ' + self.filepath )
+            showError( self, APP_NAME, 'Could not decode and open file ' + self.filepath )
             return False
         else:
             self.setAllText( text )
@@ -1111,7 +1117,7 @@ class TextEditWindow( ChildWindow ):
         and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
           or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
             if self.modified():
-                showerror( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
+                showError( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
             else: # We haven't modified the file since loading it
                 yndResult = False
                 if autoloadText: yndResult = True
@@ -1224,7 +1230,7 @@ class TextEditWindow( ChildWindow ):
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
+            showError( self, APP_NAME, _("Sorry, unable to open settings file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewSettings" )
         else:
             self.parentApp.childWindows.append( tEW )
@@ -1247,13 +1253,46 @@ class TextEditWindow( ChildWindow ):
         if not tEW.setPathAndFile( self.parentApp.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( self, APP_NAME, _("Sorry, unable to open log file") )
+            showError( self, APP_NAME, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewLog" )
         else:
             self.parentApp.childWindows.append( tEW )
             #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
         self.parentApp.setReadyStatus()
     # end of TextEditWindow.doViewLog
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.doHelp( {} )").format( event ) )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tk.BREAK # so we don't do the main window help also
+    # end of TextEditWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.doAbout( {} )").format( event ) )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.windowType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tk.BREAK # so we don't do the main window about also
+    # end of TextEditWindow.doAbout
 
 
     #def doCloseEditor( self, event=None ):

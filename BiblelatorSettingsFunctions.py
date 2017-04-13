@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-13' # by RJH
+LastModifiedDate = '2017-04-11' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.40'
@@ -58,7 +58,8 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
     findHomeFolderPath, parseWindowSize, assembleWindowSize
-from BiblelatorDialogs import showerror, SaveWindowNameDialog, DeleteWindowNameDialog
+from BiblelatorSimpleDialogs import showError
+from BiblelatorDialogs import SaveWindowNameDialog, DeleteWindowNameDialog
 from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
@@ -605,7 +606,7 @@ def viewSettings( self ):
     if not tEW.setFilepath( self.settings.settingsFilepath ) \
     or not tEW.loadText():
         tEW.closeChildWindow()
-        showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
+        showError( self, APP_NAME, _("Sorry, unable to open settings file") )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed viewSettings" )
     else:
         self.childWindows.append( tEW )

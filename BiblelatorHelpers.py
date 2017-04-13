@@ -37,7 +37,7 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-03-13' # by RJH
+LastModifiedDate = '2017-04-10' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.40'
@@ -349,22 +349,22 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
             verseDataList, context = verseData
             #print( '   dataList', repr(verseDataList) )
             #print( '    context', repr(context) )
-            for entry in verseDataList:
-                if isinstance( entry, InternalBibleEntry ):
-                    marker, cleanText = entry.getMarker(), entry.getCleanText()
-                elif isinstance( entry, tuple ):
-                    marker, cleanText = entry[0], entry[3]
-                elif isinstance( entry, str ):
-                    if entry=='': continue
-                    entry += '\n'
-                    if entry[0]=='\\':
+            for verseDataEntry in verseDataList:
+                if isinstance( verseDataEntry, InternalBibleEntry ):
+                    marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
+                elif isinstance( verseDataEntry, tuple ):
+                    marker, cleanText = verseDataEntry[0], verseDataEntry[3]
+                elif isinstance( verseDataEntry, str ):
+                    if verseDataEntry=='': continue
+                    verseDataEntry += '\n'
+                    if verseDataEntry[0]=='\\':
                         marker = ''
-                        for char in entry[1:]:
+                        for char in verseDataEntry[1:]:
                             if char!='¬' and not char.isalnum(): break
                             marker += char
-                        cleanText = entry[len(marker)+1:].lstrip()
+                        cleanText = verseDataEntry[len(marker)+1:].lstrip()
                     else:
-                        marker, cleanText = None, entry
+                        marker, cleanText = None, verseDataEntry
                 elif BibleOrgSysGlobals.debugFlag: halt
                 if marker in ( 's','s1','s2','s3','s4' ): return True
 

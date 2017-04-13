@@ -5,7 +5,7 @@
 #
 # Global variables for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -41,10 +41,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-04-11' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -100,8 +100,8 @@ MAX_PSEUDOVERSES = 999 # in a non-chapter book like a glossary or something (or 
 # Default window size settings (Note: X=width, Y=height)
 INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x76', '607x360', '550x75', '700x500'
 INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE = '600x360', '350x150', '800x600'
-INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE = '600x360', '350x150', '800x1000'
-INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE = '600x400', '350x150', '800x1000'
+INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE = '600x360', '350x150', '800x1200'
+INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE = '600x400', '350x150', '800x1200'
 INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE = '800x600', '550x200', '1200x800'
 INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE = '600x400', '550x200', '1200x800'
 MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE, MINIMUM_HELP_SIZE, MAXIMUM_HELP_SIZE = '350', '150', '350x150', '500x400'
@@ -127,17 +127,17 @@ EDIT_MODE_USFM = 'USFM Edit'
 # Not all of these are used for all windows
 #
 DEFAULT_KEY_BINDING_DICT = {
-    _('Cut'):('Ctrl+x','<Control-X>'), #,'<Control-x>'),
-    _('Copy'):('Ctrl+c','<Control-C>'), #,'<Control-c>'),
-    _('Paste'):('Ctrl+v','<Control-V>'), #,'<Control-v>'),
-    _('SelectAll'):('Ctrl+a','<Control-A>'), #,'<Control-a>'),
-    _('Find'):('Ctrl+f','<Control-F>'), #,'<Control-f>'),
-    _('Refind'):('F3/Ctrl+g','<Control-G>'), #,'<Control-g>','<F3>'),
-    _('Replace'):('Ctrl+r','<Control-R>'), #,'<Control-r>'),
-    _('Undo'):('Ctrl+z','<Control-Z>'), #,'<Control-z>'),
-    _('Redo'):('Ctrl+y','<Control-Y>'), #,'<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
-    _('Line'):('Ctrl+l','<Control-L>'), #,'<Control-l>'),
-    _('Save'):('Ctrl+s','<Control-S>'), #,'<Control-s>'),
+    _('Cut'):('Ctrl+x','<Control-x>'), #,'<Control-x>'),
+    _('Copy'):('Ctrl+c','<Control-c>'), #,'<Control-c>'),
+    _('Paste'):('Ctrl+v','<Control-v>'), #,'<Control-v>'),
+    _('SelectAll'):('Ctrl+a','<Control-a>'), #,'<Control-a>'),
+    _('Find'):('Ctrl+f','<Control-f>'), #,'<Control-f>'),
+    _('Refind'):('F3/Ctrl+g','<Control-g>'), #,'<Control-g>','<F3>'),
+    _('Replace'):('Ctrl+r','<Control-r>'), #,'<Control-r>'),
+    _('Undo'):('Ctrl+z','<Control-z>'), #,'<Control-z>'),
+    _('Redo'):('Ctrl+y','<Control-y>'), #,'<Control-y>','<Control-Shift-Z>','<Control-Shift-z>'),
+    _('Line'):('Ctrl+l','<Control-l>'), #,'<Control-l>'),
+    _('Save'):('Ctrl+s','<Control-s>'), #,'<Control-s>'),
     _('ShowMain'):('F2','<F2>'),
     _('Help'):('F1','<F1>'),
     _('Info'):('F11','<F11>'),

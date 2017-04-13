@@ -5,7 +5,7 @@
 #
 # BOS (Bible Organizational System) manager program
 #
-# Copyright (C) 2016 Robert Hunt
+# Copyright (C) 2016-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-30' # by RJH
+LastModifiedDate = '2017-04-11' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -47,7 +47,7 @@ import multiprocessing
 
 import tkinter as tk
 #from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
-from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
+from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
@@ -57,14 +57,15 @@ from BiblelatorGlobals import DEFAULT, START, MAX_PSEUDOVERSES, errorBeep, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-from BiblelatorDialogs import showerror, showwarning, showinfo, \
-        SelectResourceBoxDialog, \
-        GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
-        BookNameDialog, NumberButtonDialog
+from BiblelatorSimpleDialogs import showError, showWarning, showInfo
+from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
+                                CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
+                                BookNameDialog, NumberButtonDialog
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
+from TextBoxes import BEntry, BCombobox
 from ChildWindows import ChildWindows
 #from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 #from BibleResourceCollection import BibleResourceCollectionWindow
@@ -410,7 +411,7 @@ class BOSManager( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
@@ -429,7 +430,7 @@ class BOSManager( Frame ):
 
         #self.chapterNumberVar = tk.StringVar()
         #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = Entry( self, textvariable=self.chapterNumberVar )
+        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
         #self.chapterNumberBox['width'] = 3
         #self.chapterNumberBox.pack()
 
@@ -448,13 +449,13 @@ class BOSManager( Frame ):
 
         #self.verseNumberVar = tk.StringVar()
         #self.verseNumberVar.set( '1' )
-        #self.verseNumberBox = Entry( self, textvariable=self.verseNumberVar )
+        #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
         #self.verseNumberBox['width'] = 3
         #self.verseNumberBox.pack()
 
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
+        self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
         #self.wordBox['width'] = 12
         self.wordBox.bind( '<Return>', self.acceptNewWord )
         self.wordBox.pack( side=tk.LEFT )
@@ -527,7 +528,7 @@ class BOSManager( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
@@ -554,7 +555,7 @@ class BOSManager( Frame ):
 
         #self.chapterNumberVar = tk.StringVar()
         #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = Entry( self, textvariable=self.chapterNumberVar )
+        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
         #self.chapterNumberBox['width'] = 3
         #self.chapterNumberBox.pack()
 
@@ -577,7 +578,7 @@ class BOSManager( Frame ):
 
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
+        self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
         #self.wordBox['width'] = 12
         self.wordBox.bind( '<Return>', self.acceptNewWord )
         #self.wordBox.pack( side=tk.LEFT )
@@ -651,12 +652,12 @@ class BOSManager( Frame ):
         codesLabel.grid( row=0, column=0, columnspan=2 )
         searchBBBLabel = Label( self.codesPage, text=_("Search BBB:") )
         searchBBBLabel.grid( row=1, column=0 )
-        self.codesBBBSearch = Entry( self.codesPage, width=5 )
+        self.codesBBBSearch = BEntry( self.codesPage, width=5 )
         self.codesBBBSearch.bind( '<Return>', self.searchBBBCode )
         self.codesBBBSearch.grid( row=1, column=1 )
         searchLabel = Label( self.codesPage, text=_("Search (all):") )
         searchLabel.grid( row=2, column=0 )
-        self.codesSearch = Entry( self.codesPage, width=8 )
+        self.codesSearch = BEntry( self.codesPage, width=8 )
         self.codesSearch.bind( '<Return>', self.searchCode )
         self.codesSearch.grid( row=2, column=1 )
         sbar = Scrollbar( self.codesPage )
@@ -686,7 +687,7 @@ class BOSManager( Frame ):
         punctuationLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.punctuationPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.punctuationsSearch = Entry( self.punctuationPage, width=12 )
+        self.punctuationsSearch = BEntry( self.punctuationPage, width=12 )
         self.punctuationsSearch.bind( '<Return>', self.searchPunctuation )
         self.punctuationsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.punctuationPage )
@@ -716,7 +717,7 @@ class BOSManager( Frame ):
         versificationsLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.versificationsPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.versificationsSearch = Entry( self.versificationsPage, width=15 )
+        self.versificationsSearch = BEntry( self.versificationsPage, width=15 )
         self.versificationsSearch.bind( '<Return>', self.searchVersification )
         self.versificationsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.versificationsPage )
@@ -746,7 +747,7 @@ class BOSManager( Frame ):
         mappingsLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.mappingsPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.mappingsSearch = Entry( self.mappingsPage, width=15 )
+        self.mappingsSearch = BEntry( self.mappingsPage, width=15 )
         self.mappingsSearch.bind( '<Return>', self.searchMapping )
         self.mappingsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.mappingsPage )
@@ -776,7 +777,7 @@ class BOSManager( Frame ):
         ordersLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.ordersPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.ordersSearch = Entry( self.ordersPage, width=15 )
+        self.ordersSearch = BEntry( self.ordersPage, width=15 )
         self.ordersSearch.bind( '<Return>', self.searchOrder )
         self.ordersSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.ordersPage )
@@ -806,7 +807,7 @@ class BOSManager( Frame ):
         namesLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.namesPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.namesSearch = Entry( self.namesPage, width=15 )
+        self.namesSearch = BEntry( self.namesPage, width=15 )
         self.namesSearch.bind( '<Return>', self.searchName )
         self.namesSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.namesPage )
@@ -836,7 +837,7 @@ class BOSManager( Frame ):
         organizationsLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.organizationsPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.organizationsSearch = Entry( self.organizationsPage, width=18 )
+        self.organizationsSearch = BEntry( self.organizationsPage, width=18 )
         self.organizationsSearch.bind( '<Return>', self.searchOrganization )
         self.organizationsSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.organizationsPage )
@@ -866,7 +867,7 @@ class BOSManager( Frame ):
         referencesLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.referencesPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.referenceSearch = Entry( self.referencesPage, width=18 )
+        self.referenceSearch = BEntry( self.referencesPage, width=18 )
         self.referenceSearch.bind( '<Return>', self.searchReference )
         self.referenceSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.referencesPage )
@@ -896,7 +897,7 @@ class BOSManager( Frame ):
         stylesheetsLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.stylesheetsPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.stylesheetSearch = Entry( self.stylesheetsPage, width=18 )
+        self.stylesheetSearch = BEntry( self.stylesheetsPage, width=18 )
         self.stylesheetSearch.bind( '<Return>', self.searchOrganization )
         self.stylesheetSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.stylesheetsPage )
@@ -1027,7 +1028,7 @@ class BOSManager( Frame ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of BOSManager.notWrittenYet
 
 
@@ -1145,7 +1146,7 @@ class BOSManager( Frame ):
         try:
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
-            showerror( self, 'Error', err )
+            showError( self, 'Error', err )
     # end of BOSManager.doChangeTheme
 
 
@@ -1656,7 +1657,7 @@ class BOSManager( Frame ):
         #if not tEW.setFilepath( self.settings.settingsFilepath ) \
         #or not tEW.loadText():
             #tEW.closeChildWindow()
-            #showerror( self, ShortProgName, _("Sorry, unable to open settings file") )
+            #showError( self, ShortProgName, _("Sorry, unable to open settings file") )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
         #else:
             #self.childWindows.append( tEW )
@@ -1680,7 +1681,7 @@ class BOSManager( Frame ):
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( self, ShortProgName, _("Sorry, unable to open log file") )
+            showError( self, ShortProgName, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:
             self.childWindows.append( tEW )
@@ -1703,7 +1704,7 @@ class BOSManager( Frame ):
                  + '  Book Order: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'bookOrderSystem' ) ) \
                  + '  Book Names: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
                  + '  Books: {}'.format( self.genericBibleOrganizationalSystem.getBookList() )
-        showinfo( self, 'Goto Information', infoString )
+        showInfo( self, 'Goto Information', infoString )
     # end of BOSManager.doGotoInfo
 
 
@@ -1747,7 +1748,7 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
-            showerror( self, ShortProgName, 'You need to allow Internet access first!' )
+            showError( self, ShortProgName, 'You need to allow Internet access first!' )
             return
 
         from About import AboutBox
@@ -1762,7 +1763,8 @@ class BOSManager( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -1811,7 +1813,7 @@ class BOSManager( Frame ):
                 if appWin.modified(): # still???
                     haveModifications = True; break
         if haveModifications:
-            showerror( self, _("Save files"), _("You need to save or close your work first.") )
+            showError( self, _("Save files"), _("You need to save or close your work first.") )
             return False
 
         # Should be able to close all apps now

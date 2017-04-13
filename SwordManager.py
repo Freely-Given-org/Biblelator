@@ -5,7 +5,7 @@
 #
 # Sword module download manager program
 #
-# Copyright (C) 2016 Robert Hunt
+# Copyright (C) 2016-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-30' # by RJH
+LastModifiedDate = '2017-04-11' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.04' # Separate versioning from Biblelator
@@ -48,7 +48,7 @@ from collections import OrderedDict
 
 
 import tkinter as tk
-from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
+from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
@@ -58,14 +58,15 @@ from BiblelatorGlobals import DEFAULT, START, MAX_PSEUDOVERSES, errorBeep, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-from BiblelatorDialogs import showerror, showwarning, showinfo, \
-        SelectResourceBoxDialog, \
-        GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
-        BookNameDialog, NumberButtonDialog
+from BiblelatorSimpleDialogs import showError, showWarning, showInfo
+from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
+                                CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
+                                BookNameDialog, NumberButtonDialog
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
+from TextBoxes import BEntry, BCombobox
 from ChildWindows import ChildWindows
 from TextEditWindow import TextEditWindow
 
@@ -360,7 +361,7 @@ class SwordManager( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
@@ -379,7 +380,7 @@ class SwordManager( Frame ):
 
         #self.chapterNumberVar = tk.StringVar()
         #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = Entry( self, textvariable=self.chapterNumberVar )
+        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
         #self.chapterNumberBox['width'] = 3
         #self.chapterNumberBox.pack()
 
@@ -398,13 +399,13 @@ class SwordManager( Frame ):
 
         #self.verseNumberVar = tk.StringVar()
         #self.verseNumberVar.set( '1' )
-        #self.verseNumberBox = Entry( self, textvariable=self.verseNumberVar )
+        #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
         #self.verseNumberBox['width'] = 3
         #self.verseNumberBox.pack()
 
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
+        self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
         #self.wordBox['width'] = 12
         self.wordBox.bind( '<Return>', self.acceptNewWord )
         self.wordBox.pack( side=tk.LEFT )
@@ -477,7 +478,7 @@ class SwordManager( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = Combobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
@@ -504,7 +505,7 @@ class SwordManager( Frame ):
 
         #self.chapterNumberVar = tk.StringVar()
         #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = Entry( self, textvariable=self.chapterNumberVar )
+        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
         #self.chapterNumberBox['width'] = 3
         #self.chapterNumberBox.pack()
 
@@ -527,7 +528,7 @@ class SwordManager( Frame ):
 
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = Entry( navigationBar, width=12, textvariable=self.wordVar )
+        self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
         #self.wordBox['width'] = 12
         self.wordBox.bind( '<Return>', self.acceptNewWord )
         #self.wordBox.pack( side=tk.LEFT )
@@ -620,15 +621,15 @@ class SwordManager( Frame ):
             var, repoData = self.repoDict[repoName]
             cb = tk.Checkbutton( self.sourcesPage, text=repoName, variable=var, command=self.searchCode )
             cb.grid( row=j+1, column=4, sticky=tk.W )
-            e0 = Entry( self.sourcesPage, width=5 )
+            e0 = BEntry( self.sourcesPage, width=5 )
             e0.insert( tk.END, repoData[0] )
             e0.configure( state=tk.DISABLED )
             e0.grid( row=j+1, column=5, sticky=tk.W )
-            e1 = Entry( self.sourcesPage, width=15 )
+            e1 = BEntry( self.sourcesPage, width=15 )
             e1.insert( tk.END, repoData[1] )
             e1.configure( state=tk.DISABLED )
             e1.grid( row=j+1, column=6, sticky=tk.W )
-            e2 = Entry( self.sourcesPage, width=20 )
+            e2 = BEntry( self.sourcesPage, width=20 )
             e2.insert( tk.END, repoData[2] )
             e2.configure( state=tk.DISABLED )
             e2.grid( row=j+1, column=7, sticky=tk.W )
@@ -640,12 +641,12 @@ class SwordManager( Frame ):
         foldersLabel.grid( row=0, column=0, columnspan=2 )
         searchLabel = Label( self.foldersPage, text=_("Install folder:") )
         searchLabel.grid( row=1, column=0 )
-        self.foldersSearch = Entry( self.foldersPage, width=25 )
+        self.foldersSearch = BEntry( self.foldersPage, width=25 )
         self.foldersSearch.bind( '<Return>', self.searchCode )
         self.foldersSearch.grid( row=1, column=1 )
         searchLabel2 = Label( self.foldersPage, text=_("Temp folder:") )
         searchLabel2.grid( row=2, column=0 )
-        self.foldersSearch2 = Entry( self.foldersPage, width=25 )
+        self.foldersSearch2 = BEntry( self.foldersPage, width=25 )
         self.foldersSearch2.bind( '<Return>', self.searchCode )
         self.foldersSearch2.grid( row=2, column=1 )
         sbar = Scrollbar( self.foldersPage )
@@ -756,7 +757,10 @@ class SwordManager( Frame ):
             print( exp("createMainKeyboardBindings()") )
 
         self.myKeyboardBindingsList = []
-        for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
+        for name,command in ( ('Help',self.doHelp),
+                              ('About',self.doAbout),
+                              ('Quit',self.doCloseMe)
+                              ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
                     #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
@@ -792,7 +796,7 @@ class SwordManager( Frame ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of SwordManager.notWrittenYet
 
 
@@ -910,7 +914,7 @@ class SwordManager( Frame ):
         try:
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
-            showerror( self, 'Error', err )
+            showError( self, 'Error', err )
     # end of SwordManager.doChangeTheme
 
 
@@ -980,7 +984,7 @@ class SwordManager( Frame ):
         #if not tEW.setFilepath( self.settings.settingsFilepath ) \
         #or not tEW.loadText():
             #tEW.closeChildWindow()
-            #showerror( self, ShortProgName, _("Sorry, unable to open settings file") )
+            #showError( self, ShortProgName, _("Sorry, unable to open settings file") )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
         #else:
             #self.childWindows.append( tEW )
@@ -1004,7 +1008,7 @@ class SwordManager( Frame ):
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( self, ShortProgName, _("Sorry, unable to open log file") )
+            showError( self, ShortProgName, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:
             self.childWindows.append( tEW )
@@ -1027,7 +1031,7 @@ class SwordManager( Frame ):
                  + '  Book Order: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'bookOrderSystem' ) ) \
                  + '  Book Names: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
                  + '  Books: {}'.format( self.genericBibleOrganisationalSystem.getBookList() )
-        showinfo( self, 'Goto Information', infoString )
+        showInfo( self, 'Goto Information', infoString )
     # end of SwordManager.doGotoInfo
 
 
@@ -1071,7 +1075,7 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
-            showerror( self, ShortProgName, 'You need to allow Internet access first!' )
+            showError( self, ShortProgName, 'You need to allow Internet access first!' )
             return
 
         from About import AboutBox
@@ -1086,7 +1090,8 @@ class SwordManager( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -1137,7 +1142,7 @@ class SwordManager( Frame ):
                 if appWin.modified(): # still???
                     haveModifications = True; break
         if haveModifications:
-            showerror( self, _("Save files"), _("You need to save or close your work first.") )
+            showError( self, _("Save files"), _("You need to save or close your work first.") )
             return False
 
         # Should be able to close all apps now

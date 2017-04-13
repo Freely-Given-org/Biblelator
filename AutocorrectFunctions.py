@@ -27,7 +27,7 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-01-25' # by RJH
+LastModifiedDate = '2017-04-10' # by RJH
 ShortProgName = "AutocorrectFunctions"
 ProgName = "Biblelator Autocorrect Functions"
 ProgVersion = '0.40'
@@ -59,20 +59,20 @@ def exp( messageString ):
 
 
 
-def setAutocorrectEntries( self, entryList, append=False ):
+def setAutocorrectEntries( self, autocorrectEntryList, append=False ):
     """
     Given a word list, set the entries into the autocorrect words
         and then do necessary house-keeping.
 
-    Note that the original word order is preserved (if the entryList has an order)
+    Note that the original word order is preserved (if the autocorrectEntryList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocorrectFunctions.setAutocorrectEntries( {} )").format( entryList, append ) )
-        print( exp("AutocorrectFunctions.setAutocorrectEntries( {}.., {} )").format( len(entryList), append ) )
+        #print( exp("AutocorrectFunctions.setAutocorrectEntries( {} )").format( autocorrectEntryList, append ) )
+        print( exp("AutocorrectFunctions.setAutocorrectEntries( {}.., {} )").format( len(autocorrectEntryList), append ) )
 
-    if append: self.autocorrectEntries.extend( entryList )
-    else: self.autocorrectEntries = entryList
+    if append: self.autocorrectEntries.extend( autocorrectEntryList )
+    else: self.autocorrectEntries = autocorrectEntryList
 
     # This next bit needs to be done whenever the autocorrect entries are changed
     self.maxAutocorrectLength = 0
@@ -89,7 +89,7 @@ def setDefaultAutocorrectEntries( self ):
     Given a word list, set the entries into the autocorrect words
         and then do necessary house-keeping.
 
-    Note that the original word order is preserved (if the entryList has an order)
+    Note that the original word order is preserved (if the autocorrectEntryList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:

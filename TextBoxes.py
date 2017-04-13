@@ -26,7 +26,9 @@
 Base widgets to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
 
-class HTMLText( tk.Text )
+class BText( tk.Text )
+
+class HTMLTextBox( BText )
     __init__( self, *args, **kwargs )
     insert( self, point, iText )
     _getURL( self, event )
@@ -34,20 +36,20 @@ class HTMLText( tk.Text )
     overHyperlink( self, event )
     leaveHyperlink( self, event )
 
-class CustomText( tk.Text )
+class CustomText( BText )
     __init__( self, *args, **kwargs )
     setTextChangeCallback( self, callableFunction )
 
 class ChildBox
     __init__( self, parentApp )
     _createStandardKeyboardBinding( self, name, command )
-    createStandardKeyboardBindings( self )
+    createStandardBoxKeyboardBindings( self )
     setFocus( self, event )
     doCopy( self, event=None )
     doSelectAll( self, event=None )
     doGotoWindowLine( self, event=None, forceline=None )
-    doWindowFind( self, event=None, lastkey=None )
-    doWindowRefind( self, event=None )
+    doBoxFind( self, event=None, lastkey=None )
+    doBoxRefind( self, event=None )
     doShowInfo( self, event=None )
     clearText( self ) # Leaves in normal state
     isEmpty( self )
@@ -67,25 +69,25 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-03-21' # by RJH
+LastModifiedDate = '2017-04-12' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import logging
 
 import tkinter as tk
+from tkinter.ttk import Entry, Combobox
 from tkinter.simpledialog import askstring, askinteger
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, errorBeep, \
-                                BIBLE_FORMAT_VIEW_MODES
-from BiblelatorDialogs import showerror, showinfo, GetBibleSearchTextDialog
+from BiblelatorGlobals import APP_NAME, START, DEFAULT, errorBeep, BIBLE_FORMAT_VIEW_MODES
+from BiblelatorSimpleDialogs import showError, showInfo
 
 
 # BibleOrgSys imports
@@ -127,7 +129,360 @@ ALL_POSSIBLE_SPACE_CHARS = ' ' + TRAILING_SPACE_SUBSTITUTE + MULTIPLE_SPACE_SUBS
 
 
 
-class HTMLText( tk.Text ):
+class BEntry( Entry ):
+    """
+    A custom (ttk) Entry widget which can call a user function whenever the text changes.
+        This enables autocorrect.
+
+    BEntry stands for Biblelator Entry (widget).
+
+    Adapted from http://stackoverflow.com/questions/13835207/binding-to-cursor-movement-doesnt-change-insert-mark
+    """
+    def __init__( self, *args, **kwargs ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("BEntry.__init__( {}, {} )").format( args, kwargs ) )
+        Entry.__init__( self, *args, **kwargs ) # initialise the base class
+
+        self.callbackFunction = None
+        # All widget changes happen via an internal Tcl command with the same name as the widget:
+        #       all inserts, deletes, cursor changes, etc
+        #
+        # The beauty of Tcl is that we can replace that command with our own command.
+        # The following code does just that: replace the code with a proxy that calls the
+        # original command and then calls a callback. We can then do whatever we want in the callback.
+        private_callback = self.register( self._callback )
+        self.tk.eval( """
+            proc widget_proxy {actual_widget callback args} {
+
+                # this prevents recursion if the widget is called
+                # during the callback
+                set flag ::dont_recurse(actual_widget)
+
+                # call the real tk widget with the real args
+                set result [uplevel [linsert $args 0 $actual_widget]]
+
+                # call the callback and ignore errors, but only
+                # do so on inserts, deletes, and changes in the
+                # mark. Otherwise we'll call the callback way too often.
+                if {! [info exists $flag]} {
+                    if {([lindex $args 0] in {insert replace delete}) ||
+                        ([lrange $args 0 2] == {mark set insert})} {
+                        # the flag makes sure that whatever happens in the
+                        # callback doesn't cause the callbacks to be called again.
+                        set $flag 1
+                        catch {$callback $result {*}$args } callback_result
+                        unset -nocomplain $flag
+                    }
+                }
+
+                # return the result from the real widget command
+                return $result
+            }
+            """ )
+        self.tk.eval( """
+                rename {widget} _{widget}
+                interp alias {{}} ::{widget} {{}} widget_proxy _{widget} {callback}
+            """.format( widget=str(self), callback=private_callback ) )
+
+        self.autocorrectEntries = []
+        # Temporarily include some default autocorrect values
+        self.autocorrectEntries.append( ('<<','“') ) # Cycle through quotes with angle brackets
+        self.autocorrectEntries.append( ('“<','‘') )
+        self.autocorrectEntries.append( ('‘<',"'") )
+        self.autocorrectEntries.append( ("'<",'<') )
+        self.autocorrectEntries.append( ('>>','”') )
+        self.autocorrectEntries.append( ('”>','’') )
+        self.autocorrectEntries.append( ('’>',"'") )
+        self.autocorrectEntries.append( ("'>",'>') )
+        self.autocorrectEntries.append( ('--','–') ) # Cycle through en-dash/em-dash with hyphens
+        self.autocorrectEntries.append( ('–-','—') )
+        self.autocorrectEntries.append( ('—-','-') )
+        self.autocorrectEntries.append( ('...','…') )
+
+        self.setTextChangeCallback( self.onTextChange ) # Enable it (enables autocorrect)
+    # end of BEntry.__init__
+
+
+    def _callback( self, result, *args ):
+        """
+        This little function does the actual call of the user routine
+            to handle when the BEntry changes.
+        """
+        if self.callbackFunction is not None:
+            self.callbackFunction( result, *args )
+    # end of BEntry._callback
+
+
+    def setTextChangeCallback( self, callableFunction ):
+        """
+        Just a little function to remember the routine to call
+            when the BEntry changes.
+        """
+        self.callbackFunction = callableFunction
+    # end of BEntry.setTextChangeCallback
+
+
+    def onTextChange( self, result, *args ):
+        """
+        Called (set-up as a call-back function) whenever the entry cursor changes
+            either with a mouse click or arrow keys.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BEntry.onTextChange( {}, {} )").format( repr(result), args ) )
+
+        #if 0: # Get line and column info
+            #lineColumn = self.index( tk.INSERT )
+            #print( "lc", repr(lineColumn) )
+            #line, column = lineColumn.split( '.', 1 )
+            #print( "l,c", repr(line), repr(column) )
+
+        #if 0: # get formatting tag info
+            #tagNames = self.tag_names( tk.INSERT )
+            #tagNames2 = self.tag_names( lineColumn )
+            #tagNames3 = self.tag_names( tk.INSERT + ' linestart' )
+            #tagNames4 = self.tag_names( lineColumn + ' linestart' )
+            #tagNames5 = self.tag_names( tk.INSERT + ' linestart+1c' )
+            #tagNames6 = self.tag_names( lineColumn + ' linestart+1c' )
+            #print( "tN", tagNames )
+            #if tagNames2!=tagNames or tagNames3!=tagNames or tagNames4!=tagNames or tagNames5!=tagNames or tagNames6!=tagNames:
+                #print( "tN2", tagNames2 )
+                #print( "tN3", tagNames3 )
+                #print( "tN4", tagNames4 )
+                #print( "tN5", tagNames5 )
+                #print( "tN6", tagNames6 )
+                #halt
+
+        #if 0: # show various mark strategies
+            #mark1 = self.mark_previous( tk.INSERT )
+            #mark2 = self.mark_previous( lineColumn )
+            #mark3 = self.mark_previous( tk.INSERT + ' linestart' )
+            #mark4 = self.mark_previous( lineColumn + ' linestart' )
+            #mark5 = self.mark_previous( tk.INSERT + ' linestart+1c' )
+            #mark6 = self.mark_previous( lineColumn + ' linestart+1c' )
+            #print( "mark1", mark1 )
+            #if mark2!=mark1:
+                #print( "mark2", mark1 )
+            #if mark3!=mark1 or mark4!=mark1 or mark5!=mark1 or mark6!=mark1:
+                #print( "mark3", mark3 )
+                #if mark4!=mark3:
+                    #print( "mark4", mark4 )
+                #print( "mark5", mark5 )
+                #if mark6!=mark5:
+                    #print( "mark6", mark6 )
+
+
+        # Handle auto-correct
+        if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
+            #print( "Handle autocorrect" )
+            #previousText = getCharactersBeforeCursor( self )
+            allText = self.get()
+            #print( "allText", repr(allText) )
+            index = self.index( tk.INSERT )
+            #print( "index", repr(index) )
+            previousText = allText[0:index]
+            #print( "previousText", repr(previousText) )
+            for inChars,outChars in self.autocorrectEntries:
+                if previousText.endswith( inChars ):
+                    #print( "Going to replace {!r} with {!r}".format( inChars, outChars ) )
+                    # Delete the typed character(s) and replace with the new one(s)
+                    self.delete( index-len(inChars), index )
+                    self.insert( tk.INSERT, outChars )
+                    break
+        # end of auto-correct section
+    # end of BEntry.onTextChange
+# end of BEntry class
+
+
+
+class BCombobox( Combobox ):
+    """
+    A custom (ttk) Combobox widget which can call a user function whenever the text changes.
+        This enables autocorrect.
+
+    BCombobox stands for Biblelator Combobox (widget).
+
+    Adapted from http://stackoverflow.com/questions/13835207/binding-to-cursor-movement-doesnt-change-insert-mark
+    """
+    def __init__( self, *args, **kwargs ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("BCombobox.__init__( {}, {} )").format( args, kwargs ) )
+        Combobox.__init__( self, *args, **kwargs ) # initialise the base class
+
+        self.callbackFunction = None
+        # All widget changes happen via an internal Tcl command with the same name as the widget:
+        #       all inserts, deletes, cursor changes, etc
+        #
+        # The beauty of Tcl is that we can replace that command with our own command.
+        # The following code does just that: replace the code with a proxy that calls the
+        # original command and then calls a callback. We can then do whatever we want in the callback.
+        private_callback = self.register( self._callback )
+        self.tk.eval( """
+            proc widget_proxy {actual_widget callback args} {
+
+                # this prevents recursion if the widget is called
+                # during the callback
+                set flag ::dont_recurse(actual_widget)
+
+                # call the real tk widget with the real args
+                set result [uplevel [linsert $args 0 $actual_widget]]
+
+                # call the callback and ignore errors, but only
+                # do so on inserts, deletes, and changes in the
+                # mark. Otherwise we'll call the callback way too often.
+                if {! [info exists $flag]} {
+                    if {([lindex $args 0] in {insert replace delete}) ||
+                        ([lrange $args 0 2] == {mark set insert})} {
+                        # the flag makes sure that whatever happens in the
+                        # callback doesn't cause the callbacks to be called again.
+                        set $flag 1
+                        catch {$callback $result {*}$args } callback_result
+                        unset -nocomplain $flag
+                    }
+                }
+
+                # return the result from the real widget command
+                return $result
+            }
+            """ )
+        self.tk.eval( """
+                rename {widget} _{widget}
+                interp alias {{}} ::{widget} {{}} widget_proxy _{widget} {callback}
+            """.format( widget=str(self), callback=private_callback ) )
+
+        self.autocorrectEntries = []
+        # Temporarily include some default autocorrect values
+        self.autocorrectEntries.append( ('<<','“') ) # Cycle through quotes with angle brackets
+        self.autocorrectEntries.append( ('“<','‘') )
+        self.autocorrectEntries.append( ('‘<',"'") )
+        self.autocorrectEntries.append( ("'<",'<') )
+        self.autocorrectEntries.append( ('>>','”') )
+        self.autocorrectEntries.append( ('”>','’') )
+        self.autocorrectEntries.append( ('’>',"'") )
+        self.autocorrectEntries.append( ("'>",'>') )
+        self.autocorrectEntries.append( ('--','–') ) # Cycle through en-dash/em-dash with hyphens
+        self.autocorrectEntries.append( ('–-','—') )
+        self.autocorrectEntries.append( ('—-','-') )
+        self.autocorrectEntries.append( ('...','…') )
+
+        self.setTextChangeCallback( self.onTextChange ) # Enable it
+    # end of BCombobox.__init__
+
+
+    def _callback( self, result, *args ):
+        """
+        This little function does the actual call of the user routine
+            to handle when the BCombobox changes.
+        """
+        if self.callbackFunction is not None:
+            self.callbackFunction( result, *args )
+    # end of BCombobox._callback
+
+
+    def setTextChangeCallback( self, callableFunction ):
+        """
+        Just a little function to remember the routine to call
+            when the BCombobox changes.
+        """
+        self.callbackFunction = callableFunction
+    # end of BCombobox.setTextChangeCallback
+
+
+    def onTextChange( self, result, *args ):
+        """
+        Called (set-up as a call-back function) whenever the entry cursor changes
+            either with a mouse click or arrow keys.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BCombobox.onTextChange( {}, {} )").format( repr(result), args ) )
+
+        #if 0: # Get line and column info
+            #lineColumn = self.index( tk.INSERT )
+            #print( "lc", repr(lineColumn) )
+            #line, column = lineColumn.split( '.', 1 )
+            #print( "l,c", repr(line), repr(column) )
+
+        #if 0: # get formatting tag info
+            #tagNames = self.tag_names( tk.INSERT )
+            #tagNames2 = self.tag_names( lineColumn )
+            #tagNames3 = self.tag_names( tk.INSERT + ' linestart' )
+            #tagNames4 = self.tag_names( lineColumn + ' linestart' )
+            #tagNames5 = self.tag_names( tk.INSERT + ' linestart+1c' )
+            #tagNames6 = self.tag_names( lineColumn + ' linestart+1c' )
+            #print( "tN", tagNames )
+            #if tagNames2!=tagNames or tagNames3!=tagNames or tagNames4!=tagNames or tagNames5!=tagNames or tagNames6!=tagNames:
+                #print( "tN2", tagNames2 )
+                #print( "tN3", tagNames3 )
+                #print( "tN4", tagNames4 )
+                #print( "tN5", tagNames5 )
+                #print( "tN6", tagNames6 )
+                #halt
+
+        #if 0: # show various mark strategies
+            #mark1 = self.mark_previous( tk.INSERT )
+            #mark2 = self.mark_previous( lineColumn )
+            #mark3 = self.mark_previous( tk.INSERT + ' linestart' )
+            #mark4 = self.mark_previous( lineColumn + ' linestart' )
+            #mark5 = self.mark_previous( tk.INSERT + ' linestart+1c' )
+            #mark6 = self.mark_previous( lineColumn + ' linestart+1c' )
+            #print( "mark1", mark1 )
+            #if mark2!=mark1:
+                #print( "mark2", mark1 )
+            #if mark3!=mark1 or mark4!=mark1 or mark5!=mark1 or mark6!=mark1:
+                #print( "mark3", mark3 )
+                #if mark4!=mark3:
+                    #print( "mark4", mark4 )
+                #print( "mark5", mark5 )
+                #if mark6!=mark5:
+                    #print( "mark6", mark6 )
+
+
+        # Handle auto-correct
+        if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
+            #print( "Handle autocorrect" )
+            #previousText = getCharactersBeforeCursor( self, self.maxAutocorrectLength )
+            allText = self.get()
+            #print( "allText", repr(allText) )
+            index = self.index( tk.INSERT )
+            #print( "index", repr(index) )
+            previousText = allText[0:index]
+            #print( "previousText", repr(previousText) )
+            for inChars,outChars in self.autocorrectEntries:
+                if previousText.endswith( inChars ):
+                    #print( "Going to replace {!r} with {!r}".format( inChars, outChars ) )
+                    # Delete the typed character(s) and replace with the new one(s)
+                    self.delete( index-len(inChars), index )
+                    self.insert( tk.INSERT, outChars )
+                    break
+        # end of auto-correct section
+    # end of BCombobox.onTextChange
+# end of BCombobox class
+
+
+
+class BText( tk.Text ):
+    """
+    A custom Text widget with our own keyboard bindings/short-cuts.
+
+    BText stands for Biblelator Text (box).
+    """
+    #def __init__(self, master, **kw):
+        #"""
+        #Initialise the text widget and then set our own keyboard bindings.
+        #"""
+        #tk.apply( tk.Text.__init__, (self, master), kw ) # Run the init of the base class
+
+        ## Now set-up our "default" keyboard bindings
+        #self.bind( ... )
+    pass
+# end of BText class
+
+
+
+class HTMLTextBox( BText ):
     """
     A custom Text widget which understands and displays simple HTML.
 
@@ -144,8 +499,8 @@ class HTMLText( tk.Text ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("HTMLText.__init__( {}, {} )").format( args, kwargs ) )
-        tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
+            print( exp("HTMLTextBox.__init__( {}, {} )").format( args, kwargs ) )
+        BText.__init__( self, *args, **kwargs ) # initialise the base class
 
         standardFont = DEFAULT_FONTNAME + ' 12'
         smallFont = DEFAULT_FONTNAME + ' 10'
@@ -218,18 +573,18 @@ class HTMLText( tk.Text ):
             #self.tag_bind( tag, '<Leave>', self.leaveHyperlink )
 
         self._lastOverLink = None
-    # end of HTMLText.__init__
+    # end of HTMLTextBox.__init__
 
 
     def insert( self, point, iText ):
         """
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HTMLText.insert( {}, {} )").format( repr(point), repr(iText) ) )
+            #print( exp("HTMLTextBox.insert( {}, {} )").format( repr(point), repr(iText) ) )
 
         if point != tk.END:
-            logging.critical( exp("HTMLText.insert doesn't know how to insert at {}").format( repr(point) ) )
-            tk.Text.insert( self, point, iText )
+            logging.critical( exp("HTMLTextBox.insert doesn't know how to insert at {}").format( repr(point) ) )
+            BText.insert( self, point, iText )
             return
 
         # Fix whitespace in our text to how we want it
@@ -244,7 +599,7 @@ class HTMLText( tk.Text ):
             #except UnicodeEncodeError: print( "  Remaining: {}".format( len(remainingText) ) )
             ix = remainingText.find( '<' )
             if ix == -1: # none found
-                tk.Text.insert( self, point, remainingText, currentFormatTags ) # just insert all the remainingText
+                BText.insert( self, point, remainingText, currentFormatTags ) # just insert all the remainingText
                 remainingText = ""
             else: # presumably we have found the start of a new HTML tag
                 if ix > 0: # this is where text is actually inserted into the box
@@ -278,10 +633,10 @@ class HTMLText( tk.Text ):
                         #if link: print( "insertMarks", repr( (combinedFormats, 'href'+link,) if link else combinedFormats ) )
                         if link:
                             hypertag = 'href' + link
-                            tk.Text.insert( self, point, insertText, (combinedFormats, hypertag,) )
+                            BText.insert( self, point, insertText, (combinedFormats, hypertag,) )
                             self.tag_bind( hypertag, '<Enter>', self.overHyperlink )
                             self.tag_bind( hypertag, '<Leave>', self.leaveHyperlink )
-                        else: tk.Text.insert( self, point, insertText, combinedFormats )
+                        else: BText.insert( self, point, insertText, combinedFormats )
                         #first = False
                     remainingText = remainingText[ix:]
                 #try: print( "  tag", repr(remainingText[:5]) )
@@ -291,8 +646,8 @@ class HTMLText( tk.Text ):
                 #print( "ixEnd", ixEnd, "ixNext", ixNext )
                 if ixEnd == -1 \
                 or (ixEnd!=-1 and ixNext!=-1 and ixEnd>ixNext): # no tag close or wrong tag closed
-                    logging.critical( exp("HTMLText.insert: Missing close bracket") )
-                    tk.Text.insert( self, point, remainingText, currentFormatTags )
+                    logging.critical( exp("HTMLTextBox.insert: Missing close bracket") )
+                    BText.insert( self, point, remainingText, currentFormatTags )
                     remainingText = ""
                     break
                 # There's a close marker -- check it's our one
@@ -302,7 +657,7 @@ class HTMLText( tk.Text ):
                     #try: print( "after marker", remainingText[0] )
                     #except UnicodeEncodeError: pass
                 if not fullHTMLTag:
-                    logging.critical( exp("HTMLText.insert: Unexpected empty HTML tags") )
+                    logging.critical( exp("HTMLTextBox.insert: Unexpected empty HTML tags") )
                     continue
                 selfClosing = fullHTMLTag[-1] == '/'
                 if selfClosing:
@@ -338,22 +693,22 @@ class HTMLText( tk.Text ):
                         if HTMLTag not in NON_FORMATTING_TAGS:
                             currentFormatTags.pop()
                     elif currentHTMLTags:
-                        logging.critical( exp("HTMLText.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
+                        logging.critical( exp("HTMLTextBox.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
                     else:
-                        logging.critical( exp("HTMLText.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
+                        logging.critical( exp("HTMLTextBox.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
                     #print( "cHT2", currentHTMLTags )
                     #print( "cFT2", currentFormatTags )
                 else: # it's not a close tag so must be an open tag
                     if HTMLTag not in KNOWN_HTML_TAGS:
-                        logging.critical( exp("HTMLText doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
+                        logging.critical( exp("HTMLTextBox doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
                         #currentHTMLTags.append( HTMLTag ) # remember it anyway in case it's closed later
                         continue
                     if HTMLTag in ('h1','h2','h3','p','li','table','tr',):
-                        tk.Text.insert( self, point, '\n' )
+                        BText.insert( self, point, '\n' )
                     #elif HTMLTag in ('li',):
-                        #tk.Text.insert( self, point, '\n' )
+                        #BText.insert( self, point, '\n' )
                     elif HTMLTag in ('td',):
-                        tk.Text.insert( self, point, '\t' )
+                        BText.insert( self, point, '\t' )
                     formatTag = HTMLTag
                     if len(fullHTMLTagBits)>1: # our HTML tag has some additional attributes
                         #print( "Looking for attributes" )
@@ -364,17 +719,17 @@ class HTMLText( tk.Text ):
                                 formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
                             elif formatTag=='a' and bit.startswith('href="') and bit[-1]=='"':
                                 formatTag += '=' + bit[6:-1] # create a tag like 'a=http://something.com'
-                            else: logging.critical( "HTMLText: Ignoring {} attribute on {!r} tag".format( bit, HTMLTag ) )
+                            else: logging.critical( "HTMLTextBox: Ignoring {} attribute on {!r} tag".format( bit, HTMLTag ) )
                     if not selfClosing:
                         if HTMLTag != '!DOCTYPE':
                             currentHTMLTags.append( HTMLTag )
                             if HTMLTag not in NON_FORMATTING_TAGS:
                                 currentFormatTags.append( formatTag )
         if currentHTMLTags:
-            logging.critical( exp("HTMLText.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
+            logging.critical( exp("HTMLTextBox.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
         if currentFormatTags:
-            logging.critical( exp("HTMLText.insert: Left-over format tags: {}").format( currentFormatTags ) )
-    # end of HTMLText.insert
+            logging.critical( exp("HTMLTextBox.insert: Left-over format tags: {}").format( currentFormatTags ) )
+    # end of HTMLTextBox.insert
 
 
     def _getURL( self, event ):
@@ -394,14 +749,14 @@ class HTMLText( tk.Text ):
                 URL = tagName[4:]
                 #print( "URL", repr(URL) )
                 return URL
-    # end of HTMLText._getURL
+    # end of HTMLTextBox._getURL
 
 
     def openHyperlink( self, event ):
         """
         Handle a click on a hyperlink.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLText.openHyperlink()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLTextBox.openHyperlink()") )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -416,14 +771,14 @@ class HTMLText( tk.Text ):
             #print( "Clicked on {}".format( repr(clickedText) ) )
 
         if URL: self.master.gotoLink( URL )
-    # end of HTMLText.openHyperlink
+    # end of HTMLTextBox.openHyperlink
 
 
     def overHyperlink( self, event ):
         """
         Handle a mouseover on a hyperlink.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLText.overHyperlink()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLTextBox.overHyperlink()") )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -438,20 +793,20 @@ class HTMLText( tk.Text ):
             #print( "Over {}".format( repr(clickedText) ) )
 
         if URL: self.master.overLink( URL )
-    # end of HTMLText.overHyperlink
+    # end of HTMLTextBox.overHyperlink
 
     def leaveHyperlink( self, event ):
         """
         Handle a mouseover on a hyperlink.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLText.leaveHyperlink()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLTextBox.leaveHyperlink()") )
         self.master.leaveLink()
-    # end of HTMLText.leaveHyperlink
-# end of HTMLText class
+    # end of HTMLTextBox.leaveHyperlink
+# end of HTMLTextBox class
 
 
 
-class CustomText( tk.Text ):
+class CustomText( BText ):
     """
     A custom Text widget which calls a user function whenever the text changes.
 
@@ -464,7 +819,7 @@ class CustomText( tk.Text ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("CustomText.__init__( {}, {} )").format( args, kwargs ) )
-        tk.Text.__init__( self, *args, **kwargs ) # initialise the base class
+        BText.__init__( self, *args, **kwargs ) # initialise the base class
 
         self.callbackFunction = None
         # All widget changes happen via an internal Tcl command with the same name as the widget:
@@ -575,7 +930,7 @@ class CustomText( tk.Text ):
 
 class ChildBox():
     """
-    A set of functions that work for any frame or window that has a member: self.textBox
+    A set of mix-in (add-on) functions that work for any frame or window that has a member: self.textBox
     """
     def __init__( self, parentApp ):
         """
@@ -593,12 +948,12 @@ class ChildBox():
     # end of ChildBox.__init__
 
 
-    def _createStandardKeyboardBinding( self, name, command ):
+    def _createStandardBoxKeyboardBinding( self, name, command ):
         """
         Called from createStandardKeyboardBindings to do the actual work.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("ChildBox._createStandardKeyboardBinding( {} )").format( name ) )
+            #print( exp("ChildBox._createStandardBoxKeyboardBinding( {} )").format( name ) )
 
         try: kBD = self.parentApp.keyBindingDict
         except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
@@ -609,28 +964,30 @@ class ChildBox():
                 self.textBox.bind( keyCode, command )
                 if BibleOrgSysGlobals.debugFlag:
                     if keyCode in self.myKeyboardShortcutsList:
-                        print( "ChildBox._createStandardKeyboardBinding wants to add duplicate {}".format( keyCode ) )
+                        print( "ChildBox._createStandardBoxKeyboardBinding wants to add duplicate {}".format( keyCode ) )
                     self.myKeyboardShortcutsList.append( keyCode )
             self.myKeyboardBindingsList.append( (name,kBD[name][0],) )
         else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-    # end of ChildBox._createStandardKeyboardBinding()
+    # end of ChildBox._createStandardBoxKeyboardBinding()
 
-    def createStandardKeyboardBindings( self, reset=False ):
+    def createStandardBoxKeyboardBindings( self, reset=False ):
         """
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.createStandardKeyboardBindings( {} )").format( reset ) )
+            print( exp("ChildBox.createStandardBoxKeyboardBindings( {} )").format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
 
         for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
-                             ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
-                             ('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
-                             ('Close',self.doClose), ('ShowMain',self.doShowMainWindow), ):
-            self._createStandardKeyboardBinding( name, command )
-    # end of ChildBox.createStandardKeyboardBindings()
+                             ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
+                             #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             #('ShowMain',self.parentWindow.doShowMainWindow),
+                             ('Close',self.doClose),
+                             ):
+            self._createStandardBoxKeyboardBinding( name, command )
+    # end of ChildBox.createStandardBoxKeyboardBindings()
 
 
     def setFocus( self, event ):
@@ -650,7 +1007,7 @@ class ChildBox():
 
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
-            showerror( self, APP_NAME, _("No text selected") )
+            showError( self, APP_NAME, _("No text selected") )
         else:
             copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
             print( "  copied text", repr(copyText) )
@@ -692,18 +1049,18 @@ class ChildBox():
                 self.textBox.see( tk.INSERT )                          # scroll to line
             else:
                 errorBeep()
-                showerror( self, APP_NAME, _("No such line number") )
+                showError( self, APP_NAME, _("No such line number") )
     # end of ChildBox.doGotoWindowLine
 
 
-    def doWindowFind( self, event=None, lastkey=None ):
+    def doBoxFind( self, event=None, lastkey=None ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doWindowFind {!r}'.format( lastkey ) )
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doBoxFind {!r}'.format( lastkey ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doWindowFind( {}, {!r} )").format( event, lastkey ) )
+            print( exp("ChildBox.doBoxFind( {}, {!r} )").format( event, lastkey ) )
 
-        key = lastkey or askstring( APP_NAME, _("Enter search string") )
+        key = lastkey or askstring( APP_NAME, _("Enter search string"), parent=self )
         self.textBox.update()
         self.textBox.focus()
         self.lastfind = key
@@ -713,25 +1070,25 @@ class ChildBox():
             where = self.textBox.search( key, START if lastkey is None else tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
                 errorBeep()
-                showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+                showError( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
                 pastkey = where + '+%dc' % len(key)           # index past key
                 self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
                 self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 self.textBox.see( where )                          # scroll display
-    # end of ChildBox.doWindowFind
+    # end of ChildBox.doBoxFind
 
 
-    def doWindowRefind( self, event=None ):
+    def doBoxRefind( self, event=None ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doWindowRefind' )
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBox doBoxRefind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doWindowRefind( {} ) for {!r}").format( event, self.lastfind ) )
+            print( exp("ChildBox.doBoxRefind( {} ) for {!r}").format( event, self.lastfind ) )
 
-        self.doWindowFind( lastkey=self.lastfind )
-    # end of ChildBox.doWindowRefind
+        self.doBoxFind( lastkey=self.lastfind )
+    # end of ChildBox.doBoxRefind
 
 
     def doShowInfo( self, event=None ):
@@ -754,7 +1111,7 @@ class ChildBox():
                  + '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) \
                  + '\nFile text statistics:\n' \
                  + '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}'.format( numChars, numLines, numWords )
-        showinfo( self, 'Window Information', infoString )
+        showInfo( self, 'Window Information', infoString )
     # end of ChildBox.doShowInfo
 
 
@@ -815,20 +1172,20 @@ class ChildBox():
     # end of ChildBox.setAllText
 
 
-    def doShowMainWindow( self, event=None ):
-        """
-        Display the main window (it might be minimised or covered).
-        """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doShowMainWindow( {} )").format( event ) )
+    #def doShowMainWindow( self, event=None ):
+        #"""
+        #Display the main window (it might be minimised or covered).
+        #"""
+        #if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("ChildBox.doShowMainWindow( {} )").format( event ) )
 
-        #self.parentApp.rootWindow.iconify() # Didn't help
-        self.parentApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
-        self.parentApp.rootWindow.update()
-        self.parentApp.rootWindow.deiconify()
-        #self.parentApp.rootWindow.focus_set()
-        self.parentApp.rootWindow.lift() # aboveThis=self )
-    # end of ChildBox.doShowMainWindow
+        ##self.parentApp.rootWindow.iconify() # Didn't help
+        #self.parentApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
+        #self.parentApp.rootWindow.update()
+        #self.parentApp.rootWindow.deiconify()
+        ##self.parentApp.rootWindow.focus_set()
+        #self.parentApp.rootWindow.lift() # aboveThis=self )
+    ## end of ChildBox.doShowMainWindow
 
 
     def doClose( self, event=None ):
@@ -851,6 +1208,25 @@ class BibleBox( ChildBox ):
     A set of functions that work for any Bible frame or window that has a member: self.textBox
         and also uses verseKeys
     """
+    def createStandardBoxKeyboardBindings( self, reset=False ):
+        """
+        Create keyboard bindings for this widget.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBox.createStandardBoxKeyboardBindings( {} )").format( reset ) )
+
+        if reset:
+            self.myKeyboardBindingsList = []
+
+        for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+                             ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
+                             #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             #('ShowMain',self.doShowMainWindow),
+                             ('Close',self.doClose), ):
+            self._createStandardBoxKeyboardBinding( name, command )
+    # end of BibleBox.createStandardBoxKeyboardBindings()
+
+
     def createContextMenu( self ):
         """
         Can be overriden if necessary.
@@ -863,9 +1239,9 @@ class BibleBox( ChildBox ):
         self.textBox.contextMenu.add_separator()
         self.textBox.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
         self.textBox.contextMenu.add_separator()
-        self.textBox.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
         self.textBox.contextMenu.add_separator()
-        self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=0, command=self.doBibleFind ) #, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.textBox.contextMenu.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )#, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
         #self.contextMenu.add_separator()
         #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
@@ -1023,23 +1399,23 @@ class BibleBox( ChildBox ):
                                         else 'v~' # If we don't know the format of a verse (or for unformatted Bibles)
             endMarkers = []
 
-            for entry in verseDataList:
+            for verseDataEntry in verseDataList:
                 # This loop is used for several types of data
-                if isinstance( entry, InternalBibleEntry ):
-                    marker, cleanText = entry.getMarker(), entry.getCleanText()
-                elif isinstance( entry, tuple ):
-                    marker, cleanText = entry[0], entry[3]
-                elif isinstance( entry, str ): # from a Bible text editor window
-                    if entry=='': continue
-                    entry += '\n'
-                    if entry[0]=='\\':
+                if isinstance( verseDataEntry, InternalBibleEntry ):
+                    marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
+                elif isinstance( verseDataEntry, tuple ):
+                    marker, cleanText = verseDataEntry[0], verseDataEntry[3]
+                elif isinstance( verseDataEntry, str ): # from a Bible text editor window
+                    if verseDataEntry=='': continue
+                    verseDataEntry += '\n'
+                    if verseDataEntry[0]=='\\':
                         marker = ''
-                        for char in entry[1:]:
+                        for char in verseDataEntry[1:]:
                             if char!='¬' and not char.isalnum(): break
                             marker += char
-                        cleanText = entry[len(marker)+1:].lstrip()
+                        cleanText = verseDataEntry[len(marker)+1:].lstrip()
                     else:
-                        marker, cleanText = None, entry
+                        marker, cleanText = None, verseDataEntry
                 elif BibleOrgSysGlobals.debugFlag: halt
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                     print( "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
@@ -1048,15 +1424,15 @@ class BibleBox( ChildBox ):
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
                     elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
                     else:
-                        if isinstance( entry, str ): # from a Bible text editor window
-                            #print( "marker={!r}, entry={!r}".format( marker, entry ) )
-                            insertEnd( entry, marker ) # Do it just as is!
+                        if isinstance( verseDataEntry, str ): # from a Bible text editor window
+                            #print( "marker={!r}, verseDataEntry={!r}".format( marker, verseDataEntry ) )
+                            insertEnd( verseDataEntry, marker ) # Do it just as is!
                         else: # not a str, i.e., not a text editor, but a viewable resource
                             #if hadVerseText and marker in ( 's', 's1', 's2', 's3' ):
                                 #print( "  Setting s mark to {}".format( nextMarkName ) )
                                 #self.textBox.mark_set( nextMarkName, tk.INSERT )
                                 #self.textBox.mark_gravity( nextMarkName, tk.LEFT )
-                            #print( "  Inserting ({}): {!r}".format( marker, entry ) )
+                            #print( "  Inserting ({}): {!r}".format( marker, verseDataEntry ) )
                             if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                             if marker is None:
                                 insertEnd( cleanText, '###' )
@@ -1252,6 +1628,8 @@ class BibleBox( ChildBox ):
         Note that BibleFind works on the imported files,
             so it can work from any box or window that has an internalBible.
         """
+        from BiblelatorDialogs import GetBibleFindTextDialog
+
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doBibleFind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleBox.doBibleFind( {} )").format( event ) )
@@ -1262,13 +1640,15 @@ class BibleBox( ChildBox ):
         #print( "intBib", self.internalBible )
 
         self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
-        gBSTD = GetBibleSearchTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         if gBSTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
             self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
             self.doActualBibleFind()
         self.parentApp.setReadyStatus()
+
+        #return "break"
     # end of BibleBox.doBibleFind
 
 
@@ -1279,6 +1659,7 @@ class BibleBox( ChildBox ):
             assuming that the search parameters are already defined.
         """
         from ChildWindows import FindResultWindow
+
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doActualBibleFind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleBox.doActualBibleFind( {} )").format( extendTo ) )
@@ -1295,16 +1676,16 @@ class BibleBox( ChildBox ):
             bookCode = self.BibleFindOptionsDict['bookList']
         self._prepareInternalBible( bookCode, self.BibleFindOptionsDict['givenBible'] ) # Make sure that all books are loaded
         # We search the loaded Bible processed lines
-        self.BibleFindOptionsDict, resultSummaryDict, searchResultList = self.BibleFindOptionsDict['givenBible'].searchText( self.BibleFindOptionsDict )
-        #print( "Got searchResults", searchResults )
-        if len(searchResultList) == 0: # nothing found
+        self.BibleFindOptionsDict, resultSummaryDict, findResultList = self.BibleFindOptionsDict['givenBible'].findText( self.BibleFindOptionsDict )
+        #print( "Got findResults", findResults )
+        if len(findResultList) == 0: # nothing found
             errorBeep()
-            key = self.BibleFindOptionsDict['searchText']
-            showerror( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            key = self.BibleFindOptionsDict['findText']
+            showError( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
         else:
             try: replaceFunction = self.doBibleReplace
             except AttributeError: replaceFunction = None # Read-only Bible boxes don't have a replace function
-            findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, searchResultList,
+            findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, findResultList,
                                     findFunction=self.doBibleFind, refindFunction=self.doActualBibleFind,
                                     replaceFunction=replaceFunction, extendTo=extendTo )
             self.parentApp.childWindows.append( findResultWindow )
@@ -1356,8 +1737,8 @@ def demo():
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersionDate if BibleOrgSysGlobals.debugFlag else ProgNameVersion )
 
-    HTMLTextbox = HTMLText( tkRootWindow )
-    HTMLTextbox.pack()
+    HTMLTextBoxbox = HTMLTextBox( tkRootWindow )
+    HTMLTextBoxbox.pack()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)

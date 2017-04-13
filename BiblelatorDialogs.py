@@ -25,9 +25,6 @@
 """
 Various modal dialog windows for Biblelator Bible display/editing.
 
-    def showerror( parent, title, errorText )
-    def showwarning( parent, title, warningText )
-    def showinfo( parent, title, infoText )
     #class HTMLDialog( ModalDialog )
     class YesNoDialog( ModalDialog )
     class OkCancelDialog( ModalDialog )
@@ -39,7 +36,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class GetNewCollectionNameDialog( ModalDialog )
     class RenameResourceCollectionDialog( ModalDialog )
     class GetBibleBookRangeDialog( ModalDialog )
-    class GetBibleSearchTextDialog( ModalDialog )
+    class GetBibleFindTextDialog( ModalDialog )
     class GetBibleReplaceTextDialog( ModalDialog )
     class ReplaceConfirmDialog( ModalDialog )
     class SelectInternalBibleDialog( ModalDialog )
@@ -48,8 +45,8 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-03-22'
-ShortProgName = "Biblelator"
+LastModifiedDate = '2017-04-11'
+ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
@@ -62,11 +59,12 @@ import logging
 
 import tkinter as tk
 import tkinter.messagebox as tkmb
-from tkinter.ttk import Style, Label, Combobox, Entry, Radiobutton, Button, Frame
+from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
+from TextBoxes import BEntry, BCombobox, BText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
@@ -86,57 +84,6 @@ def exp( messageString ):
         nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
-
-
-
-def showerror( parent, title, errorText ):
-    """
-    """
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("showerror( {}, {!r}, {!r} )").format( parent, title, errorText ) )
-
-    logging.error( '{}: {}'.format( title, errorText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after error…") )
-    tkmb.showerror( title, errorText, parent=parent )
-    parent.parentApp.setReadyStatus()
-# end of showerror
-
-
-def showwarning( parent, title, warningText ):
-    """
-    """
-    if BibleOrgSysGlobals.debugFlag:
-        print( exp("showwarning( {}, {!r}, {!r} )").format( parent, title, warningText ) )
-
-    logging.warning( '{}: {}'.format( title, warningText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after warning…") )
-    tkmb.showwarning( title, warningText, parent=parent )
-    parent.parentApp.setReadyStatus()
-# end of showwarning
-
-
-def showinfo( parent, title, infoText ):
-    """
-    """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("showinfo( {}, {!r}, {!r} )").format( parent, title, infoText ) )
-        infoText += '\n\nWindow parameters:\n'
-        for configKey, configTuple  in sorted(parent.configure().items()): # Append the parent window config info
-            if debuggingThisModule:
-                print( "showinfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
-            if len(configTuple)>2: # don't append alternative names like, bg for background
-                # Don't display the last field if it just duplicates the previous one
-                infoText += '  {}: {!r}{}\n'.format( configTuple[2], configTuple[3],
-                                            '' if configTuple[4]==configTuple[3] else ', {!r}'.format( configTuple[4] ) )
-            elif debuggingThisModule: # append alternative names like, bg for background
-                # Don't display the last field if it just duplicates the previous one
-                infoText += '  {}={!r}\n'.format( configTuple[0], configTuple[1] )
-
-    logging.info( '{}: {}'.format( title, infoText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after info…") )
-    tkmb.showinfo( title, infoText, parent=parent )
-    parent.parentApp.setReadyStatus()
-# end of showinfo
 
 
 
@@ -160,7 +107,7 @@ def showinfo( parent, title, infoText ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("HTMLDialog.body( {} )").format( master ) )
 
-        #html = HTMLText( master )
+        #html = HTMLTextBox( master )
         #html.grid( row=0 )
         #html.insert( tk.END, self.text )
         #return html
@@ -401,7 +348,7 @@ class SaveWindowNameDialog( ModalDialog ):
             for existingName in self.existingSettings:
                 if existingName != 'Current':
                     cbValues.append( existingName)
-        self.cb = Combobox( master, values=cbValues )
+        self.cb = BCombobox( master, values=cbValues )
         #self.cb.current( 0 )
         self.cb.grid( row=1 )
 
@@ -463,7 +410,7 @@ class DeleteWindowNameDialog( ModalDialog ):
             for existingName in self.existingSettings:
                 if existingName != 'Current':
                     cbValues.append( existingName)
-        self.cb = Combobox( master, state='readonly', values=cbValues )
+        self.cb = BCombobox( master, state='readonly', values=cbValues )
         #self.cb.current( 0 )
         self.cb.grid( row=1 )
 
@@ -588,8 +535,8 @@ class GetNewProjectNameDialog( ModalDialog ):
         Label( master, text=_("Full name:") ).grid( row=0 )
         Label( master, text=_("Abbreviation:") ).grid( row=1 )
 
-        self.e1 = Entry( master )
-        self.e2 = Entry( master )
+        self.e1 = BEntry( master )
+        self.e2 = BEntry( master )
 
         self.e1.grid( row=0, column=1 )
         self.e2.grid( row=1, column=1 )
@@ -608,15 +555,15 @@ class GetNewProjectNameDialog( ModalDialog ):
         lenF = len( fullname )
         abbreviation = self.e2.get()
         lenA = len( abbreviation )
-        if lenF < 3: showwarning( self.parent, APP_NAME, _("Full name is too short!") ); return False
-        if lenF > 30: showwarning( self.parent, APP_NAME, _("Full name is too long!") ); return False
-        if lenA < 3: showwarning( self.parent, APP_NAME, _("Abbreviation is too short!") ); return False
-        if lenA > 8: showwarning( self.parent, APP_NAME, _("Abbreviation is too long!") ); return False
-        if ' ' in abbreviation: showwarning( self.parent, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
-        if '.' in abbreviation: showwarning( self.parent, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
+        if lenF < 3: showWarning( self.parent, APP_NAME, _("Full name is too short!") ); return False
+        if lenF > 30: showWarning( self.parent, APP_NAME, _("Full name is too long!") ); return False
+        if lenA < 3: showWarning( self.parent, APP_NAME, _("Abbreviation is too short!") ); return False
+        if lenA > 8: showWarning( self.parent, APP_NAME, _("Abbreviation is too long!") ); return False
+        if ' ' in abbreviation: showWarning( self.parent, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
+        if '.' in abbreviation: showWarning( self.parent, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
         for illegalChar in ':;"@#=/\\{}':
             if illegalChar in fullname or illegalChar in abbreviation:
-                showwarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         return True
     # end of GetNewProjectNameDialog.validate
 
@@ -682,13 +629,13 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         rb2d.grid( row=10, column=0, sticky=tk.W )
 
         #cb1Values = ["test1a","test1b","test1c"]
-        self.cb1 = Combobox( master, values=self.availableVersifications,
+        self.cb1 = BCombobox( master, values=self.availableVersifications,
                                 state = 'readonly' if self.availableVersifications else tk.DISABLED )
         #self.cb.current( 0 )
         self.cb1.grid( row=7, column=1 )
 
         ##cb2Values = ["test2a","test2b","test2c"]
-        #self.cb2 = Combobox( master, values=self.availableVersions,
+        #self.cb2 = BCombobox( master, values=self.availableVersions,
                                 #state = 'readonly' if self.availableVersions else tk.DISABLED )
         ##self.cb.current( 0 )
         #self.cb2.grid( row=8, column=1 )
@@ -711,9 +658,9 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         if result1Number<1 or result1Number>5 or result2Number<1 or result2Number>5: return False
 
         if result2Number==1 and not cb1result:
-            showwarning( self.parent, APP_NAME, _("Need a versification scheme name!") ); return False
+            showWarning( self.parent, APP_NAME, _("Need a versification scheme name!") ); return False
         #if result2Number==2 and not cb2result:
-            #showwarning( self.parent, APP_NAME, _("Need a version name!") ); return False
+            #showWarning( self.parent, APP_NAME, _("Need a version name!") ); return False
         return True
     # end of CreateNewProjectFilesDialog.validate
 
@@ -757,7 +704,7 @@ class GetNewCollectionNameDialog( ModalDialog ):
             to set up the dialog how we want it.
         """
         Label( master, text=_("Name:") ).grid( row=0 )
-        self.e1 = Entry( master )
+        self.e1 = BEntry( master )
         self.e1.grid( row=0, column=1 )
         return self.e1 # initial focus
     # end of GetNewCollectionNameDialog.body
@@ -772,13 +719,13 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         name = self.e1.get()
         lenN = len( name )
-        if lenN < 3: showwarning( self.parent, APP_NAME, _("Name is too short!") ); return False
-        if lenN > 30: showwarning( self.parent, APP_NAME, _("Name is too long!") ); return False
+        if lenN < 3: showWarning( self.parent, APP_NAME, _("Name is too short!") ); return False
+        if lenN > 30: showWarning( self.parent, APP_NAME, _("Name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in name:
-                showwarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if name.upper() in self.existingNames:
-            showwarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showWarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of GetNewCollectionNameDialog.validate
 
@@ -818,7 +765,7 @@ class RenameResourceCollectionDialog( ModalDialog ):
         Label( master, text=_('Enter name to replace "{}"').format( self.existingName ) ).grid( row=0, column=0, columnspan=2 )
         Label( master, text=_("New name:") ).grid( row=1, column=0 )
 
-        self.e1 = Entry( master )
+        self.e1 = BEntry( master )
         self.e1.grid( row=1, column=1 )
         return self.e1 # initial focus
     # end of RenameResourceCollectionDialog.apply
@@ -833,13 +780,13 @@ class RenameResourceCollectionDialog( ModalDialog ):
         """
         newName = self.e1.get()
         lenName = len( newName )
-        if lenName < 3: showwarning( self.parent, APP_NAME, _("New name is too short!") ); return False
-        if lenName > 30: showwarning( self.parent, APP_NAME, _("New name is too long!") ); return False
+        if lenName < 3: showWarning( self.parent, APP_NAME, _("New name is too short!") ); return False
+        if lenName > 30: showWarning( self.parent, APP_NAME, _("New name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in newName:
-                showwarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if newName.upper() in self.existingNames:
-            showwarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showWarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of RenameResourceCollectionDialog.validate
 
@@ -890,10 +837,10 @@ class GetBibleBookRangeDialog( ModalDialog ):
         rb5 = Radiobutton( master, text=_('DC books'), variable=self.booksSelectVariable, value=5 )
         rb5.grid( row=4, column=0, sticky=tk.W )
         self.rb6 = Radiobutton( master,
-                text=str(self.currentList) if len(self.currentList)<10 else _('Selected books')+' ({})'.format( len(self.currentList) ),
+                text=', '.join(self.currentList) if len(self.currentList)<10 else _('Selected books ({})').format( len(self.currentList) ),
                 variable=self.booksSelectVariable, value=6 ) \
             if self.currentList and self.currentList!='ALL' else \
-            Radiobutton( master, text=_('N/A'), variable=self.booksSelectVariable, value=6, state=tk.DISABLED )
+            Radiobutton( master, text=_('(N/A)'), variable=self.booksSelectVariable, value=6, state=tk.DISABLED )
         self.rb6.grid( row=5, column=0, sticky=tk.W )
         b1 = Button( master, text=_('Select')+'…', command=self.doIndividual )
         b1.grid( row=6, column=0, sticky=tk.W )
@@ -933,7 +880,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
                 self.booksSelectVariable.set( 6 )
                 self.currentList = sIBBD.result
                 self.rb6['state'] = tk.NORMAL
-                self.rb6['text'] = str(self.currentList) if len(self.currentList)<10 else _('Selected books')+' ({})'.format( len(self.currentList) )
+                self.rb6['text'] = ', '.join(self.currentList) if len(self.currentList)<10 else _('Selected books ({})').format( len(self.currentList) )
             #self.update()
         else: print( "selectIndividual: Nothing selected!" )
     # end of GetBibleBookRangeDialog.doIndividual
@@ -1113,7 +1060,7 @@ class SelectIndividualBibleBooksDialog( ModalDialog ):
 
 
 
-class GetBibleSearchTextDialog( ModalDialog ):
+class GetBibleFindTextDialog( ModalDialog ):
     """
     Get the search string (and options) for Bible search.
     """
@@ -1122,7 +1069,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         optionsDict must already contain 'currentBCV'
         """
         if BibleOrgSysGlobals.debugFlag:
-            parentApp.setDebugText( "GetBibleSearchTextDialog…" )
+            parentApp.setDebugText( "GetBibleFindTextDialog…" )
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
@@ -1134,7 +1081,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
 
         # Set-up default search options
         self.optionsDict['workName'] = givenBible.getAName() # Always revert to the original work
-        if 'searchHistoryList' not in self.optionsDict: self.optionsDict['searchHistoryList'] = [] # Oldest first
+        if 'findHistoryList' not in self.optionsDict: self.optionsDict['findHistoryList'] = [] # Oldest first
         if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
         if 'caselessFlag' not in self.optionsDict: self.optionsDict['caselessFlag'] = True
         if 'ignoreDiacriticsFlag' not in self.optionsDict: self.optionsDict['ignoreDiacriticsFlag'] = False
@@ -1149,7 +1096,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.optionsDict['regexFlag'] = False
 
         ModalDialog.__init__( self, parentWindow, title )
-    # end of GetBibleSearchTextDialog.__init__
+    # end of GetBibleFindTextDialog.__init__
 
 
     def body( self, master ):
@@ -1157,12 +1104,12 @@ class GetBibleSearchTextDialog( ModalDialog ):
         Override the empty ModalDialog.body function
             to set up the dialog how we want it.
         """
-        #print( "GetBibleSearchTextDialog.body", self.optionsDict )
+        #print( "GetBibleFindTextDialog.body", self.optionsDict )
 
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
         self.projectNameVar.set( self.optionsDict['workName'] )
-        self.projectNameBox = Combobox( master, width=30, textvariable=self.projectNameVar )
+        self.projectNameBox = BCombobox( master, width=30, textvariable=self.projectNameVar )
         # Find other Bible boxes which might be added as possible projects
         #print( "  parent window {}".format( self.optionsDict['parentWindow'] ) )
         #from TextBoxes import BibleBox
@@ -1199,10 +1146,10 @@ class GetBibleSearchTextDialog( ModalDialog ):
 
         Label( master, text=_("Find:") ).grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
         self.searchStringVar = tk.StringVar()
-        try: self.searchStringVar.set( self.optionsDict['searchHistoryList'][-1] )
+        try: self.searchStringVar.set( self.optionsDict['findHistoryList'][-1] )
         except IndexError: pass
-        self.searchStringBox = Combobox( master, width=30, textvariable=self.searchStringVar )
-        self.searchStringBox['values'] = self.optionsDict['searchHistoryList']
+        self.searchStringBox = BCombobox( master, width=30, textvariable=self.searchStringVar )
+        self.searchStringBox['values'] = self.optionsDict['findHistoryList']
         #self.searchStringBox['width'] = len( 'Deuteronomy' )
         self.searchStringBox.bind('<<ComboboxSelected>>', self.ok )
         self.searchStringBox.bind( '<Return>', self.ok )
@@ -1272,8 +1219,10 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.rbb3 = Radiobutton( master, text=_('Current chapter')+' ({} {})'.format( self.optionsDict['currentBCV'][0], self.optionsDict['currentBCV'][1] ), variable=self.booksSelectVariable, value=3 )
         self.rbb3.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rbb3.grid( row=3, column=2, padx=2, pady=1, sticky=tk.W )
-        sbText = str(self.optionsDict['bookList']) if len(self.optionsDict['bookList'])<10 else _('Selected books')+' ({})'.format( len(self.optionsDict['bookList']) )
-        self.rbb4 = Radiobutton( master, text=_('Selected books'+' ({})').format( sbText ), variable=self.booksSelectVariable, value=4 )
+        sbText = '(N/A)' if self.optionsDict['bookList']=='ALL' \
+            else ', '.join(self.optionsDict['bookList']) if len(self.optionsDict['bookList'])<10 \
+            else '({})'.format( len(self.optionsDict['bookList']) )
+        self.rbb4 = Radiobutton( master, text=_('Selected books {}').format( sbText ), variable=self.booksSelectVariable, value=4 )
         #self.rbb4.grid( row=5, column=2, padx=2, pady=1, sticky=tk.W )
         self.rbb4.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         bb = Button( master, text=_('Select books')+'…', command=self.selectBooks )
@@ -1314,11 +1263,11 @@ class GetBibleSearchTextDialog( ModalDialog ):
         self.theseMarkersListVar = tk.StringVar()
         self.theseMarkersListVar.set( ','.join(mkr for mkr in self.optionsDict['markerList']) if self.optionsDict['markerList'] else '' )
         registeredFunction = self.register( self.doMarkerListentry )
-        theseMarkersEntry = Entry( master, textvariable=self.theseMarkersListVar, validate='all', validatecommand=(registeredFunction,'%P') )
+        theseMarkersEntry = BEntry( master, textvariable=self.theseMarkersListVar, validate='all', validatecommand=(registeredFunction,'%P') )
         theseMarkersEntry.pack( in_=markerListFrame, side=tk.RIGHT, padx=2, pady=1 )
 
         return self.searchStringBox # initial focus
-    # end of GetBibleSearchTextDialog.body
+    # end of GetBibleFindTextDialog.body
 
 
     def selectBooks( self ):
@@ -1336,10 +1285,13 @@ class GetBibleSearchTextDialog( ModalDialog ):
             else:
                 self.booksSelectVariable.set( 4 )
                 self.optionsDict['bookList'] = gBBRD.result
-                self.rbb4['text'] = _("Selected books ({})").format( len(self.optionsDict['bookList']) )
+                sbText = '(N/A)' if self.optionsDict['bookList']=='ALL' \
+                    else ', '.join(self.optionsDict['bookList']) if len(self.optionsDict['bookList'])<10 \
+                    else '({})'.format( len(self.optionsDict['bookList']) )
+                self.rbb4['text'] = _('Selected books {}').format( sbText )
             #self.update()
         else: print( "selectBooks: No books selected!" )
-    # end of GetBibleSearchTextDialog.apply
+    # end of GetBibleFindTextDialog.apply
 
 
     def doMarkerListentry( self, willBe ):
@@ -1354,7 +1306,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
         for char in willBe:
             if char not in ' abcdefghijklmnopqrstuvwxyz1234,': return False
         return True # accept it
-    # end of GetBibleSearchTextDialog.doMarkerListentry
+    # end of GetBibleFindTextDialog.doMarkerListentry
 
 
     def validate( self ):
@@ -1364,7 +1316,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
 
         Returns True or False.
         """
-        #print( "GetBibleSearchTextDialog.validate()" )
+        #print( "GetBibleFindTextDialog.validate()" )
 
         # Do some normalization first
         theseMarkersOnlyText = self.theseMarkersListVar.get()
@@ -1381,22 +1333,22 @@ class GetBibleSearchTextDialog( ModalDialog ):
                 if marker in BibleOrgSysGlobals.USFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     markerList.append( marker )
                 else: # not a valid newline marker
-                    showwarning( self.parent, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
+                    showWarning( self.parent, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
         else: # Nothing in the entry
             self.theseMarkersOnlyVar.set( 0 )
 
         # Now check for bad combinations
-        searchText = self.searchStringVar.get()
-        if not searchText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
-        if searchText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        findText = self.searchStringVar.get()
+        if not findText: showWarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
+        if findText.lower() == 'regex:': showWarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and not self.optionsDict['bookList']:
-            showwarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
+            showWarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
         if self.theseMarkersOnlyVar.get():
             if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
-                showwarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
+                showWarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
         return True # Must be ok
-    # end of GetBibleSearchTextDialog.validate
+    # end of GetBibleFindTextDialog.validate
 
 
     def apply( self ):
@@ -1406,7 +1358,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
 
         Results are left in self.result
         """
-        #print( "GetBibleSearchTextDialog.apply()" )
+        #print( "GetBibleFindTextDialog.apply()" )
 
         workName = self.projectNameVar.get()
         if workName != self.optionsDict['workName']: # then they've changed it
@@ -1418,7 +1370,7 @@ class GetBibleSearchTextDialog( ModalDialog ):
             self.optionsDict['parentApp'] = window.parentApp
             self.optionsDict['givenBible'] = iB
 
-        self.optionsDict['searchText'] = self.searchStringVar.get()
+        self.optionsDict['findText'] = self.searchStringVar.get()
 
         wordModeResultNumber = self.wordModeSelectVariable.get()
         if wordModeResultNumber == 1: self.optionsDict['wordMode'] = 'Any'
@@ -1467,14 +1419,14 @@ class GetBibleSearchTextDialog( ModalDialog ):
                 if markerList: self.optionsDict['markerList'] = markerList
 
         self.result = self.optionsDict
-    # end of GetBibleSearchTextDialog.apply
-# end of class GetBibleSearchTextDialog
+    # end of GetBibleFindTextDialog.apply
+# end of class GetBibleFindTextDialog
 
 
 
 class GetBibleReplaceTextDialog( ModalDialog ):
     """
-    Get the Search and Replace strings (and options) for Bible Replace.
+    Get the Find and Replace strings (and options) for Bible Replace.
     """
     def __init__( self, parentWindow, parentApp, givenBible, optionsDict, title ):
         """
@@ -1493,7 +1445,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
 
         # Set-up default Replace options
         self.optionsDict['workName'] = givenBible.getAName() # Always revert to the original work
-        if 'searchHistoryList' not in self.optionsDict: self.optionsDict['searchHistoryList'] = [] # Oldest first
+        if 'findHistoryList' not in self.optionsDict: self.optionsDict['findHistoryList'] = [] # Oldest first
         if 'replaceHistoryList' not in self.optionsDict: self.optionsDict['replaceHistoryList'] = [] # Oldest first
         if 'wordMode' not in self.optionsDict: self.optionsDict['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
         #if 'caselessFlag' not in self.optionsDict: self.optionsDict['caselessFlag'] = True
@@ -1522,7 +1474,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
         self.projectNameVar.set( self.optionsDict['workName'] )
-        self.projectNameBox = Combobox( master, width=30, textvariable=self.projectNameVar )
+        self.projectNameBox = BCombobox( master, width=30, textvariable=self.projectNameVar )
         # Find other Bible boxes which might be added as possible projects
         #print( "  parent window {}".format( self.optionsDict['parentWindow'] ) )
         #from TextBoxes import BibleBox
@@ -1557,10 +1509,10 @@ class GetBibleReplaceTextDialog( ModalDialog ):
 
         Label( master, text=_("Find (match case):") ).grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
         self.searchStringVar = tk.StringVar()
-        try: self.searchStringVar.set( self.optionsDict['searchHistoryList'][-1] )
+        try: self.searchStringVar.set( self.optionsDict['findHistoryList'][-1] )
         except IndexError: pass
-        self.searchStringBox = Combobox( master, width=30, textvariable=self.searchStringVar )
-        self.searchStringBox['values'] = self.optionsDict['searchHistoryList']
+        self.searchStringBox = BCombobox( master, width=30, textvariable=self.searchStringVar )
+        self.searchStringBox['values'] = self.optionsDict['findHistoryList']
         #self.searchStringBox['width'] = len( 'Deuteronomy' )
         self.searchStringBox.bind('<<ComboboxSelected>>', self.ok )
         self.searchStringBox.bind( '<Return>', self.ok )
@@ -1572,7 +1524,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.replaceStringVar = tk.StringVar()
         try: self.replaceStringVar.set( self.optionsDict['replaceHistoryList'][-1] )
         except IndexError: pass
-        self.replaceStringBox = Combobox( master, width=30, textvariable=self.replaceStringVar )
+        self.replaceStringBox = BCombobox( master, width=30, textvariable=self.replaceStringVar )
         self.replaceStringBox['values'] = self.optionsDict['replaceHistoryList']
         #self.replaceStringBox['width'] = len( 'Deuteronomy' )
         self.replaceStringBox.bind('<<ComboboxSelected>>', self.ok )
@@ -1642,7 +1594,10 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.rbb2.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         #self.rbb3 = Radiobutton( master, text=_("Current chapter")+" ({} {})".format( self.optionsDict['currentBCV'][0], self.optionsDict['currentBCV'][1] ), variable=self.booksSelectVariable, value=3 )
         #self.rbb3.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
-        self.rbb4 = Radiobutton( master, text=_("Selected books ({})").format( sbText ), variable=self.booksSelectVariable, value=4 )
+        sbText = '(N/A)' if self.optionsDict['bookList']=='ALL' \
+            else ', '.join(self.optionsDict['bookList']) if len(self.optionsDict['bookList'])<10 \
+            else '({})'.format( len(self.optionsDict['bookList']) )
+        self.rbb4 = Radiobutton( master, text=_('Selected books {}').format( sbText ), variable=self.booksSelectVariable, value=4 )
         self.rbb4.pack( in_=bookLimitsFrame, side=tk.TOP, fill=tk.X )
         bb = Button( master, text=_("Select books…"), command=self.selectBooks )
         bb.pack( in_=bookLimitsFrame, side=tk.TOP, anchor=tk.E )
@@ -1682,7 +1637,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         #self.theseMarkersListVar = tk.StringVar()
         #self.theseMarkersListVar.set( ','.join(mkr for mkr in self.optionsDict['markerList']) if self.optionsDict['markerList'] else '' )
         #registeredFunction = self.register( self.doMarkerListentry )
-        #theseMarkersEntry = Entry( master, textvariable=self.theseMarkersListVar, validate='all', validatecommand=(registeredFunction,'%P') )
+        #theseMarkersEntry = BEntry( master, textvariable=self.theseMarkersListVar, validate='all', validatecommand=(registeredFunction,'%P') )
         #theseMarkersEntry.pack( in_=markerListFrame, side=tk.RIGHT, padx=2, pady=1 )
 
         return self.searchStringBox # initial focus
@@ -1704,7 +1659,10 @@ class GetBibleReplaceTextDialog( ModalDialog ):
             else:
                 self.booksSelectVariable.set( 4 )
                 self.optionsDict['bookList'] = gBBRD.result
-                self.rbb4['text'] = _("Selected books ({})").format( len(self.optionsDict['bookList']) )
+                sbText = '(N/A)' if self.optionsDict['bookList']=='ALL' \
+                    else ', '.join(self.optionsDict['bookList']) if len(self.optionsDict['bookList'])<10 \
+                    else '({})'.format( len(self.optionsDict['bookList']) )
+                self.rbb4['text'] = text=_('Selected books {}').format( sbText )
             #self.update()
         else: print( "selectBooks: No books selected!" )
     # end of GetBibleReplaceTextDialog.apply
@@ -1749,22 +1707,22 @@ class GetBibleReplaceTextDialog( ModalDialog ):
                 #if marker in BibleOrgSysGlobals.USFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     #markerList.append( marker )
                 #else: # not a valid newline marker
-                    #showwarning( self.parent, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
+                    #showWarning( self.parent, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
         #else: # Nothing in the entry
             #self.theseMarkersOnlyVar.set( 0 )
 
         # Now check for bad combinations
-        searchText = self.searchStringVar.get()
-        if not searchText: showwarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
-        if searchText.lower() == 'regex:': showwarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        findText = self.searchStringVar.get()
+        if not findText: showWarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
+        if findText.lower() == 'regex:': showWarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
         replaceText = self.replaceStringVar.get()
-        if replaceText.lower().startswith( 'regex:' ): showwarning( self.parent, APP_NAME, _("Don't start replace field with 'regex:'!") ); return False
+        if replaceText.lower().startswith( 'regex:' ): showWarning( self.parent, APP_NAME, _("Don't start replace field with 'regex:'!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and ( not self.optionsDict['bookList'] or not isinstance(self.optionsDict['bookList'], list) ):
-            showwarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
+            showWarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
         #if self.theseMarkersOnlyVar.get():
             #if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
-                #showwarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
+                #showWarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
         return True # Must be ok
     # end of GetBibleReplaceTextDialog.validate
 
@@ -1788,7 +1746,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
             self.optionsDict['parentApp'] = window.parentApp
             self.optionsDict['givenBible'] = iB
 
-        self.optionsDict['searchText'] = self.searchStringVar.get()
+        self.optionsDict['findText'] = self.searchStringVar.get()
         self.optionsDict['replaceText'] = self.replaceStringVar.get()
 
         wordModeResultNumber = self.wordModeSelectVariable.get()
@@ -1846,7 +1804,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
 class ReplaceConfirmDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, parentApp, referenceString, contextBefore, searchText, contextAfter, finalText, haveUndos, title ):
+    def __init__( self, parent, parentApp, referenceString, contextBefore, findText, contextAfter, finalText, haveUndos, title ):
         """
         optionsDict must already contain 'currentBCV'
         """
@@ -1854,7 +1812,7 @@ class ReplaceConfirmDialog( ModalDialog ):
             parentApp.setDebugText( "ReplaceConfirmDialog…" )
             assert isinstance( contextBefore, str )
             assert isinstance( contextAfter, str )
-        self.parentApp, self.referenceString, self.contextBefore, self.searchText, self.contextAfter, self.finalText, self.haveUndos = parentApp, referenceString, contextBefore, searchText, contextAfter, finalText, haveUndos
+        self.parentApp, self.referenceString, self.contextBefore, self.findText, self.contextAfter, self.finalText, self.haveUndos = parentApp, referenceString, contextBefore, findText, contextAfter, finalText, haveUndos
         ModalDialog.__init__( self, parent, title )
     # end of ReplaceConfirmDialog.__init__
 
@@ -1862,17 +1820,18 @@ class ReplaceConfirmDialog( ModalDialog ):
     def body( self, master ):
         """
         """
+        #from TextBoxes import BText
         label1 = Label( master, text=self.referenceString )
         label1.pack( side=tk.TOP )
         label2 = Label( master, text=_('Before') )
         label2.pack( side=tk.TOP, anchor=tk.W )
-        textBox1 = tk.Text( master, height=5 )
-        textBox1.insert( tk.END, self.contextBefore+self.searchText+self.contextAfter )
+        textBox1 = BText( master, height=5 )
+        textBox1.insert( tk.END, self.contextBefore+self.findText+self.contextAfter )
         textBox1.configure( state=tk.DISABLED )
         textBox1.pack( side=tk.TOP, fill=tk.X )
         label3 = Label( master, text=_('After') )
         label3.pack( side=tk.TOP, anchor=tk.W )
-        textBox2 = tk.Text( master, height=5 )
+        textBox2 = BText( master, height=5 )
         textBox2.insert( tk.END, self.finalText )
         textBox2.configure( state=tk.DISABLED )
         textBox2.pack( side=tk.TOP, fill=tk.X )
@@ -2054,7 +2013,7 @@ class SelectInternalBibleDialog( ModalDialog ):
         #Label( master, text=_("New path to Sword modules:") ).grid( row=1 )
 
         #l1 = Label( master, text=self.alreadyTriedList if self.alreadyTriedList else _("Unknown") )
-        #self.e1 = Entry( master )
+        #self.e1 = BEntry( master )
 
         #l1.grid( row=0, column=1 )
         #self.e1.grid( row=1, column=1 )
@@ -2073,13 +2032,13 @@ class SelectInternalBibleDialog( ModalDialog ):
 
         #enteredPath = self.e1.get()
         #if not os.path.isdir( enteredPath):
-            #showwarning( self.parent, APP_NAME, _("Pathname seems invalid") ); return False
+            #showWarning( self.parent, APP_NAME, _("Pathname seems invalid") ); return False
         #epAdjusted = enteredPath.lower().replace( '\\', '/' )
         #if epAdjusted[-1] != '/': epAdjusted += '/'
         #if epAdjusted.endswith( 'mods.d/'):
-            #showwarning( self.parent, APP_NAME, _("Pathname shouldn't include mods.d") ); return False
+            #showWarning( self.parent, APP_NAME, _("Pathname shouldn't include mods.d") ); return False
         #if not os.path.isdir( os.path.join( enteredPath, 'mods.d/' ) ):
-            #showwarning( self.parent, APP_NAME, _("Pathname seems to have no 'mods.d' subfolder") ); return False
+            #showWarning( self.parent, APP_NAME, _("Pathname seems to have no 'mods.d' subfolder") ); return False
         #return True
     ## end of GetSwordPathDialog.validate
 

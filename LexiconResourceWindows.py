@@ -5,7 +5,7 @@
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2016-04-10' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -45,7 +45,7 @@ import tkinter as tk
 from tkinter.ttk import Style, Frame, Button
 
 # Biblelator imports
-from TextBoxes import HTMLText
+from TextBoxes import HTMLTextBox, ChildBox
 from ChildWindows import ChildWindow
 
 # BibleOrgSys imports
@@ -77,7 +77,7 @@ def exp( messageString ):
 
 
 
-class BibleLexiconResourceWindow( ChildWindow ):
+class BibleLexiconResourceWindow( ChildWindow, ChildBox ):
     """
     """
     def __init__( self, parentApp, lexiconPath=None ):
@@ -94,10 +94,10 @@ class BibleLexiconResourceWindow( ChildWindow ):
 
         # Make our own textBox
         self.textBox.destroy()
-        self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
+        self.textBox = HTMLTextBox( self, yscrollcommand=self.vScrollbar.set, wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
-        self.createStandardKeyboardBindings( reset=True )
+        #self.createStandardWindowKeyboardBindings( reset=True )
 
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
@@ -152,8 +152,8 @@ class BibleLexiconResourceWindow( ChildWindow ):
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -247,6 +247,39 @@ class BibleLexiconResourceWindow( ChildWindow ):
         self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
         self.refreshTitle()
     # end of BibleLexiconResourceWindow.updateLexiconWord
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleLexiconResourceWindow.doHelp( {} )").format( event ) )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return "break" # so we don't do the main window help also
+    # end of BibleLexiconResourceWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleLexiconResourceWindow.doAbout( {} )").format( event ) )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.windowType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return "break" # so we don't do the main window about also
+    # end of BibleLexiconResourceWindow.doAbout
 # end of BibleLexiconResourceWindow class
 
 

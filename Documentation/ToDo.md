@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-03-29 by RJH
+Last updated: 2017-04-11 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,18 +14,18 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
-* Search/Replace globally didn't show the update in the open USFMEditWindow
+* Bible find regex:XXX doesn't work unless match case or xxx is used
+* Bible find regex:XXX (with match case) shows regex in find result lines
+* Double-click in Bible windows doesn't select the word
+* Bible Search/Replace globally didn't show the update in the open USFMEditWindow
+* Bible find found heading (\s) in 1:19, but it's displayed in edit window above the NEXT verse (1:20)
 * Checking window: can't click on individual errors (for goto)
 * Checking window: enable/disable Back/Forward buttons (and display link when cursor over)
 * Clicked on an apocryphal book (result of search) and MBT got into sort of a loop "Need to create book" / cancel
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
 * Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
-* Autocorrect doesn't work in find/replace entry fields
 * Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs removed at load time???)
-* Ctrl+F doesn't work in edit window or resource for Bible Find
-* F1 help and F12 about doesn't seem to work from most windows
-* F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
 * Windows and Bible lists need to be displayed in a window
 * HTML source box isn't listed in child windows (included in show all / hide all)
 * Window find doesn't seem to work on resource windows
@@ -58,6 +58,7 @@ Biblelator bugs / unfinished
 * BOSManager is not finished enough
 * SwordManager is not finished enough
 * Make wording consistent between DIR and FOLDER
+* Make working consistent between FIND and SEARCH
 * When using custom sword module path, send it home so we can add it to the defaults???
 
 Biblelator testing required

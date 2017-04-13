@@ -5,7 +5,7 @@
 #
 # The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-04-11' # by RJH
 ShortProgName = "ESFMEditWindow"
 ProgName = "Biblelator ESFM Edit Window"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -49,7 +49,7 @@ import tkinter as tk
 
 # Biblelator imports
 #from BiblelatorGlobals import APP_NAME, DATA_FOLDER_NAME, START, DEFAULT, EDIT_MODE_NORMAL, EDIT_MODE_USFM, BIBLE_GROUP_CODES
-#from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog, GetBibleBookRangeDialog
+#from BiblelatorDialogs import YesNoDialog, OkCancelDialog, GetBibleBookRangeDialog
 #from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, mapReferenceVerseKey, mapParallelVerseKey
 #from TextBoxes import CustomText
 #from ChildWindows import ChildWindow, HTMLWindow
