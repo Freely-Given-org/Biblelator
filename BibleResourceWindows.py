@@ -81,7 +81,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-12' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.40'
@@ -96,7 +96,7 @@ from collections import OrderedDict
 import tkinter as tk
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, MAX_PSEUDOVERSES, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, MAX_PSEUDOVERSES, errorBeep, \
                             BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES
 from ChildWindows import BibleWindow, HTMLWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
@@ -1302,7 +1302,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return "break" # so we don't do the main window help also
+        return tkBREAK # so we don't do the main window help also
     # end of InternalBibleResourceWindow.doHelp
 
 
@@ -1317,7 +1317,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return "break" # so we don't do the main window about also
+        return tkBREAK # so we don't do the main window about also
     # end of InternalBibleResourceWindow.doAbout
 
 

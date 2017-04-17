@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-12' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.40'
@@ -86,7 +86,7 @@ from tkinter.ttk import Entry, Combobox
 from tkinter.simpledialog import askstring, askinteger
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, errorBeep, BIBLE_FORMAT_VIEW_MODES
+from BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, BIBLE_FORMAT_VIEW_MODES
 from BiblelatorSimpleDialogs import showError, showInfo
 
 
@@ -883,7 +883,7 @@ class CustomText( BText ):
     # end of CustomText.setTextChangeCallback
 
 
-    def highlightPattern( self, pattern, styleTag, startAt=START, endAt=tk.END, regexpFlag=True ):
+    def highlightPattern( self, pattern, styleTag, startAt=tkSTART, endAt=tk.END, regexpFlag=True ):
         """
         Apply the given tag to all text that matches the given pattern.
 
@@ -1023,8 +1023,8 @@ class ChildBox():
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doSelectAll( {} )").format( event ) )
 
-        self.textBox.tag_add( tk.SEL, START, tk.END+'-1c' )   # select entire text
-        self.textBox.mark_set( tk.INSERT, START )          # move insert point to top
+        self.textBox.tag_add( tk.SEL, tkSTART, tk.END+'-1c' )   # select entire text
+        self.textBox.mark_set( tk.INSERT, tkSTART )          # move insert point to top
         self.textBox.see( tk.INSERT )                      # scroll to top
     # end of ChildBox.doSelectAll
 
@@ -1044,7 +1044,7 @@ class ChildBox():
             maxline  = int( maxindex.split('.')[0] )
             if line > 0 and line <= maxline:
                 self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
-                self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
+                self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )          # delete selects
                 self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert+1l' )  # select line
                 self.textBox.see( tk.INSERT )                          # scroll to line
             else:
@@ -1067,13 +1067,13 @@ class ChildBox():
         if key:
             #nocase = self.optionsDict['caseinsens'] # Where should this come from?
             nocase = True
-            where = self.textBox.search( key, START if lastkey is None else tk.INSERT, tk.END, nocase=nocase )
+            where = self.textBox.search( key, tkSTART if lastkey is None else tk.INSERT, tk.END, nocase=nocase )
             if not where:                                          # don't wrap
                 errorBeep()
                 showError( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
                 pastkey = where + '+%dc' % len(key)           # index past key
-                self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )         # remove any sel
                 self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 self.textBox.see( where )                          # scroll display
@@ -1121,7 +1121,7 @@ class ChildBox():
 
     def clearText( self ): # Leaves in normal state
         self.textBox.configure( state=tk.NORMAL )
-        self.textBox.delete( START, tk.END )
+        self.textBox.delete( tkSTART, tk.END )
     # end of ChildBox.clearText
 
 
@@ -1146,7 +1146,7 @@ class ChildBox():
         """
         Returns all the text as a string.
         """
-        return self.textBox.get( START, tk.END+'-1c' )
+        return self.textBox.get( tkSTART, tk.END+'-1c' )
     # end of ChildBox.getAllText
 
 
@@ -1162,9 +1162,9 @@ class ChildBox():
             print( exp("ChildBox.setAllText( {!r} )").format( newText ) )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
-        self.textBox.delete( START, tk.END ) # Delete everything that's existing
+        self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
-        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        self.textBox.mark_set( tk.INSERT, tkSTART ) # move insert point to top
         self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
         self.textBox.edit_reset() # clear undo/redo stks
@@ -1648,7 +1648,7 @@ class BibleBox( ChildBox ):
             self.doActualBibleFind()
         self.parentApp.setReadyStatus()
 
-        #return "break"
+        #return tkBREAK
     # end of BibleBox.doBibleFind
 
 

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-12' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.40'
@@ -44,7 +44,7 @@ import tkinter as tk
 from tkinter.ttk import Style, Notebook, Frame, Label, Radiobutton
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
+from BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                                 errorBeep
 from ModalDialog import ModalDialog
 from BiblelatorSimpleDialogs import showError, showInfo
@@ -210,17 +210,20 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             self.projectAbbreviation = self.internalBible.abbreviation if self.internalBible.abbreviation else self.internalBible.shortName
             if not self.projectAbbreviation:
                 self.projectAbbreviation = self.internalBible.givenName if self.internalBible.givenName else self.internalBible.name
+        #print( "here33", self.internalBible, repr(self.projectName), repr(self.projectAbbreviation) )
         #try: print( "\n\n\n\nUEW settings for {}:".format( self.projectName ), self.settings )
         #except: print( "\n\n\n\nUEW has no settings!" )
         #if not self.projectName: self.projectName = 'NoProjectName'
+        #print( "here34", self.internalBible, repr(self.projectName), repr(self.projectAbbreviation) )
 
         # Following is not needed coz done in TextEditWindow class
         #self.myKeyboardBindingsList = []
         #if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
         #self.createEditorKeyboardBindings()
 
-        Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='green' )
-        self.vScrollbar.configure( command=self.textBox.yview, style=self.projectName+'USFM.Vertical.TScrollbar' ) # link the scrollbar to the text box
+        styleName = ( self.projectName if self.projectName else 'Unknown' ) + 'USFM.Vertical.TScrollbar'
+        Style().configure( styleName, background='green' )
+        self.vScrollbar.configure( command=self.textBox.yview, style=styleName ) # link the scrollbar to the text box
 
         self.defaultBackgroundColour = 'plum1'
         if self.internalBible is None: self.editMode = None
@@ -301,7 +304,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                                     self._groupCode, self.projectName,
                                     '' if self.currentVerseKey is None else referenceBit,
                                     self.editMode, self.editStatus, self._contextViewMode ) )
-        Style().configure( self.projectName+'USFM.Vertical.TScrollbar', background='yellow' if self.modified() else 'SeaGreen1' )
+        styleName = ( self.projectName if self.projectName else 'Unknown' ) + 'USFM.Vertical.TScrollbar'
+        Style().configure( styleName, background='yellow' if self.modified() else 'SeaGreen1' )
         self.refreshTitleContinue() # handle Autosave
     # end if USFMEditWindow.refreshTitle
 
@@ -1256,7 +1260,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                 else:
                     #showError( self, _("USFM Editor"), _("We need to create the book: {} in {}").format( newBBB, self.internalBible.sourceFolder ) )
                     ocd = OkCancelDialog( self, _("We need to create the book: {} in {}".format( newBBB, self.internalBible.sourceFolder ) ), title=_('Create?') )
-                    print( "ocdResult", repr(ocd.result) )
+                    #print( "Need to create USFM book ocdResult", repr(ocd.result) )
                     if ocd.result == True: # Ok was chosen
                         self.setFilename( '{}-{}.USFM'.format( uNumber, uAbbrev ), createFile=True )
                         self.bookText = createEmptyUSFMBookText( newBBB, self.getNumChapters, self.getNumVerses )
@@ -1439,7 +1443,15 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         editBoxText = self.getAllText()
 
         # Add the stuff that wasn't displayed before and after the currently displayed verses
-        entireText = self.bookTextBefore + editBoxText + self.bookTextAfter
+        try: entireText = self.bookTextBefore + editBoxText + self.bookTextAfter
+        except TypeError:
+            # Probably self.bookTextBefore and self.bookTextAfter are both None
+            #   Can happen if the book navigated to doesn't actually exist (and isn't created)
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                assert self.bookTextBefore is None
+                assert self.bookTextAfter is None
+            #print( "getEntireText", repr(self.bookTextBefore), repr(editBoxText), repr(self.bookTextAfter) )
+            entireText = editBoxText
         return entireText
     # end of USFMEditWindow.getEntireText
 
@@ -1725,7 +1737,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #aboutInfo = ProgNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        #return "break"
+        #return tkBREAK
     ## end of USFMEditWindow.doAbout
 # end of USFMEditWindow class
 

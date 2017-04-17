@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-10' # by RJH
+LastModifiedDate = '2016-04-17' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
 ProgVersion = '0.40'
@@ -45,6 +45,7 @@ import tkinter as tk
 from tkinter.ttk import Style, Frame, Button
 
 # Biblelator imports
+from BiblelatorGlobals import tkBREAK
 from TextBoxes import HTMLTextBox, ChildBox
 from ChildWindows import ChildWindow
 
@@ -263,7 +264,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBox ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return "break" # so we don't do the main window help also
+        return tkBREAK # so we don't do the main window help also
     # end of BibleLexiconResourceWindow.doHelp
 
 
@@ -278,7 +279,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBox ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return "break" # so we don't do the main window about also
+        return tkBREAK # so we don't do the main window about also
     # end of BibleLexiconResourceWindow.doAbout
 # end of BibleLexiconResourceWindow class
 

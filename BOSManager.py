@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -51,7 +51,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, START, MAX_PSEUDOVERSES, errorBeep, \
+from BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, \
@@ -1042,9 +1042,9 @@ class BOSManager( Frame ):
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
@@ -1105,7 +1105,7 @@ class BOSManager( Frame ):
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
         self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
-        self.debugTextBox.delete( START, tk.END ) # Clear everything
+        self.debugTextBox.delete( tkSTART, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -1231,7 +1231,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.codeTextBox.configure( state=tk.NORMAL )
-        self.codeTextBox.delete( START, tk.END )
+        self.codeTextBox.delete( tkSTART, tk.END )
         self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
         self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
         for field,value in sorted( codeDict.items() ):
@@ -1282,7 +1282,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.punctuationTextBox.configure( state=tk.NORMAL )
-        self.punctuationTextBox.delete( START, tk.END )
+        self.punctuationTextBox.delete( tkSTART, tk.END )
         self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( self.punctuationSystemName ) )
         #self.punctuationTextBox.insert( tk.END, '{}\n\n'.format( punctuationDict['nameEnglish'] ) )
         for field,value in sorted( punctuationDict.items() ):
@@ -1333,7 +1333,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.versificationTextBox.configure( state=tk.NORMAL )
-        self.versificationTextBox.delete( START, tk.END )
+        self.versificationTextBox.delete( tkSTART, tk.END )
         self.versificationTextBox.insert( tk.END, '{}\n\n'.format( self.versificationSystemName ) )
         self.versificationTextBox.insert( tk.END, '{}\n\n'.format( versificationSystem ) )
         #for field,value in sorted( versificationDict.items() ):
@@ -1383,7 +1383,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.mappingTextBox.configure( state=tk.NORMAL )
-        self.mappingTextBox.delete( START, tk.END )
+        self.mappingTextBox.delete( tkSTART, tk.END )
         self.mappingTextBox.insert( tk.END, '{}\n\n'.format( self.mappingSystemName ) )
         self.mappingTextBox.insert( tk.END, '{}\n\n'.format( mappingSystem ) )
         #for field,value in sorted( mappingDict.items() ):
@@ -1434,7 +1434,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.orderTextBox.configure( state=tk.NORMAL )
-        self.orderTextBox.delete( START, tk.END )
+        self.orderTextBox.delete( tkSTART, tk.END )
         self.orderTextBox.insert( tk.END, '{}\n\n'.format( self.orderSystemName ) )
         self.orderTextBox.insert( tk.END, '{}\n\n'.format( orderSystem ) )
         #for field,value in sorted( orderDict.items() ):
@@ -1485,7 +1485,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.nameTextBox.configure( state=tk.NORMAL )
-        self.nameTextBox.delete( START, tk.END )
+        self.nameTextBox.delete( tkSTART, tk.END )
         self.nameTextBox.insert( tk.END, '{}\n\n'.format( self.nameSystemName ) )
         self.nameTextBox.insert( tk.END, '{}\n\n'.format( nameSystem ) )
         #for field,value in sorted( nameDict.items() ):
@@ -1535,7 +1535,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.organizationTextBox.configure( state=tk.NORMAL )
-        self.organizationTextBox.delete( START, tk.END )
+        self.organizationTextBox.delete( tkSTART, tk.END )
         self.organizationTextBox.insert( tk.END, '{} ({})\n\n'.format( self.organizationSystemName, organizationalSystemDict['type'] ) )
         self.organizationTextBox.insert( tk.END, '{}\n\n'.format( organizationalSystemDict['name'][0] ) )
         for field,value in sorted( organizationalSystemDict.items() ):
@@ -1585,7 +1585,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.referenceTextBox.configure( state=tk.NORMAL )
-        self.referenceTextBox.delete( START, tk.END )
+        self.referenceTextBox.delete( tkSTART, tk.END )
         self.referenceTextBox.insert( tk.END, '{}\n\n'.format( self.referenceSystemName ) )
         self.referenceTextBox.insert( tk.END, '{}\n\n'.format( referenceSystem ) )
         #for field,value in sorted( referenceDict.items() ):
@@ -1635,7 +1635,7 @@ class BOSManager( Frame ):
 
         # Clear the text box
         self.stylesheetTextBox.configure( state=tk.NORMAL )
-        self.stylesheetTextBox.delete( START, tk.END )
+        self.stylesheetTextBox.delete( tkSTART, tk.END )
         self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( self.stylesheetSystemName ) )
         self.stylesheetTextBox.insert( tk.END, '{}\n\n'.format( stylesheetSystem ) )
         #for field,value in sorted( stylesheetDict.items() ):

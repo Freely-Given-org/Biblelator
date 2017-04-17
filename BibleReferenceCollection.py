@@ -50,7 +50,7 @@ import tkinter as tk
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, \
+from BiblelatorGlobals import DEFAULT, tkBREAK, \
         BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, MAX_PSEUDOVERSES, \
         INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
         parseWindowSize
@@ -638,7 +638,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return "break" # so we don't do the main window help also
+        return tkBREAK # so we don't do the main window help also
     # end of BibleReferenceCollectionWindow.doHelp
 
 
@@ -654,7 +654,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
         aboutInfo += '\n' + _("A Bible Reference Collection box can contain multiple different Scripture references all shown from the same resource translation or commentary.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return "break" # so we don't do the main window about also
+        return tkBREAK # so we don't do the main window about also
     # end of BibleReferenceCollectionWindow.doAbout
 # end of BibleReferenceCollectionWindow class
 

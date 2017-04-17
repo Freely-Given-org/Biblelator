@@ -35,7 +35,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.40'
@@ -53,7 +53,8 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
+                             BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                              parseWindowGeometry, parseWindowSize, assembleWindowGeometry, errorBeep, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
                              INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE, \
@@ -323,9 +324,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='white', background='purple' )
@@ -406,7 +407,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         #for name,shortcut in self.myKeyboardBindingsList:
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
-        #return "break"
+        #return tkBREAK
     ## end of ChildWindow.doHelp
 
 
@@ -421,7 +422,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         #aboutInfo = ProgNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        #return "break"
+        #return tkBREAK
     ## end of ChildWindow.doAbout
 
 
@@ -846,9 +847,9 @@ class TextWindow( ChildWindow ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
@@ -917,7 +918,7 @@ class TextWindow( ChildWindow ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return "break" # so we don't do the main window help also
+        return tkBREAK # so we don't do the main window help also
     # end of TextWindow.doHelp
 
 
@@ -932,7 +933,7 @@ class TextWindow( ChildWindow ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return "break" # so we don't do the main window about also
+        return tkBREAK # so we don't do the main window about also
     # end of TextWindow.doAbout
 
 
@@ -1206,9 +1207,9 @@ class HTMLWindow( ChildWindow ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
@@ -1359,7 +1360,7 @@ class HTMLWindow( ChildWindow ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return "break" # so we don't do the main window help also
+        return tkBREAK # so we don't do the main window help also
     # end of HTMLWindow.doHelp
 
 
@@ -1374,7 +1375,7 @@ class HTMLWindow( ChildWindow ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return "break" # so we don't do the main window about also
+        return tkBREAK # so we don't do the main window about also
     # end of HTMLWindow.doAbout
 
 
@@ -1670,9 +1671,9 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
@@ -1903,7 +1904,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return "break" # so we don't do the main window help also
+        return tkBREAK # so we don't do the main window help also
     # end of FindResultWindow.doHelp
 
 
@@ -1918,7 +1919,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return "break" # so we don't do the main window about also
+        return tkBREAK # so we don't do the main window about also
     # end of FindResultWindow.doAbout
 
 

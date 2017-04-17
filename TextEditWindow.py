@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.40'
@@ -47,7 +47,7 @@ from tkinter.filedialog import asksaveasfilename
 from tkinter.ttk import Button, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT
+from BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT
 from BiblelatorSimpleDialogs import showError, showInfo
 from BiblelatorDialogs import YesNoDialog, OkCancelDialog
 from TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE, \
@@ -405,7 +405,7 @@ class TextEditWindow( ChildWindow ):
         """
         Returns all the text as a string.
         """
-        allText = self.textBox.get( START, tk.END+'-1c' )
+        allText = self.textBox.get( tkSTART, tk.END+'-1c' )
         #if self.markMultipleSpacesFlag:
         allText = allText.replace( MULTIPLE_SPACE_SUBSTITUTE, ' ' )
         #if self.markTrailingSpacesFlag:
@@ -842,7 +842,7 @@ class TextEditWindow( ChildWindow ):
             showError( self, APP_NAME, _("Nothing to paste") )
             return
         self.textBox.insert( tk.INSERT, text)          # add at current insert cursor
-        self.textBox.tag_remove( tk.SEL, START, tk.END )
+        self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )
         self.textBox.tag_add( tk.SEL, tk.INSERT+'-{}c'.format( len(text) ), tk.INSERT )
         self.textBox.see( tk.INSERT )                   # select it, so it can be cut
     # end of TextEditWindow.doPaste
@@ -861,7 +861,7 @@ class TextEditWindow( ChildWindow ):
             #maxline  = int( maxindex.split('.')[0] )
             #if line > 0 and line <= maxline:
                 #self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
-                #self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
+                #self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )          # delete selects
                 #self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
                 #self.textBox.see( tk.INSERT )                          # scroll to line
             #else:
@@ -881,7 +881,7 @@ class TextEditWindow( ChildWindow ):
                 #showError( self, APP_NAME, _("String not found") )
             #else:
                 #pastkey = where + '+%dc' % len(key)           # index past key
-                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                #self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )         # remove any sel
                 #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 #self.textBox.see( where )                          # scroll display
@@ -1057,11 +1057,11 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.setAllText( {!r} )").format( newText ) )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
-        self.textBox.delete( START, tk.END ) # Delete everything that's existing
+        self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
         self.textBox.highlightAllPatterns( self.patternsToHighlight )
 
-        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        self.textBox.mark_set( tk.INSERT, tkSTART ) # move insert point to top
         self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
         self.textBox.edit_reset() # clear undo/redo stks
@@ -1276,7 +1276,7 @@ class TextEditWindow( ChildWindow ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return tk.BREAK # so we don't do the main window help also
+        return tkBREAK # so we don't do the main window help also
     # end of TextEditWindow.doHelp
 
 
@@ -1291,7 +1291,7 @@ class TextEditWindow( ChildWindow ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return tk.BREAK # so we don't do the main window about also
+        return tkBREAK # so we don't do the main window about also
     # end of TextEditWindow.doAbout
 
 

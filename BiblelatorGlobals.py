@@ -41,7 +41,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.40'
@@ -88,7 +88,15 @@ SETTINGS_SUBFOLDER_NAME = APP_NAME + 'Settings/'
 PROJECTS_SUBFOLDER_NAME = APP_NAME + 'Projects/'
 
 
-START = '1.0' # constant for tkinter
+ # Constants for tkinter
+tkSTART = '1.0'
+tkBREAK = 'break'
+
+
+# Our constants
+DEFAULT = 'Default'
+EDIT_MODE_NORMAL = 'Edit'
+EDIT_MODE_USFM = 'USFM Edit'
 
 
 MAX_WINDOWS = 20
@@ -110,12 +118,6 @@ MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SI
 BIBLE_GROUP_CODES = 'A', 'B', 'C', 'D', 'E'
 BIBLE_CONTEXT_VIEW_MODES = 'BeforeAndAfter', 'BySection', 'ByVerse', 'ByBook', 'ByChapter'
 BIBLE_FORMAT_VIEW_MODES = 'Formatted', 'Unformatted',
-
-
-# Constants
-DEFAULT = 'Default'
-EDIT_MODE_NORMAL = 'Edit'
-EDIT_MODE_USFM = 'USFM Edit'
 
 
 # DEFAULT_KEY_BINDING_DICT is a dictionary where

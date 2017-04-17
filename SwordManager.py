@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.04' # Separate versioning from Biblelator
@@ -52,7 +52,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, START, MAX_PSEUDOVERSES, errorBeep, \
+from BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         findHomeFolderPath, \
@@ -810,9 +810,9 @@ class SwordManager( Frame ):
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
@@ -873,7 +873,7 @@ class SwordManager( Frame ):
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
         self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
-        self.debugTextBox.delete( START, tk.END ) # Clear everything
+        self.debugTextBox.delete( tkSTART, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -962,7 +962,7 @@ class SwordManager( Frame ):
 
         # Clear the text box
         self.codeTextBox.configure( state=tk.NORMAL )
-        self.codeTextBox.delete( START, tk.END )
+        self.codeTextBox.delete( tkSTART, tk.END )
         self.codeTextBox.insert( tk.END, '{} (#{})\n\n'.format( self.BBB, codeDict['referenceNumber'] ) )
         self.codeTextBox.insert( tk.END, '{}\n\n'.format( codeDict['nameEnglish'] ) )
         for field,value in sorted( codeDict.items() ):

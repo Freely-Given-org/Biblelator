@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.40'
@@ -47,7 +47,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, errorBeep, \
+from BiblelatorGlobals import DEFAULT, tkSTART, MAX_RECENT_FILES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, MAX_PSEUDOVERSES, \
         findHomeFolderPath, \
@@ -930,9 +930,9 @@ class BiblelatorSettingsEditor( Frame ):
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
@@ -993,7 +993,7 @@ class BiblelatorSettingsEditor( Frame ):
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
         self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
-        self.debugTextBox.delete( START, tk.END ) # Clear everything
+        self.debugTextBox.delete( tkSTART, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:

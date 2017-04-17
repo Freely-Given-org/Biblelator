@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.40'
@@ -50,7 +50,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Label
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, START, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
@@ -1003,7 +1003,7 @@ class Application( Frame ):
         """
         Create an information bar containing several helpful displays at the top of the main window.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("createInfoBar()") )
 
         xPad, yPad = (6, 8) if self.touchMode else (4, 4)
@@ -1109,19 +1109,19 @@ class Application( Frame ):
 
     def textSelectAllText( self, event ):
         #print( "textSelectAllText( {} ) {}".format( event, event.widget ) )
-        event.widget.tag_add( tk.SEL, START, tk.END )
+        event.widget.tag_add( tk.SEL, tkSTART, tk.END )
         #event.widget.mark_set( tk.INSERT, tk.END )
         #event.widget.see( tk.INSERT )
-        #return tk.BREAK # so default tk binding doesn't work
+        #return tkBREAK # so default tk binding doesn't work
     def entrySelectAllText( self, event ):
         #print( "entrySelectAllText( {} ) {}".format( event, event.widget ) )
         event.widget.selection_range( 0, tk.END )
-        #return tk.BREAK # so default tk binding doesn't work
+        #return tkBREAK # so default tk binding doesn't work
     def spinboxSelectAllText( self, event ):
         #print( "spinboxSelectAllText( {} ) {}".format( event, event.widget ) )
         event.widget.selection_adjust( 0 )
         event.widget.selection_adjust( tk.END )
-        #return tk.BREAK # so default tk binding doesn't work
+        #return tkBREAK # so default tk binding doesn't work
 
     def setupMainWindowKeyboardBindings( self ):
         """
@@ -1190,9 +1190,9 @@ class Application( Frame ):
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'MainStatusBar.TLabel', foreground='white', background='purple' )
@@ -1253,7 +1253,7 @@ class Application( Frame ):
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
         self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
-        self.debugTextBox.delete( START, tk.END ) # Clear everything
+        self.debugTextBox.delete( tkSTART, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -2014,10 +2014,15 @@ class Application( Frame ):
         uEW.setFolderPath( projectFolderPath )
         uEW.settings = ProjectSettings( projectFolderPath )
         uEW.settings.loadUSFMMetadataInto( uB )
+        if not uEW.projectName:
+            uEW.projectName = uEW.settings.data['Project']['Name']
+        if not uEW.projectAbbreviation:
+            uEW.projectAbbreviation = uEW.settings.data['Project']['Abbreviation']
         uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
         self.childWindows.append( uEW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBiblelatorBibleEditWindow" )
         self.setReadyStatus()
+        #print( "openBiblelatorBibleEditWindow uB", uB )
         return uEW
     # end of Application.openBiblelatorBibleEditWindow
 
