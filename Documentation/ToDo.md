@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-04-11 by RJH
+Last updated: 2017-04-20 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Want Alt-up and down to go to previous/next find results
 * Bible find regex:XXX doesn't work unless match case or xxx is used
 * Bible find regex:XXX (with match case) shows regex in find result lines
 * Double-click in Bible windows doesn't select the word
@@ -68,7 +69,6 @@ Biblelator testing required
 
 
 BOS bugs
-* Sword conf files don't load versioned history lines correctly
 * Doesn't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
 
@@ -109,6 +109,9 @@ BOSManager / SwordManager / Settings editor stuff
 
 
 Biblelator stuff
+* Handle Paratext 8 files
+* Release version 0.40
+* Allow footnote displays in Bible Resource boxes/windows
 * Add AND and OR for Bible find
 * Add a pop-up quick reference box (with all open translations???)
 * Make HTML window more robust (failed if meta line was missing self-closing slash)
@@ -119,7 +122,7 @@ Biblelator stuff
 * Make a proper icon
 * Save iconification state of windows
 * Use checkboxes to allow individual exports
-* Get Sword resources displaying nicer
+* Get Sword resources displaying prettier
 * Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
 * Cache DBP to disk (if have expensive Internet)???
 * Need keyboard shortcuts for list up/down
@@ -142,11 +145,12 @@ Biblelator stuff
 * Get some different views working on the edit window
 * Synchronise with other Bible programs (esp. on Windows)
 * Display footnotes and xrefs in resources
-* Work on user stylesheets
+* Work on a default stylesheet which can be copied to make a custom stylesheet
 * Make a full project properties dialog and do project setting properly
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
-* Release version 0.40
+* Release version 0.50
+* Allow undo of window/box close (from main window???)
 * Include some sample folders and sample ini files
 * Setting max window sizes prevents maximizing -- is this what we really want?
 * Consider when the same project/file is opened multiple times
@@ -161,7 +165,7 @@ Biblelator stuff
 * Improve Strongs (lexicon) HTML display
 * Look at doing some windows updates in idle time
 * Make a splash screen (turned off/on in settings file)
-* Release version 0.50
+* Release version 0.60
 * Allow users to "log-on" with usernames (passwords?)
 * Allow setting of roles (administrator/project leader/superintendent/overseer, translator, consultant/reviewer/archivist/typesetter, contributor/friend/critic/observer)
 * Make logging more useful

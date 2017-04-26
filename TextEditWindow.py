@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-04-20' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.40'
@@ -433,7 +433,7 @@ class TextEditWindow( ChildWindow ):
         autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
         autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
         self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
-                                    relief="flat",
+                                    relief='flat',
                                     yscrollcommand=autocompleteScrollbar.set,
                                     width=20, height=NUM_AUTOCOMPLETE_POPUP_LINES )
         autocompleteScrollbar.configure( command=self.autocompleteBox.yview )
@@ -441,7 +441,7 @@ class TextEditWindow( ChildWindow ):
         #self.autocompleteBox.select_set( '0' )
         #self.autocompleteBox.focus()
         self.autocompleteBox.bind( '<KeyPress>', self.OnAutocompleteChar )
-        self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
+        self.autocompleteBox.bind( '<Double-Button-1>', self.doAcceptAutocompleteSelection )
         self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
     # end of TextEditWindow.makeAutocompleteBox
 

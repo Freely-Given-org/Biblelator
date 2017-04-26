@@ -37,7 +37,7 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-10' # by RJH
+LastModifiedDate = '2017-04-27' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.40'
@@ -521,25 +521,29 @@ def parseEnteredBookname( bookNameEntry, currentBBB, Centry, Ventry, BBBfunction
     # Do a bit of preliminary cleaning-up
     bookNameEntry = bookNameEntry.strip().replace( '  ', ' ' )
 
-    if ':' in bookNameEntry or '.' in bookNameEntry: # Could be a CV specified???
-        #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # bookname C:V or C.V
-        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})[:\.](\d{1,3})', bookNameEntry )
-        if match:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
-            return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
-        match = re.search( '(\d{1,3})[:\.](\d{1,3})', bookNameEntry ) # (Current book) C:V or C.V
-        if match:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
-            return BBBfunction( currentBBB ), match.group(1), match.group(2 )
+    #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # bookname C:V or C.V or C V
+    match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})[:\. ](\d{1,3})', bookNameEntry )
+    if match:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+        return BBBfunction( match.group(1) ), match.group(2), match.group(3)
+    match = re.search( '(\d{1,3})[:\. ](\d{1,3})', bookNameEntry ) # (Current book) C:V or C.V or C V
+    if match:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        return BBBfunction( currentBBB ), match.group(1), match.group(2 )
 
     #else: # could be a C specified???
-    match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
+    match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # bookname C
     if match:
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
         return BBBfunction( match.group(1) ), match.group(2), 1
+    match = re.search( '(\d{1,3})', bookNameEntry ) # (Current book) C
+    if match:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matched! {!r}".format( match.group(1) ) )
+        return BBBfunction( currentBBB ), match.group(1), 1
 
     #else: # assume it's just a book name (with no C or V specified)
     return BBBfunction( bookNameEntry ), Centry, Ventry

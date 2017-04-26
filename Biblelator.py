@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-04-27' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.40'
@@ -778,8 +778,8 @@ class Application( Frame ):
         self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
-        self.bookNameBox.bind( '<Return>', self.spinToNewBook )
+        self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookName )
+        self.bookNameBox.bind( '<Return>', self.acceptNewBookName )
         self.bookNameBox.pack( side=tk.LEFT )
 
         self.chapterNumberVar = tk.StringVar()
@@ -892,8 +892,8 @@ class Application( Frame ):
         self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
-        self.bookNameBox.bind( '<Return>', self.spinToNewBook )
+        self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookName )
+        self.bookNameBox.bind( '<Return>', self.acceptNewBookName )
         #self.bookNameBox.pack( side=tk.LEFT )
 
         Style().configure( 'bookName.TButton', background='brown' )
@@ -2269,7 +2269,7 @@ class Application( Frame ):
 
         self.BCVNavigationBox.focus()
         self.BCVNavigationBox.bind( '<KeyPress>', self.OnBCVNavigationChar )
-        self.BCVNavigationBox.bind( '<Double-1>', self.doAcceptBCVNavigationSelection )
+        self.BCVNavigationBox.bind( '<Double-Button-1>', self.doAcceptBCVNavigationSelection )
         self.BCVNavigationBox.bind( '<FocusOut>', self.removeBCVNavigationBox )
     # end of Application.makeBCVNavigationBox
 
@@ -2643,19 +2643,19 @@ class Application( Frame ):
     # end of Application.doShowInfo
 
 
-    def spinToNewBook( self, event=None ):
+    def acceptNewBookName( self, event=None ):
         """
         Handle a new book setting from the GUI dropbox.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'spinToNewBook' )
+        self.logUsage( ProgName, debuggingThisModule, 'acceptNewBookName' )
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("spinToNewBook( {} )").format( event ) )
+            print( exp("acceptNewBookName( {} )").format( event ) )
         #print( dir(event) )
 
         self.chapterNumberVar.set( '1' )
         self.verseNumberVar.set( '1' )
         self.acceptNewBnCV()
-    # end of Application.spinToNewBook
+    # end of Application.acceptNewBookName
 
 
     def spinToNewBookNumber( self, event=None ):
@@ -2860,10 +2860,14 @@ class Application( Frame ):
             self.BCVHistory.append( self.currentVerseKey )
             self.updateBCVPreviousNextButtonsState()
 
-        percent = round( int(V) * 100 / int(self.maxVersesThisChapter) )
+        intV = int( V )
+        if intV > 1: intV -= 1 # assume that we haven't done this verse yet
+        percent = round( intV * 100 / int(self.maxVersesThisChapter) )
         try: self.InfoLabel1['text'] = _("{} verses in chapter {} ({}% through)").format( self.maxVersesThisChapter, C, percent )
         except AttributeError: pass
-        percent = round( int(C) * 100 / int(self.maxChaptersThisBook) )
+        intC = int( C )
+        if intC > 1: intC -= 1 # assume that we haven't done this chapter yet
+        percent = round( intC * 100 / int(self.maxChaptersThisBook) )
         try: self.InfoLabel2['text'] = _("{} chapters in {} ({}% through)").format( self.maxChaptersThisBook, bookName, percent )
         except AttributeError: pass
     # end of Application.updateGUIBCVControls
@@ -3182,7 +3186,7 @@ class Application( Frame ):
                     matchBox.insert( pos, label )                        # or insert(tk.END,label)
                     pos += 1                                       # or enumerate(options)
                #list.configure(selectmode=SINGLE, setgrid=1)          # select,resize modes
-                matchBox.bind('<Double-1>', self.handleList)           # set event handler
+                matchBox.bind('<Double-Button-1>', self.handleList)           # set event handler
                 self.tk.Listbox = matchBox
 
             def runCommand(self, selection):                       # redefine me lower
