@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-04-27' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.04' # Separate versioning from Biblelator
@@ -62,7 +62,7 @@ from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings

@@ -81,7 +81,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-05-01' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.40'
@@ -800,7 +800,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         elif isinstance( self.SwordModule, Bible ):
             #print( "Handle internalBible for SwordModuleRW" )
             handleInternalBibles( self.parentApp, self.SwordModule, self )
-        else: print( "SwordModule is", self.SwordModule )
+        else: print( "SwordModule using {} is {}".format( SwordType, self.SwordModule ) )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("SwordBibleResourceWindow.__init__ finished.") )

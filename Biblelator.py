@@ -778,8 +778,8 @@ class Application( Frame ):
         self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookName )
-        self.bookNameBox.bind( '<Return>', self.acceptNewBookName )
+        self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookNameField )
+        self.bookNameBox.bind( '<Return>', self.acceptNewBookNameField )
         self.bookNameBox.pack( side=tk.LEFT )
 
         self.chapterNumberVar = tk.StringVar()
@@ -892,8 +892,8 @@ class Application( Frame ):
         self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
         self.bookNameBox['values'] = self.bookNames
         #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookName )
-        self.bookNameBox.bind( '<Return>', self.acceptNewBookName )
+        self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookNameField )
+        self.bookNameBox.bind( '<Return>', self.acceptNewBookNameField )
         #self.bookNameBox.pack( side=tk.LEFT )
 
         Style().configure( 'bookName.TButton', background='brown' )
@@ -2643,19 +2643,19 @@ class Application( Frame ):
     # end of Application.doShowInfo
 
 
-    def acceptNewBookName( self, event=None ):
+    def acceptNewBookNameField( self, event=None ):
         """
-        Handle a new book setting from the GUI dropbox.
+        Handle a new book setting (or even BCV) from the GUI bookName dropbox.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'acceptNewBookName' )
+        self.logUsage( ProgName, debuggingThisModule, 'acceptNewBookNameField' )
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("acceptNewBookName( {} )").format( event ) )
+            print( exp("acceptNewBookNameField( {} )").format( event ) )
         #print( dir(event) )
 
-        self.chapterNumberVar.set( '1' )
-        self.verseNumberVar.set( '1' )
+        #self.chapterNumberVar.set( '1' )
+        #self.verseNumberVar.set( '1' )
         self.acceptNewBnCV()
-    # end of Application.acceptNewBookName
+    # end of Application.acceptNewBookNameField
 
 
     def spinToNewBookNumber( self, event=None ):
@@ -2696,19 +2696,16 @@ class Application( Frame ):
         """
         Handle a new bookname, chapter, verse setting from the GUI spinboxes.
 
-        We also allow the user to enter a reference (e.g. "Gn 1:1" into the bookname box).
+        We also allow the user to enter a reference (e.g. "Gn 1:1" or even "2 2" into the bookname box).
         """
         enteredBookname = self.bookNameVar.get()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBookname ) )
             #print( dir(event) )
 
-        BBB, C, V = parseEnteredBookname( enteredBookname, self.currentVerseKey.getBBB(), self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
-        #enteredBookname = self.bookNameVar.get()
-        #C = self.chapterNumberVar.get()
-        #V = self.verseNumberVar.get()
-        #BBB = self.getBBBFromText( enteredBookname )
-        #print( "BBB", BBB )
+        BBB, C, V = parseEnteredBookname( enteredBookname, self.currentVerseKey.getBBB(),
+                                    self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
+        # Note that C and V have NOT been tested to see if they are valid for this book
 
         if BBB is None:
             self.setErrorStatus( _("Unable to determine book name") )
@@ -2717,7 +2714,7 @@ class Application( Frame ):
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "acceptNewBnCV {} {}:{}".format( enteredBookname, C, V ) )
             self.bookNumberVar.set( self.bookNumberTable[BBB] )
             self.bookNameVar.set( self.getGenericBookName(BBB) )
-            self.gotoBCV( BBB, C, V )
+            self.gotoBCV( BBB, C, V, 'acceptNewBnCV' )
             self.setReadyStatus()
     # end of Application.acceptNewBnCV
 
@@ -2760,6 +2757,8 @@ class Application( Frame ):
     def gotoBCV( self, BBB, C, V, originator=None ):
         """
         Called from acceptNewBnCV also well as many other controls.
+
+        NOTE: C and V have NOT been tested to see if they are valid for this book.
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("gotoBCV( {} {}:{} {} ) = {} from {}").format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
@@ -2862,12 +2861,14 @@ class Application( Frame ):
 
         intV = int( V )
         if intV > 1: intV -= 1 # assume that we haven't done this verse yet
-        percent = round( intV * 100 / int(self.maxVersesThisChapter) )
+        try: percent = round( intV * 100 / int(self.maxVersesThisChapter) )
+        except ZeroDivisionError: percent = 0
         try: self.InfoLabel1['text'] = _("{} verses in chapter {} ({}% through)").format( self.maxVersesThisChapter, C, percent )
         except AttributeError: pass
         intC = int( C )
         if intC > 1: intC -= 1 # assume that we haven't done this chapter yet
-        percent = round( intC * 100 / int(self.maxChaptersThisBook) )
+        try: percent = round( intC * 100 / int(self.maxChaptersThisBook) )
+        except TypeError: percent = 0
         try: self.InfoLabel2['text'] = _("{} chapters in {} ({}% through)").format( self.maxChaptersThisBook, bookName, percent )
         except AttributeError: pass
     # end of Application.updateGUIBCVControls

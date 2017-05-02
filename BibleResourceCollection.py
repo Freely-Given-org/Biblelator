@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-05-01' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.40'
@@ -460,7 +460,10 @@ class SwordBibleResourceBox( BibleResourceBox ):
         if isinstance( self.SwordModule, Bible ):
             #print( "Handle internalBible for SwordModule" )
             handleInternalBibles( self.parentApp, self.SwordModule, self )
-        else: print( "SwordModule is", self.SwordModule )
+        else: print( "SwordModule using {} is {}".format( SwordType, self.SwordModule ) )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("SwordBibleResourceBox.__init__ finished.") )
     # end of SwordBibleResourceBox.__init__
 
 

@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-04-27' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.40'
@@ -57,7 +57,7 @@ from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
