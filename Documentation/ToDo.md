@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-01-10 by RJH
+Last updated: 2017-04-20 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,21 +14,25 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Want Alt-up and down to go to previous/next find results
+* Bible find regex:XXX doesn't work unless match case or xxx is used
+* Bible find regex:XXX (with match case) shows regex in find result lines
+* Double-click in Bible windows doesn't select the word
+* Bible Search/Replace globally didn't show the update in the open USFMEditWindow
+* Bible find found heading (\s) in 1:19, but it's displayed in edit window above the NEXT verse (1:20)
+* Checking window: can't click on individual errors (for goto)
+* Checking window: enable/disable Back/Forward buttons (and display link when cursor over)
+* Clicked on an apocryphal book (result of search) and MBT got into sort of a loop "Need to create book" / cancel
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
 * Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
-* Find in chapter 0 gives wrong verse (only sometimes -- why???)
-* Ctrl+F doesn't work in edit window or resource for Bible Find
-* F1 help and F12 about doesn't seem to work from most windows
-* F2 (ShowMainWindow) still doesn't seem to work from a Lexicon window
+* Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs removed at load time???)
 * Windows and Bible lists need to be displayed in a window
 * HTML source box isn't listed in child windows (included in show all / hide all)
-* Bible checks HTML refers to Contact Page and also has a link to itself (Checks)
 * Window find doesn't seem to work on resource windows
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
 * Remember position of last find box
-* Find box can't change projects/windows
 * Get extended find box working better -- need to show whole verse somehow (why can't right click or something?)
 * Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
@@ -41,8 +45,7 @@ Biblelator bugs / unfinished
 * Bible replace needs more work on reloading open books/Bibles
 * Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
-* Need wait status/cursor when opening a DBP resource
-* Ask for a path for Sword modules if none found by automatic search
+* Need wait status/cursor when opening a DBP resource, doing Bible checks, etc, etc.
 * Can't undo USFM Bible edit once moved cursor
 * Can't double-click in USFM editor to select a word (but can in text editor)
 * Ctrl+V seems to paste double in text edit windows (paste from menu or right-click only does it once)
@@ -55,6 +58,9 @@ Biblelator bugs / unfinished
 * Settings editor is not finished enough
 * BOSManager is not finished enough
 * SwordManager is not finished enough
+* Make wording consistent between DIR and FOLDER
+* Make working consistent between FIND and SEARCH
+* When using custom sword module path, send it home so we can add it to the defaults???
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
@@ -63,12 +69,14 @@ Biblelator testing required
 
 
 BOS bugs
-* Sword conf files don't load versioned history lines correctly
 * Doesn't know about Sword NRSVA versification yet
 * OSIS (and other containerised) formats should insert end markers themselves when loading
 
 
 BOS improvements for Biblelator
+* Cache Bible books as pickles
+* Make a class for a list of search results (being able to combine lists in various ways)
+* Start Names checking tool
 * Upgrade to USX 2.5
 * Are we able to read Sword dictionaries?
 * How to stop BibleOrganisation critical errors on Biblelator startup (need to manually cache data files???)
@@ -101,17 +109,20 @@ BOSManager / SwordManager / Settings editor stuff
 
 
 Biblelator stuff
+* Handle Paratext 8 files
+* Release version 0.40
+* Allow footnote displays in Bible Resource boxes/windows
 * Add AND and OR for Bible find
 * Add a pop-up quick reference box (with all open translations???)
 * Make HTML window more robust (failed if meta line was missing self-closing slash)
-* Allow a long press on verse back/forward buttons (Do we need separate lists for each group code?)
+* Do we need separate visited lists for each group code?
 * Make a way for the program or installer to automatically download reference Bibles and other resources
 * USFM editor still only aware of basic/common USFM tags
 * Make Biblelator use Paratext autocorrect files for Paratext projects
 * Make a proper icon
 * Save iconification state of windows
 * Use checkboxes to allow individual exports
-* Get Sword resources displaying nicer
+* Get Sword resources displaying prettier
 * Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
 * Cache DBP to disk (if have expensive Internet)???
 * Need keyboard shortcuts for list up/down
@@ -134,11 +145,12 @@ Biblelator stuff
 * Get some different views working on the edit window
 * Synchronise with other Bible programs (esp. on Windows)
 * Display footnotes and xrefs in resources
-* Work on user stylesheets
+* Work on a default stylesheet which can be copied to make a custom stylesheet
 * Make a full project properties dialog and do project setting properly
 * Add "Recent" entries to the main menus
 * Allow the user to set the containing folder for projects and exports
-* Release version 0.40
+* Release version 0.50
+* Allow undo of window/box close (from main window???)
 * Include some sample folders and sample ini files
 * Setting max window sizes prevents maximizing -- is this what we really want?
 * Consider when the same project/file is opened multiple times
@@ -153,7 +165,7 @@ Biblelator stuff
 * Improve Strongs (lexicon) HTML display
 * Look at doing some windows updates in idle time
 * Make a splash screen (turned off/on in settings file)
-* Release version 0.50
+* Release version 0.60
 * Allow users to "log-on" with usernames (passwords?)
 * Allow setting of roles (administrator/project leader/superintendent/overseer, translator, consultant/reviewer/archivist/typesetter, contributor/friend/critic/observer)
 * Make logging more useful

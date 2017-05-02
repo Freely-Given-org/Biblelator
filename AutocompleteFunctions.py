@@ -5,7 +5,7 @@
 #
 # Functions to support the autocomplete function in text editors
 #
-# Copyright (C) 2016 Robert Hunt
+# Copyright (C) 2016-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-02-28' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -47,6 +47,11 @@ import sys, os, logging
 import multiprocessing
 import time
 from collections import defaultdict
+
+import tkinter as tk
+
+# Biblelator imports
+from TextBoxes import TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE
 
 # BibleOrgSys imports
 if __name__ == '__main__': sys.path.append( '../BibleOrgSys/' )
@@ -83,7 +88,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
     Given a word list, set the entries into the autocomplete words
         for an edit window and then do necessary house-keeping.
 
-    Note that the original word order is preserved (if the wordList has an order)
+    Note that the original word order is preserved (if the supplied wordList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
     logging.info( exp("AutocompleteFunctions.setAutocompleteWords( …, {}, {} )").format( len(wordList), append ) )
@@ -710,6 +715,180 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     setAutocompleteWords( editWindowObject, autocompleteWords )
     editWindowObject.addAllNewWords = False
 # end of AutocompleteFunctions.loadILEXAutocompleteWords
+
+
+
+############################################################################
+#
+# The following functions are part of the autocomplete code that's
+#   executed while typing.
+#
+# self in these functions is assumed to be an edit window
+#   containing self.textBox
+#
+############################################################################
+
+
+def getCharactersBeforeCursor( self, charCount=1 ):
+    """
+    Needed for auto-correct functions.
+    """
+    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #print( exp("AutocompleteFunctions.getCharactersBeforeCursor( {} )").format( charCount ) )
+
+    previousText = self.textBox.get( tk.INSERT+'-{}c'.format( charCount ), tk.INSERT )
+    #print( 'getCharactersBeforeCursor: returning previousText', repr(previousText) )
+    return previousText
+# end of AutocompleteFunctions.getCharactersBeforeCursor
+
+
+def getWordCharactersBeforeCursor( self, maxCount=4 ):
+    """
+    Works backwards from the cursor finding word characters
+        (which we might then want to autocomplete).
+
+    Needed for auto-complete functions.
+    """
+    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #print( exp("AutocompleteFunctions.getWordCharactersBeforeCursor( {} )").format( maxCount ) )
+
+    previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
+    #print( "previousText", repr(previousText) )
+    wordText = ''
+    for previousChar in reversed( previousText ):
+        if previousChar in self.autocompleteWordChars:
+            wordText = previousChar + wordText
+        else: break
+    #print( 'getWordCharactersBeforeCursor: returning wordText', repr(wordText) )
+    return wordText
+# end of AutocompleteFunctions.getWordCharactersBeforeCursor
+
+
+def getCharactersAndWordBeforeCursor( self, maxCount=4 ):
+    """
+    Works backwards from the cursor finding word characters
+        INCLUDING THE PREVIOUS WORD
+        (which we might then want to autocomplete).
+
+    Needed for auto-complete functions.
+    """
+    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #print( exp("AutocompleteFunctions.getCharactersAndWordBeforeCursor( {} )").format( maxCount ) )
+
+    previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
+    #print( "previousText", repr(previousText) )
+    delimiterCount = 0
+    wordText = ''
+    for previousChar in reversed( previousText ):
+        if previousChar in self.autocompleteWordChars:
+            wordText = previousChar + wordText
+        elif previousChar in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE:
+            if delimiterCount > 0: break
+            #print( "Found delimiter {!r}".format( previousChar ) )
+            wordText = previousChar + wordText
+            delimiterCount += 1
+    #print( 'getCharactersAndWordBeforeCursor: returning wordText', repr(wordText) )
+    return wordText
+# end of AutocompleteFunctions.getCharactersAndWordBeforeCursor
+
+
+def getWordBeforeSpace( self, maxCount=20 ):
+    """
+    Works backwards from before the word ending character (e.g., a space) before the cursor
+        trying to find the word that was last entered.
+
+    Needed for auto-complete functions.
+    """
+    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #print( exp("AutocompleteFunctions.getWordBeforeSpace( {} )").format( maxCount ) )
+
+    previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
+    #print( "previousText1", repr(previousText) )
+    assert previousText and previousText[-1] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE
+    previousText = previousText[:-1] # Drop the character that ended the word
+    #print( "previousText2", repr(previousText) )
+    wordText = ''
+    if 1 or previousText and previousText[-1].isalpha():
+        for previousChar in reversed( previousText ):
+            if previousChar in self.autocompleteWordChars:
+                wordText = previousChar + wordText
+            else: break
+    #print( 'getWordBeforeSpace: returning word Text', repr(wordText) )
+    return wordText
+# end of AutocompleteFunctions.getWordBeforeSpace
+
+
+def acceptAutocompleteSelection( self, includeTrailingSpace=False ):
+    """
+    Used by autocomplete routines in onTextChange.
+
+    Gets the chosen word and inserts the end of it into the text.
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #print( exp("AutocompleteFunctions.acceptAutocompleteSelection( {} )").format( includeTrailingSpace ) )
+        assert self.autocompleteBox is not None
+
+    currentWord = self.autocompleteBox.get( tk.ACTIVE )
+    #print( '  autocompleteBox currentWord', currentWord )
+    self.removeAutocompleteBox()
+
+    if self.autocompleteOverlap:
+        #print( "Have {!r} with overlap {!r}".format( currentWord, self.autocompleteOverlap ) )
+        assert currentWord.startswith( self.autocompleteOverlap )
+        #currentWord = currentWord[len(self.autocompleteOverlap):]
+
+    # Autocomplete by inserting the rest of the selected word plus a space
+    # NOTE: The user has to backspace over the space if they don't want it (e.g., to put a period)
+    # NOTE: The box reappears with the current code if we don't append the space -- would need to add a flag
+    self.textBox.insert( tk.INSERT, currentWord[len(self.autocompleteOverlap):] \
+                                    + (' ' if includeTrailingSpace else '') )
+
+    #print( "acceptAutocompleteSelection for {!r}".format( currentWord ) )
+    addNewAutocompleteWord( self, currentWord )
+
+    ## Put this word at the beginning of the list so it comes up on top next time
+    #firstLetter, remainder = currentWord[0], currentWord[1:]
+    #self.autocompleteWords[firstLetter].remove( remainder )
+    #self.autocompleteWords[firstLetter].insert( 0, remainder )
+# end of AutocompleteFunctions.acceptAutocompleteSelection
+
+
+def addNewAutocompleteWord( self, possibleNewWord ):
+    """
+    Add the new autocomplete word if necessary,
+        or at least bring it to the top of the list.
+
+    Used by autocomplete routines in onTextChange.
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("AutocompleteFunctions.addNewAutocompleteWord( {!r} )").format( possibleNewWord ) )
+        assert isinstance( possibleNewWord, str )
+        assert possibleNewWord
+
+    if ' ' in possibleNewWord: # bring each separate word to the top
+        remainder = possibleNewWord
+        while ' ' in remainder:
+            individualWord, remainder = remainder.split( None, 1 )
+            #print( "  word={!r}, remainder={!r}".format( individualWord, remainder ) )
+            #print( "Recursive1 of {!r}".format( individualWord ) )
+            addNewAutocompleteWord( self, individualWord ) # recursive call
+            #print( "Recursive2 of {!r}".format( remainder ) )
+            addNewAutocompleteWord( self, remainder ) # recursive call
+
+    while possibleNewWord and possibleNewWord[-1] in END_CHARS_TO_REMOVE:
+        possibleNewWord = possibleNewWord[:-1] # Remove certain final punctuation
+
+    if len( possibleNewWord ) > self.autocompleteMinLength:
+        #print( "Adding new autocomplete word: {!r}".format( possibleNewWord ) )
+        # Put this word at the beginning of the list so it comes up on top next time
+        firstLetter, remainder = possibleNewWord[0], possibleNewWord[1:]
+        try: self.autocompleteWords[firstLetter].remove( remainder )
+        except ValueError: pass # remove will fail if this really is a new word
+        except KeyError: # There's no list existing for this letter
+            self.autocompleteWords[firstLetter] = []
+        self.autocompleteWords[firstLetter].insert( 0, remainder )
+# end of AutocompleteFunctions.addNewAutocompleteWord
+
 
 
 

@@ -5,7 +5,7 @@
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2016 Robert Hunt
+# Copyright (C) 2014-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -31,7 +31,7 @@ A Bible resource collection is a collection of different Bible resources
 
 class BibleResourceBox( Frame, BibleBox )
     __init__( self, parentWindow, boxType, moduleID )
-    createStandardKeyboardBindings( self )
+    createStandardBoxKeyboardBindings( self )
     gotoBCV( self, BBB, C, V )
     getSwordVerseKey( self, verseKey )
     getCachedVerseData( self, verseKey )
@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-28' # by RJH
+LastModifiedDate = '2017-05-01' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -89,12 +89,14 @@ from tkinter.filedialog import Directory #, SaveAs
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
+                BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
                 MAX_PSEUDOVERSES, parseWindowSize
-from BiblelatorDialogs import showerror, showinfo, SelectResourceBoxDialog, RenameResourceCollectionDialog
+from BiblelatorSimpleDialogs import showError, showInfo
+from BiblelatorDialogs import SelectResourceBoxDialog, RenameResourceCollectionDialog
 from BibleResourceWindows import BibleResourceWindow
-from TextBoxes import BibleBox
+from TextBoxes import BText, BibleBox
 from BiblelatorHelpers import handleInternalBibles
 
 # BibleOrgSys imports
@@ -169,11 +171,11 @@ class BibleResourceBox( Frame, BibleBox ):
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        self.textBox = tk.Text( self, height=1, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
+        self.textBox = BText( self, height=1, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
-        self.createStandardKeyboardBindings()
+        self.createStandardBoxKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
         self.createContextMenu() # for the box
 
@@ -183,6 +185,8 @@ class BibleResourceBox( Frame, BibleBox ):
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
         self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
+        self.textBox.tag_configure( 'markersHeader', background='yellow3', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'markers', background='yellow3', font='helvetica 6' )
 
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack me into the frame
 
@@ -204,18 +208,20 @@ class BibleResourceBox( Frame, BibleBox ):
     # end of BibleResourceBox.__init__
 
 
-    def createStandardKeyboardBindings( self ):
+    def createStandardBoxKeyboardBindings( self ):
         """
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleResourceBox.createStandardKeyboardBindings()") )
+            print( exp("BibleResourceBox.createStandardBoxKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
-                             ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
-                             ('Info',self.doShowInfo), ('Close',self.doClose),
-                             ('ShowMain',self.doShowMainWindow), ):
-            self._createStandardKeyboardBinding( name, command )
-    # end of BibleResourceBox.createStandardKeyboardBindings()
+                             ('Find',self.doBibleFind), #('Refind',self.doBoxRefind),
+                             #('Info',self.doShowInfo),
+                             #('ShowMain',self.parentWindow.doShowMainWindow),
+                             ('Close',self.doClose),
+                             ):
+            self._createStandardBoxKeyboardBinding( name, command )
+    # end of BibleResourceBox.createStandardBoxKeyboardBindings()
 
 
     #def gotoBCV( self, BBB, C, V ):
@@ -454,7 +460,10 @@ class SwordBibleResourceBox( BibleResourceBox ):
         if isinstance( self.SwordModule, Bible ):
             #print( "Handle internalBible for SwordModule" )
             handleInternalBibles( self.parentApp, self.SwordModule, self )
-        else: print( "SwordModule is", self.SwordModule )
+        else: print( "SwordModule using {} is {}".format( SwordType, self.SwordModule ) )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("SwordBibleResourceBox.__init__ finished.") )
     # end of SwordBibleResourceBox.__init__
 
 
@@ -689,6 +698,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         # Get rid of the default widgets
         self.vScrollbar.destroy()
         self.textBox.destroy()
+        del self.textBox
 
         self.viewVersesBefore, self.viewVersesAfter = 1, 1
 
@@ -726,8 +736,8 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
             searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
             searchMenu.add_separator()
-            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -832,7 +842,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             if self.parentApp.DBPInterface is None:
                 try: self.parentApp.DBPInterface = DBPBibles()
                 except FileNotFoundError: # probably the key file wasn't found
-                    showerror( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
+                    showError( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
                     return
 
                 availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
@@ -872,7 +882,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if dBRB.DBPModule is None:
             logging.critical( exp("Application.openDBPBibleResourceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRB.destroy()
-            showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
+            showError( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return None
@@ -899,7 +909,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
         if self.parentApp.SwordInterface is None: # still
             logging.critical( exp("doOpenSwordResourceBox: no Sword interface available") )
-            showerror( self, APP_NAME, _("Sorry, no Sword interface discovered") )
+            showError( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
 
         givenDupleList = self.parentApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
@@ -924,7 +934,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResourceBox: no resource selected!") )
         else:
             logging.critical( exp("doOpenSwordResourceBox: no list available") )
-            showerror( self, APP_NAME, _("No Sword resources discovered") )
+            showError( self, APP_NAME, _("No Sword resources discovered") )
     # end of BibleResourceCollectionWindow.doOpenSwordResourceBox
 
     def openSwordBibleResourceBox( self, moduleAbbreviation, windowGeometry=None ):
@@ -986,7 +996,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         if iBRB.internalBible is None:
             logging.critical( exp("Application.openInternalBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
             iBRB.destroy()
-            showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
+            showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleResourceBox" )
             self.parentApp.setReadyStatus()
             return None
@@ -1015,7 +1025,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
 
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
         """
-        Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
+        Updates the resource boxes in various ways depending on the contextViewMode held by the enclosing window.
 
         The new verse key is in the reference versification system.
 
@@ -1049,7 +1059,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         for j, resourceBox in enumerate( self.resourceBoxesList ):
             infoString += '\nType{}:\t{}'.format( j+1, resourceBox.boxType ) \
                  + '\nName{}:\t{}'.format( j+1, resourceBox.moduleID )
-        showinfo( self, 'Window Information', infoString )
+        showInfo( self, 'Window Information', infoString )
     # end of BibleResourceCollectionWindow.doShowInfo
 
 
@@ -1067,6 +1077,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
     # end of BibleResourceCollectionWindow.doHelp
 
 
@@ -1083,6 +1094,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
         aboutInfo += '\n' + _("A Bible Resource Collection box can contain multiple different resource translations or commentaries, all showing the same Scripture reference.") + '\n'
         aboutInfo += '\n' + _("Use this window's Resources menu to add a/another resource to the window. Use the up and down arrows to order the resources within the window.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
     # end of BibleResourceCollectionWindow.doAbout
 # end of BibleResourceCollectionWindow class
 

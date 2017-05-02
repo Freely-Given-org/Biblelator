@@ -5,7 +5,7 @@
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -35,10 +35,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-16' # by RJH
+LastModifiedDate = '2017-04-17' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -49,18 +49,20 @@ import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
-from tkinter.simpledialog import askstring, askinteger
+#from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
+                             BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                              parseWindowGeometry, parseWindowSize, assembleWindowGeometry, errorBeep, \
                              INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, \
                              INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE, \
                              INITIAL_RESULT_WINDOW_SIZE, MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
-from BiblelatorDialogs import showerror, showinfo, SelectInternalBibleDialog
+from BiblelatorSimpleDialogs import showError, showInfo
+from BiblelatorDialogs import SelectInternalBibleDialog
 from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
-from TextBoxes import ChildBox, BibleBox, HTMLText
+from TextBoxes import BText, HTMLTextBox, ChildBox, BibleBox
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -87,7 +89,7 @@ def exp( messageString ):
 class ChildWindow( tk.Toplevel, ChildBox ):
     """
     This is a base class for any toplevel window that contains a
-        ChildBox, i.e., it contains a self.textBox memember.
+        ChildBox, i.e., it contains a self.textBox member.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -129,12 +131,13 @@ class ChildWindow( tk.Toplevel, ChildBox ):
             #halt # We have one already
         #else: # let's make one
 
-        self.textBox = tk.Text( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
+        self.textBox = BText( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         ChildBox.__init__( self, self.parentApp )
-        self.createStandardKeyboardBindings()
+
+        self.createStandardWindowKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Options for find, etc.
@@ -166,9 +169,51 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     # end of ChildWindow.geometry
 
 
+    def _createStandardWindowKeyboardBinding( self, name, command ):
+        """
+        Called from createStandardKeyboardBindings to do the actual work.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("ChildWindow._createStandardWindowKeyboardBinding( {} )").format( name ) )
+
+        try: kBD = self.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
+        assert (name,kBD[name][0],) not in self.myKeyboardBindingsList
+        if name in kBD:
+            for keyCode in kBD[name][1:]:
+                #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                self.bind( keyCode, command )
+                if BibleOrgSysGlobals.debugFlag:
+                    if keyCode in self.myKeyboardShortcutsList:
+                        print( "ChildWindow._createStandardWindowKeyboardBinding wants to add duplicate {}".format( keyCode ) )
+                    self.myKeyboardShortcutsList.append( keyCode )
+            self.myKeyboardBindingsList.append( (name,kBD[name][0],) )
+        else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+    # end of ChildWindow._createStandardWindowKeyboardBinding()
+
+    def createStandardWindowKeyboardBindings( self, reset=False ):
+        """
+        Create keyboard bindings for this widget.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.createStandardWindowKeyboardBindings( {} )").format( reset ) )
+
+        if reset:
+            self.myKeyboardBindingsList = []
+
+        for name,command in ( ('Info',self.doShowInfo),
+                              ('Help',self.doHelp),
+                              ('About',self.doAbout),
+                              ('ShowMain',self.doShowMainWindow),
+                              ('Close',self.doClose),
+                              ):
+            self._createStandardWindowKeyboardBinding( name, command )
+    # end of ChildWindow.createStandardWindowKeyboardBindings()
+
+
     def notWrittenYet( self ):
         errorBeep()
-        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of ChildWindow.notWrittenYet
 
 
@@ -187,7 +232,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Can be overriden if necessary.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.createContextMenu()") )
 
         self.contextMenu = tk.Menu( self, tearoff=0 )
@@ -195,7 +240,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
         #self.contextMenu.add_separator()
         #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
 
@@ -279,9 +324,9 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), foreground='white', background='purple' )
@@ -332,35 +377,53 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     # end of ChildWindow.setReadyStatus
 
 
-    def doHelp( self, event=None ):
+    def doShowMainWindow( self, event=None ):
         """
-        Display a help box.
+        Display the main window (it might be minimised or covered).
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.doHelp( {} )").format( event ) )
-        from Help import HelpBox
+        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.doShowMainWindow( {} )").format( event ) )
 
-        helpInfo = ProgNameVersion
-        helpInfo += '\n' + _("Help for {}").format( self.windowType )
-        helpInfo += '\n  ' + _("Keyboard shortcuts:")
-        for name,shortcut in self.myKeyboardBindingsList:
-            helpInfo += "\n    {}\t{}".format( name, shortcut )
-        hb = HelpBox( self, self.genericWindowType, helpInfo )
-    # end of ChildWindow.doHelp
+        #self.parentApp.rootWindow.iconify() # Didn't help
+        self.parentApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
+        self.parentApp.rootWindow.update()
+        self.parentApp.rootWindow.deiconify()
+        #self.parentApp.rootWindow.focus_set()
+        self.parentApp.rootWindow.lift() # aboveThis=self )
+    # end of ChildWindow.doShowMainWindow
 
 
-    def doAbout( self, event=None ):
-        """
-        Display an about box.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildWindow.doAbout( {} )").format( event ) )
-        from About import AboutBox
+    #def doHelp( self, event=None ):
+        #"""
+        #Display a help box.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("SHOULD NEVER BE USED ChildWindow.doHelp( {} )").format( event ) )
+        #from Help import HelpBox
 
-        aboutInfo = ProgNameVersion
-        aboutInfo += "\nInformation about {}".format( self.windowType )
-        ab = AboutBox( self, self.genericWindowType, aboutInfo )
-    # end of ChildWindow.doAbout
+        #helpInfo = ProgNameVersion
+        #helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        #helpInfo += '\n  ' + _("Keyboard shortcuts:")
+        #for name,shortcut in self.myKeyboardBindingsList:
+            #helpInfo += "\n    {}\t{}".format( name, shortcut )
+        #hb = HelpBox( self, self.genericWindowType, helpInfo )
+        #return tkBREAK
+    ## end of ChildWindow.doHelp
+
+
+    #def doAbout( self, event=None ):
+        #"""
+        #Display an about box.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("SHOULD NEVER BE USED ChildWindow.doAbout( {} )").format( event ) )
+        #from About import AboutBox
+
+        #aboutInfo = ProgNameVersion
+        #aboutInfo += "\nInformation about {}".format( self.windowType )
+        #ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        #return tkBREAK
+    ## end of ChildWindow.doAbout
 
 
     def doClose( self, event=None ):
@@ -415,6 +478,28 @@ class BibleWindow( ChildWindow, BibleBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleWindow.__init__ finished.") )
     # end of BibleWindow.__init__
+
+
+    def createStandardWindowKeyboardBindings( self, reset=False ):
+        """
+        Create keyboard bindings for this widget.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleWindow.createStandardWindowKeyboardBindings( {} )").format( reset ) )
+
+        if reset:
+            self.myKeyboardBindingsList = []
+
+        for name,command in ( ('Info',self.doShowInfo),
+                              ('Help',self.doHelp),
+                              ('About',self.doAbout),
+                              ('ShowMain',self.doShowMainWindow),
+                              ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+                              ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
+                              ('Close',self.doClose),
+                              ):
+            self._createStandardWindowKeyboardBinding( name, command )
+    # end of BibleWindow.createStandardWindowKeyboardBindings()
 
 
     def setContextViewMode( self, newMode ):
@@ -553,7 +638,7 @@ class ChildWindows( list ):
 
 
 
-class TextWindow( tk.Toplevel, ChildBox ):
+class TextWindow( ChildWindow ):
     """
     Displays fixed text.
     """
@@ -608,7 +693,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of TextWindow.notWrittenYet
 
 
@@ -652,8 +737,8 @@ class TextWindow( tk.Toplevel, ChildBox ):
         #self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         #searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=kBD[_('Line')][0] )
         #searchMenu.add_separator()
-        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
-        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=kBD[_('Refind')][0] )
+        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
+        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=kBD[_('Refind')][0] )
 
         #viewMenu = tk.Menu( self.menubar, tearoff=False )
         #self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
@@ -697,7 +782,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
         #self.contextMenu.add_separator()
         #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
 
@@ -762,9 +847,9 @@ class TextWindow( tk.Toplevel, ChildBox ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
@@ -800,7 +885,6 @@ class TextWindow( tk.Toplevel, ChildBox ):
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        from BiblelatorDialogs import showinfo
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextWindow doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doShowInfo( {} )").format( event ) )
@@ -816,7 +900,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
                  + '  Line:\t{}\n  Column:\t{}\n'.format( atLine, atColumn ) \
                  + '\nFile text statistics:\n' \
                  + '  Chars:\t{}\n  Lines:\t{}\n  Words:\t{}'.format( numChars, numLines, numWords )
-        showinfo( self, 'Window Information', infoString )
+        showInfo( self, 'Window Information', infoString )
     # end of TextWindow.doShowInfo
 
 
@@ -834,6 +918,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
     # end of TextWindow.doHelp
 
 
@@ -848,6 +933,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
     # end of TextWindow.doAbout
 
 
@@ -876,7 +962,7 @@ class TextWindow( tk.Toplevel, ChildBox ):
 
 
 
-class HTMLWindow( tk.Toplevel, ChildBox ):
+class HTMLWindow( ChildWindow ):
     """
     A window for displaying HTML files, e.g., USFM project checking results.
         This is effectively a primitive (very limited) browser.
@@ -924,12 +1010,12 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
             #halt # We have one already
         #else: # let's make one
 
-        self.textBox = HTMLText( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
+        self.textBox = HTMLTextBox( self, yscrollcommand=self.vScrollbar.set, state=tk.DISABLED )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         ChildBox.__init__( self, self.parentApp )
-        self.createStandardKeyboardBindings()
+        #self.createStandardWindowKeyboardBindings()
         #self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Options for find, etc.
@@ -948,7 +1034,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of HTMLWindow.notWrittenYet
 
 
@@ -992,8 +1078,8 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=kBD[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=kBD[_('Refind')][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=kBD[_('Refind')][0] )
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
@@ -1039,7 +1125,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
         #self.contextMenu.add_separator()
         #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
 
@@ -1121,9 +1207,9 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
@@ -1274,6 +1360,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
     # end of HTMLWindow.doHelp
 
 
@@ -1288,6 +1375,7 @@ class HTMLWindow( tk.Toplevel, ChildBox ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
     # end of HTMLWindow.doAbout
 
 
@@ -1346,7 +1434,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         tk.Toplevel.__init__( self, self.parentWindow )
         #ChildBox.__init__( self, self.parentApp )
         self.protocol( 'WM_DELETE_WINDOW', self.doClose )
-        self.title( '{} Search Results'.format( self.optionDict['work'] ) )
+        self.title( '{} Search Results'.format( self.optionDict['workName'] ) )
         self.genericWindowType = 'FindResultWindow'
         self.windowType = 'FindResultWindow'
         self.moduleID = 'HTML'
@@ -1386,7 +1474,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         #modeCb.pack( in_=top, side=tk.LEFT )
         modeCb.grid( in_=top, row=0, column=0, padx=20, pady=5, sticky=tk.W )
 
-        infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList), self.optionDict['searchText'] ) )
+        infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList), self.optionDict['findText'] ) )
         #infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
         infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=5 )
 
@@ -1429,7 +1517,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of FindResultWindow.notWrittenYet
 
 
@@ -1473,8 +1561,8 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         #self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         #searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=kBD[_('Line')][0] )
         #searchMenu.add_separator()
-        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
-        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=kBD[_('Refind')][0] )
+        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
+        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=kBD[_('Refind')][0] )
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
@@ -1518,7 +1606,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         self.contextMenu.add_separator()
         self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=kBD[_('Find')][0] )
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
         #self.contextMenu.add_separator()
         #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
 
@@ -1583,9 +1671,9 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         #print( "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             self._statusTextVar.set( newStatusText )
@@ -1640,7 +1728,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         self.tree.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.configure( command=self.tree.yview ) # link the scrollbar to the text box
 
-        fText = self.optionDict['searchText']
+        fText = self.optionDict['findText']
         lenFText = len( fText )
         contextLength = self.optionDict['contextLength']
 
@@ -1766,7 +1854,6 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         """
         Pop-up dialog giving find info
         """
-        from BiblelatorDialogs import showinfo
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'FindResultWindow doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("FindResultWindow.doShowInfo( {} )").format( event ) )
@@ -1778,13 +1865,13 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         # Display the options that were used for the search
         #   Doesn't yet display:
         #           'currentBCV'
-        #            optionsDict['searchHistoryList'] = [] # Oldest first
+        #            optionsDict['findHistoryList'] = [] # Oldest first
         #            optionsDict['contextLength'] = 30 # each side
         #            optionsDict['regexFlag'] = False
-        #           'searchHistoryList'
+        #           'findHistoryList'
 
-        infoString = 'Search text: {!r}\n'.format( self.optionDict['searchText'] ) \
-                 + 'In: {}\n'.format( self.optionDict['work'] ) \
+        infoString = 'Search text: {!r}\n'.format( self.optionDict['findText'] ) \
+                 + 'In: {}\n'.format( self.optionDict['workName'] ) \
                  + 'Books: {}\n'.format( self.optionDict['bookList'] )
         if self.optionDict['chapterList']: infoString += 'chapters: {}\n'.format( self.optionDict['chapterList'] )
         if self.optionDict['markerList']: infoString += 'markers: {}\n'.format( self.optionDict['markerList'] )
@@ -1799,7 +1886,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
                  + '  Notes: {}\n'.format( self.optionDict['includeExtrasFlag'] )
 
         if infoString[-1] == '\n': infoString = infoString[:-1] # Remove surplus newline marker
-        showinfo( self, 'Window Information', infoString )
+        showInfo( self, 'Window Information', infoString )
     # end of FindResultWindow.doShowInfo
 
 
@@ -1817,6 +1904,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
     # end of FindResultWindow.doHelp
 
 
@@ -1831,6 +1919,7 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
     # end of FindResultWindow.doAbout
 
 

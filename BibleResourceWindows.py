@@ -5,7 +5,7 @@
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -81,10 +81,10 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-28' # by RJH
+LastModifiedDate = '2017-05-01' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -96,11 +96,12 @@ from collections import OrderedDict
 import tkinter as tk
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, MAX_PSEUDOVERSES, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, MAX_PSEUDOVERSES, errorBeep, \
                             BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES
 from ChildWindows import BibleWindow, HTMLWindow
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
-from BiblelatorDialogs import showinfo, showerror, GetBibleBookRangeDialog
+from BiblelatorSimpleDialogs import showInfo, showError
+from BiblelatorDialogs import GetBibleBookRangeDialog
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -167,6 +168,8 @@ class BibleResourceWindow( BibleWindow ):
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
         self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
+        self.textBox.tag_configure( 'markersHeader', background='yellow3', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'markers', background='yellow3', font='helvetica 6' )
         #else:
             #self.textBox.tag_configure( 'verseNumberFormat', foreground='blue', font='helvetica 8', relief=tk.RAISED, offset='3' )
             #self.textBox.tag_configure( 'versePreSpaceFormat', background='pink', font='helvetica 8' )
@@ -235,19 +238,19 @@ class BibleResourceWindow( BibleWindow ):
         #self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         #searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         #searchMenu.add_separator()
-        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Bible Find…'), underline=0, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
         #subsearchMenuBible.add_command( label=_('Find again'), underline=5, command=self.notWrittenYet )
         searchMenu.add_separator()
         subSearchMenuWindow = tk.Menu( searchMenu, tearoff=False )
         subSearchMenuWindow.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         subSearchMenuWindow.add_separator()
-        subSearchMenuWindow.add_command( label=_('Find…'), underline=0, command=self.doWindowFind )
-        subSearchMenuWindow.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind )
+        subSearchMenuWindow.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )
+        subSearchMenuWindow.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind )
         searchMenu.add_cascade( label=_('Window'), underline=0, menu=subSearchMenuWindow )
 
         gotoMenu = tk.Menu( self.menubar )
@@ -786,14 +789,18 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
         self.createContextMenu() # Enable right-click menu
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
-        self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
+        try:
+            self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
+        except KeyError:
+            self.doClose() # Don't leave an empty window hanging there
+            raise KeyError
         if self.SwordModule is None:
             logging.error( exp("SwordBibleResourceWindow.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
         elif isinstance( self.SwordModule, Bible ):
             #print( "Handle internalBible for SwordModuleRW" )
             handleInternalBibles( self.parentApp, self.SwordModule, self )
-        else: print( "SwordModule is", self.SwordModule )
+        else: print( "SwordModule using {} is {}".format( SwordType, self.SwordModule ) )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("SwordBibleResourceWindow.__init__ finished.") )
@@ -854,7 +861,7 @@ class SwordBibleResourceWindow( BibleResourceWindow ):
                  + '  Type:\t\t{}\n'.format( '' if self.SwordModule is None else self.SwordModule.getType() ) \
                  + '  Format:\t\t{}\n'.format( '' if self.SwordModule is None else self.SwordModule.getMarkup() ) \
                  + '  Encoding:\t{}'.format( '' if self.SwordModule is None else self.SwordModule.getEncoding() )
-        showinfo( self, 'Window Information', infoString )
+        showInfo( self, 'Window Information', infoString )
     # end of SwordBibleResourceWindow.doShowInfo
 # end of SwordBibleResourceWindow class
 
@@ -934,7 +941,7 @@ class DBPBibleResourceWindow( BibleResourceWindow ):
 
         infoString = 'DBPBibleResourceWindow:\n' \
                  + '  Name:\t{}'.format( self.moduleAbbreviation )
-        showinfo( self, 'Window Information', infoString )
+        showInfo( self, 'Window Information', infoString )
     # end of DBPBibleResourceWindow.doShowInfo
 # end of DBPBibleResourceWindow class
 
@@ -1015,8 +1022,8 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         #self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         #searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         #searchMenu.add_separator()
-        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         #gotoMenu = tk.Menu( self.menubar )
         #self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -1091,6 +1098,31 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
     # end if InternalBibleResourceWindow.refreshTitle
 
 
+    def createContextMenu( self ):
+        """
+        Can be overriden if necessary.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.createContextMenu()") )
+
+        self.contextMenu = tk.Menu( self, tearoff=0 )
+        self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )#, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+
+        self.bind( '<Button-3>', self.showContextMenu ) # right-click
+        #self.pack()
+
+        self.BibleFindOptionsDict, self.BibleReplaceOptionsDict = {}, {}
+    # end of InternalBibleResourceWindow.createContextMenu
+
+
     def getContextVerseData( self, verseKey ):
         """
         Fetches and returns the internal Bible data for the given reference.
@@ -1118,7 +1150,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                  + '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.getAName() ) \
                  + '  Type:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.objectTypeString ) \
                  + '  Path:\t{}'.format( self.modulePath )
-        showinfo( self, 'Window Information', infoString )
+        showInfo( self, 'Window Information', infoString )
     # end of InternalBibleResourceWindow.doShowInfo
 
 
@@ -1215,7 +1247,7 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
         """
         self.parentApp.setStatus( _("Waiting for user input…") )
         infoString = _("Results should be in {}").format( self.exportFolderPathname )
-        showinfo( self, 'Folder Information', infoString )
+        showInfo( self, 'Folder Information', infoString )
         self.parentApp.setReadyStatus()
     # end of InternalBibleResourceWindow.doAllExports
 
@@ -1254,6 +1286,39 @@ class InternalBibleResourceWindow( BibleResourceWindow ):
                 if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
         self.parentApp.setReadyStatus()
     # end of InternalBibleResourceWindow.doCheckProject
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.doHelp( {} )").format( event ) )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
+    # end of InternalBibleResourceWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("InternalBibleResourceWindow.doAbout( {} )").format( event ) )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.windowType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
+    # end of InternalBibleResourceWindow.doAbout
 
 
     def doClose( self, event=None ):

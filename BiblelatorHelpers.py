@@ -5,7 +5,7 @@
 #
 # Various non-GUI helper functions for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2016 Robert Hunt
+# Copyright (C) 2014-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -30,17 +30,17 @@
     mapParallelVerseKey( forGroupCode, mainVerseKey )
     findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
     logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText )
-    parseEnteredBookname( bookNameEntry, Centry, Ventry, BBBfunction )
+    parseEnteredBookname( bookNameEntry, CEntry, VEntry, BBBfunction )
 
 TODO: Can some of these functions be (made more general and) moved to the BOS?
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-07' # by RJH
+LastModifiedDate = '2017-04-27' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -58,7 +58,7 @@ from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 #sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from Bible import Bible
-from VerseReferences import SimpleVerseKey #, FlexibleVersesKey
+from VerseReferences import SimpleVerseKey, BBB_RE #, FlexibleVersesKey
 from BibleReferencesLinks import BibleReferencesLinks
 from InternalBibleInternals import InternalBibleEntry
 
@@ -349,22 +349,22 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
             verseDataList, context = verseData
             #print( '   dataList', repr(verseDataList) )
             #print( '    context', repr(context) )
-            for entry in verseDataList:
-                if isinstance( entry, InternalBibleEntry ):
-                    marker, cleanText = entry.getMarker(), entry.getCleanText()
-                elif isinstance( entry, tuple ):
-                    marker, cleanText = entry[0], entry[3]
-                elif isinstance( entry, str ):
-                    if entry=='': continue
-                    entry += '\n'
-                    if entry[0]=='\\':
+            for verseDataEntry in verseDataList:
+                if isinstance( verseDataEntry, InternalBibleEntry ):
+                    marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
+                elif isinstance( verseDataEntry, tuple ):
+                    marker, cleanText = verseDataEntry[0], verseDataEntry[3]
+                elif isinstance( verseDataEntry, str ):
+                    if verseDataEntry=='': continue
+                    verseDataEntry += '\n'
+                    if verseDataEntry[0]=='\\':
                         marker = ''
-                        for char in entry[1:]:
+                        for char in verseDataEntry[1:]:
                             if char!='¬' and not char.isalnum(): break
                             marker += char
-                        cleanText = entry[len(marker)+1:].lstrip()
+                        cleanText = verseDataEntry[len(marker)+1:].lstrip()
                     else:
-                        marker, cleanText = None, entry
+                        marker, cleanText = None, verseDataEntry
                 elif BibleOrgSysGlobals.debugFlag: halt
                 if marker in ( 's','s1','s2','s3','s4' ): return True
 
@@ -507,41 +507,93 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText ):
 
 
 
-def parseEnteredBookname( bookNameEntry, currentBBB, Centry, Ventry, BBBfunction ):
+def parseEnteredBookname( bookNameEntry, currentBBB, CEntry, VEntry, BBBfunction ):
     """
     Checks if the bookName entry is just a book name, or an entire reference (e.g., "Gn 15:2")
 
     BBBfunction is a function to find BBB from a word/string.
 
     Returns the discovered BBB, C, V
+
+    NOTE: We don't validate that they are valid C V combinations
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("parseEnteredBookname( {}, {}, {}, … )").format( bookNameEntry, Centry, Ventry ) )
+    debuggingThisFunction = False
+
+    if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( exp("parseEnteredBookname( {!r}, {}, {!r}, {!r}, … )") \
+                                .format( bookNameEntry, currentBBB, CEntry, VEntry ) )
 
     # Do a bit of preliminary cleaning-up
     bookNameEntry = bookNameEntry.strip().replace( '  ', ' ' )
+    #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) )
 
-    if ':' in bookNameEntry:
-        #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) ) # name C:V
-        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3}):(\d{1,3})', bookNameEntry )
-        if match:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  matched! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
-            return BBBfunction( match.group(1) ), match.group(2), match.group(3 )
-        match = re.search( '(\d{1,3}):(\d{1,3})', bookNameEntry )
-        if match:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
-            return BBBfunction( currentBBB ), match.group(1), match.group(2 )
-    else:
-        match = re.search( '([123]{0,1}?.+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # name C
-        if match:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  matched! {!r} {!r}".format( match.group(1), match.group(2) ) )
-            return BBBfunction( match.group(1) ), match.group(2), 1
+    # Without the bookname (i.e., stay in current book)
+    # Do these first because the are more strict (only digits and use re.fullmatch not re.search or re.match)
+    match = re.fullmatch( '(\d{1,3})[:\. ](\d{1,3})', bookNameEntry ) # (Current book) C:V or C.V or C V
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matched CV! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        return currentBBB, match.group(1), match.group(2)
+    match = re.fullmatch( '(\d{1,3})', bookNameEntry ) # (Current book) C
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matched C or V! {!r} as {!r} from {!r}".format( match.group(0), match.group(1), bookNameEntry ) )
+        if BibleOrgSysGlobals.BibleBooksCodes.isSingleChapterBook( currentBBB ): # take it as a V (not a C)
+            return currentBBB, 1, match.group(1)
+        return currentBBB, match.group(1), 1
+    match = re.fullmatch( '[Vv:\.](\d{1,3})', bookNameEntry ) # (Current book) V
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matchedV! {!r}".format( match.group(1) ) )
+        return currentBBB, CEntry, match.group(1)
 
-    #else: # assume it's just a book name
-    return BBBfunction( bookNameEntry ), Centry, Ventry
+    # With a BBB first on the line
+    uppercaseBookNameEntry = bookNameEntry.upper()
+    match = re.fullmatch( BBB_RE + '[ ]{0,1}(\d{1,3})[:\. ](\d{1,3})', uppercaseBookNameEntry ) # bookname C:V or C.V or C V
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matchedBBBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+        return match.group(1), match.group(2), match.group(3)
+    match = re.fullmatch( BBB_RE + '[ ]{0,1}[Vv:\.](\d{1,3})', uppercaseBookNameEntry ) # bookname (single chapter book) V
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matchedBBBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
+        return match.group(1), CEntry, match.group(2)
+    match = re.fullmatch( BBB_RE + '[ ]{0,1}(\d{1,3})', uppercaseBookNameEntry ) # bookname C (or single chapter book with V)
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matchedBBB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        newBBB = match.group(1)
+        if BibleOrgSysGlobals.BibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
+            return newBBB, 1, match.group(2)
+        return newBBB, match.group(2), 1
+
+    # With a bookname first on the line
+    match = re.fullmatch( '([123]{0,1}?\D+?)[ ]{0,1}(\d{1,3})[:\. ](\d{1,3})', bookNameEntry ) # bookname C:V or C.V or C V
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matchedBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+        return BBBfunction( match.group(1) ), match.group(2), match.group(3)
+    match = re.fullmatch( '([123]{0,1}?\D+?)[ ]{0,1}[Vv:\.](\d{1,3})', bookNameEntry ) # bookname (single chapter book) V
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matchedBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
+        newBBB = BBBfunction( match.group(1) )
+        return newBBB, CEntry, match.group(2)
+    match = re.fullmatch( '([123]{0,1}?\D+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # bookname C (or single chapter book with V)
+    if match:
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "  matchedB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        newBBB = BBBfunction( match.group(1) )
+        if BibleOrgSysGlobals.BibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
+            return newBBB, 1, match.group(2)
+        return newBBB, match.group(2), 1
+
+    #else: # assume it's just a book name (with no C or V specified)
+    newBBB = BBBfunction( bookNameEntry )
+    if newBBB == currentBBB:
+        return newBBB, CEntry, VEntry
+    else: return newBBB, 1, 1 # Go to the first verse
 # end of BiblelatorHelpers.parseEnteredBookname
 
 

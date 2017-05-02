@@ -5,7 +5,7 @@
 #
 # The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-14' # by RJH
+LastModifiedDate = '2017-04-20' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -39,7 +39,6 @@ debuggingThisModule = True
 
 import os.path, logging, shutil #, re
 from datetime import datetime
-#from time import time
 
 import tkinter as tk
 from tkinter import font
@@ -48,13 +47,16 @@ from tkinter.filedialog import asksaveasfilename
 from tkinter.ttk import Button, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, START, DEFAULT
-from BiblelatorDialogs import showerror, showinfo, YesNoDialog, OkCancelDialog
+from BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT
+from BiblelatorSimpleDialogs import showError, showInfo
+from BiblelatorDialogs import YesNoDialog, OkCancelDialog
 from TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE, \
                                 DOUBLE_SPACE_SUBSTITUTE, ALL_POSSIBLE_SPACE_CHARS
 from ChildWindows import ChildWindow #, HTMLWindow
 from AutocorrectFunctions import setDefaultAutocorrectEntries # setAutocorrectEntries
-from AutocompleteFunctions import END_CHARS_TO_REMOVE
+from AutocompleteFunctions import getCharactersBeforeCursor, \
+                                getWordCharactersBeforeCursor, getCharactersAndWordBeforeCursor, \
+                                getWordBeforeSpace, addNewAutocompleteWord, acceptAutocompleteSelection
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -65,6 +67,7 @@ import BibleOrgSysGlobals
 REFRESH_TITLE_TIME = 500 # msecs
 CHECK_DISK_CHANGES_TIME = 33333 # msecs
 NO_TYPE_TIME = 6000 # msecs
+NUM_AUTOCOMPLETE_POPUP_LINES = 6
 
 
 
@@ -85,6 +88,8 @@ def exp( messageString ):
 
 
 class TextEditWindow( ChildWindow ):
+    """
+    """
     def __init__( self, parentApp, folderPath=None, filename=None ):
         """
         """
@@ -109,7 +114,7 @@ class TextEditWindow( ChildWindow ):
         self.editStatus = 'Editable'
 
         # Make our own custom textBox which allows a callback function
-        #   Delete these five lines and the callback line if you don't need either autocorrect or autocomplete
+        #   Delete these lines and the callback line if you don't need either autocorrect or autocomplete
         self.textBox.destroy() # from the ChildWindow default
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
@@ -127,7 +132,6 @@ class TextEditWindow( ChildWindow ):
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.textBox.setTextChangeCallback( self.onTextChange )
-        #self.createStandardKeyboardBindings()
         self.createEditorKeyboardBindings()
         self.createContextMenu() # Enable right-click menu
 
@@ -145,7 +149,7 @@ class TextEditWindow( ChildWindow ):
         self.autocompleteBox, self.autocompleteWords, self.existingAutocompleteWordText = None, {}, ''
         self.autocompleteWordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
         # Note: I guess we could have used non-word chars instead (to stop the backwards word search)
-        self.autocompleteMinLength = 2 # Show the window after this many characters have been typed
+        self.autocompleteMinLength = 3 # Show the normal window after this many characters have been typed
         self.autocompleteMaxLength = 15 # Remove window after this many characters have been typed
         self.autocompleteMode = None # None or Dictionary1 or Dictionary2 (or Bible or BibleBook)
         self.addAllNewWords = False
@@ -191,12 +195,15 @@ class TextEditWindow( ChildWindow ):
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
-                             ('Save',self.doSave), ('ShowMain',self.doShowMainWindow), ):
-            #print( "CheckLoop", (name,self.parentApp.keyBindingDict[name][0],) )
+                             ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
+                             ('Save',self.doSave),
+                             ('ShowMain',self.doShowMainWindow),
+                             ):
+            #print( "TEW CheckLoop", (name,self.parentApp.keyBindingDict[name][0],self.parentApp.keyBindingDict[name][1],) )
             assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
             if name in self.parentApp.keyBindingDict:
                 for keyCode in self.parentApp.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #print( "  TEW Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.textBox.bind( keyCode, commandFunction )
                     if BibleOrgSysGlobals.debugFlag:
                         assert keyCode not in self.myKeyboardShortcutsList
@@ -249,9 +256,9 @@ class TextEditWindow( ChildWindow ):
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
         searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doWindowFindReplace )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doBoxFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label=_('Grep…'), underline=0, command=self.onGrep )
 
@@ -398,7 +405,7 @@ class TextEditWindow( ChildWindow ):
         """
         Returns all the text as a string.
         """
-        allText = self.textBox.get( START, tk.END+'-1c' )
+        allText = self.textBox.get( tkSTART, tk.END+'-1c' )
         #if self.markMultipleSpacesFlag:
         allText = allText.replace( MULTIPLE_SPACE_SUBSTITUTE, ' ' )
         #if self.markTrailingSpacesFlag:
@@ -407,65 +414,36 @@ class TextEditWindow( ChildWindow ):
     # end of USFMEditWindow.getAllText
 
 
-    def getCharactersBeforeCursor( self, charCount=1 ):
+    def makeAutocompleteBox( self ):
         """
-        Needed for auto-correct functions.
+        Create a pop-up listbox in order to be able to display possible autocomplete words.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getCharactersBeforeCursor( {} )").format( charCount ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.makeAutocompleteBox()") )
+            assert self.autocompleteBox is None
 
-        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( charCount ), tk.INSERT )
-        #print( 'getCharactersBeforeCursor: returning previousText', repr(previousText) )
-        return previousText
-    # end of TextEditWindow.getCharactersBeforeCursor
-
-
-    def getWordCharactersBeforeCursor( self, maxCount=4 ):
-        """
-        Works backwards from the cursor finding word characters
-            (which we might then want to autocomplete).
-
-        Needed for auto-complete functions.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getWordCharactersBeforeCursor( {} )").format( maxCount ) )
-
-        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-        #print( "previousText", repr(previousText) )
-        wordText = ''
-        for previousChar in reversed( previousText ):
-            if previousChar in self.autocompleteWordChars:
-                wordText = previousChar + wordText
-            else: break
-        #print( 'getWordCharactersBeforeCursor: returning wordText', repr(wordText) )
-        return wordText
-    # end of TextEditWindow.getWordCharactersBeforeCursor
-
-
-    def getWordBeforeSpace( self, maxCount=15 ):
-        """
-        Works backwards from before the word ending character (e.g., a space) before the cursor
-            trying to find the word that was last entered.
-
-        Needed for auto-complete functions.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getWordBeforeSpace( {} )").format( maxCount ) )
-
-        previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-        #print( "previousText1", repr(previousText) )
-        assert previousText and previousText[-1] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE
-        previousText = previousText[:-1] # Drop the character that ended the word
-        #print( "previousText2", repr(previousText) )
-        wordText = ''
-        if 1 or previousText and previousText[-1].isalpha():
-            for previousChar in reversed( previousText ):
-                if previousChar in self.autocompleteWordChars:
-                    wordText = previousChar + wordText
-                else: break
-        #print( 'getWordBeforeSpace: returning word Text', repr(wordText) )
-        return wordText
-    # end of TextEditWindow.getWordBeforeSpace
+        # Create the pop-up listbox
+        x, y, cx, cy = self.textBox.bbox( tk.INSERT ) # Get canvas coordinates
+        topLevel = tk.Toplevel( self.textBox.master )
+        topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
+        topLevel.wm_geometry( '+{}+{}' \
+            .format( x + self.textBox.winfo_rootx() + 2, y + cy + self.textBox.winfo_rooty() ) )
+        frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
+        frame.pack( fill=tk.BOTH, expand=tk.YES )
+        autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
+        autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
+        self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
+                                    relief='flat',
+                                    yscrollcommand=autocompleteScrollbar.set,
+                                    width=20, height=NUM_AUTOCOMPLETE_POPUP_LINES )
+        autocompleteScrollbar.configure( command=self.autocompleteBox.yview )
+        self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
+        #self.autocompleteBox.select_set( '0' )
+        #self.autocompleteBox.focus()
+        self.autocompleteBox.bind( '<KeyPress>', self.OnAutocompleteChar )
+        self.autocompleteBox.bind( '<Double-Button-1>', self.doAcceptAutocompleteSelection )
+        self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
+    # end of TextEditWindow.makeAutocompleteBox
 
 
     def OnAutocompleteChar( self, event ):
@@ -491,7 +469,7 @@ class TextEditWindow( ChildWindow ):
             # Change the call below to a single parameter if you want it to work across lines
             self.textBox.delete( tk.INSERT, row + '.' + column ) # parameters are fromPoint, toPoint
         elif event.keysym == 'Return':
-            self.acceptAutocompleteSelection( includeTrailingSpace=False )
+            acceptAutocompleteSelection( self, includeTrailingSpace=False )
         #elif event.keysym in ( 'Up', 'Down', 'Shift_R', 'Shift_L',
                               #'Control_L', 'Control_R', 'Alt_L',
                               #'Alt_R', 'parenleft', 'parenright'):
@@ -500,7 +478,7 @@ class TextEditWindow( ChildWindow ):
             self.removeAutocompleteBox()
         #elif event.keysym in ( 'Delete', ): pass # Just ignore these keypresses
         elif event.char:
-            #if event.char in '.,': self.acceptAutocompleteSelection( includeTrailingSpace=False )
+            #if event.char in '.,': acceptAutocompleteSelection( self, includeTrailingSpace=False )
             self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
                                     #+ (' ' if event.char in ',' else '') )
     # end of TextEditWindow.OnAutocompleteChar
@@ -516,39 +494,8 @@ class TextEditWindow( ChildWindow ):
             #print( exp("TextEditWindow.doAcceptAutocompleteSelection({} )").format( event ) )
             assert self.autocompleteBox is not None
 
-        self.acceptAutocompleteSelection( includeTrailingSpace=False )
+        acceptAutocompleteSelection( self, includeTrailingSpace=False )
     # end of TextEditWindow.doAcceptAutocompleteSelection
-
-
-    def acceptAutocompleteSelection( self, includeTrailingSpace=False ):
-        """
-        Used by autocomplete routines in onTextChange.
-
-        Gets the chosen word and inserts the end of it into the text.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.acceptAutocompleteSelection( {} )").format( includeTrailingSpace ) )
-            assert self.autocompleteBox is not None
-
-        currentWord = self.autocompleteBox.get( tk.ACTIVE )
-        #print( '  autocompleteBox currentWord', currentWord )
-        self.removeAutocompleteBox()
-
-        # Autocomplete by inserting the rest of the selected word plus a space
-        # NOTE: The user has to backspace over the space if they don't want it (e.g., to put a period)
-        # NOTE: The box reappears with the current code if we don't append the space -- would need to add a flag
-        self.textBox.insert( tk.INSERT, currentWord[len(self.existingAutocompleteWordText):] \
-                                        + (' ' if includeTrailingSpace else '') )
-
-        if ' ' in currentWord: # bring each separate word to the top
-            for individualWord in currentWord.split():
-                self.addNewAutocompleteWord( individualWord )
-
-        # Put this word at the beginning of the list so it comes up on top next time
-        firstLetter, remainder = currentWord[0], currentWord[1:]
-        self.autocompleteWords[firstLetter].remove( remainder )
-        self.autocompleteWords[firstLetter].insert( 0, remainder )
-    # end of TextEditWindow.acceptAutocompleteSelection
 
 
     def removeAutocompleteBox( self, event=None ):
@@ -564,33 +511,6 @@ class TextEditWindow( ChildWindow ):
         self.textBox.focus()
         self.autocompleteBox.master.master.destroy() # master is Frame, master.master is Toplevel
         self.autocompleteBox = None
-    # end of TextEditWindow.removeAutocompleteBox
-
-
-    def addNewAutocompleteWord( self, possibleNewWord ):
-        """
-        Add the new autocomplete word if necessary,
-            or at least bring it to the top of the list.
-
-        Used by autocomplete routines in onTextChange.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.addNewAutocompleteWord( {!r} )").format( possibleNewWord ) )
-            assert isinstance( possibleNewWord, str )
-            assert possibleNewWord
-
-        while possibleNewWord and possibleNewWord[-1] in END_CHARS_TO_REMOVE:
-            possibleNewWord = possibleNewWord[:-1] # Remove certain final punctuation
-
-        if len( possibleNewWord ) > self.autocompleteMinLength:
-            #print( "Adding new autocomplete word: {!r}".format( possibleNewWord ) )
-            # Put this word at the beginning of the list so it comes up on top next time
-            firstLetter, remainder = possibleNewWord[0], possibleNewWord[1:]
-            try: self.autocompleteWords[firstLetter].remove( remainder )
-            except ValueError: pass # remove will fail if this really is a new word
-            except KeyError: # There's no list existing for this letter
-                self.autocompleteWords[firstLetter] = []
-            self.autocompleteWords[firstLetter].insert( 0, remainder )
     # end of TextEditWindow.removeAutocompleteBox
 
 
@@ -721,7 +641,7 @@ class TextEditWindow( ChildWindow ):
             # Handle auto-correct
             if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
                 #print( "Handle autocorrect" )
-                previousText = self.getCharactersBeforeCursor( self.maxAutocorrectLength )
+                previousText = getCharactersBeforeCursor( self, self.maxAutocorrectLength )
                 #print( "previousText", repr(previousText) )
                 for inChars,outChars in self.autocorrectEntries:
                     if previousText.endswith( inChars ):
@@ -729,6 +649,7 @@ class TextEditWindow( ChildWindow ):
                         # Delete the typed character(s) and replace with the new one(s)
                         self.textBox.delete( tk.INSERT+'-{}c'.format( len(inChars) ), tk.INSERT )
                         self.textBox.insert( tk.INSERT, outChars )
+                        break
             # end of auto-correct section
 
 
@@ -736,67 +657,64 @@ class TextEditWindow( ChildWindow ):
             if self.autocompleteMode is not None and self.autocompleteWords and args[0] in ('insert','delete',):
                 #print( "Handle autocomplete1" )
                 lastAutocompleteWordText = self.existingAutocompleteWordText
-                self.existingAutocompleteWordText = self.getWordCharactersBeforeCursor( self.autocompleteMaxLength )
+                self.existingAutocompleteWordText = getWordCharactersBeforeCursor( self, self.autocompleteMaxLength )
+                #print( "existingAutocompleteWordText: {!r}".format( self.existingAutocompleteWordText ) )
                 if self.existingAutocompleteWordText != lastAutocompleteWordText:
                     # We've had an actual change in the entered text
-                    if len(self.existingAutocompleteWordText) >= self.autocompleteMinLength:
-                        firstLetter, remainder = self.existingAutocompleteWordText[0], self.existingAutocompleteWordText[1:]
-                        try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
-                                                                if thisBit.startswith(remainder) and thisBit != remainder]
-                        except KeyError: possibleWords = None
-                        #print( 'possibleWords', possibleWords )
-                        if possibleWords:
-                            #print( "Handle autocomplete2" )
-                            if self.autocompleteBox is None:
-                                #print( 'create listbox' )
-                                x, y, cx, cy = self.textBox.bbox( tk.INSERT )
-                                topLevel = tk.Toplevel( self.textBox.master )
-                                topLevel.wm_overrideredirect(1) # Don't display window decorations (close button, etc.)
-                                topLevel.wm_geometry( '+{}+{}' \
-                                    .format( x + self.textBox.winfo_rootx() + 2, y + cy + self.textBox.winfo_rooty() ) )
-                                frame = tk.Frame( topLevel, highlightthickness=1, highlightcolor='darkgreen' )
-                                frame.pack( fill=tk.BOTH, expand=tk.YES )
-                                autocompleteScrollbar = tk.Scrollbar( frame, highlightthickness=0 )
-                                autocompleteScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
-                                self.autocompleteBox = tk.Listbox( frame, highlightthickness=0,
-                                                            relief="flat",
-                                                            yscrollcommand=autocompleteScrollbar.set,
-                                                            width=20, height=6 )
-                                autocompleteScrollbar.configure( command=self.autocompleteBox.yview )
-                                self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
-                                #self.autocompleteBox.select_set( '0' )
-                                #self.autocompleteBox.focus()
-                                self.autocompleteBox.bind( '<Key>', self.OnAutocompleteChar )
-                                self.autocompleteBox.bind( '<Double-1>', self.doAcceptAutocompleteSelection )
-                                self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
-                            else: # the Listbox is already made -- just empty it
-                                #print( 'empty listbox' )
-                                self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
-                            # Now fill the Listbox
-                            #print( 'fill listbox' )
-                            for word in possibleWords:
-                                if BibleOrgSysGlobals.debugFlag: assert possibleWords.count( word ) == 1
-                                self.autocompleteBox.insert( tk.END, word )
-                            # Do a bit more set-up
-                            #self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
-                            self.autocompleteBox.select_set( '0' )
-                            self.autocompleteBox.focus()
+                    possibleWords = None
 
-                        elif self.autocompleteBox is not None:
-                            #print( 'destroy1 autocomplete listbox -- no possible words' )
-                            self.removeAutocompleteBox()
-                    else: # we haven't typed enough yet to pop-up the box
-                        if self.autocompleteBox is not None:
-                            #print( 'destroy2 autocomplete listbox -- not enough typed yet' )
-                            self.removeAutocompleteBox()
+                    if len(self.existingAutocompleteWordText) >= self.autocompleteMinLength:
+                        # See if we have any words that start with the already typed letters
+                        #print( "Handle autocomplete1A with {!r}".format( self.existingAutocompleteWordText ) )
+                        firstLetter, remainder = self.existingAutocompleteWordText[0], self.existingAutocompleteWordText[1:]
+                        #print( "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
+                        try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
+                                                            if thisBit.startswith(remainder) and thisBit != remainder]
+                        except KeyError: pass
+                        self.autocompleteOverlap = self.existingAutocompleteWordText
+                        #print( 'possibleWordsA', possibleWords )
+
+                    # Maybe we haven't typed enough yet to pop-up the standard box so we look ahead using the previous word
+                    if not possibleWords:
+                        previousStuff = getCharactersAndWordBeforeCursor( self, self.autocompleteMaxLength )
+                        #print( "Handle autocomplete1B with {!r}".format( previousStuff ) )
+                        firstLetter, remainder = previousStuff[0], previousStuff[1:]
+                        #print( "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
+                        self.autocompleteOverlap = previousStuff
+                        #try: possibleWords = [thisBit[remainderLength:] for thisBit in self.autocompleteWords[firstLetter] \
+                        try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
+                                                            if thisBit.startswith(remainder) and thisBit != remainder]
+                        except KeyError: pass
+                        self.autocompleteOverlap = previousStuff
+                        #print( 'possibleWordsB', possibleWords )
+
+                    if possibleWords: # we have some word(s) to pop-up for possible selection
+                        #print( "Handle autocomplete2" )
+                        if self.autocompleteBox is None:
+                            self.makeAutocompleteBox()
+                        else: # the Listbox is already made -- just empty it
+                            #print( 'empty listbox' )
+                            self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
+                        # Now fill the Listbox
+                        #print( 'fill listbox' )
+                        for word in possibleWords:
+                            if BibleOrgSysGlobals.debugFlag: assert possibleWords.count( word ) == 1
+                            self.autocompleteBox.insert( tk.END, word )
+                        # Do a bit more set-up
+                        #self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
+                        self.autocompleteBox.select_set( '0' )
+                        self.autocompleteBox.focus()
+                    elif self.autocompleteBox is not None:
+                        #print( 'destroy1 autocomplete listbox -- no possible words' )
+                        self.removeAutocompleteBox()
                     if self.addAllNewWords \
                     and args[0]=='insert' and args[1]=='insert' \
                     and args[2] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS:
                         # Just finished typing a word (by typing a space or something)
-                        word = self.getWordBeforeSpace()
+                        word = getWordBeforeSpace( self )
                         if word: # in the Bible modes, we also add new words as they're typed
-                            #print( "Adding/Updating autocomplete word", repr(word) )
-                            self.addNewAutocompleteWord( word )
+                            #print( "TextEditWindow: Adding/Updating autocomplete word", repr(word) )
+                            addNewAutocompleteWord( self, word )
                             # NOTE: edited/deleted words aren't removed until the program restarts
             elif self.autocompleteBox is not None:
                 #print( 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
@@ -862,7 +780,7 @@ class TextEditWindow( ChildWindow ):
             + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
                     .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, round(self.autosaveTime/1000), self.saveChangesAutomatically )
 
-        showinfo( self, _("Window Information"), infoString )
+        showInfo( self, _("Window Information"), infoString )
     # end of TextEditWindow.doShowInfo
 
 
@@ -871,7 +789,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doUndo( {} )").format( event ) )
 
         try: self.textBox.edit_undo()
-        except tk.TclError: showinfo( self, APP_NAME, _("Nothing to undo") )
+        except tk.TclError: showInfo( self, APP_NAME, _("Nothing to undo") )
         self.textBox.update() # force refresh
     # end of TextEditWindow.doUndo
 
@@ -881,7 +799,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doRedo( {} )").format( event ) )
 
         try: self.textBox.edit_redo()
-        except tk.TclError: showinfo( self, APP_NAME, _("Nothing to redo") )
+        except tk.TclError: showInfo( self, APP_NAME, _("Nothing to redo") )
         self.textBox.update() # force refresh
     # end of TextEditWindow.doRedo
 
@@ -891,7 +809,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doDelete( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
-            showerror( self, APP_NAME, _("No text selected") )
+            showError( self, APP_NAME, _("No text selected") )
         else:
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST )
     # end of TextEditWindow.doDelete
@@ -904,7 +822,7 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.doCut( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
-            showerror( self, APP_NAME, _("No text selected") )
+            showError( self, APP_NAME, _("No text selected") )
         else:
             self.doCopy() # In ChildBox class
             self.doDelete()
@@ -921,10 +839,10 @@ class TextEditWindow( ChildWindow ):
         try:
             text = self.selection_get( selection='CLIPBOARD')
         except tk.TclError:
-            showerror( self, APP_NAME, _("Nothing to paste") )
+            showError( self, APP_NAME, _("Nothing to paste") )
             return
         self.textBox.insert( tk.INSERT, text)          # add at current insert cursor
-        self.textBox.tag_remove( tk.SEL, START, tk.END )
+        self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )
         self.textBox.tag_add( tk.SEL, tk.INSERT+'-{}c'.format( len(text) ), tk.INSERT )
         self.textBox.see( tk.INSERT )                   # select it, so it can be cut
     # end of TextEditWindow.doPaste
@@ -943,15 +861,15 @@ class TextEditWindow( ChildWindow ):
             #maxline  = int( maxindex.split('.')[0] )
             #if line > 0 and line <= maxline:
                 #self.textBox.mark_set( tk.INSERT, '{}.0'.format(line) ) # goto line
-                #self.textBox.tag_remove( tk.SEL, START, tk.END )          # delete selects
+                #self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )          # delete selects
                 #self.textBox.tag_add( tk.SEL, tk.INSERT, 'insert + 1l' )  # select line
                 #self.textBox.see( tk.INSERT )                          # scroll to line
             #else:
-                #showerror( self, APP_NAME, _("No such line number") )
+                #showError( self, APP_NAME, _("No such line number") )
     ## end of TextEditWindow.doGotoWindowLine
 
 
-    #def xxxdoWindowFind( self, lastkey=None):
+    #def xxxdoBoxFind( self, lastkey=None):
         #key = lastkey or askstring( APP_NAME, _("Enter search string") )
         #self.textBox.update()
         #self.textBox.focus()
@@ -960,22 +878,22 @@ class TextEditWindow( ChildWindow ):
             #nocase = self.optionsDict['caseinsens']
             #where = self.textBox.search( key, tk.INSERT, tk.END, nocase=nocase )
             #if not where:                                          # don't wrap
-                #showerror( self, APP_NAME, _("String not found") )
+                #showError( self, APP_NAME, _("String not found") )
             #else:
                 #pastkey = where + '+%dc' % len(key)           # index past key
-                #self.textBox.tag_remove( tk.SEL, START, tk.END )         # remove any sel
+                #self.textBox.tag_remove( tk.SEL, tkSTART, tk.END )         # remove any sel
                 #self.textBox.tag_add( tk.SEL, where, pastkey )        # select key
                 #self.textBox.mark_set( tk.INSERT, pastkey )           # for next find
                 #self.textBox.see( where )                          # scroll display
-    ## end of TextEditWindow.doWindowFind
+    ## end of TextEditWindow.doBoxFind
 
 
-    #def xxxdoWindowRefind( self ):
-        #self.doWindowFind( self.lastfind)
-    ## end of TextEditWindow.doWindowRefind
+    #def xxxdoBoxRefind( self ):
+        #self.doBoxFind( self.lastfind)
+    ## end of TextEditWindow.doBoxRefind
 
 
-    def doWindowFindReplace( self ):
+    def doBoxFindReplace( self ):
         """
         Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
@@ -984,21 +902,21 @@ class TextEditWindow( ChildWindow ):
         newPopupWindow.title( '{} - change'.format( APP_NAME ) )
         Label( newPopupWindow, text='Find text?', relief=tk.RIDGE, width=15).grid( row=0, column=0 )
         Label( newPopupWindow, text='Change to?', relief=tk.RIDGE, width=15).grid( row=1, column=0 )
-        entry1 = Entry( newPopupWindow )
-        entry2 = Entry( newPopupWindow )
+        entry1 = BEntry( newPopupWindow )
+        entry2 = BEntry( newPopupWindow )
         entry1.grid( row=0, column=1, sticky=tk.EW )
         entry2.grid( row=1, column=1, sticky=tk.EW )
 
-        def doWindowFind():                         # use my entry in enclosing scope
-            self.doWindowFind( entry1.get() )         # runs normal find dialog callback
+        def doBoxFind():                         # use my entry in enclosing scope
+            self.doBoxFind( entry1.get() )         # runs normal find dialog callback
 
         def onApply():
             self.onDoChange( entry1.get(), entry2.get() )
 
-        Button( newPopupWindow, text='Find',  command=doWindowFind ).grid(row=0, column=2, sticky=tk.EW )
+        Button( newPopupWindow, text='Find',  command=doBoxFind ).grid(row=0, column=2, sticky=tk.EW )
         Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=tk.EW )
         newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
-    # end of TextEditWindow.doWindowFindReplace
+    # end of TextEditWindow.doBoxFindReplace
 
 
     def onDoChange( self, findtext, changeto):
@@ -1009,7 +927,7 @@ class TextEditWindow( ChildWindow ):
             self.textBox.delete( tk.SEL_FIRST, tk.SEL_LAST)
             self.textBox.insert( tk.INSERT, changeto)             # deletes if empty
             self.textBox.see( tk.INSERT )
-            self.doWindowFind( findtext )                          # goto next appear
+            self.doBoxFind( findtext )                          # goto next appear
             self.textBox.update() # force refresh
     # end of TextEditWindow.onDoChange
 
@@ -1099,13 +1017,13 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow._checkFilepath()") )
 
         if not os.path.isfile( self.filepath ):
-            showerror( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
+            showError( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
             return False
         if not os.access( self.filepath, os.R_OK ):
-            showerror( self, APP_NAME, _("No permission to read {!r} in {!r}").format( self.filename, self.folderPath ) )
+            showError( self, APP_NAME, _("No permission to read {!r} in {!r}").format( self.filename, self.folderPath ) )
             return False
         if not os.access( self.filepath, os.W_OK ):
-            showerror( self, APP_NAME, _("No permission to write {!r} in {!r}").format( self.filename, self.folderPath ) )
+            showError( self, APP_NAME, _("No permission to write {!r} in {!r}").format( self.filename, self.folderPath ) )
             return False
 
         self.rememberFileTimeAndSize()
@@ -1139,11 +1057,11 @@ class TextEditWindow( ChildWindow ):
             print( exp("TextEditWindow.setAllText( {!r} )").format( newText ) )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
-        self.textBox.delete( START, tk.END ) # Delete everything that's existing
+        self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
         self.textBox.insert( tk.END, newText )
         self.textBox.highlightAllPatterns( self.patternsToHighlight )
 
-        self.textBox.mark_set( tk.INSERT, START ) # move insert point to top
+        self.textBox.mark_set( tk.INSERT, tkSTART ) # move insert point to top
         self.textBox.see( tk.INSERT ) # scroll to top, insert is set
 
         self.textBox.edit_reset() # clear undo/redo stks
@@ -1165,7 +1083,7 @@ class TextEditWindow( ChildWindow ):
         self.loading = True
         text = open( self.filepath, 'rt', encoding='utf-8' ).read()
         if text == None:
-            showerror( self, APP_NAME, 'Could not decode and open file ' + self.filepath )
+            showError( self, APP_NAME, 'Could not decode and open file ' + self.filepath )
             return False
         else:
             self.setAllText( text )
@@ -1199,7 +1117,7 @@ class TextEditWindow( ChildWindow ):
         and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
           or ( self.lastFilesize and os.stat( self.filepath ).st_size != self.lastFilesize ) ):
             if self.modified():
-                showerror( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
+                showError( self, APP_NAME, _("File {} has also changed on disk").format( repr(self.filename) ) )
             else: # We haven't modified the file since loading it
                 yndResult = False
                 if autoloadText: yndResult = True
@@ -1312,7 +1230,7 @@ class TextEditWindow( ChildWindow ):
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
+            showError( self, APP_NAME, _("Sorry, unable to open settings file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewSettings" )
         else:
             self.parentApp.childWindows.append( tEW )
@@ -1335,13 +1253,46 @@ class TextEditWindow( ChildWindow ):
         if not tEW.setPathAndFile( self.parentApp.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( self, APP_NAME, _("Sorry, unable to open log file") )
+            showError( self, APP_NAME, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewLog" )
         else:
             self.parentApp.childWindows.append( tEW )
             #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
         self.parentApp.setReadyStatus()
     # end of TextEditWindow.doViewLog
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.doHelp( {} )").format( event ) )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
+    # end of TextEditWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("TextEditWindow.doAbout( {} )").format( event ) )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.windowType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
+    # end of TextEditWindow.doAbout
 
 
     #def doCloseEditor( self, event=None ):

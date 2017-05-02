@@ -5,7 +5,7 @@
 #
 # Handle settings for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -44,10 +44,10 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-05-22' # by RJH
+LastModifiedDate = '2017-04-03' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = '0.36'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -55,8 +55,10 @@ debuggingThisModule = False
 
 
 import os.path, configparser, logging
+from datetime import datetime
 
 # Biblelator imports
+from BiblelatorGlobals import APP_NAME_VERSION
 
 # BibleOrgSys imports
 if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -150,6 +152,11 @@ class Settings:
 
         BibleOrgSysGlobals.backupAnyExistingFile( self.settingsFilepath, numBackups=4 )
         with open( self.settingsFilepath, 'wt', encoding='utf-8' ) as settingsFile: # It may or may not have previously existed
+            # Put a (comment) heading in the file first
+            settingsFile.write( '# ' + _("{} settings file").format( APP_NAME_VERSION ) + '\n' )
+            settingsFile.write( '# ' + _("Originally saved {} as {}") \
+                .format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.settingsFilepath ) + '\n\n' )
+
             self.data.write( settingsFile )
     # end of Settings.save
 # end of class Settings
@@ -157,6 +164,8 @@ class Settings:
 
 
 class ApplicationSettings( Settings ):
+    """
+    """
     def __init__( self, homeFolderName, dataFolderName, settingsFolderName, settingsFilename ):
         """
         This class is used before the main program starts.

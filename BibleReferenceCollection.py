@@ -5,7 +5,7 @@
 #
 # Bible reference collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2015-2016 Robert Hunt
+# Copyright (C) 2015-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-03-31' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -50,7 +50,7 @@ import tkinter as tk
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, \
+from BiblelatorGlobals import DEFAULT, tkBREAK, \
         BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, MAX_PSEUDOVERSES, \
         INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
         parseWindowSize
@@ -133,11 +133,11 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        self.textBox = tk.Text( self, height=5, yscrollcommand=self.vScrollbar.set )
+        self.textBox = BText( self, height=5, yscrollcommand=self.vScrollbar.set )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.X ) # Full width
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
-        self.createStandardKeyboardBindings()
+        self.createStandardBoxKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 
         # Set-up our standard Bible styles
@@ -146,6 +146,8 @@ class BibleReferenceBox( Frame, BibleBox ):
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
         self.textBox.tag_configure( 'context', background='pink', font='helvetica 6' )
+        self.textBox.tag_configure( 'markersHeader', background='yellow3', font='helvetica 6 bold' )
+        self.textBox.tag_configure( 'markers', background='yellow3', font='helvetica 6' )
 
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 
@@ -169,18 +171,20 @@ class BibleReferenceBox( Frame, BibleBox ):
     # end of BibleReferenceBox.__init__
 
 
-    def createStandardKeyboardBindings( self ):
+    def createStandardBoxKeyboardBindings( self ):
         """
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceBox.createStandardKeyboardBindings()") )
+            print( exp("BibleReferenceBox.createStandardBoxKeyboardBindings()") )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
-                             ('Find',self.doWindowFind), ('Refind',self.doWindowRefind),
-                             ('Info',self.doShowInfo), ('Close',self.doClose),
-                             ('ShowMain',self.doShowMainWindow), ):
-            self._createStandardKeyboardBinding( name, command )
-    # end of BibleReferenceBox.createStandardKeyboardBindings()
+                             ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
+                             #('Info',self.doShowInfo),
+                             #('ShowMain',self.doShowMainWindow),
+                             ('Close',self.doClose),
+                             ):
+            self._createStandardBoxKeyboardBinding( name, command )
+    # end of BibleReferenceBox.createStandardBoxKeyboardBindings()
 
 
     def xxxgotoBCV( self, BBB, C, V ):
@@ -427,8 +431,8 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
             self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
             searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
             searchMenu.add_separator()
-            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doWindowFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doWindowRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+            searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+            searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -517,7 +521,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         #if dBRB.DBPModule is None:
             #logging.critical( exp("Application.openDBPBibleReferenceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             #dBRB.destroy()
-            #showerror( self, APP_NAME, _("Sorry, unable to open DBP resource") )
+            #showError( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleReferenceBox" )
             #self.parentApp.setReadyStatus()
             #return None
@@ -545,7 +549,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         #if iBRB.internalBible is None:
             #logging.critical( exp("Application.openInternalBibleReferenceBox: Unable to open resource {}").format( repr(modulePath) ) )
             #iBRB.destroy()
-            #showerror( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
+            #showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleReferenceBox" )
             #self.parentApp.setReadyStatus()
             #return None
@@ -624,7 +628,8 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleReferenceCollectionWindow.doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleReferenceCollectionWindow.doHelp()") )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -633,6 +638,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
     # end of BibleReferenceCollectionWindow.doHelp
 
 
@@ -640,13 +646,15 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleReferenceCollectionWindow.doAbout()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleReferenceCollectionWindow.doAbout()") )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion + '\n'
         aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
         aboutInfo += '\n' + _("A Bible Reference Collection box can contain multiple different Scripture references all shown from the same resource translation or commentary.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
     # end of BibleReferenceCollectionWindow.doAbout
 # end of BibleReferenceCollectionWindow class
 

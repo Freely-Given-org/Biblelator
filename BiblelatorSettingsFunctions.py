@@ -5,7 +5,7 @@
 #
 # for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2016 Robert Hunt
+# Copyright (C) 2013-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -39,11 +39,11 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-12-21' # by RJH
+LastModifiedDate = '2017-04-11' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.39'
-SettingsVersion = '0.39' # Only need to change this if the settings format has changed
+ProgVersion = '0.40'
+SettingsVersion = '0.40' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -58,7 +58,8 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
     findHomeFolderPath, parseWindowSize, assembleWindowSize
-from BiblelatorDialogs import showerror, SaveWindowNameDialog, DeleteWindowNameDialog
+from BiblelatorSimpleDialogs import showError
+from BiblelatorDialogs import SaveWindowNameDialog, DeleteWindowNameDialog
 from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
@@ -262,6 +263,10 @@ def parseAndApplySettings( self ):
     except KeyError: pass # use program default
     finally:
         if self.lastInternalBibleDir[-1] not in '/\\': self.lastInternalBibleDir += '/'
+    try: self.lastSwordDir = self.settings.data['Paths']['lastSwordDir']
+    except KeyError: pass # use program default
+    finally:
+        if self.lastSwordDir[-1] not in '/\\': self.lastSwordDir += '/'
 
     # Parse recent files
     assert not self.recentFiles
@@ -601,7 +606,7 @@ def viewSettings( self ):
     if not tEW.setFilepath( self.settings.settingsFilepath ) \
     or not tEW.loadText():
         tEW.closeChildWindow()
-        showerror( self, APP_NAME, _("Sorry, unable to open settings file") )
+        showError( self, APP_NAME, _("Sorry, unable to open settings file") )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed viewSettings" )
     else:
         self.childWindows.append( tEW )
@@ -696,6 +701,7 @@ def writeSettingsFile( self ):
     paths['lastBiblelatorFileDir'] = self.lastBiblelatorFileDir
     paths['lastParatextFileDir'] = self.lastParatextFileDir
     paths['lastInternalBibleDir'] = self.lastInternalBibleDir
+    paths['lastSwordDir'] = self.lastSwordDir
 
     # Save the recent files
     self.settings.data['RecentFiles'] = {}

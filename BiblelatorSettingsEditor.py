@@ -5,7 +5,7 @@
 #
 # BOS (Bible Organizational System) manager program
 #
-# Copyright (C) 2016 Robert Hunt
+# Copyright (C) 2016-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-09-30' # by RJH
+LastModifiedDate = '2017-04-27' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -43,24 +43,25 @@ import sys, os, logging, subprocess
 import multiprocessing
 
 import tkinter as tk
-from tkinter.ttk import Style, Frame, Button, Combobox, Scrollbar, Label, Entry, Notebook
+from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-from BiblelatorGlobals import DEFAULT, START, MAX_RECENT_FILES, errorBeep, \
+from BiblelatorGlobals import DEFAULT, tkSTART, MAX_RECENT_FILES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, MAX_PSEUDOVERSES, \
         findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
-from BiblelatorDialogs import showerror, showwarning, showinfo, \
-        SelectResourceBoxDialog, \
-        GetNewProjectNameDialog, CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
-        BookNameDialog, NumberButtonDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
+from BiblelatorSimpleDialogs import showError, showWarning, showInfo
+from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
+                                CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
+                                BookNameDialog, NumberButtonDialog
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
+from TextBoxes import BEntry, BCombobox
 from ChildWindows import ChildWindows
 from TextEditWindow import TextEditWindow
 
@@ -410,16 +411,16 @@ class BiblelatorSettingsEditor( Frame ):
         self.fdrVar = tk.StringVar()
         fdrLabel = Label( self.settingsFilesPage, text=_("Standard folder:") )
         fdrLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
-        self.fdrEntry = Entry( self.settingsFilesPage, width=50, textvariable=self.fdrVar, state=tk.DISABLED )
+        self.fdrEntry = BEntry( self.settingsFilesPage, width=50, textvariable=self.fdrVar, state=tk.DISABLED )
         self.fdrEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
 
         fnLabel = Label( self.settingsFilesPage, text=_("Settings name:") )
         fnLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
         self.fnVar = tk.StringVar()
         if self.fixedSettingsFlag:
-            self.fnEntry = Entry( self.settingsFilesPage, width=15, textvariable=self.fnVar, state=tk.DISABLED )
+            self.fnEntry = BEntry( self.settingsFilesPage, width=15, textvariable=self.fnVar, state=tk.DISABLED )
         else: # not fixed settings
-            self.fnEntry = Combobox( self.settingsFilesPage, width=15, textvariable=self.fnVar )
+            self.fnEntry = BCombobox( self.settingsFilesPage, width=15, textvariable=self.fnVar )
             #self.fnEntry['values'] = self.bookNames
             self.fnEntry.bind('<<ComboboxSelected>>', self.selectedNewSettingsFile )
             self.fnEntry.bind( '<Return>', self.selectedNewSettingsFile )
@@ -432,43 +433,43 @@ class BiblelatorSettingsEditor( Frame ):
         self.svVar = tk.StringVar()
         svLabel = Label( self.mainPage, text=_("Settings version:") )
         svLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
-        self.svEntry = Entry( self.mainPage, width=8, textvariable=self.svVar, state=tk.DISABLED )
+        self.svEntry = BEntry( self.mainPage, width=8, textvariable=self.svVar, state=tk.DISABLED )
         #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.svEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
         self.pvVar = tk.StringVar()
         pvLabel = Label( self.mainPage, text=_("Program version:") )
         pvLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
-        self.pvEntry = Entry( self.mainPage, width=8, textvariable=self.pvVar, state=tk.DISABLED )
+        self.pvEntry = BEntry( self.mainPage, width=8, textvariable=self.pvVar, state=tk.DISABLED )
         #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.pvEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
         self.thnVar = tk.StringVar()
         thnLabel = Label( self.mainPage, text=_("Theme name:") )
         thnLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
-        self.thnEntry = Entry( self.mainPage, width=20, textvariable=self.thnVar, state=tk.DISABLED )
+        self.thnEntry = BEntry( self.mainPage, width=20, textvariable=self.thnVar, state=tk.DISABLED )
         #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.thnEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
         self.wszVar = tk.StringVar()
         wszLabel = Label( self.mainPage, text=_("Window size:") )
         wszLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
-        self.wszEntry = Entry( self.mainPage, width=12, textvariable=self.wszVar, state=tk.DISABLED )
+        self.wszEntry = BEntry( self.mainPage, width=12, textvariable=self.wszVar, state=tk.DISABLED )
         #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.wszEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
         self.wposVar = tk.StringVar()
         wposLabel = Label( self.mainPage, text=_("Window position:") )
         wposLabel.grid( row=4, column=0, padx=0, pady=2, sticky=tk.E )
-        self.wposEntry = Entry( self.mainPage, width=12, textvariable=self.wposVar, state=tk.DISABLED )
+        self.wposEntry = BEntry( self.mainPage, width=12, textvariable=self.wposVar, state=tk.DISABLED )
         #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.wposEntry.grid( row=4, column=1, padx=2, pady=2, sticky=tk.W )
         self.minszVar = tk.StringVar()
         minszLabel = Label( self.mainPage, text=_("Minimum size:") )
         minszLabel.grid( row=5, column=0, padx=0, pady=2, sticky=tk.E )
-        self.minszEntry = Entry( self.mainPage, width=12, textvariable=self.minszVar, state=tk.DISABLED )
+        self.minszEntry = BEntry( self.mainPage, width=12, textvariable=self.minszVar, state=tk.DISABLED )
         #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.minszEntry.grid( row=5, column=1, padx=2, pady=2, sticky=tk.W )
         self.maxszVar = tk.StringVar()
         maxszLabel = Label( self.mainPage, text=_("Maximum size:") )
         maxszLabel.grid( row=6, column=0, padx=0, pady=2, sticky=tk.E )
-        self.maxszEntry = Entry( self.mainPage, width=12, textvariable=self.maxszVar, state=tk.DISABLED )
+        self.maxszEntry = BEntry( self.mainPage, width=12, textvariable=self.maxszVar, state=tk.DISABLED )
         #self.fnEntry.bind( '<Return>', self.searchBBBCode )
         self.maxszEntry.grid( row=6, column=1, padx=2, pady=2, sticky=tk.W )
 
@@ -478,13 +479,13 @@ class BiblelatorSettingsEditor( Frame ):
         self.ilVar = tk.StringVar()
         ilLabel = Label( self.interfacePage, text=_("Language:") )
         ilLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
-        self.ilEntry = Entry( self.interfacePage, width=25, textvariable=self.ilVar, state=tk.DISABLED )
+        self.ilEntry = BEntry( self.interfacePage, width=25, textvariable=self.ilVar, state=tk.DISABLED )
         #self.ilEntry.bind( '<Return>', self.searchBBBCode )
         self.ilEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
         self.icVar = tk.StringVar()
         icLabel = Label( self.interfacePage, text=_("Complexity:") )
         icLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
-        self.icEntry = Entry( self.interfacePage, width=25, textvariable=self.icVar, state=tk.DISABLED )
+        self.icEntry = BEntry( self.interfacePage, width=25, textvariable=self.icVar, state=tk.DISABLED )
         #self.icEntry.bind( '<Return>', self.searchBBBCode )
         self.icEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
         self.tchVar = tk.IntVar()
@@ -518,7 +519,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.lmVar = tk.StringVar()
         lmLabel = Label( self.internetPage, text=_("Last message number read:") )
         lmLabel.grid( row=5, column=0, sticky=tk.E )
-        self.lmEntry = Entry( self.internetPage, width=5, textvariable=self.lmVar )
+        self.lmEntry = BEntry( self.internetPage, width=5, textvariable=self.lmVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.lmEntry.grid( row=5, column=1 )
         self.usVar = tk.IntVar()
@@ -537,7 +538,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.cpVar = tk.StringVar()
         cpLabel = Label( self.projectsPage, text=_("Current project name:") )
         cpLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
-        self.cpEntry = Entry( self.projectsPage, width=25, textvariable=self.cpVar )
+        self.cpEntry = BEntry( self.projectsPage, width=25, textvariable=self.cpVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.cpEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
 
@@ -547,31 +548,31 @@ class BiblelatorSettingsEditor( Frame ):
         self.unVar = tk.StringVar()
         unLabel = Label( self.usersPage, text=_("Current user name:") )
         unLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
-        self.unEntry = Entry( self.usersPage, width=25, textvariable=self.unVar )
+        self.unEntry = BEntry( self.usersPage, width=25, textvariable=self.unVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.unEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
         self.uiVar = tk.StringVar()
         uiLabel = Label( self.usersPage, text=_("Current user initials:") )
         uiLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
-        self.uiEntry = Entry( self.usersPage, width=5, textvariable=self.uiVar )
+        self.uiEntry = BEntry( self.usersPage, width=5, textvariable=self.uiVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.uiEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
         self.uemVar = tk.StringVar()
         uemLabel = Label( self.usersPage, text=_("User email:") )
         uemLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
-        self.uemEntry = Entry( self.usersPage, width=25, textvariable=self.uemVar )
+        self.uemEntry = BEntry( self.usersPage, width=25, textvariable=self.uemVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.uemEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
         self.urVar = tk.StringVar()
         urLabel = Label( self.usersPage, text=_("User role:") )
         urLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
-        self.urEntry = Entry( self.usersPage, width=20, textvariable=self.urVar )
+        self.urEntry = BEntry( self.usersPage, width=20, textvariable=self.urVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.urEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
         self.uasVar = tk.StringVar()
         uasLabel = Label( self.usersPage, text=_("User assignments:") )
         uasLabel.grid( row=4, column=0, padx=0, pady=2, sticky=tk.E )
-        self.uasEntry = Entry( self.usersPage, width=20, textvariable=self.uasVar )
+        self.uasEntry = BEntry( self.usersPage, width=20, textvariable=self.uasVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.uasEntry.grid( row=4, column=1, padx=2, pady=2, sticky=tk.W )
 
@@ -581,25 +582,25 @@ class BiblelatorSettingsEditor( Frame ):
         self.ltfVar = tk.StringVar()
         ltfLabel = Label( self.pathsPage, text=_("Last text folder:") )
         ltfLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
-        self.ltfEntry = Entry( self.pathsPage, width=35, textvariable=self.ltfVar )
+        self.ltfEntry = BEntry( self.pathsPage, width=35, textvariable=self.ltfVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.ltfEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
         self.lbfVar = tk.StringVar()
         lbfLabel = Label( self.pathsPage, text=_("Last Biblelator folder:") )
         lbfLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
-        self.lbfEntry = Entry( self.pathsPage, width=35, textvariable=self.lbfVar )
+        self.lbfEntry = BEntry( self.pathsPage, width=35, textvariable=self.lbfVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.lbfEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
         self.lpfVar = tk.StringVar()
         lpfLabel = Label( self.pathsPage, text=_("Last Paratext folder:") )
         lpfLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
-        self.lpfEntry = Entry( self.pathsPage, width=35, textvariable=self.lpfVar )
+        self.lpfEntry = BEntry( self.pathsPage, width=35, textvariable=self.lpfVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.lpfEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
         self.libfVar = tk.StringVar()
         libfLabel = Label( self.pathsPage, text=_("Last internal Bible folder:") )
         libfLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
-        self.libfEntry = Entry( self.pathsPage, width=35, textvariable=self.libfVar )
+        self.libfEntry = BEntry( self.pathsPage, width=35, textvariable=self.libfVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.libfEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
 
@@ -610,9 +611,9 @@ class BiblelatorSettingsEditor( Frame ):
         for rr in range( 0, MAX_RECENT_FILES ):
             self.rffnVars.append( tk.StringVar() ); self.rffldVars.append( tk.StringVar() ); self.rftypVars.append( tk.StringVar() );
             Label( self.recentFilesPage, text='{}:'.format(rr+1) ).grid( row=2*rr, column=0, padx=0, pady=3, sticky=tk.E )
-            Entry( self.recentFilesPage, width=30, textvariable=self.rffnVars[rr] ).grid( row=2*rr, column=1, padx=2, pady=3, sticky=tk.W )
-            Entry( self.recentFilesPage, width=30, textvariable=self.rftypVars[rr] ).grid( row=2*rr, column=2, padx=2, pady=3, sticky=tk.W )
-            Entry( self.recentFilesPage, width=60, textvariable=self.rffldVars[rr] ).grid( row=2*rr+1, column=1, columnspan=2, padx=2, pady=1, sticky=tk.W )
+            BEntry( self.recentFilesPage, width=30, textvariable=self.rffnVars[rr] ).grid( row=2*rr, column=1, padx=2, pady=3, sticky=tk.W )
+            BEntry( self.recentFilesPage, width=30, textvariable=self.rftypVars[rr] ).grid( row=2*rr, column=2, padx=2, pady=3, sticky=tk.W )
+            BEntry( self.recentFilesPage, width=60, textvariable=self.rffldVars[rr] ).grid( row=2*rr+1, column=1, columnspan=2, padx=2, pady=1, sticky=tk.W )
 
         # Bible BCV (book/chapter/verse) page
         print( "Create BCV page" )
@@ -620,37 +621,37 @@ class BiblelatorSettingsEditor( Frame ):
         self.gBOSVar = tk.StringVar()
         gBOSLabel = Label( self.BCVGroupsPage, text=_("Generic BOS name:") )
         gBOSLabel.grid( row=0, column=0, padx=0, pady=2, sticky=tk.E )
-        self.gBOSEntry = Entry( self.BCVGroupsPage, width=35, textvariable=self.gBOSVar )
+        self.gBOSEntry = BEntry( self.BCVGroupsPage, width=35, textvariable=self.gBOSVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.gBOSEntry.grid( row=0, column=1, padx=2, pady=2, sticky=tk.W )
         self.cgVar = tk.StringVar()
         cgLabel = Label( self.BCVGroupsPage, text=_("Current group:") )
         cgLabel.grid( row=1, column=0, padx=0, pady=2, sticky=tk.E )
-        self.cgEntry = Entry( self.BCVGroupsPage, width=3, textvariable=self.cgVar )
+        self.cgEntry = BEntry( self.BCVGroupsPage, width=3, textvariable=self.cgVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.cgEntry.grid( row=1, column=1, padx=2, pady=2, sticky=tk.W )
         self.gaVar = tk.StringVar()
         gaLabel = Label( self.BCVGroupsPage, text=_("Group A:") )
         gaLabel.grid( row=2, column=0, padx=0, pady=2, sticky=tk.E )
-        self.gaEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gaVar )
+        self.gaEntry = BEntry( self.BCVGroupsPage, width=12, textvariable=self.gaVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.gaEntry.grid( row=2, column=1, padx=2, pady=2, sticky=tk.W )
         self.gbVar = tk.StringVar()
         gbLabel = Label( self.BCVGroupsPage, text=_("Group B:") )
         gbLabel.grid( row=3, column=0, padx=0, pady=2, sticky=tk.E )
-        self.gbEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gbVar )
+        self.gbEntry = BEntry( self.BCVGroupsPage, width=12, textvariable=self.gbVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.gbEntry.grid( row=3, column=1, padx=2, pady=2, sticky=tk.W )
         self.gcVar = tk.StringVar()
         gcLabel = Label( self.BCVGroupsPage, text=_("Group C:") )
         gcLabel.grid( row=4, column=0, padx=0, pady=2, sticky=tk.E )
-        self.gcEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gcVar )
+        self.gcEntry = BEntry( self.BCVGroupsPage, width=12, textvariable=self.gcVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.gcEntry.grid( row=4, column=1, padx=2, pady=2, sticky=tk.W )
         self.gdVar = tk.StringVar()
         gdLabel = Label( self.BCVGroupsPage, text=_("Group D:") )
         gdLabel.grid( row=5, column=0, padx=0, pady=2, sticky=tk.E )
-        self.gdEntry = Entry( self.BCVGroupsPage, width=12, textvariable=self.gdVar )
+        self.gdEntry = BEntry( self.BCVGroupsPage, width=12, textvariable=self.gdVar )
         #self.lmEntry.bind( '<Return>', self.searchBBBCode )
         self.gdEntry.grid( row=5, column=1, padx=2, pady=2, sticky=tk.W )
 
@@ -915,7 +916,7 @@ class BiblelatorSettingsEditor( Frame ):
 
     def notWrittenYet( self ):
         errorBeep()
-        showerror( self, _("Not implemented"), _("Not yet available, sorry") )
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
     # end of BiblelatorSettingsEditor.notWrittenYet
 
 
@@ -929,9 +930,9 @@ class BiblelatorSettingsEditor( Frame ):
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
-            #self.statusBarTextWidget.delete( START, tk.END )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
             #if newStatusText:
-                #self.statusBarTextWidget.insert( START, newStatusText )
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
             #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
             #self.statusText = newStatusText
             Style().configure( 'StatusBar.TLabel', foreground='white', background='purple' )
@@ -992,7 +993,7 @@ class BiblelatorSettingsEditor( Frame ):
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
         self.debugTextBox.configure( state=tk.NORMAL ) # Allow editing
-        self.debugTextBox.delete( START, tk.END ) # Clear everything
+        self.debugTextBox.delete( tkSTART, tk.END ) # Clear everything
         self.debugTextBox.insert( tk.END, 'DEBUGGING INFORMATION:' )
         if self.lastDebugMessage: self.debugTextBox.insert( tk.END, '\nWas: ' + self.lastDebugMessage )
         if newMessage:
@@ -1034,7 +1035,7 @@ class BiblelatorSettingsEditor( Frame ):
         try:
             self.style.theme_use( newThemeName )
         except tk.TclError as err:
-            showerror( self, 'Error', err )
+            showError( self, 'Error', err )
     # end of BiblelatorSettingsEditor.doChangeTheme
 
 
@@ -1100,7 +1101,7 @@ class BiblelatorSettingsEditor( Frame ):
         #if not tEW.setFilepath( self.settings.settingsFilepath ) \
         #or not tEW.loadText():
             #tEW.closeChildWindow()
-            #showerror( self, ShortProgName, _("Sorry, unable to open settings file") )
+            #showError( self, ShortProgName, _("Sorry, unable to open settings file") )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
         #else:
             #self.childWindows.append( tEW )
@@ -1124,7 +1125,7 @@ class BiblelatorSettingsEditor( Frame ):
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.closeChildWindow()
-            showerror( self, ShortProgName, _("Sorry, unable to open log file") )
+            showError( self, ShortProgName, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:
             self.childWindows.append( tEW )
@@ -1147,7 +1148,7 @@ class BiblelatorSettingsEditor( Frame ):
                  + '  Book Order: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'bookOrderSystem' ) ) \
                  + '  Book Names: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
                  + '  Books: {}'.format( self.genericBibleOrganizationalSystem.getBookList() )
-        showinfo( self, 'Goto Information', infoString )
+        showInfo( self, 'Goto Information', infoString )
     # end of BiblelatorSettingsEditor.doGotoInfo
 
 
@@ -1195,7 +1196,7 @@ class BiblelatorSettingsEditor( Frame ):
             print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
-            showerror( self, ShortProgName, 'You need to allow Internet access first!' )
+            showError( self, ShortProgName, 'You need to allow Internet access first!' )
             return
 
         from About import AboutBox
@@ -1261,7 +1262,7 @@ class BiblelatorSettingsEditor( Frame ):
                 if appWin.modified(): # still???
                     haveModifications = True; break
         if haveModifications:
-            showerror( self, _("Save files"), _("You need to save or close your work first.") )
+            showError( self, _("Save files"), _("You need to save or close your work first.") )
             return False
 
         # Should be able to close all apps now

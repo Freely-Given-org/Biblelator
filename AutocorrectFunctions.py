@@ -5,7 +5,7 @@
 #
 # Functions to support the autocorrect function in text editors
 #
-# Copyright (C) 2016 Robert Hunt
+# Copyright (C) 2016-2017 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -27,10 +27,10 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2017-04-10' # by RJH
 ShortProgName = "AutocorrectFunctions"
 ProgName = "Biblelator Autocorrect Functions"
-ProgVersion = '0.39'
+ProgVersion = '0.40'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -59,20 +59,20 @@ def exp( messageString ):
 
 
 
-def setAutocorrectEntries( self, entryList, append=False ):
+def setAutocorrectEntries( self, autocorrectEntryList, append=False ):
     """
     Given a word list, set the entries into the autocorrect words
         and then do necessary house-keeping.
 
-    Note that the original word order is preserved (if the entryList has an order)
+    Note that the original word order is preserved (if the autocorrectEntryList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocorrectFunctions.setAutocorrectEntries( {} )").format( entryList, append ) )
-        print( exp("AutocorrectFunctions.setAutocorrectEntries( {}.., {} )").format( len(entryList), append ) )
+        #print( exp("AutocorrectFunctions.setAutocorrectEntries( {} )").format( autocorrectEntryList, append ) )
+        print( exp("AutocorrectFunctions.setAutocorrectEntries( {}.., {} )").format( len(autocorrectEntryList), append ) )
 
-    if append: self.autocorrectEntries.extend( entryList )
-    else: self.autocorrectEntries = entryList
+    if append: self.autocorrectEntries.extend( autocorrectEntryList )
+    else: self.autocorrectEntries = autocorrectEntryList
 
     # This next bit needs to be done whenever the autocorrect entries are changed
     self.maxAutocorrectLength = 0
@@ -89,7 +89,7 @@ def setDefaultAutocorrectEntries( self ):
     Given a word list, set the entries into the autocorrect words
         and then do necessary house-keeping.
 
-    Note that the original word order is preserved (if the entryList has an order)
+    Note that the original word order is preserved (if the autocorrectEntryList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -108,6 +108,7 @@ def setDefaultAutocorrectEntries( self ):
     ourAutocorrectEntries.append( ('--','–') ) # Cycle through en-dash/em-dash with hyphens
     ourAutocorrectEntries.append( ('–-','—') )
     ourAutocorrectEntries.append( ('—-','-') )
+    ourAutocorrectEntries.append( ('...','…') )
 
     ourAutocorrectEntries.append( ('f1','\\f + \\fr ') )
     ourAutocorrectEntries.append( ('f2',' \\ft ') )
