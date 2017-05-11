@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-05-02' # by RJH
+LastModifiedDate = '2017-05-11' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -227,7 +227,7 @@ class Application( Frame ):
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
 
         self.recentFiles = []
-        self.internalBibles = []
+        self.internalBibles = [] # Contains 2-tuples being (internalBibleObject,list of window objects displaying that Bible)
 
         #logging.critical( "Critical test" )
         #logging.error( "Error test" )
@@ -263,6 +263,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.createDebugToolBar()
         self.createInfoBar()
 
+        self.lastBookNumber = int( self.bookNumberVar.get() )
         self.BCVHistory = []
         self.BCVHistoryIndex = None
 
@@ -764,9 +765,8 @@ class Application( Frame ):
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks,
+                                            textvariable=self.bookNumberVar, command=self.spinToNewBookNumber )
         self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
         self.bookNumberSpinbox.pack( side=tk.LEFT )
 
@@ -775,9 +775,8 @@ class Application( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar,
+                                                                        values=self.bookNames )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookNameField )
         self.bookNameBox.bind( '<Return>', self.acceptNewBookNameField )
         self.bookNameBox.pack( side=tk.LEFT )
@@ -786,9 +785,8 @@ class Application( Frame ):
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
+        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook,
+                                         textvariable=self.chapterNumberVar, command=self.spinToNewChapter )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
         self.chapterSpinbox.pack( side=tk.LEFT )
 
@@ -805,9 +803,8 @@ class Application( Frame ):
         #print( "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
+        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter,
+                                       textvariable=self.verseNumberVar, command=self.acceptNewBnCV )
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
         self.verseSpinbox.pack( side=tk.LEFT )
 
@@ -878,9 +875,8 @@ class Application( Frame ):
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks,
+                                            textvariable=self.bookNumberVar, command=self.spinToNewBookNumber )
         self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
         #self.bookNumberSpinbox.pack( side=tk.LEFT )
 
@@ -889,9 +885,8 @@ class Application( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar,
+                                            values=self.bookNames )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookNameField )
         self.bookNameBox.bind( '<Return>', self.acceptNewBookNameField )
         #self.bookNameBox.pack( side=tk.LEFT )
@@ -904,9 +899,8 @@ class Application( Frame ):
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
+        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook,
+                                         textvariable=self.chapterNumberVar, command=self.spinToNewChapter )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
         #self.chapterSpinbox.pack( side=tk.LEFT )
 
@@ -927,9 +921,8 @@ class Application( Frame ):
         #print( "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
+        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter,
+                                       textvariable=self.verseNumberVar, command=self.acceptNewBnCV )
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
         #self.verseSpinbox.pack( side=tk.LEFT )
 
@@ -940,7 +933,6 @@ class Application( Frame ):
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
         self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
         self.wordBox.bind( '<Return>', self.acceptNewLexiconWord )
         #self.wordBox.pack( side=tk.LEFT )
 
@@ -1013,10 +1005,12 @@ class Application( Frame ):
 
         #Style().configure( 'ShowAll.TButton', background='lightGreen' )
 
-        self.InfoLabel1 = Label( infobar )
-        self.InfoLabel1.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.InfoLabel2 = Label( infobar )
-        self.InfoLabel2.pack( side=tk.RIGHT, padx=xPad, pady=yPad )
+        self.InfoLabelLeft = Label( infobar )
+        self.InfoLabelLeft.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        self.InfoLabelCentre = Label( infobar )
+        self.InfoLabelCentre.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        self.InfoLabelRight = Label( infobar )
+        self.InfoLabelRight.pack( side=tk.RIGHT, padx=xPad, pady=yPad )
 
         infobar.pack( side=tk.TOP, fill=tk.X )
     # end of Application.createInfoBar
@@ -1868,8 +1862,8 @@ class Application( Frame ):
             #print( "  ", something )
             #BiblesListText += "\n{}".format( something )
         #print( self.internalBibles )
-        for j,(iB,cWs) in enumerate( self.internalBibles ):
-            BiblesListText += "\n  {}/ {} in {}".format( j+1, iB.getAName(), cWs )
+        for j,(iB,controllingWindowList) in enumerate( self.internalBibles ):
+            BiblesListText += "\n  {}/ {} in {}".format( j+1, iB.getAName(), controllingWindowList )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding )
@@ -2178,7 +2172,7 @@ class Application( Frame ):
 
         Go back to the previous BCV reference (if any).
         """
-        if 1 or BibleOrgSysGlobals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( exp("doGoBackward( {} )").format( event ) )
             #self.setDebugText( "doGoBackward…" )
 
@@ -2661,6 +2655,8 @@ class Application( Frame ):
     def spinToNewBookNumber( self, event=None ):
         """
         Handle a new book number setting from the GUI dropbox.
+
+        If we have no open Bibles containing that book, we go to the next one.
         """
         self.logUsage( ProgName, debuggingThisModule, 'spinToNewBookNumber' )
         if BibleOrgSysGlobals.debugFlag:
@@ -2668,8 +2664,27 @@ class Application( Frame ):
         #print( dir(event) )
 
         nBBB = self.bookNumberVar.get()
-        BBB = self.bookNumberTable[int(nBBB)]
-        #print( 'spinToNewBookNumber', repr(nBBB), repr(BBB) )
+        nBBBint = int(nBBB)
+        offset = -1 if nBBBint<self.lastBookNumber else 1 # go up or down
+        #print( "spinToNewBookNumber to {} from {} with {}".format( nBBBint, self.lastBookNumber, offset ) )
+
+        while True: # Check if that book actually exists in any of our Bibles
+            BBB = self.bookNumberTable[nBBBint]
+            #print( "  Go to {} {} from {}".format( nBBBint, BBB, nBBB ) )
+            #self.doViewBiblesList()
+            foundBook = foundAnyBooks = False
+            for internalBible,controllingWindowList in self.internalBibles:
+                if internalBible.availableBBBs:
+                    foundAnyBooks = True
+                    if BBB in internalBible.availableBBBs:
+                        #print( "    Found {} in {}".format( BBB, internalBible.name ) )
+                        foundBook = True; break
+                #else: print( "    {} has no list of availableBBBs!".format( internalBible.name ) )
+            if foundBook or not foundAnyBooks \
+            or (offset==-1 and nBBBint<=1) \
+            or (offset==1 and nBBBint>=self.maxBooks): break
+            nBBBint += offset # Try the next book number then
+
         self.bookNameVar.set( BBB ) # Will be used by acceptNewBnCV
         self.chapterNumberVar.set( '1' )
         self.verseNumberVar.set( '1' )
@@ -2715,6 +2730,7 @@ class Application( Frame ):
             self.bookNumberVar.set( self.bookNumberTable[BBB] )
             self.bookNameVar.set( self.getGenericBookName(BBB) )
             self.gotoBCV( BBB, C, V, 'acceptNewBnCV' )
+            self.lastBookNumber = int( self.bookNumberVar.get() )
             self.setReadyStatus()
     # end of Application.acceptNewBnCV
 
@@ -2860,16 +2876,33 @@ class Application( Frame ):
             self.updateBCVPreviousNextButtonsState()
 
         intV = int( V )
-        if intV > 1: intV -= 1 # assume that we haven't done this verse yet
-        try: percent = round( intV * 100 / int(self.maxVersesThisChapter) )
-        except ZeroDivisionError: percent = 0
-        try: self.InfoLabel1['text'] = _("{} verses in chapter {} ({}% through)").format( self.maxVersesThisChapter, C, percent )
+        if intV > 0: intV -= 1 # assume that we haven't done this verse yet
+        try: percentVerses = round( intV * 100 / int(self.maxVersesThisChapter) )
+        except ZeroDivisionError: percentVerses = 0
+        try: self.InfoLabelLeft['text'] = _("{} verses in ch.{} ({}% passed)") \
+                                            .format( self.maxVersesThisChapter, C, percentVerses )
         except AttributeError: pass
+
         intC = int( C )
-        if intC > 1: intC -= 1 # assume that we haven't done this chapter yet
-        try: percent = round( intC * 100 / int(self.maxChaptersThisBook) )
-        except TypeError: percent = 0
-        try: self.InfoLabel2['text'] = _("{} chapters in {} ({}% through)").format( self.maxChaptersThisBook, bookName, percent )
+        if intC > 0: intC -= 1 # assume that we haven't done this chapter yet
+        #try: percentChapters = round( (intC * 100 + percentVerses) / int(self.maxChaptersThisBook) )
+        #except TypeError: percentChapters = 0
+        #try: self.InfoLabelCentre['text'] = _("{} chapters in book ({}% passed)") \
+                                            #.format( self.maxChaptersThisBook, percentChapters )
+        try: self.InfoLabelCentre['text'] = _("{} chapters in {}") \
+                                            .format( self.maxChaptersThisBook, bookName )
+        except AttributeError: pass
+
+        verseList = self.genericBibleOrganisationalSystem.getNumVersesList( BBB )
+        totalVerses, passedVerses = 0, intV
+        for j,verseCount in enumerate( verseList ):
+            totalVerses += verseCount
+            if j<intC: passedVerses += verseCount
+        #print( passedVerses, totalVerses )
+        try: percentTotalVerses = round( passedVerses * 100 / totalVerses )
+        except TypeError: percentTotalVerses = 0
+        try: self.InfoLabelRight['text'] = _("{} verses in book ({}% passed)") \
+                                            .format( totalVerses, percentTotalVerses )
         except AttributeError: pass
     # end of Application.updateGUIBCVControls
 

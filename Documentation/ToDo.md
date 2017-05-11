@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-04-20 by RJH
+Last updated: 2017-05-11 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,9 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Make Bible find work on USFM files in USFM edit window (not on the internal Bible which already has some fixes)
+* USFM edit window still displays previous book when stepping to a non-existent book (and cancel create new file)
+* Enter a bookname, tab across enter a chapter number then enter, but it always goes to chapter 1 :(
 * Want Alt-up and down to go to previous/next find results
 * Bible find regex:XXX doesn't work unless match case or xxx is used
 * Bible find regex:XXX (with match case) shows regex in find result lines
@@ -74,6 +77,8 @@ BOS bugs
 
 
 BOS improvements for Biblelator
+* Fix Unicode errors with Sword python bindings (SwordBible faults)
+* Need both forms of Sword modules (python bindings vs our code) in automatic tests
 * Cache Bible books as pickles
 * Make a class for a list of search results (being able to combine lists in various ways)
 * Start Names checking tool
