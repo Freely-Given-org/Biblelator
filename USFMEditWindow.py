@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-05-01' # by RJH
+LastModifiedDate = '2017-06-08' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -883,6 +883,14 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                     bookText = open( self.bookFilepath, 'rt', encoding=self.internalBible.encoding ).read()
                     if bookText == None:
                         showError( self, APP_NAME, _("Couldn't decode and open file {} with encoding {}").format( self.bookFilepath, self.internalBible.encoding ) )
+                    else:
+                        if bookText[0] == chr(65279): #U+FEFF
+                            logging.info( "getBookDataFromDisk: Detected Unicode (UTF-16) Byte Order Marker (BOM) in {}".format( self.bookFilepath ) )
+                            bookText = bookText[1:] # Remove the UTF-16 Unicode Byte Order Marker (BOM)
+                        elif bookText[:3] == 'ï»¿': # 0xEF,0xBB,0xBF
+                            logging.info( "getBookDataFromDisk: Detected Unicode (UTF-8) Byte Order Marker (BOM) in {}".format( self.bookFilepath ) )
+                            bookText = bookText[3:] # Remove the UTF-8 Unicode Byte Order Marker (BOM)
+                        # NOTE: We don't restore the BOM later
                     return bookText
             else:
                 showError( self, APP_NAME, _("Couldn't determine USFM filename for {!r} book").format( BBB ) )

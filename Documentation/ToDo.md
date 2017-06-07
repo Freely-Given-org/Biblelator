@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-05-11 by RJH
+Last updated: 2017-06-07 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -78,7 +78,6 @@ BOS bugs
 
 BOS improvements for Biblelator
 * Fix Unicode errors with Sword python bindings (SwordBible faults)
-* Need both forms of Sword modules (python bindings vs our code) in automatic tests
 * Cache Bible books as pickles
 * Make a class for a list of search results (being able to combine lists in various ways)
 * Start Names checking tool
@@ -178,7 +177,7 @@ Biblelator stuff
 * Allow user to show history of changes per verse (and per chapter???)
 * Write autocompletion settings load/edit routines
 * Allow autocomplete to use: Bible or Bible book, current text file, only spell-checked words, external dictionary for language, external file, etc.
-* Write spell-checking routines
+* Write spell-checking routines (use Hunspell?)
 * Write syntax colouring routines
 * Project backup to the cloud (secure Freely-Given.org server)
 * Handle automatic (background) USFM syntax checking
