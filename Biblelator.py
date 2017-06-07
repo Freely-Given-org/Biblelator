@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-05-11' # by RJH
+LastModifiedDate = '2017-06-08' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -416,7 +416,7 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext…'), underline=0, command=self.doOpenParatextProject )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatextProject )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -571,7 +571,7 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext…'), underline=0, command=self.doOpenParatextProject )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatextProject )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -2056,17 +2056,17 @@ class Application( Frame ):
         PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
-            if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
-            ptxBible.suppliedMetadata['PTX']['SSF'] = PTXSettingsDict
+            if 'PTX7' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX7'] = {}
+            ptxBible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
             ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to ptxBible.settingsDict
         #print( "ptx/ssf" )
-        #for something in ptxBible.suppliedMetadata['PTX']['SSF']:
-            #print( "  ", something, repr(ptxBible.suppliedMetadata['PTX']['SSF'][something]) )
-        try: ptxBibleName = ptxBible.suppliedMetadata['PTX']['SSF']['Name']
+        #for something in ptxBible.suppliedMetadata['PTX7']['SSF']:
+            #print( "  ", something, repr(ptxBible.suppliedMetadata['PTX7']['SSF'][something]) )
+        try: ptxBibleName = ptxBible.suppliedMetadata['PTX7']['SSF']['Name']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'Name' in " + SSFFilepath )
             self.setReadyStatus()
-        try: ptxBibleFullName = ptxBible.suppliedMetadata['PTX']['SSF']['FullName']
+        try: ptxBibleFullName = ptxBible.suppliedMetadata['PTX7']['SSF']['FullName']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'FullName' in " + SSFFilepath )
         if 'Editable' in ptxBible.suppliedMetadata and ptxBible.suppliedMetadata['Editable'] != 'T':
@@ -2075,8 +2075,8 @@ class Application( Frame ):
             return
 
         # Find the correct folder that contains the actual USFM files
-        if 'Directory' in ptxBible.suppliedMetadata['PTX']['SSF']:
-            ssfDirectory = ptxBible.suppliedMetadata['PTX']['SSF']['Directory']
+        if 'Directory' in ptxBible.suppliedMetadata['PTX7']['SSF']:
+            ssfDirectory = ptxBible.suppliedMetadata['PTX7']['SSF']['Directory']
         else:
             showError( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( ptxBibleName, ptxBibleFullName ) )
             ssfDirectory = None
@@ -2116,12 +2116,12 @@ class Application( Frame ):
         PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:
             if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
-            if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
-            ptxBible.suppliedMetadata['PTX']['SSF'] = PTXSettingsDict
+            if 'PTX7' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX7'] = {}
+            ptxBible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
             ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
 
-        if 'Directory' in ptxBible.suppliedMetadata['PTX']['SSF']:
-            ssfDirectory = ptxBible.suppliedMetadata['PTX']['SSF']['Directory']
+        if 'Directory' in ptxBible.suppliedMetadata['PTX7']['SSF']:
+            ssfDirectory = ptxBible.suppliedMetadata['PTX7']['SSF']['Directory']
         else:
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
@@ -2701,8 +2701,9 @@ class Application( Frame ):
             print( exp("spinToNewChapter( {} )").format( event ) )
         #print( dir(event) )
 
-        #self.chapterNumberVar.set( '1' )
-        self.verseNumberVar.set( '1' )
+        # Normally if we enter a new chapter number we set the verse number to 1
+        #   but for chapter zero (book intro) we set it to (line) number 0
+        self.verseNumberVar.set( '0' if self.chapterNumberVar.get()=='0' else '1' )
         self.acceptNewBnCV()
     # end of Application.spinToNewChapter
 
