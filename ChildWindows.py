@@ -35,10 +35,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-06-13' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -232,7 +232,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Can be overriden if necessary.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.createContextMenu()") )
 
         self.contextMenu = tk.Menu( self, tearoff=0 )
@@ -381,7 +381,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         """
         Display the main window (it might be minimised or covered).
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildWindow.doShowMainWindow( {} )").format( event ) )
 
         #self.parentApp.rootWindow.iconify() # Didn't help

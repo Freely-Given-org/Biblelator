@@ -69,10 +69,10 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-06-13' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1002,7 +1002,7 @@ class ChildBox():
         """
         Copy the selected text onto the clipboard.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("ChildBox.doCopy( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
@@ -1176,7 +1176,7 @@ class ChildBox():
         #"""
         #Display the main window (it might be minimised or covered).
         #"""
-        #if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("ChildBox.doShowMainWindow( {} )").format( event ) )
 
         ##self.parentApp.rootWindow.iconify() # Didn't help

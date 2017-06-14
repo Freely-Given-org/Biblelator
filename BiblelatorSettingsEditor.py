@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-27' # by RJH
+LastModifiedDate = '2017-06-13' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -693,7 +693,7 @@ class BiblelatorSettingsEditor( Frame ):
         Load the current settings for self.INIname into self.settings.data
             and then load them into the variables for our editor.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("loadSettingsIntoTabs() for {!r}").format( self.INIname ) )
 
         self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )

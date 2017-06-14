@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-03-31' # by RJH
+LastModifiedDate = '2017-06-13' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -393,7 +393,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
         We're still waiting for the filename.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleReferenceCollectionWindow.setFolderPath( {!r} )").format( newFolderPath ) )
             assert self.filename is None
             assert self.filepath is None
@@ -576,7 +576,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
         """
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
@@ -596,7 +596,7 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
 
         Leaves the textbox in the disabled state.
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleReferenceCollectionWindow.updateShownReferences( {} ) for".format( newReferencesVerseKeys ), self.moduleID )
             #print( "contextViewMode", self._contextViewMode )
             assert isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None

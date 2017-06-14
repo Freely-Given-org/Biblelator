@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-06-07 by RJH
+Last updated: 2017-06-08 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,8 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* WHY DID GLOBAL SEARCH/REPLACE CAUSE DUPLICATE LINES IN BOOK ALREADY EDITED
+* Prevent user from typing before start-up is finished
 * Make Bible find work on USFM files in USFM edit window (not on the internal Bible which already has some fixes)
 * USFM edit window still displays previous book when stepping to a non-existent book (and cancel create new file)
 * Enter a bookname, tab across enter a chapter number then enter, but it always goes to chapter 1 :(

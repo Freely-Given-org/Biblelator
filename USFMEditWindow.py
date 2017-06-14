@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-06-08' # by RJH
+LastModifiedDate = '2017-06-13' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.41'
@@ -1722,7 +1722,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #"""
         #Display a help box.
         #"""
-        #if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("USFMEditWindow.doHelp( {} )").format( event ) )
         #from Help import HelpBox
 
@@ -1739,7 +1739,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         #"""
         #Display an about box.
         #"""
-        #if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("USFMEditWindow.doAbout( {} )").format( event ) )
         #from About import AboutBox
 
