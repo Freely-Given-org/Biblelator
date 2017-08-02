@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-06-08' # by RJH
+LastModifiedDate = '2017-07-01' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -2542,7 +2542,7 @@ class Application( Frame ):
             print( exp("doGotoNextChapter( {} ) from {} {}:{}").format( event, BBB, C, V ) )
             self.setDebugText( "doGotoNextChapter…" )
         intC = int( C )
-        if intC < self.maxChaptersThisBook:
+        if self.maxChaptersThisBook is not None and intC < self.maxChaptersThisBook:
             self.maxVersesThisChapter = self.getNumVerses( BBB, intC+1 )
             self.gotoBCV( BBB, intC+1, '0' )
         else: self.doGotoNextBook()
@@ -2620,7 +2620,7 @@ class Application( Frame ):
         infoString = 'Current location:\n' \
                  + '  {}\n'.format( self.currentVerseKey.getShortText() ) \
                  + '  {} verses in chapter\n'.format( self.maxVersesThisChapter ) \
-                 + '  {} chapters in book\n'.format( "No" if self.maxChaptersThisBook is None else self.maxChaptersThisBook ) \
+                 + '  {} chapters in book\n'.format( "No" if self.maxChaptersThisBook is None or self.maxChaptersThisBook==0 else self.maxChaptersThisBook ) \
                  + '\nCurrent references:\n' \
                  + '  A: {}\n'.format( self.GroupA_VerseKey.getShortText() ) \
                  + '  B: {}\n'.format( self.GroupB_VerseKey.getShortText() ) \
@@ -2784,7 +2784,7 @@ class Application( Frame ):
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
         self.update_idletasks() # Try to make the main window respond even before child windows can react
         if BibleOrgSysGlobals.debugFlag:
-            if self.bookNumberTable[BBB] > 0: # Preface and stuff might fail this
+            if self.bookNumberTable[BBB] > 0: # Preface and glossary, etc. might fail this
                 assert self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True )
         if self.haveSwordResourcesOpen():
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
@@ -2857,6 +2857,7 @@ class Application( Frame ):
 
         BBB, C, V = self.currentVerseKey.getBCV()
         self.maxChaptersThisBook = self.getNumChapters( BBB )
+        #if self.maxChaptersThisBook is None: self.maxChaptersThisBook = 0
         self.chapterSpinbox['to'] = self.maxChaptersThisBook
         self.maxVersesThisChapter = self.getNumVerses( BBB, C )
         self.verseSpinbox['to'] = self.maxVersesThisChapter
@@ -2894,7 +2895,8 @@ class Application( Frame ):
                                             .format( self.maxChaptersThisBook, bookName )
         except AttributeError: pass
 
-        verseList = self.genericBibleOrganisationalSystem.getNumVersesList( BBB )
+        try: verseList = self.genericBibleOrganisationalSystem.getNumVersesList( BBB )
+        except KeyError: verseList = [9999] # Some "books" don't have chapters, e.g., FRT, GLS, etc.
         totalVerses, passedVerses = 0, intV
         for j,verseCount in enumerate( verseList ):
             totalVerses += verseCount
