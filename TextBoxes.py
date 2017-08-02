@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-06-13' # by RJH
+LastModifiedDate = '2017-07-31' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.41'
@@ -1634,7 +1634,9 @@ class BibleBox( ChildBox ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleBox.doBibleFind( {} )").format( event ) )
 
-        if self.internalBible is None:
+        try: haveInternalBible = self.internalBible is not None
+        except AttributeError: haveInternalBible = False
+        if not haveInternalBible:
             logging.critical( _("No Bible to search") )
             return
         #print( "intBib", self.internalBible )
