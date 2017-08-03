@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-07-01' # by RJH
+LastModifiedDate = '2017-08-04' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -61,7 +61,7 @@ from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBooknameField
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings, \
@@ -2714,12 +2714,12 @@ class Application( Frame ):
 
         We also allow the user to enter a reference (e.g. "Gn 1:1" or even "2 2" into the bookname box).
         """
-        enteredBookname = self.bookNameVar.get()
+        enteredBooknameField = self.bookNameVar.get()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBookname ) )
+            print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBooknameField ) )
             #print( dir(event) )
 
-        BBB, C, V = parseEnteredBookname( enteredBookname, self.currentVerseKey.getBBB(),
+        BBB, C, V = parseEnteredBooknameField( enteredBooknameField, self.currentVerseKey.getBBB(),
                                     self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
         # Note that C and V have NOT been tested to see if they are valid for this book
 
@@ -2727,7 +2727,9 @@ class Application( Frame ):
             self.setErrorStatus( _("Unable to determine book name") )
             self.bookNameBox.focus_set()
         else:
-            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "acceptNewBnCV {} {}:{}".format( enteredBookname, C, V ) )
+            if BibleOrgSysGlobals.debugFlag:
+                self.setDebugText( "acceptNewBnCV {} {}:{} from {!r}".format( BBB, C, V, enteredBooknameField ) )
+            assert BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( BBB )
             self.bookNumberVar.set( self.bookNumberTable[BBB] )
             self.bookNameVar.set( self.getGenericBookName(BBB) )
             self.gotoBCV( BBB, C, V, 'acceptNewBnCV' )
