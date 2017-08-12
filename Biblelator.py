@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-04' # by RJH
+LastModifiedDate = '2017-08-12' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -785,9 +785,25 @@ class Application( Frame ):
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChaptersThisBook )
+
+        # valid percent substitutions (from the Tk entry man page)
+                # Note: you only have to register the ones you need
+                #
+                # %d = Type of action (1=insert, 0=delete, -1 for others)
+                # %i = index of char string to be inserted/deleted, or -1
+                # %P = value of the entry if the edit is allowed
+                # %s = value of entry prior to editing
+                # %S = the text string being inserted or deleted, if any
+                # %v = the type of validation that is currently set
+                # %V = the type of validation that triggered the callback
+                #      (key, focusin, focusout, forced)
+                # %W = the tk name of the widget
+        vcmd = ( self.register( self.validateChapterNumberEntry ), '%d', '%P' )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook,
-                                         textvariable=self.chapterNumberVar, command=self.spinToNewChapter )
+                                          textvariable=self.chapterNumberVar, command=self.spinToNewChapter,
+                                          validate='key', validatecommand=vcmd )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
+        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlus )
         self.chapterSpinbox.pack( side=tk.LEFT )
 
         #self.chapterNumberVar = tk.StringVar()
@@ -802,17 +818,14 @@ class Application( Frame ):
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
         #print( "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
+
+        vcmd = ( self.register( self.validateVerseNumberEntry ), '%d', '%P' )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter,
-                                       textvariable=self.verseNumberVar, command=self.acceptNewBnCV )
+                                        textvariable=self.verseNumberVar, command=self.acceptNewBnCV,
+                                        validate='key', validatecommand=vcmd )
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
         self.verseSpinbox.pack( side=tk.LEFT )
-
-        #self.verseNumberVar = tk.StringVar()
-        #self.verseNumberVar.set( '1' )
-        #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
-        #self.verseNumberBox['width'] = 3
-        #self.verseNumberBox.pack()
 
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
@@ -899,9 +912,26 @@ class Application( Frame ):
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChaptersThisBook )
+
+        # valid percent substitutions (from the Tk entry man page)
+                # note: you only have to register the ones you need; this
+                # example registers them all for illustrative purposes
+                #
+                # %d = Type of action (1=insert, 0=delete, -1 for others)
+                # %i = index of char string to be inserted/deleted, or -1
+                # %P = value of the entry if the edit is allowed
+                # %s = value of entry prior to editing
+                # %S = the text string being inserted or deleted, if any
+                # %v = the type of validation that is currently set
+                # %V = the type of validation that triggered the callback
+                #      (key, focusin, focusout, forced)
+                # %W = the tk name of the widget
+        vcmd = ( self.register( self.validateChapterNumberEntry ), '%d', '%P' )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook,
-                                         textvariable=self.chapterNumberVar, command=self.spinToNewChapter )
+                                          textvariable=self.chapterNumberVar, command=self.spinToNewChapter,
+                                          validate='key', validatecommand=vcmd )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
+        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlus )
         #self.chapterSpinbox.pack( side=tk.LEFT )
 
         Style().configure( 'chapterNumber.TButton', background='brown' )
@@ -920,9 +950,12 @@ class Application( Frame ):
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
         #print( "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
+
+        vcmd = ( self.register( self.validateVerseNumberEntry ), '%d', '%P' )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter,
-                                       textvariable=self.verseNumberVar, command=self.acceptNewBnCV )
+                                        textvariable=self.verseNumberVar, command=self.acceptNewBnCV,
+                                        validate='key', validatecommand=vcmd )
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
         #self.verseSpinbox.pack( side=tk.LEFT )
 
@@ -2706,6 +2739,57 @@ class Application( Frame ):
         self.verseNumberVar.set( '0' if self.chapterNumberVar.get()=='0' else '1' )
         self.acceptNewBnCV()
     # end of Application.spinToNewChapter
+
+    def spinToNewChapterPlus( self, event=None ):
+        """
+        Handle a new chapter setting from the GUI spinbox
+            and then set focus to verse number box.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("spinToNewChapterPlus( {} )").format( event ) )
+        #print( dir(event) )
+
+        self.spinToNewChapter()
+        self.verseSpinbox.focus()
+    # end of Application.spinToNewChapter
+
+
+    def validateChapterNumberEntry( self, actionCode, potentialString ):
+        """
+        Check that they're typing a valid chapter number.
+
+        Must return True (allowed) or False (disallowed).
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("validateChapterNumberEntry( {!r}, {!r} )").format( actionCode, potentialString ) )
+        #print( dir(event) )
+
+        if len( potentialString ) > 3: return False # No chapter numbers greater than 999
+        if actionCode=='0' and potentialString=='': return True # Allow "delete everything"
+        if potentialString.isdigit() \
+        and ( self.maxChaptersThisBook is None or int(potentialString) <= self.maxChaptersThisBook ):
+            return True
+        return False
+    # end of Application.validateChapterNumberEntry
+
+
+    def validateVerseNumberEntry( self, actionCode, potentialString ):
+        """
+        Check that they're typing a valid verse number.
+
+        Must return True (allowed) or False (disallowed).
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("validateVerseNumberEntry( {!r}, {!r} )").format( actionCode, potentialString ) )
+        #print( dir(event) )
+
+        if len( potentialString ) > 3: return False # No chapter numbers greater than 999
+        if actionCode=='0' and potentialString=='': return True # Allow "delete everything"
+        if potentialString.isdigit() \
+        and ( self.maxVersesThisChapter is None or int(potentialString) <= self.maxVersesThisChapter ):
+            return True
+        return False
+    # end of Application.validateVerseNumberEntry
 
 
     def acceptNewBnCV( self, event=None ):

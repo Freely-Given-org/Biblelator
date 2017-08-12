@@ -45,7 +45,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11'
+LastModifiedDate = '2017-08-12'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.40'
@@ -1263,7 +1263,8 @@ class GetBibleFindTextDialog( ModalDialog ):
         self.theseMarkersListVar = tk.StringVar()
         self.theseMarkersListVar.set( ','.join(mkr for mkr in self.optionsDict['markerList']) if self.optionsDict['markerList'] else '' )
         registeredFunction = self.register( self.doMarkerListentry )
-        theseMarkersEntry = BEntry( master, textvariable=self.theseMarkersListVar, validate='all', validatecommand=(registeredFunction,'%P') )
+        theseMarkersEntry = BEntry( master, textvariable=self.theseMarkersListVar,
+                                    validate='all', validatecommand=(registeredFunction,'%P') )
         theseMarkersEntry.pack( in_=markerListFrame, side=tk.RIGHT, padx=2, pady=1 )
 
         return self.searchStringBox # initial focus

@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-08-08 by RJH
+Last updated: 2017-08-12 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Find with regex doesn't seem to work great (maybe something to do with case???)
 * Typing Ctrl chars (e.g., Ctrl+F) in autocomplete box closes box, but adds icons to the text.
 * Editing bridged verse caused it to be added twice!!!
 * Was it Biblelator that lost the last verse in a chapter???
@@ -40,7 +41,6 @@ Biblelator bugs / unfinished
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
 * Remember position of last find box
-* Either allow space then verse number in chapter number box, or prevent typing of spaces completely (and in verse number box)
 * Add illegal character beep function?
 * Get extended find box working better -- need to show whole verse somehow (why can't right click or something?)
 * Sort out USFM styles for current verse / formatted / unformatted etc.
@@ -195,7 +195,6 @@ Biblelator stuff
 * Investigate integrating more online resources
 * From a Bible edit window, have a menu item to view the current chapter/section typeset on a page (pop-up window)
 * Improve the about page(s)
-* Turn chapter/verse spin buttons 90 degrees (maybe)
 * Learn how to install Biblelator on OS X
 * Create back-translation windows with special features
 * Allow more settings to be edited within the program (full settings editor)
