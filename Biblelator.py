@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-12' # by RJH
+LastModifiedDate = '2017-08-14' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -50,7 +50,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Label
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
@@ -779,6 +779,7 @@ class Application( Frame ):
                                                                         values=self.bookNames )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookNameField )
         self.bookNameBox.bind( '<Return>', self.acceptNewBookNameField )
+        self.bookNameBox.bind( '<FocusIn>', self.focusInBookNameField )
         self.bookNameBox.pack( side=tk.LEFT )
 
         self.chapterNumberVar = tk.StringVar()
@@ -803,14 +804,9 @@ class Application( Frame ):
                                           textvariable=self.chapterNumberVar, command=self.spinToNewChapter,
                                           validate='key', validatecommand=vcmd )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlus )
+        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlusJump )
+        self.chapterSpinbox.bind( '<FocusIn>', self.focusInChapterField )
         self.chapterSpinbox.pack( side=tk.LEFT )
-
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
 
         self.verseNumberVar = tk.StringVar()
         self.verseNumberVar.set( '1' )
@@ -825,6 +821,7 @@ class Application( Frame ):
                                         textvariable=self.verseNumberVar, command=self.acceptNewBnCV,
                                         validate='key', validatecommand=vcmd )
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
+        self.verseSpinbox.bind( '<FocusIn>', self.focusInVerseField )
         self.verseSpinbox.pack( side=tk.LEFT )
 
         self.wordVar = tk.StringVar()
@@ -931,18 +928,12 @@ class Application( Frame ):
                                           textvariable=self.chapterNumberVar, command=self.spinToNewChapter,
                                           validate='key', validatecommand=vcmd )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlus )
+        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlusJump )
         #self.chapterSpinbox.pack( side=tk.LEFT )
 
         Style().configure( 'chapterNumber.TButton', background='brown' )
         self.chapterNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='chapterNumber.TButton', command=self.doChapterNumberButton )
         self.chapterNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
 
         self.verseNumberVar = tk.StringVar()
         self.verseNumberVar.set( '1' )
@@ -2670,6 +2661,46 @@ class Application( Frame ):
     # end of Application.doShowInfo
 
 
+    def focusInBookNameField( self, event=None ):
+        """
+        Callback for when book name field (COMBOBOX) is given focus.
+
+        We want it to default to ALL TEXT SELECTED.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("focusInBookNameField( {} )").format( event ) )
+
+        self.bookNameBox.selection_range( 0, tk.END )
+        return tkBREAK # prevent default processsing
+    # end of Application.focusInBookNameField
+
+    def focusInChapterField( self, event=None ):
+        """
+        Callback for when chapter number field (SPINBOX) is given focus.
+
+        We want it to default to ALL TEXT SELECTED.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("focusInChapterField( {} )").format( event ) )
+
+        self.chapterSpinbox.selection( 'range', 0, tk.END )
+        return tkBREAK # prevent default processsing
+    # end of Application.focusInChapterField
+
+    def focusInVerseField( self, event=None ):
+        """
+        Callback for when verse number field (SPINBOX) is given focus.
+
+        We want it to default to ALL TEXT SELECTED.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("focusInVerseField( {} )").format( event ) )
+
+        self.verseSpinbox.selection( 'range', 0, tk.END )
+        return tkBREAK # prevent default processsing
+    # end of Application.focusInVerseField
+
+
     def acceptNewBookNameField( self, event=None ):
         """
         Handle a new book setting (or even BCV) from the GUI bookName dropbox.
@@ -2740,18 +2771,18 @@ class Application( Frame ):
         self.acceptNewBnCV()
     # end of Application.spinToNewChapter
 
-    def spinToNewChapterPlus( self, event=None ):
+    def spinToNewChapterPlusJump( self, event=None ):
         """
         Handle a new chapter setting from the GUI spinbox
             and then set focus to verse number box.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("spinToNewChapterPlus( {} )").format( event ) )
+            print( exp("spinToNewChapterPlusJump( {} )").format( event ) )
         #print( dir(event) )
 
         self.spinToNewChapter()
         self.verseSpinbox.focus()
-    # end of Application.spinToNewChapter
+    # end of Application.spinToNewChapterPlusJump
 
 
     def validateChapterNumberEntry( self, actionCode, potentialString ):

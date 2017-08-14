@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-08-12 by RJH
+Last updated: 2017-08-15 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -52,7 +52,6 @@ Biblelator bugs / unfinished
 * Make Bible find default to any currently selected text in edit window?
 * Bible find can't seem to jump to GLO lines
 * Bible replace needs more work on reloading open books/Bibles
-* Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource, doing Bible checks, etc, etc.
 * Can't undo USFM Bible edit once moved cursor
