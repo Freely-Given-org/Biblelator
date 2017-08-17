@@ -45,10 +45,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-12'
+LastModifiedDate = '2017-08-18'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -640,7 +640,7 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         ##self.cb.current( 0 )
         #self.cb2.grid( row=8, column=1 )
 
-        return self.rb1a # initial focus
+        return rb1a # initial focus
     # end of CreateNewProjectFilesDialog.apply
 
 
