@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-05-02' # by RJH
+LastModifiedDate = '2017-08-22' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.41'
@@ -412,9 +412,10 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 if folderPath[-1] not in '/\\': folderPath += '/'
                 rw = self.openBiblelatorBibleEditWindow( folderPath, thisStuff['EditMode'], windowGeometry )
                 #except: logging.critical( "Unable to read all BiblelatorUSFMBibleEditWindow {} settings".format( j ) )
-            elif windowType == 'ParatextUSFMBibleEditWindow':
-                rw = self.openParatextBibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
-                #except: logging.critical( "Unable to read all ParatextUSFMBibleEditWindow {} settings".format( j ) )
+            elif windowType == 'Paratext7USFMBibleEditWindow' \
+            or windowType == 'ParatextUSFMBibleEditWindow': # This 2nd alternative can be deleted after a week or two
+                rw = self.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
+                #except: logging.critical( "Unable to read all Paratext7USFMBibleEditWindow {} settings".format( j ) )
             elif windowType == 'ESFMEditWindow':
                 folderPath = thisStuff['ESFMFolder']
                 if folderPath[-1] not in '/\\': folderPath += '/'
@@ -424,6 +425,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
             else:
                 logging.critical( exp("applyGivenWindowsSettings: Unknown {} window type").format( repr(windowType) ) )
                 if BibleOrgSysGlobals.debugFlag: halt
+                rw = None
 
             if rw is None:
                 logging.critical( exp("applyGivenWindowsSettings: Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
@@ -524,7 +526,7 @@ def getCurrentChildWindowSettings( self ):
         elif appWin.windowType == 'BiblelatorUSFMBibleEditWindow':
             thisOne['ProjectFolderPath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
-        elif appWin.windowType == 'ParatextUSFMBibleEditWindow':
+        elif appWin.windowType == 'Paratext7USFMBibleEditWindow':
             thisOne['SSFFilepath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
 

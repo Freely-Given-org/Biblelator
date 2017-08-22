@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-14' # by RJH
+LastModifiedDate = '2017-08-22' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -416,7 +416,7 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatextProject )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatext7Project )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -571,7 +571,7 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatextProject )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatext7Project )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -2054,19 +2054,19 @@ class Application( Frame ):
     ## end of Application.doOpenBibleditProject
 
 
-    def doOpenParatextProject( self ):
+    def doOpenParatext7Project( self ):
         """
-        Open the Paratext Bible project (called from a menu/GUI action).
+        Open the Paratext 7 Bible project (called from a menu/GUI action).
 
         Requests a SSF file from the user.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("doOpenParatextProject()") )
-            self.setDebugText( "doOpenParatextProject…" )
+            print( exp("doOpenParatext7Project()") )
+            self.setDebugText( "doOpenParatext7Project…" )
 
-        self.setWaitStatus( _("doOpenParatextProject…") )
+        self.setWaitStatus( _("doOpenParatext7Project…") )
         #if not self.openDialog:
-        openDialog = Open( title=_("Select project settings (XML or SSF) file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
+        openDialog = Open( title=_("Select project settings SSF file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
         SSFFilepath = openDialog.show()
         if not SSFFilepath:
             self.setReadyStatus()
@@ -2109,33 +2109,33 @@ class Application( Frame ):
                 showWarning( self, APP_NAME, 'SSF project {} ({}) folder {!r} not found on this system -- trying folder below SSF instead'.format( ptxBibleName, ptxBibleFullName, ssfDirectory ) )
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( "doOpenParatextProject: Not MS-Windows" )
-                    print( 'doOpenParatextProject: ssD1', repr(ssfDirectory) )
+                    print( "doOpenParatext7Project: Not MS-Windows" )
+                    print( 'doOpenParatext7Project: ssD1', repr(ssfDirectory) )
                 slash = '\\' if '\\' in ssfDirectory else '/'
                 if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
                 ix = ssfDirectory.rfind( slash ) # Find the last slash
                 if ix!= -1:
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
-                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'doOpenParatextProject: ssD2', repr(ssfDirectory) )
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'doOpenParatext7Project: ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
                         showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
                         return
-        self.openParatextBibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
+        self.openParatext7BibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
         self.addRecentFile( (SSFFilepath,SSFFilepath,'ParatextBibleEditWindow') )
-    # end of Application.doOpenParatextProject
+    # end of Application.doOpenParatext7Project
 
-    def openParatextBibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
+    def openParatext7BibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
         """
         Create the actual requested local Paratext Bible project window.
 
         Returns the new USFMEditWindow object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("openParatextBibleEditWindow( {!r} )").format( SSFFilepath ) )
-            self.setDebugText( "openParatextBibleEditWindow…" )
+            print( exp("openParatext7BibleEditWindow( {!r} )").format( SSFFilepath ) )
+            self.setDebugText( "openParatext7BibleEditWindow…" )
             assert os.path.isfile( SSFFilepath )
 
-        self.setWaitStatus( _("openParatextBibleEditWindow…") )
+        self.setWaitStatus( _("openParatext7BibleEditWindow…") )
         ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
         PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
         if PTXSettingsDict:
@@ -2151,8 +2151,8 @@ class Application( Frame ):
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    #print( "openParatextBibleEditWindow: Not windows" )
-                    #print( 'openParatextBibleEditWindow: ssD1', repr(ssfDirectory) )
+                    #print( "openParatext7BibleEditWindow: Not windows" )
+                    #print( 'openParatext7BibleEditWindow: ssD1', repr(ssfDirectory) )
                 slash = '\\' if '\\' in ssfDirectory else '/'
                 if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
                 ix = ssfDirectory.rfind( slash ) # Find the last slash
@@ -2168,26 +2168,26 @@ class Application( Frame ):
 
         uEW = USFMEditWindow( self, ptxBible, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
-        uEW.windowType = 'ParatextUSFMBibleEditWindow' # override the default
+        uEW.windowType = 'Paratext7USFMBibleEditWindow' # override the default
         uEW.moduleID = SSFFilepath
         uEW.setFilepath( SSFFilepath )
         uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
         self.childWindows.append( uEW )
         if uEW.autocompleteMode: uEW.prepareAutocomplete()
 
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatextBibleEditWindow" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatext7BibleEditWindow" )
         self.setReadyStatus()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("openParatextBibleEditWindow finished.") )
+            print( exp("openParatext7BibleEditWindow finished.") )
         return uEW
-    # end of Application.openParatextBibleEditWindow
+    # end of Application.openParatext7BibleEditWindow
 
 
     #def doProjectExports( self ):
     #    """
     #    Taking the
     #    """
-    ## end of Application.openParatextBibleEditWindow
+    ## end of Application.doProjectExports
 
 
     def doGoBackward( self, event=None ):
@@ -3599,7 +3599,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     hadAny = False
     file1Name, file2Name =  _("Bible file"), _("Autosaved file")
     for num in currentWindowDict:
-        if currentWindowDict[num]['Type'] == 'ParatextUSFMBibleEditWindow':
+        if currentWindowDict[num]['Type'] == 'Paratext7USFMBibleEditWindow':
             ssfFilepath = currentWindowDict[num]['SSFFilepath']
             ssfFolder, ssfFilename = os.path.split( ssfFilepath )
             #print( "ssfFolder", ssfFolder )

@@ -167,7 +167,7 @@ class ToolsOptionsDialog( ModalDialog ):
 class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
     """
     self.genericWindowType will be BibleEditor
-    self.windowType will be BiblelatorUSFMBibleEditWindow or ParatextUSFMBibleEditWindow
+    self.windowType will be BiblelatorUSFMBibleEditWindow or Paratext7USFMBibleEditWindow
 
     Even though it contains a link to an USFMBible (InternalBible) object,
         this class always works directly with the USFM (text) files for editing
