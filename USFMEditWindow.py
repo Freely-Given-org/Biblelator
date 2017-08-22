@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-06-13' # by RJH
+LastModifiedDate = '2017-08-22' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.41'
@@ -47,7 +47,7 @@ from tkinter.ttk import Style, Notebook, Frame, Label, Radiobutton
 from BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                                 errorBeep
 from ModalDialog import ModalDialog
-from BiblelatorSimpleDialogs import showError, showInfo
+from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import OkCancelDialog, YesNoDialog, GetBibleReplaceTextDialog, ReplaceConfirmDialog
 from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBook, \
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
@@ -176,11 +176,12 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
     def __init__( self, parentApp, USFMBible, editMode=None ):
         """
         """
-        logging.debug( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
+        UBSourceFolder = USFMBible.sourceFolder if USFMBible else None
+        logging.debug( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, UBSourceFolder ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, USFMBible.sourceFolder ) )
+            print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, UBSourceFolder ) )
         self.parentApp = parentApp
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( USFMBible.sourceFolder ) )
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( UBSourceFolder ) )
 
         # Set some dummy values required soon (esp. by refreshTitle)
         #self.defaultContextViewMode = BIBLE_CONTEXT_VIEW_MODES[0] # BeforeAndAfter
@@ -883,6 +884,8 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
                     bookText = open( self.bookFilepath, 'rt', encoding=self.internalBible.encoding ).read()
                     if bookText == None:
                         showError( self, APP_NAME, _("Couldn't decode and open file {} with encoding {}").format( self.bookFilepath, self.internalBible.encoding ) )
+                    elif bookText == '':
+                        showWarning( self, APP_NAME, _("Seems that file {} with encoding {} is EMPTY").format( self.bookFilepath, self.internalBible.encoding ) )
                     else:
                         if bookText[0] == chr(65279): #U+FEFF
                             logging.info( "getBookDataFromDisk: Detected Unicode (UTF-16) Byte Order Marker (BOM) in {}".format( self.bookFilepath ) )
