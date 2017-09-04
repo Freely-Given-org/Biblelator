@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2016-04-25 RJH
+Last updated: 2016-09-04 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -155,11 +155,12 @@ For an overview of the program design philosophy, see Development.md.
 
 10. Bible Groups
 
-    Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All
+    Biblelator has five group codes (A,B,C,D,E) that Bible windows can be assigned to. All
     new windows are assigned to group A by default but this can be easily changed. Each
     group can be set to a different reference, e.g., if group A windows are in Matthew,
     group B windows might be displaying a reference in Isaiah that was quoted by Matthew.
 
     In the future, there will be automatic ways to display OT references (like the above
     example -- at the moment it must be set-up by hand) and also to display synoptic
-    gospel references.
+    gospel references, e.g., by having separate Bible windows open in groups A,B,C,D
+    automatically displaying parallels in Matthew, Mark, Luke, and John.
