@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2016-06-14 RJH
+Last updated: 2017-09-06 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -166,6 +166,12 @@ follow my own instructions on a different computer.
         depending on your Python3 version number and how it was installed.
     This test run of the program should display the Biblelator command prompt
         help page and then exit immediately.
+    Note that the --strict flag is part of the Bible Organisational System
+        usually used for strict checking of data files where you want to halt
+        even if there's a small error. You usually don't want this behaviour
+        in an editor so it's not recommended for Biblelator.
+    Note that multiprocessing is currently disabled, so the --single flag
+        currently does nothing.
 
 
 13. Run Biblelator in the normal mode for normal working.

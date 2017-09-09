@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-08-15 by RJH
+Last updated: 2017-09-06 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -69,6 +69,7 @@ Biblelator bugs / unfinished
 * Make wording consistent between DIR and FOLDER
 * Make working consistent between FIND and SEARCH
 * When using custom sword module path, send it home so we can add it to the defaults???
+* Maybe the --strict option should be removed for Biblelator???
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)

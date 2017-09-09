@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2016-09-04 RJH
+Last updated: 2017-09-04 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -164,3 +164,26 @@ For an overview of the program design philosophy, see Development.md.
     example -- at the moment it must be set-up by hand) and also to display synoptic
     gospel references, e.g., by having separate Bible windows open in groups A,B,C,D
     automatically displaying parallels in Matthew, Mark, Luke, and John.
+
+
+11. Optional Start-up Parameters
+
+    If you start Biblelator with the --help command-line flag, the program will display
+    the available parameters which can be used and then exit immediately.
+
+    The --verbose flag can be used to get the program to display more information in
+    the start-up/terminal window, although it can easily be overwhelming. However,
+    it might be helpful to get more information in order to report a fault.
+
+    The --debug flag is usually used by programmers to display debugging information
+    and is more likely to cause the program to fail, so is not recommended for
+    normal users.
+
+    Note that the --strict flag is part of the Bible Organisational System
+    usually used for strict checking of data files where you want to halt
+    even if there's a small error. You usually don't want this behaviour
+    in an editor so it's not recommended for Biblelator.
+
+    Note that multiprocessing is currently disabled, so the --single flag
+    currently does nothing.
+
