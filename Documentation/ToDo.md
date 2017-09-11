@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-09-06 by RJH
+Last updated: 2017-09-11 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -14,6 +14,7 @@ Things nearer the top of the list are higher in priority
 smaller jobs often get done before larger ones unfortunately).
 
 Biblelator bugs / unfinished
+* Why didn't it return to same folder when opening 2nd Biblelator project ???
 * Find with regex doesn't seem to work great (maybe something to do with case???)
 * Typing Ctrl chars (e.g., Ctrl+F) in autocomplete box closes box, but adds icons to the text.
 * Editing bridged verse caused it to be added twice!!!
