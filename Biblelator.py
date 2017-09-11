@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-22' # by RJH
+LastModifiedDate = '2017-09-11' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -91,13 +91,15 @@ from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
 from PTX7Bible import PTX7Bible, loadPTX7ProjectData
+from PTX8Bible import PTX8Bible, loadPTX8ProjectData
 
 
 
 LOCK_FILENAME = '{}.lock'.format( APP_NAME )
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
 BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
-PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+PARATEXT8_FILETYPES = [('Settings files','Settings.xml'), ('All files','*')]
+PARATEXT7_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 NUM_BCV_REFERENCE_POPUP_LINES = 8
 
 
@@ -416,7 +418,8 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatext7Project )
+        submenuProjectOpenType.add_command( label=_('Paratext8…'), underline=0, command=self.doOpenParatext8Project )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -571,7 +574,8 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=0, command=self.doOpenParatext7Project )
+        submenuProjectOpenType.add_command( label=_('Paratext8…'), underline=0, command=self.doOpenParatext8Project )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -2006,7 +2010,7 @@ class Application( Frame ):
             self.setReadyStatus()
             return
         containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
-        print( '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
+        #print( '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
         if BibleOrgSysGlobals.debugFlag: assert settingsFilename == 'ProjectSettings.ini'
         self.openBiblelatorBibleEditWindow( containingFolderPath )
         self.addRecentFile( (containingFolderPath,containingFolderPath,'BiblelatorBibleEditWindow') )
@@ -2054,6 +2058,96 @@ class Application( Frame ):
     ## end of Application.doOpenBibleditProject
 
 
+    def doOpenParatext8Project( self ):
+        """
+        Open the Paratext 8 Bible project (called from a menu/GUI action).
+
+        Requests a Settings.XML file from the user.
+            (Unlike PTX7, this should be in the same folder as the
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doOpenParatext8Project()") )
+            self.setDebugText( "doOpenParatext8Project…" )
+
+        self.setWaitStatus( _("doOpenParatext8Project…") )
+        #if not self.openDialog:
+        openDialog = Open( title=_("Select project settings XML file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT8_FILETYPES )
+        settingsFilepath = openDialog.show()
+        if not settingsFilepath:
+            self.setReadyStatus()
+            return
+        if not os.path.isfile( settingsFilepath ):
+            showError( self, APP_NAME, 'Could not open file ' + settingsFilepath )
+            self.setReadyStatus()
+            return
+        ptx8Bible = PTX8Bible( None ) # Create a blank Paratext Bible object
+        settingsFolder = os.path.dirname( settingsFilepath )
+        PTXSettingsDict = loadPTX8ProjectData( ptx8Bible, settingsFolder )
+        if PTXSettingsDict:
+            if ptx8Bible.suppliedMetadata is None: ptx8Bible.suppliedMetadata = {}
+            if 'PTX8' not in ptx8Bible.suppliedMetadata: ptx8Bible.suppliedMetadata['PTX8'] = {}
+            assert 'Settings' not in ptx8Bible.suppliedMetadata['PTX8']
+            ptx8Bible.suppliedMetadata['PTX8']['Settings'] = PTXSettingsDict
+            ptx8Bible.applySuppliedMetadata( 'PTX8' ) # Copy some files to ptx8Bible.settingsDict
+        #print( "ptx/ssf" )
+        #for something in ptx8Bible.suppliedMetadata['PTX8']['Settings']:
+            #print( "  ", something, repr(ptx8Bible.suppliedMetadata['PTX8']['Settings'][something]) )
+        try: ptx8BibleName = ptx8Bible.suppliedMetadata['PTX8']['Settings']['Name']
+        except KeyError:
+            showError( self, APP_NAME, "Could not find 'Name' in " + settingsFilepath )
+            self.setReadyStatus()
+        try: ptx8BibleFullName = ptx8Bible.suppliedMetadata['PTX8']['Settings']['FullName']
+        except KeyError:
+            showError( self, APP_NAME, "Could not find 'FullName' in " + settingsFilepath )
+        if 'Editable' in ptx8Bible.suppliedMetadata and ptx8Bible.suppliedMetadata['Editable'] != 'T':
+            showError( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptx8BibleName, ptx8BibleFullName ) )
+            self.setReadyStatus()
+            return
+
+        self.openParatext8BibleEditWindow( settingsFolder ) # Has to repeat some of the above unfortunately
+        self.addRecentFile( (settingsFilepath,settingsFilepath,'Paratext8BibleEditWindow') )
+    # end of Application.doOpenParatext8Project
+
+    def openParatext8BibleEditWindow( self, settingsFolder, editMode=None, windowGeometry=None ):
+        """
+        Create the actual requested local Paratext Bible project window.
+
+        Returns the new USFMEditWindow object.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("openParatext8BibleEditWindow( {!r} )").format( settingsFolder ) )
+            self.setDebugText( "openParatext8BibleEditWindow…" )
+            assert os.path.isdir( settingsFolder )
+
+        self.setWaitStatus( _("openParatext8BibleEditWindow…") )
+        ptx8Bible = PTX8Bible( None ) # Create a blank Paratext Bible object
+        PTXSettingsDict = loadPTX8ProjectData( ptx8Bible, settingsFolder )
+        if PTXSettingsDict:
+            if ptx8Bible.suppliedMetadata is None: ptx8Bible.suppliedMetadata = {}
+            if 'PTX8' not in ptx8Bible.suppliedMetadata: ptx8Bible.suppliedMetadata['PTX8'] = {}
+            assert 'Settings' not in ptx8Bible.suppliedMetadata['PTX8']
+            ptx8Bible.suppliedMetadata['PTX8']['Settings'] = PTXSettingsDict
+            ptx8Bible.applySuppliedMetadata( 'PTX8' ) # Copy some fields to BibleObject.settingsDict
+
+        ptx8Bible.preload()
+
+        uEW = USFMEditWindow( self, ptx8Bible, editMode=editMode )
+        if windowGeometry: uEW.geometry( windowGeometry )
+        uEW.windowType = 'Paratext8USFMBibleEditWindow' # override the default
+        uEW.moduleID = settingsFolder
+        #uEW.setFilepath( settingsFilepath ) # needed ???
+        uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
+        self.childWindows.append( uEW )
+        if uEW.autocompleteMode: uEW.prepareAutocomplete()
+
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatext8BibleEditWindow" )
+        self.setReadyStatus()
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("openParatext8BibleEditWindow finished.") )
+        return uEW
+    # end of Application.openParatext8BibleEditWindow
+
+
     def doOpenParatext7Project( self ):
         """
         Open the Paratext 7 Bible project (called from a menu/GUI action).
@@ -2066,7 +2160,7 @@ class Application( Frame ):
 
         self.setWaitStatus( _("doOpenParatext7Project…") )
         #if not self.openDialog:
-        openDialog = Open( title=_("Select project settings SSF file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
+        openDialog = Open( title=_("Select project settings SSF file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT7_FILETYPES )
         SSFFilepath = openDialog.show()
         if not SSFFilepath:
             self.setReadyStatus()
@@ -2075,38 +2169,39 @@ class Application( Frame ):
             showError( self, APP_NAME, 'Could not open file ' + SSFFilepath )
             self.setReadyStatus()
             return
-        ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
-        #ptxBible.loadSSFData( SSFFilepath )
-        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
+        ptx7Bible = PTX7Bible( None ) # Create a blank Paratext Bible object
+        #ptx7Bible.loadSSFData( SSFFilepath )
+        PTXSettingsDict = loadPTX7ProjectData( ptx7Bible, SSFFilepath )
         if PTXSettingsDict:
-            if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
-            if 'PTX7' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX7'] = {}
-            ptxBible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
-            ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to ptxBible.settingsDict
+            if ptx7Bible.suppliedMetadata is None: ptx7Bible.suppliedMetadata = {}
+            if 'PTX7' not in ptx7Bible.suppliedMetadata: ptx7Bible.suppliedMetadata['PTX7'] = {}
+            assert 'SSF' not in ptx7Bible.suppliedMetadata['PTX7']
+            ptx7Bible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
+            ptx7Bible.applySuppliedMetadata( 'SSF' ) # Copy some to ptx7Bible.settingsDict
         #print( "ptx/ssf" )
-        #for something in ptxBible.suppliedMetadata['PTX7']['SSF']:
-            #print( "  ", something, repr(ptxBible.suppliedMetadata['PTX7']['SSF'][something]) )
-        try: ptxBibleName = ptxBible.suppliedMetadata['PTX7']['SSF']['Name']
+        #for something in ptx7Bible.suppliedMetadata['PTX7']['SSF']:
+            #print( "  ", something, repr(ptx7Bible.suppliedMetadata['PTX7']['SSF'][something]) )
+        try: ptx7BibleName = ptx7Bible.suppliedMetadata['PTX7']['SSF']['Name']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'Name' in " + SSFFilepath )
             self.setReadyStatus()
-        try: ptxBibleFullName = ptxBible.suppliedMetadata['PTX7']['SSF']['FullName']
+        try: ptx7BibleFullName = ptx7Bible.suppliedMetadata['PTX7']['SSF']['FullName']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'FullName' in " + SSFFilepath )
-        if 'Editable' in ptxBible.suppliedMetadata and ptxBible.suppliedMetadata['Editable'] != 'T':
-            showError( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptxBibleName, ptxBibleFullName ) )
+        if 'Editable' in ptx7Bible.suppliedMetadata and ptx7Bible.suppliedMetadata['Editable'] != 'T':
+            showError( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptx7BibleName, ptx7BibleFullName ) )
             self.setReadyStatus()
             return
 
         # Find the correct folder that contains the actual USFM files
-        if 'Directory' in ptxBible.suppliedMetadata['PTX7']['SSF']:
-            ssfDirectory = ptxBible.suppliedMetadata['PTX7']['SSF']['Directory']
+        if 'Directory' in ptx7Bible.suppliedMetadata['PTX7']['SSF']:
+            ssfDirectory = ptx7Bible.suppliedMetadata['PTX7']['SSF']['Directory']
         else:
-            showError( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( ptxBibleName, ptxBibleFullName ) )
+            showError( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( ptx7BibleName, ptx7BibleFullName ) )
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if ssfDirectory is not None:
-                showWarning( self, APP_NAME, 'SSF project {} ({}) folder {!r} not found on this system -- trying folder below SSF instead'.format( ptxBibleName, ptxBibleFullName, ssfDirectory ) )
+                showWarning( self, APP_NAME, 'SSF project {} ({}) folder {!r} not found on this system -- trying folder below SSF instead'.format( ptx7BibleName, ptx7BibleFullName, ssfDirectory ) )
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                     print( "doOpenParatext7Project: Not MS-Windows" )
@@ -2118,10 +2213,10 @@ class Application( Frame ):
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
                     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'doOpenParatext7Project: ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
-                        showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
+                        showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptx7BibleName ) )
                         return
         self.openParatext7BibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
-        self.addRecentFile( (SSFFilepath,SSFFilepath,'ParatextBibleEditWindow') )
+        self.addRecentFile( (SSFFilepath,SSFFilepath,'Paratext7BibleEditWindow') )
     # end of Application.doOpenParatext7Project
 
     def openParatext7BibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
@@ -2136,16 +2231,17 @@ class Application( Frame ):
             assert os.path.isfile( SSFFilepath )
 
         self.setWaitStatus( _("openParatext7BibleEditWindow…") )
-        ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
-        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
+        ptx7Bible = PTX7Bible( None ) # Create a blank Paratext Bible object
+        PTXSettingsDict = loadPTX7ProjectData( ptx7Bible, SSFFilepath )
         if PTXSettingsDict:
-            if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
-            if 'PTX7' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX7'] = {}
-            ptxBible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
-            ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
+            if ptx7Bible.suppliedMetadata is None: ptx7Bible.suppliedMetadata = {}
+            if 'PTX7' not in ptx7Bible.suppliedMetadata: ptx7Bible.suppliedMetadata['PTX7'] = {}
+            assert 'SSF' not in ptx7Bible.suppliedMetadata['PTX7']
+            ptx7Bible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
+            ptx7Bible.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
 
-        if 'Directory' in ptxBible.suppliedMetadata['PTX7']['SSF']:
-            ssfDirectory = ptxBible.suppliedMetadata['PTX7']['SSF']['Directory']
+        if 'Directory' in ptx7Bible.suppliedMetadata['PTX7']['SSF']:
+            ssfDirectory = ptx7Bible.suppliedMetadata['PTX7']['SSF']['Directory']
         else:
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
@@ -2163,10 +2259,10 @@ class Application( Frame ):
             showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ssfDirectory ) )
             self.setReadyStatus()
             return
-        ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
-        ptxBible.preload()
+        ptx7Bible.sourceFolder = ptx7Bible.sourceFilepath = ssfDirectory
+        ptx7Bible.preload()
 
-        uEW = USFMEditWindow( self, ptxBible, editMode=editMode )
+        uEW = USFMEditWindow( self, ptx7Bible, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
         uEW.windowType = 'Paratext7USFMBibleEditWindow' # override the default
         uEW.moduleID = SSFFilepath
@@ -3208,7 +3304,7 @@ class Application( Frame ):
             return var
         # end of makeFormRow
 
-        # nonmodal dialog: get dirnname, filenamepatt, grepkey
+        # nonmodal dialog: get dirname, filenamepatt, grepkey
         popup = tk.Toplevel()
         popup.title( _('PyEdit - grep') )
         var1 = makeFormRow( popup, label=_('Directory root'),   width=18, browse=False)
@@ -3599,13 +3695,37 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     hadAny = False
     file1Name, file2Name =  _("Bible file"), _("Autosaved file")
     for num in currentWindowDict:
-        if currentWindowDict[num]['Type'] == 'Paratext7USFMBibleEditWindow':
-            ssfFilepath = currentWindowDict[num]['SSFFilepath']
-            ssfFolder, ssfFilename = os.path.split( ssfFilepath )
-            #print( "ssfFolder", ssfFolder )
-            ssfName = ssfFilename[:-4]
-            print( '\n' + _("Seems you might have been editing {}").format( ssfName ) )
-            projectFolder = os.path.join( ssfFolder+'/', ssfName+'/' )
+        if currentWindowDict[num]['Type'] == 'BiblelatorUSFMBibleEditWindow':
+            projectFolder = currentWindowDict[num]['ProjectFolderPath']
+            print( '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
+            # Look for an Autosave folder
+            autosaveFolderPath = os.path.join( projectFolder, 'AutoSave/' )
+            if os.path.exists( autosaveFolderPath ):
+                print( '    ' + _("Checking in {}").format( autosaveFolderPath ) )
+                for something in os.listdir( autosaveFolderPath ):
+                    somepath = os.path.join( autosaveFolderPath, something )
+                    #if os.path.isdir( somepath ): foundFolders.append( something )
+                    if os.path.isfile( somepath ):
+                        filepath = os.path.join( projectFolder, something )
+                        if os.path.exists( filepath ):
+                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
+                            #print( resultDict )
+                            haveSuggestions = False
+                            for someKey,someValue in resultDict['Summary'].items():
+                                if someValue.startswith( 'file2' ): # autosave file might be important
+                                    haveSuggestions = True
+                            if haveSuggestions:
+                                print( '      ' + _("Comparing file1 {}").format( filepath ) )
+                                print( '      ' + _("     with file2 {}").format( somepath ) )
+                                for someKey,someValue in resultDict['Summary'].items():
+                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                hadAny = True
+        elif currentWindowDict[num]['Type'] == 'Paratext8USFMBibleEditWindow':
+            settingsFolder = currentWindowDict[num]['ProjectFolder']
+            possibleName = os.path.dirname( settingsFolder )
+            print( '\n' + _("Seems you might have been editing {}").format( possibleName ) )
+            projectFolder = settingsFolder
             # Look for an Autosave folder
             autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
             if os.path.exists( autosaveFolderPath ):
@@ -3629,12 +3749,15 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
                                 for someKey,someValue in resultDict['Summary'].items():
                                     print( '        {}: {}'.format( someKey, someValue ) )
                                 hadAny = True
-
-        elif currentWindowDict[num]['Type'] == 'BiblelatorUSFMBibleEditWindow':
-            projectFolder = currentWindowDict[num]['ProjectFolderPath']
-            print( '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
+        elif currentWindowDict[num]['Type'] == 'Paratext7USFMBibleEditWindow':
+            ssfFilepath = currentWindowDict[num]['SSFFilepath']
+            ssfFolder, ssfFilename = os.path.split( ssfFilepath )
+            #print( "ssfFolder", ssfFolder )
+            ssfName = ssfFilename[:-4]
+            print( '\n' + _("Seems you might have been editing {}").format( ssfName ) )
+            projectFolder = os.path.join( ssfFolder+'/', ssfName+'/' )
             # Look for an Autosave folder
-            autosaveFolderPath = os.path.join( projectFolder, 'AutoSave/' )
+            autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
             if os.path.exists( autosaveFolderPath ):
                 print( '    ' + _("Checking in {}").format( autosaveFolderPath ) )
                 for something in os.listdir( autosaveFolderPath ):

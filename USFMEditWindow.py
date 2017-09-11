@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-22' # by RJH
+LastModifiedDate = '2017-09-11' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.41'
@@ -167,7 +167,7 @@ class ToolsOptionsDialog( ModalDialog ):
 class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
     """
     self.genericWindowType will be BibleEditor
-    self.windowType will be BiblelatorUSFMBibleEditWindow or Paratext7USFMBibleEditWindow
+    self.windowType will be BiblelatorUSFMBibleEditWindow or Paratext8USFMBibleEditWindow or Paratext7USFMBibleEditWindow
 
     Even though it contains a link to an USFMBible (InternalBible) object,
         this class always works directly with the USFM (text) files for editing
@@ -842,7 +842,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
             + '  Chars: {:,}\n  Lines: {:,}\n  Words: {:,}\n'.format( numChars, numLines, numWords ) \
             + '\nFile info:\n' \
             + '  Name: {}\n  Folder: {}\n  BookFN: {}\n  SourceFldr: {}\n' \
-                    .format( self.filename, self.filepath, self.bookFilename, self.internalBible.sourceFolder ) \
+                    .format( self.filename, self.folderPath, self.bookFilename, self.internalBible.sourceFolder ) \
             + '\nSettings:\n' \
             + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
                 .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, round(self.autosaveTime/1000), self.saveChangesAutomatically )

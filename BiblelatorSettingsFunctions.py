@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-22' # by RJH
+LastModifiedDate = '2017-09-11' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.41'
@@ -66,10 +66,6 @@ from TextEditWindow import TextEditWindow
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 
-
-TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
-BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
-PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 
 
 def exp( messageString ):
@@ -412,6 +408,9 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 if folderPath[-1] not in '/\\': folderPath += '/'
                 rw = self.openBiblelatorBibleEditWindow( folderPath, thisStuff['EditMode'], windowGeometry )
                 #except: logging.critical( "Unable to read all BiblelatorUSFMBibleEditWindow {} settings".format( j ) )
+            elif windowType == 'Paratext8USFMBibleEditWindow':
+                rw = self.openParatext8BibleEditWindow( thisStuff['ProjectFolder'], thisStuff['EditMode'], windowGeometry )
+                #except: logging.critical( "Unable to read all Paratext8USFMBibleEditWindow {} settings".format( j ) )
             elif windowType == 'Paratext7USFMBibleEditWindow' \
             or windowType == 'ParatextUSFMBibleEditWindow': # This 2nd alternative can be deleted after a week or two
                 rw = self.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
@@ -525,6 +524,9 @@ def getCurrentChildWindowSettings( self ):
 
         elif appWin.windowType == 'BiblelatorUSFMBibleEditWindow':
             thisOne['ProjectFolderPath'] = appWin.moduleID
+            thisOne['EditMode'] = appWin.editMode
+        elif appWin.windowType == 'Paratext8USFMBibleEditWindow':
+            thisOne['ProjectFolder'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
         elif appWin.windowType == 'Paratext7USFMBibleEditWindow':
             thisOne['SSFFilepath'] = appWin.moduleID
