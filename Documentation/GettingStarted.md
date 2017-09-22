@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2017-09-04 RJH
+Last updated: 2017-09-22 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -184,6 +184,9 @@ For an overview of the program design philosophy, see Development.md.
     even if there's a small error. You usually don't want this behaviour
     in an editor so it's not recommended for Biblelator.
 
-    Note that multiprocessing is currently disabled, so the --single flag
-    currently does nothing.
+    The --single flag limits Biblelator and the Bible Organisational System to
+    using a single thread. This only makes a difference on a multicore CPU or
+    multiprocessor system. Setting this flag might make some debugging easier,
+    but it may also slow down response times of the program in some cases,
+    especially start-up.
 
