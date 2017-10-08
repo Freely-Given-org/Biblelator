@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-09-11 by RJH
+Last updated: 2017-09-22 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -13,13 +13,15 @@ Things nearer the top of the list are higher in priority
 (and due to my situation often only having smallish chunks of time available,
 smaller jobs often get done before larger ones unfortunately).
 
+Very serious bugs (e.g., can cause data loss)
+* Editing bridged verse caused it to be added twice!!!
+* Was it Biblelator that lost the last verse in a chapter???
+* WHY DID GLOBAL SEARCH/REPLACE CAUSE DUPLICATE LINES IN BOOK ALREADY EDITED
+
 Biblelator bugs / unfinished
 * Why didn't it return to same folder when opening 2nd Biblelator project ???
 * Find with regex doesn't seem to work great (maybe something to do with case???)
 * Typing Ctrl chars (e.g., Ctrl+F) in autocomplete box closes box, but adds icons to the text.
-* Editing bridged verse caused it to be added twice!!!
-* Was it Biblelator that lost the last verse in a chapter???
-* WHY DID GLOBAL SEARCH/REPLACE CAUSE DUPLICATE LINES IN BOOK ALREADY EDITED
 * Prevent user from typing before start-up is finished
 * Make Bible find work on USFM files in USFM edit window (not on the internal Bible which already has some fixes)
 * USFM edit window still displays previous book when stepping to a non-existent book (and cancel create new file)
