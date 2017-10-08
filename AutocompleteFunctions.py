@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-09-21' # by RJH
+LastModifiedDate = '2017-10-04' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.41'
@@ -414,12 +414,14 @@ def loadBibleAutocompleteWords( editWindowObject ):
             if BibleOrgSysGlobals.verbosityLevel > 1:
                 print( exp("Autocomplete: loading up to {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
                 print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
+            BibleOrgSysGlobals.alreadyMultiprocessing = True
             with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
                 results = pool.map( countBookWordsHelper, parameters ) # have the pool do our loads
                 assert len(results) == len(editWindowObject.internalBible.maximumPossibleFilenameTuples)
                 for (BBB,filename),counts in zip( editWindowObject.internalBible.maximumPossibleFilenameTuples, results ):
                     #print( "XX", BBB, filename, len(counts) if counts else counts )
                     bookWordCounts[BBB] = counts
+                BibleOrgSysGlobals.alreadyMultiprocessing = False
         else: # Just single threaded
             # Load the books one by one -- assuming that they have regular Paratext style filenames
             for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
