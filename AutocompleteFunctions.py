@@ -33,7 +33,7 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-10-04' # by RJH
+LastModifiedDate = '2017-10-19' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
 ProgVersion = '0.41'
@@ -254,7 +254,7 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
                 if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF
                     logging.info( "countBookWords: Detected Unicode Byte Order Marker (BOM) in {}".format( USFMFilepath ) )
                     line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
-                if line[-1]=='\n': line=line[:-1] # Removing trailing newline character
+                if line and line[-1]=='\n': line=line[:-1] # Removing trailing newline character
                 if not line: continue # Just discard blank lines
                 lastLine = line
                 #print ( 'USFM file line is {!r}'.format( line ) )
@@ -489,7 +489,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
             if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF or \ufeff
                 logging.info( "loadHunspellAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                 line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
-            if line[-1]=='\n': line=line[:-1] # Remove trailing newline character
+            if line and line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
             #print( "line", lineCount, repr(line) )
 
@@ -687,7 +687,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
                 elif line[:3] == 'ï»¿': # 0xEF,0xBB,0xBF
                     logging.info( "loadILEXAutocompleteWords2: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                     line = line[3:] # Remove the UTF-8 Unicode Byte Order Marker (BOM)
-            if line[-1]=='\n': line=line[:-1] # Remove trailing newline character
+            if line and line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
             #print( "line", lineCount, repr(line) )
 
