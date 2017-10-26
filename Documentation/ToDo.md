@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-09-22 by RJH
+Last updated: 2017-10-13 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -13,7 +13,7 @@ Things nearer the top of the list are higher in priority
 (and due to my situation often only having smallish chunks of time available,
 smaller jobs often get done before larger ones unfortunately).
 
-Very serious bugs (e.g., can cause data loss)
+VERY SERIOUS BUGS (e.g., can cause data loss)
 * Editing bridged verse caused it to be added twice!!!
 * Was it Biblelator that lost the last verse in a chapter???
 * WHY DID GLOBAL SEARCH/REPLACE CAUSE DUPLICATE LINES IN BOOK ALREADY EDITED
@@ -105,6 +105,7 @@ BOS improvements for Biblelator
 * Investigate creating a plug-in structure
 * Add check for over-long paragraphs (and sentence length?)
 * Write a GUI for Bible search and search/replace ???
+* Make a "remembered lists" folder (e.g., search parameters, etc.)
 
 
 BOS testing required
@@ -221,6 +222,7 @@ Biblelator stuff
 * Do NT/OT reference mode (Groups A/B work together)
 * Do synoptic gospel mode (Groups A/B/C/D work together)
 * Make a child window mode (all windows stay within the main window)
+* Allow remote management (i.e., admin automatic sends source updates to group)
 
 
 Jobs for others
