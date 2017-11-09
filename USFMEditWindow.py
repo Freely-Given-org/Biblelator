@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-09-11' # by RJH
+LastModifiedDate = '2017-11-09' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.41'
@@ -53,7 +53,7 @@ from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBo
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
 from ChildWindows import HTMLWindow
-from BibleResourceWindows import InternalBibleResourceWindow
+from BibleResourceWindows import InternalBibleResourceWindowFunctions
 from BibleReferenceCollection import BibleReferenceCollectionWindow
 from TextEditWindow import TextEditWindow #, NO_TYPE_TIME
 from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
@@ -164,7 +164,7 @@ class ToolsOptionsDialog( ModalDialog ):
 
 
 
-class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
+class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
     """
     self.genericWindowType will be BibleEditor
     self.windowType will be BiblelatorUSFMBibleEditWindow or Paratext8USFMBibleEditWindow or Paratext7USFMBibleEditWindow
@@ -191,7 +191,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindow ):
         self.bookTextModified = False
         self.projectName = 'NoProjectName'
         self.projectAbbreviation = 'UNKNOWN'
-        InternalBibleResourceWindow.__init__( self, parentApp, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
+        InternalBibleResourceWindowFunctions.__init__( self, parentApp, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
         TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
         #self.overrideredirect( 1 ) # Remove the title bar
 

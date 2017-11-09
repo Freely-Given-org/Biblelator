@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-09-11' # by RJH
+LastModifiedDate = '2017-11-09' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.41'
@@ -2024,7 +2024,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openBiblelatorBibleEditWindow( {!r} )").format( projectFolderPath ) )
-            self.setDebugText( "openBiblelatorBibleEditWindow…" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openBiblelatorBibleEditWindow…" )
             assert os.path.isdir( projectFolderPath )
 
         self.setWaitStatus( _("openBiblelatorBibleEditWindow…") )
@@ -2116,7 +2116,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("openParatext8BibleEditWindow( {!r} )").format( settingsFolder ) )
-            self.setDebugText( "openParatext8BibleEditWindow…" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openParatext8BibleEditWindow…" )
             assert os.path.isdir( settingsFolder )
 
         self.setWaitStatus( _("openParatext8BibleEditWindow…") )
@@ -2227,7 +2227,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("openParatext7BibleEditWindow( {!r} )").format( SSFFilepath ) )
-            self.setDebugText( "openParatext7BibleEditWindow…" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openParatext7BibleEditWindow…" )
             assert os.path.isfile( SSFFilepath )
 
         self.setWaitStatus( _("openParatext7BibleEditWindow…") )

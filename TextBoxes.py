@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-07-31' # by RJH
+LastModifiedDate = '2017-11-09' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.41'
@@ -1203,11 +1203,565 @@ class ChildBox():
 
 
 
+class BibleBoxFunctions():
+    """
+    A set of functions that work for any Bible frame or window that has a member: self.textBox
+        and also uses verseKeys
+    """
+    def __init__( self, parentApp ):
+        """
+        This function does absolutely nothing.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBoxFunctions.__init__( {} )").format( parentApp ) )
+            assert parentApp
+        #self.parentApp = parentApp
+
+        #ChildBox.__init__( self, parentApp )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBoxFunctions.__init__ finished.") )
+    # end of BibleBoxFunctions.__init__
+
+
+    def createStandardBoxKeyboardBindings( self, reset=False ):
+        """
+        Create keyboard bindings for this widget.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBoxFunctions.createStandardBoxKeyboardBindings( {} )").format( reset ) )
+
+        if reset:
+            self.myKeyboardBindingsList = []
+
+        for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+                             ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
+                             #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             #('ShowMain',self.doShowMainWindow),
+                             ('Close',self.doClose), ):
+            self._createStandardBoxKeyboardBinding( name, command )
+    # end of BibleBoxFunctions.createStandardBoxKeyboardBindings()
+
+
+    def createContextMenu( self ):
+        """
+        Can be overriden if necessary.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBoxFunctions.createContextMenu()") )
+
+        self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
+        self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        self.textBox.contextMenu.add_separator()
+        self.textBox.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        self.textBox.contextMenu.add_separator()
+        self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.textBox.contextMenu.add_separator()
+        self.textBox.contextMenu.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )#, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+
+        self.textBox.bind( '<Button-3>', self.showContextMenu ) # right-click
+        #self.pack()
+
+        self.BibleFindOptionsDict, self.BibleReplaceOptionsDict = {}, {}
+    # end of BibleBoxFunctions.createContextMenu
+
+    def showContextMenu( self, event ):
+        self.textBox.contextMenu.tk_popup( event.x_root, event.y_root )
+    # end of BibleBoxFunctions.showContextMenu
+
+
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerse=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
+        """
+        Add the requested verse to the end of self.textBox.
+
+        It connects the USFM markers as stylenames while it's doing it
+            and adds the CV marks at the same time for navigation.
+
+        Usually called from updateShownBCV from the subclass.
+        Note that it's used in both formatted and unformatted (even edit) windows.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            if debuggingThisModule:
+                print( "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerse, substituteTrailingSpaces, substituteMultipleSpaces ) )
+            assert isinstance( firstFlag, bool )
+            assert isinstance( verseKey, SimpleVerseKey )
+            if verseContextData:
+                assert isinstance( verseContextData, tuple ) and len(verseContextData)==2 or isinstance( verseContextData, str )
+            assert isinstance( lastFlag, bool )
+            assert isinstance( currentVerse, bool )
+
+        def insertEnd( ieText, ieTags ):
+            """
+            Insert the formatted text into the end of the textbox.
+
+            The function mostly exists so we can print the parameters if necessary for debugging.
+            """
+            if BibleOrgSysGlobals.debugFlag:
+                if debuggingThisModule:
+                    print( "insertEnd( {!r}, {} )".format( ieText, ieTags ) )
+                assert isinstance( ieText, str )
+                assert isinstance( ieTags, (str,tuple) )
+                assert TRAILING_SPACE_SUBSTITUTE not in ieText
+                assert MULTIPLE_SPACE_SUBSTITUTE not in ieText
+
+            # Make any requested substitutions
+            if substituteMultipleSpaces:
+                ieText = ieText.replace( '  ', DOUBLE_SPACE_SUBSTITUTE )
+                ieText = ieText.replace( CLEANUP_LAST_MULTIPLE_SPACE, DOUBLE_SPACE_SUBSTITUTE )
+            if substituteTrailingSpaces:
+                ieText = ieText.replace( TRAILING_SPACE_LINE, TRAILING_SPACE_LINE_SUBSTITUTE )
+
+            self.textBox.insert( tk.END, ieText, ieTags )
+        # end of BibleBoxFunctions.displayAppendVerse.insertEnd
+
+
+        # Start of main code for BibleBoxFunctions.displayAppendVerse
+        try: cVM, fVM = self._contextViewMode, self._formatViewMode
+        except AttributeError: # Must be called from a box, not a window so get settings from parent
+            cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerse, fVM, cVM ) )
+
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("BibleBoxFunctions.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerse, fVM, cVM ) )
+            ##try: print( exp("BibleBoxFunctions.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerse ) )
+            ##except UnicodeEncodeError: print( exp("BibleBoxFunctions.displayAppendVerse"), firstFlag, verseKey, currentVerse )
+
+        BBB, C, V = verseKey.getBCV()
+        C, V = int(C), int(V)
+        #C1 = C2 = int(C); V1 = V2 = int(V)
+        #if V1 > 0: V1 -= 1
+        #elif C1 > 0:
+            #C1 -= 1
+            #V1 = self.getNumVerses( BBB, C1 )
+        #if V2 < self.getNumVerses( BBB, C2 ): V2 += 1
+        #elif C2 < self.getNumChapters( BBB):
+            #C2 += 1
+            #V2 = 0
+        #previousMarkName = 'C{}V{}'.format( C1, V1 )
+        currentMarkName = 'C{}V{}'.format( C, V )
+        #nextMarkName = 'C{}V{}'.format( C2, V2 )
+        #print( "Marks", previousMarkName, currentMarkName, nextMarkName )
+
+        lastCharWasSpace = haveTextFlag = not firstFlag
+
+        if verseContextData is None:
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
+                print( "  ", exp("displayAppendVerse"), "has no data for", verseKey )
+            verseDataList = context = None
+        elif isinstance( verseContextData, tuple ):
+            assert len(verseContextData) == 2
+            verseDataList, context = verseContextData
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                #print( "   VerseDataList: {}".format( verseDataList ) )
+                #print( "   Context: {}".format( context ) )
+        elif isinstance( verseContextData, str ):
+            verseDataList, context = verseContextData.split( '\n' ), None
+        elif BibleOrgSysGlobals.debugFlag: halt
+
+        # Display the context preceding the first verse
+        if firstFlag:
+            if context:
+                #print( "context", context )
+                #print( "  Setting context mark to {}".format( previousMarkName ) )
+                #self.textBox.mark_set( previousMarkName, tk.INSERT )
+                #self.textBox.mark_gravity( previousMarkName, tk.LEFT )
+                insertEnd( ' '+_("Prior context")+':', 'contextHeader' )
+                contextString, firstMarker = "", True
+                for someMarker in context:
+                    #print( "  someMarker", someMarker )
+                    if someMarker != 'chapters':
+                        contextString += (' ' if firstMarker else ', ') + someMarker
+                        firstMarker = False
+                insertEnd( contextString+' ', 'context' )
+                haveTextFlag = True
+            if verseDataList and fVM == 'Formatted':
+                # Display the first formatting marker in this segment -- don't really need this -- see below
+                #firstEntry = verseDataList[0]
+                #if isinstance( firstEntry, InternalBibleEntry ): marker = firstEntry.getMarker()
+                #elif isinstance( firstEntry, tuple ): marker = firstEntry[0]
+                #else: marker = None
+                #if marker in BibleOrgSysGlobals.USFMParagraphMarkers:
+                    #insertEnd( ' '+_("Current context")+': ', 'contextHeader' )
+                    #insertEnd( marker+' ', 'context' )
+                # Display all line markers in this segment
+                markerList = []
+                for verseData in verseDataList:
+                    if isinstance( verseData, InternalBibleEntry ): marker = verseData.getMarker()
+                    elif isinstance( verseData, tuple ): marker = verseData[0]
+                    else: marker = None
+                    if marker and not marker.startswith('¬') \
+                    and not marker.endswith('~') and not marker.endswith('#'):
+                        markerList.append( marker )
+                if markerList:
+                    insertEnd( ' '+_("Displayed markers")+': ', 'markersHeader' )
+                    insertEnd( str(markerList)[1:-1], 'markers' ) # Display list without square brackets
+
+        #print( "  Setting mark to {}".format( currentMarkName ) )
+        self.textBox.mark_set( currentMarkName, tk.INSERT )
+        self.textBox.mark_gravity( currentMarkName, tk.LEFT )
+
+        if verseDataList is None:
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
+                print( "  ", exp("BibleBoxFunctions.displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+            #self.textBox.insert( tk.END, '--' )
+        else:
+            #hadVerseText = False
+            #try: cVM = self._contextViewMode
+            #except AttributeError: cVM = self.parentWindow._contextViewMode
+            lastParagraphMarker = context[-1] if context and context[-1] in BibleOrgSysGlobals.USFMParagraphMarkers \
+                                        else 'v~' # If we don't know the format of a verse (or for unformatted Bibles)
+            endMarkers = []
+
+            for verseDataEntry in verseDataList:
+                # This loop is used for several types of data
+                if isinstance( verseDataEntry, InternalBibleEntry ):
+                    marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
+                elif isinstance( verseDataEntry, tuple ):
+                    marker, cleanText = verseDataEntry[0], verseDataEntry[3]
+                elif isinstance( verseDataEntry, str ): # from a Bible text editor window
+                    if verseDataEntry=='': continue
+                    verseDataEntry += '\n'
+                    if verseDataEntry[0]=='\\':
+                        marker = ''
+                        for char in verseDataEntry[1:]:
+                            if char!='¬' and not char.isalnum(): break
+                            marker += char
+                        cleanText = verseDataEntry[len(marker)+1:].lstrip()
+                    else:
+                        marker, cleanText = None, verseDataEntry
+                elif BibleOrgSysGlobals.debugFlag: halt
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                    print( "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
+
+                if fVM == 'Unformatted':
+                    if marker and marker[0]=='¬': pass # Ignore end markers for now
+                    elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
+                    else:
+                        if isinstance( verseDataEntry, str ): # from a Bible text editor window
+                            #print( "marker={!r}, verseDataEntry={!r}".format( marker, verseDataEntry ) )
+                            insertEnd( verseDataEntry, marker ) # Do it just as is!
+                        else: # not a str, i.e., not a text editor, but a viewable resource
+                            #if hadVerseText and marker in ( 's', 's1', 's2', 's3' ):
+                                #print( "  Setting s mark to {}".format( nextMarkName ) )
+                                #self.textBox.mark_set( nextMarkName, tk.INSERT )
+                                #self.textBox.mark_gravity( nextMarkName, tk.LEFT )
+                            #print( "  Inserting ({}): {!r}".format( marker, verseDataEntry ) )
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            if marker is None:
+                                insertEnd( cleanText, '###' )
+                            else: insertEnd( '\\{} {}'.format( marker, cleanText ), marker+'#' )
+                            haveTextFlag = True
+
+                elif fVM == 'Formatted':
+                    if marker.startswith( '¬' ):
+                        if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
+                    else: endMarkers = [] # Reset when we have normal markers
+
+                    if marker.startswith( '¬' ):
+                        pass # Ignore end markers for now
+                        #assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        #if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        #insertEnd( cleanText, marker )
+                        #haveTextFlag = True
+                    elif marker == 'id':
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('ide','rem',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('h','toc1','toc2','toc3','cl¤',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('intro','chapters','list',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('mt1','mt2','mt3','mt4', 'imt1','imt2','imt3','imt4', 'iot','io1','io2','io3','io4',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('ip','ipi','im','imi','ipq','imq','ipr', 'iq1','iq2','iq3','iq4',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('s1','s2','s3','s4', 'is1','is2','is3','is4', 'ms1','ms2','ms3','ms4', 'cl',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('d','sp',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in ('r','mr','sr',):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        insertEnd( cleanText, marker )
+                        haveTextFlag = True
+                    elif marker in BibleOrgSysGlobals.USFMParagraphMarkers:
+                        assert not cleanText # No text expected with these markers
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        lastParagraphMarker = marker
+                        haveTextFlag = True
+                    elif marker in ('b','ib'):
+                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                        assert not cleanText # No text expected with this marker
+                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                    #elif marker in ('m','im'):
+                        #self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
+                        #if cleanText:
+                            #insertEnd( cleanText, '*'+marker if currentVerse else marker )
+                            #lastCharWasSpace = False
+                            #haveTextFlag = True
+                    elif marker == 'p#' and self.boxType=='DBPBibleResourceBox':
+                        pass # Just ignore these for now
+                    elif marker == 'c': # Don't want to display this (original) c marker
+                        #if not firstFlag: haveC = cleanText
+                        #else: print( "   Ignore C={}".format( cleanText ) )
+                        pass
+                    elif marker == 'c#': # Might want to display this (added) c marker
+                        if cleanText != verseKey.getBBB():
+                            if not lastCharWasSpace: insertEnd( ' ', 'v-' )
+                            insertEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
+                            lastCharWasSpace = False
+                    elif marker == 'v':
+                        if cleanText != '1': # Don't display verse number for v1 in default view
+                            if haveTextFlag:
+                                insertEnd( ' ', (lastParagraphMarker,'v-',) if lastParagraphMarker else ('v-',) )
+                            insertEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
+                            insertEnd( '\u2009', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
+                            lastCharWasSpace = haveTextFlag = True
+                    elif marker in ('v~','p~'):
+                        insertEnd( cleanText, '*'+lastParagraphMarker if currentVerse else lastParagraphMarker )
+                        haveTextFlag = True
+                    else:
+                        if BibleOrgSysGlobals.debugFlag:
+                            logging.critical( exp("BibleBoxFunctions.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
+                        else:
+                            logging.critical( exp("BibleBoxFunctions.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
+                else:
+                    logging.critical( exp("BibleBoxFunctions.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
+                    if BibleOrgSysGlobals.debugFlag: halt
+
+            if lastFlag and cVM=='ByVerse' and endMarkers:
+                #print( "endMarkers", endMarkers )
+                insertEnd( ' '+ _("End context")+':', 'contextHeader' )
+                contextString, firstMarker = "", True
+                for someMarker in endMarkers:
+                    #print( "  someMarker", someMarker )
+                    contextString += (' ' if firstMarker else ', ') + someMarker
+                    firstMarker = False
+                insertEnd( contextString+' ', 'context' )
+    # end of BibleBoxFunctions.displayAppendVerse
+
+
+    def getBeforeAndAfterBibleData( self, newVerseKey ):
+        """
+        Returns the requested verse, the previous verse, and the next n verses.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("BibleBoxFunctions.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            assert isinstance( newVerseKey, SimpleVerseKey )
+
+        BBB, C, V = newVerseKey.getBCV()
+        intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+
+        # Determine the PREVIOUS valid verse numbers
+        prevBBB, prevIntC, prevIntV = BBB, intC, intV
+        previousVersesData = []
+        for n in range( -self.parentApp.viewVersesBefore, 0 ):
+            failed = False
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
+            if prevIntV > 0: prevIntV -= 1
+            elif prevIntC > 0:
+                prevIntC -= 1
+                try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                except KeyError:
+                    if prevIntC != 0: # we can expect an error for chapter zero
+                        logging.error( exp("BibleBoxFunctions.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
+                    failed = True
+                #if not failed:
+                    #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
+            else:
+                try: prevBBB = self.BibleOrganisationalSystem.getPreviousBookCode( BBB )
+                except KeyError: prevBBB = None
+                if prevBBB is None: failed = True
+                else:
+                    prevIntC = self.getNumChapters( prevBBB )
+                    prevIntV = self.getNumVerses( prevBBB, prevIntC )
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                        print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
+                    if prevIntC is None or prevIntV is None:
+                        logging.error( exp("BibleBoxFunctions.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
+                        #failed = True
+                        break
+            if not failed and prevIntV is not None:
+                #print( "getBeforeAndAfterBibleData XXX", repr(prevBBB), repr(prevIntC), repr(prevIntV) )
+                assert prevBBB and isinstance(prevBBB, str)
+                previousVerseKey = SimpleVerseKey( prevBBB, prevIntC, prevIntV )
+                previousVerseData = self.getCachedVerseData( previousVerseKey )
+                if previousVerseData: previousVersesData.insert( 0, (previousVerseKey,previousVerseData,) ) # Put verses in backwards
+
+        # Determine the NEXT valid verse numbers
+        nextBBB, nextIntC, nextIntV = BBB, intC, intV
+        nextVersesData = []
+        for n in range( 0, self.parentApp.viewVersesAfter ):
+            try: numVerses = self.getNumVerses( nextBBB, nextIntC )
+            except KeyError: numVerses = None # for an invalid BBB
+            nextIntV += 1
+            if numVerses is None or nextIntV > numVerses:
+                nextIntV = 1
+                nextIntC += 1 # Need to check…
+            nextVerseKey = SimpleVerseKey( nextBBB, nextIntC, nextIntV )
+            nextVerseData = self.getCachedVerseData( nextVerseKey )
+            if nextVerseData: nextVersesData.append( (nextVerseKey,nextVerseData,) )
+
+        # Get the CURRENT verse data
+        verseData = self.getCachedVerseData( newVerseKey )
+
+        return verseData, previousVersesData, nextVersesData
+    # end of BibleBoxFunctions.getBeforeAndAfterBibleData
+
+
+    def doBibleFind( self, event=None ):
+        """
+        Get the search parameters and then execute the search.
+
+        Note that BibleFind works on the imported files,
+            so it can work from any box or window that has an internalBible.
+        """
+        from BiblelatorDialogs import GetBibleFindTextDialog
+
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBoxFunctions doBibleFind' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBoxFunctions.doBibleFind( {} )").format( event ) )
+
+        try: haveInternalBible = self.internalBible is not None
+        except AttributeError: haveInternalBible = False
+        if not haveInternalBible:
+            logging.critical( _("No Bible to search") )
+            return
+        #print( "intBib", self.internalBible )
+
+        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
+        if gBSTD.result:
+            if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
+            self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
+            self.doActualBibleFind()
+        self.parentApp.setReadyStatus()
+
+        #return tkBREAK
+    # end of BibleBoxFunctions.doBibleFind
+
+
+    def doActualBibleFind( self, extendTo=None ):
+        """
+        This function (called by the above doBibleFind),
+            invokes the actual search (or redoes the search)
+            assuming that the search parameters are already defined.
+        """
+        from ChildWindows import FindResultWindow
+
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBoxFunctions doActualBibleFind' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBoxFunctions.doActualBibleFind( {} )").format( extendTo ) )
+
+        self.parentApp.setWaitStatus( _("Searching…") )
+        #self.textBox.update()
+        #self.textBox.focus()
+        #self.lastfind = key
+        self.parentApp.logUsage( ProgName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        #print( "bookList", repr(self.BibleFindOptionsDict['bookList']) )
+        bookCode = None
+        if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
+        and self.BibleFindOptionsDict['bookList'] != 'ALL':
+            bookCode = self.BibleFindOptionsDict['bookList']
+        self._prepareInternalBible( bookCode, self.BibleFindOptionsDict['givenBible'] ) # Make sure that all books are loaded
+        # We search the loaded Bible processed lines
+        self.BibleFindOptionsDict, resultSummaryDict, findResultList = self.BibleFindOptionsDict['givenBible'].findText( self.BibleFindOptionsDict )
+        #print( "Got findResults", findResults )
+        if len(findResultList) == 0: # nothing found
+            errorBeep()
+            key = self.BibleFindOptionsDict['findText']
+            showError( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+        else:
+            try: replaceFunction = self.doBibleReplace
+            except AttributeError: replaceFunction = None # Read-only Bible boxes don't have a replace function
+            findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, findResultList,
+                                    findFunction=self.doBibleFind, refindFunction=self.doActualBibleFind,
+                                    replaceFunction=replaceFunction, extendTo=extendTo )
+            self.parentApp.childWindows.append( findResultWindow )
+        self.parentApp.setReadyStatus()
+    # end of BibleBoxFunctions.doActualBibleFind
+
+
+    def _prepareInternalBible( self, bookCode=None, givenBible=None ):
+        """
+        Prepare to do a search on the Internal Bible object
+            or to do some of the exports or checks available in BibleOrgSysGlobals.
+
+        Note that this function saves the current book if it's modified.
+
+        If a bookcode is specified, loads only that book (so the user doesn't have to wait).
+
+        Leaves the wait cursor displayed.
+        """
+        logging.debug( exp("BibleBoxFunctions._prepareInternalBible()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBoxFunctions._prepareInternalBible()") )
+        if givenBible is None: givenBible = self.internalBible
+
+        if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
+        if givenBible is not None:
+            self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
+            if bookCode is None:
+                self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
+                givenBible.load()
+            else:
+                self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
+                givenBible.loadBook( bookCode )
+    # end of BibleBoxFunctions._prepareInternalBible
+# end of class BibleBoxFunctions
+
+
+
 class BibleBox( ChildBox ):
     """
     A set of functions that work for any Bible frame or window that has a member: self.textBox
         and also uses verseKeys
     """
+    def __init__( self, parentApp ):
+        """
+        This function is not needed at all, except for debug tracing of __init__ functions (when used).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBox.__init__( {} )").format( parentApp ) )
+            assert parentApp
+        #self.parentApp = parentApp
+
+        ChildBox.__init__( self, parentApp )
+
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("BibleBox.__init__ finished.") )
+    # end of BibleBox.__init__
+
+
     def createStandardBoxKeyboardBindings( self, reset=False ):
         """
         Create keyboard bindings for this widget.

@@ -41,10 +41,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-17' # by RJH
+LastModifiedDate = '2017-11-09' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
