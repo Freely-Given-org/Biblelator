@@ -44,10 +44,10 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-03' # by RJH
+LastModifiedDate = '2017-11-09' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -58,7 +58,8 @@ import os.path, configparser, logging
 from datetime import datetime
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME_VERSION
+from BiblelatorGlobals import APP_NAME
+from BiblelatorSettingsFunctions import SettingsVersion
 
 # BibleOrgSys imports
 if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -153,7 +154,7 @@ class Settings:
         BibleOrgSysGlobals.backupAnyExistingFile( self.settingsFilepath, numBackups=4 )
         with open( self.settingsFilepath, 'wt', encoding='utf-8' ) as settingsFile: # It may or may not have previously existed
             # Put a (comment) heading in the file first
-            settingsFile.write( '# ' + _("{} settings file").format( APP_NAME_VERSION ) + '\n' )
+            settingsFile.write( '# ' + _("{} {} settings file").format( APP_NAME, SettingsVersion ) + '\n' )
             settingsFile.write( '# ' + _("Originally saved {} as {}") \
                 .format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.settingsFilepath ) + '\n\n' )
 

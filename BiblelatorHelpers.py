@@ -30,17 +30,17 @@
     mapParallelVerseKey( forGroupCode, mainVerseKey )
     findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
     logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText )
-    parseEnteredBookname( bookNameEntry, CEntry, VEntry, BBBfunction )
+    parseEnteredBooknameField( bookNameEntry, CEntry, VEntry, BBBfunction )
 
 TODO: Can some of these functions be (made more general and) moved to the BOS?
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-27' # by RJH
+LastModifiedDate = '2017-08-04' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -507,7 +507,7 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText ):
 
 
 
-def parseEnteredBookname( bookNameEntry, currentBBB, CEntry, VEntry, BBBfunction ):
+def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfunction ):
     """
     Checks if the bookName entry is just a book name, or an entire reference (e.g., "Gn 15:2")
 
@@ -520,15 +520,15 @@ def parseEnteredBookname( bookNameEntry, currentBBB, CEntry, VEntry, BBBfunction
     debuggingThisFunction = False
 
     if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("parseEnteredBookname( {!r}, {}, {!r}, {!r}, … )") \
+        print( exp("parseEnteredBooknameField( {!r}, {}, {!r}, {!r}, … )") \
                                 .format( bookNameEntry, currentBBB, CEntry, VEntry ) )
 
     # Do a bit of preliminary cleaning-up
     bookNameEntry = bookNameEntry.strip().replace( '  ', ' ' )
-    #print( "parseEnteredBookname: pulling apart {!r}".format( bookNameEntry ) )
+    #print( "parseEnteredBooknameField: pulling apart {!r}".format( bookNameEntry ) )
 
     # Without the bookname (i.e., stay in current book)
-    # Do these first because the are more strict (only digits and use re.fullmatch not re.search or re.match)
+    # Do these first because they are more strict (only digits and use re.fullmatch not re.search or re.match)
     match = re.fullmatch( '(\d{1,3})[:\. ](\d{1,3})', bookNameEntry ) # (Current book) C:V or C.V or C V
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -553,20 +553,25 @@ def parseEnteredBookname( bookNameEntry, currentBBB, CEntry, VEntry, BBBfunction
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
-        return match.group(1), match.group(2), match.group(3)
+        newBBB = match.group(1)
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+            return newBBB, match.group(2), match.group(3)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}[Vv:\.](\d{1,3})', uppercaseBookNameEntry ) # bookname (single chapter book) V
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
-        return match.group(1), CEntry, match.group(2)
+        newBBB = match.group(1)
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+            return newBBB, CEntry, match.group(2)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}(\d{1,3})', uppercaseBookNameEntry ) # bookname C (or single chapter book with V)
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
         newBBB = match.group(1)
-        if BibleOrgSysGlobals.BibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
-            return newBBB, 1, match.group(2)
-        return newBBB, match.group(2), 1
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+            if BibleOrgSysGlobals.BibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
+                return newBBB, 1, match.group(2)
+            return newBBB, match.group(2), 1
 
     # With a bookname first on the line
     match = re.fullmatch( '([123]{0,1}?\D+?)[ ]{0,1}(\d{1,3})[:\. ](\d{1,3})', bookNameEntry ) # bookname C:V or C.V or C V
@@ -594,7 +599,7 @@ def parseEnteredBookname( bookNameEntry, currentBBB, CEntry, VEntry, BBBfunction
     if newBBB == currentBBB:
         return newBBB, CEntry, VEntry
     else: return newBBB, 1, 1 # Go to the first verse
-# end of BiblelatorHelpers.parseEnteredBookname
+# end of BiblelatorHelpers.parseEnteredBooknameField
 
 
 

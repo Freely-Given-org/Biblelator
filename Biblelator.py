@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-27' # by RJH
+LastModifiedDate = '2017-11-09' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -50,7 +50,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Label
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, errorBeep, \
+from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
@@ -61,7 +61,7 @@ from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBookname
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBooknameField
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings, \
@@ -91,13 +91,15 @@ from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
 from PTX7Bible import PTX7Bible, loadPTX7ProjectData
+from PTX8Bible import PTX8Bible, loadPTX8ProjectData
 
 
 
 LOCK_FILENAME = '{}.lock'.format( APP_NAME )
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
 BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
-PARATEXT_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
+PARATEXT8_FILETYPES = [('Settings files','Settings.xml'), ('All files','*')]
+PARATEXT7_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 NUM_BCV_REFERENCE_POPUP_LINES = 8
 
 
@@ -227,7 +229,7 @@ class Application( Frame ):
             self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
 
         self.recentFiles = []
-        self.internalBibles = []
+        self.internalBibles = [] # Contains 2-tuples being (internalBibleObject,list of window objects displaying that Bible)
 
         #logging.critical( "Critical test" )
         #logging.error( "Error test" )
@@ -263,6 +265,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.createDebugToolBar()
         self.createInfoBar()
 
+        self.lastBookNumber = int( self.bookNumberVar.get() )
         self.BCVHistory = []
         self.BCVHistoryIndex = None
 
@@ -415,7 +418,8 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext…'), underline=0, command=self.doOpenParatextProject )
+        submenuProjectOpenType.add_command( label=_('Paratext8…'), underline=0, command=self.doOpenParatext8Project )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -570,7 +574,8 @@ class Application( Frame ):
         projectMenu.add_cascade( label=_('Open'), underline=0, menu=submenuProjectOpenType )
         submenuProjectOpenType.add_command( label=_('Biblelator…'), underline=0, command=self.doOpenBiblelatorProject )
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
-        submenuProjectOpenType.add_command( label=_('Paratext…'), underline=0, command=self.doOpenParatextProject )
+        submenuProjectOpenType.add_command( label=_('Paratext8…'), underline=0, command=self.doOpenParatext8Project )
+        submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -764,9 +769,8 @@ class Application( Frame ):
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks,
+                                            textvariable=self.bookNumberVar, command=self.spinToNewBookNumber )
         self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
         self.bookNumberSpinbox.pack( side=tk.LEFT )
 
@@ -775,28 +779,38 @@ class Application( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar,
+                                                                        values=self.bookNames )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookNameField )
         self.bookNameBox.bind( '<Return>', self.acceptNewBookNameField )
+        self.bookNameBox.bind( '<FocusIn>', self.focusInBookNameField )
         self.bookNameBox.pack( side=tk.LEFT )
 
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
-        self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        self.chapterSpinbox.pack( side=tk.LEFT )
 
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
+        # valid percent substitutions (from the Tk entry man page)
+                # Note: you only have to register the ones you need
+                #
+                # %d = Type of action (1=insert, 0=delete, -1 for others)
+                # %i = index of char string to be inserted/deleted, or -1
+                # %P = value of the entry if the edit is allowed
+                # %s = value of entry prior to editing
+                # %S = the text string being inserted or deleted, if any
+                # %v = the type of validation that is currently set
+                # %V = the type of validation that triggered the callback
+                #      (key, focusin, focusout, forced)
+                # %W = the tk name of the widget
+        vcmd = ( self.register( self.validateChapterNumberEntry ), '%d', '%P' )
+        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook,
+                                          textvariable=self.chapterNumberVar, command=self.spinToNewChapter,
+                                          validate='key', validatecommand=vcmd )
+        self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
+        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlusJump )
+        self.chapterSpinbox.bind( '<FocusIn>', self.focusInChapterField )
+        self.chapterSpinbox.pack( side=tk.LEFT )
 
         self.verseNumberVar = tk.StringVar()
         self.verseNumberVar.set( '1' )
@@ -804,18 +818,15 @@ class Application( Frame ):
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
         #print( "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
-        # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
-        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
-        self.verseSpinbox.pack( side=tk.LEFT )
 
-        #self.verseNumberVar = tk.StringVar()
-        #self.verseNumberVar.set( '1' )
-        #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
-        #self.verseNumberBox['width'] = 3
-        #self.verseNumberBox.pack()
+        vcmd = ( self.register( self.validateVerseNumberEntry ), '%d', '%P' )
+        # Add 1 to maxVerses to enable them to go to the next chapter
+        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter,
+                                        textvariable=self.verseNumberVar, command=self.acceptNewBnCV,
+                                        validate='key', validatecommand=vcmd )
+        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
+        self.verseSpinbox.bind( '<FocusIn>', self.focusInVerseField )
+        self.verseSpinbox.pack( side=tk.LEFT )
 
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
@@ -878,9 +889,8 @@ class Application( Frame ):
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks,
+                                            textvariable=self.bookNumberVar, command=self.spinToNewBookNumber )
         self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
         #self.bookNumberSpinbox.pack( side=tk.LEFT )
 
@@ -889,9 +899,8 @@ class Application( Frame ):
         self.bookNameVar = tk.StringVar()
         self.bookNameVar.set( bookName )
         BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
+        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar,
+                                            values=self.bookNames )
         self.bookNameBox.bind('<<ComboboxSelected>>', self.acceptNewBookNameField )
         self.bookNameBox.bind( '<Return>', self.acceptNewBookNameField )
         #self.bookNameBox.pack( side=tk.LEFT )
@@ -904,21 +913,31 @@ class Application( Frame ):
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #print( "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
+
+        # valid percent substitutions (from the Tk entry man page)
+                # note: you only have to register the ones you need; this
+                # example registers them all for illustrative purposes
+                #
+                # %d = Type of action (1=insert, 0=delete, -1 for others)
+                # %i = index of char string to be inserted/deleted, or -1
+                # %P = value of the entry if the edit is allowed
+                # %s = value of entry prior to editing
+                # %S = the text string being inserted or deleted, if any
+                # %v = the type of validation that is currently set
+                # %V = the type of validation that triggered the callback
+                #      (key, focusin, focusout, forced)
+                # %W = the tk name of the widget
+        vcmd = ( self.register( self.validateChapterNumberEntry ), '%d', '%P' )
+        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook,
+                                          textvariable=self.chapterNumberVar, command=self.spinToNewChapter,
+                                          validate='key', validatecommand=vcmd )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
+        self.chapterSpinbox.bind( '<space>', self.spinToNewChapterPlusJump )
         #self.chapterSpinbox.pack( side=tk.LEFT )
 
         Style().configure( 'chapterNumber.TButton', background='brown' )
         self.chapterNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='chapterNumber.TButton', command=self.doChapterNumberButton )
         self.chapterNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
 
         self.verseNumberVar = tk.StringVar()
         self.verseNumberVar.set( '1' )
@@ -926,10 +945,12 @@ class Application( Frame ):
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
         #print( "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
+
+        vcmd = ( self.register( self.validateVerseNumberEntry ), '%d', '%P' )
         # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
+        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter,
+                                        textvariable=self.verseNumberVar, command=self.acceptNewBnCV,
+                                        validate='key', validatecommand=vcmd )
         self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
         #self.verseSpinbox.pack( side=tk.LEFT )
 
@@ -940,7 +961,6 @@ class Application( Frame ):
         self.wordVar = tk.StringVar()
         if self.lexiconWord: self.wordVar.set( self.lexiconWord )
         self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
         self.wordBox.bind( '<Return>', self.acceptNewLexiconWord )
         #self.wordBox.pack( side=tk.LEFT )
 
@@ -1013,10 +1033,12 @@ class Application( Frame ):
 
         #Style().configure( 'ShowAll.TButton', background='lightGreen' )
 
-        self.InfoLabel1 = Label( infobar )
-        self.InfoLabel1.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.InfoLabel2 = Label( infobar )
-        self.InfoLabel2.pack( side=tk.RIGHT, padx=xPad, pady=yPad )
+        self.InfoLabelLeft = Label( infobar )
+        self.InfoLabelLeft.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        self.InfoLabelCentre = Label( infobar )
+        self.InfoLabelCentre.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        self.InfoLabelRight = Label( infobar )
+        self.InfoLabelRight.pack( side=tk.RIGHT, padx=xPad, pady=yPad )
 
         infobar.pack( side=tk.TOP, fill=tk.X )
     # end of Application.createInfoBar
@@ -1868,8 +1890,8 @@ class Application( Frame ):
             #print( "  ", something )
             #BiblesListText += "\n{}".format( something )
         #print( self.internalBibles )
-        for j,(iB,cWs) in enumerate( self.internalBibles ):
-            BiblesListText += "\n  {}/ {} in {}".format( j+1, iB.getAName(), cWs )
+        for j,(iB,controllingWindowList) in enumerate( self.internalBibles ):
+            BiblesListText += "\n  {}/ {} in {}".format( j+1, iB.getAName(), controllingWindowList )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding )
@@ -1988,7 +2010,7 @@ class Application( Frame ):
             self.setReadyStatus()
             return
         containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
-        print( '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
+        #print( '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
         if BibleOrgSysGlobals.debugFlag: assert settingsFilename == 'ProjectSettings.ini'
         self.openBiblelatorBibleEditWindow( containingFolderPath )
         self.addRecentFile( (containingFolderPath,containingFolderPath,'BiblelatorBibleEditWindow') )
@@ -2002,7 +2024,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openBiblelatorBibleEditWindow( {!r} )").format( projectFolderPath ) )
-            self.setDebugText( "openBiblelatorBibleEditWindow…" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openBiblelatorBibleEditWindow…" )
             assert os.path.isdir( projectFolderPath )
 
         self.setWaitStatus( _("openBiblelatorBibleEditWindow…") )
@@ -2036,19 +2058,109 @@ class Application( Frame ):
     ## end of Application.doOpenBibleditProject
 
 
-    def doOpenParatextProject( self ):
+    def doOpenParatext8Project( self ):
         """
-        Open the Paratext Bible project (called from a menu/GUI action).
+        Open the Paratext 8 Bible project (called from a menu/GUI action).
+
+        Requests a Settings.XML file from the user.
+            (Unlike PTX7, this should be in the same folder as the
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doOpenParatext8Project()") )
+            self.setDebugText( "doOpenParatext8Project…" )
+
+        self.setWaitStatus( _("doOpenParatext8Project…") )
+        #if not self.openDialog:
+        openDialog = Open( title=_("Select project settings XML file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT8_FILETYPES )
+        settingsFilepath = openDialog.show()
+        if not settingsFilepath:
+            self.setReadyStatus()
+            return
+        if not os.path.isfile( settingsFilepath ):
+            showError( self, APP_NAME, 'Could not open file ' + settingsFilepath )
+            self.setReadyStatus()
+            return
+        ptx8Bible = PTX8Bible( None ) # Create a blank Paratext Bible object
+        settingsFolder = os.path.dirname( settingsFilepath )
+        PTXSettingsDict = loadPTX8ProjectData( ptx8Bible, settingsFolder )
+        if PTXSettingsDict:
+            if ptx8Bible.suppliedMetadata is None: ptx8Bible.suppliedMetadata = {}
+            if 'PTX8' not in ptx8Bible.suppliedMetadata: ptx8Bible.suppliedMetadata['PTX8'] = {}
+            assert 'Settings' not in ptx8Bible.suppliedMetadata['PTX8']
+            ptx8Bible.suppliedMetadata['PTX8']['Settings'] = PTXSettingsDict
+            ptx8Bible.applySuppliedMetadata( 'PTX8' ) # Copy some files to ptx8Bible.settingsDict
+        #print( "ptx/ssf" )
+        #for something in ptx8Bible.suppliedMetadata['PTX8']['Settings']:
+            #print( "  ", something, repr(ptx8Bible.suppliedMetadata['PTX8']['Settings'][something]) )
+        try: ptx8BibleName = ptx8Bible.suppliedMetadata['PTX8']['Settings']['Name']
+        except KeyError:
+            showError( self, APP_NAME, "Could not find 'Name' in " + settingsFilepath )
+            self.setReadyStatus()
+        try: ptx8BibleFullName = ptx8Bible.suppliedMetadata['PTX8']['Settings']['FullName']
+        except KeyError:
+            showError( self, APP_NAME, "Could not find 'FullName' in " + settingsFilepath )
+        if 'Editable' in ptx8Bible.suppliedMetadata and ptx8Bible.suppliedMetadata['Editable'] != 'T':
+            showError( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptx8BibleName, ptx8BibleFullName ) )
+            self.setReadyStatus()
+            return
+
+        self.openParatext8BibleEditWindow( settingsFolder ) # Has to repeat some of the above unfortunately
+        self.addRecentFile( (settingsFilepath,settingsFilepath,'Paratext8BibleEditWindow') )
+    # end of Application.doOpenParatext8Project
+
+    def openParatext8BibleEditWindow( self, settingsFolder, editMode=None, windowGeometry=None ):
+        """
+        Create the actual requested local Paratext Bible project window.
+
+        Returns the new USFMEditWindow object.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("openParatext8BibleEditWindow( {!r} )").format( settingsFolder ) )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openParatext8BibleEditWindow…" )
+            assert os.path.isdir( settingsFolder )
+
+        self.setWaitStatus( _("openParatext8BibleEditWindow…") )
+        ptx8Bible = PTX8Bible( None ) # Create a blank Paratext Bible object
+        PTXSettingsDict = loadPTX8ProjectData( ptx8Bible, settingsFolder )
+        if PTXSettingsDict:
+            if ptx8Bible.suppliedMetadata is None: ptx8Bible.suppliedMetadata = {}
+            if 'PTX8' not in ptx8Bible.suppliedMetadata: ptx8Bible.suppliedMetadata['PTX8'] = {}
+            assert 'Settings' not in ptx8Bible.suppliedMetadata['PTX8']
+            ptx8Bible.suppliedMetadata['PTX8']['Settings'] = PTXSettingsDict
+            ptx8Bible.applySuppliedMetadata( 'PTX8' ) # Copy some fields to BibleObject.settingsDict
+
+        ptx8Bible.preload()
+
+        uEW = USFMEditWindow( self, ptx8Bible, editMode=editMode )
+        if windowGeometry: uEW.geometry( windowGeometry )
+        uEW.windowType = 'Paratext8USFMBibleEditWindow' # override the default
+        uEW.moduleID = settingsFolder
+        #uEW.setFilepath( settingsFilepath ) # needed ???
+        uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
+        self.childWindows.append( uEW )
+        if uEW.autocompleteMode: uEW.prepareAutocomplete()
+
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatext8BibleEditWindow" )
+        self.setReadyStatus()
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("openParatext8BibleEditWindow finished.") )
+        return uEW
+    # end of Application.openParatext8BibleEditWindow
+
+
+    def doOpenParatext7Project( self ):
+        """
+        Open the Paratext 7 Bible project (called from a menu/GUI action).
 
         Requests a SSF file from the user.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("doOpenParatextProject()") )
-            self.setDebugText( "doOpenParatextProject…" )
+            print( exp("doOpenParatext7Project()") )
+            self.setDebugText( "doOpenParatext7Project…" )
 
-        self.setWaitStatus( _("doOpenParatextProject…") )
+        self.setWaitStatus( _("doOpenParatext7Project…") )
         #if not self.openDialog:
-        openDialog = Open( title=_("Select project settings (XML or SSF) file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT_FILETYPES )
+        openDialog = Open( title=_("Select project settings SSF file"), initialdir=self.lastParatextFileDir, filetypes=PARATEXT7_FILETYPES )
         SSFFilepath = openDialog.show()
         if not SSFFilepath:
             self.setReadyStatus()
@@ -2057,84 +2169,86 @@ class Application( Frame ):
             showError( self, APP_NAME, 'Could not open file ' + SSFFilepath )
             self.setReadyStatus()
             return
-        ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
-        #ptxBible.loadSSFData( SSFFilepath )
-        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
+        ptx7Bible = PTX7Bible( None ) # Create a blank Paratext Bible object
+        #ptx7Bible.loadSSFData( SSFFilepath )
+        PTXSettingsDict = loadPTX7ProjectData( ptx7Bible, SSFFilepath )
         if PTXSettingsDict:
-            if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
-            if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
-            ptxBible.suppliedMetadata['PTX']['SSF'] = PTXSettingsDict
-            ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to ptxBible.settingsDict
+            if ptx7Bible.suppliedMetadata is None: ptx7Bible.suppliedMetadata = {}
+            if 'PTX7' not in ptx7Bible.suppliedMetadata: ptx7Bible.suppliedMetadata['PTX7'] = {}
+            assert 'SSF' not in ptx7Bible.suppliedMetadata['PTX7']
+            ptx7Bible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
+            ptx7Bible.applySuppliedMetadata( 'SSF' ) # Copy some to ptx7Bible.settingsDict
         #print( "ptx/ssf" )
-        #for something in ptxBible.suppliedMetadata['PTX']['SSF']:
-            #print( "  ", something, repr(ptxBible.suppliedMetadata['PTX']['SSF'][something]) )
-        try: ptxBibleName = ptxBible.suppliedMetadata['PTX']['SSF']['Name']
+        #for something in ptx7Bible.suppliedMetadata['PTX7']['SSF']:
+            #print( "  ", something, repr(ptx7Bible.suppliedMetadata['PTX7']['SSF'][something]) )
+        try: ptx7BibleName = ptx7Bible.suppliedMetadata['PTX7']['SSF']['Name']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'Name' in " + SSFFilepath )
             self.setReadyStatus()
-        try: ptxBibleFullName = ptxBible.suppliedMetadata['PTX']['SSF']['FullName']
+        try: ptx7BibleFullName = ptx7Bible.suppliedMetadata['PTX7']['SSF']['FullName']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'FullName' in " + SSFFilepath )
-        if 'Editable' in ptxBible.suppliedMetadata and ptxBible.suppliedMetadata['Editable'] != 'T':
-            showError( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptxBibleName, ptxBibleFullName ) )
+        if 'Editable' in ptx7Bible.suppliedMetadata and ptx7Bible.suppliedMetadata['Editable'] != 'T':
+            showError( self, APP_NAME, 'Project {} ({}) is not set to be editable'.format( ptx7BibleName, ptx7BibleFullName ) )
             self.setReadyStatus()
             return
 
         # Find the correct folder that contains the actual USFM files
-        if 'Directory' in ptxBible.suppliedMetadata['PTX']['SSF']:
-            ssfDirectory = ptxBible.suppliedMetadata['PTX']['SSF']['Directory']
+        if 'Directory' in ptx7Bible.suppliedMetadata['PTX7']['SSF']:
+            ssfDirectory = ptx7Bible.suppliedMetadata['PTX7']['SSF']['Directory']
         else:
-            showError( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( ptxBibleName, ptxBibleFullName ) )
+            showError( self, APP_NAME, 'Project {} ({}) has no folder specified (bad SSF file?) -- trying folder below SSF'.format( ptx7BibleName, ptx7BibleFullName ) )
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if ssfDirectory is not None:
-                showWarning( self, APP_NAME, 'SSF project {} ({}) folder {!r} not found on this system -- trying folder below SSF instead'.format( ptxBibleName, ptxBibleFullName, ssfDirectory ) )
+                showWarning( self, APP_NAME, 'SSF project {} ({}) folder {!r} not found on this system -- trying folder below SSF instead'.format( ptx7BibleName, ptx7BibleFullName, ssfDirectory ) )
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( "doOpenParatextProject: Not MS-Windows" )
-                    print( 'doOpenParatextProject: ssD1', repr(ssfDirectory) )
+                    print( "doOpenParatext7Project: Not MS-Windows" )
+                    print( 'doOpenParatext7Project: ssD1', repr(ssfDirectory) )
                 slash = '\\' if '\\' in ssfDirectory else '/'
                 if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
                 ix = ssfDirectory.rfind( slash ) # Find the last slash
                 if ix!= -1:
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
-                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'doOpenParatextProject: ssD2', repr(ssfDirectory) )
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'doOpenParatext7Project: ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
-                        showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptxBibleName ) )
+                        showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptx7BibleName ) )
                         return
-        self.openParatextBibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
-        self.addRecentFile( (SSFFilepath,SSFFilepath,'ParatextBibleEditWindow') )
-    # end of Application.doOpenParatextProject
+        self.openParatext7BibleEditWindow( SSFFilepath ) # Has to repeat some of the above unfortunately
+        self.addRecentFile( (SSFFilepath,SSFFilepath,'Paratext7BibleEditWindow') )
+    # end of Application.doOpenParatext7Project
 
-    def openParatextBibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
+    def openParatext7BibleEditWindow( self, SSFFilepath, editMode=None, windowGeometry=None ):
         """
         Create the actual requested local Paratext Bible project window.
 
         Returns the new USFMEditWindow object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("openParatextBibleEditWindow( {!r} )").format( SSFFilepath ) )
-            self.setDebugText( "openParatextBibleEditWindow…" )
+            print( exp("openParatext7BibleEditWindow( {!r} )").format( SSFFilepath ) )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openParatext7BibleEditWindow…" )
             assert os.path.isfile( SSFFilepath )
 
-        self.setWaitStatus( _("openParatextBibleEditWindow…") )
-        ptxBible = PTX7Bible( None ) # Create a blank Paratext Bible object
-        PTXSettingsDict = loadPTX7ProjectData( ptxBible, SSFFilepath )
+        self.setWaitStatus( _("openParatext7BibleEditWindow…") )
+        ptx7Bible = PTX7Bible( None ) # Create a blank Paratext Bible object
+        PTXSettingsDict = loadPTX7ProjectData( ptx7Bible, SSFFilepath )
         if PTXSettingsDict:
-            if ptxBible.suppliedMetadata is None: ptxBible.suppliedMetadata = {}
-            if 'PTX' not in ptxBible.suppliedMetadata: ptxBible.suppliedMetadata['PTX'] = {}
-            ptxBible.suppliedMetadata['PTX']['SSF'] = PTXSettingsDict
-            ptxBible.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
+            if ptx7Bible.suppliedMetadata is None: ptx7Bible.suppliedMetadata = {}
+            if 'PTX7' not in ptx7Bible.suppliedMetadata: ptx7Bible.suppliedMetadata['PTX7'] = {}
+            assert 'SSF' not in ptx7Bible.suppliedMetadata['PTX7']
+            ptx7Bible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
+            ptx7Bible.applySuppliedMetadata( 'SSF' ) # Copy some to BibleObject.settingsDict
 
-        if 'Directory' in ptxBible.suppliedMetadata['PTX']['SSF']:
-            ssfDirectory = ptxBible.suppliedMetadata['PTX']['SSF']['Directory']
+        if 'Directory' in ptx7Bible.suppliedMetadata['PTX7']['SSF']:
+            ssfDirectory = ptx7Bible.suppliedMetadata['PTX7']['SSF']['Directory']
         else:
             ssfDirectory = None
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    #print( "openParatextBibleEditWindow: Not windows" )
-                    #print( 'openParatextBibleEditWindow: ssD1', repr(ssfDirectory) )
+                    #print( "openParatext7BibleEditWindow: Not windows" )
+                    #print( 'openParatext7BibleEditWindow: ssD1', repr(ssfDirectory) )
                 slash = '\\' if '\\' in ssfDirectory else '/'
                 if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
                 ix = ssfDirectory.rfind( slash ) # Find the last slash
@@ -2145,31 +2259,31 @@ class Application( Frame ):
             showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ssfDirectory ) )
             self.setReadyStatus()
             return
-        ptxBible.sourceFolder = ptxBible.sourceFilepath = ssfDirectory
-        ptxBible.preload()
+        ptx7Bible.sourceFolder = ptx7Bible.sourceFilepath = ssfDirectory
+        ptx7Bible.preload()
 
-        uEW = USFMEditWindow( self, ptxBible, editMode=editMode )
+        uEW = USFMEditWindow( self, ptx7Bible, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
-        uEW.windowType = 'ParatextUSFMBibleEditWindow' # override the default
+        uEW.windowType = 'Paratext7USFMBibleEditWindow' # override the default
         uEW.moduleID = SSFFilepath
         uEW.setFilepath( SSFFilepath )
         uEW.updateShownBCV( self.getVerseKey( uEW._groupCode ) )
         self.childWindows.append( uEW )
         if uEW.autocompleteMode: uEW.prepareAutocomplete()
 
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatextBibleEditWindow" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatext7BibleEditWindow" )
         self.setReadyStatus()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("openParatextBibleEditWindow finished.") )
+            print( exp("openParatext7BibleEditWindow finished.") )
         return uEW
-    # end of Application.openParatextBibleEditWindow
+    # end of Application.openParatext7BibleEditWindow
 
 
     #def doProjectExports( self ):
     #    """
     #    Taking the
     #    """
-    ## end of Application.openParatextBibleEditWindow
+    ## end of Application.doProjectExports
 
 
     def doGoBackward( self, event=None ):
@@ -2178,7 +2292,7 @@ class Application( Frame ):
 
         Go back to the previous BCV reference (if any).
         """
-        if 1 or BibleOrgSysGlobals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag:
             print( exp("doGoBackward( {} )").format( event ) )
             #self.setDebugText( "doGoBackward…" )
 
@@ -2548,7 +2662,7 @@ class Application( Frame ):
             print( exp("doGotoNextChapter( {} ) from {} {}:{}").format( event, BBB, C, V ) )
             self.setDebugText( "doGotoNextChapter…" )
         intC = int( C )
-        if intC < self.maxChaptersThisBook:
+        if self.maxChaptersThisBook is not None and intC < self.maxChaptersThisBook:
             self.maxVersesThisChapter = self.getNumVerses( BBB, intC+1 )
             self.gotoBCV( BBB, intC+1, '0' )
         else: self.doGotoNextBook()
@@ -2626,7 +2740,7 @@ class Application( Frame ):
         infoString = 'Current location:\n' \
                  + '  {}\n'.format( self.currentVerseKey.getShortText() ) \
                  + '  {} verses in chapter\n'.format( self.maxVersesThisChapter ) \
-                 + '  {} chapters in book\n'.format( "No" if self.maxChaptersThisBook is None else self.maxChaptersThisBook ) \
+                 + '  {} chapters in book\n'.format( "No" if self.maxChaptersThisBook is None or self.maxChaptersThisBook==0 else self.maxChaptersThisBook ) \
                  + '\nCurrent references:\n' \
                  + '  A: {}\n'.format( self.GroupA_VerseKey.getShortText() ) \
                  + '  B: {}\n'.format( self.GroupB_VerseKey.getShortText() ) \
@@ -2641,6 +2755,46 @@ class Application( Frame ):
                  + '  Books: {}'.format( self.genericBibleOrganisationalSystem.getBookList() )
         showInfo( self, 'Goto Information', infoString )
     # end of Application.doShowInfo
+
+
+    def focusInBookNameField( self, event=None ):
+        """
+        Callback for when book name field (COMBOBOX) is given focus.
+
+        We want it to default to ALL TEXT SELECTED.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("focusInBookNameField( {} )").format( event ) )
+
+        self.bookNameBox.selection_range( 0, tk.END )
+        return tkBREAK # prevent default processsing
+    # end of Application.focusInBookNameField
+
+    def focusInChapterField( self, event=None ):
+        """
+        Callback for when chapter number field (SPINBOX) is given focus.
+
+        We want it to default to ALL TEXT SELECTED.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("focusInChapterField( {} )").format( event ) )
+
+        self.chapterSpinbox.selection( 'range', 0, tk.END )
+        return tkBREAK # prevent default processsing
+    # end of Application.focusInChapterField
+
+    def focusInVerseField( self, event=None ):
+        """
+        Callback for when verse number field (SPINBOX) is given focus.
+
+        We want it to default to ALL TEXT SELECTED.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("focusInVerseField( {} )").format( event ) )
+
+        self.verseSpinbox.selection( 'range', 0, tk.END )
+        return tkBREAK # prevent default processsing
+    # end of Application.focusInVerseField
 
 
     def acceptNewBookNameField( self, event=None ):
@@ -2661,6 +2815,8 @@ class Application( Frame ):
     def spinToNewBookNumber( self, event=None ):
         """
         Handle a new book number setting from the GUI dropbox.
+
+        If we have no open Bibles containing that book, we go to the next one.
         """
         self.logUsage( ProgName, debuggingThisModule, 'spinToNewBookNumber' )
         if BibleOrgSysGlobals.debugFlag:
@@ -2668,8 +2824,27 @@ class Application( Frame ):
         #print( dir(event) )
 
         nBBB = self.bookNumberVar.get()
-        BBB = self.bookNumberTable[int(nBBB)]
-        #print( 'spinToNewBookNumber', repr(nBBB), repr(BBB) )
+        nBBBint = int(nBBB)
+        offset = -1 if nBBBint<self.lastBookNumber else 1 # go up or down
+        #print( "spinToNewBookNumber to {} from {} with {}".format( nBBBint, self.lastBookNumber, offset ) )
+
+        while True: # Check if that book actually exists in any of our Bibles
+            BBB = self.bookNumberTable[nBBBint]
+            #print( "  Go to {} {} from {}".format( nBBBint, BBB, nBBB ) )
+            #self.doViewBiblesList()
+            foundBook = foundAnyBooks = False
+            for internalBible,controllingWindowList in self.internalBibles:
+                if internalBible.availableBBBs:
+                    foundAnyBooks = True
+                    if BBB in internalBible.availableBBBs:
+                        #print( "    Found {} in {}".format( BBB, internalBible.name ) )
+                        foundBook = True; break
+                #else: print( "    {} has no list of availableBBBs!".format( internalBible.name ) )
+            if foundBook or not foundAnyBooks \
+            or (offset==-1 and nBBBint<=1) \
+            or (offset==1 and nBBBint>=self.maxBooks): break
+            nBBBint += offset # Try the next book number then
+
         self.bookNameVar.set( BBB ) # Will be used by acceptNewBnCV
         self.chapterNumberVar.set( '1' )
         self.verseNumberVar.set( '1' )
@@ -2686,10 +2861,62 @@ class Application( Frame ):
             print( exp("spinToNewChapter( {} )").format( event ) )
         #print( dir(event) )
 
-        #self.chapterNumberVar.set( '1' )
-        self.verseNumberVar.set( '1' )
+        # Normally if we enter a new chapter number we set the verse number to 1
+        #   but for chapter zero (book intro) we set it to (line) number 0
+        self.verseNumberVar.set( '0' if self.chapterNumberVar.get()=='0' else '1' )
         self.acceptNewBnCV()
     # end of Application.spinToNewChapter
+
+    def spinToNewChapterPlusJump( self, event=None ):
+        """
+        Handle a new chapter setting from the GUI spinbox
+            and then set focus to verse number box.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("spinToNewChapterPlusJump( {} )").format( event ) )
+        #print( dir(event) )
+
+        self.spinToNewChapter()
+        self.verseSpinbox.focus()
+    # end of Application.spinToNewChapterPlusJump
+
+
+    def validateChapterNumberEntry( self, actionCode, potentialString ):
+        """
+        Check that they're typing a valid chapter number.
+
+        Must return True (allowed) or False (disallowed).
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("validateChapterNumberEntry( {!r}, {!r} )").format( actionCode, potentialString ) )
+        #print( dir(event) )
+
+        if len( potentialString ) > 3: return False # No chapter numbers greater than 999
+        if actionCode=='0' and potentialString=='': return True # Allow "delete everything"
+        if potentialString.isdigit() \
+        and ( self.maxChaptersThisBook is None or int(potentialString) <= self.maxChaptersThisBook ):
+            return True
+        return False
+    # end of Application.validateChapterNumberEntry
+
+
+    def validateVerseNumberEntry( self, actionCode, potentialString ):
+        """
+        Check that they're typing a valid verse number.
+
+        Must return True (allowed) or False (disallowed).
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("validateVerseNumberEntry( {!r}, {!r} )").format( actionCode, potentialString ) )
+        #print( dir(event) )
+
+        if len( potentialString ) > 3: return False # No chapter numbers greater than 999
+        if actionCode=='0' and potentialString=='': return True # Allow "delete everything"
+        if potentialString.isdigit() \
+        and ( self.maxVersesThisChapter is None or int(potentialString) <= self.maxVersesThisChapter ):
+            return True
+        return False
+    # end of Application.validateVerseNumberEntry
 
 
     def acceptNewBnCV( self, event=None ):
@@ -2698,12 +2925,12 @@ class Application( Frame ):
 
         We also allow the user to enter a reference (e.g. "Gn 1:1" or even "2 2" into the bookname box).
         """
-        enteredBookname = self.bookNameVar.get()
+        enteredBooknameField = self.bookNameVar.get()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBookname ) )
+            print( exp("acceptNewBnCV( {} ) for {!r}").format( event, enteredBooknameField ) )
             #print( dir(event) )
 
-        BBB, C, V = parseEnteredBookname( enteredBookname, self.currentVerseKey.getBBB(),
+        BBB, C, V = parseEnteredBooknameField( enteredBooknameField, self.currentVerseKey.getBBB(),
                                     self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
         # Note that C and V have NOT been tested to see if they are valid for this book
 
@@ -2711,10 +2938,13 @@ class Application( Frame ):
             self.setErrorStatus( _("Unable to determine book name") )
             self.bookNameBox.focus_set()
         else:
-            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "acceptNewBnCV {} {}:{}".format( enteredBookname, C, V ) )
+            if BibleOrgSysGlobals.debugFlag:
+                self.setDebugText( "acceptNewBnCV {} {}:{} from {!r}".format( BBB, C, V, enteredBooknameField ) )
+            assert BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( BBB )
             self.bookNumberVar.set( self.bookNumberTable[BBB] )
             self.bookNameVar.set( self.getGenericBookName(BBB) )
             self.gotoBCV( BBB, C, V, 'acceptNewBnCV' )
+            self.lastBookNumber = int( self.bookNumberVar.get() )
             self.setReadyStatus()
     # end of Application.acceptNewBnCV
 
@@ -2767,7 +2997,7 @@ class Application( Frame ):
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
         self.update_idletasks() # Try to make the main window respond even before child windows can react
         if BibleOrgSysGlobals.debugFlag:
-            if self.bookNumberTable[BBB] > 0: # Preface and stuff might fail this
+            if self.bookNumberTable[BBB] > 0: # Preface and glossary, etc. might fail this
                 assert self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True )
         if self.haveSwordResourcesOpen():
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
@@ -2840,6 +3070,7 @@ class Application( Frame ):
 
         BBB, C, V = self.currentVerseKey.getBCV()
         self.maxChaptersThisBook = self.getNumChapters( BBB )
+        #if self.maxChaptersThisBook is None: self.maxChaptersThisBook = 0
         self.chapterSpinbox['to'] = self.maxChaptersThisBook
         self.maxVersesThisChapter = self.getNumVerses( BBB, C )
         self.verseSpinbox['to'] = self.maxVersesThisChapter
@@ -2860,16 +3091,34 @@ class Application( Frame ):
             self.updateBCVPreviousNextButtonsState()
 
         intV = int( V )
-        if intV > 1: intV -= 1 # assume that we haven't done this verse yet
-        try: percent = round( intV * 100 / int(self.maxVersesThisChapter) )
-        except ZeroDivisionError: percent = 0
-        try: self.InfoLabel1['text'] = _("{} verses in chapter {} ({}% through)").format( self.maxVersesThisChapter, C, percent )
+        if intV > 0: intV -= 1 # assume that we haven't done this verse yet
+        try: percentVerses = round( intV * 100 / int(self.maxVersesThisChapter) )
+        except ZeroDivisionError: percentVerses = 0
+        try: self.InfoLabelLeft['text'] = _("{} verses in ch.{} ({}% passed)") \
+                                            .format( self.maxVersesThisChapter, C, percentVerses )
         except AttributeError: pass
+
         intC = int( C )
-        if intC > 1: intC -= 1 # assume that we haven't done this chapter yet
-        try: percent = round( intC * 100 / int(self.maxChaptersThisBook) )
-        except TypeError: percent = 0
-        try: self.InfoLabel2['text'] = _("{} chapters in {} ({}% through)").format( self.maxChaptersThisBook, bookName, percent )
+        if intC > 0: intC -= 1 # assume that we haven't done this chapter yet
+        #try: percentChapters = round( (intC * 100 + percentVerses) / int(self.maxChaptersThisBook) )
+        #except TypeError: percentChapters = 0
+        #try: self.InfoLabelCentre['text'] = _("{} chapters in book ({}% passed)") \
+                                            #.format( self.maxChaptersThisBook, percentChapters )
+        try: self.InfoLabelCentre['text'] = _("{} chapters in {}") \
+                                            .format( self.maxChaptersThisBook, bookName )
+        except AttributeError: pass
+
+        try: verseList = self.genericBibleOrganisationalSystem.getNumVersesList( BBB )
+        except KeyError: verseList = [9999] # Some "books" don't have chapters, e.g., FRT, GLS, etc.
+        totalVerses, passedVerses = 0, intV
+        for j,verseCount in enumerate( verseList ):
+            totalVerses += verseCount
+            if j<intC: passedVerses += verseCount
+        #print( passedVerses, totalVerses )
+        try: percentTotalVerses = round( passedVerses * 100 / totalVerses )
+        except TypeError: percentTotalVerses = 0
+        try: self.InfoLabelRight['text'] = _("{} verses in book ({}% passed)") \
+                                            .format( totalVerses, percentTotalVerses )
         except AttributeError: pass
     # end of Application.updateGUIBCVControls
 
@@ -3055,7 +3304,7 @@ class Application( Frame ):
             return var
         # end of makeFormRow
 
-        # nonmodal dialog: get dirnname, filenamepatt, grepkey
+        # nonmodal dialog: get dirname, filenamepatt, grepkey
         popup = tk.Toplevel()
         popup.title( _('PyEdit - grep') )
         var1 = makeFormRow( popup, label=_('Directory root'),   width=18, browse=False)
@@ -3446,13 +3695,37 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     hadAny = False
     file1Name, file2Name =  _("Bible file"), _("Autosaved file")
     for num in currentWindowDict:
-        if currentWindowDict[num]['Type'] == 'ParatextUSFMBibleEditWindow':
-            ssfFilepath = currentWindowDict[num]['SSFFilepath']
-            ssfFolder, ssfFilename = os.path.split( ssfFilepath )
-            #print( "ssfFolder", ssfFolder )
-            ssfName = ssfFilename[:-4]
-            print( '\n' + _("Seems you might have been editing {}").format( ssfName ) )
-            projectFolder = os.path.join( ssfFolder+'/', ssfName+'/' )
+        if currentWindowDict[num]['Type'] == 'BiblelatorUSFMBibleEditWindow':
+            projectFolder = currentWindowDict[num]['ProjectFolderPath']
+            print( '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
+            # Look for an Autosave folder
+            autosaveFolderPath = os.path.join( projectFolder, 'AutoSave/' )
+            if os.path.exists( autosaveFolderPath ):
+                print( '    ' + _("Checking in {}").format( autosaveFolderPath ) )
+                for something in os.listdir( autosaveFolderPath ):
+                    somepath = os.path.join( autosaveFolderPath, something )
+                    #if os.path.isdir( somepath ): foundFolders.append( something )
+                    if os.path.isfile( somepath ):
+                        filepath = os.path.join( projectFolder, something )
+                        if os.path.exists( filepath ):
+                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
+                            #print( resultDict )
+                            haveSuggestions = False
+                            for someKey,someValue in resultDict['Summary'].items():
+                                if someValue.startswith( 'file2' ): # autosave file might be important
+                                    haveSuggestions = True
+                            if haveSuggestions:
+                                print( '      ' + _("Comparing file1 {}").format( filepath ) )
+                                print( '      ' + _("     with file2 {}").format( somepath ) )
+                                for someKey,someValue in resultDict['Summary'].items():
+                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                hadAny = True
+        elif currentWindowDict[num]['Type'] == 'Paratext8USFMBibleEditWindow':
+            settingsFolder = currentWindowDict[num]['ProjectFolder']
+            possibleName = os.path.dirname( settingsFolder )
+            print( '\n' + _("Seems you might have been editing {}").format( possibleName ) )
+            projectFolder = settingsFolder
             # Look for an Autosave folder
             autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
             if os.path.exists( autosaveFolderPath ):
@@ -3476,12 +3749,15 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
                                 for someKey,someValue in resultDict['Summary'].items():
                                     print( '        {}: {}'.format( someKey, someValue ) )
                                 hadAny = True
-
-        elif currentWindowDict[num]['Type'] == 'BiblelatorUSFMBibleEditWindow':
-            projectFolder = currentWindowDict[num]['ProjectFolderPath']
-            print( '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
+        elif currentWindowDict[num]['Type'] == 'Paratext7USFMBibleEditWindow':
+            ssfFilepath = currentWindowDict[num]['SSFFilepath']
+            ssfFolder, ssfFilename = os.path.split( ssfFilepath )
+            #print( "ssfFolder", ssfFolder )
+            ssfName = ssfFilename[:-4]
+            print( '\n' + _("Seems you might have been editing {}").format( ssfName ) )
+            projectFolder = os.path.join( ssfFolder+'/', ssfName+'/' )
             # Look for an Autosave folder
-            autosaveFolderPath = os.path.join( projectFolder, 'AutoSave/' )
+            autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
             if os.path.exists( autosaveFolderPath ):
                 print( '    ' + _("Checking in {}").format( autosaveFolderPath ) )
                 for something in os.listdir( autosaveFolderPath ):

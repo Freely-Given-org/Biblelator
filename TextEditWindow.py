@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-20' # by RJH
+LastModifiedDate = '2017-11-09' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -93,7 +93,7 @@ class TextEditWindow( ChildWindow ):
     def __init__( self, parentApp, folderPath=None, filename=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
 
         self.parentApp, self.folderPath, self.filename = parentApp, folderPath, filename
@@ -818,7 +818,7 @@ class TextEditWindow( ChildWindow ):
     def doCut( self, event=None ):
         """
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doCut( {} )").format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
@@ -832,7 +832,7 @@ class TextEditWindow( ChildWindow ):
     def doPaste( self, event=None ):
         """
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("TextEditWindow.doPaste( {} )").format( event ) )
             print( "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 

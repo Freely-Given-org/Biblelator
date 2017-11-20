@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2016-04-25 RJH
+Last updated: 2017-09-22 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -155,11 +155,38 @@ For an overview of the program design philosophy, see Development.md.
 
 10. Bible Groups
 
-    Biblelator has four group codes (A,B,C,D) that Bible windows can be assigned to. All
+    Biblelator has five group codes (A,B,C,D,E) that Bible windows can be assigned to. All
     new windows are assigned to group A by default but this can be easily changed. Each
     group can be set to a different reference, e.g., if group A windows are in Matthew,
     group B windows might be displaying a reference in Isaiah that was quoted by Matthew.
 
     In the future, there will be automatic ways to display OT references (like the above
     example -- at the moment it must be set-up by hand) and also to display synoptic
-    gospel references.
+    gospel references, e.g., by having separate Bible windows open in groups A,B,C,D
+    automatically displaying parallels in Matthew, Mark, Luke, and John.
+
+
+11. Optional Start-up Parameters
+
+    If you start Biblelator with the --help command-line flag, the program will display
+    the available parameters which can be used and then exit immediately.
+
+    The --verbose flag can be used to get the program to display more information in
+    the start-up/terminal window, although it can easily be overwhelming. However,
+    it might be helpful to get more information in order to report a fault.
+
+    The --debug flag is usually used by programmers to display debugging information
+    and is more likely to cause the program to fail, so is not recommended for
+    normal users.
+
+    Note that the --strict flag is part of the Bible Organisational System
+    usually used for strict checking of data files where you want to halt
+    even if there's a small error. You usually don't want this behaviour
+    in an editor so it's not recommended for Biblelator.
+
+    The --single flag limits Biblelator and the Bible Organisational System to
+    using a single thread. This only makes a difference on a multicore CPU or
+    multiprocessor system. Setting this flag might make some debugging easier,
+    but it may also slow down response times of the program in some cases,
+    especially start-up.
+

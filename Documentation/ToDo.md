@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-04-20 by RJH
+Last updated: 2017-10-13 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -13,7 +13,19 @@ Things nearer the top of the list are higher in priority
 (and due to my situation often only having smallish chunks of time available,
 smaller jobs often get done before larger ones unfortunately).
 
+VERY SERIOUS BUGS (e.g., can cause data loss)
+* Editing bridged verse caused it to be added twice!!!
+* Was it Biblelator that lost the last verse in a chapter???
+* WHY DID GLOBAL SEARCH/REPLACE CAUSE DUPLICATE LINES IN BOOK ALREADY EDITED
+
 Biblelator bugs / unfinished
+* Why didn't it return to same folder when opening 2nd Biblelator project ???
+* Find with regex doesn't seem to work great (maybe something to do with case???)
+* Typing Ctrl chars (e.g., Ctrl+F) in autocomplete box closes box, but adds icons to the text.
+* Prevent user from typing before start-up is finished
+* Make Bible find work on USFM files in USFM edit window (not on the internal Bible which already has some fixes)
+* USFM edit window still displays previous book when stepping to a non-existent book (and cancel create new file)
+* Enter a bookname, tab across enter a chapter number then enter, but it always goes to chapter 1 :(
 * Want Alt-up and down to go to previous/next find results
 * Bible find regex:XXX doesn't work unless match case or xxx is used
 * Bible find regex:XXX (with match case) shows regex in find result lines
@@ -24,7 +36,6 @@ Biblelator bugs / unfinished
 * Checking window: enable/disable Back/Forward buttons (and display link when cursor over)
 * Clicked on an apocryphal book (result of search) and MBT got into sort of a loop "Need to create book" / cancel
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
-* Editing bridged verse caused it to be added twice!!!
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
 * Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs removed at load time???)
 * Windows and Bible lists need to be displayed in a window
@@ -33,6 +44,7 @@ Biblelator bugs / unfinished
 * After moving replace box, it still keeps reappearing in the original position
 * Remember find/replace lists in settings (for each window/project -- maybe not)
 * Remember position of last find box
+* Add illegal character beep function?
 * Get extended find box working better -- need to show whole verse somehow (why can't right click or something?)
 * Sort out USFM styles for current verse / formatted / unformatted etc.
 * Work more on Tools/Options for edit window to set autocomplete mode, etc.
@@ -40,10 +52,9 @@ Biblelator bugs / unfinished
 * Clicking in edit window while still starting can cause a spinbox error
 * Window settings don't work well for text collections, etc. (need to be nested???)
 * Bible find needs intro set if book in FRT, GLO, etc.
-* Bible find can default to any currently selected text in edit window?
+* Make Bible find default to any currently selected text in edit window?
 * Bible find can't seem to jump to GLO lines
 * Bible replace needs more work on reloading open books/Bibles
-* Select entire booknumber/bookname/chapter/verse when the box in main window is clicked on
 * Book number spinner needs to check if any window contains that book else skip it
 * Need wait status/cursor when opening a DBP resource, doing Bible checks, etc, etc.
 * Can't undo USFM Bible edit once moved cursor
@@ -61,6 +72,7 @@ Biblelator bugs / unfinished
 * Make wording consistent between DIR and FOLDER
 * Make working consistent between FIND and SEARCH
 * When using custom sword module path, send it home so we can add it to the defaults???
+* Maybe the --strict option should be removed for Biblelator???
 
 Biblelator testing required
 * Biblelator project edit windows may fail on malformed markers (e.g., space before \v)
@@ -74,6 +86,7 @@ BOS bugs
 
 
 BOS improvements for Biblelator
+* Fix Unicode errors with Sword python bindings (SwordBible faults)
 * Cache Bible books as pickles
 * Make a class for a list of search results (being able to combine lists in various ways)
 * Start Names checking tool
@@ -92,6 +105,7 @@ BOS improvements for Biblelator
 * Investigate creating a plug-in structure
 * Add check for over-long paragraphs (and sentence length?)
 * Write a GUI for Bible search and search/replace ???
+* Make a "remembered lists" folder (e.g., search parameters, etc.)
 
 
 BOS testing required
@@ -173,7 +187,7 @@ Biblelator stuff
 * Allow user to show history of changes per verse (and per chapter???)
 * Write autocompletion settings load/edit routines
 * Allow autocomplete to use: Bible or Bible book, current text file, only spell-checked words, external dictionary for language, external file, etc.
-* Write spell-checking routines
+* Write spell-checking routines (use Hunspell?)
 * Write syntax colouring routines
 * Project backup to the cloud (secure Freely-Given.org server)
 * Handle automatic (background) USFM syntax checking
@@ -185,7 +199,6 @@ Biblelator stuff
 * Investigate integrating more online resources
 * From a Bible edit window, have a menu item to view the current chapter/section typeset on a page (pop-up window)
 * Improve the about page(s)
-* Turn chapter/verse spin buttons 90 degrees (maybe)
 * Learn how to install Biblelator on OS X
 * Create back-translation windows with special features
 * Allow more settings to be edited within the program (full settings editor)
@@ -209,6 +222,7 @@ Biblelator stuff
 * Do NT/OT reference mode (Groups A/B work together)
 * Do synoptic gospel mode (Groups A/B/C/D work together)
 * Make a child window mode (all windows stay within the main window)
+* Allow remote management (i.e., admin automatic sends source updates to group)
 
 
 Jobs for others

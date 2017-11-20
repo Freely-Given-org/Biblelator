@@ -45,10 +45,10 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11'
+LastModifiedDate = '2017-08-22'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -65,6 +65,7 @@ from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
 from TextBoxes import BEntry, BCombobox, BText
+from BiblelatorSimpleDialogs import showWarning
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
@@ -640,7 +641,7 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         ##self.cb.current( 0 )
         #self.cb2.grid( row=8, column=1 )
 
-        return self.rb1a # initial focus
+        return rb1a # initial focus
     # end of CreateNewProjectFilesDialog.apply
 
 
@@ -1263,7 +1264,8 @@ class GetBibleFindTextDialog( ModalDialog ):
         self.theseMarkersListVar = tk.StringVar()
         self.theseMarkersListVar.set( ','.join(mkr for mkr in self.optionsDict['markerList']) if self.optionsDict['markerList'] else '' )
         registeredFunction = self.register( self.doMarkerListentry )
-        theseMarkersEntry = BEntry( master, textvariable=self.theseMarkersListVar, validate='all', validatecommand=(registeredFunction,'%P') )
+        theseMarkersEntry = BEntry( master, textvariable=self.theseMarkersListVar,
+                                    validate='all', validatecommand=(registeredFunction,'%P') )
         theseMarkersEntry.pack( in_=markerListFrame, side=tk.RIGHT, padx=2, pady=1 )
 
         return self.searchStringBox # initial focus

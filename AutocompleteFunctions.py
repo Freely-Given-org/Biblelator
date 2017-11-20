@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-02-28' # by RJH
+LastModifiedDate = '2017-10-19' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.40'
+ProgVersion = '0.41'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -254,7 +254,7 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
                 if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF
                     logging.info( "countBookWords: Detected Unicode Byte Order Marker (BOM) in {}".format( USFMFilepath ) )
                     line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
-                if line[-1]=='\n': line=line[:-1] # Removing trailing newline character
+                if line and line[-1]=='\n': line=line[:-1] # Removing trailing newline character
                 if not line: continue # Just discard blank lines
                 lastLine = line
                 #print ( 'USFM file line is {!r}'.format( line ) )
@@ -412,14 +412,16 @@ def loadBibleAutocompleteWords( editWindowObject ):
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
             parameters = [(BBB,editWindowObject.internalBible,filename,BBB==currentBBB) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
             if BibleOrgSysGlobals.verbosityLevel > 1:
-                print( exp("Loading up to {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
+                print( exp("Autocomplete: loading up to {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
                 print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
+            BibleOrgSysGlobals.alreadyMultiprocessing = True
             with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
                 results = pool.map( countBookWordsHelper, parameters ) # have the pool do our loads
                 assert len(results) == len(editWindowObject.internalBible.maximumPossibleFilenameTuples)
                 for (BBB,filename),counts in zip( editWindowObject.internalBible.maximumPossibleFilenameTuples, results ):
                     #print( "XX", BBB, filename, len(counts) if counts else counts )
                     bookWordCounts[BBB] = counts
+                BibleOrgSysGlobals.alreadyMultiprocessing = False
         else: # Just single threaded
             # Load the books one by one -- assuming that they have regular Paratext style filenames
             for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
@@ -487,7 +489,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
             if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF or \ufeff
                 logging.info( "loadHunspellAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                 line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
-            if line[-1]=='\n': line=line[:-1] # Remove trailing newline character
+            if line and line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
             #print( "line", lineCount, repr(line) )
 
@@ -685,7 +687,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
                 elif line[:3] == 'ï»¿': # 0xEF,0xBB,0xBF
                     logging.info( "loadILEXAutocompleteWords2: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                     line = line[3:] # Remove the UTF-8 Unicode Byte Order Marker (BOM)
-            if line[-1]=='\n': line=line[:-1] # Remove trailing newline character
+            if line and line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
             #print( "line", lineCount, repr(line) )
 
