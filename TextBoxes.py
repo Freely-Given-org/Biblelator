@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-09' # by RJH
+LastModifiedDate = '2017-11-21' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.41'
@@ -1695,7 +1695,7 @@ class BibleBoxFunctions():
         self._prepareInternalBible( bookCode, self.BibleFindOptionsDict['givenBible'] ) # Make sure that all books are loaded
         # We search the loaded Bible processed lines
         self.BibleFindOptionsDict, resultSummaryDict, findResultList = self.BibleFindOptionsDict['givenBible'].findText( self.BibleFindOptionsDict )
-        #print( "Got findResults", findResults )
+        #print( "Got findResultList", findResultList )
         if len(findResultList) == 0: # nothing found
             errorBeep()
             key = self.BibleFindOptionsDict['findText']

@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-09' # by RJH
+LastModifiedDate = '2017-11-20' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -67,7 +67,7 @@ from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings, \
         doSendUsageStatistics
 from TextBoxes import BEntry, BCombobox
-from ChildWindows import ChildWindows
+from ChildWindows import ChildWindows, CollateProjectsWindow
 from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
 from BibleResourceCollection import BibleResourceCollectionWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
@@ -450,9 +450,11 @@ class Application( Frame ):
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
+        toolsMenu.add_command( label=_('Collate projects…'), underline=0, command=self.doOpenCollateProjects )
+        toolsMenu.add_separator()
         toolsMenu.add_command( label=_('Search files…'), underline=0, command=self.onGrep )
         toolsMenu.add_separator()
-        toolsMenu.add_command( label=_('Checks…'), underline=0, command=self.notWrittenYet )
+        toolsMenu.add_command( label=_('Checks…'), underline=1, command=self.notWrittenYet )
         toolsMenu.add_separator()
         toolsMenu.add_command( label=_('Options…'), underline=0, command=self.doOpenSettingsEditor )
         toolsMenu.add_separator()
@@ -2277,6 +2279,40 @@ class Application( Frame ):
             print( exp("openParatext7BibleEditWindow finished.") )
         return uEW
     # end of Application.openParatext7BibleEditWindow
+
+
+    def doOpenCollateProjects( self ):
+        """
+        Open the collate projects window (called from a menu/GUI action).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("doOpenCollateProjects()") )
+            self.setDebugText( "doOpenCollateProjects…" )
+
+        self.openCollateProjectsWindow( self )
+    # end of Application.doOpenCollateProjects
+
+    def openCollateProjectsWindow( self, openedFrom, windowGeometry=None ):
+        """
+        Create the actual collate projects window.
+
+        Returns the new CollateProjectsWindow object.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("openCollateProjectsWindow( {!r} )").format( openedFrom ) )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openCollateProjectsWindow…" )
+
+        self.setWaitStatus( _("openCollateProjectsWindow…") )
+        cPW = CollateProjectsWindow( openedFrom )
+        if windowGeometry: cPW.geometry( windowGeometry )
+        self.childWindows.append( cPW )
+
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openCollateProjectsWindow" )
+        self.setReadyStatus()
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("openCollateProjectsWindow finished.") )
+        return cPW
+    # end of Application.openCollateProjectsWindow
 
 
     #def doProjectExports( self ):

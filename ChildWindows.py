@@ -31,14 +31,15 @@ Base windows to allow display and manipulation of
     class ChildWindows( list )
     class HTMLWindow( tk.Toplevel, ChildBox )
     class FindResultWindow( tk.Toplevel )
+    class CollateProjectsWindow( tk.Toplevel )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-09' # by RJH
+LastModifiedDate = '2017-11-21' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -62,7 +63,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
 from BiblelatorSimpleDialogs import showError, showInfo
 from BiblelatorDialogs import SelectInternalBibleDialog
 from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
-from TextBoxes import BText, HTMLTextBox, ChildBox, BibleBoxFunctions, BibleBox
+from TextBoxes import BText, BCombobox, HTMLTextBox, ChildBox, BibleBoxFunctions, BibleBox
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -1507,7 +1508,7 @@ class HTMLWindow( ChildWindow ):
 
 
 
-class FindResultWindow( tk.Toplevel ): #, ChildBox ):
+class FindResultWindow( tk.Toplevel ):
     """
     Displays the find results.
     """
@@ -1535,12 +1536,11 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
             parentWindow, optionDict, resultSummaryDict, resultList, findFunction, refindFunction, replaceFunction, extendTo
         self.parentApp = self.parentWindow.parentApp
         tk.Toplevel.__init__( self, self.parentWindow )
-        #ChildBox.__init__( self, self.parentApp )
         self.protocol( 'WM_DELETE_WINDOW', self.doClose )
         self.title( '{} Search Results'.format( self.optionDict['workName'] ) )
         self.genericWindowType = 'FindResultWindow'
         self.windowType = 'FindResultWindow'
-        self.moduleID = 'HTML'
+        #self.moduleID = 'Find'
 
         self.geometry( INITIAL_RESULT_WINDOW_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
@@ -1733,35 +1733,35 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
     # end of FindResultWindow.createToolBar
 
 
-    def createStatusBar( self ):
-        """
-        Create a status bar containing only one text label at the bottom of the main window.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("FindResultWindow.createStatusBar()") )
+    #def createStatusBar( self ):
+        #"""
+        #Create a status bar containing only one text label at the bottom of the main window.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("FindResultWindow.createStatusBar()") )
 
-        Style().configure('HTMLStatusBar.TFrame', background='yellow')
-        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
-        #Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
-                                            #background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+        #Style().configure('HTMLStatusBar.TFrame', background='yellow')
+        #Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
+        ##Style().map("Halt.TButton", foreground=[('pressed', 'red'), ('active', 'yellow')],
+                                            ##background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
 
-        self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
+        #self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
 
-        self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
-                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
-                                    #, font=('arial',16,tk.NORMAL) )
-        self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
+        #self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
+                                    #textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
+                                    ##, font=('arial',16,tk.NORMAL) )
+        #self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
 
-        # style='Halt.TButton',
-        self.forwardButton = Button( self.statusBar, text='Forward', command=self.doGoForward )
-        self.forwardButton.pack( side=tk.RIGHT, padx=2, pady=2 )
-        self.backButton = Button( self.statusBar, text='Back', command=self.doGoBackward )
-        self.backButton.pack( side=tk.RIGHT, padx=2, pady=2 )
-        self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
+        ## style='Halt.TButton',
+        #self.forwardButton = Button( self.statusBar, text='Forward', command=self.doGoForward )
+        #self.forwardButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        #self.backButton = Button( self.statusBar, text='Back', command=self.doGoBackward )
+        #self.backButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        #self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
 
-        #self.setReadyStatus()
-        self.setStatus() # Clear it
-    # end of FindResultWindow.createStatusBar
+        ##self.setReadyStatus()
+        #self.setStatus() # Clear it
+    ## end of FindResultWindow.createStatusBar
 
 
     def setStatus( self, newStatusText='' ):
@@ -2087,6 +2087,823 @@ class FindResultWindow( tk.Toplevel ): #, ChildBox ):
         self.replaceFunction() # Run the supplied find/replace function
     # end of FindResultWindow.doReplace
 # end of class FindResultWindow
+
+
+
+class CollateProjectsWindow( tk.Toplevel ):
+    """
+    Displays the find results.
+    """
+    def __init__( self, parentWindow ):
+        """
+        optionDict is the dictionary of options that were given to the find function.
+        resultSummaryDict is the dictionary containing summary entries (counts) for each Bible book.
+            resultSummaryDict = { 'searchedBookList':[], 'foundBookList':[], }
+        resultList is a list of 4-tuples or 5-tuples:
+            For the normal search, the 4-tuples are:
+                SimpleVerseKey, marker (none if v~), contextBefore, contextAfter
+            If the search is caseless, the 5-tuples are:
+                SimpleVerseKey, marker (none if v~), contextBefore, foundWordForm, contextAfter
+        findFunction is the function that was called to create this window
+            (which is used to refresh the window)
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.__init__( {}, {}, {}, {} )").format( parentWindow, optionDict, resultSummaryDict, len(resultList) ) )
+            assert parentWindow
+            assert optionDict and isinstance( optionDict, dict )
+            assert resultSummaryDict and isinstance( resultSummaryDict, dict )
+            assert resultList and isinstance( resultList, list )
+
+        self.parentWindow = parentWindow
+        self.parentApp = self.parentWindow.parentApp
+        tk.Toplevel.__init__( self, self.parentWindow )
+        self.protocol( 'WM_DELETE_WINDOW', self.doClose )
+        self.title( _("Collate Projects") )
+        self.genericWindowType = 'CollateProjectsWindow'
+        self.windowType = 'CollateProjectsWindow'
+
+        self.geometry( MAXIMUM_RESULT_WINDOW_SIZE )
+        self.minimumSize, self.maximumSize = MINIMUM_RESULT_WINDOW_SIZE, MAXIMUM_RESULT_WINDOW_SIZE
+        self.minsize( *parseWindowSize( self.minimumSize ) )
+        self.maxsize( *parseWindowSize( self.maximumSize ) )
+
+        self._showStatusBarVar = tk.BooleanVar()
+        self._showStatusBarVar.set( True )
+        self._statusTextVar = tk.StringVar()
+        self._statusTextVar.set( '' ) # first initial value
+
+        self.myKeyboardBindingsList = []
+        self.createMenuBar()
+        #self.createToolBar()
+        #self.createContextMenu()
+        if self._showStatusBarVar.get(): self.createStatusBar()
+
+        #self._formatViewMode = DEFAULT
+        #self.settings = None
+
+        ##print( 'All internalBibles', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
+        #self.availableInternalBibles = []
+        #for internalBible,windowList in self.parentApp.internalBibles:
+            #if internalBible is not self.parentWindow.internalBible:
+                #self.availableInternalBibles.append( internalBible )
+        ##print( 'Available internalBibles', len(self.availableInternalBibles), self.availableInternalBibles )
+
+        self.BibleNameList = []
+        self.BibleNameObjectDict = {}
+        for iB,windowList in self.parentApp.internalBibles: # Contains 2-tuples being (internalBibleObject,list of window objects displaying that Bible)
+            BibleName = iB.getAName()
+            self.BibleNameList.append( BibleName )
+            self.BibleNameObjectDict[BibleName] = iB
+        self.internalBible1 = self.internalBible2 = None
+
+        self.compareFunction = 'and'
+
+        # Make a frame at the top and then put our options inside it
+        top = Frame( self )
+        top.pack( side=tk.TOP, fill=tk.X )
+
+        self.thisBookOnlyVar = tk.BooleanVar()
+        self.thisBookOnlyVar.set( False )
+        self.BBB = self.parentApp.currentVerseKey.getBBB()
+        thisBookCb = tk.Checkbutton( top, text=_("This book only ({})").format( self.BBB ),
+                                    variable=self.thisBookOnlyVar )
+        #thisBookCb.pack( side=tk.LEFT )
+        thisBookCb.grid( row=0, column=0, padx=20, pady=5, sticky=tk.W )
+
+        self.autoGotoVar = tk.BooleanVar()
+        self.autoGotoVar.set( True )
+        autoGotoCb = tk.Checkbutton( top, text=_("Auto Goto"), variable=self.autoGotoVar )
+        #thisBookCb.pack( side=tk.LEFT )
+        autoGotoCb.grid( row=0, column=1, padx=20, pady=5, sticky=tk.W )
+
+        self.markersMatchVar = tk.BooleanVar()
+        self.markersMatchVar.set( False )
+        markersMatchCb = tk.Checkbutton( top, text=_("Format markers should match exactly (e.g., for a back-translation)"), variable=self.markersMatchVar )
+        #thisBookCb.pack( side=tk.LEFT )
+        markersMatchCb.grid( row=0, column=2, padx=20, pady=5, sticky=tk.W )
+
+        #infoLabel = Label( self, text='( {:,} entries for {!r} )'.format( len(self.resultList), self.optionDict['findText'] ) )
+        ##infoLabel.pack( in_=top, side=tk.TOP, anchor=tk0.CENTER, padx=2, pady=2 )
+        #infoLabel.grid( in_=top, row=0, column=1, padx=2, pady=5 )
+
+        #if len(self.availableInternalBibles) == 1:
+            #extendText = _(" to {}").format( self.availableInternalBibles[0].getAName() )
+        #elif len(self.availableInternalBibles) > 1: extendText = '…'
+        #else: extendText = ''
+        #self.extendButton = Button( self, text=_('Extend')+"{}".format( extendText ), command=self.doExtend )
+        ##extendButton.pack( in_=top, side=tk.RIGHT, padx=2, pady=2 )
+        #self.extendButton.grid( in_=top, row=0, column=2, padx=5, pady=5, sticky=tk.W )
+        #if not self.availableInternalBibles: self.extendButton.configure( state=tk.DISABLED )
+
+
+        bottom = Frame( self )
+        bottom.pack( side=tk.BOTTOM, fill=tk.X )
+
+        closeButton = Button( self, text=_('Close'), command=self.doClose )
+        closeButton.pack( in_=bottom, side=tk.RIGHT, padx=2, pady=2 )
+        #closeButton.grid( in_=bottom, row=1, column=3, padx=5, pady=5, sticky=tk.E )
+
+        self.nextButton = Button( self, text=_('Next'), command=self.doNext )
+        self.nextButton.pack( in_=bottom, side=tk.RIGHT, padx=2, pady=2 )
+        #self.nextButton.grid( in_=bottom, row=1, column=0, padx=5, pady=5, sticky=tk.E )
+        #self.nextButton.configure( state=tk.DISABLED )
+        self.nextButton['state'] = tk.DISABLED
+
+        self.previousButton = Button( self, text=_('Previous'), command=self.doPrevious )
+        self.previousButton.pack( in_=bottom, side=tk.RIGHT, padx=2, pady=2 )
+        #self.previousButton.grid( in_=bottom, row=1, column=1, padx=5, pady=5, sticky=tk.E )
+        #self.previousButton.configure( state=tk.DISABLED )
+        self.previousButton['state'] = tk.DISABLED
+
+        self.goButton = Button( self, text=_('Go')+'…', command=self.doGoCollate )
+        self.goButton.pack( in_=bottom, side=tk.RIGHT, padx=2, pady=2 )
+        #self.goButton.grid( in_=bottom, row=1, column=1, padx=5, pady=5, sticky=tk.E )
+        #self.goButton.configure( state=tk.DISABLED )
+        self.goButton['state'] = tk.DISABLED
+
+
+        left = Frame( self )
+        left.pack( side=tk.LEFT, fill=tk.Y ) #, expand=tk.YES )
+
+        self.version1Var = tk.StringVar()
+        self.version1Var.set( _("(select)") )
+        self.version1Box = BCombobox( left, width=40, textvariable=self.version1Var, values=self.BibleNameList )
+        self.version1Box.bind('<<ComboboxSelected>>', self.selectBible1 )
+        self.version1Box.bind( '<Return>', self.selectBible1 )
+        #self.version1Box.bind( '<FocusIn>', self.notWrittenYet )
+        self.version1Box.pack( side=tk.TOP )
+        #self.version1Box.grid( row=0, column=0, columnspan=2, padx=2, pady=2, sticky=tk.W )
+
+        self.optionsDict1 = {}
+        self.optionsDict1['parentWindow'] = parentWindow
+        #self.optionsDict1['parentBox'] = parentWindow.textBox
+        self.optionsDict1['parentApp'] = self.parentApp
+        #self.optionsDict1['givenBible'] = givenBible
+
+        # Set-up default search options
+        #self.optionsDict1['workName'] = givenBible.getAName() # Always revert to the original work
+        if 'findHistoryList' not in self.optionsDict1: self.optionsDict1['findHistoryList'] = [] # Oldest first
+        if 'wordMode' not in self.optionsDict1: self.optionsDict1['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
+        if 'caselessFlag' not in self.optionsDict1: self.optionsDict1['caselessFlag'] = True
+        if 'ignoreDiacriticsFlag' not in self.optionsDict1: self.optionsDict1['ignoreDiacriticsFlag'] = False
+        if 'includeIntroFlag' not in self.optionsDict1: self.optionsDict1['includeIntroFlag'] = True
+        if 'includeMainTextFlag' not in self.optionsDict1: self.optionsDict1['includeMainTextFlag'] = True
+        if 'includeMarkerTextFlag' not in self.optionsDict1: self.optionsDict1['includeMarkerTextFlag'] = False
+        if 'includeExtrasFlag' not in self.optionsDict1: self.optionsDict1['includeExtrasFlag'] = False
+        if 'contextLength' not in self.optionsDict1: self.optionsDict1['contextLength'] = 30 # each side
+        if 'bookList' not in self.optionsDict1: self.optionsDict1['bookList'] = 'ALL' # or BBB or a list
+        if 'chapterList' not in self.optionsDict1: self.optionsDict1['chapterList'] = None
+        if 'markerList' not in self.optionsDict1: self.optionsDict1['markerList'] = None
+        self.optionsDict1['regexFlag'] = False
+
+        self.findLabel1 = Label( left, text=_("Find:") )
+        #self.findLabel1.grid( row=1, column=0, padx=2, pady=5, sticky=tk.E )
+        self.findLabel1.pack( side=tk.TOP )
+        self.searchString1Var = tk.StringVar()
+        try: self.searchString1Var.set( self.optionsDict1['findHistoryList'][-1] )
+        except IndexError: pass
+        self.searchString1Box = BCombobox( left, width=35, textvariable=self.searchString1Var )
+        self.searchString1Box['values'] = self.optionsDict1['findHistoryList']
+        #self.searchString1Box['width'] = len( 'Deuteronomy' )
+        self.searchString1Box.bind('<<ComboboxSelected>>', self.checkEnables )
+        self.searchString1Box.bind( '<Return>', self.checkEnables )
+        #self.searchString1Box.setTextChangeCallback( self.checkEnables )
+        #self.searchString1Box.pack( side=tk.LEFT )
+        #self.searchString1Box.grid( row=1, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
+        self.searchString1Box.pack( side=tk.TOP )
+        self.searchString1Box.icursor( tk.END ) # Set cursor to end (makes spaces visible)
+
+        #wordLimitsFrame = tk.LabelFrame( left, text=_('Word limits'), padx=5, pady=5 )
+        #wordLimitsFrame.grid( row=2, column=0, padx=10, pady=10, sticky=tk.W )
+
+        #self.wordModeSelectVariable = tk.IntVar()
+        #if self.optionsDict['wordMode'] == 'Any': self.wordModeSelectVariable.set( 1 )
+        #elif self.optionsDict['wordMode'] == 'Whole': self.wordModeSelectVariable.set( 2 )
+        #elif self.optionsDict['wordMode'] == 'Begins': self.wordModeSelectVariable.set( 3 )
+        #elif self.optionsDict['wordMode'] == 'EndsWord': self.wordModeSelectVariable.set( 4 )
+        #elif self.optionsDict['wordMode'] == 'EndsLine': self.wordModeSelectVariable.set( 5 )
+        #else: halt # programming error
+
+        #self.rwmb1 = Radiobutton( left, text=_('No restriction'), variable=self.wordModeSelectVariable, value=1 )
+        #self.rwmb1.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        ##self.rwmb1.grid( row=2, column=0, padx=2, pady=1, sticky=tk.W )
+        #self.rwmb2 = Radiobutton( left, text=_('Whole words only'), variable=self.wordModeSelectVariable, value=2 )
+        #self.rwmb2.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        ##self.rwmb2.grid( row=3, column=0, padx=2, pady=1, sticky=tk.W )
+        #self.rwmb3 = Radiobutton( left, text=_('Beginning of word'), variable=self.wordModeSelectVariable, value=3 )
+        #self.rwmb3.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        ##self.rwmb3.grid( row=4, column=0, padx=2, pady=1, sticky=tk.W )
+        #self.rwmb4 = Radiobutton( left, text=_('End of word'), variable=self.wordModeSelectVariable, value=4 )
+        #self.rwmb4.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+        ##self.rwmb4.grid( row=5, column=0, padx=2, pady=1, sticky=tk.W )
+        #self.rwmb5 = Radiobutton( left, text=_('End of line'), variable=self.wordModeSelectVariable, value=5 )
+        #self.rwmb5.pack( in_=wordLimitsFrame, side=tk.TOP, fill=tk.X )
+
+        #self.mcaseVar = tk.IntVar()
+        #if not self.optionsDict['caselessFlag']: self.mcaseVar.set( 1 )
+        #mcaseCb = tk.Checkbutton( left, text=_("Match case"), variable=self.mcaseVar )
+        ##mcaseCb.grid( row=6, column=0, padx=0, pady=5, sticky=tk.W )
+        #mcaseCb.pack( in_=wordLimitsFrame, side=tk.TOP, anchor=tk.W, padx=0, pady=1 )
+        #self.diaVar = tk.IntVar()
+        #if self.optionsDict['ignoreDiacriticsFlag']: self.diaVar.set( 1 )
+        #diaCb = tk.Checkbutton( left, text=_("Ignore diacritics"), variable=self.diaVar )
+        ##diaCb.grid( row=6, column=2, padx=0, pady=5, sticky=tk.W )
+        #diaCb.pack( in_=wordLimitsFrame, side=tk.TOP, anchor=tk.W, padx=0, pady=1 )
+
+        # Create a scroll bar to fill the right-hand side of the window
+        self.vScrollbar1 = Scrollbar( left )
+        self.vScrollbar1.pack( side=tk.RIGHT, fill=tk.Y )
+
+        self.textBox1 = BText( left, yscrollcommand=self.vScrollbar1.set, state=tk.DISABLED )
+        self.textBox1.configure( wrap='word' )
+        self.textBox1.pack( side=tk.TOP, fill=tk.BOTH ) #, expand=tk.YES )
+        #self.textBox1.grid( row=2, column=0, columnspan=2, padx=2, pady=2, sticky=tk.W )
+        self.vScrollbar1.configure( command=self.textBox1.yview ) # link the scrollbar to the text box
+
+        right = Frame( self )
+        right.pack( side=tk.RIGHT, fill=tk.Y ) #, expand=True )
+
+        self.version2Var = tk.StringVar()
+        self.version2Var.set( _("(select)") )
+        self.version2Box = BCombobox( right, width=40, textvariable=self.version2Var, values=self.BibleNameList )
+        self.version2Box.bind('<<ComboboxSelected>>', self.selectBible2 )
+        self.version2Box.bind( '<Return>', self.selectBible2 )
+        #self.version2Box.bind( '<FocusIn>', self.notWrittenYet )
+        self.version2Box.pack( side=tk.TOP )
+
+        self.optionsDict2 = {}
+        self.optionsDict2['parentWindow'] = parentWindow
+        #self.optionsDict2['parentBox'] = parentWindow.textBox
+        self.optionsDict2['parentApp'] = self.parentApp
+        #self.optionsDict2['givenBible'] = givenBible
+
+        # Set-up default search options
+        #self.optionsDict2['workName'] = givenBible.getAName() # Always revert to the original work
+        if 'findHistoryList' not in self.optionsDict2: self.optionsDict2['findHistoryList'] = [] # Oldest first
+        if 'wordMode' not in self.optionsDict2: self.optionsDict2['wordMode'] = 'Any' # or 'Whole' or 'Begins' or 'EndsWord' or 'EndsLine'
+        if 'caselessFlag' not in self.optionsDict2: self.optionsDict2['caselessFlag'] = True
+        if 'ignoreDiacriticsFlag' not in self.optionsDict2: self.optionsDict2['ignoreDiacriticsFlag'] = False
+        if 'includeIntroFlag' not in self.optionsDict2: self.optionsDict2['includeIntroFlag'] = True
+        if 'includeMainTextFlag' not in self.optionsDict2: self.optionsDict2['includeMainTextFlag'] = True
+        if 'includeMarkerTextFlag' not in self.optionsDict2: self.optionsDict2['includeMarkerTextFlag'] = False
+        if 'includeExtrasFlag' not in self.optionsDict2: self.optionsDict2['includeExtrasFlag'] = False
+        if 'contextLength' not in self.optionsDict2: self.optionsDict2['contextLength'] = 30 # each side
+        if 'bookList' not in self.optionsDict2: self.optionsDict2['bookList'] = 'ALL' # or BBB or a list
+        if 'chapterList' not in self.optionsDict2: self.optionsDict2['chapterList'] = None
+        if 'markerList' not in self.optionsDict2: self.optionsDict2['markerList'] = None
+        self.optionsDict2['regexFlag'] = False
+
+        self.findLabel2 = Label( right, text=_("Find:") )
+        #self.findLabel2.grid( row=2, column=0, padx=2, pady=5, sticky=tk.E )
+        self.findLabel2.pack( side=tk.TOP )
+        self.searchString2Var = tk.StringVar()
+        try: self.searchString2Var.set( self.optionsDict2['findHistoryList'][-1] )
+        except IndexError: pass
+        self.searchString2Box = BCombobox( right, width=35, textvariable=self.searchString2Var )
+        self.searchString2Box['values'] = self.optionsDict2['findHistoryList']
+        #self.searchString2Box['width'] = len( 'Deuteronomy' )
+        self.searchString2Box.bind('<<ComboboxSelected>>', self.checkEnables )
+        self.searchString2Box.bind( '<Return>', self.checkEnables )
+        #self.searchString2Box.setTextChangeCallback( self.checkEnables )
+        #self.searchString2Box.pack( side=tk.LEFT )
+        #self.searchString2Box.grid( row=2, column=2, columnspan=2, padx=2, pady=2, sticky=tk.W )
+        self.searchString2Box.pack( side=tk.TOP )
+        self.searchString2Box.icursor( tk.END ) # Set cursor to end (makes spaces visible)
+
+        # Create a scroll bar to fill the right-hand side of the window
+        self.vScrollbar2 = Scrollbar( right )
+        self.vScrollbar2.pack( side=tk.RIGHT, fill=tk.Y )
+
+        self.textBox2 = BText( right, yscrollcommand=self.vScrollbar2.set, state=tk.DISABLED )
+        self.textBox2.configure( wrap='word' )
+        self.textBox2.pack( side=tk.TOP, fill=tk.BOTH ) #, expand=tk.YES )
+        #self.textBox2.grid( row=2, column=0, columnspan=2, padx=2, pady=2, sticky=tk.W )
+        self.vScrollbar2.configure( command=self.textBox2.yview ) # link the scrollbar to the text box
+
+        self.createStandardWindowKeyboardBindings()
+    # end of CollateProjectsWindow.__init__
+
+
+    def _createStandardWindowKeyboardBinding( self, name, command ):
+        """
+        Called from createStandardKeyboardBindings to do the actual work.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("ChildWindow._createStandardWindowKeyboardBinding( {} )").format( name ) )
+
+        try: kBD = self.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
+        assert (name,kBD[name][0],) not in self.myKeyboardBindingsList
+        if name in kBD:
+            for keyCode in kBD[name][1:]:
+                #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                self.bind( keyCode, command )
+                if BibleOrgSysGlobals.debugFlag:
+                    if keyCode in self.myKeyboardShortcutsList:
+                        print( "ChildWindow._createStandardWindowKeyboardBinding wants to add duplicate {}".format( keyCode ) )
+                    self.myKeyboardShortcutsList.append( keyCode )
+            self.myKeyboardBindingsList.append( (name,kBD[name][0],) )
+        else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
+    # end of ChildWindow._createStandardWindowKeyboardBinding()
+
+    def createStandardWindowKeyboardBindings( self, reset=False ):
+        """
+        Create keyboard bindings for this widget.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("ChildWindow.createStandardWindowKeyboardBindings( {} )").format( reset ) )
+
+        if reset:
+            self.myKeyboardBindingsList = []
+
+        for name,command in ( ('Info',self.doShowInfo),
+                              ('Help',self.doHelp),
+                              ('About',self.doAbout),
+                              #('ShowMain',self.doShowMainWindow),
+                              ('Close',self.doClose),
+                              ):
+            self._createStandardWindowKeyboardBinding( name, command )
+    # end of ChildWindow.createStandardWindowKeyboardBindings()
+
+
+    def notWrittenYet( self, event=None ):
+        errorBeep()
+        showError( self, _("Not implemented"), _("Not yet available, sorry") )
+    # end of CollateProjectsWindow.notWrittenYet
+
+
+    def createMenuBar( self ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.createMenuBar()") )
+
+        try: kBD = self.parentWindow.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentApp.keyBindingDict
+
+        self.menubar = tk.Menu( self )
+        #self['menu'] = self.menubar
+        self.configure( menu=self.menubar ) # alternative
+
+        fileMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
+        #fileMenu.add_command( label=_('New…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_command( label=_('Save…'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_separator()
+        #subfileMenuImport = tk.Menu( fileMenu )
+        #subfileMenuImport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Import'), underline=0, menu=subfileMenuImport )
+        #subfileMenuExport = tk.Menu( fileMenu )
+        #subfileMenuExport.add_command( label=_('USX'), underline=0, command=self.notWrittenYet )
+        #subfileMenuExport.add_command( label=_('HTML'), underline=0, command=self.notWrittenYet )
+        #fileMenu.add_cascade( label=_('Export'), underline=0, menu=subfileMenuExport )
+        #fileMenu.add_separator()
+        #fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=kBD[_('Info')][0] )
+        #fileMenu.add_separator()
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=kBD[_('Close')][0] ) # close this window
+
+        #editMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
+        #editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=kBD[_('Copy')][0] )
+        #editMenu.add_separator()
+        #editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
+
+        #searchMenu = tk.Menu( self.menubar )
+        #self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
+        #searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=kBD[_('Line')][0] )
+        #searchMenu.add_separator()
+        #searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
+        #searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=kBD[_('Refind')][0] )
+
+        viewMenu = tk.Menu( self.menubar, tearoff=False )
+        self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
+        viewMenu.add_command( label=_('Refresh'), underline=0, command=self.doRefresh ) #, accelerator=kBD[_('Refresh')][0] ) # refresh this window
+        viewMenu.add_separator()
+        viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
+
+        #gotoMenu = tk.Menu( self.menubar )
+        #self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
+        #gotoMenu.add_command( label=_('Back'), underline=0, command=self.doGoBackward )
+        #gotoMenu.add_command( label=_('Forward'), underline=0, command=self.doGoForward )
+
+        #toolsMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
+        #toolsMenu.add_command( label=_('Options…'), underline=0, command=self.notWrittenYet )
+
+        #windowMenu = tk.Menu( self.menubar, tearoff=False )
+        #self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
+        #windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
+        #windowMenu.add_separator()
+        #windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=kBD[_('ShowMain')][0] )
+
+        helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
+        self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=kBD[_('Help')][0] )
+        helpMenu.add_separator()
+        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=kBD[_('About')][0] )
+    # end of CollateProjectsWindow.createMenuBar
+
+
+    def createContextMenu( self ):
+        """
+        Can be overriden if necessary.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.createContextMenu()") )
+
+        try: kBD = self.parentWindow.parentApp.keyBindingDict
+        except AttributeError: kBD = self.parentApp.keyBindingDict
+
+        self.contextMenu = tk.Menu( self, tearoff=0 )
+        self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=kBD[_('Copy')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=kBD[_('SelectAll')][0] )
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=kBD[_('Find')][0] )
+        #self.contextMenu.add_separator()
+        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=kBD[_('Close')][0] )
+
+        self.bind( '<Button-3>', self.showContextMenu ) # right-click
+        #self.pack()
+    # end of CollateProjectsWindow.createContextMenu
+
+
+    def showContextMenu( self, event ):
+        self.contextMenu.tk_popup( event.x_root, event.y_root )
+    # end of CollateProjectsWindow.showContextMenu
+
+
+    def createToolBar( self ):
+        """
+        Designed to be overridden.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("This 'createToolBar' method can be overridden!") )
+        pass
+    # end of CollateProjectsWindow.createToolBar
+
+
+    def createStatusBar( self ):
+        """
+        Create a status bar containing only one text label at the bottom of the main window.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.createStatusBar()") )
+
+        Style().configure('HTMLStatusBar.TFrame', background='yellow')
+        Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
+
+        self.statusBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='HTMLStatusBar.TFrame' )
+
+        self.statusTextLabel = Label( self.statusBar, relief=tk.SUNKEN,
+                                    textvariable=self._statusTextVar, style='{}.ChildStatusBar.TLabel'.format( self ) )
+                                    #, font=('arial',16,tk.NORMAL) )
+        self.statusTextLabel.pack( side=tk.LEFT, fill=tk.X )
+
+        #self.forwardButton = Button( self.statusBar, text='Forward', command=self.doGoForward )
+        #self.forwardButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        #self.backButton = Button( self.statusBar, text='Back', command=self.doGoBackward )
+        #self.backButton.pack( side=tk.RIGHT, padx=2, pady=2 )
+        self.statusBar.pack( side=tk.BOTTOM, fill=tk.X )
+
+        #self.setReadyStatus()
+        self.setStatus() # Clear it
+    # end of CollateProjectsWindow.createStatusBar
+
+
+    def doToggleStatusBar( self, setOn=None ):
+        """
+        Display or hide the status bar.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doToggleStatusBar()") )
+
+        if setOn is not None:
+            self._showStatusBarVar.set( setOn )
+
+        if self._showStatusBarVar.get():
+            self.createStatusBar()
+        else:
+            self.statusBar.destroy()
+    # end of CollateProjectsWindow.doToggleStatusBar
+
+
+    def setStatus( self, newStatusText='' ):
+        """
+        Set (or clear) the status bar text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.setStatus( {} )").format( repr(newStatusText) ) )
+
+        #print( "SB is", repr( self._statusTextVar.get() ) )
+        if newStatusText != self._statusTextVar.get(): # it's changed
+            #self.statusBarTextWidget.configure( state=tk.NORMAL )
+            #self.statusBarTextWidget.delete( tkSTART, tk.END )
+            #if newStatusText:
+                #self.statusBarTextWidget.insert( tkSTART, newStatusText )
+            #self.statusBarTextWidget.configure( state=tk.DISABLED ) # Don't allow editing
+            #self.statusText = newStatusText
+            self._statusTextVar.set( newStatusText )
+            if self._showStatusBarVar.get(): self.statusTextLabel.update()
+    # end of CollateProjectsWindow.setStatus
+
+
+    #def setWaitStatus( self, newStatusText ):
+        #"""
+        #Set the status bar text and change the cursor to the wait/hourglass cursor.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("setWaitStatus( {} )").format( repr(newStatusText) ) )
+        ##self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
+        #self.setStatus( newStatusText )
+        #self.update()
+    ## end of CollateProjectsWindow.setWaitStatus
+
+
+    def setReadyStatus( self ):
+        """
+        Sets the status line to "Ready"
+            and sets the cursor to the normal cursor.
+        """
+        self.setStatus( _("Ready") )
+        #self.configure( cursor='' )
+    # end of CollateProjectsWindow.setReadyStatus
+
+
+    def selectBible1( self, event=None ):
+        """
+        Select left-hand Bible.
+
+        NOTE: We don't check here yet if the two selected Bibles are the same.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.selectBible1( {} )").format( event ) )
+
+        BibleName1 = self.version1Var.get()
+        self.internalBible1 = self.BibleNameObjectDict[BibleName1]
+        self.checkEnables()
+    # end of CollateProjectsWindow.selectBible1
+
+    def selectBible2( self, event=None ):
+        """
+        Select right-hand Bible.
+
+        NOTE: We don't check here yet if the two selected Bibles are the same.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.selectBible2( {} )").format( event ) )
+
+        BibleName2 = self.version2Var.get()
+        self.internalBible2 = self.BibleNameObjectDict[BibleName2]
+        self.checkEnables()
+    # end of CollateProjectsWindow.selectBible1
+
+
+    def doNext( self, event=None ):
+        """
+        Process Next button.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doNext( {} )").format( event ) )
+
+    # end of CollateProjectsWindow.doNext
+
+    def doPrevious( self, event=None ):
+        """
+        Process Next button.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doPrevious( {} )").format( event ) )
+
+    # end of CollateProjectsWindow.doPrevious
+
+
+    def disableButtons( self ):
+        """
+        Disable all buttons.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.disableButtons()") )
+
+        self.goButton.configure( state=tk.DISABLED )
+        self.previousButton.configure( state=tk.DISABLED )
+        self.nextButton.configure( state=tk.DISABLED )
+    # end of CollateProjectsWindow.disableButtons
+
+    def checkEnables( self, finalFlag=False ):
+        """
+        Enable or disable buttons.
+        Also updates the find text.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.checkEnables()") )
+
+        self.disableButtons() # by default
+
+        # First do a few checks
+        if self.internalBible1 is None:
+            if finalFlag:
+                errorBeep()
+                showError( self, _("Collate Projects error"), _("No Bible selected on left") )
+            return
+        self.optionsDict1['givenBible'] = self.internalBible1
+        self.optionsDict1['workName'] = self.internalBible1.getAName()
+        if self.internalBible2 is None:
+            if finalFlag:
+                errorBeep()
+                showError( self, _("Collate Projects error"), _("No Bible selected on right") )
+            return
+        self.optionsDict2['givenBible'] = self.internalBible2
+        self.optionsDict2['workName'] = self.internalBible2.getAName()
+        if self.internalBible1 == self.internalBible2: # should this be "is"?
+            if finalFlag:
+                errorBeep()
+                showError( self, _("Collate Projects error"), _("Left and right have identical Bibles") )
+            return
+        self.optionsDict1['findText'] = self.searchString1Var.get()
+        if not self.optionsDict1['findText']:
+            if finalFlag:
+                errorBeep()
+                showError( self, _("Collate Projects error"), _("No search string selected on left") )
+            return
+        self.optionsDict2['findText'] = self.searchString2Var.get()
+        if not self.optionsDict2['findText']:
+            if finalFlag:
+                errorBeep()
+                showError( self, _("Collate Projects error"), _("No search string selected on right") )
+            return
+        self.goButton.configure( state=tk.NORMAL )
+    # end of CollateProjectsWindow.checkEnables
+
+
+    def doGoCollate( self, event=None ):
+        """
+        Process Go button.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doGoCollate( {} )").format( event ) )
+
+        # Prepare the final parameters
+        self.optionsDict1['bookList'] = self.BBB if self.thisBookOnlyVar.get() else 'ALL'
+        self.optionsDict2['bookList'] = self.optionsDict1['bookList']
+
+        # Prepare the appropriate internal Bibles
+        self.parentApp.setWaitStatus( _("Preparing internal Bible1…") )
+        if self.optionsDict1['bookList'] == 'ALL':
+            self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible1…") )
+            self.internalBible1.load()
+        else:
+            self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible1 book…") )
+            self.internalBible1.loadBook( self.optionsDict1['bookList'] )
+        self.parentApp.setWaitStatus( _("Preparing internal Bible2…") )
+        if self.optionsDict2['bookList'] == 'ALL':
+            self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible2…") )
+            self.internalBible2.load()
+        else:
+            self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible2 book…") )
+            self.internalBible2.loadBook( self.optionsDict2['bookList'] )
+
+        # Do the finds
+        self.optionsDict1, resultSummaryDict1, findResultList1 = self.optionsDict1['givenBible'].findText( self.optionsDict1 )
+        print( "Got findResultList1", findResultList1 )
+        if len(findResultList1) == 0: # nothing found
+            errorBeep()
+            key = self.optionsDict1['findText']
+            showError( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
+            self.disableButtons()
+            return
+        self.optionsDict2, resultSummaryDict2, findResultList2 = self.optionsDict2['givenBible'].findText( self.optionsDict2 )
+        print( "Got findResultList2", findResultList2 )
+        if len(findResultList2) == 0: # nothing found
+            errorBeep()
+            key = self.optionsDict2['findText']
+            showError( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:28]+'…') ) )
+            self.disableButtons()
+            return
+    # end of CollateProjectsWindow.doGoCollate
+
+
+    def doShowInfo( self, event=None ):
+        """
+        Pop-up dialog giving find info
+        """
+        self.parentApp.logUsage( ProgName, debuggingThisModule, 'CollateProjectsWindow doShowInfo' )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doShowInfo( {} )").format( event ) )
+
+        #print( "options", self.optionDict )
+        #print( "resultSummary", self.resultSummaryDict )
+        #print( "resultList", self.resultList )
+
+        # Display the options that were used for the search
+        #   Doesn't yet display:
+        #           'currentBCV'
+        #            optionsDict['findHistoryList'] = [] # Oldest first
+        #            optionsDict['contextLength'] = 30 # each side
+        #            optionsDict['regexFlag'] = False
+        #           'findHistoryList'
+
+        infoString = 'Search text: {!r}\n'.format( self.optionDict['findText'] ) \
+                 + 'In: {}\n'.format( self.optionDict['workName'] ) \
+                 + 'Books: {}\n'.format( self.optionDict['bookList'] )
+        if self.optionDict['chapterList']: infoString += 'chapters: {}\n'.format( self.optionDict['chapterList'] )
+        if self.optionDict['markerList']: infoString += 'markers: {}\n'.format( self.optionDict['markerList'] )
+        infoString += '\nOptions:\n' \
+                 + '  Words: {}\n'.format( self.optionDict['wordMode'] ) \
+                 + '  Caseless: {}\n'.format( self.optionDict['caselessFlag'] )
+        if self.optionDict['markerList']: infoString += '  Ignore diacritics: {}\n'.format( self.optionDict['ignoreDiacriticsFlag'] )
+        infoString += '\nInclude:\n' \
+                 + '  Intro: {}\n'.format( self.optionDict['includeIntroFlag'] ) \
+                 + '  Main text: {}\n'.format( self.optionDict['includeMainTextFlag'] ) \
+                 + '  Marker text: {}\n'.format( self.optionDict['includeMarkerTextFlag'] ) \
+                 + '  Notes: {}\n'.format( self.optionDict['includeExtrasFlag'] )
+
+        if infoString[-1] == '\n': infoString = infoString[:-1] # Remove surplus newline marker
+        showInfo( self, 'Window Information', infoString )
+    # end of CollateProjectsWindow.doShowInfo
+
+
+    def doHelp( self, event=None ):
+        """
+        Display a help box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doHelp( {} )").format( event ) )
+        from Help import HelpBox
+
+        helpInfo = ProgNameVersion
+        helpInfo += '\n' + _("Help for {}").format( self.windowType )
+        helpInfo += '\n  ' + _("Keyboard shortcuts:")
+        for name,shortcut in self.myKeyboardBindingsList:
+            helpInfo += "\n    {}\t{}".format( name, shortcut )
+        hb = HelpBox( self, self.genericWindowType, helpInfo )
+        return tkBREAK # so we don't do the main window help also
+    # end of CollateProjectsWindow.doHelp
+
+
+    def doAbout( self, event=None ):
+        """
+        Display an about box.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doAbout( {} )").format( event ) )
+        from About import AboutBox
+
+        aboutInfo = ProgNameVersion
+        aboutInfo += "\nInformation about {}".format( self.windowType )
+        ab = AboutBox( self, self.genericWindowType, aboutInfo )
+        return tkBREAK # so we don't do the main window about also
+    # end of CollateProjectsWindow.doAbout
+
+
+    def doClose( self, event=None ):
+        """
+        Called from the GUI.
+
+        Can be overridden.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doClose( {} )").format( event ) )
+
+        try: cWs = self.parentWindow.parentApp.childWindows
+        except AttributeError: cWs = self.parentApp.childWindows
+        if self in cWs:
+            cWs.remove( self )
+            self.destroy()
+        else: # we might not have finished making our window yet
+            if BibleOrgSysGlobals.debugFlag:
+                print( exp("CollateProjectsWindow.doClose() for {} wasn't in list").format( self.windowType ) )
+            try: self.destroy()
+            except tk.TclError: pass # never mind
+        if BibleOrgSysGlobals.debugFlag: self.parentWindow.parentApp.setDebugText( "Closed HTML window" )
+    # end of CollateProjectsWindow.doClose
+
+
+    def doRefresh( self ):
+        """
+        Refresh the find (without user input)
+            by closing this window and then calling the find function again.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doRefresh()") )
+
+        self.doClose()
+        self.refindFunction( extendTo=self.extendedTo ) # Run the find again (without user input)
+    # end of CollateProjectsWindow.doRefresh
+
+
+    def doRefind( self ):
+        """
+        Refresh the find
+            by closing this window and then calling the find function again.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("CollateProjectsWindow.doRefind()") )
+
+        self.doClose()
+        self.findFunction() # Run the find again
+    # end of CollateProjectsWindow.doRefind
+# end of class CollateProjectsWindow
 
 
 
