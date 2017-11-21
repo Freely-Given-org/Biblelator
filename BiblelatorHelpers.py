@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-04' # by RJH
+LastModifiedDate = '2017-11-21' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -452,12 +452,17 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
             # Some of these variables will be None but they'll still match
             #and internalBible.sourceFilepath == iB.sourceFilepath \ # PTX Bible sets sourceFilepath but others don't!
             if internalBible.name == iB.name \
-            and internalBible.sourceFolder == iB.sourceFolder \
             and internalBible.sourceFilename == iB.sourceFilename \
             and internalBible.encoding == iB.encoding: # Let's assume they're the same
-                #print( "  Got a match!" )
-                result, foundControllingWindowList = iB, cWs
-                break
+                if internalBible.sourceFolder == iB.sourceFolder:
+                    #print( "  Got an IB match for {}!".format( iB.name ) )
+                    result, foundControllingWindowList = iB, cWs
+                    break
+                else:
+                    print( "handleInternalBibles: Got an almost IB match for {}!".format( iB.name ) )
+                    print( "    Source folders didn't match: {!r} and {!r}".format( internalBible.sourceFolder, iB.sourceFolder ) )
+                    result, foundControllingWindowList = iB, cWs
+                    break
 
         if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
