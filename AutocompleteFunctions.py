@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-10-19' # by RJH
+LastModifiedDate = '2017-12-04' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -412,7 +412,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
             parameters = [(BBB,editWindowObject.internalBible,filename,BBB==currentBBB) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
             if BibleOrgSysGlobals.verbosityLevel > 1:
-                print( exp("Autocomplete: loading up to {} USFM books using {} CPUs…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
+                print( exp("Autocomplete: loading up to {} USFM books using {} processes…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
                 print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
             BibleOrgSysGlobals.alreadyMultiprocessing = True
             with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes

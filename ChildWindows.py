@@ -36,7 +36,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-21' # by RJH
+LastModifiedDate = '2017-12-07' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.42'
@@ -1573,7 +1573,7 @@ class FindResultWindow( tk.Toplevel ):
 
         self.modeVar = tk.IntVar()
         self.modeVar.set( 0 ) # This sets the default 0:Line mode, 1:Column mode
-        modeCb = tk.Checkbutton( self, text=_("Column mode"), variable=self.modeVar, command=self.makeTree )
+        modeCb = tk.Checkbutton( self, text=_("Column mode"), variable=self.modeVar, command=self.makeTreeView )
         #modeCb.pack( in_=top, side=tk.LEFT )
         modeCb.grid( in_=top, row=0, column=0, padx=20, pady=5, sticky=tk.W )
 
@@ -1614,7 +1614,7 @@ class FindResultWindow( tk.Toplevel ):
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
         if self.extendedTo: self.doActualExtend()
-        else: self.makeTree()
+        else: self.makeTreeView()
     # end of FindResultWindow.__init__
 
 
@@ -1806,9 +1806,9 @@ class FindResultWindow( tk.Toplevel ):
     # end of FindResultWindow.setReadyStatus
 
 
-    def makeTree( self ):
+    def makeTreeView( self ):
         """
-        Make the tree and fill it with our result list.
+        Make the search result TreeView and fill it with our result list.
 
         First entry of self.result list is a dictionary containing the search parameters.
 
@@ -1820,16 +1820,16 @@ class FindResultWindow( tk.Toplevel ):
             Text after
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("FindResultWindow.makeTree()") )
+            if debuggingThisModule: print( exp("FindResultWindow.makeTreeView()") )
             assert self.resultList
 
         self.lineMode = not self.modeVar.get()
 
-        try: self.tree.destroy(); del self.tree
+        try: self.findResultsTreeview.destroy(); del self.findResultsTreeview
         except AttributeError: pass # it may not have existed yet
-        self.tree = Treeview( self, yscrollcommand=self.vScrollbar.set )
-        self.tree.pack( expand=tk.YES, fill=tk.BOTH )
-        self.vScrollbar.configure( command=self.tree.yview ) # link the scrollbar to the text box
+        self.findResultsTreeview = Treeview( self, yscrollcommand=self.vScrollbar.set )
+        self.findResultsTreeview.pack( expand=tk.YES, fill=tk.BOTH )
+        self.vScrollbar.configure( command=self.findResultsTreeview.yview ) # link the scrollbar to the text box
 
         fText = self.optionDict['findText']
         lenFText = len( fText )
@@ -1837,30 +1837,30 @@ class FindResultWindow( tk.Toplevel ):
 
         # Set-up the columns and column headings
         if self.extendedTo is None:
-            self.tree['columns'] = ('ref','marker','fText') if self.lineMode else ('ref','marker','before','fText','after')
+            self.findResultsTreeview['columns'] = ('ref','marker','fText') if self.lineMode else ('ref','marker','before','fText','after')
         else: # extended
-            self.tree['columns'] = ('ref','marker','fText','extend') if self.lineMode else ('ref','marker','before','fText','after','extend')
-        self.tree.column( '#0', width=50, stretch=False, anchor='w' )
-        self.tree.heading( '#0', text=_("Bk") )
-        self.tree.column( 'ref', width=75, stretch=False, anchor='w' )
-        self.tree.heading( 'ref', text=_("Ref") )
-        self.tree.column( 'marker', width=50, stretch=False, anchor='center' )
-        self.tree.heading( 'marker', text=_("Mkr") )
+            self.findResultsTreeview['columns'] = ('ref','marker','fText','extend') if self.lineMode else ('ref','marker','before','fText','after','extend')
+        self.findResultsTreeview.column( '#0', width=50, stretch=False, anchor='w' )
+        self.findResultsTreeview.heading( '#0', text=_("Bk") )
+        self.findResultsTreeview.column( 'ref', width=75, stretch=False, anchor='w' )
+        self.findResultsTreeview.heading( 'ref', text=_("Ref") )
+        self.findResultsTreeview.column( 'marker', width=50, stretch=False, anchor='center' )
+        self.findResultsTreeview.heading( 'marker', text=_("Mkr") )
         if self.lineMode:
-            self.tree.column( 'fText', width=contextLength*8+lenFText*10+5, anchor='w' )
-            self.tree.heading( 'fText', text=_("Found") )
+            self.findResultsTreeview.column( 'fText', width=contextLength*8+lenFText*10+5, anchor='w' )
+            self.findResultsTreeview.heading( 'fText', text=_("Found") )
         else: # column mode
-            self.tree.column( 'before', width=contextLength*6, anchor='e' )
-            self.tree.heading( 'before', text=_("Before") )
-            self.tree.column( 'fText', width=lenFText*10+5, stretch=False, anchor='center' )
+            self.findResultsTreeview.column( 'before', width=contextLength*6, anchor='e' )
+            self.findResultsTreeview.heading( 'before', text=_("Before") )
+            self.findResultsTreeview.column( 'fText', width=lenFText*10+5, stretch=False, anchor='center' )
             cText = _("Found") if lenFText>=len( _("Found") ) else None # Leave off column heading for short fields
-            self.tree.heading( 'fText', text=cText )
-            self.tree.column( 'after', width=contextLength*6, anchor='w' )
-            self.tree.heading( 'after', text=_("After") )
+            self.findResultsTreeview.heading( 'fText', text=cText )
+            self.findResultsTreeview.column( 'after', width=contextLength*6, anchor='w' )
+            self.findResultsTreeview.heading( 'after', text=_("After") )
         if self.extendedTo is not None:
-            self.tree.column( 'extend', width=contextLength*6, anchor='w' )
+            self.findResultsTreeview.column( 'extend', width=contextLength*6, anchor='w' )
             extendName = self.extendedTo.abbreviation if self.extendedTo.abbreviation else self.extendedTo.name
-            self.tree.heading( 'extend', text=extendName )
+            self.findResultsTreeview.heading( 'extend', text=extendName )
 
         lastBBB = None
         for j,resultEntry in enumerate(self.resultList):
@@ -1871,28 +1871,28 @@ class FindResultWindow( tk.Toplevel ):
             else: halt # programming error
             BBB,C,V = ref.getBCV()
             if BBB != lastBBB: # display a new book heading
-                self.tree.insert( '', 'end', BBB, text=BBB, open=True)
+                self.findResultsTreeview.insert( '', 'end', BBB, text=BBB, open=True)
                 lastBBB = BBB
             # Now insert each reference under the BBB entry
             if self.extendedTo is None:
                 if self.lineMode:
-                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                    self.findResultsTreeview.insert( BBB, 'end', j, tags='BCV',
                         values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before+fText+after) )
                 else: # column mode
-                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                    self.findResultsTreeview.insert( BBB, 'end', j, tags='BCV',
                         values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after) )
             else: # we have extended the results to display a second version
                 try: extend = self.extendedTo.getVerseText( ref )
                 except KeyError: extend = '' # couldn't find that CV reference
                 if self.lineMode:
-                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                    self.findResultsTreeview.insert( BBB, 'end', j, tags='BCV',
                         values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before+fText+after, extend) )
                 else: # column mode
-                    self.tree.insert( BBB, 'end', j, tags='BCV',
+                    self.findResultsTreeview.insert( BBB, 'end', j, tags='BCV',
                         values=('{} {}:{}'.format(BBB,C,V), marker if marker else '', before, fText, after, extend) )
 
-        self.tree.tag_bind( 'BCV', '<Double-Button-1>', self.itemSelected )
-    # end of FindResultWindow.makeTree
+        self.findResultsTreeview.tag_bind( 'BCV', '<Double-Button-1>', self.itemSelected )
+    # end of FindResultWindow.makeTreeView
 
 
     def itemSelected( self, event=None ):
@@ -1903,9 +1903,9 @@ class FindResultWindow( tk.Toplevel ):
             print( exp("itemSelected( {} )").format( event ) )
             #print( "ITEM SELECTED" )
             #print( dir(event) )
-            #print( self.tree.focus() )
+            #print( self.findResultsTreeview.focus() )
 
-        j = self.tree.focus()
+        j = self.findResultsTreeview.focus()
         #print( "j", repr(j) )
         if j == 'I001': j=0 # Not sure why this is happening for the first entry???
         ref = self.resultList[int(j)][0] # Add one to skip past the optionDict which is the first results item
@@ -1948,7 +1948,7 @@ class FindResultWindow( tk.Toplevel ):
         #print( "doExtend", self.geometry(), INITIAL_RESULT_WINDOW_SIZE )
         width, height, xOffset, yOffset = parseWindowGeometry( self.geometry() )
         self.geometry( assembleWindowGeometry( int(width*1.3), height, xOffset, yOffset ) ) # Make window widen
-        self.makeTree() # Redisplay everything
+        self.makeTreeView() # Redisplay everything
         self.parentApp.setReadyStatus()
     # end of FindResultWindow.doActualExtend
 
