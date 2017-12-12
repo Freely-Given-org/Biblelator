@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-20' # by RJH
+LastModifiedDate = '2017-12-09' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42'
@@ -2976,7 +2976,7 @@ class Application( Frame ):
         else:
             if BibleOrgSysGlobals.debugFlag:
                 self.setDebugText( "acceptNewBnCV {} {}:{} from {!r}".format( BBB, C, V, enteredBooknameField ) )
-            assert BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( BBB )
+            assert BibleOrgSysGlobals.BibleBooksCodes.isValidBBB( BBB )
             self.bookNumberVar.set( self.bookNumberTable[BBB] )
             self.bookNameVar.set( self.getGenericBookName(BBB) )
             self.gotoBCV( BBB, C, V, 'acceptNewBnCV' )

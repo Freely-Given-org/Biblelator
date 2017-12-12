@@ -37,7 +37,7 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-21' # by RJH
+LastModifiedDate = '2017-12-09' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.42'
@@ -559,21 +559,21 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
         newBBB = match.group(1)
-        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             return newBBB, match.group(2), match.group(3)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}[Vv:\.](\d{1,3})', uppercaseBookNameEntry ) # bookname (single chapter book) V
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
         newBBB = match.group(1)
-        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             return newBBB, CEntry, match.group(2)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}(\d{1,3})', uppercaseBookNameEntry ) # bookname C (or single chapter book with V)
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
         newBBB = match.group(1)
-        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             if BibleOrgSysGlobals.BibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
                 return newBBB, 1, match.group(2)
             return newBBB, match.group(2), 1
