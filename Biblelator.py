@@ -31,10 +31,10 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-09' # by RJH
+LastModifiedDate = '2017-12-26' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
-ProgVersion = '0.42'
+ProgVersion = '0.42' # This is the version number displayed on the start-up screen
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -61,14 +61,16 @@ from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBooknameField
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, \
+                                parseEnteredBooknameField, getLatestPythonModificationDate
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings, \
         doSendUsageStatistics
 from TextBoxes import BEntry, BCombobox
 from ChildWindows import ChildWindows, CollateProjectsWindow
-from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, DBPBibleResourceWindow
+from BibleResourceWindows import SwordBibleResourceWindow, InternalBibleResourceWindow, \
+                                DBPBibleResourceWindow, HebrewBibleResourceWindow
 from BibleResourceCollection import BibleResourceCollectionWindow
 from BibleReferenceCollection import BibleReferenceCollectionWindow
 from LexiconResourceWindows import BibleLexiconResourceWindow
@@ -434,16 +436,17 @@ class Application( Frame ):
         submenuBibleResourceType = tk.Menu( resourcesMenu, tearoff=False )
         resourcesMenu.add_cascade( label=_('Open Bible/commentary'), underline=5, menu=submenuBibleResourceType )
         submenuBibleResourceType.add_command( label=_('Online (DBP)…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doOpenDBPBibleResourceWindow )
-        submenuBibleResourceType.add_command( label=_('Sword module…'), underline=0, command=self.doOpenSwordResourceWindow )
-        submenuBibleResourceType.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenInternalBibleResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Sword module…'), underline=0, command=self.doOpenNewSwordResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenNewInternalBibleResourceWindow )
         submenuLexiconResourceType = tk.Menu( resourcesMenu, tearoff=False )
-        resourcesMenu.add_cascade( label=_('Open lexicon'), menu=submenuLexiconResourceType )
+        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenNewBibleResourceCollectionWindow )
+        resourcesMenu.add_command( label=_('Open Hebrew'), underline=6, command=self.doOpenNewHebrewBibleResourceWindow )
+        resourcesMenu.add_cascade( label=_('Open lexicon'), underline=5, menu=submenuLexiconResourceType )
         #submenuLexiconResourceType.add_command( label=_('Hebrew…'), underline=5, command=self.notWrittenYet )
         #submenuLexiconResourceType.add_command( label=_('Greek…'), underline=0, command=self.notWrittenYet )
         submenuLexiconResourceType.add_command( label=_('Bible'), underline=0, command=self.doOpenBibleLexiconResourceWindow )
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label=_('Open commentary'), underline=5, menu=submenuCommentaryResourceType )
-        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenNewBibleResourceCollectionWindow )
         resourcesMenu.add_separator()
         resourcesMenu.add_command( label=_('Hide all resources'), underline=0, command=self.doHideAllResources )
         resourcesMenu.add_command( label=_('Show all resources'), underline=0, command=self.doShowAllResources )
@@ -592,16 +595,17 @@ class Application( Frame ):
         submenuBibleResourceType = tk.Menu( resourcesMenu, tearoff=False )
         resourcesMenu.add_cascade( label=_('Open Bible/commentary'), underline=5, menu=submenuBibleResourceType )
         submenuBibleResourceType.add_command( label=_('Online (DBP)…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doOpenDBPBibleResourceWindow )
-        submenuBibleResourceType.add_command( label=_('Sword module…'), underline=0, command=self.doOpenSwordResourceWindow )
-        submenuBibleResourceType.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenInternalBibleResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Sword module…'), underline=0, command=self.doOpenNewSwordResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenNewInternalBibleResourceWindow )
         submenuLexiconResourceType = tk.Menu( resourcesMenu, tearoff=False )
+        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenNewBibleResourceCollectionWindow )
+        resourcesMenu.add_command( label=_('Open Hebrew'), underline=1, command=self.doOpenNewHebrewBibleResourceWindow )
         resourcesMenu.add_cascade( label=_('Open lexicon'), menu=submenuLexiconResourceType )
         #submenuLexiconResourceType.add_command( label=_('Hebrew…'), underline=5, command=self.notWrittenYet )
         #submenuLexiconResourceType.add_command( label=_('Greek…'), underline=0, command=self.notWrittenYet )
         submenuLexiconResourceType.add_command( label=_('Bible'), underline=0, command=self.doOpenBibleLexiconResourceWindow )
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label=_('Open commentary'), underline=5, menu=submenuCommentaryResourceType )
-        resourcesMenu.add_command( label=_('Open resource collection…'), underline=5, command=self.doOpenNewBibleResourceCollectionWindow )
         resourcesMenu.add_separator()
         resourcesMenu.add_command( label=_('Hide all resources'), underline=0, command=self.doHideAllResources )
         resourcesMenu.add_command( label=_('Show all resources'), underline=0, command=self.doShowAllResources )
@@ -1481,7 +1485,7 @@ class Application( Frame ):
         if windowGeometry: dBRW.geometry( windowGeometry )
         if dBRW.DBPModule is None:
             logging.critical( exp("Application.openDBPBibleResourceWindow: Unable to open resource {!r}").format( moduleAbbreviation ) )
-            dBRW.closeChildWindow()
+            dBRW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openDBPBibleResourceWindow" )
             self.setReadyStatus()
@@ -1495,7 +1499,7 @@ class Application( Frame ):
     # end of Application.openDBPBibleResourceWindow
 
 
-    def doOpenSwordResourceWindow( self ):
+    def doOpenNewSwordResourceWindow( self ):
         """
         Open a local Sword Bible (called from a menu/GUI action).
 
@@ -1503,13 +1507,13 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openSwordResource()") )
-            self.setDebugText( "doOpenSwordResourceWindow…" )
+            self.setDebugText( "doOpenNewSwordResourceWindow…" )
 
-        self.setWaitStatus( _("doOpenSwordResourceWindow…") )
+        self.setWaitStatus( _("doOpenNewSwordResourceWindow…") )
         if self.SwordInterface is None and SwordType is not None:
             self.SwordInterface = SwordInterface() # Load the Sword library
         if self.SwordInterface is None: # still
-            logging.critical( exp("doOpenSwordResourceWindow: no Sword interface available") )
+            logging.critical( exp("doOpenNewSwordResourceWindow: no Sword interface available") )
             showError( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             self.setReadyStatus()
             return
@@ -1530,7 +1534,7 @@ class Application( Frame ):
                 self.SwordInterface.augmentModules( requestedFolder )
                 # Try again now
                 givenDupleList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
-        print( 'givenDupleList', givenDupleList )
+        #print( 'givenDupleList', givenDupleList )
 
         ourList = None
         if givenDupleList:
@@ -1549,13 +1553,13 @@ class Application( Frame ):
                     self.addRecentFile( (requestedModuleName,'','SwordBibleResourceWindow') )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-            elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenSwordResourceWindow: no resource selected!") )
+            elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenNewSwordResourceWindow: no resource selected!") )
         else:
-            logging.critical( exp("doOpenSwordResourceWindow: no list available") )
+            logging.critical( exp("doOpenNewSwordResourceWindow: no list available") )
             showError( self, APP_NAME, _("Sorry, no Sword resources discovered") )
         #self.acceptNewBnCV()
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-    # end of Application.doOpenSwordResourceWindow
+    # end of Application.doOpenNewSwordResourceWindow
 
     def openSwordBibleResourceWindow( self, moduleAbbreviation, windowGeometry=None ):
         """
@@ -1584,7 +1588,7 @@ class Application( Frame ):
     # end of Application.openSwordBibleResourceWindow
 
 
-    def doOpenInternalBibleResourceWindow( self ):
+    def doOpenNewInternalBibleResourceWindow( self ):
         """
         Open a local Bible (called from a menu/GUI action).
 
@@ -1592,9 +1596,9 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openInternalBibleResource()") )
-            self.setDebugText( "doOpenInternalBibleResourceWindow…" )
+            self.setDebugText( "doOpenNewInternalBibleResourceWindow…" )
 
-        self.setWaitStatus( _("doOpenInternalBibleResourceWindow…") )
+        self.setWaitStatus( _("doOpenNewInternalBibleResourceWindow…") )
         #requestedFolder = askdirectory()
         openDialog = Directory( title=_("Select Bible folder"), initialdir=self.lastInternalBibleDir )
         requestedFolder = openDialog.show()
@@ -1604,7 +1608,7 @@ class Application( Frame ):
             self.addRecentFile( (requestedFolder,requestedFolder,'InternalBibleResourceWindow') )
             #self.acceptNewBnCV()
             #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-    # end of Application.doOpenInternalBibleResourceWindow
+    # end of Application.doOpenNewInternalBibleResourceWindow
 
     def openInternalBibleResourceWindow( self, modulePath, windowGeometry=None ):
         """
@@ -1621,7 +1625,7 @@ class Application( Frame ):
         if windowGeometry: iBRW.geometry( windowGeometry )
         if iBRW.internalBible is None:
             logging.critical( exp("Application.openInternalBibleResourceWindow: Unable to open resource {!r}").format( modulePath ) )
-            iBRW.closeChildWindow()
+            iBRW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleResourceWindow" )
             self.setReadyStatus()
@@ -1633,6 +1637,56 @@ class Application( Frame ):
             self.setReadyStatus()
             return iBRW
     # end of Application.openInternalBibleResourceWindow
+
+
+    def doOpenNewHebrewBibleResourceWindow( self ):
+        """
+        Open a local Bible (called from a menu/GUI action).
+
+        Requests a folder from the user.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("openHebrewResource()") )
+            self.setDebugText( "doOpenNewHebrewBibleResourceWindow…" )
+
+        self.setWaitStatus( _("doOpenNewHebrewBibleResourceWindow…") )
+        #openDialog = Directory( title=_("Select Bible folder"), initialdir=self.lastHebrewDir )
+        #requestedFolder = openDialog.show()
+        #requestedFolder = '../morphhb/wlc/'
+        #if requestedFolder:
+            #self.lastHebrewDir = requestedFolder
+        self.openHebrewBibleResourceWindow() # requestedFolder )
+            #self.addRecentFile( (requestedFolder,requestedFolder,'HebrewBibleResourceWindow') )
+    # end of Application.doOpenNewHebrewBibleResourceWindow
+
+    def openHebrewBibleResourceWindow( self, windowGeometry=None ):
+        """
+        Create the actual requested local/internal Hebrew Bible resource window.
+
+        Returns the new HebrewBibleResourceWindow object.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("openHebrewBibleResourceWindow()") )
+            self.setDebugText( "openHebrewBibleResourceWindow…" )
+
+        modulePath = '../morphhb/wlc/'
+        self.setWaitStatus( _("openHebrewBibleResourceWindow…") )
+        iHRW = HebrewBibleResourceWindow( self, modulePath )
+        if windowGeometry: iHRW.geometry( windowGeometry )
+        if iHRW.internalBible is None:
+            logging.critical( exp("Application.openHebrewBibleResourceWindow: Unable to open resource {!r}").format( modulePath ) )
+            iHRW.doClose()
+            showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openHebrewBibleResourceWindow" )
+            self.setReadyStatus()
+            return None
+        else:
+            iHRW.updateShownBCV( self.getVerseKey( iHRW._groupCode ) )
+            self.childWindows.append( iHRW )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openHebrewBibleResourceWindow" )
+            self.setReadyStatus()
+            return iHRW
+    # end of Application.openHebrewBibleResourceWindow
 
 
     def doOpenBibleLexiconResourceWindow( self ):
@@ -1670,7 +1724,7 @@ class Application( Frame ):
         if windowGeometry: bLRW.geometry( windowGeometry )
         if bLRW.BibleLexicon is None:
             logging.critical( exp("Application.openBibleLexiconResourceWindow: Unable to open Bible lexicon resource {!r}").format( lexiconPath ) )
-            bLRW.closeChildWindow()
+            bLRW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open Bible lexicon resource") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openBibleLexiconResourceWindow" )
             self.setReadyStatus()
@@ -1717,7 +1771,7 @@ class Application( Frame ):
         if windowGeometry: BRC.geometry( windowGeometry )
         #if BRC.internalBible is None:
         #    logging.critical( exp("Application.openBibleResourceCollection: Unable to open resource {}").format( repr(modulePath) ) )
-        #    BRC.closeChildWindow()
+        #    BRC.doClose()
         #    showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
         #    if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleResourceWindow" )
         #    self.setReadyStatus()
@@ -1764,7 +1818,7 @@ class Application( Frame ):
         if windowGeometry: BRC.geometry( windowGeometry )
         #if BRC.internalBible is None:
         #    logging.critical( exp("Application.openBibleReferenceCollection: Unable to open Reference {}").format( repr(modulePath) ) )
-        #    BRC.closeChildWindow()
+        #    BRC.doClose()
         #    showError( self, APP_NAME, _("Sorry, unable to open internal Bible Reference") )
         #    if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed openInternalBibleReferenceWindow" )
         #    self.setReadyStatus()
@@ -1923,7 +1977,7 @@ class Application( Frame ):
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
-            tEW.closeChildWindow()
+            tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:
@@ -3839,7 +3893,8 @@ def demo():
 
     Which windows open depends on the saved settings from the last use.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
+    if BibleOrgSysGlobals.verbosityLevel > 0:
+        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), getLatestPythonModificationDate() ) )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     tkRootWindow = tk.Tk()
@@ -3869,7 +3924,8 @@ def main( homeFolderPath, loggingFolderPath ):
     """
     Main program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
+    if BibleOrgSysGlobals.verbosityLevel > 0:
+        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), getLatestPythonModificationDate() ) )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
