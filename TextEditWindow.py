@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-09' # by RJH
+LastModifiedDate = '2017-12-13' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1229,7 +1229,7 @@ class TextEditWindow( ChildWindow ):
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
-            tEW.closeChildWindow()
+            tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open settings file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewSettings" )
         else:
@@ -1252,7 +1252,7 @@ class TextEditWindow( ChildWindow ):
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.parentApp.loggingFolderPath, filename ) \
         or not tEW.loadText():
-            tEW.closeChildWindow()
+            tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewLog" )
         else:
@@ -1318,12 +1318,12 @@ class TextEditWindow( ChildWindow ):
             saveWork = False
             if self.saveChangesAutomatically and self.folderPath and self.filename:
                 #self.doSave( 'Auto from win close' )
-                #self.closeChildWindow()
+                #self.doClose()
                 saveWork = True
             else:
                 #if self.folderPath and self.filename:
                     #self.doSave()
-                    #self.closeChildWindow()
+                    #self.doClose()
                 #else: # we need to ask where to save it
                 place = 'in {}'.format( self.filename) if self.folderPath and self.filename else ''
                 ocd = OkCancelDialog( self, _('Do you want to save your work{}?').format( place ), title=_('Save work?') )

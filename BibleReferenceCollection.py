@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-06-13' # by RJH
+LastModifiedDate = '2017-12-17' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -56,7 +56,7 @@ from BiblelatorGlobals import DEFAULT, tkBREAK, \
         parseWindowSize
 from BiblelatorHelpers import mapReferencesVerseKey, handleInternalBibles
 from BibleResourceWindows import BibleResourceWindow
-from TextBoxes import BibleBox
+from TextBoxes import BibleBoxAddon
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -85,7 +85,7 @@ def exp( messageString ):
 
 
 
-class BibleReferenceBox( Frame, BibleBox ):
+class BibleReferenceBox( Frame, BibleBoxAddon ):
     """
     """
     def __init__( self, parentWindow, parentFrame, parentApp, internalBible, referenceObject ):
@@ -96,7 +96,7 @@ class BibleReferenceBox( Frame, BibleBox ):
         self.internalBible = handleInternalBibles( self.parentApp, internalBible, self )
 
         Frame.__init__( self, parentFrame )
-        BibleBox.__init__( self, parentApp )
+        BibleBoxAddon.__init__( self, parentApp, 'BibleReferenceBox' )
 
         # Set some dummy values required soon
         #self._contextViewRadioVar, self._formatViewRadioVar, self._groupRadioVar = tk.IntVar(), tk.IntVar(), tk.StringVar()

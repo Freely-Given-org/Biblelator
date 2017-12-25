@@ -26,17 +26,17 @@
 Base windows to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
 
-    class ChildWindow( tk.Toplevel, ChildBox )
-    class BibleWindow( ChildWindow, BibleBox )
+    class ChildWindow( tk.Toplevel, ChildBoxAddon )
+    class BibleWindow( ChildWindow, BibleBoxAddon )
     class ChildWindows( list )
-    class HTMLWindow( tk.Toplevel, ChildBox )
+    class HTMLWindow( tk.Toplevel, ChildBoxAddon )
     class FindResultWindow( tk.Toplevel )
     class CollateProjectsWindow( tk.Toplevel )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-07' # by RJH
+LastModifiedDate = '2017-12-17' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.42'
@@ -63,7 +63,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
 from BiblelatorSimpleDialogs import showError, showInfo
 from BiblelatorDialogs import SelectInternalBibleDialog
 from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
-from TextBoxes import BText, BCombobox, HTMLTextBox, ChildBox, BibleBoxFunctions, BibleBox
+from TextBoxes import BText, BCombobox, HTMLTextBox, ChildBoxAddon, BibleBoxAddon
 
 # BibleOrgSys imports
 #if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
@@ -87,10 +87,10 @@ def exp( messageString ):
 
 
 
-class ChildWindow( tk.Toplevel, ChildBox ):
+class ChildWindow( tk.Toplevel, ChildBoxAddon ):
     """
     This is a base class for any toplevel window that contains a
-        ChildBox, i.e., it contains a self.textBox member.
+        ChildBoxAddon, i.e., it contains a self.textBox member.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -136,7 +136,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
         self.textBox.configure( wrap='word' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
-        ChildBox.__init__( self, self.parentApp )
+        ChildBoxAddon.__init__( self, self.parentApp )
 
         self.createStandardWindowKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
@@ -156,7 +156,7 @@ class ChildWindow( tk.Toplevel, ChildBox ):
     def geometry( self, *args, **kwargs ):
         """
         Try to ensure that the Toplevel geometry function is easily accessed
-            (and not the ChildBox function) in case this is causing us problems???
+            (and not the ChildBoxAddon function) in case this is causing us problems???
 
         Also found that we needed to call update first on Windows-10
             in order to set the window geometry correctly.
@@ -448,10 +448,10 @@ class ChildWindow( tk.Toplevel, ChildBox ):
 
 
 
-class BibleWindowFunctions( BibleBoxFunctions ):
+class BibleWindowAddon( BibleBoxAddon ):
     """
     This is a base class for any toplevel window that contains a
-        BibleBox, i.e., it contains a self.textBox member that understands BCV references.
+        BibleBoxAddon, i.e., it contains a self.textBox member that understands BCV references.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -461,7 +461,7 @@ class BibleWindowFunctions( BibleBoxFunctions ):
         Default view modes should be set by the derived class before this is called.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindowFunctions.__init__( {} {!r} )").format( parentApp, genericWindowType ) )
+            print( exp("BibleWindowAddon.__init__( {} {!r} )").format( parentApp, genericWindowType ) )
             assert parentApp
             assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',)
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
@@ -474,11 +474,11 @@ class BibleWindowFunctions( BibleBoxFunctions ):
         self.setWindowGroup( DEFAULT )
 
         #ChildWindow.__init__( self, self.parentApp, self.genericWindowType )
-        BibleBoxFunctions.__init__( self, self.parentApp )
+        BibleBoxAddon.__init__( self, self.parentApp, genericWindowType )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindowFunctions.__init__ finished.") )
-    # end of BibleWindowFunctions.__init__
+            print( exp("BibleWindowAddon.__init__ finished.") )
+    # end of BibleWindowAddon.__init__
 
 
     def createStandardWindowKeyboardBindings( self, reset=False ):
@@ -486,7 +486,7 @@ class BibleWindowFunctions( BibleBoxFunctions ):
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindowFunctions.createStandardWindowKeyboardBindings( {} )").format( reset ) )
+            print( exp("BibleWindowAddon.createStandardWindowKeyboardBindings( {} )").format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
@@ -500,7 +500,7 @@ class BibleWindowFunctions( BibleBoxFunctions ):
                               ('Close',self.doClose),
                               ):
             self._createStandardWindowKeyboardBinding( name, command )
-    # end of BibleWindowFunctions.createStandardWindowKeyboardBindings()
+    # end of BibleWindowAddon.createStandardWindowKeyboardBindings()
 
 
     def setContextViewMode( self, newMode ):
@@ -510,12 +510,12 @@ class BibleWindowFunctions( BibleBoxFunctions ):
         Ideally we wouldn't need this info to be stored in both of these class variables.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindowFunctions.setContextViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
+            print( exp("BibleWindowAddon.setContextViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
             assert newMode==DEFAULT or newMode in BIBLE_CONTEXT_VIEW_MODES
 
         self._contextViewMode = self.defaultContextViewMode if newMode==DEFAULT else newMode
         self._contextViewRadioVar.set( BIBLE_CONTEXT_VIEW_MODES.index( self._contextViewMode ) + 1 )
-    # end of BibleWindowFunctions.setContextViewMode
+    # end of BibleWindowAddon.setContextViewMode
 
 
     def setFormatViewMode( self, newMode ):
@@ -525,13 +525,13 @@ class BibleWindowFunctions( BibleBoxFunctions ):
         Ideally we wouldn't need this info to be stored in both of these class variables.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindowFunctions.setFormatViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
+            print( exp("BibleWindowAddon.setFormatViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
             assert newMode==DEFAULT or newMode in BIBLE_FORMAT_VIEW_MODES
 
         self._formatViewMode = self.defaultFormatViewMode if newMode==DEFAULT else newMode
         #print( "Now set to", self._formatViewMode )
         self._formatViewRadioVar.set( BIBLE_FORMAT_VIEW_MODES.index( self._formatViewMode ) + 1 )
-    # end of BibleWindowFunctions.setFormatViewMode
+    # end of BibleWindowAddon.setFormatViewMode
 
 
     def setWindowGroup( self, newGroup ):
@@ -541,20 +541,20 @@ class BibleWindowFunctions( BibleBoxFunctions ):
         Ideally we wouldn't need this info to be stored in both of these class variables.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindowFunctions.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
+            print( exp("BibleWindowAddon.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
             assert newGroup==DEFAULT or newGroup in BIBLE_GROUP_CODES
 
         self._groupCode = BIBLE_GROUP_CODES[0] if newGroup==DEFAULT else newGroup
         self._groupRadioVar.set( BIBLE_GROUP_CODES.index( self._groupCode ) + 1 )
-    # end of BibleWindowFunctions.setWindowGroup
-# end of class BibleWindowFunctions
+    # end of BibleWindowAddon.setWindowGroup
+# end of class BibleWindowAddon
 
 
 
-class BibleWindow( ChildWindow, BibleBox ):
+class BibleWindow( ChildWindow, BibleBoxAddon ):
     """
     This is a base class for any toplevel window that contains a
-        BibleBox, i.e., it contains a self.textBox member that understands BCV references.
+        BibleBoxAddon, i.e., it contains a self.textBox member that understands BCV references.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -577,79 +577,79 @@ class BibleWindow( ChildWindow, BibleBox ):
         self.setWindowGroup( DEFAULT )
 
         ChildWindow.__init__( self, self.parentApp, self.genericWindowType )
-        BibleBox.__init__( self, self.parentApp )
+        BibleBoxAddon.__init__( self, self.parentApp, genericWindowType )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleWindow.__init__ finished.") )
     # end of BibleWindow.__init__
 
 
-    def createStandardWindowKeyboardBindings( self, reset=False ):
-        """
-        Create keyboard bindings for this widget.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindow.createStandardWindowKeyboardBindings( {} )").format( reset ) )
+    #def createStandardWindowKeyboardBindings( self, reset=False ):
+        #"""
+        #Create keyboard bindings for this widget.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("BibleWindow.createStandardWindowKeyboardBindings( {} )").format( reset ) )
 
-        if reset:
-            self.myKeyboardBindingsList = []
+        #if reset:
+            #self.myKeyboardBindingsList = []
 
-        for name,command in ( ('Info',self.doShowInfo),
-                              ('Help',self.doHelp),
-                              ('About',self.doAbout),
-                              ('ShowMain',self.doShowMainWindow),
-                              ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
-                              ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
-                              ('Close',self.doClose),
-                              ):
-            self._createStandardWindowKeyboardBinding( name, command )
-    # end of BibleWindow.createStandardWindowKeyboardBindings()
-
-
-    def setContextViewMode( self, newMode ):
-        """
-        Set the Bible context view mode for the window.
-
-        Ideally we wouldn't need this info to be stored in both of these class variables.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindow.setContextViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
-            assert newMode==DEFAULT or newMode in BIBLE_CONTEXT_VIEW_MODES
-
-        self._contextViewMode = self.defaultContextViewMode if newMode==DEFAULT else newMode
-        self._contextViewRadioVar.set( BIBLE_CONTEXT_VIEW_MODES.index( self._contextViewMode ) + 1 )
-    # end of BibleWindow.setContextViewMode
+        #for name,command in ( ('Info',self.doShowInfo),
+                              #('Help',self.doHelp),
+                              #('About',self.doAbout),
+                              #('ShowMain',self.doShowMainWindow),
+                              #('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+                              #('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
+                              #('Close',self.doClose),
+                              #):
+            #self._createStandardWindowKeyboardBinding( name, command )
+    ## end of BibleWindow.createStandardWindowKeyboardBindings()
 
 
-    def setFormatViewMode( self, newMode ):
-        """
-        Set the Bible format view mode for the window.
+    #def setContextViewMode( self, newMode ):
+        #"""
+        #Set the Bible context view mode for the window.
 
-        Ideally we wouldn't need this info to be stored in both of these class variables.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindow.setFormatViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
-            assert newMode==DEFAULT or newMode in BIBLE_FORMAT_VIEW_MODES
+        #Ideally we wouldn't need this info to be stored in both of these class variables.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("BibleWindow.setContextViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
+            #assert newMode==DEFAULT or newMode in BIBLE_CONTEXT_VIEW_MODES
 
-        self._formatViewMode = self.defaultFormatViewMode if newMode==DEFAULT else newMode
-        #print( "Now set to", self._formatViewMode )
-        self._formatViewRadioVar.set( BIBLE_FORMAT_VIEW_MODES.index( self._formatViewMode ) + 1 )
-    # end of BibleWindow.setFormatViewMode
+        #self._contextViewMode = self.defaultContextViewMode if newMode==DEFAULT else newMode
+        #self._contextViewRadioVar.set( BIBLE_CONTEXT_VIEW_MODES.index( self._contextViewMode ) + 1 )
+    ## end of BibleWindow.setContextViewMode
 
 
-    def setWindowGroup( self, newGroup ):
-        """
-        Set the Bible group for the window.
+    #def setFormatViewMode( self, newMode ):
+        #"""
+        #Set the Bible format view mode for the window.
 
-        Ideally we wouldn't need this info to be stored in both of these class variables.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleWindow.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
-            assert newGroup==DEFAULT or newGroup in BIBLE_GROUP_CODES
+        #Ideally we wouldn't need this info to be stored in both of these class variables.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("BibleWindow.setFormatViewMode( {} ) for {}").format( newMode, self.genericWindowType ) )
+            #assert newMode==DEFAULT or newMode in BIBLE_FORMAT_VIEW_MODES
 
-        self._groupCode = BIBLE_GROUP_CODES[0] if newGroup==DEFAULT else newGroup
-        self._groupRadioVar.set( BIBLE_GROUP_CODES.index( self._groupCode ) + 1 )
-    # end of BibleWindow.setWindowGroup
+        #self._formatViewMode = self.defaultFormatViewMode if newMode==DEFAULT else newMode
+        ##print( "Now set to", self._formatViewMode )
+        #self._formatViewRadioVar.set( BIBLE_FORMAT_VIEW_MODES.index( self._formatViewMode ) + 1 )
+    ## end of BibleWindow.setFormatViewMode
+
+
+    #def setWindowGroup( self, newGroup ):
+        #"""
+        #Set the Bible group for the window.
+
+        #Ideally we wouldn't need this info to be stored in both of these class variables.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( exp("BibleWindow.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
+            #assert newGroup==DEFAULT or newGroup in BIBLE_GROUP_CODES
+
+        #self._groupCode = BIBLE_GROUP_CODES[0] if newGroup==DEFAULT else newGroup
+        #self._groupRadioVar.set( BIBLE_GROUP_CODES.index( self._groupCode ) + 1 )
+    ## end of BibleWindow.setWindowGroup
 # end of class BibleWindow
 
 
@@ -787,7 +787,7 @@ class TextWindow( ChildWindow ):
         self.textBox = ScrolledText( self, height=20, state=tk.DISABLED )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
-        ChildBox.__init__( self, self.parentApp )
+        ChildBoxAddon.__init__( self, self.parentApp )
 
         if self.displayText:
             self.setAllText( self.displayText )
@@ -991,7 +991,7 @@ class TextWindow( ChildWindow ):
         """
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextWindow doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBox.doShowInfo( {} )").format( event ) )
+            print( exp("ChildBoxAddon.doShowInfo( {} )").format( event ) )
 
         text  = self.getAllText()
         numChars = len( text )
@@ -1118,7 +1118,7 @@ class HTMLWindow( ChildWindow ):
         self.textBox.configure( wrap='word' )
         self.textBox.pack( expand=tk.YES, fill=tk.BOTH )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
-        ChildBox.__init__( self, self.parentApp )
+        ChildBoxAddon.__init__( self, self.parentApp )
         #self.createStandardWindowKeyboardBindings()
         #self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
 

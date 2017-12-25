@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-09' # by RJH
+LastModifiedDate = '2017-12-22' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -53,7 +53,7 @@ from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBo
                                 mapReferenceVerseKey, mapParallelVerseKey, findCurrentSection, \
                                 handleInternalBibles, getChangeLogFilepath, logChangedFile
 from ChildWindows import HTMLWindow
-from BibleResourceWindows import InternalBibleResourceWindowFunctions
+from BibleResourceWindows import InternalBibleResourceWindowAddon
 from BibleReferenceCollection import BibleReferenceCollectionWindow
 from TextEditWindow import TextEditWindow #, NO_TYPE_TIME
 from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
@@ -164,7 +164,7 @@ class ToolsOptionsDialog( ModalDialog ):
 
 
 
-class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
+class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
     """
     self.genericWindowType will be BibleEditor
     self.windowType will be BiblelatorUSFMBibleEditWindow or Paratext8USFMBibleEditWindow or Paratext7USFMBibleEditWindow
@@ -191,8 +191,12 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
         self.bookTextModified = False
         self.projectName = 'NoProjectName'
         self.projectAbbreviation = 'UNKNOWN'
-        InternalBibleResourceWindowFunctions.__init__( self, parentApp, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
-        TextEditWindow.__init__( self, parentApp ) # calls refreshTitle
+
+        # TODO: Not sure why we need the init functions in this order
+        #   Anyway, we need a temp textBox for the first init
+        self.textBox = tk.Text()
+        InternalBibleResourceWindowAddon.__init__( self, parentApp, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
+        TextEditWindow.__init__( self, parentApp ) # calls refreshTitle so call last
         #self.overrideredirect( 1 ) # Remove the title bar
 
         # Now we need to override a few critical variables
@@ -1308,7 +1312,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
                         else: # these are the displayed verses
                             RC = self.textBox.index( tk.INSERT ) # Something like 55.6 for line 55, before column 6
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                currentVerse=thisC==intC and thisV==intV,
+                                                currentVerseFlag=thisC==intC and thisV==intV,
                                                 substituteTrailingSpaces=self.markTrailingSpacesFlag,
                                                 substituteMultipleSpaces=self.markMultipleSpacesFlag )
                             if thisC==intC and thisV==intV and thisVerseData: # this is the current verse
@@ -1352,7 +1356,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
                                     if thisVerseData is not None: # it seems to have worked
                                         break # Might have been nice to check/confirm that it was actually a bridged verse???
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                currentVerse=thisC==intC and thisV==intV,
+                                                currentVerseFlag=thisC==intC and thisV==intV,
                                                 substituteTrailingSpaces=self.markTrailingSpacesFlag,
                                                 substituteMultipleSpaces=self.markMultipleSpacesFlag )
                             #print( 'tVD', repr(thisVerseData) )
@@ -1382,7 +1386,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
                             self.bookTextAfter += thisVerseData if thisVerseData else ''
                         else: # we're in the section that we're interested in
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                    currentVerse=thisC==intC and thisV==intV )
+                                                    currentVerseFlag=thisC==intC and thisV==intV )
                             startingFlag = False
 
             elif self._contextViewMode == 'ByBook':
@@ -1397,7 +1401,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         #print( 'tVD', repr(thisVerseData) )
                         self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                currentVerse=thisC==intC and thisV==intV )
+                                                currentVerseFlag=thisC==intC and thisV==intV )
                         startingFlag = False
 
             elif self._contextViewMode == 'ByChapter':
@@ -1414,7 +1418,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
                         elif thisC > intC: self.bookTextAfter += thisVerseData if thisVerseData else ''
                         else:
                             self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                                currentVerse=thisC==intC and thisV==intV )
+                                                currentVerseFlag=thisC==intC and thisV==intV )
                             startingFlag = False
 
             else:
@@ -1677,7 +1681,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
-            tEW.closeChildWindow()
+            tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open settings file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewSettings" )
         else:
@@ -1701,7 +1705,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setFilepath( getChangeLogFilepath( self.parentApp.loggingFolderPath, self.projectName ) ) \
         or not tEW.loadText():
-            tEW.closeChildWindow()
+            tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewLog" )
         else:
@@ -1717,7 +1721,7 @@ class USFMEditWindow( InternalBibleResourceWindowFunctions, TextEditWindow ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("USFMEditWindow.closeEditor()") )
         #if self.modified():
             #pass # refuse to close yet (temp……)
-        #else: self.closeChildWindow()
+        #else: self.doClose()
     ## end of USFMEditWindow.closeEditor
 
 

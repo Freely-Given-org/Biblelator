@@ -41,14 +41,15 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class ReplaceConfirmDialog( ModalDialog )
     class SelectInternalBibleDialog( ModalDialog )
     class GetSwordPathDialog( ModalDialog )
+    class GetWordDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-22'
+LastModifiedDate = '2017-12-26'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -64,8 +65,8 @@ from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
-from TextBoxes import BEntry, BCombobox, BText
 from BiblelatorSimpleDialogs import showWarning
+from TextBoxes import BEntry, BCombobox, BText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
@@ -2056,6 +2057,93 @@ class SelectInternalBibleDialog( ModalDialog ):
         #self.result = enteredPath
     ## end of GetSwordPathDialog.apply
 ## end of class GetSwordPathDialog
+
+
+
+class GetWordDialog( ModalDialog ):
+    """
+    Get the name and an abbreviation for a new Biblelator project.
+    """
+    def __init__( self, parent, title, wordData ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetWordDialog…" )
+        self.wordData = wordData
+        ModalDialog.__init__( self, parent, title )
+    # end of GetWordDialog.__init__
+
+
+    def body( self, master ):
+        """
+        Override the empty ModalDialog.body function
+            to set up the dialog how we want it.
+        """
+        row = 0
+        for word in self.wordData:
+            Label( master, text=word ).grid( row=row )
+            row += 1
+
+        self.entry = BEntry( master )
+        self.entry.grid( row=row )
+        return self.entry # initial focus
+    # end of GetWordDialog.body
+
+
+    def buttonBox( self ):
+        '''
+        Add ourstandard button box
+
+        Override if you don't want the standard buttons.
+        '''
+        box = Frame( self )
+
+        skipOoneButton = Button( box, text=_('Skip this one'), command=self.doSkipOne )
+        skipOoneButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
+        okButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
+
+        self.bind( '<Return>', self.ok )
+        self.bind( '<Escape>', self.cancel )
+
+        box.pack( anchor=tk.E )
+    # end of ModalDialog.buttonBox
+
+
+    def doSkipOne( self, event=None ):
+        self.result = 'S'
+        self.cancel()
+    # end of ReplaceConfirmDialog.doYes
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Returns True or False.
+        """
+        resultWord = self.entry.get()
+        for illegalChar in ' :;"@#=/\\{}':
+            if illegalChar in resultWord:
+                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) )
+                return False
+        return True
+    # end of GetWordDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        word = self.entry.get()
+        self.result = { 'Word':word }
+    # end of GetWordDialog.apply
+# end of class GetWordDialog
 
 
 

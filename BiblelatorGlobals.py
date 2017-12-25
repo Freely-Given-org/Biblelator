@@ -41,10 +41,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-09' # by RJH
+LastModifiedDate = '2017-12-24' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -223,6 +223,7 @@ def parseWindowSize( geometry ):
 
 def centreWindow( self, width=400, height=250 ):
     """
+    "self" here is a TKinter window object.
     """
     if isinstance( width, str ): width = int( width )
     if isinstance( height, str ): height = int( height )

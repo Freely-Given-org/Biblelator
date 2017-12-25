@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-06-13' # by RJH
+LastModifiedDate = '2017-12-13' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1100,7 +1100,7 @@ class BiblelatorSettingsEditor( Frame ):
         ##if windowGeometry: tEW.geometry( windowGeometry )
         #if not tEW.setFilepath( self.settings.settingsFilepath ) \
         #or not tEW.loadText():
-            #tEW.closeChildWindow()
+            #tEW.doClose()
             #showError( self, ShortProgName, _("Sorry, unable to open settings file") )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
         #else:
@@ -1124,7 +1124,7 @@ class BiblelatorSettingsEditor( Frame ):
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
-            tEW.closeChildWindow()
+            tEW.doClose()
             showError( self, ShortProgName, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:

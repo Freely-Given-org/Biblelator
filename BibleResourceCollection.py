@@ -29,13 +29,13 @@ Boxes, Frames, and Windows to allow display and manipulation of
 A Bible resource collection is a collection of different Bible resources
     all displaying the same reference.
 
-class BibleResourceBox( Frame, BibleBox )
+class BibleResourceBox( Frame, BibleBoxAddon )
     __init__( self, parentWindow, boxType, moduleID )
     createStandardBoxKeyboardBindings( self )
     gotoBCV( self, BBB, C, V )
     getSwordVerseKey( self, verseKey )
     getCachedVerseData( self, verseKey )
-    #BibleResourceBoxXXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerse=False )
+    #BibleResourceBoxXXXdisplayAppendVerse( self, firstFlag, verseKey, verseContextData, currentVerseFlag=False )
     #getBeforeAndAfterBibleData( self, newVerseKey )
     setCurrentVerseKey( self, newVerseKey )
     updateShownBCV( self, newReferenceVerseKey, originator=None )
@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-05-01' # by RJH
+LastModifiedDate = '2017-12-22' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.40'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -96,7 +96,8 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
 from BiblelatorSimpleDialogs import showError, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, RenameResourceCollectionDialog
 from BibleResourceWindows import BibleResourceWindow
-from TextBoxes import BText, BibleBox
+from ChildWindows import BibleWindowAddon
+from TextBoxes import BText, ChildBoxAddon, BibleBoxAddon
 from BiblelatorHelpers import handleInternalBibles
 
 # BibleOrgSys imports
@@ -130,7 +131,7 @@ def exp( messageString ):
 
 
 
-class BibleResourceBox( Frame, BibleBox ):
+class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
     """
     A base class to provide the boxes for a BibleResourceCollectionWindow
 
@@ -146,7 +147,7 @@ class BibleResourceBox( Frame, BibleBox ):
         self.parentWindow, self.boxType, self.moduleID = parentWindow, boxType, moduleID
         self.parentApp = self.parentWindow.parentApp
         Frame.__init__( self, parentWindow )
-        BibleBox.__init__( self, self.parentApp )
+        ChildBoxAddon.__init__( self, self.parentApp )
 
         # Create a title bar frame
         titleBar = Frame( self )
@@ -162,7 +163,7 @@ class BibleResourceBox( Frame, BibleBox ):
             x = len(adjModuleID)*100/width # not perfect (too small) for narrow windows
             adjModuleID = '…' + adjModuleID[int(x):]
             #print( "BRB here2", len(adjModuleID), x, repr(adjModuleID) )
-        titleText = '{} ({})'.format( adjModuleID, boxType.replace( 'BibleResourceBox', '' ) )
+        titleText = '{} ({})'.format( adjModuleID, boxType.replace( 'BibleResourceBox', '' ).replace( 'DBP', 'DBP online' ) )
         self.titleLabel = tk.Label( titleBar, text=titleText )
         self.titleLabel.pack( side=tk.TOP, fill=tk.X )
         titleBar.pack( side=tk.TOP, fill=tk.X )
@@ -178,6 +179,8 @@ class BibleResourceBox( Frame, BibleBox ):
         self.createStandardBoxKeyboardBindings()
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
         self.createContextMenu() # for the box
+
+        BibleBoxAddon.__init__( self, self.parentApp, boxType )
 
         # Set-up our standard Bible styles
         for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -320,7 +323,7 @@ class BibleResourceBox( Frame, BibleBox ):
                 for verseKey,previousVerseData in previousVerses:
                     self.displayAppendVerse( startingFlag, verseKey, previousVerseData )
                     startingFlag = False
-                self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerse=True )
+                self.displayAppendVerse( startingFlag, newVerseKey, verseData, currentVerseFlag=True )
                 for verseKey,nextVerseData in nextVerses:
                     self.displayAppendVerse( False, verseKey, nextVerseData )
 
@@ -335,10 +338,10 @@ class BibleResourceBox( Frame, BibleBox ):
                     #print( "  cVD for", self.moduleID, intV, cachedVerseData )
                     if cachedVerseData is not None: # it seems to have worked
                         break # Might have been nice to check/confirm that it was actually a bridged verse???
-            self.displayAppendVerse( True, newVerseKey, cachedVerseData, currentVerse=True )
+            self.displayAppendVerse( True, newVerseKey, cachedVerseData, currentVerseFlag=True )
 
         #elif self.parentWindow._contextViewMode == 'BySection':
-            #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerse=True )
+            #self.displayAppendVerse( True, newVerseKey, self.getCachedVerseData( newVerseKey ), currentVerseFlag=True )
             #BBB, C, V = newVerseKey.getBCV()
             #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
             #print( "\nBySection is not finished yet -- just shows a single verse!\n" ) # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -349,7 +352,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     ##thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                     ##thisVerseData = self.getCachedVerseData( thisVerseKey )
                     ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            ##currentVerse=thisC==intC and thisV==intV )
+                                            ##currentVerseFlag=thisC==intC and thisV==intV )
                     ##startingFlag = False
 
         #elif self.parentWindow._contextViewMode == 'ByBook':
@@ -362,7 +365,7 @@ class BibleResourceBox( Frame, BibleBox ):
                     #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                     #thisVerseData = self.getCachedVerseData( thisVerseKey )
                     #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
-                                            #currentVerse=thisC==intC and thisV==intV )
+                                            #currentVerseFlag=thisC==intC and thisV==intV )
                     #startingFlag = False
 
         #elif self.parentWindow._contextViewMode == 'ByChapter':
@@ -373,7 +376,7 @@ class BibleResourceBox( Frame, BibleBox ):
             #for thisV in range( 0, numVerses + 1 ):
                 #thisVerseKey = SimpleVerseKey( BBB, C, thisV )
                 #thisVerseData = self.getCachedVerseData( thisVerseKey )
-                #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerse=thisV==intV )
+                #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerseFlag=thisV==intV )
                 #startingFlag = False
 
         else:
@@ -676,7 +679,7 @@ class BibleResourceBoxesList( list ):
 
 
 
-class BibleResourceCollectionWindow( BibleResourceWindow ):
+class BibleResourceCollectionWindow( BibleResourceWindow, BibleWindowAddon ):
     """
     """
     def __init__( self, parentApp, collectionName, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
@@ -687,8 +690,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow ):
             print( "BibleResourceCollectionWindow.__init__( {}, {} )".format( parentApp, collectionName ) )
         self.parentApp = parentApp
         BibleResourceWindow.__init__( self, parentApp, 'BibleResourceCollectionWindow', collectionName, defaultContextViewMode, defaultFormatViewMode )
-        #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
-        #self.windowType = 'InternalBibleResourceBox'
+        BibleWindowAddon.__init__( self, self.parentApp, 'BibleResourceCollectionWindow' )
 
         self.geometry( INITIAL_RESOURCE_COLLECTION_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE

@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-04-17' # by RJH
+LastModifiedDate = '2017-12-16' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.40'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -46,7 +46,7 @@ from tkinter.ttk import Style, Frame, Button
 
 # Biblelator imports
 from BiblelatorGlobals import tkBREAK
-from TextBoxes import HTMLTextBox, ChildBox
+from TextBoxes import HTMLTextBox, ChildBoxAddon
 from ChildWindows import ChildWindow
 
 # BibleOrgSys imports
@@ -56,7 +56,6 @@ from BibleLexicon import BibleLexicon
 #import Hebrew
 #from HebrewLexicon import HebrewLexicon
 #from GreekLexicon import GreekLexicon
-#from HebrewWLC import HebrewWLC
 #import Greek
 #from GreekNT import GreekNT
 
@@ -78,7 +77,7 @@ def exp( messageString ):
 
 
 
-class BibleLexiconResourceWindow( ChildWindow, ChildBox ):
+class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     """
     """
     def __init__( self, parentApp, lexiconPath=None ):
@@ -210,7 +209,10 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBox ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoPreviousEntry() from {}").format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoPreviousEntry…" )
-        if (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) and self.lexiconWord[1:].isdigit():
+        if self.lexiconWord is None:
+            self.updateLexiconWord( 'G5624' )
+        elif (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) \
+        and self.lexiconWord[1:].isdigit() and int(self.lexiconWord[1:])>1:
             number = int( self.lexiconWord[1:] )
             self.updateLexiconWord( self.lexiconWord[0] + str( number-1 ) )
         else: logging.error( "can't doGotoPreviousEntry from {}".format( repr(self.lexiconWord) ) )
@@ -223,7 +225,10 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBox ):
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doGotoNextEntry() from {}").format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoNextEntry…" )
-        if (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) and self.lexiconWord[1:].isdigit():
+        if self.lexiconWord is None:
+            self.updateLexiconWord( 'H1' )
+        elif (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) \
+        and self.lexiconWord[1:].isdigit():
             number = int( self.lexiconWord[1:] )
             self.updateLexiconWord( self.lexiconWord[0] + str( number+1 ) )
         else: logging.error( "can't doGotoNextEntry from {}".format( repr(self.lexiconWord) ) )

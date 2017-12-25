@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-11-20' # by RJH
+LastModifiedDate = '2017-12-14' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.42'
@@ -359,6 +359,8 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 if folderPath[-1] not in '/\\': folderPath += '/'
                 rw = self.openInternalBibleResourceWindow( folderPath, windowGeometry )
                 #except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
+            elif windowType == 'HebrewBibleResourceWindow':
+                rw = self.openHebrewBibleResourceWindow( windowGeometry )
 
             #elif windowType == 'HebrewLexiconResourceWindow':
                 #self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
@@ -508,6 +510,9 @@ def getCurrentChildWindowSettings( self ):
             thisOne['ModuleAbbreviation'] = appWin.moduleID
         elif appWin.windowType == 'InternalBibleResourceWindow':
             thisOne['BibleFolderPath'] = appWin.moduleID
+        elif appWin.windowType == 'HebrewBibleResourceWindow':
+            #thisOne['BibleFolderPath'] = appWin.moduleID
+            pass # No parameters required
 
         elif appWin.windowType == 'BibleLexiconResourceWindow':
             thisOne['BibleLexiconPath'] = appWin.moduleID
@@ -609,7 +614,7 @@ def viewSettings( self ):
     #if windowGeometry: tEW.geometry( windowGeometry )
     if not tEW.setFilepath( self.settings.settingsFilepath ) \
     or not tEW.loadText():
-        tEW.closeChildWindow()
+        tEW.doClose()
         showError( self, APP_NAME, _("Sorry, unable to open settings file") )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed viewSettings" )
     else:
