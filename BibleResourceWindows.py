@@ -81,7 +81,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-24' # by RJH
+LastModifiedDate = '2017-12-27' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.42'
@@ -2467,10 +2467,6 @@ class InternalBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWin
 
 
 
-interlinearDictFilepath = '../BibleOrgSys/DataFiles/InterlinearHebrew.pickle'
-#exportFilepath = '../BibleOrgSys/DataFiles/InterlinearHebrew.txt'
-#reverseExportFilepath = '../BibleOrgSys/DataFiles/InterlinearHebrewReversed.txt'
-
 class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindowAddon, HebrewInterlinearBibleBoxAddon ):
     """
     A window displaying our internal (on-disk) Hebrew Bible.
@@ -2485,16 +2481,11 @@ class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindo
             assert modulePath == '../morphhb/wlc/'
         self.parentApp, self.modulePath = parentApp, modulePath
 
-        self.interlinearDict = None
-        self.loadParsingDict( interlinearDictFilepath ) # Comment out this line if glosses not required
-
         self.internalBible = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, \
                     parentApp, 'HebrewBibleResourceWindow', None, defaultContextViewMode, defaultFormatViewMode )
         InternalBibleResourceWindowAddon.__init__( self, \
                     parentApp, None, defaultContextViewMode, defaultFormatViewMode )
-        HebrewInterlinearBibleBoxAddon.__init__( self, \
-                    parentApp, numInterlinearLines=4 if self.interlinearDict else 3) # word/Strongs/morph/gloss
         self.setContextViewMode( 'ByVerse' )
         self.createContextMenu() # Enable right-click menu
 
@@ -2510,31 +2501,13 @@ class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindo
         if self.internalBible is not None: # Define which functions we use by default
             self.getNumVerses = self.internalBible.getNumVerses
             self.getNumChapters = self.internalBible.getNumChapters
+            self.internalBible.loadGlossingDict()
+            HebrewInterlinearBibleBoxAddon.__init__( self, \
+                    parentApp, numInterlinearLines=4 if self.internalBible.glossingDict else 3) # word/Strongs/morph/gloss
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HebrewBibleResourceWindow.__init__ finished.") )
     # end of HebrewBibleResourceWindow.__init__
-
-
-    def loadParsingDict( self, interlinearDictFilepath ):
-        """
-        """
-        import pickle
-
-        # Read our interlinear data from a file
-        if BibleOrgSysGlobals.verbosityLevel > 1:
-            print( "Loading Hebrew glossing dictionary from '{}'…".format( interlinearDictFilepath ) )
-        with open( interlinearDictFilepath, 'rb' ) as pickleFile:
-            self.interlinearDict = pickle.load( pickleFile )
-            # It's a dictionary with (pointed and parsed) Hebrew keys and 2-tuple entries
-            #   Hebrew keys have morphological breaks separated by =
-            #   2-tuple entries consist of a gloss,
-            #      (with gloss alternatives separated by /)
-            #   followed by a list of currently known/parsed references
-            #print( "interlinearDict:", self.interlinearDict )
-        self.loadedEntryCount = len( self.interlinearDict )
-        if BibleOrgSysGlobals.verbosityLevel > 1: print( "  {} interlinear gloss entries read.".format( self.loadedEntryCount ) )
-    # end of HebrewBibleResourceWindow.loadParsingDict
 
 
     #def createMenuBar( self ):
@@ -2871,31 +2844,33 @@ class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindo
     ## end of HebrewBibleResourceWindow.doAbout
 
 
-    #def doClose( self, event=None ):
-        #"""
-        #Called to finally and irreversibly remove this window from our list and close it.
-        #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HebrewBibleResourceWindow.doClose( {} ) for {}").format( event, self.genericWindowType ) )
+    def doClose( self, event=None ):
+        """
+        Called to finally and irreversibly remove this window from our list and close it.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HebrewBibleResourceWindow.doClose( {} ) for {}").format( event, self.genericWindowType ) )
 
-        ## Remove ourself from the list of internal Bibles (and their controlling windows)
-        ##print( 'internalBibles initially', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
-        #newBibleList = []
-        #for internalBible,windowList in self.parentApp.internalBibles:
-            #if internalBible is self.internalBible:
-                #newWindowList = []
-                #for controllingWindow in windowList:
-                    #if controllingWindow is not self: # leave other windows alone
-                        #newWindowList.append( controllingWindow )
-                #if newWindowList: newBibleList.append( (internalBible,windowList) )
-            #else: # leave this one unchanged
-                #newBibleList.append( (internalBible,windowList) )
-        #self.parentApp.internalBibles = newBibleList
-        ##print( 'internalBibles now', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
+        HebrewInterlinearBibleBoxAddon.doClose( self )
 
-        #BibleResourceWindow.doClose( self, event )
-        #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed HebrewBibleResourceWindow" )
-    ## end of HebrewBibleResourceWindow.doClose
+        # Remove ourself from the list of internal Bibles (and their controlling windows)
+        #print( 'internalBibles initially', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
+        newBibleList = []
+        for internalBible,windowList in self.parentApp.internalBibles:
+            if internalBible is self.internalBible:
+                newWindowList = []
+                for controllingWindow in windowList:
+                    if controllingWindow is not self: # leave other windows alone
+                        newWindowList.append( controllingWindow )
+                if newWindowList: newBibleList.append( (internalBible,windowList) )
+            else: # leave this one unchanged
+                newBibleList.append( (internalBible,windowList) )
+        self.parentApp.internalBibles = newBibleList
+        #print( 'internalBibles now', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
+
+        BibleResourceWindow.doClose( self, event )
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed HebrewBibleResourceWindow" )
+    # end of HebrewBibleResourceWindow.doClose
 # end of HebrewBibleResourceWindow class
 
 

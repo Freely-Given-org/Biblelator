@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-26' # by RJH
+LastModifiedDate = '2017-12-27' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.42'
@@ -97,6 +97,7 @@ import BibleOrgSysGlobals
 from InternalBibleInternals import InternalBibleEntry
 from VerseReferences import SimpleVerseKey
 from BibleStylesheets import DEFAULT_FONTNAME, DEFAULT_FONTSIZE
+from HebrewWLCBible import ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR
 
 
 
@@ -2110,7 +2111,7 @@ class BibleBoxAddon():
 class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
     """
     A set of functions that work for a Hebrew Bible frame or window that has a member: self.textBox
-        and also uses verseKeys
+        and also has a member: self.internalBible and uses verseKeys
         and displays text in multi-line (interlinear) chunks.
 
     "self" here is a HebrewBibleResourceWindow.
@@ -2232,16 +2233,15 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         # end of HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine
 
 
-        def appendVerseText( verseDataEntry, ref, currentVerseFlag ):
+        def appendVerseText( verseDataEntry, currentVerseKey, currentVerseFlag ):
             """
             Appends the (interlinear) verse text to the box (taking multiple lines)
             """
             from BiblelatorDialogs import GetWordDialog
-            #if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-                #print( exp("displayAppendVerse.appendVerseText( {}, {}, {}, {} )").format( verseDataEntry, ref, currentVerseFlag, haveTextFlag ) )
-            #assert len(textBundle) == self.numInterlinearLines
+            if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+                print( exp("displayAppendVerse.appendVerseText( {}, {}, {} )").format( verseDataEntry, currentVerseKey, currentVerseFlag ) )
 
-            verseDictList = self.internalBible.getVerseDictList( verseDataEntry, ref )
+            verseDictList = self.internalBible.getVerseDictList( verseDataEntry, currentVerseKey )
             #print( "verseDictList", verseDictList )
 
             #self.textBox.insert( tk.END, '\n'*self.numInterlinearLines ) # Make sure we have enough blank lines
@@ -2250,7 +2250,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
             currentBundleFlag = currentVerseFlag
             bundlesAcross = 0
-            for verseDict in verseDictList: # each verseDict represents one word or token
+            for j,verseDict in enumerate( verseDictList ): # each verseDict represents one word or token
                 #print( "verseDict", verseDict, bundlesAcross )
                 if bundlesAcross >= self.bundlesPerLine: # Start a new line
                     #print( "Start new bundle line" )
@@ -2260,6 +2260,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     bundlesAcross = 0
                     haveTextFlag = False
                 word = verseDict['word']
+                fullRefTuple = currentVerseKey.getBCV() + (str(j+1),)
                 #import Hebrew
                 #h = Hebrew.Hebrew( word )
                 #print( '{!r} is '.format( word ), end=None )
@@ -2271,31 +2272,32 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 if self.numInterlinearLines == 3:
                     bundle = word, strongsNumber, morphology
                 elif self.numInterlinearLines == 4:
-                    assert self.interlinearDict
-                    normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True )
+                    assert self.internalBible.glossingDict
+                    normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True ) \
+                                        .replace( ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR )
                     #if normalizedWord != word:
                         #print( '   ({}) {!r} normalized to ({}) {!r}'.format( len(word), word, len(normalizedWord), normalizedWord ) )
                         ##print( '{!r} is '.format( normalizedWord ), end=None )
                         ##h.printUnicodeData( normalizedWord )
-                    existingGloss,referencesList = self.interlinearDict[normalizedWord] \
-                                                    if normalizedWord in self.interlinearDict else ('',[])
+                    existingGloss,referencesList = self.internalBible.glossingDict[normalizedWord] \
+                                                    if normalizedWord in self.internalBible.glossingDict else ('',[])
                     if not existingGloss and BibleOrgSysGlobals.verbosityLevel > 0:
                         print( "No gloss found for ({}) {}{}".format( len(word), word, \
                             ' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
                         if self.requestMissingGlosses:
                             tempBundle = word, strongsNumber, morphology
-                            gwd = GetWordDialog( self, _("Enter gloss"), tempBundle )
-                            print( "getGlossWord gwdResult", repr(gwd.result) )
-                            if gwd.result == True: # Ok was chosen
-                                enteredGloss = gwd.result['Word']
-                                # Save the data
-                                existingGloss = enteredGloss
-                            elif gwd.result == 'S': # Skip this one
+                            gwd = GetWordDialog( self, _("Enter new gloss"), tempBundle )
+                            print( "gwdResult", gwd.result )
+                            if gwd.result is None: # cancel
                                 pass
-                            elif gwd.result is None: # Cancel was pressed
-                                self.requestMissingGlosses = False
+                            elif gwd.result == 'S': # skip
+                                pass
+                            elif isinstance( gwd.result, dict ):
+                                assert gwd.result['Word']
+                                self.internalBible.setNewGloss( normalizedWord, gwd.result['Word'], fullRefTuple )
+                            else: halt # programming error
                     bundle = word, strongsNumber, morphology, existingGloss
-                appendBundle( bundle, ref, currentBundleFlag, haveTextFlag )
+                appendBundle( bundle, currentVerseKey, currentBundleFlag, haveTextFlag )
                 currentBundleFlag = False
                 haveTextFlag = True
                 bundlesAcross += 1
@@ -2604,6 +2606,20 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     firstMarker = False
                 insertAtEnd( contextString+' ', 'context' )
     # end of HebrewInterlinearBibleBoxAddon.displayAppendVerse
+
+
+    def doClose( self, event=None ):
+        """
+        Called from the GUI.
+
+        Can be overridden if an edit box needs to save files first.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( exp("HebrewInterlinearBibleBoxAddon.doClose( {} )").format( event ) )
+
+        self.internalBible.saveAnyChangedGlosses()
+        self.destroy()
+    # end of HebrewInterlinearBibleBoxAddon.doClose
 
 
     #def getBeforeAndAfterBibleData( self, newVerseKey ):

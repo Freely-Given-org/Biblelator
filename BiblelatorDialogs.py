@@ -46,7 +46,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-26'
+LastModifiedDate = '2017-12-27'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.42'
@@ -2062,7 +2062,9 @@ class SelectInternalBibleDialog( ModalDialog ):
 
 class GetWordDialog( ModalDialog ):
     """
-    Get the name and an abbreviation for a new Biblelator project.
+    Get a new (gloss) word from the user.
+
+    Accepts a bundle (e.g., list, tuple) of short strings to display to the user first.
     """
     def __init__( self, parent, title, wordData ):
         """
@@ -2141,7 +2143,7 @@ class GetWordDialog( ModalDialog ):
         Results are left in self.result
         """
         word = self.entry.get()
-        self.result = { 'Word':word }
+        if word: self.result = { 'Word':word }
     # end of GetWordDialog.apply
 # end of class GetWordDialog
 
