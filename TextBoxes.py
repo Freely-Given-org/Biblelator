@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-27' # by RJH
+LastModifiedDate = '2017-12-28' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.42'
@@ -2238,7 +2238,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             """
             Appends the (interlinear) verse text to the box (taking multiple lines)
             """
-            from BiblelatorDialogs import GetWordDialog
+            from BiblelatorDialogs import GetHebrewGlossWordDialog
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 print( exp("displayAppendVerse.appendVerseText( {}, {}, {} )").format( verseDataEntry, currentVerseKey, currentVerseFlag ) )
 
@@ -2252,7 +2252,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             currentBundleFlag = currentVerseFlag
             self.acrossIndex = 0
             for j,verseDict in enumerate( verseDictList ): # each verseDict represents one word or token
-                #print( "verseDict", verseDict, bundlesAcross )
+                #print( "verseDict", verseDict )
                 #if bundlesAcross >= self.bundlesPerLine: # Start a new line
                     ##print( "Start new bundle line" )
                     ##self.textBox.insert( tk.END, '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
@@ -2283,11 +2283,11 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     gloss,referencesList = self.internalBible.glossingDict[normalizedWord] \
                                                     if normalizedWord in self.internalBible.glossingDict else ('',[])
                     if not gloss and BibleOrgSysGlobals.verbosityLevel > 0:
-                        print( "No gloss found for ({}) {}{}".format( len(word), word, \
-                            ' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
+                        #print( "No gloss found for ({}) {}{}".format( len(word), word, \
+                            #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
                         if self.requestMissingGlosses:
-                            tempBundle = word[::-1], strongsNumber, morphology # Reverse word to simulate RTL Hebrew language
-                            gwd = GetWordDialog( self, _("Enter new gloss"), tempBundle )
+                            tempBundle = normalizedWord[::-1], strongsNumber, morphology # Reverse word to simulate RTL Hebrew language
+                            gwd = GetHebrewGlossWordDialog( self, _("Enter new gloss"), tempBundle )
                             #print( "gwdResult", gwd.result )
                             if gwd.result is None: # cancel
                                 self.requestMissingGlosses = False
@@ -2296,8 +2296,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                 self.requestMissingGlosses = False
                                 pass
                             elif isinstance( gwd.result, dict ):
-                                assert gwd.result['Word']
-                                gloss = gwd.result['Word']
+                                assert gwd.result['word']
+                                gloss = gwd.result['word']
                                 self.internalBible.setNewGloss( normalizedWord, gloss, fullRefTuple )
                             else: halt # programming error
                     bundle = word, strongsNumber, morphology, gloss

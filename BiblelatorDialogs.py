@@ -41,12 +41,12 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class ReplaceConfirmDialog( ModalDialog )
     class SelectInternalBibleDialog( ModalDialog )
     class GetSwordPathDialog( ModalDialog )
-    class GetWordDialog( ModalDialog )
+    class GetHebrewGlossWordDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-27'
+LastModifiedDate = '2017-12-28'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.42'
@@ -59,6 +59,7 @@ debuggingThisModule = True
 import logging
 
 import tkinter as tk
+import tkinter.font as tkFont
 import tkinter.messagebox as tkmb
 from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 
@@ -2060,7 +2061,7 @@ class SelectInternalBibleDialog( ModalDialog ):
 
 
 
-class GetWordDialog( ModalDialog ):
+class GetHebrewGlossWordDialog( ModalDialog ):
     """
     Get a new (gloss) word from the user.
 
@@ -2069,10 +2070,10 @@ class GetWordDialog( ModalDialog ):
     def __init__( self, parent, title, wordData ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetWordDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetHebrewGlossWordDialog…" )
         self.wordData = wordData
         ModalDialog.__init__( self, parent, title )
-    # end of GetWordDialog.__init__
+    # end of GetHebrewGlossWordDialog.__init__
 
 
     def body( self, master ):
@@ -2080,15 +2081,19 @@ class GetWordDialog( ModalDialog ):
         Override the empty ModalDialog.body function
             to set up the dialog how we want it.
         """
+        self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
+        self.customFont = tkFont.Font( family='Helvetica', size=12 )
+
         row = 0
-        for word in self.wordData:
-            Label( master, text=word ).grid( row=row )
+        for j,word in enumerate( self.wordData ):
+            thisFont = self.customHebrewFont if j==0 else self.customFont
+            Label( master, text=word, font=thisFont ).grid( row=row )
             row += 1
 
         self.entry = BEntry( master )
         self.entry.grid( row=row )
         return self.entry # initial focus
-    # end of GetWordDialog.body
+    # end of GetHebrewGlossWordDialog.body
 
 
     def buttonBox( self ):
@@ -2127,12 +2132,16 @@ class GetWordDialog( ModalDialog ):
         Returns True or False.
         """
         resultWord = self.entry.get()
-        for illegalChar in ' :;"@#=/\\{}':
+        for illegalChar in ' :;"@#\\{}':
             if illegalChar in resultWord:
-                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) )
+                showWarning( self.parent, APP_NAME, _("Not allowed {} characters") \
+                                    .format( _('space') if illegalChar==' ' else illegalChar ) )
                 return False
+        if resultWord.count('=') != self.wordData[0].count('='):
+            showWarning( self.parent, APP_NAME, _("Number of morpheme breaks (=) must match") )
+            return False
         return True
-    # end of GetWordDialog.validate
+    # end of GetHebrewGlossWordDialog.validate
 
 
     def apply( self ):
@@ -2143,9 +2152,9 @@ class GetWordDialog( ModalDialog ):
         Results are left in self.result
         """
         word = self.entry.get()
-        if word: self.result = { 'Word':word }
-    # end of GetWordDialog.apply
-# end of class GetWordDialog
+        if word: self.result = { 'word':word }
+    # end of GetHebrewGlossWordDialog.apply
+# end of class GetHebrewGlossWordDialog
 
 
 
