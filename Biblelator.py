@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-26' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2017-12-28' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42' # This is the version number displayed on the start-up screen
@@ -2176,16 +2176,17 @@ class Application( Frame ):
             assert os.path.isdir( settingsFolder )
 
         self.setWaitStatus( _("openParatext8BibleEditWindow…") )
-        ptx8Bible = PTX8Bible( None ) # Create a blank Paratext Bible object
-        PTXSettingsDict = loadPTX8ProjectData( ptx8Bible, settingsFolder )
-        if PTXSettingsDict:
-            if ptx8Bible.suppliedMetadata is None: ptx8Bible.suppliedMetadata = {}
-            if 'PTX8' not in ptx8Bible.suppliedMetadata: ptx8Bible.suppliedMetadata['PTX8'] = {}
-            assert 'Settings' not in ptx8Bible.suppliedMetadata['PTX8']
-            ptx8Bible.suppliedMetadata['PTX8']['Settings'] = PTXSettingsDict
-            ptx8Bible.applySuppliedMetadata( 'PTX8' ) # Copy some fields to BibleObject.settingsDict
-
+        ptx8Bible = PTX8Bible( settingsFolder )
         ptx8Bible.preload()
+
+        ## Create a blank Paratext Bible object
+        #PTXSettingsDict = loadPTX8ProjectData( ptx8Bible, settingsFolder )
+        #if PTXSettingsDict:
+            #if ptx8Bible.suppliedMetadata is None: ptx8Bible.suppliedMetadata = {}
+            #if 'PTX8' not in ptx8Bible.suppliedMetadata: ptx8Bible.suppliedMetadata['PTX8'] = {}
+            #assert 'Settings' not in ptx8Bible.suppliedMetadata['PTX8']
+            #ptx8Bible.suppliedMetadata['PTX8']['Settings'] = PTXSettingsDict
+            #ptx8Bible.applySuppliedMetadata( 'PTX8' ) # Copy some fields to BibleObject.settingsDict
 
         uEW = USFMEditWindow( self, ptx8Bible, editMode=editMode )
         if windowGeometry: uEW.geometry( windowGeometry )
