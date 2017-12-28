@@ -2086,7 +2086,9 @@ class GetHebrewGlossWordDialog( ModalDialog ):
 
         row = 0
         for j,word in enumerate( self.wordData ):
+            if not word: continue # skip missing words
             thisFont = self.customHebrewFont if j==0 else self.customFont
+            if j == 0: word = word[::-1] # Reverse word to simulate RTL Hebrew language
             Label( master, text=word, font=thisFont ).grid( row=row )
             row += 1
 
