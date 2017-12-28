@@ -2286,7 +2286,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                         #print( "No gloss found for ({}) {}{}".format( len(word), word, \
                             #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
                         if self.requestMissingGlosses:
-                            tempBundle = normalizedWord[::-1], strongsNumber, morphology # Reverse word to simulate RTL Hebrew language
+                            tempBundle = normalizedWord, strongsNumber, morphology
                             gwd = GetHebrewGlossWordDialog( self, _("Enter new gloss"), tempBundle )
                             #print( "gwdResult", gwd.result )
                             if gwd.result is None: # cancel
