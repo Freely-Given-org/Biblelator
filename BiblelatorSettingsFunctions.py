@@ -5,7 +5,7 @@
 #
 # for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-14' # by RJH
+LastModifiedDate = '2018-01-06' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.42'
@@ -65,6 +65,7 @@ from TextEditWindow import TextEditWindow
 # BibleOrgSys imports
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
+from PickledBible import ZIPPED_FILENAME_END
 
 
 
@@ -356,11 +357,13 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 #except: logging.critical( "Unable to read all DBPBibleResourceWindow {} settings".format( j ) )
             elif windowType == 'InternalBibleResourceWindow':
                 folderPath = thisStuff['BibleFolderPath']
-                if folderPath[-1] not in '/\\': folderPath += '/'
+                if folderPath[-1] not in '/\\' \
+                and not folderPath.endswith( ZIPPED_FILENAME_END ):
+                    folderPath += '/'
                 rw = self.openInternalBibleResourceWindow( folderPath, windowGeometry )
                 #except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
             elif windowType == 'HebrewBibleResourceWindow':
-                rw = self.openHebrewBibleResourceWindow( windowGeometry )
+                rw = self.openHebrewBibleResourceWindow( folderPath, windowGeometry )
 
             #elif windowType == 'HebrewLexiconResourceWindow':
                 #self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
@@ -511,8 +514,7 @@ def getCurrentChildWindowSettings( self ):
         elif appWin.windowType == 'InternalBibleResourceWindow':
             thisOne['BibleFolderPath'] = appWin.moduleID
         elif appWin.windowType == 'HebrewBibleResourceWindow':
-            #thisOne['BibleFolderPath'] = appWin.moduleID
-            pass # No parameters required
+            thisOne['BibleFolderPath'] = appWin.moduleID
 
         elif appWin.windowType == 'BibleLexiconResourceWindow':
             thisOne['BibleLexiconPath'] = appWin.moduleID

@@ -5,7 +5,7 @@
 #
 # Main program for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-28' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-01-06' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42' # This is the version number displayed on the start-up screen
@@ -94,6 +94,7 @@ from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
 from PTX7Bible import PTX7Bible, loadPTX7ProjectData
 from PTX8Bible import PTX8Bible, loadPTX8ProjectData
+from PickledBible import ZIPPED_FILENAME_END
 
 
 
@@ -103,6 +104,8 @@ BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI
 PARATEXT8_FILETYPES = [('Settings files','Settings.xml'), ('All files','*')]
 PARATEXT7_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 NUM_BCV_REFERENCE_POPUP_LINES = 8
+BOS_RESOURCE_FOLDER = '../BibleOrgSys/Resources/'
+BOS_RESOURCE_FILETYPES = [('Resource files', ZIPPED_FILENAME_END),('All files',  '*')]
 
 
 
@@ -435,7 +438,8 @@ class Application( Frame ):
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
         submenuBibleResourceType = tk.Menu( resourcesMenu, tearoff=False )
         resourcesMenu.add_cascade( label=_('Open Bible/commentary'), underline=5, menu=submenuBibleResourceType )
-        submenuBibleResourceType.add_command( label=_('Online (DBP)…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doOpenDBPBibleResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Included…'), underline=0, command=self.doOpenNewBOSBibleResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Online (DBP)…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doOpenNewDBPBibleResourceWindow )
         submenuBibleResourceType.add_command( label=_('Sword module…'), underline=0, command=self.doOpenNewSwordResourceWindow )
         submenuBibleResourceType.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenNewInternalBibleResourceWindow )
         submenuLexiconResourceType = tk.Menu( resourcesMenu, tearoff=False )
@@ -594,7 +598,8 @@ class Application( Frame ):
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
         submenuBibleResourceType = tk.Menu( resourcesMenu, tearoff=False )
         resourcesMenu.add_cascade( label=_('Open Bible/commentary'), underline=5, menu=submenuBibleResourceType )
-        submenuBibleResourceType.add_command( label=_('Online (DBP)…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doOpenDBPBibleResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Included…'), underline=0, command=self.doOpenNewBOSBibleResourceWindow )
+        submenuBibleResourceType.add_command( label=_('Online (DBP)…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doOpenNewDBPBibleResourceWindow )
         submenuBibleResourceType.add_command( label=_('Sword module…'), underline=0, command=self.doOpenNewSwordResourceWindow )
         submenuBibleResourceType.add_command( label=_('Other (local)…'), underline=1, command=self.doOpenNewInternalBibleResourceWindow )
         submenuLexiconResourceType = tk.Menu( resourcesMenu, tearoff=False )
@@ -1433,18 +1438,18 @@ class Application( Frame ):
     # end of Application.doOpenRecent
 
 
-    def doOpenDBPBibleResourceWindow( self ):
+    def doOpenNewDBPBibleResourceWindow( self ):
         """
         Open an online DigitalBiblePlatform Bible (called from a menu/GUI action).
 
         Requests a version name from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doOpenDBPBibleResourceWindow()") )
-            self.setDebugText( "doOpenDBPBibleResourceWindow…" )
+            print( exp("doOpenNewDBPBibleResourceWindow()") )
+            self.setDebugText( "doOpenNewDBPBibleResourceWindow…" )
 
         if self.internetAccessEnabled:
-            self.setWaitStatus( _("doOpenDBPBibleResourceWindow…") )
+            self.setWaitStatus( _("doOpenNewDBPBibleResourceWindow…") )
             if self.DBPInterface is None:
                 self.DBPInterface = DBPBibles()
                 availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
@@ -1458,16 +1463,16 @@ class Application( Frame ):
                             self.addRecentFile( (entry[1],'','DBPBibleResourceWindow') )
                         #self.acceptNewBnCV()
                         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-                    elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenDBPBibleResourceWindow: no resource selected!") )
+                    elif BibleOrgSysGlobals.debugFlag: print( exp("doOpenNewDBPBibleResourceWindow: no resource selected!") )
                 else:
-                    logging.critical( exp("doOpenDBPBibleResourceWindow: no volumes available") )
+                    logging.critical( exp("doOpenNewDBPBibleResourceWindow: no volumes available") )
                     self.setStatus( "Digital Bible Platform unavailable (offline?)" )
         else: # no Internet allowed
-            logging.critical( exp("doOpenDBPBibleResourceWindow: Internet not enabled") )
+            logging.critical( exp("doOpenNewDBPBibleResourceWindow: Internet not enabled") )
             self.setStatus( "Digital Bible Platform unavailable (You have disabled Internet access.)" )
 
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenDBPBibleResourceWindow" )
-    # end of Application.doOpenDBPBibleResourceWindow
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doOpenNewDBPBibleResourceWindow" )
+    # end of Application.doOpenNewDBPBibleResourceWindow
 
     def openDBPBibleResourceWindow( self, moduleAbbreviation, windowGeometry=None ):
         """
@@ -1588,6 +1593,32 @@ class Application( Frame ):
     # end of Application.openSwordBibleResourceWindow
 
 
+    def doOpenNewBOSBibleResourceWindow( self ):
+        """
+        Open a local pickled Bible (called from a menu/GUI action).
+
+        NOTE: This may include a Hebrew interlinear window which has to be treated different.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            print( exp("openBOSBibleResource()") )
+            self.setDebugText( "doOpenNewBOSBibleResourceWindow…" )
+
+        self.setWaitStatus( _("doOpenNewBOSBibleResourceWindow…") )
+        openDialog = Open( title=_("Select resource"), initialdir=BOS_RESOURCE_FOLDER, filetypes=BOS_RESOURCE_FILETYPES )
+        fileResult = openDialog.show()
+        if not fileResult:
+            self.setReadyStatus()
+            return
+        if not os.path.isfile( fileResult ):
+            showError( self, APP_NAME, 'Could not open file ' + fileResult )
+            self.setReadyStatus()
+            return
+
+        if '/WLC.' in fileResult: self.openHebrewBibleResourceWindow( fileResult )
+        else: self.openInternalBibleResourceWindow( fileResult )
+    # end of Application.doOpenNewBOSBibleResourceWindow
+
+
     def doOpenNewInternalBibleResourceWindow( self ):
         """
         Open a local Bible (called from a menu/GUI action).
@@ -1617,7 +1648,7 @@ class Application( Frame ):
         Returns the new InternalBibleResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("openInternalBibleResourceWindow()") )
+            print( exp("openInternalBibleResourceWindow( {}, {} )").format( modulePath, windowGeometry ) )
             self.setDebugText( "openInternalBibleResourceWindow…" )
 
         self.setWaitStatus( _("openInternalBibleResourceWindow…") )
@@ -1641,9 +1672,7 @@ class Application( Frame ):
 
     def doOpenNewHebrewBibleResourceWindow( self ):
         """
-        Open a local Bible (called from a menu/GUI action).
-
-        Requests a folder from the user.
+        Open a local Hebrew Bible (called from a menu/GUI action).
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openHebrewResource()") )
@@ -1652,24 +1681,25 @@ class Application( Frame ):
         self.setWaitStatus( _("doOpenNewHebrewBibleResourceWindow…") )
         #openDialog = Directory( title=_("Select Bible folder"), initialdir=self.lastHebrewDir )
         #requestedFolder = openDialog.show()
-        #requestedFolder = '../morphhb/wlc/'
+        requestedFolder = '../morphhb/wlc/'
         #if requestedFolder:
             #self.lastHebrewDir = requestedFolder
-        self.openHebrewBibleResourceWindow() # requestedFolder )
+        self.openHebrewBibleResourceWindow( requestedFolder )
             #self.addRecentFile( (requestedFolder,requestedFolder,'HebrewBibleResourceWindow') )
     # end of Application.doOpenNewHebrewBibleResourceWindow
 
-    def openHebrewBibleResourceWindow( self, windowGeometry=None ):
+    def openHebrewBibleResourceWindow( self, modulePath, windowGeometry=None ):
         """
         Create the actual requested local/internal Hebrew Bible resource window.
+
+        This is a special interlinear window that displays morphology, gloss, etc.
 
         Returns the new HebrewBibleResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("openHebrewBibleResourceWindow()") )
+            print( exp("openHebrewBibleResourceWindow( {}, {} )").format( modulePath, windowGeometry ) )
             self.setDebugText( "openHebrewBibleResourceWindow…" )
 
-        modulePath = '../morphhb/wlc/'
         self.setWaitStatus( _("openHebrewBibleResourceWindow…") )
         iHRW = HebrewBibleResourceWindow( self, modulePath )
         if windowGeometry: iHRW.geometry( windowGeometry )
@@ -1702,9 +1732,9 @@ class Application( Frame ):
         self.setWaitStatus( _("doOpenBibleLexiconResourceWindow…") )
         #requestedFolder = askdirectory()
         #if requestedFolder:
-        requestedFolder = None
-        self.openBibleLexiconResourceWindow( requestedFolder )
-        self.addRecentFile( (requestedFolder,requestedFolder,'BibleLexiconResourceWindow') )
+        #requestedFolder = None
+        self.openBibleLexiconResourceWindow( lexiconPath=None )
+        #self.addRecentFile( (requestedFolder,requestedFolder,'BibleLexiconResourceWindow') )
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doOpenBibleLexiconResourceWindow
 
