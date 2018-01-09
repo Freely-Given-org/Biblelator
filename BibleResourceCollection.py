@@ -5,7 +5,7 @@
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2017 Robert Hunt
+# Copyright (C) 2014-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-22' # by RJH
+LastModifiedDate = '2018-01-08' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.42'
@@ -503,6 +503,9 @@ class SwordBibleResourceBox( BibleResourceBox ):
 class DBPBibleResourceBox( BibleResourceBox ):
     """
     This is a box displaying a versified Bible that was downloaded from the online Digital Bible Platform.
+
+    NOTE: The DBPBible class is NOT based on the Bible class
+            because it's so unlike most Bibles which are local.
     """
     def __init__( self, parentWindow, moduleAbbreviation ):
         """
@@ -524,10 +527,12 @@ class DBPBibleResourceBox( BibleResourceBox ):
         except ConnectionError:
             logging.error( exp("DBPBibleResourceBox.__init__ Unable to connect to Digital Bible Platform") )
             self.DBPModule = None
-        if isinstance( self.DBPModule, Bible ):
-            #print( "Handle internalBible for DBPModule" )
-            handleInternalBibles( self.parentApp, self.DBPModule, self )
-        else: print( "DBPModule is", self.DBPModule )
+        #if isinstance( self.DBPModule, Bible ): # Never true
+            ##print( "Handle internalBible for DBPModule" )
+            #handleInternalBibles( self.parentApp, self.DBPModule, self )
+        #elif
+        if BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel > 2:
+            print( "DBPModule is", type(self.DBPModule), self.DBPModule )
     # end of DBPBibleResourceBox.__init__
 
 

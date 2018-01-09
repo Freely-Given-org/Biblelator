@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -42,11 +42,12 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class SelectInternalBibleDialog( ModalDialog )
     class GetSwordPathDialog( ModalDialog )
     class GetHebrewGlossWordDialog( ModalDialog )
+    class ChooseResourcesDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-28'
+LastModifiedDate = '2018-01-09'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.42'
@@ -510,7 +511,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         Results are left in self.result
         """
         items = self.lb.curselection()
-        print( "items", repr(items) ) # a tuple
+        print( "items", repr(items) ) # a tuple of index integers
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
         print( exp("Requested resource(s) is/are: {!r}").format( self.result ) )
     # end of SelectResourceBoxDialog.apply
@@ -696,7 +697,7 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
-        print( "GetNewCollectionNameDialog: eNs", self.existingNames )
+        #print( "GetNewCollectionNameDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
     # end of GetNewCollectionNameDialog.__init__
 
@@ -2157,6 +2158,78 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         if word: self.result = { 'word':word }
     # end of GetHebrewGlossWordDialog.apply
 # end of class GetHebrewGlossWordDialog
+
+
+
+class ChooseResourcesDialog( ModalDialog ):
+    """
+    Given a list of available resources, select one and return the list item.
+    """
+    def __init__( self, parent, availableResourceDictsList, title ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "ChooseResourcesDialog…" )
+        if BibleOrgSysGlobals.debugFlag:
+            #if debuggingThisModule:
+                #print( "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
+            assert isinstance( availableResourceDictsList, list )
+        self.availableResourceDictsList = sorted( availableResourceDictsList, key=lambda aRD: aRD['abbreviation'] )
+        ModalDialog.__init__( self, parent, title )
+    # end of ChooseResourcesDialog.__init__
+
+
+    def body( self, master ):
+        Label( master, text=_("Select one or more resources to open") ).pack( side=tk.TOP, fill=tk.X )
+
+        self.lb = tk.Listbox( master, selectmode=tk.EXTENDED )
+        """ Note: selectmode can be
+            SINGLE (just a single choice),
+            BROWSE (same, but the selection can be moved using the mouse),
+            MULTIPLE (multiple item can be choosen, by clicking at them one at a time), or
+            tk.EXTENDED (multiple ranges of items can be chosen using the Shift and Control keyboard modifiers).
+            The default is BROWSE.
+            Use MULTIPLE to get “checklist” behavior,
+            and tk.EXTENDED when the user would usually pick only one item,
+                but sometimes would like to select one or more ranges of items. """
+        maxAbbrevWidth = max([len(aRD['abbreviation']) for aRD in self.availableResourceDictsList])
+        for availableResourceDict in self.availableResourceDictsList:
+            #print( "aRD", repr(availableResourceDict) )
+            abbrev = availableResourceDict['abbreviation']
+            item = '{}{}{}'.format( abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), availableResourceDict['givenName'] )
+            self.lb.insert( tk.END, item )
+        self.lb.pack( fill=tk.BOTH, expand=tk.YES )
+
+        return self.lb # initial focus
+    # end of ChooseResourcesDialog.body
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Must be at least one selected (otherwise force them to select CANCEL).
+
+        Returns True or False.
+        """
+        return self.lb.curselection()
+    # end of ChooseResourcesDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result,
+            in this case, a list of zippedPickle filenames.
+        """
+        #selectedItemIndexes = self.lb.curselection()
+        #print( "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
+        self.result = [self.availableResourceDictsList[int(itemIndex)]['zipFilename'] for itemIndex in self.lb.curselection()] # now a sublist
+        #print( exp("SelectResourceBoxDialog: Requested resource(s) is/are: {!r}").format( self.result ) )
+    # end of SelectResourceBoxDialog.apply
+# end of class ChooseResourcesDialog
 
 
 

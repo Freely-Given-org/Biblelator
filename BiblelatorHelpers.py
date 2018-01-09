@@ -437,37 +437,42 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
 
     Returns an internal Bible object.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+    debuggingThisFunction = False
+    if debuggingThisFunction or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
         print( exp("handleInternalBibles( {}, {} )").format( internalBible, controllingWindow ) )
         assert isinstance( internalBible, Bible )
         #self.setDebugText( "handleInternalBibles" )
+        #print( "hereHIB0", repr(internalBible), len(self.internalBibles) )
 
     result = internalBible
-    #if internalBible is None:
-        #print( "  Got None" )
+    if debuggingThisFunction and internalBible is None:
+        print( "  hIB: Got None" )
     if internalBible is not None:
-        #print( "  Not None" )
+        if debuggingThisFunction: print( "  hIB: Not None" )
         foundControllingWindowList = None
         for iB,cWs in self.internalBibles:
             # Some of these variables will be None but they'll still match
             #and internalBible.sourceFilepath == iB.sourceFilepath \ # PTX Bible sets sourceFilepath but others don't!
-            if internalBible.name == iB.name \
+            if type(internalBible) is type(iB) \
+            and internalBible.abbreviation == iB.abbreviation \
+            and internalBible.name == iB.name \
             and internalBible.sourceFilename == iB.sourceFilename \
             and internalBible.encoding == iB.encoding: # Let's assume they're the same
                 if internalBible.sourceFolder == iB.sourceFolder:
-                    #print( "  Got an IB match for {}!".format( iB.name ) )
+                    if debuggingThisFunction: print( "  Got an IB match for {}!".format( iB.name ) )
                     result, foundControllingWindowList = iB, cWs
                     break
                 else:
-                    print( "handleInternalBibles: Got an almost IB match for {}!".format( iB.name ) )
-                    print( "    Source folders didn't match: {!r} and {!r}".format( internalBible.sourceFolder, iB.sourceFolder ) )
+                    if debuggingThisFunction:
+                        print( "handleInternalBibles: Got an almost IB match for {}!".format( iB.name ) )
+                        print( "    Source folders didn't match: {!r}\n           and {!r}".format( internalBible.sourceFolder, iB.sourceFolder ) )
                     result, foundControllingWindowList = iB, cWs
                     break
 
         if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
 
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+    if debuggingThisModule or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
         print( "Internal Bibles ({}) now:".format( len(self.internalBibles) ) )
         for something in self.internalBibles:
             print( "  ", something )

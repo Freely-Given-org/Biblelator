@@ -5,7 +5,7 @@
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -76,12 +76,16 @@ class InternalBibleResourceWindow( BibleResourceWindow )
     _doneExports( self )
     doCheckProject( self )
 
+class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindowAddon, HebrewInterlinearBibleBoxAddon )
+    __init__( self, parentApp, modulePath, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] )
+    doClose( self, event=None )
+
 demo()
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-27' # by RJH
+LastModifiedDate = '2018-01-08' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.42'
@@ -112,10 +116,11 @@ from VerseReferences import SimpleVerseKey
 from SwordResources import SwordType
 from DigitalBiblePlatform import DBPBible
 from UnknownBible import UnknownBible
-from HebrewWLCBible import HebrewWLCBible
+from HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
 from BibleWriter import setDefaultControlFolder
+from PickledBible import ZIPPED_FILENAME_END
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -719,7 +724,9 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
                     #print( "  cVD for", self.moduleID, intV, cachedVerseData )
                     if cachedVerseData is not None: # it seems to have worked
                         break # Might have been nice to check/confirm that it was actually a bridged verse???
-            self.displayAppendVerse( True, newVerseKey, cachedVerseData, currentVerseFlag=True )
+            if cachedVerseData is None:
+                logging.critical( "BibleResourceWindowAddon.updateShownBCV got no cashed ContextVerseData for {} {}:{} {}".format( BBB, C, intV, S ) )
+            else: self.displayAppendVerse( True, newVerseKey, cachedVerseData, currentVerseFlag=True )
 
         elif self._contextViewMode == 'BySection':
             BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
@@ -784,7 +791,7 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
         Display a help box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("InternalBibleResourceWindowAddon.doHelp( {} )").format( event ) )
+            print( exp("BibleResourceWindowAddon.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -794,7 +801,7 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of InternalBibleResourceWindowAddon.doHelp
+    # end of BibleResourceWindowAddon.doHelp
 
 
     def doAbout( self, event=None ):
@@ -802,14 +809,16 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
         Display an about box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("InternalBibleResourceWindowAddon.doAbout( {} )").format( event ) )
+            print( exp("BibleResourceWindowAddon.doAbout( {} )").format( event ) )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
+        try: aboutInfo += "\nDisplaying {}".format( self.internalBible )
+        except AttributeError: pass # no internalBible
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of InternalBibleResourceWindowAddon.doAbout
+    # end of BibleResourceWindowAddon.doAbout
 
 
     def doClose( self, event=None ):
@@ -817,7 +826,7 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
         Called to finally and irreversibly remove this window from our list and close it.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("InternalBibleResourceWindowAddon.doClose( {} ) for {}").format( event, self.genericWindowType ) )
+            print( exp("BibleResourceWindowAddon.doClose( {} ) for {}").format( event, self.genericWindowType ) )
 
         # Remove ourself from the list of internal Bibles (and their controlling windows)
         #print( 'internalBibles initially', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
@@ -835,8 +844,8 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
         #print( 'internalBibles now', len(self.parentApp.internalBibles), self.parentApp.internalBibles )
 
         BibleResourceWindow.doClose( self, event )
-        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed InternalBibleResourceWindowAddon" )
-    # end of InternalBibleResourceWindowAddon.doClose
+        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed BibleResourceWindowAddon" )
+    # end of BibleResourceWindowAddon.doClose
 # end of BibleResourceWindowAddon class
 
 
@@ -1606,10 +1615,12 @@ class DBPBibleResourceWindow( BibleResourceWindow, BibleWindowAddon ):
             logging.error( exp("DBPBibleResourceWindow.__init__ Unable to connect to Digital Bible Platform") )
             self.DBPModule = None
 
-        if isinstance( self.DBPModule, Bible ):
-            #print( "Handle internalBible for DBPModuleRW" )
-            handleInternalBibles( self.parentApp, self.DBPModule, self )
-        else: print( "DBPModule is", self.DBPModule )
+        #if isinstance( self.DBPModule, Bible ): # Never true
+            ##print( "Handle internalBible for DBPModuleRW" )
+            #handleInternalBibles( self.parentApp, self.DBPModule, self )
+        #elif
+        if BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel > 2:
+            print( "DBPModule is", type(self.DBPModule), self.DBPModule )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("DBPBibleResourceWindow.__init__ finished.") )
@@ -1678,22 +1689,22 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon, BibleWindowAdd
         #self.windowType = 'InternalBibleResourceWindowAddon'
         #self.createContextMenu() # Enable right-click menu
 
-        if self.modulePath is not None:
-            try: self.UnknownBible = UnknownBible( self.modulePath )
-            except FileNotFoundError:
-                logging.error( exp("InternalBibleResourceWindowAddon.__init__ Unable to find module path: {!r}").format( self.modulePath ) )
-                self.UnknownBible = None
-            if self.UnknownBible is not None:
-                result = self.UnknownBible.search( autoLoadAlways=True )
-                if isinstance( result, str ):
-                    print( "Unknown Bible returned: {!r}".format( result ) )
-                    self.internalBible = None
-                else:
-                    #print( "Handle internalBible for internalBibleRW" )
-                    self.internalBible = handleInternalBibles( self.parentApp, result, self )
-        if self.internalBible is not None: # Define which functions we use by default
-            self.getNumVerses = self.internalBible.getNumVerses
-            self.getNumChapters = self.internalBible.getNumChapters
+        #if self.modulePath is not None:
+            #try: self.UnknownBible = UnknownBible( self.modulePath )
+            #except FileNotFoundError:
+                #logging.error( exp("InternalBibleResourceWindowAddon.__init__ Unable to find module path: {!r}").format( self.modulePath ) )
+                #self.UnknownBible = None
+            #if self.UnknownBible is not None:
+                #result = self.UnknownBible.search( autoLoadAlways=True )
+                #if isinstance( result, str ):
+                    #print( "Unknown Bible returned: {!r}".format( result ) )
+                    #self.internalBible = None
+                #else:
+                    ##print( "Handle internalBible for internalBibleRW" )
+                    #self.internalBible = handleInternalBibles( self.parentApp, result, self )
+        #if self.internalBible is not None: # Define which functions we use by default
+            #self.getNumVerses = self.internalBible.getNumVerses
+            #self.getNumChapters = self.internalBible.getNumChapters
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("InternalBibleResourceWindowAddon.__init__ finished.") )
@@ -2478,26 +2489,34 @@ class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindo
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "HebrewBibleResourceWindow.__init__( {}, mP={} )".format( parentApp, modulePath ) )
-            assert modulePath == '../morphhb/wlc/'
+            assert modulePath in ('../morphhb/wlc/', '../BibleOrgSys/Resources/WLC'+ZIPPED_FILENAME_END )
         self.parentApp, self.modulePath = parentApp, modulePath
 
         self.internalBible = None # (for refreshTitle called from the base class)
         BibleResourceWindow.__init__( self, \
-                    parentApp, 'HebrewBibleResourceWindow', None, defaultContextViewMode, defaultFormatViewMode )
+                    parentApp, 'HebrewBibleResourceWindow', modulePath, defaultContextViewMode, defaultFormatViewMode )
         InternalBibleResourceWindowAddon.__init__( self, \
                     parentApp, None, defaultContextViewMode, defaultFormatViewMode )
+                    # NOTE: modulePath must be NONE above coz we need a special internal Bible
         self.setContextViewMode( 'ByVerse' )
         self.createContextMenu() # Enable right-click menu
 
-        self.modulePath = modulePath # Reset it -- seems to get set to None in __init__ calls above
+        self.moduleID = self.modulePath = modulePath # Reset it -- it gets set to None in __init__ calls above
         if self.modulePath is not None:
-            try: self.HebrewWLCBible = HebrewWLCBible( self.modulePath )
+            try:
+                if self.modulePath.endswith( ZIPPED_FILENAME_END ):
+                    HebrewWLCBible = PickledHebrewWLCBible( self.modulePath )
+                    HebrewWLCBible.preload()
+                else: HebrewWLCBible = OSISHebrewWLCBible( self.modulePath )
             except FileNotFoundError:
                 logging.error( exp("HebrewBibleResourceWindow.__init__ Unable to find module path: {!r}").format( self.modulePath ) )
-                self.HebrewWLCBible = None
-            if self.HebrewWLCBible is not None:
+                HebrewWLCBible = None
+            if HebrewWLCBible is not None:
                 #print( "Handle internalBible for HebrewBibleRW" )
-                self.internalBible = handleInternalBibles( self.parentApp, self.HebrewWLCBible, self )
+                #print( "hereHB1", repr(HebrewWLCBible) )
+                self.internalBible = handleInternalBibles( self.parentApp, HebrewWLCBible, self )
+                #print( "hereHB2", repr(HebrewWLCBible) )
+                #print( "hereIB", repr(self.internalBible) )
         if self.internalBible is not None: # Define which functions we use by default
             self.getNumVerses = self.internalBible.getNumVerses
             self.getNumChapters = self.internalBible.getNumChapters

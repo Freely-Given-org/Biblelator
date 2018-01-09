@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-06' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-01-09' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42' # This is the version number displayed on the start-up screen
@@ -60,7 +60,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
 from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
-                                BookNameDialog, NumberButtonDialog
+                                BookNameDialog, NumberButtonDialog, ChooseResourcesDialog
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, \
                                 parseEnteredBooknameField, getLatestPythonModificationDate
 from Settings import ApplicationSettings, ProjectSettings
@@ -94,7 +94,7 @@ from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
 from PTX7Bible import PTX7Bible, loadPTX7ProjectData
 from PTX8Bible import PTX8Bible, loadPTX8ProjectData
-from PickledBible import ZIPPED_FILENAME_END
+from PickledBible import ZIPPED_FILENAME_END, getZippedPickledBiblesDetails
 
 
 
@@ -1604,18 +1604,23 @@ class Application( Frame ):
             self.setDebugText( "doOpenNewBOSBibleResourceWindow…" )
 
         self.setWaitStatus( _("doOpenNewBOSBibleResourceWindow…") )
-        openDialog = Open( title=_("Select resource"), initialdir=BOS_RESOURCE_FOLDER, filetypes=BOS_RESOURCE_FILETYPES )
-        fileResult = openDialog.show()
-        if not fileResult:
+        # Get the info about available resources to display to the user
+        infoDictList = getZippedPickledBiblesDetails( BOS_RESOURCE_FOLDER, extended=True )
+        #print( "infoDictList", len(infoDictList), infoDictList )
+        #for infoDict in infoDictList:
+            #print( "infoDict", len(infoDict), infoDict )
+        crd = ChooseResourcesDialog( self, infoDictList, title=_("Select resource(s)") )
+        if not crd.result:
             self.setReadyStatus()
             return
-        if not os.path.isfile( fileResult ):
-            showError( self, APP_NAME, 'Could not open file ' + fileResult )
-            self.setReadyStatus()
-            return
-
-        if '/WLC.' in fileResult: self.openHebrewBibleResourceWindow( fileResult )
-        else: self.openInternalBibleResourceWindow( fileResult )
+        assert isinstance( crd.result, list ) # Should be a list of zip files
+        for zipFilename in crd.result:
+            #print( "zF", zipFilename )
+            assert zipFilename.endswith( ZIPPED_FILENAME_END )
+            zipFilepath = os.path.join( BOS_RESOURCE_FOLDER, zipFilename )
+            assert os.path.isfile( zipFilepath )
+            if '/WLC.' in zipFilepath: self.openHebrewBibleResourceWindow( zipFilepath )
+            else: self.openInternalBibleResourceWindow( zipFilepath )
     # end of Application.doOpenNewBOSBibleResourceWindow
 
 
@@ -3796,21 +3801,24 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     if not iniName.lower().endswith( '.ini' ): iniName += '.ini'
     iniFilepath = os.path.join( homeFolderPath, dataFolderName, settingsFolderName, iniName )
     currentWindowDict = OrderedDict()
-    with open( iniFilepath, 'rt' ) as iniFile:
-        inCurrent = False
-        for line in iniFile:
-            line = line.strip()
-            #while line and line[-1] in '\n\r': line = line[:-1]
-            #print( repr(line) )
-            if inCurrent:
-                if line.startswith( 'window' ):
-                    num = line[6]
-                    field, contents = line[7:].split( ' = ', 1 )
-                    if num not in currentWindowDict: currentWindowDict[num] = {}
-                    currentWindowDict[num][field] = contents
-                else: inCurrent = False
-            elif line == '[WindowSettingCurrent]':
-                inCurrent = True
+    try:
+        with open( iniFilepath, 'rt' ) as iniFile:
+            inCurrent = False
+            for line in iniFile:
+                line = line.strip()
+                #while line and line[-1] in '\n\r': line = line[:-1]
+                #print( repr(line) )
+                if inCurrent:
+                    if line.startswith( 'window' ):
+                        num = line[6]
+                        field, contents = line[7:].split( ' = ', 1 )
+                        if num not in currentWindowDict: currentWindowDict[num] = {}
+                        currentWindowDict[num][field] = contents
+                    else: inCurrent = False
+                elif line == '[WindowSettingCurrent]':
+                    inCurrent = True
+    except FileNotFoundError:
+        print( _("Settings file {!r} not found -- may have been manually deleted???").format( iniFilepath ) )
     #print( currentWindowDict )
 
     hadAny = False
@@ -3906,7 +3914,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
         print( '    ' + _("(Remove {!r} from {!r} after backing-up / recovering any files first)").format( LOCK_FILENAME, os.getcwd() ) )
         sys.exit()
     else:
-        print( '  ' + _("Seems that your files are ok / up-to-date (as far as we can tell)") )
+        if currentWindowDict: print( '  ' + _("Seems that your files are ok / up-to-date (as far as we can tell)") )
         print( '\n' + _("Do you want to delete the lock file and proceed?") )
         print( '    ' + _("(Only do this if you're sure that no data was lost and that another copy of {} is not running)").format( APP_NAME ) )
         result = input( '  ' + _("Delete lock file and proceed? [YES or no] (default is no)?") )

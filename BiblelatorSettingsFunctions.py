@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-06' # by RJH
+LastModifiedDate = '2018-01-08' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.42'
@@ -363,6 +363,10 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 rw = self.openInternalBibleResourceWindow( folderPath, windowGeometry )
                 #except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
             elif windowType == 'HebrewBibleResourceWindow':
+                folderPath = thisStuff['BibleFolderPath']
+                if folderPath[-1] not in '/\\' \
+                and not folderPath.endswith( ZIPPED_FILENAME_END ):
+                    folderPath += '/'
                 rw = self.openHebrewBibleResourceWindow( folderPath, windowGeometry )
 
             #elif windowType == 'HebrewLexiconResourceWindow':

@@ -5,7 +5,7 @@
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -36,7 +36,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-17' # by RJH
+LastModifiedDate = '2018-01-08' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.42'
@@ -463,7 +463,8 @@ class BibleWindowAddon( BibleBoxAddon ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleWindowAddon.__init__( {} {!r} )").format( parentApp, genericWindowType ) )
             assert parentApp
-            assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',)
+            assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',
+                                         'BibleResourceCollectionWindow','DBPBibleResourceWindow')
         self.parentApp, self.genericWindowType = parentApp, genericWindowType
 
         # The radio vars are used by the window menus
