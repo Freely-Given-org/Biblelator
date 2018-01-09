@@ -7,7 +7,7 @@
 #
 # Adapted from: http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 #
-# Copyright (C) 2014-2017 Robert Hunt
+# Copyright (C) 2014-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -30,10 +30,10 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-10' # by RJH
+LastModifiedDate = '2018-01-09' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = '0.40'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -86,7 +86,7 @@ class ModalDialog( tk.Toplevel ):
 
         body = Frame( self )
         self.initial_focus = self.body( body ) # Create the widgets in the body
-        body.pack( padx=5, pady=5 )
+        body.pack( padx=5, pady=5, fill=tk.BOTH, expand=tk.YES )
 
         self.buttonBox()
 
