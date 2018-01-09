@@ -2167,6 +2167,8 @@ class ChooseResourcesDialog( ModalDialog ):
     """
     def __init__( self, parent, availableResourceDictsList, title ):
         """
+        NOTE: from the dictionaries in the list, we just use 'abbreviation' and 'givenName'
+                to build up the list of available resources.
         """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "ChooseResourcesDialog…" )
         if BibleOrgSysGlobals.debugFlag:
