@@ -5,7 +5,7 @@
 #
 # The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-22' # by RJH
+LastModifiedDate = '2018-01-11' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.42'
@@ -960,7 +960,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
 
         # Main code for cacheBook
         sectionHeadings = ( 's', 's1', 's2', 's3', 's4', )
-        C = V = '0' # So id line starts at 0:0
+        C = V = '0' # So first/id line starts at 0:0
         startedVerseEarly = False
         currentEntry = ''
         bookLines = self.bookText.split( '\n' )
