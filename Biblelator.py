@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-09' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-01-14' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42' # This is the version number displayed on the start-up screen
@@ -55,6 +55,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
         DEFAULT_KEY_BINDING_DICT, \
+        BOS_RESOURCE_FOLDER, \
         findHomeFolderPath, findUsername, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
 from BiblelatorSimpleDialogs import showError, showWarning, showInfo
@@ -104,7 +105,6 @@ BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI
 PARATEXT8_FILETYPES = [('Settings files','Settings.xml'), ('All files','*')]
 PARATEXT7_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 NUM_BCV_REFERENCE_POPUP_LINES = 8
-BOS_RESOURCE_FOLDER = '../BibleOrgSys/Resources/'
 BOS_RESOURCE_FILETYPES = [('Resource files', ZIPPED_FILENAME_END),('All files',  '*')]
 
 
@@ -140,7 +140,7 @@ class Application( Frame ):
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("Application.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
+            print( "Application.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderPath, loggingFolderPath ) )
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage = rootWindow, homeFolderPath, loggingFolderPath, iconImage
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -1604,23 +1604,27 @@ class Application( Frame ):
             self.setDebugText( "doOpenNewBOSBibleResourceWindow…" )
 
         self.setWaitStatus( _("doOpenNewBOSBibleResourceWindow…") )
-        # Get the info about available resources to display to the user
-        infoDictList = getZippedPickledBiblesDetails( BOS_RESOURCE_FOLDER, extended=True )
-        #print( "infoDictList", len(infoDictList), infoDictList )
-        #for infoDict in infoDictList:
-            #print( "infoDict", len(infoDict), infoDict )
-        crd = ChooseResourcesDialog( self, infoDictList, title=_("Select resource(s)") )
-        if not crd.result:
-            self.setReadyStatus()
-            return
-        assert isinstance( crd.result, list ) # Should be a list of zip files
-        for zipFilename in crd.result:
-            #print( "zF", zipFilename )
-            assert zipFilename.endswith( ZIPPED_FILENAME_END )
-            zipFilepath = os.path.join( BOS_RESOURCE_FOLDER, zipFilename )
-            assert os.path.isfile( zipFilepath )
-            if '/WLC.' in zipFilepath: self.openHebrewBibleResourceWindow( zipFilepath )
-            else: self.openInternalBibleResourceWindow( zipFilepath )
+        while True:
+            # Get the info about available resources to display to the user
+            infoDictList = getZippedPickledBiblesDetails( BOS_RESOURCE_FOLDER, extended=True )
+            #print( "infoDictList", len(infoDictList), infoDictList )
+            #for infoDict in infoDictList:
+                #print( "infoDict", len(infoDict), infoDict )
+            crd = ChooseResourcesDialog( self, self, infoDictList, title=_("Select resource(s)") )
+            if not crd.result:
+                self.setReadyStatus()
+                return
+            if isinstance( crd.result, str) and crd.result == 'rerunDialog':
+                continue # They downloaded some resources, so try again
+            assert isinstance( crd.result, list ) # Should be a list of zip files
+            for zipFilename in crd.result:
+                #print( "zF", zipFilename )
+                assert zipFilename.endswith( ZIPPED_FILENAME_END )
+                zipFilepath = os.path.join( BOS_RESOURCE_FOLDER, zipFilename )
+                assert os.path.isfile( zipFilepath )
+                if '/WLC.' in zipFilepath: self.openHebrewBibleResourceWindow( zipFilepath )
+                else: self.openInternalBibleResourceWindow( zipFilepath )
+            break # Loop is only here for use after the user does a download
     # end of Application.doOpenNewBOSBibleResourceWindow
 
 
