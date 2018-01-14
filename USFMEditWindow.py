@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-11' # by RJH
+LastModifiedDate = '2018-01-14' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.42'
@@ -92,7 +92,7 @@ class ToolsOptionsDialog( ModalDialog ):
     ## end of ToolsOptionsDialog.__init__
 
 
-    #def buttonBox( self ):
+    #def makeButtonBox( self ):
         #"""
         #Do our custom buttonBox (without an ok button)
         #"""
@@ -100,13 +100,13 @@ class ToolsOptionsDialog( ModalDialog ):
         #w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         #w.pack( side=tk.LEFT, padx=5, pady=5 )
         #self.bind( '<Escape>', self.cancel )
-        #box.pack()
-    ## end of ToolsOptionsDialog.buttonBox
+        #box.pack( side=tk.BOTTOM )
+    ## end of ToolsOptionsDialog.makeButtonBox
 
 
     acValues = None, 'Bible', 'BibleBook', 'Dictionary1', 'Dictionary2'
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
         """
@@ -143,7 +143,7 @@ class ToolsOptionsDialog( ModalDialog ):
         self.notebook.add( self.generalPage, text=_("General") )
         self.notebook.add( self.autocompletePage, text=_("AutoComplete") )
         self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
-    # end of ToolsOptionsDialog.body
+    # end of ToolsOptionsDialog.makeBody
 
 
     def apply( self ):
