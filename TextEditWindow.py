@@ -5,7 +5,7 @@
 #
 # The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-13' # by RJH
+LastModifiedDate = '2018-01-12' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.42'
@@ -47,7 +47,7 @@ from tkinter.filedialog import asksaveasfilename
 from tkinter.ttk import Button, Label, Entry
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT
+from BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT, DATA_FOLDER_NAME
 from BiblelatorSimpleDialogs import showError, showInfo
 from BiblelatorDialogs import YesNoDialog, OkCancelDialog
 from TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE, \
@@ -1190,7 +1190,7 @@ class TextEditWindow( ChildWindow ):
             # NOTE: Don't use a hidden folder coz user might not be able to find it
             autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' ) \
                                     if APP_NAME in partialAutosaveFolderPath \
-                                    else os.path.join( partialAutosaveFolderPath, APP_NAME+'/', 'AutoSave/' )
+                                    else os.path.join( partialAutosaveFolderPath, DATA_FOLDER_NAME, 'AutoSave/' )
             if not os.path.exists( autosaveFolderPath ): os.makedirs( autosaveFolderPath )
             lastDayFolderPath = os.path.join( autosaveFolderPath, 'LastDay/' )
             if not os.path.exists( lastDayFolderPath ): os.mkdir( lastDayFolderPath )
