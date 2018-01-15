@@ -85,7 +85,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-08' # by RJH
+LastModifiedDate = '2018-01-15' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.42'
@@ -2522,7 +2522,7 @@ class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindo
             self.getNumChapters = self.internalBible.getNumChapters
             self.internalBible.loadGlossingDict()
             HebrewInterlinearBibleBoxAddon.__init__( self, \
-                    parentApp, numInterlinearLines=4 if self.internalBible.glossingDict else 3) # word/Strongs/morph/gloss
+                    parentApp, numInterlinearLines=5 if self.internalBible.glossingDict else 3) # word/Strongs/morph/genericGloss/specificGloss
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HebrewBibleResourceWindow.__init__ finished.") )

@@ -5,7 +5,7 @@
 #
 # Base of various textboxes for use as widgets and base classes in various windows.
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-28' # by RJH
+LastModifiedDate = '2018-01-15' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.42'
@@ -2123,7 +2123,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HebrewInterlinearBibleBoxAddon.__init__( {}, nIL={} )").format( parentApp, numInterlinearLines ) )
             assert parentApp
-            assert 0 < numInterlinearLines <= 4
+            assert 0 < numInterlinearLines <= 5
         self.numInterlinearLines = numInterlinearLines
 
         BibleBoxAddon.__init__( self, parentApp, 'HebrewInterlinearBibleBoxAddon' )
@@ -2132,8 +2132,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         self.pixelsPerCm =  self.parentApp.rootWindow.winfo_fpixels( '1c' ) # gives 37.85488958990536 for me for 2.5c
         self.tabStopPixels = self.tabStopCm * self.pixelsPerCm
 
-        self.entryStylesNormal = ( 'HebWord', 'HebStrong', 'HebMorph', 'HebGloss' )
-        self.entryStylesSelected = ( 'HebWordSelected', 'HebStrongSelected', 'HebMorphSelected', 'HebGlossSelected' )
+        self.entryStylesNormal = ( 'HebWord', 'HebStrong', 'HebMorph', 'HebGenericGloss', 'HebSpecificGloss' )
+        self.entryStylesSelected = ( 'HebWordSelected', 'HebStrongSelected', 'HebMorphSelected', 'HebGenericGlossSelected', 'HebSpecificGlossSelected' )
         self.fontsNormal, self.fontsSelected = [], []
         #tabWidthsNormal, tabWidthsSelected = [], []
         for entryStyleNormal,entryStyleSelected in zip( self.entryStylesNormal, self.entryStylesSelected ):
@@ -2280,14 +2280,14 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                         #print( '   ({}) {!r} normalized to ({}) {!r}'.format( len(word), word, len(normalizedWord), normalizedWord ) )
                         ##print( '{!r} is '.format( normalizedWord ), end=None )
                         ##h.printUnicodeData( normalizedWord )
-                    gloss,referencesList = self.internalBible.glossingDict[normalizedWord] \
-                                                    if normalizedWord in self.internalBible.glossingDict else ('',[])
-                    if not gloss and BibleOrgSysGlobals.verbosityLevel > 0:
-                        #print( "No gloss found for ({}) {}{}".format( len(word), word, \
+                    genericGloss,genericReferencesList,specificReferencesDict = self.internalBible.glossingDict[normalizedWord] \
+                                                    if normalizedWord in self.internalBible.glossingDict else ('',[],{})
+                    if not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
+                        #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
                             #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
                         if self.requestMissingGlosses:
                             tempBundle = normalizedWord, strongsNumber, morphology
-                            gwd = GetHebrewGlossWordDialog( self, _("Enter new gloss"), tempBundle )
+                            gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle )
                             #print( "gwdResult", gwd.result )
                             if gwd.result is None: # cancel
                                 self.requestMissingGlosses = False
@@ -2297,10 +2297,42 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                 pass
                             elif isinstance( gwd.result, dict ):
                                 assert gwd.result['word']
-                                gloss = gwd.result['word']
-                                self.internalBible.setNewGloss( normalizedWord, gloss, fullRefTuple )
+                                genericGloss = gwd.result['word']
+                                self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
                             else: halt # programming error
-                    bundle = word, strongsNumber, morphology, gloss
+                    bundle = word, strongsNumber, morphology, genericGloss
+                elif self.numInterlinearLines == 5:
+                    assert self.internalBible.glossingDict
+                    normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True ) \
+                                        .replace( ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR )
+                    #if normalizedWord != word:
+                        #print( '   ({}) {!r} normalized to ({}) {!r}'.format( len(word), word, len(normalizedWord), normalizedWord ) )
+                        ##print( '{!r} is '.format( normalizedWord ), end=None )
+                        ##h.printUnicodeData( normalizedWord )
+                    genericGloss,genericReferencesList,specificReferencesDict = self.internalBible.glossingDict[normalizedWord] \
+                                                    if normalizedWord in self.internalBible.glossingDict else ('',[],{})
+                    try: specificGloss = specificReferencesDict[fullRefTuple]
+                    except KeyError: specificGloss = '' # No specific gloss for this reference
+                    if not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
+                        #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
+                            #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
+                        if self.requestMissingGlosses:
+                            tempBundle = normalizedWord, strongsNumber, morphology
+                            gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle )
+                            #print( "gwdResult", gwd.result )
+                            if gwd.result is None: # cancel
+                                self.requestMissingGlosses = False
+                                pass
+                            elif gwd.result == 'S': # skip
+                                self.requestMissingGlosses = False
+                                pass
+                            elif isinstance( gwd.result, dict ):
+                                assert gwd.result['word']
+                                genericGloss = gwd.result['word']
+                                self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
+                            else: halt # programming error
+                    bundle = word, strongsNumber, morphology, genericGloss, specificGloss
+                else: halt # Programming error for numInterlinearLines
                 appendBundle( bundle, currentVerseKey, currentBundleFlag, haveTextFlag )
                 currentBundleFlag = False
                 haveTextFlag = True
