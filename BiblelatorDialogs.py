@@ -47,7 +47,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-14'
+LastModifiedDate = '2018-01-15'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.42'
@@ -2342,11 +2342,12 @@ class DownloadResourcesDialog( ModalDialog ):
                     #print( os.stat(resourceFilepath) )
                     #print( os.stat(resourceFilepath)[8], datetime.fromtimestamp(os.stat(resourceFilepath)[8]) )
                     #print( os.stat(resourceFilepath)[9], datetime.fromtimestamp(os.stat(resourceFilepath)[9]) )
-                    fileDateTime = datetime.fromtimestamp( os.stat(resourceFilepath)[8] )
-                    #print( "  fileDateTime", fileDateTime )
+                    fileDateTime1 = datetime.fromtimestamp( os.stat(resourceFilepath)[8] )
+                    fileDateTime2 = datetime.fromtimestamp( os.stat(resourceFilepath)[9] )
+                    #print( "  fileDateTime1", fileDateTime1 )
                     serverDateTime = datetime.strptime( dateTimeString, '%Y-%m-%d %H:%M' )
                     #print( "  serverDateTime", serverDateTime )
-                    if (serverDateTime - fileDateTime ).total_seconds() > 3600: # one hour
+                    if (serverDateTime - fileDateTime1 ).total_seconds() > 3600: # one hour later
                         if debuggingThisModule: print( "Updateable resource:", abbrev )
                         itemString = '{} {}{}{}'.format( _("Update"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
                     elif debuggingThisModule: print( "  Seems up-to-date:", abbrev )
