@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-14' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-01-16' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42' # This is the version number displayed on the start-up screen
@@ -2238,6 +2238,12 @@ class Application( Frame ):
 
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatext8BibleEditWindow" )
         self.setReadyStatus()
+
+        if ptx8Bible.conflicts:
+            print( "openParatext8BibleEditWindow {!r} has {} conflicts".format( ptx8Bible.getAName( abbrevFirst=True ), len(ptx8Bible.conflicts) ) )
+            # TODO: more in here
+        #else: print( "openParatext8BibleEditWindow {!r} has NO conflicts".format( ptx8Bible.getAName( abbrevFirst=True ) ) )
+
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("openParatext8BibleEditWindow finished.") )
         return uEW
