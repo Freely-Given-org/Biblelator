@@ -47,14 +47,14 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-15'
+LastModifiedDate = '2018-01-18'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = False
+debuggingThisModule = True
 
 
 import os, logging
@@ -66,7 +66,7 @@ import tkinter.messagebox as tkmb
 from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 
 # Biblelator imports
-from BiblelatorGlobals import APP_NAME, errorBeep, BOS_RESOURCE_FOLDER
+from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
 from BiblelatorSimpleDialogs import showWarning
 from TextBoxes import BEntry, BCombobox, BText
@@ -2234,7 +2234,7 @@ class ChooseResourcesDialog( ModalDialog ):
             #if BibleOrgSysGlobals.debugFlag: assert isinstance( dRD.result, list )
             self.result = 'rerunDialog'
             self.cancel() # Hand control back (then hopefully rerun with new data
-        else: print( "doDownloadMore: Nothing was selected!" )
+        else: print( "doDownloadMore: " + _("Nothing was selected!") )
     # end of ChooseResourcesDialog.doDownloadMore
 
 
@@ -2282,7 +2282,7 @@ class DownloadResourcesDialog( ModalDialog ):
         if BibleOrgSysGlobals.debugFlag:
             #if debuggingThisModule:
                 #print( "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
-            assert isinstance( availableResourceDictsList, list )
+            assert isinstance( title, str )
         self.downloadCount = 0
         ModalDialog.__init__( self, parent, title )
     # end of DownloadResourcesDialog.__init__
@@ -2301,7 +2301,10 @@ class DownloadResourcesDialog( ModalDialog ):
 
         try: responseObject = urllib.request.urlopen( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL )
         except urllib.error.URLError:
-            if BibleOrgSysGlobals.debugFlag: logging.critical( "DownloadResourcesDialog.makeBody: error fetching {}".format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )
+            if BibleOrgSysGlobals.debugFlag:
+                logging.critical( "DownloadResourcesDialog.makeBody: error fetching {}".format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )
+            Label( master, text=_("Unable to connect to server") ).pack( side=tk.TOP, fill=tk.X )
+            self.okButton.config( state=tk.DISABLED )
             return None
         responsePageSTR = responseObject.read().decode('utf-8')
         #print( "responsePageSTR", responsePageSTR )
@@ -2335,7 +2338,7 @@ class DownloadResourcesDialog( ModalDialog ):
             for abbrev,dateTimeString in availableResourceList:
                 #print( "aRD", repr(availableResourceDict) )
                 filename = abbrev + ZIPPED_FILENAME_END
-                resourceFilepath = os.path.join( BOS_RESOURCE_FOLDER, filename )
+                resourceFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
                 itemString = None
                 if os.path.exists( resourceFilepath ):
                     if debuggingThisModule: print( "You already have", resourceFilepath )
@@ -2383,7 +2386,7 @@ class DownloadResourcesDialog( ModalDialog ):
         """
         self.parent.parentApp.setWaitStatus( _("Downloading {} resource…").format( abbrev ) )
         filename = abbrev + ZIPPED_FILENAME_END
-        filepath = os.path.join( BOS_RESOURCE_FOLDER, filename )
+        filepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
         url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
         if debuggingThisModule: print( "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
         try: responseObject = urllib.request.urlopen( url )

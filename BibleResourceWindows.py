@@ -2489,7 +2489,7 @@ class HebrewBibleResourceWindow( BibleResourceWindow, InternalBibleResourceWindo
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "HebrewBibleResourceWindow.__init__( {}, mP={} )".format( parentApp, modulePath ) )
-            assert modulePath in ('../morphhb/wlc/', '../BibleOrgSys/Resources/WLC'+ZIPPED_FILENAME_END )
+            assert modulePath in ('../morphhb/wlc/', DOWNLOADED_RESOURCES_FOLDER+'WLC'+ZIPPED_FILENAME_END )
         self.parentApp, self.modulePath = parentApp, modulePath
 
         self.internalBible = None # (for refreshTitle called from the base class)

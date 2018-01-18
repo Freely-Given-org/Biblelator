@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-16' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-01-18' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42' # This is the version number displayed on the start-up screen
@@ -55,13 +55,13 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
         DEFAULT_KEY_BINDING_DICT, \
-        BOS_RESOURCE_FOLDER, \
         findHomeFolderPath, findUsername, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
 from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
-                                BookNameDialog, NumberButtonDialog, ChooseResourcesDialog
+                                BookNameDialog, NumberButtonDialog, \
+                                DownloadResourcesDialog, ChooseResourcesDialog
 from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, \
                                 parseEnteredBooknameField, getLatestPythonModificationDate
 from Settings import ApplicationSettings, ProjectSettings
@@ -1603,10 +1603,27 @@ class Application( Frame ):
             print( exp("openBOSBibleResource()") )
             self.setDebugText( "doOpenNewBOSBibleResourceWindow…" )
 
+        if not os.path.exists( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ): # Seems we have nothing yet
+            os.makedirs( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER )
+        if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ):
+            print( "Downloadable resources folder is empty" )
+            if self.internetAccessEnabled:
+                dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
+                if BibleOrgSysGlobals.debugFlag: print( "doDownloadMore dRD result", repr(dRD.result) )
+                if dRD.result:
+                    print( "{} resources downloaded".format( dRD.result ) )
+                else:
+                    print( "doDownloadMore: " + _("Nothing was selected!") )
+            else: print( "Can't download resources because internet access is not enabled" )
+        else: print( os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ) )
+        if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ):
+            print( "doOpenNewBOSBibleResourceWindow: " + _("No downloaded resources available") )
+            return
+
         self.setWaitStatus( _("doOpenNewBOSBibleResourceWindow…") )
         while True:
             # Get the info about available resources to display to the user
-            infoDictList = getZippedPickledBiblesDetails( BOS_RESOURCE_FOLDER, extended=True )
+            infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, extended=True )
             #print( "infoDictList", len(infoDictList), infoDictList )
             #for infoDict in infoDictList:
                 #print( "infoDict", len(infoDict), infoDict )
@@ -1620,7 +1637,7 @@ class Application( Frame ):
             for zipFilename in crd.result:
                 #print( "zF", zipFilename )
                 assert zipFilename.endswith( ZIPPED_FILENAME_END )
-                zipFilepath = os.path.join( BOS_RESOURCE_FOLDER, zipFilename )
+                zipFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, zipFilename )
                 assert os.path.isfile( zipFilepath )
                 if '/WLC.' in zipFilepath: self.openHebrewBibleResourceWindow( zipFilepath )
                 else: self.openInternalBibleResourceWindow( zipFilepath )

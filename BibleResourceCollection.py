@@ -1029,15 +1029,13 @@ class BibleResourceCollectionWindow( BibleResourceWindow, BibleWindowAddon ):
 
         NOTE: This may include a Hebrew interlinear window which has to be treated different.
         """
-        from Biblelator import BOS_RESOURCE_FOLDER
-
         if BibleOrgSysGlobals.debugFlag:
             print( exp("doOpenNewBOSBibleResourceBox()") )
             self.parentApp.setDebugText( "doOpenNewBOSBibleResourceBox" )
         self.parentApp.setWaitStatus( _("doOpenNewBOSBibleResourceBox…") )
 
         # Get the info about available resources to display to the user
-        infoDictList = getZippedPickledBiblesDetails( BOS_RESOURCE_FOLDER, extended=True )
+        infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, extended=True )
         crd = ChooseResourcesDialog( self, infoDictList, title=_("Select resource(s)") )
         if not crd.result:
             self.parentApp.setReadyStatus()
@@ -1045,7 +1043,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow, BibleWindowAddon ):
         assert isinstance( crd.result, list ) # Should be a list of zip files
         for zipFilename in crd.result:
             assert zipFilename.endswith( ZIPPED_FILENAME_END )
-            zipFilepath = os.path.join( BOS_RESOURCE_FOLDER, zipFilename )
+            zipFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, zipFilename )
             assert os.path.isfile( zipFilepath )
             #if '/WLC.' in zipFilepath: self.openHebrewBibleResourceBox( zipFilepath )
             self.openInternalBibleResourceBox( zipFilepath )

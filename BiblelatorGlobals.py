@@ -41,7 +41,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-14' # by RJH
+LastModifiedDate = '2018-01-18' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.42'
@@ -86,7 +86,6 @@ DATA_FOLDER_NAME = APP_NAME + 'Data/'
 LOGGING_SUBFOLDER_NAME = APP_NAME + 'Logs/'
 SETTINGS_SUBFOLDER_NAME = APP_NAME + 'Settings/'
 PROJECTS_SUBFOLDER_NAME = APP_NAME + 'Projects/'
-BOS_RESOURCE_FOLDER = '../BibleOrgSys/Resources/'
 
 
  # Constants for tkinter
