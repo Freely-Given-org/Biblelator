@@ -79,6 +79,9 @@ from TextEditWindow import TextEditWindow
 from USFMEditWindow import USFMEditWindow
 #from ESFMEditWindow import ESFMEditWindow
 from BiblelatorSettingsEditor import openBiblelatorSettingsEditor
+
+# Biblelator apps imports
+sys.path.append( 'Apps/' )
 from BOSManager import openBOSManager
 from SwordManager import openSwordManager
 
@@ -1344,7 +1347,7 @@ class Application( Frame ):
         site = 'Freely-Given.org'
         # NOTE: needs to be https eventually!!!
         indexString = None
-        url = 'http://{}/Software/BibleQlator/DevMsg/DevMsg.idx'.format( site )
+        url = 'http://{}/Software/Biblelator/DevMsg/DevMsg.idx'.format( site )
         try:
             with urllib.request.urlopen( url ) as response:
                 indexData = response.read() # a `bytes` object
