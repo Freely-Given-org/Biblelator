@@ -85,7 +85,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-15' # by RJH
+LastModifiedDate = '2018-01-21' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.42'
@@ -725,7 +725,7 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
                     if cachedVerseData is not None: # it seems to have worked
                         break # Might have been nice to check/confirm that it was actually a bridged verse???
             if cachedVerseData is None:
-                logging.critical( "BibleResourceWindowAddon.updateShownBCV got no cashed ContextVerseData for {} {}:{} {}".format( BBB, C, intV, S ) )
+                logging.critical( "BibleResourceWindowAddon.updateShownBCV got no cached ContextVerseData for {} {}:{} {}".format( BBB, C, intV, S ) )
             else: self.displayAppendVerse( True, newVerseKey, cachedVerseData, currentVerseFlag=True )
 
         elif self._contextViewMode == 'BySection':
