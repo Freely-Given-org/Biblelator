@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-15' # by RJH
+LastModifiedDate = '2018-01-21' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.42'
@@ -2666,7 +2666,10 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("HebrewInterlinearBibleBoxAddon.doClose( {} )").format( event ) )
 
-        self.internalBible.saveAnyChangedGlosses()
+        try: self.internalBible.saveAnyChangedGlosses()
+        except AttributeError: # if self.internalBible is None
+            if debuggingThisModule: print( "Why is Hebrew internalBible None?" )
+
         self.destroy()
     # end of HebrewInterlinearBibleBoxAddon.doClose
 
