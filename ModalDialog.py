@@ -7,7 +7,7 @@
 #
 # Adapted from: http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 #
-# Copyright (C) 2014-2017 Robert Hunt
+# Copyright (C) 2014-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -30,10 +30,10 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-10' # by RJH
+LastModifiedDate = '2018-01-14' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = '0.40'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -77,18 +77,17 @@ class ModalDialog( tk.Toplevel ):
         self.parent = parent
         if title: self.title( title )
 
+        self.result = None # Used to return an optional result
+
         if okText is None: okText = _("Ok")
         self.okText = okText
         if cancelText is None: cancelText = _("Cancel")
         self.cancelText = cancelText
-
-        self.result = None # Used to return an optional result
+        self.makeButtonBox()
 
         body = Frame( self )
-        self.initial_focus = self.body( body ) # Create the widgets in the body
-        body.pack( padx=5, pady=5 )
-
-        self.buttonBox()
+        self.initial_focus = self.makeBody( body ) # Create the widgets in the body
+        body.pack( padx=5, pady=5, fill=tk.BOTH, expand=tk.YES )
 
         self.grab_set()
 
@@ -106,17 +105,17 @@ class ModalDialog( tk.Toplevel ):
 
 
     # construction hooks
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         Create dialog body -- this method must be overridden.
 
         Returns the widget that should have initial focus.
         """
         if BibleOrgSysGlobals.debugFlag: print( exp("This 'body' method must be overridden!") ); halt
-    # end of ModalDialog.body
+    # end of ModalDialog.makeBody
 
 
-    def buttonBox( self ):
+    def makeButtonBox( self ):
         """
         Add our standard button box
 
@@ -124,16 +123,16 @@ class ModalDialog( tk.Toplevel ):
         """
         box = Frame( self )
 
-        w = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
-        w.pack( side=tk.LEFT, padx=5, pady=5 )
-        w = Button( box, text=self.cancelText, width=10, command=self.cancel )
-        w.pack( side=tk.LEFT, padx=5, pady=5 )
+        self.okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
+        self.okButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        self.cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        self.cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
 
         self.bind( '<Return>', self.ok )
         self.bind( '<Escape>', self.cancel )
 
-        box.pack()
-    # end of ModalDialog.buttonBox
+        box.pack( side=tk.BOTTOM )
+    # end of ModalDialog.makeButtonBox
 
 
     #
@@ -189,9 +188,9 @@ class ModalDialog( tk.Toplevel ):
 
 class MyTestDialog( ModalDialog ):
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
         from tkinter.ttk import Label, Entry

@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -41,34 +41,39 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class ReplaceConfirmDialog( ModalDialog )
     class SelectInternalBibleDialog( ModalDialog )
     class GetSwordPathDialog( ModalDialog )
+    class GetHebrewGlossWordDialog( ModalDialog )
+    class ChooseResourcesDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-22'
+LastModifiedDate = '2018-01-18'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
 debuggingThisModule = True
 
 
-import logging
+import os, logging
+import urllib.request
 
 import tkinter as tk
+import tkinter.font as tkFont
 import tkinter.messagebox as tkmb
 from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, errorBeep
 from ModalDialog import ModalDialog
-from TextBoxes import BEntry, BCombobox, BText
 from BiblelatorSimpleDialogs import showWarning
+from TextBoxes import BEntry, BCombobox, BText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
+from PickledBible import ZIPPED_FILENAME_END
 
 
 
@@ -102,17 +107,17 @@ def exp( messageString ):
     ## end of HTMLDialog.__init__
 
 
-    #def body( self, master ):
+    #def makeBody( self, master ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HTMLDialog.body( {} )").format( master ) )
+            #print( exp("HTMLDialog.makeBody( {} )").format( master ) )
 
         #html = HTMLTextBox( master )
         #html.grid( row=0 )
         #html.insert( tk.END, self.text )
         #return html
-    ## end of HTMLDialog.body
+    ## end of HTMLDialog.makeBody
 ## end of class HTMLDialog
 
 
@@ -128,13 +133,13 @@ class YesNoDialog( ModalDialog ):
     # end of YesNoDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         """
         label = Label( master, text=self.message )
         label.grid( row=0 )
         return label
-    # end of YesNoDialog.body
+    # end of YesNoDialog.makeBody
 # end of class YesNoDialog
 
 
@@ -150,13 +155,13 @@ class OkCancelDialog( ModalDialog ):
     # end of OkCancelDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         """
         label = Label( master, text=self.message )
         label.grid( row=0 )
         return label
-    # end of OkCancelDialog.body
+    # end of OkCancelDialog.makeBody
 # end of class OkCancelDialog
 
 
@@ -173,7 +178,7 @@ class BookNameDialog( ModalDialog ):
     # end of BookNameDialog.__init__
 
 
-    def buttonBox( self ):
+    def makeButtonBox( self ):
         """
         Do our custom buttonBox (without an ok button)
         """
@@ -181,11 +186,11 @@ class BookNameDialog( ModalDialog ):
         w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
         self.bind( '<Escape>', self.cancel )
-        box.pack()
-    # end of BookNameDialog.buttonBox
+        box.pack( side=tk.BOTTOM )
+    # end of BookNameDialog.makeButtonBox
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
         """
@@ -224,7 +229,7 @@ class BookNameDialog( ModalDialog ):
             #Button( master, width=6, text=bookName, style='bN.TButton', command=lambda which=j: self.apply(which) ) \
                         #.grid()
         #return 0
-    # end of BookNameDialog.body
+    # end of BookNameDialog.makeBody
 
 
     def apply( self, buttonNumber ):
@@ -257,7 +262,7 @@ class NumberButtonDialog( ModalDialog ):
     # end of NumberButtonDialog.__init__
 
 
-    def buttonBox( self ):
+    def makeButtonBox( self ):
         """
         Do our custom buttonBox (without an ok button)
         """
@@ -265,11 +270,11 @@ class NumberButtonDialog( ModalDialog ):
         w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
         self.bind( '<Escape>', self.cancel )
-        box.pack()
-    # end of NumberButtonDialog.buttonBox
+        box.pack( side=tk.BOTTOM )
+    # end of NumberButtonDialog.makeButtonBox
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
         """
@@ -305,7 +310,7 @@ class NumberButtonDialog( ModalDialog ):
             #Button( master, width=6, text=bookName, style='bN.TButton', command=lambda which=j: self.apply(which) ) \
                         #.grid()
         #return 0
-    # end of NumberButtonDialog.body
+    # end of NumberButtonDialog.makeBody
 
 
     def apply( self, buttonNumber ):
@@ -336,7 +341,7 @@ class SaveWindowNameDialog( ModalDialog ):
     # end of SaveWindowNameDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         """
         t1 = _("Enter a new name to save windows set-up")
@@ -354,7 +359,7 @@ class SaveWindowNameDialog( ModalDialog ):
         self.cb.grid( row=1 )
 
         return self.cb # initial focus
-    # end of SaveWindowNameDialog.body
+    # end of SaveWindowNameDialog.makeBody
 
 
     def validate( self ):
@@ -400,7 +405,7 @@ class DeleteWindowNameDialog( ModalDialog ):
     # end of DeleteWindowNameDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         """
         Label( master, text=_("Use to delete a saved windows set-up") ).grid( row=0 )
@@ -416,7 +421,7 @@ class DeleteWindowNameDialog( ModalDialog ):
         self.cb.grid( row=1 )
 
         return self.cb # initial focus
-    # end of DeleteWindowNameDialog.body
+    # end of DeleteWindowNameDialog.makeBody
 
 
     def validate( self ):
@@ -464,7 +469,7 @@ class SelectResourceBoxDialog( ModalDialog ):
     # end of SelectResourceBoxDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         Label( master, text=_("Select a resource to open") ).grid( row=0 )
 
         self.lb = tk.Listbox( master, selectmode=tk.EXTENDED )
@@ -484,7 +489,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         self.lb.grid( row=1 )
 
         return self.lb # initial focus
-    # end of SelectResourceBoxDialog.body
+    # end of SelectResourceBoxDialog.makeBody
 
 
     def validate( self ):
@@ -508,7 +513,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         Results are left in self.result
         """
         items = self.lb.curselection()
-        print( "items", repr(items) ) # a tuple
+        print( "items", repr(items) ) # a tuple of index integers
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
         print( exp("Requested resource(s) is/are: {!r}").format( self.result ) )
     # end of SelectResourceBoxDialog.apply
@@ -528,9 +533,9 @@ class GetNewProjectNameDialog( ModalDialog ):
     # end of GetNewProjectNameDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
         Label( master, text=_("Full name:") ).grid( row=0 )
@@ -542,7 +547,7 @@ class GetNewProjectNameDialog( ModalDialog ):
         self.e1.grid( row=0, column=1 )
         self.e2.grid( row=1, column=1 )
         return self.e1 # initial focus
-    # end of GetNewProjectNameDialog.body
+    # end of GetNewProjectNameDialog.makeBody
 
 
     def validate( self ):
@@ -598,9 +603,9 @@ class CreateNewProjectFilesDialog( ModalDialog ):
     # end of CreateNewProjectFilesDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
         Label( master, text=_("Create book files:") ).grid( row=0 )
@@ -694,21 +699,21 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
-        print( "GetNewCollectionNameDialog: eNs", self.existingNames )
+        #print( "GetNewCollectionNameDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parent, title )
     # end of GetNewCollectionNameDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
         Label( master, text=_("Name:") ).grid( row=0 )
         self.e1 = BEntry( master )
         self.e1.grid( row=0, column=1 )
         return self.e1 # initial focus
-    # end of GetNewCollectionNameDialog.body
+    # end of GetNewCollectionNameDialog.makeBody
 
 
     def validate( self ):
@@ -758,9 +763,9 @@ class RenameResourceCollectionDialog( ModalDialog ):
     # end of RenameResourceCollectionDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
         Label( master, text=_('Enter name to replace "{}"').format( self.existingName ) ).grid( row=0, column=0, columnspan=2 )
@@ -819,9 +824,9 @@ class GetBibleBookRangeDialog( ModalDialog ):
     # end of GetBibleBookRangeDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
         self.booksSelectVariable = tk.IntVar()
@@ -847,7 +852,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
         b1.grid( row=6, column=0, sticky=tk.W )
 
         return rb1 # initial focus
-    # end of GetBibleBookRangeDialog.body
+    # end of GetBibleBookRangeDialog.makeBody
 
 
     def validate( self ):
@@ -921,9 +926,9 @@ class SelectIndividualBibleBooksDialog( ModalDialog ):
     # end of SelectIndividualBibleBooksDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
         self.groupSelectVariable = tk.IntVar()
@@ -973,7 +978,7 @@ class SelectIndividualBibleBooksDialog( ModalDialog ):
             tk.Grid.rowconfigure( master, y, weight=1 )
 
         #return 0
-    # end of SelectIndividualBibleBooksDialog.body
+    # end of SelectIndividualBibleBooksDialog.makeBody
 
 
     #def validate( self ):
@@ -1100,12 +1105,12 @@ class GetBibleFindTextDialog( ModalDialog ):
     # end of GetBibleFindTextDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
-        #print( "GetBibleFindTextDialog.body", self.optionsDict )
+        #print( "GetBibleFindTextDialog.makeBody", self.optionsDict )
 
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
@@ -1269,7 +1274,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         theseMarkersEntry.pack( in_=markerListFrame, side=tk.RIGHT, padx=2, pady=1 )
 
         return self.searchStringBox # initial focus
-    # end of GetBibleFindTextDialog.body
+    # end of GetBibleFindTextDialog.makeBody
 
 
     def selectBooks( self ):
@@ -1467,12 +1472,12 @@ class GetBibleReplaceTextDialog( ModalDialog ):
     # end of GetBibleReplaceTextDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
-        Override the empty ModalDialog.body function
+        Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
-        #print( "GetBibleReplaceTextDialog.body", self.optionsDict )
+        #print( "GetBibleReplaceTextDialog.makeBody", self.optionsDict )
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
         self.projectNameVar.set( self.optionsDict['workName'] )
@@ -1643,7 +1648,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         #theseMarkersEntry.pack( in_=markerListFrame, side=tk.RIGHT, padx=2, pady=1 )
 
         return self.searchStringBox # initial focus
-    # end of GetBibleReplaceTextDialog.body
+    # end of GetBibleReplaceTextDialog.makeBody
 
 
     def selectBooks( self ):
@@ -1819,7 +1824,7 @@ class ReplaceConfirmDialog( ModalDialog ):
     # end of ReplaceConfirmDialog.__init__
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         """
         #from TextBoxes import BText
@@ -1851,14 +1856,12 @@ class ReplaceConfirmDialog( ModalDialog ):
 
         #return yesButton
         return 0
-    # end of ReplaceConfirmDialog.body
+    # end of ReplaceConfirmDialog.makeBody
 
-    def buttonBox( self ):
-        '''
-        Add ourstandard button box
-
-        Override if you don't want the standard buttons.
-        '''
+    def makeButtonBox( self ):
+        """
+        Add our custom button box
+        """
         box = Frame( self )
 
         yesButton = Button( box, text=_('Yes (Replace)'), command=self.doYes, default=tk.ACTIVE )
@@ -1876,8 +1879,8 @@ class ReplaceConfirmDialog( ModalDialog ):
         self.bind( '<Return>', self.doYes )
         self.bind( '<Escape>', self.doStop )
 
-        box.pack( anchor=tk.E )
-    # end of ModalDialog.buttonBox
+        box.pack( side=tk.BOTTOM, anchor=tk.E )
+    # end of ModalDialog.makeButtonBox
 
     def doYes( self, event=None ):
         self.result = 'Y'
@@ -1920,7 +1923,7 @@ class SelectInternalBibleDialog( ModalDialog ):
     # end of SelectInternalBibleDialog.__init__
 
 
-    def buttonBox( self ):
+    def makeButtonBox( self ):
         """
         Do our custom buttonBox (without an ok button)
         """
@@ -1928,11 +1931,11 @@ class SelectInternalBibleDialog( ModalDialog ):
         w = Button( box, text=self.cancelText, width=10, command=self.cancel )
         w.pack( side=tk.LEFT, padx=5, pady=5 )
         self.bind( '<Escape>', self.cancel )
-        box.pack()
-    # end of SelectInternalBibleDialog.buttonBox
+        box.pack( side=tk.BOTTOM )
+    # end of SelectInternalBibleDialog.makeButtonBox
 
 
-    def body( self, master ):
+    def makeBody( self, master ):
         """
         Adapted from http://stackoverflow.com/questions/7591294/how-to-create-a-self-resizing-grid-of-buttons-in-tkinter
         """
@@ -1970,7 +1973,7 @@ class SelectInternalBibleDialog( ModalDialog ):
             #Button( master, width=6, text=bookName, style='bN.TButton', command=lambda which=j: self.apply(which) ) \
                         #.grid()
         #return 0
-    # end of SelectInternalBibleDialog.body
+    # end of SelectInternalBibleDialog.makeBody
 
 
     def apply( self, buttonNumber ):
@@ -2006,9 +2009,9 @@ class SelectInternalBibleDialog( ModalDialog ):
     ## end of GetSwordPathDialog.setAlreadyTriedList
 
 
-    #def body( self, master ):
+    #def makeBody( self, master ):
         #"""
-        #Override the empty ModalDialog.body function
+        #Override the empty ModalDialog.makeBody function
             #to set up the dialog how we want it.
         #"""
         #Label( master, text=_("Already tried:") ).grid( row=0 )
@@ -2020,7 +2023,7 @@ class SelectInternalBibleDialog( ModalDialog ):
         #l1.grid( row=0, column=1 )
         #self.e1.grid( row=1, column=1 )
         #return self.e1 # initial focus
-    ## end of GetSwordPathDialog.body
+    ## end of GetSwordPathDialog.makeBody
 
 
     #def validate( self ):
@@ -2030,8 +2033,6 @@ class SelectInternalBibleDialog( ModalDialog ):
 
         #Returns True or False.
         #"""
-        #import os.path
-
         #enteredPath = self.e1.get()
         #if not os.path.isdir( enteredPath):
             #showWarning( self.parent, APP_NAME, _("Pathname seems invalid") ); return False
@@ -2056,6 +2057,364 @@ class SelectInternalBibleDialog( ModalDialog ):
         #self.result = enteredPath
     ## end of GetSwordPathDialog.apply
 ## end of class GetSwordPathDialog
+
+
+
+class GetHebrewGlossWordDialog( ModalDialog ):
+    """
+    Get a new (gloss) word from the user.
+
+    Accepts a bundle (e.g., list, tuple) of short strings to display to the user first.
+    """
+    def __init__( self, parent, title, wordData ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetHebrewGlossWordDialog…" )
+        self.wordData = wordData
+        ModalDialog.__init__( self, parent, title )
+    # end of GetHebrewGlossWordDialog.__init__
+
+
+    def makeBody( self, master ):
+        """
+        Override the empty ModalDialog.makeBody function
+            to set up the dialog how we want it.
+        """
+        self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
+        self.customFont = tkFont.Font( family='Helvetica', size=12 )
+
+        row = 0
+        for j,word in enumerate( self.wordData ):
+            if not word: continue # skip missing words
+            thisFont = self.customHebrewFont if j==0 else self.customFont
+            if j == 0: word = word[::-1] # Reverse word to simulate RTL Hebrew language
+            Label( master, text=word, font=thisFont ).grid( row=row )
+            row += 1
+
+        self.entry = BEntry( master )
+        self.entry.grid( row=row )
+        return self.entry # initial focus
+    # end of GetHebrewGlossWordDialog.makeBody
+
+
+    def makeButtonBox( self ):
+        """
+        Add our custom button box
+        """
+        box = Frame( self )
+
+        skipOoneButton = Button( box, text=_('Skip this one'), command=self.doSkipOne )
+        skipOoneButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
+        okButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
+
+        self.bind( '<Return>', self.ok )
+        self.bind( '<Escape>', self.cancel )
+
+        box.pack( side=tk.BOTTOM, anchor=tk.E )
+    # end of GetHebrewGlossWordDialog.makeButtonBox
+
+
+    def doSkipOne( self, event=None ):
+        self.result = 'S'
+        self.cancel()
+    # end of GetHebrewGlossWordDialog.doSkipOne
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Returns True or False.
+        """
+        resultWord = self.entry.get()
+        for illegalChar in ' :;"@#\\{}':
+            if illegalChar in resultWord:
+                showWarning( self.parent, APP_NAME, _("Not allowed {} characters") \
+                                    .format( _('space') if illegalChar==' ' else illegalChar ) )
+                return False
+        if resultWord.count('=') != self.wordData[0].count('='):
+            showWarning( self.parent, APP_NAME, _("Number of morpheme breaks (=) must match") )
+            return False
+        return True
+    # end of GetHebrewGlossWordDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        word = self.entry.get()
+        if word: self.result = { 'word':word }
+    # end of GetHebrewGlossWordDialog.apply
+# end of class GetHebrewGlossWordDialog
+
+
+
+class ChooseResourcesDialog( ModalDialog ):
+    """
+    Given a list of available resources, select one and return the list item.
+    """
+    def __init__( self, parent, parentApp, availableResourceDictsList, title ):
+        """
+        NOTE: from the dictionaries in the list, we just use 'abbreviation' and 'givenName'
+                to build up the list of available resources.
+        """
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "ChooseResourcesDialog…" )
+        if BibleOrgSysGlobals.debugFlag:
+            #if debuggingThisModule:
+                #print( "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
+            assert isinstance( availableResourceDictsList, list )
+        self.parentApp = parentApp
+        self.availableResourceDictsList = sorted( availableResourceDictsList, key=lambda aRD: aRD['abbreviation'] )
+        ModalDialog.__init__( self, parent, title )
+    # end of ChooseResourcesDialog.__init__
+
+
+    def makeBody( self, master ):
+        """
+        """
+        Label( master, text=_("Select one or more resources to open") ).pack( side=tk.TOP, fill=tk.X )
+
+        self.lb = tk.Listbox( master, selectmode=tk.EXTENDED )
+        """ Note: selectmode can be
+            SINGLE (just a single choice),
+            BROWSE (same, but the selection can be moved using the mouse),
+            MULTIPLE (multiple item can be choosen, by clicking at them one at a time), or
+            tk.EXTENDED (multiple ranges of items can be chosen using the Shift and Control keyboard modifiers).
+            The default is BROWSE.
+            Use MULTIPLE to get “checklist” behavior,
+            and tk.EXTENDED when the user would usually pick only one item,
+                but sometimes would like to select one or more ranges of items. """
+        maxAbbrevWidth = max([len(aRD['abbreviation']) for aRD in self.availableResourceDictsList])
+        for availableResourceDict in self.availableResourceDictsList:
+            #print( "aRD", repr(availableResourceDict) )
+            abbrev = availableResourceDict['abbreviation']
+            item = '{}{}{}'.format( abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), availableResourceDict['givenName'] )
+            self.lb.insert( tk.END, item )
+        self.lb.pack( fill=tk.BOTH, expand=tk.YES )
+
+        return self.lb # initial focus
+    # end of ChooseResourcesDialog.makeBody
+
+
+    def makeButtonBox( self ):
+        """
+        Add our custom button box
+        """
+        box = Frame( self )
+
+        downloadButton = Button( box, text=_('Download more…'), command=self.doDownloadMore, state=tk.NORMAL if self.parentApp.internetAccessEnabled else tk.DISABLED )
+        downloadButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
+        okButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
+
+        self.bind( '<Return>', self.ok )
+        self.bind( '<Escape>', self.cancel )
+
+        box.pack( side=tk.BOTTOM, anchor=tk.E )
+    # end of ChooseResourcesDialog.makeButtonBox
+
+
+    def doDownloadMore( self ):
+        """
+        Allow the user to select resources to download from Freely-Given.org.
+        """
+        dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
+        if BibleOrgSysGlobals.debugFlag: print( "doDownloadMore dRD result", repr(dRD.result) )
+        if dRD.result:
+            #if BibleOrgSysGlobals.debugFlag: assert isinstance( dRD.result, list )
+            self.result = 'rerunDialog'
+            self.cancel() # Hand control back (then hopefully rerun with new data
+        else: print( "doDownloadMore: " + _("Nothing was selected!") )
+    # end of ChooseResourcesDialog.doDownloadMore
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Must be at least one selected (otherwise force them to select CANCEL).
+
+        Returns True or False.
+        """
+        return self.lb.curselection()
+    # end of ChooseResourcesDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result,
+            in this case, a list of zippedPickle filenames.
+        """
+        #selectedItemIndexes = self.lb.curselection()
+        #print( "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
+        self.result = [self.availableResourceDictsList[int(itemIndex)]['zipFilename'] for itemIndex in self.lb.curselection()] # now a sublist
+        #print( exp("SelectResourceBoxDialog: Requested resource(s) is/are: {!r}").format( self.result ) )
+    # end of SelectResourceBoxDialog.apply
+# end of class ChooseResourcesDialog
+
+
+
+class DownloadResourcesDialog( ModalDialog ):
+    """
+    Given a list of available downloadable resources (new or updates),
+        select one or more and download it/them.
+
+    Return result = number of successful downloads
+    """
+    def __init__( self, parent, title ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "DownloadResourcesDialog…" )
+        if BibleOrgSysGlobals.debugFlag:
+            #if debuggingThisModule:
+                #print( "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
+            assert isinstance( title, str )
+        self.downloadCount = 0
+        ModalDialog.__init__( self, parent, title )
+    # end of DownloadResourcesDialog.__init__
+
+
+    def makeBody( self, master ):
+        """
+        NOTE: This needs to be https eventually
+
+        NOTE: This code depends on the exact page sent by the server (not generalised enough)
+
+        NOTE: We really need more information here than just the abbreviation and file creation date/time.
+        """
+        import re
+        from datetime import datetime
+
+        try: responseObject = urllib.request.urlopen( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL )
+        except urllib.error.URLError:
+            if BibleOrgSysGlobals.debugFlag:
+                logging.critical( "DownloadResourcesDialog.makeBody: error fetching {}".format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )
+            Label( master, text=_("Unable to connect to server") ).pack( side=tk.TOP, fill=tk.X )
+            self.okButton.config( state=tk.DISABLED )
+            return None
+        responsePageSTR = responseObject.read().decode('utf-8')
+        #print( "responsePageSTR", responsePageSTR )
+        availableResourceList = []
+        searchString = ZIPPED_FILENAME_END + '</a>'
+        searchRegex1 = '<a href="(\\w{{2,10}}){}">'.format( ZIPPED_FILENAME_END.replace( '.', '\\.' ) )
+        searchRegex2 = '>(20\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d) '
+        for line in responsePageSTR.split( '\n' ):
+            #print( "line", line )
+            if searchString in line:
+                #print( "usefulLine", line )
+                match = re.search( searchRegex1, line )
+                if match:
+                    #print( "Matched", match.start(), match.end() )
+                    #print( repr(match.group(0)), repr(match.group(1)) )
+                    fileAbbreviation = match.group(1)
+                    #print( "fileAbbreviation", fileAbbreviation )
+                    match = re.search( searchRegex2, line )
+                    if match:
+                        #print( "Matched", match.start(), match.end() )
+                        #print( repr(match.group(0)), repr(match.group(1)) )
+                        dateTimeString = match.group(1)
+                        #print( "dateString", repr(dateString), "timeString", repr(timeString) )
+                        availableResourceList.append( (fileAbbreviation,dateTimeString) )
+        if debuggingThisModule:
+            print( "availableResourceList", len(availableResourceList), availableResourceList )
+
+        if availableResourceList:
+            maxAbbrevWidth = max([len(aR[0]) for aR in availableResourceList])
+            self.downloadableList = []
+            for abbrev,dateTimeString in availableResourceList:
+                #print( "aRD", repr(availableResourceDict) )
+                filename = abbrev + ZIPPED_FILENAME_END
+                resourceFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
+                itemString = None
+                if os.path.exists( resourceFilepath ):
+                    if debuggingThisModule: print( "You already have", resourceFilepath )
+                    #print( os.stat(resourceFilepath) )
+                    #print( os.stat(resourceFilepath)[8], datetime.fromtimestamp(os.stat(resourceFilepath)[8]) )
+                    #print( os.stat(resourceFilepath)[9], datetime.fromtimestamp(os.stat(resourceFilepath)[9]) )
+                    fileDateTime1 = datetime.fromtimestamp( os.stat(resourceFilepath)[8] )
+                    fileDateTime2 = datetime.fromtimestamp( os.stat(resourceFilepath)[9] )
+                    #print( "  fileDateTime1", fileDateTime1 )
+                    serverDateTime = datetime.strptime( dateTimeString, '%Y-%m-%d %H:%M' )
+                    #print( "  serverDateTime", serverDateTime )
+                    if (serverDateTime - fileDateTime1 ).total_seconds() > 3600: # one hour later
+                        if debuggingThisModule: print( "Updateable resource:", abbrev )
+                        itemString = '{} {}{}{}'.format( _("Update"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
+                    elif debuggingThisModule: print( "  Seems up-to-date:", abbrev )
+                else: # Seems we don't have this one
+                        if debuggingThisModule: print( "New resource:", abbrev )
+                        itemString = '{}    {}{}{}'.format( _("New"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
+                if itemString: self.downloadableList.append( (abbrev,itemString) )
+            if self.downloadableList:
+                Label( master, text=_("Select one or more resources to download") ).pack( side=tk.TOP, fill=tk.X )
+                self.lb = tk.Listbox( master, selectmode=tk.EXTENDED )
+                """ Note: selectmode can be
+                    SINGLE (just a single choice),
+                    BROWSE (same, but the selection can be moved using the mouse),
+                    MULTIPLE (multiple items can be choosen, by clicking at them one at a time), or
+                    tk.EXTENDED (multiple ranges of items can be chosen using the Shift and Control keyboard modifiers).
+                    The default is BROWSE.
+                    Use MULTIPLE to get “checklist” behavior,
+                    and tk.EXTENDED when the user would usually pick only one item,
+                        but sometimes would like to select one or more ranges of items. """
+                for abbrev,itemString in self.downloadableList: self.lb.insert( tk.END, itemString )
+                self.lb.pack( fill=tk.BOTH, expand=tk.YES )
+                return self.lb # initial focus
+            else:
+                Label( master, text=_("No out-of-date resources discovered") ).pack( side=tk.TOP, fill=tk.X )
+        else:
+            Label( master, text=_("No downloadable resources discovered") ).pack( side=tk.TOP, fill=tk.X )
+        self.okButton.config( state=tk.DISABLED )
+    # end of DownloadResourcesDialog.makeBody
+
+
+    def doDownloadFile( self, abbrev ):
+        """
+        """
+        self.parent.parentApp.setWaitStatus( _("Downloading {} resource…").format( abbrev ) )
+        filename = abbrev + ZIPPED_FILENAME_END
+        filepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
+        url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
+        if debuggingThisModule: print( "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
+        try: responseObject = urllib.request.urlopen( url )
+        except urllib.error.URLError:
+            if BibleOrgSysGlobals.debugFlag: logging.critical( "DownloadResourcesDialog.makeBody: error fetching {}".format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )
+            return None
+        with open( filepath, 'wb' ) as outputFile:
+            outputFile.write( responseObject.read() )
+        self.downloadCount += 1
+        self.parent.parentApp.setReadyStatus()
+    # end of DownloadResourcesDialog.doDownloadFile
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result,
+            in this case, a list of zippedPickle filenames.
+        """
+        selectedItemIndexes = self.lb.curselection()
+        #print( "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
+        for selectedItemIndex in selectedItemIndexes:
+            self.doDownloadFile( self.downloadableList[selectedItemIndex][0] )
+        self.result = self.downloadCount
+    # end of SelectResourceBoxDialog.apply
+# end of class DownloadResourcesDialog
 
 
 

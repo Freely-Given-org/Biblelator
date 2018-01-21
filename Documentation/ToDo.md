@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2017-10-13 by RJH
+Last updated: 2018-01-08 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -124,7 +124,7 @@ BOSManager / SwordManager / Settings editor stuff
 
 Biblelator stuff
 * Handle Paratext 8 files
-* Release version 0.40
+* Release version 0.42
 * Allow footnote displays in Bible Resource boxes/windows
 * Add AND and OR for Bible find
 * Add a pop-up quick reference box (with all open translations???)
@@ -137,7 +137,7 @@ Biblelator stuff
 * Save iconification state of windows
 * Use checkboxes to allow individual exports
 * Get Sword resources displaying prettier
-* Check if a recreated (at startup or settings change) window in on the/a screen (and if not move it on)
+* Check if a recreated (at startup or settings change) window is on the/a screen (and if not move it on)
 * Cache DBP to disk (if have expensive Internet)???
 * Need keyboard shortcuts for list up/down
 * Biblelator project USFMEditWindow can't set project name correctly coz no settings loaded yet
@@ -153,6 +153,8 @@ Biblelator stuff
 * Fix flashing SSF open window for Open / Paratext project
 * Don't allow two projects with the same name
 * Optional hints at start-up
+* Don't save settings if they haven't changed
+* Maybe should ask before just created a new settings file (could just be a user typo)
 * Pop up a select box if previous/next buttons are held down
 * Up/down verse over chapters isn't working -- also up/down chapter (to one with less verses)
 * Add debug menu to edit windows to display settings/log

@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-27' # by RJH
+LastModifiedDate = '2017-12-13' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.04' # Separate versioning from Biblelator
@@ -983,7 +983,7 @@ class SwordManager( Frame ):
         ##if windowGeometry: tEW.geometry( windowGeometry )
         #if not tEW.setFilepath( self.settings.settingsFilepath ) \
         #or not tEW.loadText():
-            #tEW.closeChildWindow()
+            #tEW.doClose()
             #showError( self, ShortProgName, _("Sorry, unable to open settings file") )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
         #else:
@@ -1007,7 +1007,7 @@ class SwordManager( Frame ):
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
-            tEW.closeChildWindow()
+            tEW.doClose()
             showError( self, ShortProgName, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:

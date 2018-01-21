@@ -37,10 +37,10 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-08-04' # by RJH
+LastModifiedDate = '2017-12-26' # by RJH
 ShortProgName = "Biblelator"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.41'
+ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -437,32 +437,42 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
 
     Returns an internal Bible object.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+    debuggingThisFunction = False
+    if debuggingThisFunction or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
         print( exp("handleInternalBibles( {}, {} )").format( internalBible, controllingWindow ) )
         assert isinstance( internalBible, Bible )
         #self.setDebugText( "handleInternalBibles" )
+        #print( "hereHIB0", repr(internalBible), len(self.internalBibles) )
 
     result = internalBible
-    #if internalBible is None:
-        #print( "  Got None" )
+    if debuggingThisFunction and internalBible is None:
+        print( "  hIB: Got None" )
     if internalBible is not None:
-        #print( "  Not None" )
+        if debuggingThisFunction: print( "  hIB: Not None" )
         foundControllingWindowList = None
         for iB,cWs in self.internalBibles:
             # Some of these variables will be None but they'll still match
             #and internalBible.sourceFilepath == iB.sourceFilepath \ # PTX Bible sets sourceFilepath but others don't!
-            if internalBible.name == iB.name \
-            and internalBible.sourceFolder == iB.sourceFolder \
+            if type(internalBible) is type(iB) \
+            and internalBible.abbreviation == iB.abbreviation \
+            and internalBible.name == iB.name \
             and internalBible.sourceFilename == iB.sourceFilename \
             and internalBible.encoding == iB.encoding: # Let's assume they're the same
-                #print( "  Got a match!" )
-                result, foundControllingWindowList = iB, cWs
-                break
+                if internalBible.sourceFolder == iB.sourceFolder:
+                    if debuggingThisFunction: print( "  Got an IB match for {}!".format( iB.name ) )
+                    result, foundControllingWindowList = iB, cWs
+                    break
+                else:
+                    if debuggingThisFunction:
+                        print( "handleInternalBibles: Got an almost IB match for {}!".format( iB.name ) )
+                        print( "    Source folders didn't match: {!r}\n           and {!r}".format( internalBible.sourceFolder, iB.sourceFolder ) )
+                    result, foundControllingWindowList = iB, cWs
+                    break
 
         if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
 
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+    if debuggingThisModule or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
         print( "Internal Bibles ({}) now:".format( len(self.internalBibles) ) )
         for something in self.internalBibles:
             print( "  ", something )
@@ -554,21 +564,21 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
         newBBB = match.group(1)
-        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             return newBBB, match.group(2), match.group(3)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}[Vv:\.](\d{1,3})', uppercaseBookNameEntry ) # bookname (single chapter book) V
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
         newBBB = match.group(1)
-        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             return newBBB, CEntry, match.group(2)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}(\d{1,3})', uppercaseBookNameEntry ) # bookname C (or single chapter book with V)
     if match:
         if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "  matchedBBB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
         newBBB = match.group(1)
-        if BibleOrgSysGlobals.BibleBooksCodes.isValidReferenceAbbreviation( newBBB ): # confirm that it's a BBB
+        if BibleOrgSysGlobals.BibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             if BibleOrgSysGlobals.BibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
                 return newBBB, 1, match.group(2)
             return newBBB, match.group(2), 1
@@ -603,6 +613,49 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
 
 
 
+def getLatestPythonModificationDate():
+    """
+    Goes through the .py files in the current folder
+        and tries to find the latest modification date.
+    """
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+        print( "getLatestPythonModificationDate()…" )
+
+    #collectedFilepaths = []
+    latestYYYY, latestMM, latestDD = 1999, 0, 0
+    for filepath in os.listdir( '.' ):
+        #filepath = os.path.join( '.', filename )
+        if filepath.endswith( '.py' ):
+            with open( filepath, 'rt' ) as pythonFile:
+                for line in pythonFile:
+                    if line.startswith( 'LastModifiedDate = ' ):
+                        #print( filepath, line )
+                        #print( filepath )
+                        lineBit = line[19:]
+                        if '#' in lineBit: lineBit = lineBit.split('#',1)[0]
+                        if lineBit[-1]=='\n': lineBit = lineBit[:-1] # Removing trailing newline character
+                        lineBit = lineBit.replace("'",'').replace('"','').strip()
+                        #print( '  {!r}'.format( lineBit ) )
+                        lineBits = lineBit.split( '-' )
+                        assert len(lineBits) == 3 # YYYY MM DD
+                        YYYY, MM, DD = int(lineBits[0]), int(lineBits[1]), int(lineBits[2])
+                        #print( '  ', YYYY, MM, DD )
+                        if YYYY > latestYYYY:
+                            latestYYYY, latestMM, latestDD = YYYY, MM, DD
+                            #collectedFilepaths.append( (filepath,lineBit) )
+                        elif YYYY==latestYYYY and MM>latestMM:
+                            latestMM, latestDD = MM, DD
+                            #collectedFilepaths.append( (filepath,lineBit) )
+                        elif YYYY==latestYYYY and MM==latestMM and DD>latestDD:
+                            latestDD = DD
+                            #collectedFilepaths.append( (filepath,lineBit) )
+                        break
+    #print( latestYYYY, latestMM, latestDD, collectedFilepaths )
+    return '{}-{}-{}'.format( latestYYYY, latestMM, latestDD )
+# end of BiblelatorHelpers.getLatestPythonModificationDate
+
+
+
 def demo():
     """
     Main program to handle command line parameters and then run what they want.
@@ -615,6 +668,8 @@ def demo():
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
+
+    print( "getLatestPythonModificationDate = ", getLatestPythonModificationDate() )
 
     #swnd = SaveWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
     #print( "swndResult", swnd.result )
