@@ -31,16 +31,17 @@
     findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
     logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText )
     parseEnteredBooknameField( bookNameEntry, CEntry, VEntry, BBBfunction )
+    getLatestPythonModificationDate()
 
-TODO: Can some of these functions be (made more general and) moved to the BOS?
+TODO: Can some of these non-GUI functions be (made more general and) moved to the BOS?
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-23' # by RJH
+LastModifiedDate = '2018-01-30' # by RJH
 ShortProgName = "BiblelatorHelpers"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -651,7 +652,7 @@ def getLatestPythonModificationDate():
                             #collectedFilepaths.append( (filepath,lineBit) )
                         break
     #print( latestYYYY, latestMM, latestDD, collectedFilepaths )
-    return '{}-{}-{}'.format( latestYYYY, latestMM, latestDD )
+    return '{}-{:02}-{:02}'.format( latestYYYY, latestMM, latestDD )
 # end of BiblelatorHelpers.getLatestPythonModificationDate
 
 
