@@ -43,11 +43,12 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class GetSwordPathDialog( ModalDialog )
     class GetHebrewGlossWordDialog( ModalDialog )
     class ChooseResourcesDialog( ModalDialog )
+    class DownloadResourcesDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-18'
+LastModifiedDate = '2018-01-30'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.42'
@@ -2329,7 +2330,7 @@ class DownloadResourcesDialog( ModalDialog ):
                         dateTimeString = match.group(1)
                         #print( "dateString", repr(dateString), "timeString", repr(timeString) )
                         availableResourceList.append( (fileAbbreviation,dateTimeString) )
-        if debuggingThisModule:
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "availableResourceList", len(availableResourceList), availableResourceList )
 
         if availableResourceList:
@@ -2388,7 +2389,8 @@ class DownloadResourcesDialog( ModalDialog ):
         filename = abbrev + ZIPPED_FILENAME_END
         filepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
         url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
-        if debuggingThisModule: print( "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
         try: responseObject = urllib.request.urlopen( url )
         except urllib.error.URLError:
             if BibleOrgSysGlobals.debugFlag: logging.critical( "DownloadResourcesDialog.makeBody: error fetching {}".format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )

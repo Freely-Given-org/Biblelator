@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-18' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-01-30' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.42' # This is the version number displayed on the start-up screen
@@ -1618,7 +1618,7 @@ class Application( Frame ):
                 else:
                     print( "doDownloadMore: " + _("Nothing was selected!") )
             else: print( "Can't download resources because internet access is not enabled" )
-        else: print( os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ) )
+        #else: print( os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ) )
         if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ):
             print( "doOpenNewBOSBibleResourceWindow: " + _("No downloaded resources available") )
             return
