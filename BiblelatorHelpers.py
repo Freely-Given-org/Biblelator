@@ -5,7 +5,7 @@
 #
 # Various non-GUI helper functions for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2017 Robert Hunt
+# Copyright (C) 2014-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -37,8 +37,8 @@ TODO: Can some of these functions be (made more general and) moved to the BOS?
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-26' # by RJH
-ShortProgName = "Biblelator"
+LastModifiedDate = '2018-01-23' # by RJH
+ShortProgName = "BiblelatorHelpers"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.42'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
@@ -626,7 +626,7 @@ def getLatestPythonModificationDate():
     for filepath in os.listdir( '.' ):
         #filepath = os.path.join( '.', filename )
         if filepath.endswith( '.py' ):
-            with open( filepath, 'rt' ) as pythonFile:
+            with open( filepath, 'rt', encoding='utf-8' ) as pythonFile:
                 for line in pythonFile:
                     if line.startswith( 'LastModifiedDate = ' ):
                         #print( filepath, line )
