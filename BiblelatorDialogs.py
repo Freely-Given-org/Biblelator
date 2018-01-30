@@ -51,11 +51,11 @@ from gettext import gettext as _
 LastModifiedDate = '2018-01-30'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import os, logging
