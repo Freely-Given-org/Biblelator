@@ -69,10 +69,10 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-21' # by RJH
+LastModifiedDate = '2018-01-30' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -2285,7 +2285,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     if not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
                         #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
                             #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
-                        if self.requestMissingGlosses:
+                        if self.requestMissingGlosses and not self.parentApp.starting:
                             tempBundle = normalizedWord, strongsNumber, morphology
                             gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle )
                             #print( "gwdResult", gwd.result )
@@ -2316,7 +2316,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     if not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
                         #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
                             #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
-                        if self.requestMissingGlosses:
+                        if self.requestMissingGlosses and not self.parentApp.starting:
                             tempBundle = normalizedWord, strongsNumber, morphology
                             gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle )
                             #print( "gwdResult", gwd.result )
