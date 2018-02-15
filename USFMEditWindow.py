@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-14' # by RJH
+LastModifiedDate = '2018-02-15' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -705,23 +705,23 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
 
         if self._contextViewMode == 'BeforeAndAfter':
             minChapterMarkers, maxChapterMarkers = 0, 1
-            if C == '0': minVerseMarkers = maxVerseMarkers = 0
+            if C == '-1': minVerseMarkers = maxVerseMarkers = 0
             elif C=='1' and V=='1': minVerseMarkers = maxVerseMarkers = 2
             else: minVerseMarkers = maxVerseMarkers = 3
         elif self._contextViewMode == 'ByVerse':
             minChapterMarkers = maxChapterMarkers = 1 if V=='0' and C!='0' else 0
-            if C == '0': minVerseMarkers = maxVerseMarkers = 0
+            if C == '-1': minVerseMarkers = maxVerseMarkers = 0
             elif V == '0': minVerseMarkers = maxVerseMarkers = 0
             else: minVerseMarkers = maxVerseMarkers = 1
         elif self._contextViewMode == 'BySection':
             minChapterMarkers, maxChapterMarkers = 0, 1
-            minVerseMarkers, maxVerseMarkers = (0,0) if C=='0' else (1,30)
+            minVerseMarkers, maxVerseMarkers = (0,0) if C=='-1' else (1,30)
         elif self._contextViewMode == 'ByBook':
             minChapterMarkers = maxChapterMarkers = self.getNumChapters( BBB )
             minVerseMarkers = maxVerseMarkers = self.numTotalVerses
         elif self._contextViewMode == 'ByChapter':
-            minChapterMarkers = maxChapterMarkers = 0 if C=='0' else 1
-            minVerseMarkers = maxVerseMarkers = 0 if C=='0' else self.getNumVerses( BBB, C )
+            minChapterMarkers = maxChapterMarkers = 0 if C=='-1' else 1
+            minVerseMarkers = maxVerseMarkers = 0 if C=='-1' else self.getNumVerses( BBB, C )
         else: halt
 
         errorMessage = warningMessage = suggestionMessage = None
@@ -1027,7 +1027,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
                             addCacheEntry( BBB, C, V, currentEntry )
                             currentEntry = ''
                             startedVerseEarly = True
-            elif C=='0' and line.startswith( '\\' ):
+            elif C=='-1' and line.startswith( '\\' ):
                 if currentEntry: # Should only happen if the file has blank lines before any chapter markers
                     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                         print( "cE", currentEntry )

@@ -5,7 +5,7 @@
 #
 # Bible reference collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2015-2017 Robert Hunt
+# Copyright (C) 2015-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-17' # by RJH
+LastModifiedDate = '2018-02-15' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -152,10 +152,10 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
-                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode

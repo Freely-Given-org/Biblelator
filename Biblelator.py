@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-30' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-02-15' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.43' # This is the version number displayed on the start-up screen
@@ -81,7 +81,7 @@ from USFMEditWindow import USFMEditWindow
 from BiblelatorSettingsEditor import openBiblelatorSettingsEditor
 
 # Biblelator apps imports
-sys.path.append( 'Apps/' )
+sys.path.append( '../Biblelator/Apps/' )
 from BOSManager import openBOSManager
 from SwordManager import openSwordManager
 
@@ -91,7 +91,7 @@ sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 from BibleVersificationSystems import BibleVersificationSystems
-from DigitalBiblePlatform import DBPBibles
+from DBPOnline import DBPBibles
 from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
 from SwordResources import SwordType, SwordInterface
@@ -320,8 +320,8 @@ class Application( Frame ):
         self.genericBookList = self.genericBibleOrganisationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganisationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
-                                        else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
+                                        else self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
@@ -1443,7 +1443,7 @@ class Application( Frame ):
 
     def doOpenNewDBPBibleResourceWindow( self ):
         """
-        Open an online DigitalBiblePlatform Bible (called from a menu/GUI action).
+        Open an online DigitalBiblePlatform online Bible (called from a menu/GUI action).
 
         Requests a version name from the user.
         """
@@ -2756,7 +2756,7 @@ class Application( Frame ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( exp("getNumVerses( {}, {} )").format( BBB, C ) )
 
-        #if C=='0' or C==0: return MAX_PSEUDOVERSES
+        #if C=='-1' or C==0: return MAX_PSEUDOVERSES
         #try: return self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
         #except KeyError: return 0
     ## end of Application.getNumVerses

@@ -5,7 +5,7 @@
 #
 # BOS (Bible Organizational System) manager program
 #
-# Copyright (C) 2016-2017 Robert Hunt
+# Copyright (C) 2016-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,10 +32,10 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-13' # by RJH
+LastModifiedDate = '2018-02-15' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
-ProgVersion = '0.05' # Separate versioning from Biblelator
+ProgVersion = '0.06' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -84,11 +84,7 @@ from BibleVersificationSystems import BibleVersificationSystems
 from BibleBookOrders import BibleBookOrderSystems
 from BibleBooksNames import BibleBooksNamesSystems
 from BiblePunctuationSystems import BiblePunctuationSystems
-#from DigitalBiblePlatform import DBPBibles
-#from VerseReferences import SimpleVerseKey
 from BibleStylesheets import BibleStylesheet
-#from SwordResources import SwordType, SwordInterface
-#from USFMBible import USFMBible
 
 
 
@@ -241,8 +237,8 @@ class BOSManager( Frame ):
         self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
-                                        else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
+                                        else self.genericBibleOrganizationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode

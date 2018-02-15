@@ -5,7 +5,7 @@
 #
 # Functions to support the autocomplete function in text editors
 #
-# Copyright (C) 2016-2017 Robert Hunt
+# Copyright (C) 2016-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-04' # by RJH
+LastModifiedDate = '2018-02-01' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -429,7 +429,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
                     #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.getAName(), editWindowObject.internalBible.sourceFolder ) )
                 bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible, filename, BBB==currentBBB ) # also saves it
     else:
-        logging.critical( exp("No books to load in {}!").format( editWindowObject.internalBible.sourceFolder ) )
+        logging.critical( "Autocomplete: " + _("No books to load in folder '{}'!").format( editWindowObject.internalBible.sourceFolder ) )
 
     # Now combine the books
     autocompleteCounts = {}

@@ -5,7 +5,7 @@
 #
 # BOS (Bible Organizational System) manager program
 #
-# Copyright (C) 2016-2017 Robert Hunt
+# Copyright (C) 2016-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-13' # by RJH
+LastModifiedDate = '2018-02-15' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -217,8 +217,8 @@ class BiblelatorSettingsEditor( Frame ):
         self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
-                                        else self.genericBibleOrganizationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
+                                        else self.genericBibleOrganizationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode

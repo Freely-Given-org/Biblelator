@@ -85,10 +85,10 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-21' # by RJH
+LastModifiedDate = '2018-02-15' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -114,7 +114,7 @@ import BibleOrgSysGlobals
 from Bible import Bible
 from VerseReferences import SimpleVerseKey
 from SwordResources import SwordType
-from DigitalBiblePlatform import DBPBible
+from DBPOnline import DBPBible
 from UnknownBible import UnknownBible
 from HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
 from BibleOrganizationalSystems import BibleOrganizationalSystem
@@ -192,10 +192,10 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
             ###"tabs", "tabstyle", "underline", and "wrap".
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if b=='UNK' or c=='0' or c==0 \
-                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if BBB=='UNK' or C=='-1' or C==-1 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
@@ -898,10 +898,10 @@ class BibleResourceWindow( BibleWindow, BibleResourceWindowAddon ):
             ###"tabs", "tabstyle", "underline", and "wrap".
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if b=='UNK' or c=='0' or c==0 \
-                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if BBB=='UNK' or C=='-1' or C==-1 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode

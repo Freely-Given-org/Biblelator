@@ -71,10 +71,10 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-09' # by RJH
+LastModifiedDate = '2018-02-15' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -105,7 +105,7 @@ from BiblelatorHelpers import handleInternalBibles
 import BibleOrgSysGlobals
 from Bible import Bible
 from VerseReferences import SimpleVerseKey
-from DigitalBiblePlatform import DBPBibles, DBPBible
+from DBPOnline import DBPBibles, DBPBible
 from SwordResources import SwordType, SwordInterface
 from UnknownBible import UnknownBible
 from PickledBible import ZIPPED_FILENAME_END, getZippedPickledBiblesDetails
@@ -195,10 +195,10 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack me into the frame
 
         # Set-up our default Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
-                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
@@ -893,7 +893,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow, BibleWindowAddon ):
 
     def doOpenNewDBPBibleResourceBox( self ):
         """
-        Open an online DigitalBiblePlatform Bible (called from a menu/GUI action).
+        Open a DigitalBiblePlatform online Bible (called from a menu/GUI action).
 
         Requests a version name from the user.
         """
