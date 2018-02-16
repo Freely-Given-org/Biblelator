@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-15' # by RJH
+LastModifiedDate = '2018-02-16' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.43'
@@ -661,7 +661,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 #print( "  mark", j, mark )
                 if mark is None: print( "    WHY is mark NONE?" )
-            if mark and mark[0]=='C' and mark[1].isdigit() and 'V' in mark:
+            if mark and mark[0]=='C' and (mark[1].isdigit() or mark[1:3]=='-1') and 'V' in mark:
                 gotCV = True; break
         if gotCV and mark != self.lastCVMark:
             self.lastCVMark = mark
@@ -960,7 +960,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
 
         # Main code for cacheBook
         sectionHeadings = ( 's', 's1', 's2', 's3', 's4', )
-        C = V = '0' # So first/id line starts at 0:0
+        C, V = '-1', '0' # So first/id line starts at -1:0
         startedVerseEarly = False
         currentEntry = ''
         bookLines = self.bookText.split( '\n' )
@@ -968,7 +968,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
         for j in range( 0, numLines): # Do it this way to make it easy to look-ahead
             line = bookLines[j]
             marker, text = getMarkerText( j )
-            #print( "cacheBook line", repr(marker), repr(text) )
+            #print( "cacheBook line", repr(marker), repr(text), line )
 
             if marker in ( 'c', 'C' ):
                 newC = ''
@@ -1299,7 +1299,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
                 self.bookTextBefore = self.bookTextAfter = ''
                 numChaps = self.getNumChapters( BBB )
                 if numChaps is None: numChaps = 0
-                for thisC in range( 0, numChaps+1 ):
+                for thisC in range( -1, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -1335,7 +1335,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
                 self.bookTextBefore = self.bookTextAfter = ''
                 numChaps = self.getNumChapters( BBB )
                 if numChaps is None: numChaps = 0
-                for thisC in range( 0, numChaps+1 ):
+                for thisC in range( -1, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -1374,7 +1374,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
                 intC1, intV1 = sectionStart.getChapterNumberInt(), sectionStart.getVerseNumberInt()
                 intC2, intV2 = sectionEnd.getChapterNumberInt(), sectionEnd.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB )+1 ):
+                for thisC in range( -1, self.getNumChapters( BBB )+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -1393,7 +1393,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-                for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
+                for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses+1 ):
@@ -1408,7 +1408,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
-                for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
+                for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
                     for thisV in range( 0, numVerses + 1 ):
@@ -1435,7 +1435,7 @@ class USFMEditWindow( TextEditWindow, InternalBibleResourceWindowAddon ):
         # Make sure we can see what we're supposed to be looking at
         desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
         try: self.textBox.see( desiredMark )
-        except tk.TclError: print( exp("USFMEditWindow.updateShownBCV couldn't find {} mark {!r}").format( newVerseKey.getBBB(), desiredMark ) )
+        except tk.TclError: print( exp("USFMEditWindow.updateShownBCV couldn't find {} mark {!r} for {}").format( newVerseKey.getBBB(), desiredMark, self.moduleID ) )
         self.lastCVMark = desiredMark
 
         # Put the cursor back where it was (if necessary)

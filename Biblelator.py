@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-15' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-02-16' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.43' # This is the version number displayed on the start-up screen
@@ -818,7 +818,7 @@ class Application( Frame ):
                 #      (key, focusin, focusout, forced)
                 # %W = the tk name of the widget
         vcmd = ( self.register( self.validateChapterNumberEntry ), '%d', '%P' )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook,
+        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=-1.0, to=self.maxChaptersThisBook,
                                           textvariable=self.chapterNumberVar, command=self.spinToNewChapter,
                                           validate='key', validatecommand=vcmd )
         self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )

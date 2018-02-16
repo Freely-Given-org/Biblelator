@@ -85,7 +85,7 @@ demo()
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-15' # by RJH
+LastModifiedDate = '2018-02-16' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.43'
@@ -749,7 +749,7 @@ class BibleResourceWindowAddon( BibleBoxAddon ):
         elif self._contextViewMode == 'ByBook':
             BBB, C, V = newVerseKey.getBCV()
             intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
+            for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                 try: numVerses = self.getNumVerses( BBB, thisC )
                 except KeyError: numVerses = 0
                 for thisV in range( 0, numVerses ):
@@ -1453,7 +1453,7 @@ class BibleResourceWindow( BibleWindow, BibleResourceWindowAddon ):
         #elif self._contextViewMode == 'ByBook':
             #BBB, C, V = newVerseKey.getBCV()
             #intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-            #for thisC in range( 0, self.getNumChapters( BBB ) + 1 ):
+            #for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                 #try: numVerses = self.getNumVerses( BBB, thisC )
                 #except KeyError: numVerses = 0
                 #for thisV in range( 0, numVerses ):

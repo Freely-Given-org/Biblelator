@@ -69,7 +69,7 @@ class BibleBox( ChildBox )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-30' # by RJH
+LastModifiedDate = '2018-02-16' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.43'
@@ -1406,7 +1406,9 @@ class BibleBoxAddon():
             assert isinstance( newVerseKey, SimpleVerseKey )
 
         BBB, C, V = newVerseKey.getBCV()
+        #print( "here1", BBB, repr(C), repr(V) )
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+        #print( "  here2", repr(intC), repr(intV) )
 
         # Determine the PREVIOUS valid verse numbers
         prevBBB, prevIntC, prevIntV = BBB, intC, intV
@@ -1414,8 +1416,8 @@ class BibleBoxAddon():
         for n in range( -self.parentApp.viewVersesBefore, 0 ):
             failed = False
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
-            if prevIntV > 0: prevIntV -= 1
+                print( "  getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
+            if prevIntV is not None and prevIntV > 0: prevIntV -= 1
             elif prevIntC > 0:
                 prevIntC -= 1
                 try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
