@@ -1,7 +1,7 @@
 Getting Started with Biblelator
 ===============================
 
-Last updated: 2017-09-22 RJH
+Last updated: 2018-02-16 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the developer
@@ -69,6 +69,7 @@ For an overview of the program design philosophy, see Development.md.
     The Biblelator main window is a small window that is used to open other windows.
     It also contains the main bar for entering book/chapter/verse values
         and for entering lexicon words.
+    Note that the introduction to a book is considered to be "chapter -1".
     The main window can usually be kept fairly small and be placed in the most convenient
         part of the screen. However, if Biblelator is started in debug mode (with the
         --debug flag on the command line), the main window may need to be made larger

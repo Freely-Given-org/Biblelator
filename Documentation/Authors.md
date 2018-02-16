@@ -1,14 +1,13 @@
 Authors.md for Biblelator
 =========================
 
-Last updated: 2017-01-09 by RJH
+Last updated: 2018-02-16 by RJH
 
 
 Principal Author
 ================
 
-    Robert Hunt
-    Freely-Given.Org
+    Robert Hunt (Freely-Given.Org)
 
 
 Other Contributors

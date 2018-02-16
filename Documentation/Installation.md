@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2017-09-06 RJH
+Last updated: 2018-02-16 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -16,7 +16,7 @@ follow my own instructions on a different computer.
 
 1. Install Python3
 
-    Biblelator uses Python3 (it's currently being developed on Python 3.5
+    Biblelator uses Python3 (it's currently being developed on Python 3.6
         but will probably run on most relatively recent versions of Python3.
 
     To see if Python3 is installed on your computer,
@@ -62,7 +62,18 @@ follow my own instructions on a different computer.
         but these instructions will assume that you called it BiblelatorFiles.
 
 
-4. Install the Bible Organisational System inside the BiblelatorFiles folder.
+4. A note about the Biblelator development version:
+    When you are installing the Biblelator program files using git clone in #6 below, you have
+    the option of using the master (stable) version, or the later development version.
+    The development version is likely to have more features, and at any point in time,
+    might have more or less bugs. If you want to do this, use:
+            git checkout development
+    after the git clone command in step #6a.
+    Note that depending on the current stages of development, you might also need the
+        development version of the BOS (in step #5a below).
+
+
+5. Install the Bible Organisational System (BOS) inside the BiblelatorFiles folder.
     Open https://github.com/openscriptures/BibleOrgSys in a browser window.
     On the right-hand side of the page are links to either:
         a. Download (clone) BibleOrgSys with Git (using either HTTPS or SSH (if you have a GitHub account).
@@ -74,7 +85,7 @@ follow my own instructions on a different computer.
         inside your BiblelatorFiles folder from step #3.
 
 
-5. Install the Biblelator program inside the BiblelatorFiles folder.
+6. Install the Biblelator program inside the BiblelatorFiles folder.
     Open https://github.com/openscriptures/Biblelator in a browser window.
     On the right-hand side of the page are links to either:
         a. Download (clone) Biblelator with Git (using either HTTPS or SSH (if you have a GitHub account).
@@ -84,14 +95,6 @@ follow my own instructions on a different computer.
             unzip the file in the BiblelatorFiles folder (then remove -master from the folder name).
     Either way, you should end up with a new folder called Biblelator
         inside your BiblelatorFiles folder from step #3.
-
-
-6. A note about the Biblelator development version:
-    If you installed the Biblelator program files using git clone in #5 above, you have
-    the option of using the master (stable) version, or the later development version.
-    The development version is likely to have more features, and at any point in time,
-    might have more or less bugs. If you want to do this, use:
-            git checkout development
 
 
 7. Install OpenScriptures HebrewLexicon.
@@ -133,7 +136,7 @@ follow my own instructions on a different computer.
     on Windows, the command is something like:
             "Biblelator.py --version" (without the quotes)
         or if that doesn't work, you might need something like
-            "C:\Python35\python.exe Biblelator.py --version" (without the quotes)
+            "C:\Python36\python.exe Biblelator.py --version" (without the quotes)
         depending on your Python3 version number and how it was installed.
     This test run of the program should just display the Biblelator version number
         and then exit immediately.
@@ -162,7 +165,7 @@ follow my own instructions on a different computer.
     on Windows, the command is something like:
             "Biblelator.py --help" (without the quotes)
         or if that doesn't work, you might need something like
-            "C:\Python35\python.exe Biblelator.py --help" (without the quotes)
+            "C:\Python36\python.exe Biblelator.py --help" (without the quotes)
         depending on your Python3 version number and how it was installed.
     This test run of the program should display the Biblelator command prompt
         help page and then exit immediately.

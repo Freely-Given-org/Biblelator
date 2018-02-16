@@ -1,7 +1,7 @@
 Biblelator ToDo List
 ====================
 
-Last updated: 2018-01-08 by RJH
+Last updated: 2018-02-16 by RJH
 
 
 This is an informal list of things that need to be fixed or are planned to be done.
@@ -23,7 +23,7 @@ Biblelator bugs / unfinished
 * Find with regex doesn't seem to work great (maybe something to do with case???)
 * Typing Ctrl chars (e.g., Ctrl+F) in autocomplete box closes box, but adds icons to the text.
 * Prevent user from typing before start-up is finished
-* Make Bible find work on USFM files in USFM edit window (not on the internal Bible which already has some fixes)
+* Make Bible find work on USFM files in USFM edit window (not on the internal Bible which already has some fixes when loaded)
 * USFM edit window still displays previous book when stepping to a non-existent book (and cancel create new file)
 * Enter a bookname, tab across enter a chapter number then enter, but it always goes to chapter 1 :(
 * Want Alt-up and down to go to previous/next find results
@@ -37,7 +37,7 @@ Biblelator bugs / unfinished
 * Clicked on an apocryphal book (result of search) and MBT got into sort of a loop "Need to create book" / cancel
 * CRITICAL: cacheBook: We have a duplicate Matigsalug Unicode Version GLS_0:419! -- already had '\n' and now appending '\\p \\k ubas\\k* [Ceb. paras, ubas; Eng. grape]\n'
 * Bible find can't find/replace space at end of line -- why not? because removed at load time!
-* Find in chapter 0 gives wrong verse (only sometimes -- why??? REMs removed at load time???)
+* Find in chapter -1 gives wrong verse (only sometimes -- why??? REMs removed at load time???)
 * Windows and Bible lists need to be displayed in a window
 * HTML source box isn't listed in child windows (included in show all / hide all)
 * Window find doesn't seem to work on resource windows
