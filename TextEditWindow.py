@@ -28,10 +28,10 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-12' # by RJH
+LastModifiedDate = '2018-02-20' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -52,7 +52,7 @@ from BiblelatorSimpleDialogs import showError, showInfo
 from BiblelatorDialogs import YesNoDialog, OkCancelDialog
 from TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE, \
                                 DOUBLE_SPACE_SUBSTITUTE, ALL_POSSIBLE_SPACE_CHARS
-from ChildWindows import ChildWindow #, HTMLWindow
+from ChildWindows import ChildWindow
 from AutocorrectFunctions import setDefaultAutocorrectEntries # setAutocorrectEntries
 from AutocompleteFunctions import getCharactersBeforeCursor, \
                                 getWordCharactersBeforeCursor, getCharactersAndWordBeforeCursor, \

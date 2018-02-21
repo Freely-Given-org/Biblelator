@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-15' # by RJH
+LastModifiedDate = '2018-02-20' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.43'
@@ -96,7 +96,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         self.internalBible = handleInternalBibles( self.parentApp, internalBible, self )
 
         Frame.__init__( self, parentFrame )
-        BibleBoxAddon.__init__( self, parentApp, 'BibleReferenceBox' )
+        BibleBoxAddon.__init__( self, parentWindow, 'BibleReferenceBox' )
 
         # Set some dummy values required soon
         #self._contextViewRadioVar, self._formatViewRadioVar, self._groupRadioVar = tk.IntVar(), tk.IntVar(), tk.StringVar()

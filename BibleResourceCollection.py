@@ -71,7 +71,7 @@ class BibleResourceCollectionWindow( BibleResourceWindow )
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-16' # by RJH
+LastModifiedDate = '2018-02-20' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.43'
@@ -148,7 +148,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         self.parentWindow, self.boxType, self.moduleID = parentWindow, boxType, moduleID
         self.parentApp = self.parentWindow.parentApp
         Frame.__init__( self, parentWindow )
-        ChildBoxAddon.__init__( self, self.parentApp )
+        ChildBoxAddon.__init__( self, self.parentWindow )
 
         # Create a title bar frame
         titleBar = Frame( self )
@@ -181,7 +181,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         self.textBox.bind( '<Button-1>', self.setFocus ) # So disabled text box can still do select and copy functions
         self.createContextMenu() # for the box
 
-        BibleBoxAddon.__init__( self, self.parentApp, boxType )
+        BibleBoxAddon.__init__( self, self.parentWindow, boxType )
 
         # Set-up our standard Bible styles
         for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
@@ -623,7 +623,7 @@ class InternalBibleResourceBox( BibleResourceBox ):
 
         #self.internalBible = None
         #BibleResourceBox.__init__( self, self.parentWindow, 'HebrewBibleResourceBox', self.modulePath )
-        #HebrewInterlinearBibleBoxAddon.__init__( self, self.parentWindow.parentApp, 4 )
+        #HebrewInterlinearBibleBoxAddon.__init__( self, self.parentWindow, 4 )
 
         #try: self.UnknownBible = UnknownBible( self.modulePath )
         #except FileNotFoundError:

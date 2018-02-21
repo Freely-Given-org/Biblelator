@@ -42,13 +42,14 @@ Various modal dialog windows for Biblelator Bible display/editing.
     class SelectInternalBibleDialog( ModalDialog )
     class GetSwordPathDialog( ModalDialog )
     class GetHebrewGlossWordDialog( ModalDialog )
+    class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog )
     class ChooseResourcesDialog( ModalDialog )
     class DownloadResourcesDialog( ModalDialog )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-30'
+LastModifiedDate = '2018-02-21'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -78,22 +79,6 @@ from PickledBible import ZIPPED_FILENAME_END
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
-
-
-
 #class HTMLDialog( ModalDialog ):
     #"""
     #"""
@@ -101,7 +86,7 @@ def exp( messageString ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HTMLDialog.__init__( {}, {!r}, {!r} )").format( parent, text, title ) )
+            #print( "HTMLDialog.__init__( {}, {!r}, {!r} )".format( parent, text, title ) )
 
         #self.text = text
         #ModalDialog.__init__( self, parent, title )
@@ -112,7 +97,7 @@ def exp( messageString ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HTMLDialog.makeBody( {} )").format( master ) )
+            #print( "HTMLDialog.makeBody( {} )".format( master ) )
 
         #html = HTMLTextBox( master )
         #html.grid( row=0 )
@@ -387,7 +372,7 @@ class SaveWindowNameDialog( ModalDialog ):
         Results are left in self.result
         """
         self.result = self.cb.get()
-        #print( exp("New window set-up name is: {!r}").format( self.result ) )
+        #print( "New window set-up name is: {!r}".format( self.result ) )
     # end of SaveWindowNameDialog.apply
 # end of class SaveWindowNameDialog
 
@@ -447,7 +432,7 @@ class DeleteWindowNameDialog( ModalDialog ):
         Results are left in self.result
         """
         self.result = self.cb.get()
-        print( exp("Requested window set-up name is: {!r}").format( self.result ) )
+        print( "Requested window set-up name is: {!r}".format( self.result ) )
     # end of DeleteWindowNameDialog.apply
 # end of class DeleteWindowNameDialog
 
@@ -516,7 +501,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         items = self.lb.curselection()
         print( "items", repr(items) ) # a tuple of index integers
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
-        print( exp("Requested resource(s) is/are: {!r}").format( self.result ) )
+        print( "Requested resource(s) is/are: {!r}".format( self.result ) )
     # end of SelectResourceBoxDialog.apply
 # end of class SelectResourceBoxDialog
 
@@ -2066,14 +2051,51 @@ class GetHebrewGlossWordDialog( ModalDialog ):
     Get a new (gloss) word from the user.
 
     Accepts a bundle (e.g., list, tuple) of short strings to display to the user first.
+
+    Unlike our other dialogues, this one can remember its size and position.
+
+    Returns:
+        S for skip,
+        or None for cancel,
+        or else a dictionary possibly containing 'word','command','geometry'
     """
-    def __init__( self, parent, title, wordData ):
+    def __init__( self, parentWindow, title, contextLines, word='', geometry=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetHebrewGlossWordDialog…" )
-        self.wordData = wordData
-        ModalDialog.__init__( self, parent, title )
+        #print( "GetHebrewGlossWordDialog( ..., ..., {}, {!r}, {} )".format( contextLines, word, geometry ) )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetHebrewGlossWordDialog…" )
+        self.parentWindow, self.contextLines, self.word = parentWindow, contextLines, word
+
+        self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
+        self.customFont = tkFont.Font( family='Helvetica', size=12 )
+
+        self.returnCommand = None
+        ModalDialog.__init__( self, parentWindow, title, geometry=geometry )
     # end of GetHebrewGlossWordDialog.__init__
+
+
+    def handleStrongs( self, textString ):
+        """
+        Given a string, see if a Strong's number can be found
+            and if so, direct the lexicon to this entry.
+
+        Typical strings might be '8034', 'd/776', '3651 c'
+
+        NOTE: doesn't change/update the lexicon word in the main app window.
+        """
+        #print( "handleStrongs( {!r} )".format( textString ) )
+        strongsNumber = None
+        if textString.isdigit(): strongsNumber = textString
+        else:
+            for smallerString in textString.split( '/' ):
+                if smallerString.isdigit(): strongsNumber = smallerString; break
+                else:
+                    for smallestString in smallerString.split( ' ' ):
+                        if smallestString.isdigit(): strongsNumber = smallestString; break
+                if strongsNumber: break
+        if strongsNumber:
+            self.parentWindow.parentApp.childWindows.updateLexicons( 'H' + strongsNumber )
+    # end of GetHebrewGlossWordDialog.handleStrongs
 
 
     def makeBody( self, master ):
@@ -2081,19 +2103,21 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
-        self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
-        self.customFont = tkFont.Font( family='Helvetica', size=12 )
-
         row = 0
-        for j,word in enumerate( self.wordData ):
-            if not word: continue # skip missing words
-            thisFont = self.customHebrewFont if j==0 else self.customFont
-            if j == 0: word = word[::-1] # Reverse word to simulate RTL Hebrew language
-            Label( master, text=word, font=thisFont ).grid( row=row )
+        Style().configure( 'LR.TButton', background='orange', font=('Helvetica', 24) )
+        Button( master, text='<', width=3, style='LR.TButton', command=self.doGoLeft ).grid( row=row, column=0 )
+        Button( master, text='>', width=3, style='LR.TButton', command=self.doGoRight ).grid( row=row, column=2 )
+        for j,line in enumerate( self.contextLines ):
+            if not line: continue # skip missing lines
+            thisFont = self.customHebrewFont if j==1 else self.customFont
+            if j == 1: line = line[::-1] # Reverse line to simulate RTL Hebrew language
+            elif j == 2: self.handleStrongs( line )
+            Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
             row += 1
 
         self.entry = BEntry( master )
-        self.entry.grid( row=row )
+        self.entry.grid( row=row, column=1 )
+        if self.word: self.entry.insert( 0, self.word )
         return self.entry # initial focus
     # end of GetHebrewGlossWordDialog.makeBody
 
@@ -2118,6 +2142,17 @@ class GetHebrewGlossWordDialog( ModalDialog ):
     # end of GetHebrewGlossWordDialog.makeButtonBox
 
 
+    def doGoLeft( self, event=None ):
+        self.returnCommand = 'L'
+        self.ok()
+    # end of GetHebrewGlossWordDialog.doGoLeft
+
+    def doGoRight( self, event=None ):
+        self.returnCommand = 'R'
+        self.ok()
+    # end of GetHebrewGlossWordDialog.doGoRight
+
+
     def doSkipOne( self, event=None ):
         self.result = 'S'
         self.cancel()
@@ -2137,7 +2172,7 @@ class GetHebrewGlossWordDialog( ModalDialog ):
                 showWarning( self.parent, APP_NAME, _("Not allowed {} characters") \
                                     .format( _('space') if illegalChar==' ' else illegalChar ) )
                 return False
-        if resultWord.count('=') != self.wordData[0].count('='):
+        if resultWord.count('=') != self.contextLines[1].count('='):
             showWarning( self.parent, APP_NAME, _("Number of morpheme breaks (=) must match") )
             return False
         return True
@@ -2151,10 +2186,134 @@ class GetHebrewGlossWordDialog( ModalDialog ):
 
         Results are left in self.result
         """
+        self.result = { 'geometry':self.geometry() }
         word = self.entry.get()
-        if word: self.result = { 'word':word }
+        if word: self.result['word'] = word
+        if self.returnCommand: self.result['command'] = self.returnCommand
     # end of GetHebrewGlossWordDialog.apply
 # end of class GetHebrewGlossWordDialog
+
+
+
+class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
+    """
+    Get up to two new (gloss) words from the user.
+        The first one (usually generic gloss) is compulsory.
+        The second one (usually specific gloss) is optional.
+
+    Accepts a bundle (e.g., list, tuple) of short strings to display to the user first.
+
+    Unlike our other dialogues, this one can remember its size and position.
+
+    Returns:
+        S for skip,
+        or None for cancel,
+        or else a dictionary possibly containing 'word1','word2','command','geometry'
+    """
+    def __init__( self, parentWindow, title, contextLines, word1='', word2='', geometry=None ):
+        """
+        """
+        #print( "GetHebrewGlossWordsDialog( ..., ..., {}, {!r}, {!r}, {} )".format( contextLines, word1, word2, geometry ) )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetHebrewGlossWordsDialog…" )
+        self.parentWindow, self.contextLines, self.word1, self.word2 = parentWindow, contextLines, word1, word2
+
+        self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
+        self.customFont = tkFont.Font( family='Helvetica', size=12 )
+
+        self.returnCommand = None
+        ModalDialog.__init__( self, parentWindow, title, geometry=geometry )
+    # end of GetHebrewGlossWordsDialog.__init__
+
+
+    def makeBody( self, master ):
+        """
+        Override the empty ModalDialog.makeBody function
+            to set up the dialog how we want it.
+        """
+        row = 0
+        Style().configure( 'LR.TButton', background='orange', font=('Helvetica', 24) )
+        Button( master, text='<', width=3, style='LR.TButton', command=self.doGoLeft ).grid( row=row, column=0 )
+        Button( master, text='>', width=3, style='LR.TButton', command=self.doGoRight ).grid( row=row, column=2 )
+        for j,line in enumerate( self.contextLines ):
+            if not line: continue # skip missing lines
+            thisFont = self.customHebrewFont if j==1 else self.customFont
+            if j == 1: line = line[::-1] # Reverse line to simulate RTL Hebrew language
+            elif j == 2: self.handleStrongs( line )
+            Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
+            row += 1
+
+        self.entry1 = BEntry( master )
+        self.entry1.grid( row=row, column=1 )
+        self.entry2 = BEntry( master )
+        self.entry2.grid( row=row+1, column=1 )
+        if self.word1: self.entry1.insert( 0, self.word1 )
+        if self.word2: self.entry2.insert( 0, self.word2 )
+        return self.entry1 # initial focus
+    # end of GetHebrewGlossWordsDialog.makeBody
+
+
+    #def makeButtonBox( self ):
+        #"""
+        #Add our custom button box
+        #"""
+        #box = Frame( self )
+
+        #skipOoneButton = Button( box, text=_('Skip this one'), command=self.doSkipOne )
+        #skipOoneButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        #okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
+        #okButton.pack( side=tk.LEFT, padx=5, pady=5 )
+        #cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        #cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
+
+        #self.bind( '<Return>', self.ok )
+        #self.bind( '<Escape>', self.cancel )
+
+        #box.pack( side=tk.BOTTOM, anchor=tk.E )
+    ## end of GetHebrewGlossWordsDialog.makeButtonBox
+
+
+    #def doSkipOne( self, event=None ):
+        #self.result = 'S'
+        #self.cancel()
+    ## end of GetHebrewGlossWordsDialog.doSkipOne
+
+
+    def validate( self ):
+        """
+        Override the empty ModalDialog.validate function
+            to check that the results are how we need them.
+
+        Returns True or False.
+        """
+        resultWord1, resultWord2 = self.entry1.get(), self.entry2.get()
+        if not resultWord1: return False # It's compulsory
+        for resultWord in ( resultWord1, resultWord2 ):
+            for illegalChar in ' :;"@#\\{}':
+                if illegalChar in resultWord:
+                    showWarning( self.parent, APP_NAME, _("Not allowed {} characters") \
+                                        .format( _('space') if illegalChar==' ' else illegalChar ) )
+                    return False
+            if resultWord and resultWord.count('=') != self.contextLines[1].count('='):
+                showWarning( self.parent, APP_NAME, _("Number of morpheme breaks (=) must match") )
+                return False
+        return True
+    # end of GetHebrewGlossWordsDialog.validate
+
+
+    def apply( self ):
+        """
+        Override the empty ModalDialog.apply function
+            to process the results how we need them.
+
+        Results are left in self.result
+        """
+        self.result = { 'geometry':self.geometry() }
+        word1, word2 = self.entry1.get(), self.entry2.get()
+        if word1: self.result['word1'] = word1
+        if word2: self.result['word2'] = word2
+        if self.returnCommand: self.result['command'] = self.returnCommand
+    # end of GetHebrewGlossWordsDialog.apply
+# end of class GetHebrewGlossWordsDialog
 
 
 
@@ -2263,7 +2422,7 @@ class ChooseResourcesDialog( ModalDialog ):
         #selectedItemIndexes = self.lb.curselection()
         #print( "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
         self.result = [self.availableResourceDictsList[int(itemIndex)]['zipFilename'] for itemIndex in self.lb.curselection()] # now a sublist
-        #print( exp("SelectResourceBoxDialog: Requested resource(s) is/are: {!r}").format( self.result ) )
+        #print( "SelectResourceBoxDialog: Requested resource(s) is/are: {!r}".format( self.result ) )
     # end of SelectResourceBoxDialog.apply
 # end of class ChooseResourcesDialog
 
@@ -2427,7 +2586,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
