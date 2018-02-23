@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-20' # by RJH
+LastModifiedDate = '2018-02-23' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.43'
@@ -55,7 +55,8 @@ from BiblelatorGlobals import DEFAULT, tkBREAK, \
         INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
         parseWindowSize
 from BiblelatorHelpers import mapReferencesVerseKey, handleInternalBibles
-from BibleResourceWindows import BibleResourceWindow
+from ChildWindows import ChildWindow
+from BibleResourceWindows import BibleResourceWindowAddon
 from TextBoxes import BibleBoxAddon
 
 # BibleOrgSys imports
@@ -316,7 +317,7 @@ class BibleReferenceBoxes( list ):
 
 
 
-class BibleReferenceCollectionWindow( BibleResourceWindow ):
+class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     """
     """
     def __init__( self, parentApp, internalBible, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
@@ -325,10 +326,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( "BibleReferenceCollectionWindow.__init__( {}, {} )".format( parentApp, internalBible.getAName() ) )
-        self.parentApp, self.internalBible = parentApp, internalBible
-        BibleResourceWindow.__init__( self, parentApp, 'BibleReferenceCollectionWindow', internalBible.getAName(), defaultContextViewMode, defaultFormatViewMode )
-        #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
-        #self.windowType = 'InternalBibleReferenceBox'
+        self.internalBible = internalBible
+        ChildWindow.__init__( self, parentApp, genericWindowType='BibleResource' )
+        BibleResourceWindowAddon.__init__( self, 'BibleReferenceCollectionWindow', internalBible.getAName(), defaultContextViewMode, defaultFormatViewMode )
 
         self.geometry( INITIAL_REFERENCE_COLLECTION_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE

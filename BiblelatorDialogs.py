@@ -49,7 +49,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-21'
+LastModifiedDate = '2018-02-23'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -75,7 +75,6 @@ from TextBoxes import BEntry, BCombobox, BText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
-from PickledBible import ZIPPED_FILENAME_END
 
 
 
@@ -2069,6 +2068,8 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
         self.customFont = tkFont.Font( family='Helvetica', size=12 )
 
+        self.transliterationScheme = 'Names'
+
         self.returnCommand = None
         ModalDialog.__init__( self, parentWindow, title, geometry=geometry )
     # end of GetHebrewGlossWordDialog.__init__
@@ -2128,6 +2129,8 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         """
         box = Frame( self )
 
+        translitButton = Button( box, text=_('Transliterate'), command=self.doTransliterate )
+        translitButton.pack( side=tk.LEFT, padx=5, pady=5 )
         skipOoneButton = Button( box, text=_('Skip this one'), command=self.doSkipOne )
         skipOoneButton.pack( side=tk.LEFT, padx=5, pady=5 )
         okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
@@ -2140,6 +2143,29 @@ class GetHebrewGlossWordDialog( ModalDialog ):
 
         box.pack( side=tk.BOTTOM, anchor=tk.E )
     # end of GetHebrewGlossWordDialog.makeButtonBox
+
+
+    def doTransliterate( self ):
+        """
+        Copy a transliterated version of the Hebrew text into the entry.
+        """
+        from Hebrew import Hebrew
+
+        #if not self.entry.get():
+        self.entry.delete( 0, tk.END )
+
+        h = Hebrew( self.contextLines[1] )
+        transliterated = h.transliterate( scheme=self.transliterationScheme )
+
+        # Rotate through possible schemes
+        if self.transliterationScheme=='Names':
+            self.transliterationScheme = 'Default'
+            transliterated = transliterated.title()
+        elif self.transliterationScheme=='Default': self.transliterationScheme = 'Standard'
+        elif self.transliterationScheme=='Standard': self.transliterationScheme = 'Names'
+
+        self.entry.insert( 0, transliterated )
+    # end of GetHebrewGlossWordDialog.doTransliterate
 
 
     def doGoLeft( self, event=None ):
@@ -2215,10 +2241,12 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
         """
         #print( "GetHebrewGlossWordsDialog( ..., ..., {}, {!r}, {!r}, {} )".format( contextLines, word1, word2, geometry ) )
         if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetHebrewGlossWordsDialog…" )
-        self.parentWindow, self.contextLines, self.word1, self.word2 = parentWindow, contextLines, word1, word2
+        self.parentWindow, self.contextLines, self.word, self.word2 = parentWindow, contextLines, word1, word2
 
         self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
         self.customFont = tkFont.Font( family='Helvetica', size=12 )
+
+        self.transliterationScheme = 'Names'
 
         self.returnCommand = None
         ModalDialog.__init__( self, parentWindow, title, geometry=geometry )
@@ -2242,13 +2270,13 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
             Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
             row += 1
 
-        self.entry1 = BEntry( master )
-        self.entry1.grid( row=row, column=1 )
+        self.entry = BEntry( master )
+        self.entry.grid( row=row, column=1 )
         self.entry2 = BEntry( master )
         self.entry2.grid( row=row+1, column=1 )
-        if self.word1: self.entry1.insert( 0, self.word1 )
+        if self.word: self.entry.insert( 0, self.word )
         if self.word2: self.entry2.insert( 0, self.word2 )
-        return self.entry1 # initial focus
+        return self.entry # initial focus
     # end of GetHebrewGlossWordsDialog.makeBody
 
 
@@ -2285,7 +2313,7 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
 
         Returns True or False.
         """
-        resultWord1, resultWord2 = self.entry1.get(), self.entry2.get()
+        resultWord1, resultWord2 = self.entry.get(), self.entry2.get()
         if not resultWord1: return False # It's compulsory
         for resultWord in ( resultWord1, resultWord2 ):
             for illegalChar in ' :;"@#\\{}':
@@ -2308,7 +2336,7 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
         Results are left in self.result
         """
         self.result = { 'geometry':self.geometry() }
-        word1, word2 = self.entry1.get(), self.entry2.get()
+        word1, word2 = self.entry.get(), self.entry2.get()
         if word1: self.result['word1'] = word1
         if word2: self.result['word2'] = word2
         if self.returnCommand: self.result['command'] = self.returnCommand
@@ -2435,6 +2463,8 @@ class DownloadResourcesDialog( ModalDialog ):
 
     Return result = number of successful downloads
     """
+    from PickledBible import ZIPPED_FILENAME_END
+
     def __init__( self, parent, title ):
         """
         """

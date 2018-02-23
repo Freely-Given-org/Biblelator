@@ -157,7 +157,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-20' # by RJH
+LastModifiedDate = '2018-02-23' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.43'
@@ -195,6 +195,10 @@ import BibleOrgSysGlobals
 class ChildWindows( list ):
     """
     Just keeps a list of the toplevel child windows, e.g., resource windows.
+
+    It can then apply various procedures to all the windows in the list.
+
+    We expect to have only one instance of this class, from the main app.
     """
     def __init__( self, ChildWindowsParent ):
         self.ChildWindowsParent = ChildWindowsParent
@@ -284,7 +288,8 @@ class ChildWindows( list ):
 class ChildWindow( tk.Toplevel, ChildBoxAddon ):
     """
     This is a base class for any toplevel window that contains a
-        ChildBoxAddon, i.e., it contains a self.textBox member.
+        ChildBoxAddon, i.e., it contains a self.textBox member
+        and has a menu, toolbar, and optional status bar.
     """
     def __init__( self, parentApp, genericWindowType ):
         """
@@ -311,7 +316,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         self._statusTextVar.set( '' ) # first initial value
         # You have to create self.statusTextLabel in order to display the status somewhere
 
-        self.createMenuBar()
+        #self.createMenuBar() # requires self._groupRadioVar etc. for Bible windows
         self.createToolBar()
         #self.createContextMenu() # Don't do this by default (coz window may contain boxes which want context menus)
 
@@ -340,7 +345,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         self.optionsDict['caseinsens'] = True
 
         self.parentApp.rootWindow.tk.call( 'wm', 'iconphoto', self._w, self.parentApp.iconImage )
-        self.refreshTitle() # Must be in superclass
+        #self.refreshTitle() # Must be in superclass
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( _("ChildWindow.__init__ finished.") )
@@ -647,7 +652,7 @@ class BibleWindowAddon( BibleBoxAddon ):
     This is a base class for any toplevel window that contains a
         BibleBoxAddon, i.e., it contains a self.textBox member that understands BCV references.
     """
-    def __init__( self, parentApp, genericWindowType ):
+    def __init__( self, genericWindowType ):
         """
         The genericWindowType is set here,
             but the more specific windowType is set later by the subclass.
@@ -655,21 +660,18 @@ class BibleWindowAddon( BibleBoxAddon ):
         Default view modes should be set by the derived class before this is called.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("BibleWindowAddon.__init__( {} {!r} )").format( parentApp, genericWindowType ) )
-            assert parentApp
+            print( _("BibleWindowAddon.__init__( {!r} )").format( genericWindowType ) )
             assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',
                                          'BibleResourceCollectionWindow','DBPBibleResourceWindow')
-        self.parentApp, self.genericWindowType = parentApp, genericWindowType
+        self.genericWindowType = genericWindowType
 
         # The radio vars are used by the window menus
         self._contextViewRadioVar, self._formatViewRadioVar, self._groupRadioVar = tk.IntVar(), tk.IntVar(), tk.StringVar()
         self.setContextViewMode( DEFAULT )
-        #self.parentApp.viewVersesBefore, self.parentApp.viewVersesAfter = 2, 6
         self.setFormatViewMode( DEFAULT )
         self.setWindowGroup( DEFAULT )
 
-        #ChildWindow.__init__( self, self.parentApp, self.genericWindowType )
-        BibleBoxAddon.__init__( self, self.parentWindow, genericWindowType )
+        BibleBoxAddon.__init__( self, parentWindow=self, BibleBoxType=genericWindowType )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( _("BibleWindowAddon.__init__ finished.") )
@@ -894,7 +896,7 @@ class TextWindow( ChildWindow ):
         self.textBox = ScrolledText( self, height=20, state=tk.DISABLED )
         self.textBox.configure( wrap='word' )
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
-        ChildBoxAddon.__init__( self, parentWindow=self )
+        xxxChildBoxAddon.__init__( self, parentWindow=self )
 
         if self.displayText:
             self.setAllText( self.displayText )
