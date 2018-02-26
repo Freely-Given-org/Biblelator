@@ -107,7 +107,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23' # by RJH
+LastModifiedDate = '2018-02-26' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.43'
@@ -290,8 +290,9 @@ class HTMLTextBox( BText ):
         #"tabs", "tabstyle", "underline", and "wrap".
 
         aTags = ('a','p_a','small_p_a','h1_a')
-        for tag in self.styleDict:
-            if tag.endswith( '_a' ): assert tag in aTags
+        if debuggingThisModule:
+            for tag in self.styleDict:
+                if tag.endswith( '_a' ): assert tag in aTags
         for tag in aTags:
             assert tag in self.styleDict
             self.tag_bind( tag, '<Button-1>', self.openHyperlink )
@@ -2209,7 +2210,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
     # end of HebrewInterlinearBibleBoxAddon.__init__
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, currentWordNumber=1, command=None, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
         """
         Add the requested verse to the end of self.textBox.
 
@@ -2221,7 +2222,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         """
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
-                print( "HebrewInterlinearBibleBoxAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
+                print( "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
+                    .format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, command, substituteTrailingSpaces, substituteMultipleSpaces ) )
                 print( "  {}".format( verseContextData[0] ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
@@ -2229,6 +2231,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 assert isinstance( verseContextData, tuple ) and len(verseContextData)==2 or isinstance( verseContextData, str )
             assert isinstance( lastFlag, bool )
             assert isinstance( currentVerseFlag, bool )
+        self.lastDAVargs = firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, None, substituteTrailingSpaces, substituteMultipleSpaces
 
         self.update() # so we can get the geometry
         boxWidth = self.textBox.winfo_width()
@@ -2289,7 +2292,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         # end of HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine
 
 
-        def appendVerseText( verseDataEntry, currentVerseKey, currentVerseFlag ):
+        def appendVerseText( verseDataEntry, currentVerseKey, currentVerseFlag, currentWordNumber, command ):
             """
             Appends the (interlinear) verse text to the box (taking multiple lines)
 
@@ -2300,18 +2303,17 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             """
             from BiblelatorDialogs import GetHebrewGlossWordDialog, GetHebrewGlossWordsDialog
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "displayAppendVerse.appendVerseText( {}, {}, {} )".format( verseDataEntry, currentVerseKey, currentVerseFlag ) )
+                print( "displayAppendVerse.appendVerseText( {}, {}, cVF={}, cWN={}, c={} )".format( verseDataEntry, currentVerseKey, currentVerseFlag, currentWordNumber, command ) )
 
             verseDictList = self.internalBible.getVerseDictList( verseDataEntry, currentVerseKey )
             #print( verseKey.getShortText(), "verseDictList", verseDictList )
 
             #self.textBox.insert( tk.END, '\n'*self.numInterlinearLines ) # Make sure we have enough blank lines
-            insertAtEnd( '\n'*self.numInterlinearLines, () ) # Make sure we have enough blank lines
+            insertAtEnd( '\n'*self.numInterlinearLines, None ) # Make sure we have enough blank lines
             haveTextFlag = False
             savedLineNumber = self.lineNumber
 
             requestMissingGlossesNow = needToRequestMissingGlosses = needToUpdate = False
-            command = None # Used for editing existing glosses
             passNumber = 0
             while True:
                 # We won't request missing glosses until we've displayed what we know first
@@ -2319,23 +2321,22 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 #print( "HebrewInterlinearBibleBoxAddon.appendVerseText: pass #{} {} {}".format( passNumber, requestMissingGlossesNow, needToRequestMissingGlosses ) )
                 assert passNumber < 3 # Should only ever be two passes
                 self.lineNumber = savedLineNumber
-                currentBundleFlag = currentVerseFlag
                 self.acrossIndex = 0
-                j = -1
+                j = 0
                 while True:
                     j += 1
-                    if j >= len(verseDictList): break
-                    verseDict = verseDictList[j] # each verseDict represents one word or token
-                    #print( "verseDict", verseDict )
+                    if j > len(verseDictList): break
+                    verseDict = verseDictList[j-1] # each verseDict represents one word or token
+                    #print( "pn={}, j={}, c={}, verseDict={}".format( passNumber, j, command, verseDict ) )
                     #if bundlesAcross >= self.bundlesPerLine: # Start a new line
                         ##print( "Start new bundle line" )
                         ##self.textBox.insert( tk.END, '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
-                        #insertAtEnd( '\n'*(self.numInterlinearLines+1), () ) # Make sure we have enough blank lines
+                        #insertAtEnd( '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
                         #self.lineNumber += self.numInterlinearLines + 1
                         #bundlesAcross = 0
                         #haveTextFlag = False
                     word = verseDict['word']
-                    fullRefTuple = currentVerseKey.getBCV() + (str(j+1),)
+                    fullRefTuple = currentVerseKey.getBCV() + (str(j),)
                     refText = '{} {}:{}.{}'.format( *fullRefTuple )
                     #import Hebrew
                     #h = Hebrew.Hebrew( word )
@@ -2357,10 +2358,10 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             ##h.printUnicodeData( normalizedWord )
                         genericGloss,genericReferencesList,specificReferencesDict = self.internalBible.glossingDict[normalizedWord] \
                                                         if normalizedWord in self.internalBible.glossingDict else ('',[],{})
-                        if command:
+                        if passNumber>1 and ( command in ('L','R') or (command=='E' and j==currentWordNumber) ):
                             command = None
                             tempBundle = refText, normalizedWord, strongsNumber, morphology
-                            gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle, genericGloss, geometry=self.glossWindowGeometry )
+                            gwd = GetHebrewGlossWordDialog( self, _("Edit generic gloss"), tempBundle, genericGloss, geometry=self.glossWindowGeometry )
                             #print( "gwdResult", gwd.result )
                             if gwd.result is None: # cancel
                                 self.requestMissingGlosses = False
@@ -2418,10 +2419,10 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                                         if normalizedWord in self.internalBible.glossingDict else ('',[],{})
                         try: specificGloss = specificReferencesDict[fullRefTuple]
                         except KeyError: specificGloss = '' # No specific gloss for this reference
-                        if command:
+                        if passNumber>1 and ( command in ('L','R') or (command=='E' and j==currentWordNumber) ):
                             command = None
                             tempBundle = refText, normalizedWord, strongsNumber, morphology
-                            gwd = GetHebrewGlossWordsDialog( self, _("Enter new generic/specific glosses"), tempBundle, genericGloss, specificGloss, geometry=self.glossWindowGeometry )
+                            gwd = GetHebrewGlossWordsDialog( self, _("Edit generic/specific glosses"), tempBundle, genericGloss, specificGloss, geometry=self.glossWindowGeometry )
                             #print( "gwdResult", gwd.result )
                             if gwd.result is None: # cancel
                                 self.requestMissingGlosses = False
@@ -2480,12 +2481,17 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                         bundle = word, strongsNumber, morphology, genericGloss, specificGloss
                     else: halt # Programming error for numInterlinearLines
                     if passNumber == 1:
-                        appendBundle( bundle, currentVerseKey, currentBundleFlag, haveTextFlag )
-                    currentBundleFlag = False
+                        appendBundle( bundle, j, j==currentWordNumber, haveTextFlag )
                     haveTextFlag = True
-                    if command == 'L': j = j - 2 # Go left
+                    if command == 'L':
+                        if j>1: j = j - 2 # Go left
+                        else: command = None # Already at left side
+                    elif command == 'R':
+                        if j < len(verseDictList): pass
+                        else: command = None # Already at right side
                     #bundlesAcross += 1
                 if self.parentApp.starting: break
+                if command: continue
                 if not self.requestMissingGlosses: break
                 if not needToRequestMissingGlosses: break
                 requestMissingGlossesNow = True
@@ -2493,13 +2499,13 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         # end of HebrewInterlinearBibleBoxAddon.appendVerseText
 
 
-        def appendBundle( textBundle, ref, currentBundleFlag, haveTextFlag ):
+        def appendBundle( textBundle, wordNumber, currentBundleFlag, haveTextFlag ):
             """
             Appends the (interlinear) word bundle to the box (taking multiple lines)
             """
             if BibleOrgSysGlobals.debugFlag:
                 if debuggingThisModule:
-                    print( "displayAppendVerse.appendBundle( {}, {}, {}, {} )".format( textBundle, ref, currentBundleFlag, haveTextFlag ) )
+                    print( "displayAppendVerse.appendBundle( {}, wN={}, cBF={}, hTF={} )".format( textBundle, wordNumber, currentBundleFlag, haveTextFlag ) )
                 assert isinstance( textBundle, tuple )
                 assert len(textBundle) == self.numInterlinearLines
 
@@ -2513,36 +2519,46 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             for j,bundleEntry in enumerate( textBundle ):
                 #print( "bundleEntry", bundleEntry )
                 #(w,h) = (font.measure(text),font.metrics("linespace"))
-                bundleWidthPixels = fonts[j].measure( bundleEntry ) + 5 # for safety
+                bundleWidthPixels = fonts[j].measure( bundleEntry ) + 6 # for safety
                 bundleWidthsPixels.append( bundleWidthPixels )
                 tabStopsUsed.append( int( bundleWidthPixels / self.tabStopPixels ) + 1 )
                 #print( j, currentBundleFlag, bundleEntry, bundleWidthPixels )
                 if bundleWidthPixels > maxWidthPixels: maxWidthPixels = bundleWidthPixels
             maxTabStopsUsed = int( maxWidthPixels / self.tabStopPixels ) + 1
-            #if maxTabStopsUsed>1: print( "Need more tabs", maxWidthPixels, self.tabStopPixels, maxTabStopsUsed, self.bundlesPerLine )
+            #if maxTabStopsUsed>1:
+                #print( "  Need more tabs bWP={} tSU={} mWP={} tSP={} mTSU={} bpL={}" \
+                        #.format( bundleWidthsPixels, tabStopsUsed, maxWidthPixels, self.tabStopPixels, maxTabStopsUsed, self.bundlesPerLine ) )
 
             if self.acrossIndex+maxTabStopsUsed >= self.bundlesPerLine: # Start a new line
                 #print( "Start new bundle line" )
                 #self.textBox.insert( tk.END, '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
-                insertAtEnd( '\n'*(self.numInterlinearLines+1), () ) # Make sure we have enough blank lines
+                insertAtEnd( '\n'*(self.numInterlinearLines+1), None ) # Make sure we have enough blank lines
                 self.lineNumber += self.numInterlinearLines + 1
                 self.acrossIndex = 0
                 haveTextFlag = False
             #print( "About to display bundle {} at row={} col={}".format( textBundle, self.lineNumber, self.acrossIndex ) )
 
-            # Now display the actual bundles
+            # Now display the actual bundles (with tabs appended)
             #for j,bundleEntry in enumerate( textBundle ):
             for j,(bundleEntry,bundleWidthPixels,thisTabStopsUsed) in enumerate( zip(textBundle,bundleWidthsPixels,tabStopsUsed) ):
                 #print( "bundleEntry", bundleEntry, bundleWidthPixels )
                 #print( "bundleEntry", bundleEntry )
                 if j==0: bundleEntry = bundleEntry[::-1] # Reverse string to simulate RTL Hebrew language
-                adjBundleEntry = ('\t' if haveTextFlag else '') + bundleEntry
+                wTag = 'W{}.{}'.format( wordNumber, j )
+                #if numTabsRequired:
+                    #insertAtEndLine( self.lineNumber+j, '\t'*numTabsRequired, self.entryStylesNormal[j] )
+                insertAtEndLine( self.lineNumber+j, bundleEntry, (entryStyles[j],wTag) )
+                self.textBox.tag_bind( wTag, '<Button-1>', self.selectBundle )
+                self.textBox.tag_bind( wTag, '<Double-Button-1>', self.editBundle )
+                numTabsRequired = 1
                 if maxTabStopsUsed > 1:
                     #tabStopsUsed = int( bundleWidthPixels / self.tabStopPixels )
-                    #print( "  Appending {} trailing tabs to {}".format( maxTabStopsUsed - thisTabStopsUsed, bundleEntry ) )
-                    adjBundleEntry += '\t' * (maxTabStopsUsed - thisTabStopsUsed)
-                insertAtEndLine( self.lineNumber+j, adjBundleEntry, entryStyles[j] )
+                    numTabsRequired += maxTabStopsUsed - thisTabStopsUsed
+                #print( "    Appending {} trailing tab{} to {!r}" \
+                            #.format( numTabsRequired, '' if numTabsRequired==1 else 's', bundleEntry ) )
+                insertAtEndLine( self.lineNumber+j, '\t'*numTabsRequired, None )
             self.acrossIndex += maxTabStopsUsed
+            return maxTabStopsUsed
         # end of HebrewInterlinearBibleBoxAddon.appendBundle
 
 
@@ -2789,7 +2805,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             haveTextFlag = True
                             self.lineNumber += 1
                         elif marker in ('v~','p~'):
-                            needsRefreshing = appendVerseText( verseDataEntry, verseKey, currentVerseFlag )
+                            needsRefreshing = appendVerseText( verseDataEntry, verseKey, currentVerseFlag, currentWordNumber=currentWordNumber, command=command )
+                            command = None # So we don't repeat it
                             haveTextFlag = True
                         else:
                             if BibleOrgSysGlobals.debugFlag:
@@ -2812,6 +2829,88 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             if needsRefreshing: self.clearText() # Do another round
             else: break
     # end of HebrewInterlinearBibleBoxAddon.displayAppendVerse
+
+
+    def _getBundleNumber( self, event ):
+        """
+        Give a mouse event, get the bundleNumber underneath it.
+        """
+        # get the index of the mouse cursor from the event.x and y attributes
+        xy = '@{0},{1}'.format( event.x, event.y )
+        #print( "xy", repr(xy) ) # e.g.., '@34,77'
+        #print( "ixy", repr(self.textBox.index(xy)) ) # e.g., '4.3'
+
+        tagNames = self.textBox.tag_names( xy )
+        #print( "tn", tagNames )
+        for tagName in tagNames:
+            if tagName.startswith( 'W' ):
+                bundleNumber = tagName[1:]
+                assert '.' in bundleNumber
+                #print( "bundleNumber", repr(bundleNumber) )
+                return bundleNumber
+    # end of HebrewInterlinearBibleBoxAddon._getBundleNumber
+
+    def selectBundle( self, event ):
+        """
+        Handle a left-click on a bundle.
+
+        Splits bundleNumber into a
+            word number (e.g., first word is word 1) and
+            line number (e.g., first line in bundle is line 0).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "HebrewInterlinearBibleBoxAddon.selectBundle()" )
+
+        bundleNumber = self._getBundleNumber( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Clicked on {}".format( repr(clickedText) ) )
+
+        if bundleNumber:
+            wordNumberString, lineNumberString = bundleNumber.split( '.', 1 )
+            #print( "select", "wn", wordNumberString, "ln", lineNumberString )
+            self.clearText() # Leaves the text box enabled
+            self.displayAppendVerse( self.lastDAVargs[0], self.lastDAVargs[1], self.lastDAVargs[2], self.lastDAVargs[3], self.lastDAVargs[4], int(wordNumberString), None, self.lastDAVargs[7], self.lastDAVargs[8] )
+    # end of HebrewInterlinearBibleBoxAddon.selectBundle
+
+    def editBundle( self, event ):
+        """
+        Handle a double-click on a bundle.
+
+        Splits bundleNumber into a
+            word number (e.g., first word is word 1) and
+            line number (e.g., first line in bundle is line 0).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "HebrewInterlinearBibleBoxAddon.editBundle()" )
+
+        bundleNumber = self._getBundleNumber( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Clicked on {}".format( repr(clickedText) ) )
+
+        if bundleNumber:
+            wordNumberString, lineNumberString = bundleNumber.split( '.', 1 )
+            #print( "edit", "wn", wordNumberString, "ln", lineNumberString )
+            self.clearText() # Leaves the text box enabled
+            self.displayAppendVerse( self.lastDAVargs[0], self.lastDAVargs[1], self.lastDAVargs[2], self.lastDAVargs[3], self.lastDAVargs[4], int(wordNumberString), 'E', self.lastDAVargs[7], self.lastDAVargs[8] )
+    # end of HebrewInterlinearBibleBoxAddon.editBundle
 
 
     def doClose( self, event=None ):
