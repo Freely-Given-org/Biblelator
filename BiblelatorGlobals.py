@@ -26,8 +26,6 @@
 Global variables and functions for program
   to allow editing of USFM Bibles using Python3 with Tkinter.
 
-    findHomeFolderPath()
-    findUsername()
     assembleWindowGeometry( width, height, xOffset, yOffset )
     assembleWindowSize( width, height )
     assembleWindowGeometryFromList( geometryValues )
@@ -41,7 +39,7 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-19' # by RJH
+LastModifiedDate = '2018-02-26' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
 ProgVersion = '0.43'
@@ -52,10 +50,6 @@ debuggingThisModule = False
 
 
 import os, re
-try: import pwd
-except ImportError:
-    pwd = None
-    import getpass
 
 # BibleOrgSys imports
 import sys; sys.path.append( '../BibleOrgSys/' )
@@ -148,30 +142,6 @@ DEFAULT_KEY_BINDING_DICT = {
     _('Quit'):('Alt+F4','<Alt-F4>'), }
 #print( DEFAULT_KEY_BINDING_DICT ); halt
 
-
-
-def findHomeFolderPath():
-    """
-    Attempt to find the path to the user's home folder and return it.
-    """
-    possibleHomeFolders = ( os.path.expanduser('~'), os.getcwd(), os.curdir, os.pardir )
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "possible home folders", possibleHomeFolders )
-    for folder in possibleHomeFolders:
-        if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
-            return folder
-# end of BiblelatorGlobals.findHomeFolderPath
-
-
-def findUsername():
-    """
-    Attempt to find the current user name and return it.
-    """
-    if pwd:
-        return pwd.getpwuid(os.geteuid()).pw_name
-    else:
-        return getpass.getuser()
-# end of BiblelatorGlobals.findUsername
 
 
 def assembleWindowGeometry( width, height, xOffset, yOffset ):

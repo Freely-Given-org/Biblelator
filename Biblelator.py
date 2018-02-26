@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-16' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-02-24' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.43' # This is the version number displayed on the start-up screen
@@ -55,7 +55,6 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
         DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolderPath, findUsername, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow
 from BiblelatorSimpleDialogs import showError, showWarning, showInfo
 from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, \
@@ -212,7 +211,7 @@ class Application( Frame ):
 
         self.currentProjectName = 'TranslationTest'
 
-        self.currentUserName = findUsername().title()
+        self.currentUserName = BibleOrgSysGlobals.findUsername().title()
         self.currentUserInitials = self.currentUserName[0] # Default to first letter
         self.currentUserEmail = 'Unknown'
         self.currentUserRole = 'Translator'
@@ -3971,7 +3970,7 @@ def demo():
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( ProgNameVersion )
 
-    homeFolderPath = findHomeFolderPath()
+    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     settings.load()
@@ -4102,7 +4101,7 @@ if __name__ == '__main__':
         sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
-    homeFolderPath = findHomeFolderPath()
+    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )

@@ -161,7 +161,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23' # by RJH
+LastModifiedDate = '2018-02-26' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.43'
@@ -2558,7 +2558,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         self.maximumSize = MAXIMUM_LARGE_RESOURCE_SIZE
         self.maxsize( *parseWindowSize( self.maximumSize ) )
         InternalBibleResourceWindowAddon.__init__( self, None, defaultContextViewMode, defaultFormatViewMode )
-                        # NOTE: modulePath must be NONE above coz we need a special internal Bible
+                        # NOTE: modulePath must be NONE in the above line coz we need a special internal Bible
         self.windowType = 'HebrewBibleResourceWindow'
         self.createMenuBar()
         self.createContextMenu() # Enable right-click menu
