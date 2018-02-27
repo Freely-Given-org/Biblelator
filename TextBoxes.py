@@ -2509,8 +2509,11 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 assert isinstance( textBundle, tuple )
                 assert len(textBundle) == self.numInterlinearLines
 
-            entryStyles = self.entryStylesSelected if currentBundleFlag else self.entryStylesNormal
-            fonts = self.fontsSelected if currentBundleFlag else self.fontsNormal
+            if currentBundleFlag:
+                entryStyles, fonts = self.entryStylesSelected, self.fontsSelected
+                self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations(textBundle[2]) )
+            else:
+                entryStyles, fonts = self.entryStylesNormal, self.fontsNormal
 
             # Find the width of each bundleEntry
             maxWidthPixels = 0

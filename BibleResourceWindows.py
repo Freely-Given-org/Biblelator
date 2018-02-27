@@ -161,7 +161,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-26' # by RJH
+LastModifiedDate = '2018-02-27' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.43'
@@ -2561,6 +2561,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         InternalBibleResourceWindowAddon.__init__( self, None, defaultContextViewMode, defaultFormatViewMode )
                         # NOTE: modulePath must be NONE in the above line coz we need a special internal Bible
         self.windowType = 'HebrewBibleResourceWindow'
+        self.doToggleStatusBar( setOn=True )
         self.createMenuBar()
         self.createContextMenu() # Enable right-click menu
         self.setContextViewMode( 'ByVerse' ) # always/only
@@ -2669,6 +2670,9 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         self.viewMenu.add_separator()
         self.viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
         self.viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
+
+        self.viewMenu.add_separator()
+        self.viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
