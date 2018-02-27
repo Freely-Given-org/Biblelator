@@ -157,7 +157,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23' # by RJH
+LastModifiedDate = '2018-02-27' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.43'
@@ -501,7 +501,12 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         Display or hide the status bar for the child window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("ChildWindow.doToggleStatusBar()") )
+            print( _("ChildWindow.doToggleStatusBar( {} ) from {}").format( setOn, self._showStatusBarVar.get() ) )
+
+        # Make sure we don't create two status bars!!!
+        currentState = self._showStatusBarVar.get()
+        if setOn==True and currentState==True: return
+        if setOn==False and currentState==False: return
 
         if setOn is not None:
             self._showStatusBarVar.set( setOn )
@@ -517,6 +522,8 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
     def setStatus( self, newStatusText='' ):
         """
         Set (or clear) the status bar text.
+
+        This works whether or not the status bar is displayed.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( _("setStatus( {!r} )").format( newStatusText ) )
