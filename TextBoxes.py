@@ -107,7 +107,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-26' # by RJH
+LastModifiedDate = '2018-02-28' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.43'
@@ -2347,7 +2347,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     try: morphology = verseDict['morph']
                     except KeyError: morphology = ''
                     if self.numInterlinearLines == 3:
-                        bundle = word, strongsNumber, morphology
+                        bundle = word, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
                     elif self.numInterlinearLines == 4:
                         assert self.internalBible.glossingDict
                         normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True ) \
@@ -2360,7 +2360,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                                         if normalizedWord in self.internalBible.glossingDict else ('',[],{})
                         if passNumber>1 and ( command in ('L','R') or (command=='E' and j==currentWordNumber) ):
                             command = None
-                            tempBundle = refText, normalizedWord, strongsNumber, morphology
+                            tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                            #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
                             gwd = GetHebrewGlossWordDialog( self, _("Edit generic gloss"), tempBundle, genericGloss, geometry=self.glossWindowGeometry )
                             #print( "gwdResult", gwd.result )
                             if gwd.result is None: # cancel
@@ -2382,7 +2383,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
                                 #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
                             if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
-                                tempBundle = refText, normalizedWord, strongsNumber, morphology
+                                tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                                #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
                                 gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle, geometry=self.glossWindowGeometry )
                                 #print( "gwdResult", gwd.result )
                                 if gwd.result is None: # cancel
@@ -2421,7 +2423,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                         except KeyError: specificGloss = '' # No specific gloss for this reference
                         if passNumber>1 and ( command in ('L','R') or (command=='E' and j==currentWordNumber) ):
                             command = None
-                            tempBundle = refText, normalizedWord, strongsNumber, morphology
+                            tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                            #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
                             gwd = GetHebrewGlossWordsDialog( self, _("Edit generic/specific glosses"), tempBundle, genericGloss, specificGloss, geometry=self.glossWindowGeometry )
                             #print( "gwdResult", gwd.result )
                             if gwd.result is None: # cancel
@@ -2451,7 +2454,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
                                 #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
                             if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
-                                tempBundle = refText, normalizedWord, strongsNumber, morphology
+                                tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                                #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
                                 gwd = GetHebrewGlossWordsDialog( self, _("Enter new generic/specific glosses"), tempBundle, geometry=self.glossWindowGeometry )
                                 #print( "gwdResult", gwd.result )
                                 if gwd.result is None: # cancel

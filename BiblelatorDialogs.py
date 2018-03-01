@@ -49,7 +49,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23'
+LastModifiedDate = '2018-02-28'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -799,13 +799,13 @@ class GetBibleBookRangeDialog( ModalDialog ):
     """
     Get the new name for a resource collection.
     """
-    def __init__( self, parent, parentApp, givenBible, currentBBB, currentList, title ):
+    def __init__( self, parentWindow, givenBible, currentBBB, currentList, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentApp.setDebugText( "GetBibleBookRangeDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetBibleBookRangeDialog…" )
         #assert currentBBB in givenBible -- no, it might not be loaded yet!
-        self.parentApp, self.givenBible, self.currentBBB, self.currentList = parentApp, givenBible, currentBBB, currentList
-        ModalDialog.__init__( self, parent, title )
+        self.givenBible, self.currentBBB, self.currentList = givenBible, currentBBB, currentList
+        ModalDialog.__init__( self, parentWindow, title )
     # end of GetBibleBookRangeDialog.__init__
 
 
@@ -857,7 +857,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
         Allow the user to select individual books(s).
         """
         self.availableList = self.givenBible.getBookList()
-        sIBBD = SelectIndividualBibleBooksDialog( self, self.parentApp, self.availableList, self.currentList, title=_('Books to be searched') )
+        sIBBD = SelectIndividualBibleBooksDialog( self, self.availableList, self.currentList, title=_('Books to be searched') )
         if BibleOrgSysGlobals.debugFlag: print( "individualBooks sIBBDResult", repr(sIBBD.result) )
         if sIBBD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( sIBBD.result, list )
@@ -902,12 +902,12 @@ class SelectIndividualBibleBooksDialog( ModalDialog ):
     """
     Get the new name for a resource collection.
     """
-    def __init__( self, parent, parentApp, availableList, currentList, title ):
+    def __init__( self, parentWindow, availableList, currentList, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentApp.setDebugText( "SelectIndividualBibleBooksDialog…" )
-        self.parentApp, self.availableList, self.currentList = parentApp, availableList, currentList
-        ModalDialog.__init__( self, parent, title )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SelectIndividualBibleBooksDialog…" )
+        self.availableList, self.currentList = availableList, currentList
+        ModalDialog.__init__( self, parentWindow, title )
     # end of SelectIndividualBibleBooksDialog.__init__
 
 
@@ -1055,7 +1055,7 @@ class GetBibleFindTextDialog( ModalDialog ):
     """
     Get the search string (and options) for Bible search.
     """
-    def __init__( self, parentWindow, parentApp, givenBible, optionsDict, title ):
+    def __init__( self, parentWindow, givenBible, optionsDict, title ):
         """
         optionsDict must already contain 'currentBCV'
         """
@@ -1064,10 +1064,10 @@ class GetBibleFindTextDialog( ModalDialog ):
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
-        self.parentWindow, self.parentApp, self.givenBible, self.optionsDict = parentWindow, parentApp, givenBible, optionsDict
+        self.givenBible, self.optionsDict = givenBible, optionsDict
         self.optionsDict['parentWindow'] = parentWindow
         self.optionsDict['parentBox'] = parentWindow.textBox
-        self.optionsDict['parentApp'] = parentApp
+        self.optionsDict['parentApp'] = parentWindow.parentApp
         self.optionsDict['givenBible'] = givenBible
 
         # Set-up default search options
@@ -1106,7 +1106,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
-        for appWin in self.parentApp.childWindows:
+        for appWin in self.parent.parentApp.childWindows:
             #print( "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType:
                 #print( "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
@@ -1267,7 +1267,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         """
         self.parent._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
-        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
+        gBBRD = GetBibleBookRangeDialog( self, self.parent.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
         if BibleOrgSysGlobals.debugFlag: print( "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
@@ -1429,10 +1429,10 @@ class GetBibleReplaceTextDialog( ModalDialog ):
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
-        self.parentWindow, self.parentApp, self.givenBible, self.optionsDict = parentWindow, parentApp, givenBible, optionsDict
+        self.givenBible, self.optionsDict = givenBible, optionsDict
         self.optionsDict['parentWindow'] = parentWindow
         self.optionsDict['parentBox'] = parentWindow.textBox
-        self.optionsDict['parentApp'] = parentApp
+        self.optionsDict['parentApp'] = parentWindow.parentApp
         self.optionsDict['givenBible'] = givenBible
 
         # Set-up default Replace options
@@ -1472,7 +1472,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
-        for appWin in self.parentApp.childWindows:
+        for appWin in self.parent.parentApp.childWindows:
             #print( "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType and 'Edit' in appWin.windowType:
                 #print( "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
@@ -1641,7 +1641,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         """
         self.parent._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
-        gBBRD = GetBibleBookRangeDialog( self, self.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be Replaceed') )
+        gBBRD = GetBibleBookRangeDialog( self, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be Replaceed') )
         if BibleOrgSysGlobals.debugFlag: print( "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
@@ -1796,7 +1796,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
 class ReplaceConfirmDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, parentApp, referenceString, contextBefore, findText, contextAfter, finalText, haveUndos, title ):
+    def __init__( self, parentWindow, referenceString, contextBefore, findText, contextAfter, finalText, haveUndos, title ):
         """
         optionsDict must already contain 'currentBCV'
         """
@@ -1804,8 +1804,8 @@ class ReplaceConfirmDialog( ModalDialog ):
             parentApp.setDebugText( "ReplaceConfirmDialog…" )
             assert isinstance( contextBefore, str )
             assert isinstance( contextAfter, str )
-        self.parentApp, self.referenceString, self.contextBefore, self.findText, self.contextAfter, self.finalText, self.haveUndos = parentApp, referenceString, contextBefore, findText, contextAfter, finalText, haveUndos
-        ModalDialog.__init__( self, parent, title )
+        self.referenceString, self.contextBefore, self.findText, self.contextAfter, self.finalText, self.haveUndos = referenceString, contextBefore, findText, contextAfter, finalText, haveUndos
+        ModalDialog.__init__( self, parentWindow, title )
     # end of ReplaceConfirmDialog.__init__
 
 
@@ -2113,7 +2113,9 @@ class GetHebrewGlossWordDialog( ModalDialog ):
             thisFont = self.customHebrewFont if j==1 else self.customFont
             if j == 1: line = line[::-1] # Reverse line to simulate RTL Hebrew language
             elif j == 2: self.handleStrongs( line )
-            Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
+            if len(line) > 20:
+                Label( master, text=line, font=thisFont ).grid( row=row, column=0, columnspan=3 )
+            else: Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
             row += 1
 
         self.entry = BEntry( master )
@@ -2267,7 +2269,9 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
             thisFont = self.customHebrewFont if j==1 else self.customFont
             if j == 1: line = line[::-1] # Reverse line to simulate RTL Hebrew language
             elif j == 2: self.handleStrongs( line )
-            Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
+            if len(line) > 20:
+                Label( master, text=line, font=thisFont ).grid( row=row, column=0, columnspan=3 )
+            else: Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
             row += 1
 
         self.entry = BEntry( master )
@@ -2349,19 +2353,18 @@ class ChooseResourcesDialog( ModalDialog ):
     """
     Given a list of available resources, select one and return the list item.
     """
-    def __init__( self, parent, parentApp, availableResourceDictsList, title ):
+    def __init__( self, parentWindow, availableResourceDictsList, title ):
         """
         NOTE: from the dictionaries in the list, we just use 'abbreviation' and 'givenName'
                 to build up the list of available resources.
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "ChooseResourcesDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "ChooseResourcesDialog…" )
         if BibleOrgSysGlobals.debugFlag:
             #if debuggingThisModule:
                 #print( "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
             assert isinstance( availableResourceDictsList, list )
-        self.parentApp = parentApp
         self.availableResourceDictsList = sorted( availableResourceDictsList, key=lambda aRD: aRD['abbreviation'] )
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of ChooseResourcesDialog.__init__
 
 
@@ -2398,7 +2401,7 @@ class ChooseResourcesDialog( ModalDialog ):
         """
         box = Frame( self )
 
-        downloadButton = Button( box, text=_('Download more…'), command=self.doDownloadMore, state=tk.NORMAL if self.parentApp.internetAccessEnabled else tk.DISABLED )
+        downloadButton = Button( box, text=_('Download more…'), command=self.doDownloadMore, state=tk.NORMAL if self.parent.parentApp.internetAccessEnabled else tk.DISABLED )
         downloadButton.pack( side=tk.LEFT, padx=5, pady=5 )
         okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
         okButton.pack( side=tk.LEFT, padx=5, pady=5 )

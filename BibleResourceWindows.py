@@ -161,7 +161,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-27' # by RJH
+LastModifiedDate = '2018-02-28' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.43'
@@ -406,7 +406,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             else: halt # unknown Bible view mode
         else: halt # window type view mode not handled yet
         if self._contextViewMode != previousContextViewMode: # we need to update our view
-            print( "Update contextViewMode to", self._contextViewMode )
+            if debuggingThisModule: print( "Update contextViewMode to", self._contextViewMode )
             self.updateShownBCV( self.currentVerseKey )
     # end of BibleResourceWindowAddon.changeBibleContextView
 

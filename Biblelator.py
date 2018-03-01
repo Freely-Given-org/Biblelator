@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-24' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-02-28' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.43' # This is the version number displayed on the start-up screen
@@ -1629,7 +1629,7 @@ class Application( Frame ):
             #print( "infoDictList", len(infoDictList), infoDictList )
             #for infoDict in infoDictList:
                 #print( "infoDict", len(infoDict), infoDict )
-            crd = ChooseResourcesDialog( self, self, infoDictList, title=_("Select resource(s)") )
+            crd = ChooseResourcesDialog( self, infoDictList, title=_("Select resource(s)") )
             if not crd.result:
                 self.setReadyStatus()
                 return
