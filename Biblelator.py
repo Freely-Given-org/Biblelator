@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-28' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-03-04' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.43' # This is the version number displayed on the start-up screen
@@ -1599,7 +1599,7 @@ class Application( Frame ):
         """
         Open a local pickled Bible (called from a menu/GUI action).
 
-        NOTE: This may include a Hebrew interlinear window which has to be treated different.
+        NOTE: This may include a Hebrew interlinear window which has to be treated as a special case.
         """
         if BibleOrgSysGlobals.debugFlag:
             print( exp("openBOSBibleResource()") )
@@ -1616,10 +1616,11 @@ class Application( Frame ):
                     print( "{} resources downloaded".format( dRD.result ) )
                 else:
                     print( "doDownloadMore: " + _("Nothing was selected!") )
-            else: print( "Can't download resources because internet access is not enabled" )
+            else:
+                showWarning( self, APP_NAME, _("Can't download resources because internet access is not enabled") )
         #else: print( os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ) )
         if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ):
-            print( "doOpenNewBOSBibleResourceWindow: " + _("No downloaded resources available") )
+            showWarning( self, APP_NAME, _("No downloaded resources available to open") )
             return
 
         self.setWaitStatus( _("doOpenNewBOSBibleResourceWindow…") )
@@ -4096,9 +4097,9 @@ def main( homeFolderPath, loggingFolderPath ):
 if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
+    #if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
+    #    from io import TextIOWrapper
+    #    sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()

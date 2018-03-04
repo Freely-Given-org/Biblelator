@@ -49,7 +49,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-28'
+LastModifiedDate = '2018-03-04'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -75,6 +75,7 @@ from TextBoxes import BEntry, BCombobox, BText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
+from PickledBible import ZIPPED_FILENAME_END
 
 
 
@@ -2466,8 +2467,6 @@ class DownloadResourcesDialog( ModalDialog ):
 
     Return result = number of successful downloads
     """
-    from PickledBible import ZIPPED_FILENAME_END
-
     def __init__( self, parent, title ):
         """
         """
