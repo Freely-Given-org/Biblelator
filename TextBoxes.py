@@ -107,7 +107,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-28' # by RJH
+LastModifiedDate = '2018-03-09' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.43'
@@ -1077,7 +1077,7 @@ class BibleBoxAddon():
         This function does absolutely nothing.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleBoxAddon.__init__( {} )".format( parentApp ) )
+            print( "BibleBoxAddon.__init__( {}, {} )".format( parentWindow, BibleBoxType ) )
             assert parentWindow
         self.parentWindow, self.BibleBoxType = parentWindow, BibleBoxType
 
@@ -1542,8 +1542,8 @@ class BibleBoxAddon():
             return
         #print( "intBib", self.internalBible )
 
-        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseFlagKey.getBCV()
-        gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        gBSTD = GetBibleFindTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         if gBSTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
@@ -2080,8 +2080,8 @@ class BibleBoxAddon():
             ##return
         ###print( "intBib", self.internalBible )
 
-        ##self.BibleFindOptionsDict['currentBCV'] = self.currentVerseFlagKey.getBCV()
-        ##gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        ##self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        ##gBSTD = GetBibleFindTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         ##if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         ##if gBSTD.result:
             ##if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
@@ -2250,7 +2250,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 if debuggingThisModule:
                     print( "insertAtEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
-                assert isinstance( ieTags, (str,tuple) )
+                assert ieTags is None or isinstance( ieTags, (str,tuple) )
                 assert TRAILING_SPACE_SUBSTITUTE not in ieText
                 assert MULTIPLE_SPACE_SUBSTITUTE not in ieText
 
@@ -2276,7 +2276,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     print( "insertAtEndLine( {}, {!r}, {} )".format( ieLineNumber, ieText, ieTags ) )
                 assert isinstance( ieLineNumber, int )
                 assert isinstance( ieText, str )
-                assert isinstance( ieTags, (str,tuple) )
+                assert ieTags is None or isinstance( ieTags, (str,tuple) )
                 assert TRAILING_SPACE_SUBSTITUTE not in ieText
                 assert MULTIPLE_SPACE_SUBSTITUTE not in ieText
 
@@ -3026,8 +3026,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             #return
         ##print( "intBib", self.internalBible )
 
-        #self.BibleFindOptionsDict['currentBCV'] = self.currentVerseFlagKey.getBCV()
-        #gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        #self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        #gBSTD = GetBibleFindTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         #if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         #if gBSTD.result:
             #if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )

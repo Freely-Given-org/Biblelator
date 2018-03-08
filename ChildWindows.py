@@ -157,7 +157,7 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-27' # by RJH
+LastModifiedDate = '2018-03-09' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
 ProgVersion = '0.43'
@@ -668,7 +668,7 @@ class BibleWindowAddon( BibleBoxAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( _("BibleWindowAddon.__init__( {!r} )").format( genericWindowType ) )
-            assert genericWindowType in ('BibleResource','LexiconResource','BibleEditor',
+            assert genericWindowType in ('BibleResourceWindow','LexiconResource','BibleEditor',
                                          'BibleResourceCollectionWindow','DBPBibleResourceWindow')
         self.genericWindowType = genericWindowType
 

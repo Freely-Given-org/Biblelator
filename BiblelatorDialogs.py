@@ -107,7 +107,7 @@ TODO: Work out how to automatically test keypresses in dialogs.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-08'
+LastModifiedDate = '2018-03-09'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -1119,7 +1119,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         optionsDict must already contain 'currentBCV'
         """
         if BibleOrgSysGlobals.debugFlag:
-            parentApp.setDebugText( "GetBibleFindTextDialog…" )
+            parentWindow.parentApp.setDebugText( "GetBibleFindTextDialog…" )
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
@@ -1484,7 +1484,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         optionsDict must already contain 'currentBCV'
         """
         if BibleOrgSysGlobals.debugFlag:
-            parentApp.setDebugText( "GetBibleReplaceTextDialog…" )
+            parentWindow.parentApp.setDebugText( "GetBibleReplaceTextDialog…" )
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
@@ -1860,7 +1860,7 @@ class ReplaceConfirmDialog( ModalDialog ):
         optionsDict must already contain 'currentBCV'
         """
         if BibleOrgSysGlobals.debugFlag:
-            parentApp.setDebugText( "ReplaceConfirmDialog…" )
+            parentWindow.parentApp.setDebugText( "ReplaceConfirmDialog…" )
             assert isinstance( contextBefore, str )
             assert isinstance( contextAfter, str )
         self.referenceString, self.contextBefore, self.findText, self.contextAfter, self.finalText, self.haveUndos = referenceString, contextBefore, findText, contextAfter, finalText, haveUndos
