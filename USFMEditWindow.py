@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23' # by RJH
+LastModifiedDate = '2018-03-08' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.43'
@@ -55,7 +55,7 @@ from BiblelatorHelpers import createEmptyUSFMBookText, calculateTotalVersesForBo
 from BibleResourceWindows import InternalBibleResourceWindowAddon
 from BibleReferenceCollection import BibleReferenceCollectionWindow
 from ChildWindows import ChildWindow
-from TextEditWindow import TextEditWindowAddon #, NO_TYPE_TIME
+from TextEditWindow import TextEditWindow, TextEditWindowAddon #, NO_TYPE_TIME
 from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
@@ -603,7 +603,7 @@ class USFMEditWindow( ChildWindow, InternalBibleResourceWindowAddon, TextEditWin
                 #if mark6!=mark5:
                     #print( "mark6", mark6 )
 
-        try: TextEditWindow.onTextChange( self, result, *args ) # Handles autocorrect and autocomplete
+        try: TextEditWindowAddon.onTextChange( self, result, *args ) # Handles autocorrect and autocomplete
         except KeyboardInterrupt:
             print( "USFMEditWindow: Got keyboard interrupt (1) -- saving my file…" )
             self.doSave() # Sometimes the above seems to lock up
@@ -1461,7 +1461,7 @@ class USFMEditWindow( ChildWindow, InternalBibleResourceWindowAddon, TextEditWin
         #print( "intBib", self.internalBible )
 
         self.BibleReplaceOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
-        gBRTD = GetBibleReplaceTextDialog( self, self.parentApp, self.internalBible, self.BibleReplaceOptionsDict, title=_('Replace in Bible') )
+        gBRTD = GetBibleReplaceTextDialog( self, self.internalBible, self.BibleReplaceOptionsDict, title=_('Replace in Bible') )
         if BibleOrgSysGlobals.debugFlag: print( "gBRTDResult", repr(gBRTD.result) )
         if gBRTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBRTD.result, dict )
@@ -1514,7 +1514,7 @@ class USFMEditWindow( ChildWindow, InternalBibleResourceWindowAddon, TextEditWin
         """
         Called if the user requests a save from the GUI.
 
-        Same as TextEditWindow.doSave except
+        Same as TextEditWindowAddon.doSave except
             has a bit more housekeeping to do
         plus we always save with Windows newline endings.
         """
@@ -1731,6 +1731,19 @@ class USFMEditWindow( ChildWindow, InternalBibleResourceWindowAddon, TextEditWin
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK
     ## end of USFMEditWindow.doAbout
+
+
+    def doClose( self, event=None ):
+        """
+        Called if the window is about to be destroyed.
+
+        Determines if we want/need to save any changes.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "USFMEditWindow.doClose( {} )".format( event ) )
+
+        TextEditWindowAddon.doClose( self ) # Make sure the right one is called (not the ChildWindow one)
+    # end of USFMEditWindow.doClose
 # end of USFMEditWindow class
 
 

@@ -28,7 +28,7 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23' # by RJH
+LastModifiedDate = '2018-03-08' # by RJH
 ShortProgName = "TextEditWindow"
 ProgName = "Biblelator Text Edit Window"
 ProgVersion = '0.43'
@@ -71,22 +71,6 @@ NUM_AUTOCOMPLETE_POPUP_LINES = 6
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
-
-
-
 class TextEditWindowAddon:
     """
     """
@@ -94,7 +78,7 @@ class TextEditWindowAddon:
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.__init__( {}, {}, {} )").format( windowType, folderPath, filename ) )
+            print( "TextEditWindowAddon.__init__( {}, {}, {} )".format( windowType, folderPath, filename ) )
         self.windowType, self.folderPath, self.filename = windowType, folderPath, filename
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextEditWindowAddon __init__ {} {} {}'.format( windowType, folderPath, filename ) )
 
@@ -173,7 +157,7 @@ class TextEditWindowAddon:
         #self.lastTextChangeTime = time()
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.__init__ finished.") )
+            print( "TextEditWindowAddon.__init__ finished." )
     # end of TextEditWindowAddon.__init__
 
 
@@ -185,7 +169,7 @@ class TextEditWindowAddon:
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.createEditorKeyboardBindings()") )
+            print( "TextEditWindowAddon.createEditorKeyboardBindings()" )
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -211,7 +195,7 @@ class TextEditWindowAddon:
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.createMenuBar()") )
+            print( "TextEditWindowAddon.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -309,7 +293,7 @@ class TextEditWindowAddon:
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.createContextMenu()") )
+            print( "TextEditWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=False )
         self.contextMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict[_('Cut')][0] )
@@ -346,7 +330,7 @@ class TextEditWindowAddon:
             put an asterisk if it's modified.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.refreshTitle()") )
+            #print( "TextEditWindowAddon.refreshTitle()" )
 
         self.title( "{}[{}] {} ({}) {}".format( '*' if self.modified() else '',
                                             _("Text"), self.filename, self.folderPath, self.editStatus ) )
@@ -359,7 +343,7 @@ class TextEditWindowAddon:
             and schedule the next refresh.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.refreshTitleContinue()") )
+            #print( "TextEditWindowAddon.refreshTitleContinue()" )
 
         self.after( REFRESH_TITLE_TIME, self.refreshTitle ) # Redo it so we can put up the asterisk if the text is changed
         try:
@@ -377,7 +361,7 @@ class TextEditWindowAddon:
         Make the font one point bigger
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.OnFontBigger()") )
+            print( "TextEditWindowAddon.OnFontBigger()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size+1 )
@@ -388,7 +372,7 @@ class TextEditWindowAddon:
         Make the font one point smaller
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.OnFontSmaller()") )
+            print( "TextEditWindowAddon.OnFontSmaller()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size-1 )
@@ -413,7 +397,7 @@ class TextEditWindowAddon:
         Create a pop-up listbox in order to be able to display possible autocomplete words.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.makeAutocompleteBox()") )
+            print( "TextEditWindowAddon.makeAutocompleteBox()" )
             assert self.autocompleteBox is None
 
         # Create the pop-up listbox
@@ -447,7 +431,7 @@ class TextEditWindowAddon:
         Handles key presses entered into the pop-up word selection (list) box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.OnAutocompleteChar( {!r}, {!r} )").format( event.char, event.keysym ) )
+            #print( "TextEditWindowAddon.OnAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
             assert self.autocompleteBox is not None
 
         #if event.keysym == 'ESC':
@@ -485,7 +469,7 @@ class TextEditWindowAddon:
         Gets the chosen word and inserts the end of it into the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.doAcceptAutocompleteSelection({} )").format( event ) )
+            #print( "TextEditWindowAddon.doAcceptAutocompleteSelection({} )".format( event ) )
             assert self.autocompleteBox is not None
 
         acceptAutocompleteSelection( self, includeTrailingSpace=False )
@@ -499,7 +483,7 @@ class TextEditWindowAddon:
         Used by autocomplete routines in onTextChange.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.removeAutocompleteBox( {} )").format( event ) )
+            #print( "TextEditWindowAddon.removeAutocompleteBox( {} )".format( event ) )
             assert self.autocompleteBox is not None
 
         self.textBox.focus()
@@ -521,7 +505,7 @@ class TextEditWindowAddon:
             self.onTextNoChangeID = None
         if self.loading: return # So we don't get called a million times for nothing
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.onTextChange( {}, {} )").format( repr(result), args ) )
+            print( "TextEditWindowAddon.onTextChange( {}, {} )".format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -749,7 +733,7 @@ class TextEditWindowAddon:
         character: translate to next multiple of 8 to match visual?
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doShowInfo( {} )").format( event ) )
+            print( "TextEditWindowAddon.doShowInfo( {} )".format( event ) )
 
         text  = self.getEntireText()
         numChars = len( text )
@@ -780,7 +764,7 @@ class TextEditWindowAddon:
 
     def doUndo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doUndo( {} )").format( event ) )
+            print( "TextEditWindowAddon.doUndo( {} )".format( event ) )
 
         try: self.textBox.edit_undo()
         except tk.TclError: showInfo( self, APP_NAME, _("Nothing to undo") )
@@ -790,7 +774,7 @@ class TextEditWindowAddon:
 
     def doRedo( self, event=None ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doRedo( {} )").format( event ) )
+            print( "TextEditWindowAddon.doRedo( {} )".format( event ) )
 
         try: self.textBox.edit_redo()
         except tk.TclError: showInfo( self, APP_NAME, _("Nothing to redo") )
@@ -800,7 +784,7 @@ class TextEditWindowAddon:
 
     def doDelete( self, event=None ):                         # delete selected text, no save
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doDelete( {} )").format( event ) )
+            print( "TextEditWindowAddon.doDelete( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showError( self, APP_NAME, _("No text selected") )
@@ -813,7 +797,7 @@ class TextEditWindowAddon:
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doCut( {} )").format( event ) )
+            print( "TextEditWindowAddon.doCut( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showError( self, APP_NAME, _("No text selected") )
@@ -827,7 +811,7 @@ class TextEditWindowAddon:
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doPaste( {} )").format( event ) )
+            print( "TextEditWindowAddon.doPaste( {} )".format( event ) )
             print( "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 
         try:
@@ -937,7 +921,7 @@ class TextEditWindowAddon:
         We're still waiting for the filename.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.setFolderPath( {} )").format( repr(newFolderPath) ) )
+            print( "TextEditWindowAddon.setFolderPath( {} )".format( repr(newFolderPath) ) )
             assert self.filename is None
             assert self.filepath is None
 
@@ -955,7 +939,7 @@ class TextEditWindowAddon:
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.setFilename( {} )").format( repr(filename) ) )
+            print( "TextEditWindowAddon.setFilename( {} )".format( repr(filename) ) )
             assert self.folderPath
 
         self.filename = filename
@@ -976,7 +960,7 @@ class TextEditWindowAddon:
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.setPathAndFile( {}, {} )").format( repr(folderPath), repr(filename) ) )
+            print( "TextEditWindowAddon.setPathAndFile( {}, {} )".format( repr(folderPath), repr(filename) ) )
 
         self.folderPath, self.filename = folderPath, filename
         self.filepath = os.path.join( self.folderPath, self.filename )
@@ -992,7 +976,7 @@ class TextEditWindowAddon:
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.setFilepath( {!r} )").format( newFilePath ) )
+            print( "TextEditWindowAddon.setFilepath( {!r} )".format( newFilePath ) )
 
         self.filepath = newFilePath
         self.folderPath, self.filename = os.path.split( newFilePath )
@@ -1008,7 +992,7 @@ class TextEditWindowAddon:
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon._checkFilepath()") )
+            print( "TextEditWindowAddon._checkFilepath()" )
 
         if not os.path.isfile( self.filepath ):
             showError( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
@@ -1048,7 +1032,7 @@ class TextEditWindowAddon:
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.setAllText( {!r} )").format( newText ) )
+            print( "TextEditWindowAddon.setAllText( {!r} )".format( newText ) )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
@@ -1072,7 +1056,7 @@ class TextEditWindowAddon:
         Returns True/False success flag.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.loadText()") )
+            print( "TextEditWindowAddon.loadText()" )
 
         self.loading = True
         text = open( self.filepath, 'rt', encoding='utf-8' ).read()
@@ -1092,7 +1076,7 @@ class TextEditWindowAddon:
             (where the edit window might not display the entire text).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.getEntireText()") )
+            print( "TextEditWindowAddon.getEntireText()" )
 
         return self.getAllText()
     # end of TextEditWindowAddon.getEntireText
@@ -1105,7 +1089,7 @@ class TextEditWindowAddon:
         If it has, and the user hasn't yet made any changes, offer to reload.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.checkForDiskChanges()") )
+            #print( "TextEditWindowAddon.checkForDiskChanges()" )
 
         if self.filepath and os.path.isfile( self.filepath ) \
         and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
@@ -1131,7 +1115,7 @@ class TextEditWindowAddon:
         Called if the user requests a saveAs from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doSaveAs( {} )").format( event ) )
+            print( "TextEditWindowAddon.doSaveAs( {} )".format( event ) )
 
         if self.modified():
             saveAsFilepath = asksaveasfilename( parent=self )
@@ -1146,7 +1130,7 @@ class TextEditWindowAddon:
         Called if the user requests a save from the GUI.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doSave( {} )").format( event ) )
+            print( "TextEditWindowAddon.doSave( {} )".format( event ) )
 
         if self.modified():
             if self.folderPath and self.filename:
@@ -1177,7 +1161,7 @@ class TextEditWindowAddon:
                 (Yes, this can result in old AutoSave files in the home folder.)
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.doAutosave()") )
+            #print( "TextEditWindowAddon.doAutosave()" )
 
         if self.modified():
             partialAutosaveFolderPath = self.folderPath if self.folderPath else self.parentApp.homeFolderPath
@@ -1217,7 +1201,7 @@ class TextEditWindowAddon:
         Open a pop-up text window with the current settings displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doViewSettings()") )
+            print( "doViewSettings()" )
             self.parentApp.setDebugText( "doViewSettings…" )
         tEW = TextEditWindow( self.parentApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1238,7 +1222,7 @@ class TextEditWindowAddon:
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("doViewLog()") )
+            if debuggingThisModule: print( "doViewLog()" )
             self.parentApp.setDebugText( "doViewLog…" )
 
         filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
@@ -1261,7 +1245,7 @@ class TextEditWindowAddon:
         Display a help box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doHelp( {} )").format( event ) )
+            print( "TextEditWindowAddon.doHelp( {} )".format( event ) )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -1279,7 +1263,7 @@ class TextEditWindowAddon:
         Display an about box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doAbout( {} )").format( event ) )
+            print( "TextEditWindowAddon.doAbout( {} )".format( event ) )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -1294,7 +1278,7 @@ class TextEditWindowAddon:
         #Called if the user requests a close from the GUI.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindowAddon.doCloseEditor( {} )").format( event ) )
+            #print( "TextEditWindowAddon.doCloseEditor( {} )".format( event ) )
 
         #self.onCloseEditor()
     ## end of TextEditWindowAddon.closeEditor
@@ -1306,7 +1290,7 @@ class TextEditWindowAddon:
         Determines if we want/need to save any changes.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindowAddon.doClose( {} )").format( event ) )
+            print( "TextEditWindowAddon.doClose( {} )".format( event ) )
 
         if self.modified():
             saveWork = False
@@ -1353,7 +1337,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.__init__( {}, {}, {} )").format( parentApp, folderPath, filename ) )
+            print( "TextEditWindow.__init__( {}, {}, {} )".format( parentApp, folderPath, filename ) )
         self.folderPath, self.filename = folderPath, filename
         parentApp.logUsage( ProgName, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderPath, filename ) )
 
@@ -1436,7 +1420,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         ##self.lastTextChangeTime = time()
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("TextEditWindow.__init__ finished.") )
+            print( "TextEditWindow.__init__ finished." )
     # end of TextEditWindow.__init__
 
 
@@ -1444,7 +1428,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.createEditorKeyboardBindings()") )
+            #print( "TextEditWindow.createEditorKeyboardBindings()" )
 
         #for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              ##('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -1470,7 +1454,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.createMenuBar()") )
+            #print( "TextEditWindow.createMenuBar()" )
 
         #self.menubar = tk.Menu( self )
         ##self['menu'] = self.menubar
@@ -1568,7 +1552,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.createContextMenu()") )
+            #print( "TextEditWindow.createContextMenu()" )
 
         #self.contextMenu = tk.Menu( self, tearoff=False )
         #self.contextMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict[_('Cut')][0] )
@@ -1605,7 +1589,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
             #put an asterisk if it's modified.
         #"""
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.refreshTitle()") )
+            ##print( "TextEditWindow.refreshTitle()" )
 
         #self.title( "{}[{}] {} ({}) {}".format( '*' if self.modified() else '',
                                             #_("Text"), self.filename, self.folderPath, self.editStatus ) )
@@ -1618,7 +1602,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
             #and schedule the next refresh.
         #"""
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.refreshTitleContinue()") )
+            ##print( "TextEditWindow.refreshTitleContinue()" )
 
         #self.after( REFRESH_TITLE_TIME, self.refreshTitle ) # Redo it so we can put up the asterisk if the text is changed
         #try:
@@ -1636,7 +1620,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Make the font one point bigger
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.OnFontBigger()") )
+            #print( "TextEditWindow.OnFontBigger()" )
 
         #size = self.customFont['size']
         #self.customFont.configure( size=size+1 )
@@ -1647,7 +1631,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Make the font one point smaller
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.OnFontSmaller()") )
+            #print( "TextEditWindow.OnFontSmaller()" )
 
         #size = self.customFont['size']
         #self.customFont.configure( size=size-1 )
@@ -1672,7 +1656,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Create a pop-up listbox in order to be able to display possible autocomplete words.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.makeAutocompleteBox()") )
+            #print( "TextEditWindow.makeAutocompleteBox()" )
             #assert self.autocompleteBox is None
 
         ## Create the pop-up listbox
@@ -1706,7 +1690,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Handles key presses entered into the pop-up word selection (list) box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.OnAutocompleteChar( {!r}, {!r} )").format( event.char, event.keysym ) )
+            ##print( "TextEditWindow.OnAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
             #assert self.autocompleteBox is not None
 
         ##if event.keysym == 'ESC':
@@ -1744,7 +1728,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Gets the chosen word and inserts the end of it into the text.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.doAcceptAutocompleteSelection({} )").format( event ) )
+            ##print( "TextEditWindow.doAcceptAutocompleteSelection({} )".format( event ) )
             #assert self.autocompleteBox is not None
 
         #acceptAutocompleteSelection( self, includeTrailingSpace=False )
@@ -1758,7 +1742,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Used by autocomplete routines in onTextChange.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.removeAutocompleteBox( {} )").format( event ) )
+            ##print( "TextEditWindow.removeAutocompleteBox( {} )".format( event ) )
             #assert self.autocompleteBox is not None
 
         #self.textBox.focus()
@@ -1780,7 +1764,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
             #self.onTextNoChangeID = None
         #if self.loading: return # So we don't get called a million times for nothing
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.onTextChange( {}, {} )").format( repr(result), args ) )
+            #print( "TextEditWindow.onTextChange( {}, {} )".format( repr(result), args ) )
 
         ##if 0: # Get line and column info
             ##lineColumn = self.textBox.index( tk.INSERT )
@@ -2008,7 +1992,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #character: translate to next multiple of 8 to match visual?
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doShowInfo( {} )").format( event ) )
+            #print( "TextEditWindow.doShowInfo( {} )".format( event ) )
 
         #text  = self.getEntireText()
         #numChars = len( text )
@@ -2039,7 +2023,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
 
     #def doUndo( self, event=None ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doUndo( {} )").format( event ) )
+            #print( "TextEditWindow.doUndo( {} )".format( event ) )
 
         #try: self.textBox.edit_undo()
         #except tk.TclError: showInfo( self, APP_NAME, _("Nothing to undo") )
@@ -2049,7 +2033,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
 
     #def doRedo( self, event=None ):
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doRedo( {} )").format( event ) )
+            #print( "TextEditWindow.doRedo( {} )".format( event ) )
 
         #try: self.textBox.edit_redo()
         #except tk.TclError: showInfo( self, APP_NAME, _("Nothing to redo") )
@@ -2059,7 +2043,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
 
     #def doDelete( self, event=None ):                         # delete selected text, no save
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doDelete( {} )").format( event ) )
+            #print( "TextEditWindow.doDelete( {} )".format( event ) )
 
         #if not self.textBox.tag_ranges( tk.SEL ):
             #showError( self, APP_NAME, _("No text selected") )
@@ -2072,7 +2056,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doCut( {} )").format( event ) )
+            #print( "TextEditWindow.doCut( {} )".format( event ) )
 
         #if not self.textBox.tag_ranges( tk.SEL ):
             #showError( self, APP_NAME, _("No text selected") )
@@ -2086,7 +2070,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doPaste( {} )").format( event ) )
+            #print( "TextEditWindow.doPaste( {} )".format( event ) )
             #print( "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 
         #try:
@@ -2196,7 +2180,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #We're still waiting for the filename.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.setFolderPath( {} )").format( repr(newFolderPath) ) )
+            #print( "TextEditWindow.setFolderPath( {} )".format( repr(newFolderPath) ) )
             #assert self.filename is None
             #assert self.filepath is None
 
@@ -2214,7 +2198,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Returns True/False success flag.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.setFilename( {} )").format( repr(filename) ) )
+            #print( "TextEditWindow.setFilename( {} )".format( repr(filename) ) )
             #assert self.folderPath
 
         #self.filename = filename
@@ -2235,7 +2219,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Returns True/False success flag.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.setPathAndFile( {}, {} )").format( repr(folderPath), repr(filename) ) )
+            #print( "TextEditWindow.setPathAndFile( {}, {} )".format( repr(folderPath), repr(filename) ) )
 
         #self.folderPath, self.filename = folderPath, filename
         #self.filepath = os.path.join( self.folderPath, self.filename )
@@ -2251,7 +2235,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Returns True/False success flag.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.setFilepath( {!r} )").format( newFilePath ) )
+            #print( "TextEditWindow.setFilepath( {!r} )".format( newFilePath ) )
 
         #self.filepath = newFilePath
         #self.folderPath, self.filename = os.path.split( newFilePath )
@@ -2267,7 +2251,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Returns True/False success flag.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow._checkFilepath()") )
+            #print( "TextEditWindow._checkFilepath()" )
 
         #if not os.path.isfile( self.filepath ):
             #showError( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
@@ -2307,7 +2291,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #initial position may be at line 2, not line 1 (2.1; Tk bug?)
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.setAllText( {!r} )").format( newText ) )
+            #print( "TextEditWindow.setAllText( {!r} )".format( newText ) )
 
         #self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         #self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
@@ -2331,7 +2315,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Returns True/False success flag.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.loadText()") )
+            #print( "TextEditWindow.loadText()" )
 
         #self.loading = True
         #text = open( self.filepath, 'rt', encoding='utf-8' ).read()
@@ -2351,7 +2335,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
             #(where the edit window might not display the entire text).
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.getEntireText()") )
+            #print( "TextEditWindow.getEntireText()" )
 
         #return self.getAllText()
     ## end of TextEditWindow.getEntireText
@@ -2364,7 +2348,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #If it has, and the user hasn't yet made any changes, offer to reload.
         #"""
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.checkForDiskChanges()") )
+            ##print( "TextEditWindow.checkForDiskChanges()" )
 
         #if self.filepath and os.path.isfile( self.filepath ) \
         #and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
@@ -2390,7 +2374,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Called if the user requests a saveAs from the GUI.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doSaveAs( {} )").format( event ) )
+            #print( "TextEditWindow.doSaveAs( {} )".format( event ) )
 
         #if self.modified():
             #saveAsFilepath = asksaveasfilename( parent=self )
@@ -2405,7 +2389,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Called if the user requests a save from the GUI.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doSave( {} )").format( event ) )
+            #print( "TextEditWindow.doSave( {} )".format( event ) )
 
         #if self.modified():
             #if self.folderPath and self.filename:
@@ -2436,7 +2420,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
                 #(Yes, this can result in old AutoSave files in the home folder.)
         #"""
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.doAutosave()") )
+            ##print( "TextEditWindow.doAutosave()" )
 
         #if self.modified():
             #partialAutosaveFolderPath = self.folderPath if self.folderPath else self.parentApp.homeFolderPath
@@ -2476,7 +2460,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Open a pop-up text window with the current settings displayed.
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("doViewSettings()") )
+            #print( "doViewSettings()" )
             #self.parentApp.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self.parentApp )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -2497,7 +2481,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Open a pop-up text window with the current log displayed.
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: print( exp("doViewLog()") )
+            #if debuggingThisModule: print( "doViewLog()" )
             #self.parentApp.setDebugText( "doViewLog…" )
 
         #filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
@@ -2520,7 +2504,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doHelp( {} )").format( event ) )
+            #print( "TextEditWindow.doHelp( {} )".format( event ) )
         #from Help import HelpBox
 
         #helpInfo = ProgNameVersion
@@ -2538,7 +2522,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doAbout( {} )").format( event ) )
+            #print( "TextEditWindow.doAbout( {} )".format( event ) )
         #from About import AboutBox
 
         #aboutInfo = ProgNameVersion
@@ -2553,7 +2537,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         ##Called if the user requests a close from the GUI.
         ##"""
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("TextEditWindow.doCloseEditor( {} )").format( event ) )
+            ##print( "TextEditWindow.doCloseEditor( {} )".format( event ) )
 
         ##self.onCloseEditor()
     ### end of TextEditWindow.closeEditor
@@ -2565,7 +2549,7 @@ class TextEditWindow( ChildWindow, TextEditWindowAddon ):
         #Determines if we want/need to save any changes.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("TextEditWindow.doClose( {} )").format( event ) )
+            #print( "TextEditWindow.doClose( {} )".format( event ) )
 
         #if self.modified():
             #saveWork = False
@@ -2612,7 +2596,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
