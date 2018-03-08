@@ -3,7 +3,7 @@
 #
 # USFMEditWindow.py
 #
-# The actual edit windows for Biblelator text editing and USFM/ESFM Bible editing
+# The actual edit window for USFM/PTX/Biblelator Bible text editing
 #
 # Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -148,7 +148,7 @@ class ToolsOptionsDialog( ModalDialog ):
 
 
 
-class USFMEditWindow( ChildWindow, InternalBibleResourceWindowAddon, TextEditWindowAddon ):
+class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, ChildWindow ):
     """
     self.genericWindowType will be BibleEditor
     self.windowType will be BiblelatorUSFMBibleEditWindow or Paratext8USFMBibleEditWindow or Paratext7USFMBibleEditWindow
@@ -1733,16 +1733,16 @@ class USFMEditWindow( ChildWindow, InternalBibleResourceWindowAddon, TextEditWin
     ## end of USFMEditWindow.doAbout
 
 
-    def doClose( self, event=None ):
-        """
-        Called if the window is about to be destroyed.
+    #def doClose( self, event=None ):
+        #"""
+        #Called if the window is about to be destroyed.
 
-        Determines if we want/need to save any changes.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "USFMEditWindow.doClose( {} )".format( event ) )
+        #Determines if we want/need to save any changes.
+        #"""
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( "USFMEditWindow.doClose( {} )".format( event ) )
 
-        TextEditWindowAddon.doClose( self ) # Make sure the right one is called (not the ChildWindow one)
+        #TextEditWindowAddon.doClose( self ) # Make sure the right one is called (not the ChildWindow one)
     # end of USFMEditWindow.doClose
 # end of USFMEditWindow class
 
