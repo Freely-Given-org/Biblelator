@@ -26,30 +26,88 @@
 Various modal dialog windows for Biblelator Bible display/editing.
 
     #class HTMLDialog( ModalDialog )
+        #__init__( self, parentWindow, text, title=None )
     class YesNoDialog( ModalDialog )
+        __init__( self, parentWindow, message, title=None )
     class OkCancelDialog( ModalDialog )
+        __init__( self, parentWindow, message, title=None )
+    class BookNameDialog( ModalDialog )
+        __init__( self, parentWindow, bookNameList, currentIndex )
+    class NumberButtonDialog( ModalDialog ):
+        A dialog box which allows the user to select a number from a given range.
+        This is used in touch mode to select chapter and/or verse numbers.
+        __init__( self, parentWindow, startNumber, endNumber, currentNumber )
     class SaveWindowNameDialog( ModalDialog )
+        __init__( self, parentWindow, existingSettings, title )
     class DeleteWindowNameDialog( ModalDialog )
+        __init__( self, parentWindow, existingSettings, title )
     class SelectResourceBoxDialog( ModalDialog )
+        Given a list of available resources, select one and return the list item.
+        __init__( self, parentWindow, availableSettingsList, title )
     class GetNewProjectNameDialog( ModalDialog )
+        Get the name and an abbreviation for a new Biblelator project.
+        __init__( self, parentWindow, title )
     class CreateNewProjectFilesDialog( ModalDialog )
+        Find if they want blank files created for a new Biblelator project.
+        __init__( self, parentWindow, title, currentBBB, availableVersifications )
     class GetNewCollectionNameDialog( ModalDialog )
+        __init__( self, parentWindow, existingNames, title )
     class RenameResourceCollectionDialog( ModalDialog )
+        Get the new name for a resource collection.
+        __init__( self, parentWindow, existingName, existingNames, title )
     class GetBibleBookRangeDialog( ModalDialog )
+        __init__( self, parentWindow, givenBible, currentBBB, currentList, title )
+    class SelectIndividualBibleBooksDialog( ModalDialog )
+        __init__( self, parentWindow, availableList, currentList, title )
     class GetBibleFindTextDialog( ModalDialog )
+        Get the search string (and options) for Bible search.
+        __init__( self, parentWindow, givenBible, optionsDict, title )
     class GetBibleReplaceTextDialog( ModalDialog )
+        Get the Find and Replace strings (and options) for Bible Replace.
+        __init__( self, parentWindow, givenBible, optionsDict, title )
     class ReplaceConfirmDialog( ModalDialog )
+        __init__( self, parentWindow, referenceString, contextBefore, findText, contextAfter, finalText, haveUndos, title )
     class SelectInternalBibleDialog( ModalDialog )
-    class GetSwordPathDialog( ModalDialog )
+        Select one internal Bible from a given list.
+        __init__( self, parentWindow, title, internalBibles )
+    #class GetSwordPathDialog( ModalDialog )
     class GetHebrewGlossWordDialog( ModalDialog )
+        Get a new (gloss) word from the user.
+        Accepts a bundle (e.g., list, tuple) of short strings to display to the user first.
+        Unlike our other dialogues, this one can remember its size and position.
+        Returns:
+            S for skip,
+            or None for cancel,
+            or else a dictionary possibly containing 'word','command','geometry'
+        __init__( self, parentWindow, title, contextLines, word='', geometry=None )
     class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog )
+        Get up to two new (gloss) words from the user.
+            The first one (usually generic gloss) is compulsory.
+            The second one (usually specific gloss) is optional.
+        Accepts a bundle (e.g., list, tuple) of short strings to display to the user first.
+        Unlike our other dialogues, this one can remember its size and position.
+        Returns:
+            S for skip,
+            or None for cancel,
+            or else a dictionary possibly containing 'word1','word2','command','geometry'
+        __init__( self, parentWindow, title, contextLines, word1='', word2='', geometry=None )
     class ChooseResourcesDialog( ModalDialog )
+        Given a list of available resources, select one and return the list item.
+        __init__( self, parentWindow, availableResourceDictsList, title )
     class DownloadResourcesDialog( ModalDialog )
+        Given a list of available downloadable resources (new or updates),
+            select one or more and download it/them.
+        Return result = number of successful downloads
+        __init__( self, parentWindow, title )
+
+TODO: Put title parameter consistently after parentWindow parameter.
+
+TODO: Work out how to automatically test keypresses in dialogs.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-04'
+LastModifiedDate = '2018-03-08'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -82,14 +140,14 @@ from PickledBible import ZIPPED_FILENAME_END
 #class HTMLDialog( ModalDialog ):
     #"""
     #"""
-    #def __init__( self, parent, text, title=None ):
+    #def __init__( self, parentWindow, text, title=None ):
         #"""
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( "HTMLDialog.__init__( {}, {!r}, {!r} )".format( parent, text, title ) )
+            #print( "HTMLDialog.__init__( {}, {!r}, {!r} )".format( parentWindow, text, title ) )
 
         #self.text = text
-        #ModalDialog.__init__( self, parent, title )
+        #ModalDialog.__init__( self, parentWindow, title )
     ## end of HTMLDialog.__init__
 
 
@@ -111,11 +169,11 @@ from PickledBible import ZIPPED_FILENAME_END
 class YesNoDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, message, title=None ):
+    def __init__( self, parentWindow, message, title=None ):
         """
         """
         self.message = message
-        ModalDialog.__init__( self, parent, title, okText=_("Yes"), cancelText=_("No") )
+        ModalDialog.__init__( self, parentWindow, title, okText=_("Yes"), cancelText=_("No") )
     # end of YesNoDialog.__init__
 
 
@@ -133,11 +191,11 @@ class YesNoDialog( ModalDialog ):
 class OkCancelDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, message, title=None ):
+    def __init__( self, parentWindow, message, title=None ):
         """
         """
         self.message = message
-        ModalDialog.__init__( self, parent, title, okText=_("Ok"), cancelText=_("Cancel") )
+        ModalDialog.__init__( self, parentWindow, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of OkCancelDialog.__init__
 
 
@@ -155,12 +213,12 @@ class OkCancelDialog( ModalDialog ):
 class BookNameDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, bookNameList, currentIndex ): #, message, title=None ):
+    def __init__( self, parentWindow, bookNameList, currentIndex ): #, message, title=None ):
         """
         """
         #print( 'currentIndex', currentIndex )
         self.bookNameList, self.currentIndex = bookNameList, currentIndex
-        ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
+        ModalDialog.__init__( self, parentWindow ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of BookNameDialog.__init__
 
 
@@ -239,12 +297,12 @@ class NumberButtonDialog( ModalDialog ):
 
     This is used in touch mode to select chapter and/or verse numbers.
     """
-    def __init__( self, parent, startNumber, endNumber, currentNumber ): #, message, title=None ):
+    def __init__( self, parentWindow, startNumber, endNumber, currentNumber ): #, message, title=None ):
         """
         """
         #print( 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
         self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
-        ModalDialog.__init__( self, parent ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
+        ModalDialog.__init__( self, parentWindow ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of NumberButtonDialog.__init__
 
 
@@ -317,13 +375,13 @@ class NumberButtonDialog( ModalDialog ):
 class SaveWindowNameDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, existingSettings, title ):
+    def __init__( self, parentWindow, existingSettings, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SaveWindowNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SaveWindowNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of SaveWindowNameDialog.__init__
 
 
@@ -381,13 +439,13 @@ class SaveWindowNameDialog( ModalDialog ):
 class DeleteWindowNameDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, existingSettings, title ):
+    def __init__( self, parentWindow, existingSettings, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "DeleteWindowNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "DeleteWindowNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
-        ModalDialog.__init__( self, parent, title, _("Delete") )
+        ModalDialog.__init__( self, parentWindow, title, _("Delete") )
     # end of DeleteWindowNameDialog.__init__
 
 
@@ -442,16 +500,16 @@ class SelectResourceBoxDialog( ModalDialog ):
     """
     Given a list of available resources, select one and return the list item.
     """
-    def __init__( self, parent, availableSettingsList, title ):
+    def __init__( self, parentWindow, availableSettingsList, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectResourceBoxDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SelectResourceBoxDialog…" )
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
                 print( "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
             assert isinstance( availableSettingsList, list )
         self.availableSettingsList = availableSettingsList
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of SelectResourceBoxDialog.__init__
 
 
@@ -511,11 +569,11 @@ class GetNewProjectNameDialog( ModalDialog ):
     """
     Get the name and an abbreviation for a new Biblelator project.
     """
-    def __init__( self, parent, title ):
+    def __init__( self, parentWindow, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewProjectNameDialog…" )
-        ModalDialog.__init__( self, parent, title )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetNewProjectNameDialog…" )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of GetNewProjectNameDialog.__init__
 
 
@@ -547,15 +605,15 @@ class GetNewProjectNameDialog( ModalDialog ):
         lenF = len( fullname )
         abbreviation = self.e2.get()
         lenA = len( abbreviation )
-        if lenF < 3: showWarning( self.parent, APP_NAME, _("Full name is too short!") ); return False
-        if lenF > 30: showWarning( self.parent, APP_NAME, _("Full name is too long!") ); return False
-        if lenA < 3: showWarning( self.parent, APP_NAME, _("Abbreviation is too short!") ); return False
-        if lenA > 8: showWarning( self.parent, APP_NAME, _("Abbreviation is too long!") ); return False
-        if ' ' in abbreviation: showWarning( self.parent, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
-        if '.' in abbreviation: showWarning( self.parent, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
+        if lenF < 3: showWarning( self.parentWindow, APP_NAME, _("Full name is too short!") ); return False
+        if lenF > 30: showWarning( self.parentWindow, APP_NAME, _("Full name is too long!") ); return False
+        if lenA < 3: showWarning( self.parentWindow, APP_NAME, _("Abbreviation is too short!") ); return False
+        if lenA > 8: showWarning( self.parentWindow, APP_NAME, _("Abbreviation is too long!") ); return False
+        if ' ' in abbreviation: showWarning( self.parentWindow, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
+        if '.' in abbreviation: showWarning( self.parentWindow, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
         for illegalChar in ':;"@#=/\\{}':
             if illegalChar in fullname or illegalChar in abbreviation:
-                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         return True
     # end of GetNewProjectNameDialog.validate
 
@@ -579,13 +637,13 @@ class CreateNewProjectFilesDialog( ModalDialog ):
     """
     Find if they want blank files created for a new Biblelator project.
     """
-    def __init__( self, parent, title, currentBBB, availableVersifications ): #, availableVersions ):
+    def __init__( self, parentWindow, title, currentBBB, availableVersifications ): #, availableVersions ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "CreateNewProjectFilesDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "CreateNewProjectFilesDialog…" )
         #self.currentBBB, self.availableVersifications, self.availableVersions = currentBBB, availableVersifications, availableVersions
         self.currentBBB, self.availableVersifications = currentBBB, availableVersifications
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of CreateNewProjectFilesDialog.__init__
 
 
@@ -650,9 +708,9 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         if result1Number<1 or result1Number>5 or result2Number<1 or result2Number>5: return False
 
         if result2Number==1 and not cb1result:
-            showWarning( self.parent, APP_NAME, _("Need a versification scheme name!") ); return False
+            showWarning( self.parentWindow, APP_NAME, _("Need a versification scheme name!") ); return False
         #if result2Number==2 and not cb2result:
-            #showWarning( self.parent, APP_NAME, _("Need a version name!") ); return False
+            #showWarning( self.parentWindow, APP_NAME, _("Need a version name!") ); return False
         return True
     # end of CreateNewProjectFilesDialog.validate
 
@@ -680,13 +738,13 @@ class CreateNewProjectFilesDialog( ModalDialog ):
 class GetNewCollectionNameDialog( ModalDialog ):
     """
     """
-    def __init__( self, parent, existingNames, title ):
+    def __init__( self, parentWindow, existingNames, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
         #print( "GetNewCollectionNameDialog: eNs", self.existingNames )
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of GetNewCollectionNameDialog.__init__
 
 
@@ -711,13 +769,13 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         name = self.e1.get()
         lenN = len( name )
-        if lenN < 3: showWarning( self.parent, APP_NAME, _("Name is too short!") ); return False
-        if lenN > 30: showWarning( self.parent, APP_NAME, _("Name is too long!") ); return False
+        if lenN < 3: showWarning( self.parentWindow, APP_NAME, _("Name is too short!") ); return False
+        if lenN > 30: showWarning( self.parentWindow, APP_NAME, _("Name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in name:
-                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if name.upper() in self.existingNames:
-            showWarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showWarning( self.parentWindow, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of GetNewCollectionNameDialog.validate
 
@@ -739,13 +797,13 @@ class RenameResourceCollectionDialog( ModalDialog ):
     """
     Get the new name for a resource collection.
     """
-    def __init__( self, parent, existingName, existingNames, title ):
+    def __init__( self, parentWindow, existingName, existingNames, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "RenameResourceCollectionDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "RenameResourceCollectionDialog…" )
         self.existingName, self.existingNames = existingName, existingNames
         print( "RenameResourceCollectionDialog: eNs", self.existingNames )
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of RenameResourceCollectionDialog.__init__
 
 
@@ -772,13 +830,13 @@ class RenameResourceCollectionDialog( ModalDialog ):
         """
         newName = self.e1.get()
         lenName = len( newName )
-        if lenName < 3: showWarning( self.parent, APP_NAME, _("New name is too short!") ); return False
-        if lenName > 30: showWarning( self.parent, APP_NAME, _("New name is too long!") ); return False
+        if lenName < 3: showWarning( self.parentWindow, APP_NAME, _("New name is too short!") ); return False
+        if lenName > 30: showWarning( self.parentWindow, APP_NAME, _("New name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in newName:
-                showWarning( self.parent, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if newName.upper() in self.existingNames:
-            showWarning( self.parent, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showWarning( self.parentWindow, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of RenameResourceCollectionDialog.validate
 
@@ -798,7 +856,6 @@ class RenameResourceCollectionDialog( ModalDialog ):
 
 class GetBibleBookRangeDialog( ModalDialog ):
     """
-    Get the new name for a resource collection.
     """
     def __init__( self, parentWindow, givenBible, currentBBB, currentList, title ):
         """
@@ -857,6 +914,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         Allow the user to select individual books(s).
         """
+        self.parentApp = self.parentWindow.parentApp # Need to set this up before calling dialog from a dialog
         self.availableList = self.givenBible.getBookList()
         sIBBD = SelectIndividualBibleBooksDialog( self, self.availableList, self.currentList, title=_('Books to be searched') )
         if BibleOrgSysGlobals.debugFlag: print( "individualBooks sIBBDResult", repr(sIBBD.result) )
@@ -901,7 +959,6 @@ class GetBibleBookRangeDialog( ModalDialog ):
 
 class SelectIndividualBibleBooksDialog( ModalDialog ):
     """
-    Get the new name for a resource collection.
     """
     def __init__( self, parentWindow, availableList, currentList, title ):
         """
@@ -941,6 +998,7 @@ class SelectIndividualBibleBooksDialog( ModalDialog ):
         elif numBooks > 80: buttonsAcross = 10
         elif numBooks > 60: buttonsAcross = 8
         elif numBooks > 30: buttonsAcross = 6
+        else: buttonsAcross = 5
         xPad, yPad = 6, 8
 
         grid=Frame( master )
@@ -1103,11 +1161,11 @@ class GetBibleFindTextDialog( ModalDialog ):
         self.projectNameVar.set( self.optionsDict['workName'] )
         self.projectNameBox = BCombobox( master, width=30, textvariable=self.projectNameVar )
         # Find other Bible boxes which might be added as possible projects
-        #print( "  parent window {}".format( self.optionsDict['parentWindow'] ) )
+        #print( "  parentWindow window {}".format( self.optionsDict['parentWindow'] ) )
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
-        for appWin in self.parent.parentApp.childWindows:
+        for appWin in self.parentWindow.parentApp.childWindows:
             #print( "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType:
                 #print( "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
@@ -1266,9 +1324,9 @@ class GetBibleFindTextDialog( ModalDialog ):
     def selectBooks( self ):
         """
         """
-        self.parent._prepareInternalBible() # Slow but must be called before the dialog
+        self.parentWindow._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
-        gBBRD = GetBibleBookRangeDialog( self, self.parent.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
+        gBBRD = GetBibleBookRangeDialog( self, self.parentWindow.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
         if BibleOrgSysGlobals.debugFlag: print( "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
@@ -1326,20 +1384,20 @@ class GetBibleFindTextDialog( ModalDialog ):
                 if marker in BibleOrgSysGlobals.USFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     markerList.append( marker )
                 else: # not a valid newline marker
-                    showWarning( self.parent, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
+                    showWarning( self.parentWindow, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
         else: # Nothing in the entry
             self.theseMarkersOnlyVar.set( 0 )
 
         # Now check for bad combinations
         findText = self.searchStringVar.get()
-        if not findText: showWarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
-        if findText.lower() == 'regex:': showWarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        if not findText: showWarning( self.parentWindow, APP_NAME, _("Nothing to search for!") ); return False
+        if findText.lower() == 'regex:': showWarning( self.parentWindow, APP_NAME, _("No regular expression to search for!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and not self.optionsDict['bookList']:
-            showWarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
+            showWarning( self.parentWindow, APP_NAME, _("No books selected to search in!") ); return False
         if self.theseMarkersOnlyVar.get():
             if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
-                showWarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
+                showWarning( self.parentWindow, APP_NAME, _("Bad combination of fields selected!") ); return False
         return True # Must be ok
     # end of GetBibleFindTextDialog.validate
 
@@ -1421,7 +1479,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
     """
     Get the Find and Replace strings (and options) for Bible Replace.
     """
-    def __init__( self, parentWindow, parentApp, givenBible, optionsDict, title ):
+    def __init__( self, parentWindow, givenBible, optionsDict, title ):
         """
         optionsDict must already contain 'currentBCV'
         """
@@ -1469,11 +1527,11 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.projectNameVar.set( self.optionsDict['workName'] )
         self.projectNameBox = BCombobox( master, width=30, textvariable=self.projectNameVar )
         # Find other Bible boxes which might be added as possible projects
-        #print( "  parent window {}".format( self.optionsDict['parentWindow'] ) )
+        #print( "  parentWindow window {}".format( self.optionsDict['parentWindow'] ) )
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
-        for appWin in self.parent.parentApp.childWindows:
+        for appWin in self.parentWindow.parentApp.childWindows:
             #print( "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType and 'Edit' in appWin.windowType:
                 #print( "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
@@ -1640,7 +1698,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
     def selectBooks( self ):
         """
         """
-        self.parent._prepareInternalBible() # Slow but must be called before the dialog
+        self.parentWindow._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
         gBBRD = GetBibleBookRangeDialog( self, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be Replaceed') )
         if BibleOrgSysGlobals.debugFlag: print( "selectBooks gBBRDResult", repr(gBBRD.result) )
@@ -1700,22 +1758,22 @@ class GetBibleReplaceTextDialog( ModalDialog ):
                 #if marker in BibleOrgSysGlobals.USFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     #markerList.append( marker )
                 #else: # not a valid newline marker
-                    #showWarning( self.parent, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
+                    #showWarning( self.parentWindow, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
         #else: # Nothing in the entry
             #self.theseMarkersOnlyVar.set( 0 )
 
         # Now check for bad combinations
         findText = self.searchStringVar.get()
-        if not findText: showWarning( self.parent, APP_NAME, _("Nothing to search for!") ); return False
-        if findText.lower() == 'regex:': showWarning( self.parent, APP_NAME, _("No regular expression to search for!") ); return False
+        if not findText: showWarning( self.parentWindow, APP_NAME, _("Nothing to search for!") ); return False
+        if findText.lower() == 'regex:': showWarning( self.parentWindow, APP_NAME, _("No regular expression to search for!") ); return False
         replaceText = self.replaceStringVar.get()
-        if replaceText.lower().startswith( 'regex:' ): showWarning( self.parent, APP_NAME, _("Don't start replace field with 'regex:'!") ); return False
+        if replaceText.lower().startswith( 'regex:' ): showWarning( self.parentWindow, APP_NAME, _("Don't start replace field with 'regex:'!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and ( not self.optionsDict['bookList'] or not isinstance(self.optionsDict['bookList'], list) ):
-            showWarning( self.parent, APP_NAME, _("No books selected to search in!") ); return False
+            showWarning( self.parentWindow, APP_NAME, _("No books selected to search in!") ); return False
         #if self.theseMarkersOnlyVar.get():
             #if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
-                #showWarning( self.parent, APP_NAME, _("Bad combination of fields selected!") ); return False
+                #showWarning( self.parentWindow, APP_NAME, _("Bad combination of fields selected!") ); return False
         return True # Must be ok
     # end of GetBibleReplaceTextDialog.validate
 
@@ -1900,12 +1958,12 @@ class SelectInternalBibleDialog( ModalDialog ):
     """
     Select one internal Bible from a given list.
     """
-    def __init__( self, parent, title, internalBibles ):
+    def __init__( self, parentWindow, title, internalBibles ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "SelectInternalBibleDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SelectInternalBibleDialog…" )
         self.internalBibles = internalBibles
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of SelectInternalBibleDialog.__init__
 
 
@@ -1981,12 +2039,12 @@ class SelectInternalBibleDialog( ModalDialog ):
     #"""
     #Get the folder path to search for Sword modules (none found in "normal" places).
     #"""
-    #def __init__( self, parent, title ):
+    #def __init__( self, parentWindow, title ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "GetSwordPathDialog…" )
+        #if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetSwordPathDialog…" )
         #self.alreadyTriedList = []
-        #ModalDialog.__init__( self, parent, title )
+        #ModalDialog.__init__( self, parentWindow, title )
     ## end of GetSwordPathDialog.__init__
 
 
@@ -2021,13 +2079,13 @@ class SelectInternalBibleDialog( ModalDialog ):
         #"""
         #enteredPath = self.e1.get()
         #if not os.path.isdir( enteredPath):
-            #showWarning( self.parent, APP_NAME, _("Pathname seems invalid") ); return False
+            #showWarning( self.parentWindow, APP_NAME, _("Pathname seems invalid") ); return False
         #epAdjusted = enteredPath.lower().replace( '\\', '/' )
         #if epAdjusted[-1] != '/': epAdjusted += '/'
         #if epAdjusted.endswith( 'mods.d/'):
-            #showWarning( self.parent, APP_NAME, _("Pathname shouldn't include mods.d") ); return False
+            #showWarning( self.parentWindow, APP_NAME, _("Pathname shouldn't include mods.d") ); return False
         #if not os.path.isdir( os.path.join( enteredPath, 'mods.d/' ) ):
-            #showWarning( self.parent, APP_NAME, _("Pathname seems to have no 'mods.d' subfolder") ); return False
+            #showWarning( self.parentWindow, APP_NAME, _("Pathname seems to have no 'mods.d' subfolder") ); return False
         #return True
     ## end of GetSwordPathDialog.validate
 
@@ -2198,11 +2256,11 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         resultWord = self.entry.get()
         for illegalChar in ' :;"@#\\{}':
             if illegalChar in resultWord:
-                showWarning( self.parent, APP_NAME, _("Not allowed {} characters") \
+                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters") \
                                     .format( _('space') if illegalChar==' ' else illegalChar ) )
                 return False
         if resultWord.count('=') != self.contextLines[1].count('='):
-            showWarning( self.parent, APP_NAME, _("Number of morpheme breaks (=) must match") )
+            showWarning( self.parentWindow, APP_NAME, _("Number of morpheme breaks (=) must match") )
             return False
         return True
     # end of GetHebrewGlossWordDialog.validate
@@ -2323,11 +2381,11 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
         for resultWord in ( resultWord1, resultWord2 ):
             for illegalChar in ' :;"@#\\{}':
                 if illegalChar in resultWord:
-                    showWarning( self.parent, APP_NAME, _("Not allowed {} characters") \
+                    showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters") \
                                         .format( _('space') if illegalChar==' ' else illegalChar ) )
                     return False
             if resultWord and resultWord.count('=') != self.contextLines[1].count('='):
-                showWarning( self.parent, APP_NAME, _("Number of morpheme breaks (=) must match") )
+                showWarning( self.parentWindow, APP_NAME, _("Number of morpheme breaks (=) must match") )
                 return False
         return True
     # end of GetHebrewGlossWordsDialog.validate
@@ -2402,7 +2460,7 @@ class ChooseResourcesDialog( ModalDialog ):
         """
         box = Frame( self )
 
-        downloadButton = Button( box, text=_('Download more…'), command=self.doDownloadMore, state=tk.NORMAL if self.parent.parentApp.internetAccessEnabled else tk.DISABLED )
+        downloadButton = Button( box, text=_('Download more…'), command=self.doDownloadMore, state=tk.NORMAL if self.parentWindow.parentApp.internetAccessEnabled else tk.DISABLED )
         downloadButton.pack( side=tk.LEFT, padx=5, pady=5 )
         okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
         okButton.pack( side=tk.LEFT, padx=5, pady=5 )
@@ -2420,6 +2478,7 @@ class ChooseResourcesDialog( ModalDialog ):
         """
         Allow the user to select resources to download from Freely-Given.org.
         """
+        self.parentApp = self.parentWindow.parentApp # Need to set this up before calling dialog from a dialog
         dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
         if BibleOrgSysGlobals.debugFlag: print( "doDownloadMore dRD result", repr(dRD.result) )
         if dRD.result:
@@ -2467,16 +2526,16 @@ class DownloadResourcesDialog( ModalDialog ):
 
     Return result = number of successful downloads
     """
-    def __init__( self, parent, title ):
+    def __init__( self, parentWindow, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parent.parentApp.setDebugText( "DownloadResourcesDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "DownloadResourcesDialog…" )
         if BibleOrgSysGlobals.debugFlag:
             #if debuggingThisModule:
                 #print( "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
             assert isinstance( title, str )
         self.downloadCount = 0
-        ModalDialog.__init__( self, parent, title )
+        ModalDialog.__init__( self, parentWindow, title )
     # end of DownloadResourcesDialog.__init__
 
 
@@ -2576,7 +2635,7 @@ class DownloadResourcesDialog( ModalDialog ):
     def doDownloadFile( self, abbrev ):
         """
         """
-        self.parent.parentApp.setWaitStatus( _("Downloading {} resource…").format( abbrev ) )
+        self.parentWindow.parentApp.setWaitStatus( _("Downloading {} resource…").format( abbrev ) )
         filename = abbrev + ZIPPED_FILENAME_END
         filepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
         url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
@@ -2589,7 +2648,7 @@ class DownloadResourcesDialog( ModalDialog ):
         with open( filepath, 'wb' ) as outputFile:
             outputFile.write( responseObject.read() )
         self.downloadCount += 1
-        self.parent.parentApp.setReadyStatus()
+        self.parentWindow.parentApp.setReadyStatus()
     # end of DownloadResourcesDialog.doDownloadFile
 
 
@@ -2623,12 +2682,78 @@ def demo():
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
 
-    #swnd = SaveWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
-    #print( "swndResult", swnd.result )
-    #dwnd = DeleteWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
-    #print( "dwndResult", dwnd.result )
-    srb = SelectResourceBoxDialog( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
-    print( "srbResult", srb.result )
+    # We need to set a parentApp variable and setStatus/setReadyStatus functions
+    class tempApp():
+        def __init__( self ):
+            self.childWindows=[]
+            self.internetAccessEnabled = True
+        def setStatus( self, newStatusText='' ): pass
+        def setReadyStatus( self ): pass
+    tkRootWindow.parentApp = tempApp()
+
+    ynD = YesNoDialog( tkRootWindow, message="Choose yes or no", title="Testing YesNoDialog" )
+    print( "YesNoResult", ynD.result )
+    ocD = OkCancelDialog( tkRootWindow, message="Choose ok or cancel", title="Testing OkCancelDialog" )
+    print( "OkCancelResult", ocD.result )
+    bnD = BookNameDialog( tkRootWindow, bookNameList=["aaa","BBB","CcC"], currentIndex=1 )
+    print( "BookNameResult", bnD.result )
+    nbD = NumberButtonDialog( tkRootWindow, startNumber=1, endNumber=11, currentNumber=6 )
+    print( "NumberButtonResult", nbD.result )
+    swnd = SaveWindowNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test SWND" )
+    print( "SaveWindowNameResult", swnd.result )
+    dwnd = DeleteWindowNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test DWND" )
+    print( "DeleteWindowNameResult", dwnd.result )
+    srb = SelectResourceBoxDialog( tkRootWindow, availableSettingsList=[(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], title="Test SRB" )
+    print( "SelectResourceBoxResult", srb.result )
+    gnpnD = GetNewProjectNameDialog( tkRootWindow, title="Testing GetNewProjectNameDialog" )
+    print( "GetNewProjectNameResult", gnpnD.result )
+
+    from BibleVersificationSystems import BibleVersificationSystems
+    bvss = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
+    availableVersifications = bvss.getAvailableVersificationSystemNames()
+    cnpfD = CreateNewProjectFilesDialog( tkRootWindow, title="Testing CreateNewProjectFilesDialog", currentBBB='PSA', availableVersifications=availableVersifications )
+    print( "CreateNewProjectFilesResult", cnpfD.result )
+
+    gncnD = GetNewCollectionNameDialog( tkRootWindow, existingNames=["aaa","BBB","CcC"], title="Testing GetNewCollectionNameDialog" )
+    print( "GetNewCollectionNameResult", gncnD.result )
+    rrcD = RenameResourceCollectionDialog( tkRootWindow, existingName="xyz", existingNames=["aaa","BBB","CcC"], title="Testing RenameResourceCollectionDialog" )
+    print( "RenameResourceCollectionResult", rrcD.result )
+
+    class internalBible():
+        def __init__( self ): self.BBB='GEN'
+        def __len__( self ): return 3
+        def getBookList( self ): return ['EXO','MAT','REV']
+        def getAName( self ): return 'Fred'
+    testBible = internalBible()
+
+    gbbrD = GetBibleBookRangeDialog( tkRootWindow, givenBible=testBible, currentBBB='SA1', currentList=["aaa","BBB","CcC"], title="Testing GetBibleBookRangeDialog" )
+    print( "GetBibleBookRangeResult", gbbrD.result )
+
+    sibbD = SelectIndividualBibleBooksDialog( tkRootWindow, availableList=["aaa","BBB"], currentList=["aaa","BBB","CcC"], title="Testing SelectIndividualBibleBooksDialog" )
+    print( "SelectIndividualBibleBooksResult", sibbD.result )
+
+    tkRootWindow.textBox = tk.Text( tkRootWindow, width=40, height=10 )
+    testOptionsDict = {'currentBCV':('ACT','1','1')}
+    gbftD = GetBibleFindTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleFindTextDialog" )
+    print( "GetBibleFindTextResult", gbftD.result )
+    gbrtD = GetBibleReplaceTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleReplaceTextDialog" )
+    print( "GetBibleReplaceTextResult", gbrtD.result )
+    rcD = ReplaceConfirmDialog( tkRootWindow, referenceString="def", contextBefore="abc", findText="def", contextAfter="ghi", finalText="xyz", haveUndos=True, title="Testing ReplaceConfirmDialog" )
+    print( "ReplaceConfirmResult", rcD.result )
+
+    sibD = SelectInternalBibleDialog( tkRootWindow, title="Testing SelectInternalBibleDialog", internalBibles=[testBible] )
+    print( "SelectInternalBibleResult", sibD.result )
+
+    ghgwD = GetHebrewGlossWordDialog( tkRootWindow, title="Testing GetHebrewGlossWordDialog", contextLines=['abc','def','ghi'], word="word" )
+    print( "GetHebrewGlossWordResult", ghgwD.result )
+    ghgwsD = GetHebrewGlossWordsDialog( tkRootWindow, title="Testing GetHebrewGlossWordsDialog", contextLines=['abc','def','ghi'], word1="generic", word2="specific" )
+    print( "GetHebrewGlossWordsResult", ghgwsD.result )
+
+    availableResourceDictsList = [{'abbreviation':"aaa",'givenName':"AAA",'zipFilename':'a.zip'},{'abbreviation':"ddd",'givenName':"BBB",'zipFilename':'b.zip'},{'abbreviation':"ccc",'givenName':"CCC",'zipFilename':'c.zip'}]
+    crD = ChooseResourcesDialog( tkRootWindow, availableResourceDictsList=availableResourceDictsList, title="Testing ChooseResourcesDialog" )
+    print( "ChooseResourcesResult", crD.result )
+    drD = DownloadResourcesDialog( tkRootWindow, title="Testing DownloadResourcesDialog" )
+    print( "DownloadResourcesResult", drD.result )
 
     #tkRootWindow.quit()
 
@@ -2645,12 +2770,6 @@ if __name__ == '__main__':
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 
