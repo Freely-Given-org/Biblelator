@@ -53,12 +53,12 @@ class ModalDialog( tk.Toplevel ):
     A Toplevel window that's a modal dialog
         and intended to be subclassed.
     """
-    def __init__(self, parent, title=None, okText=None, cancelText=None, geometry=None):
+    def __init__(self, parentWindow, title=None, okText=None, cancelText=None, geometry=None):
 
-        tk.Toplevel.__init__( self, parent )
-        self.transient( parent )
+        tk.Toplevel.__init__( self, parentWindow )
+        self.transient( parentWindow )
 
-        self.parent = parent
+        self.parentWindow = parentWindow
         if title: self.title( title )
 
         self.result = None # Used to return an optional result
@@ -80,9 +80,9 @@ class ModalDialog( tk.Toplevel ):
 
         self.protocol( 'WM_DELETE_WINDOW', self.cancel ) # Ensure that closing the dialog does a cancel
 
-        self.geometry( geometry if geometry else "+{}+{}".format(parent.winfo_rootx()+50, parent.winfo_rooty()+50) )
+        self.geometry( geometry if geometry else "+{}+{}".format(parentWindow.winfo_rootx()+50, parentWindow.winfo_rooty()+50) )
 
-        self.parent.parentApp.setStatus( _("Waiting for user input…") )
+        self.parentWindow.parentApp.setStatus( _("Waiting for user input…") )
         self.initial_focus.focus_set()
         self.wait_window( self )
     # end of ModalDialog.__init__
@@ -138,8 +138,8 @@ class ModalDialog( tk.Toplevel ):
     def cancel( self, event=None ):
 
         # put focus back to the parent window
-        self.parent.parentApp.setReadyStatus()
-        self.parent.focus_set()
+        self.parentWindow.parentApp.setReadyStatus()
+        self.parentWindow.focus_set()
         self.destroy()
     # end of ModalDialog.cancel
 
