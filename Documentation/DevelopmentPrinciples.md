@@ -1,7 +1,7 @@
 Biblelator Development Principles
 =================================
 
-Last updated: 2016-04-14 RJH
+Last updated: 2018-02-16 RJH
 
 
 The following are some of the reasons behind some of the major development decisions
@@ -105,9 +105,10 @@ The following are some of the reasons behind some of the major development decis
 
 10. Including book introductions
 
-    Biblelator considers a book introduction as chapter "zero", and considers anything before
+    Biblelator considers a book introduction as chapter "-1", and considers anything before
     verse one in a chapter (e.g., a chapter heading), as verse "zero". It should be as easy and
-    convenient to edit introductions as actual Bible text.
+    convenient to edit introductions as actual Bible text, and we can also handle the (rare)
+    Bibles that have an actual chapter 0 with "verses".
 
 
 11. Including other front and back matter

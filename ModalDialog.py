@@ -30,10 +30,10 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-14' # by RJH
+LastModifiedDate = '2018-02-21' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -48,33 +48,17 @@ import BibleOrgSysGlobals
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, errorBit )
-# end of exp
-
-
-
 class ModalDialog( tk.Toplevel ):
     """
     A Toplevel window that's a modal dialog
         and intended to be subclassed.
     """
-    def __init__(self, parent, title=None, okText=None, cancelText=None):
+    def __init__(self, parentWindow, title=None, okText=None, cancelText=None, geometry=None):
 
-        tk.Toplevel.__init__( self, parent )
-        self.transient( parent )
+        tk.Toplevel.__init__( self, parentWindow )
+        self.transient( parentWindow )
 
-        self.parent = parent
+        self.parentWindow = parentWindow
         if title: self.title( title )
 
         self.result = None # Used to return an optional result
@@ -96,9 +80,9 @@ class ModalDialog( tk.Toplevel ):
 
         self.protocol( 'WM_DELETE_WINDOW', self.cancel ) # Ensure that closing the dialog does a cancel
 
-        self.geometry( "+{}+{}".format(parent.winfo_rootx()+50, parent.winfo_rooty()+50) )
+        self.geometry( geometry if geometry else "+{}+{}".format(parentWindow.winfo_rootx()+50, parentWindow.winfo_rooty()+50) )
 
-        self.parent.parentApp.setStatus( _("Waiting for user input…") )
+        self.parentWindow.parentApp.setStatus( _("Waiting for user input…") )
         self.initial_focus.focus_set()
         self.wait_window( self )
     # end of ModalDialog.__init__
@@ -111,7 +95,7 @@ class ModalDialog( tk.Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("This 'body' method must be overridden!") ); halt
+        if BibleOrgSysGlobals.debugFlag: print( "This 'body' method must be overridden!" ); halt
     # end of ModalDialog.makeBody
 
 
@@ -154,8 +138,8 @@ class ModalDialog( tk.Toplevel ):
     def cancel( self, event=None ):
 
         # put focus back to the parent window
-        self.parent.parentApp.setReadyStatus()
-        self.parent.focus_set()
+        self.parentWindow.parentApp.setReadyStatus()
+        self.parentWindow.focus_set()
         self.destroy()
     # end of ModalDialog.cancel
 
@@ -167,7 +151,7 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("This 'validate' method can be overridden!") )
+        if BibleOrgSysGlobals.debugFlag: print( "This 'validate' method can be overridden!" )
         return True # override
     # end of ModalDialog.validate
 
@@ -179,7 +163,7 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("This 'apply' method should be overridden!") )
+        if BibleOrgSysGlobals.debugFlag: print( "This 'apply' method should be overridden!" )
         self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog

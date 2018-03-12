@@ -5,7 +5,7 @@
 #
 # Sword module download manager program
 #
-# Copyright (C) 2016-2017 Robert Hunt
+# Copyright (C) 2016-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,10 +32,10 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-13' # by RJH
+LastModifiedDate = '2018-02-24' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
-ProgVersion = '0.04' # Separate versioning from Biblelator
+ProgVersion = '0.05' # Separate versioning from Biblelator
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -55,7 +55,6 @@ from tkinter.scrolledtext import ScrolledText
 from BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
-        findHomeFolderPath, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
 from BiblelatorSimpleDialogs import showError, showWarning, showInfo
@@ -228,8 +227,8 @@ class SwordManager( Frame ):
         self.genericBookList = self.genericBibleOrganisationalSystem.getBookList()
         #self.getNumBooks = self.genericBibleOrganisationalSystem.getNumBooks
         self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
-                                        else self.genericBibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
+                                        else self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
@@ -1203,7 +1202,7 @@ def demo():
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
 
-    homeFolderPath = findHomeFolderPath()
+    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
     settings.load()
@@ -1292,7 +1291,7 @@ if __name__ == '__main__':
         sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
-    homeFolderPath = findHomeFolderPath()
+    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )

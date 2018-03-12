@@ -26,8 +26,6 @@
 Global variables and functions for program
   to allow editing of USFM Bibles using Python3 with Tkinter.
 
-    findHomeFolderPath()
-    findUsername()
     assembleWindowGeometry( width, height, xOffset, yOffset )
     assembleWindowSize( width, height )
     assembleWindowGeometryFromList( geometryValues )
@@ -41,10 +39,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-18' # by RJH
+LastModifiedDate = '2018-02-26' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -52,10 +50,6 @@ debuggingThisModule = False
 
 
 import os, re
-try: import pwd
-except ImportError:
-    pwd = None
-    import getpass
 
 # BibleOrgSys imports
 import sys; sys.path.append( '../BibleOrgSys/' )
@@ -107,7 +101,7 @@ MAX_PSEUDOVERSES = 999 # in a non-chapter book like a glossary or something (or 
 
 # Default window size settings (Note: X=width, Y=height)
 INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x76', '607x360', '550x75', '700x500'
-INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE = '600x360', '350x150', '800x600'
+INITIAL_RESOURCE_SIZE, MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE, MAXIMUM_LARGE_RESOURCE_SIZE = '600x360', '350x150', '800x600', '1200x800'
 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE = '600x360', '350x150', '800x1200'
 INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE = '600x400', '350x150', '800x1200'
 INITIAL_HTML_SIZE, MINIMUM_HTML_SIZE, MAXIMUM_HTML_SIZE = '800x600', '550x200', '1200x800'
@@ -148,30 +142,6 @@ DEFAULT_KEY_BINDING_DICT = {
     _('Quit'):('Alt+F4','<Alt-F4>'), }
 #print( DEFAULT_KEY_BINDING_DICT ); halt
 
-
-
-def findHomeFolderPath():
-    """
-    Attempt to find the path to the user's home folder and return it.
-    """
-    possibleHomeFolders = ( os.path.expanduser('~'), os.getcwd(), os.curdir, os.pardir )
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "possible home folders", possibleHomeFolders )
-    for folder in possibleHomeFolders:
-        if os.path.isdir( folder ) and os.access( folder, os.W_OK ):
-            return folder
-# end of BiblelatorGlobals.findHomeFolderPath
-
-
-def findUsername():
-    """
-    Attempt to find the current user name and return it.
-    """
-    if pwd:
-        return pwd.getpwuid(os.geteuid()).pw_name
-    else:
-        return getpass.getuser()
-# end of BiblelatorGlobals.findUsername
 
 
 def assembleWindowGeometry( width, height, xOffset, yOffset ):

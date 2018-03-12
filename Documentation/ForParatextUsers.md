@@ -1,7 +1,7 @@
 Notes for Paratext users
 ========================
 
-Last updated: 2017-09-21 RJH
+Last updated: 2018-02-16 RJH
 
 
 This document is to help the Biblelator user who has been accustomed to using UBS/SIL
@@ -21,7 +21,7 @@ For an overview of the program design philosophy, see Development.md.
 Features in Biblelator that are different
 =========================================
 
-1. Window placement.
+1. Window placement
     Biblelator doesn't have one large window like Paratext with "daughter" windows
     inside it. Rather the "main" window is relatively small, and "daughter" windows
     can be placed anywhere on your screen/screens, i.e., they don't all have to be
@@ -39,6 +39,18 @@ Features in Biblelator that are different
 
     Biblelator can display many kinds of Bible resources from any folder on your
     computer, as well as downloaded resources (from Faith Comes By Hearing).
+
+3. Chapter/Verse Numbering
+    Paratext lumps all USFM lines before chapter 1 verse 1 as chapter 1 verse 0
+    (which means scrolling doesn't synchronise between different windows).
+
+    Biblelator considers everything before the chapters/verses as "chapter -1",
+    and each line is a verse number (starting with the id line as "verse 0").
+    This allows the rare case of Bibles which actually have a chapter 0.
+
+    Also, Biblelator moves things like section headings into the next verse,
+    rather than displaying them as an appendage to the previous verse. The
+    chapter number itself, is considered to be in "verse 0".
 
 
 Features only in Biblelator

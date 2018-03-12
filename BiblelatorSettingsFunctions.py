@@ -39,11 +39,11 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-08' # by RJH
+LastModifiedDate = '2018-02-24' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.42'
-SettingsVersion = '0.42' # Only need to change this if the settings format has changed
+ProgVersion = '0.43'
+SettingsVersion = '0.43' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -57,7 +57,7 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, \
     DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
-    findHomeFolderPath, parseWindowSize, assembleWindowSize
+    parseWindowSize, assembleWindowSize
 from BiblelatorSimpleDialogs import showError
 from BiblelatorDialogs import SaveWindowNameDialog, DeleteWindowNameDialog
 from TextEditWindow import TextEditWindow
@@ -903,7 +903,7 @@ def demo():
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( ProgNameVersion )
 
-    homeFolderPath = findHomeFolderPath()
+    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
     settings.load()

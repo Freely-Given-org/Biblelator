@@ -1,7 +1,7 @@
 Helpful Hints for Biblelator
 ============================
 
-Last updated: 2016-04-25 RJH
+Last updated: 2018-02-16 RJH
 
 
 This document is to help the Biblelator user to get an understanding how the program
@@ -19,4 +19,5 @@ For an overview of the program design philosophy, see Development.md.
 
 1. Hint 1
 
-    Take care.
+    The introduction to a book (particularly in USFM files) is considered to be
+        "chapter -1".

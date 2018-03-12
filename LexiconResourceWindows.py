@@ -5,7 +5,7 @@
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-16' # by RJH
+LastModifiedDate = '2018-02-23' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -61,22 +61,6 @@ from BibleLexicon import BibleLexicon
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, errorBit )
-# end of exp
-
-
-
 class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     """
     """
@@ -84,11 +68,11 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleLexiconResourceWindow.__init__( {}, {} )").format( parentApp, lexiconPath ) )
+            print( "BibleLexiconResourceWindow.__init__( {}, {} )".format( parentApp, lexiconPath ) )
+        self.lexiconPath = lexiconPath
 
-        self.lexiconWord = None
         ChildWindow.__init__( self, parentApp, 'LexiconResource' )
-        self.parentApp, self.lexiconPath = parentApp, lexiconPath
+        ChildBoxAddon.__init__( self, parentApp )
         self.moduleID = self.lexiconPath
         self.windowType = 'BibleLexiconResourceWindow'
 
@@ -99,6 +83,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         #self.createStandardWindowKeyboardBindings( reset=True )
 
+        self.createMenuBar()
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
         #    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
@@ -107,7 +92,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         try: self.BibleLexicon = BibleLexicon( os.path.join( self.lexiconPath, 'HebrewLexicon/' ),
                                                os.path.join( self.lexiconPath, 'strongs-dictionary-xml/' ) )
         except FileNotFoundError:
-            logging.critical( exp("BibleLexiconResourceWindow.__init__ Unable to find Bible lexicon path: {}").format( repr(self.lexiconPath) ) )
+            logging.critical( "BibleLexiconResourceWindow.__init__ " + _("Unable to find Bible lexicon path: {}").format( repr(self.lexiconPath) ) )
             self.BibleLexicon = None
     # end of BibleLexiconResourceWindow.__init__
 
@@ -120,7 +105,9 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleLexiconResourceWindow.createMenuBar()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "BibleLexiconResourceWindow.createMenuBar()" )
+
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -183,7 +170,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         Create a tool bar containing some helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createToolBar()") )
+            print( "createToolBar()" )
 
         xPad, yPad = (6, 8) if self.parentApp.touchMode else (4, 4)
 
@@ -207,8 +194,9 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doGotoPreviousEntry() from {}").format( repr(self.lexiconWord) ) )
+            print( "doGotoPreviousEntry() from {}".format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoPreviousEntry…" )
+
         if self.lexiconWord is None:
             self.updateLexiconWord( 'G5624' )
         elif (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) \
@@ -223,8 +211,9 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doGotoNextEntry() from {}").format( repr(self.lexiconWord) ) )
+            print( "doGotoNextEntry() from {}".format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoNextEntry…" )
+
         if self.lexiconWord is None:
             self.updateLexiconWord( 'H1' )
         elif (self.lexiconWord.startswith('H') or self.lexiconWord.startswith('G')) \
@@ -239,7 +228,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Leaves text box in disabled state. (Not user editable.)
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("updateLexiconWord( {} )").format( newLexiconWord ) )
+        if BibleOrgSysGlobals.debugFlag: print( "updateLexiconWord( {} )".format( newLexiconWord ) )
+
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
         if self.BibleLexicon is None:
@@ -260,7 +250,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         Display a help box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleLexiconResourceWindow.doHelp( {} )").format( event ) )
+            print( "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -278,7 +268,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         Display an about box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleLexiconResourceWindow.doAbout( {} )").format( event ) )
+            print( "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion
@@ -298,7 +288,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )

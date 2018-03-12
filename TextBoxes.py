@@ -26,53 +26,91 @@
 Base widgets to allow display and manipulation of
     various Bible and lexicon, etc. child windows.
 
-class BText( tk.Text )
 
-class HTMLTextBox( BText )
-    __init__( self, *args, **kwargs )
-    insert( self, point, iText )
-    _getURL( self, event )
-    openHyperlink( self, event )
-    overHyperlink( self, event )
-    leaveHyperlink( self, event )
+    NOTE: These three classes are empty, but could easily be used to implement system wide
+            special-character input, display fonts, etc.
+    class BEntry( Entry ) -- used in many dialogs, etc. including CustomEntry
+    class BCombobox( Combobox ) -- used in many places including CustomCombobox
+    class BText( tk.Text ) -- use in HTMLTextBox and CustomText
 
-class CustomText( BText )
-    __init__( self, *args, **kwargs )
-    setTextChangeCallback( self, callableFunction )
 
-class ChildBox
-    __init__( self, parentApp )
-    _createStandardKeyboardBinding( self, name, command )
-    createStandardBoxKeyboardBindings( self )
-    setFocus( self, event )
-    doCopy( self, event=None )
-    doSelectAll( self, event=None )
-    doGotoWindowLine( self, event=None, forceline=None )
-    doBoxFind( self, event=None, lastkey=None )
-    doBoxRefind( self, event=None )
-    doShowInfo( self, event=None )
-    clearText( self ) # Leaves in normal state
-    isEmpty( self )
-    modified( self )
-    getAllText( self )
-    setAllText( self, newText )
-    doShowMainWindow( self, event=None )
-    doClose( self, event=None )
+    class HTMLTextBox( BText ) -- used in HTMLWindow and BibleLexiconResourceWindow
+        __init__( self, *args, **kwargs )
+        insert( self, point, iText )
+        _getURL( self, event )
+        openHyperlink( self, event )
+        overHyperlink( self, event )
+        leaveHyperlink( self, event )
 
-class BibleBox( ChildBox )
-    createContextMenu( self )
-    displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False )
-    getBeforeAndAfterBibleData( self, newVerseKey )
-    doBibleFind( self, event=None )
-    doActualBibleFind( self, extendTo=None )
+
+    class CallbackAddon() -- used in CustomEntry, CustomCombobox, CustomText below
+        __init__( self )
+        _callback( self, result, *args )
+        setTextChangeCallback( self, callableFunction )
+        onTextChange( self, result, *args )
+
+    #class CustomEntry( CallbackAddon, BEntry ) -- unused
+        #__init__( self, *args, **kwargs )
+
+    #class CustomCombobox( CallbackAddon, BCombobox ) -- unused
+        #__init__( self, *args, **kwargs )
+
+    class CustomText( CallbackAddon, BText ) -- used in TextEditWindow
+        __init__( self, *args, **kwargs )
+        highlightPattern( self, pattern, styleTag, startAt=tkSTART, endAt=tk.END, regexpFlag=True )
+        highlightAllPatterns( self, patternCollection )
+
+
+    class ChildBoxAddon()
+        __init__( self, parentApp )
+        _createStandardKeyboardBinding( self, name, commandFunction )
+        createStandardBoxKeyboardBindings( self )
+        setFocus( self, event )
+        doCopy( self, event=None )
+        doSelectAll( self, event=None )
+        doGotoWindowLine( self, event=None, forceline=None )
+        doBoxFind( self, event=None, lastkey=None )
+        doBoxRefind( self, event=None )
+        doShowInfo( self, event=None )
+        clearText( self ) # Leaves in normal state
+        isEmpty( self )
+        modified( self )
+        getAllText( self )
+        setAllText( self, newText )
+        doShowMainWindow( self, event=None )
+        doClose( self, event=None )
+
+    class BibleBoxAddon() -- used in BibleReferenceBox, BibleResourceBox, BibleWindowAddon
+                                and in HebrewInterlinearBibleBoxAddon below
+        __init__( self, parentApp )
+        _createStandardKeyboardBinding( self, name, commandFunction )
+        createContextMenu( self )
+        showContextMenu( self, event )
+        displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False )
+        getBeforeAndAfterBibleData( self, newVerseKey )
+        doBibleFind( self, event=None )
+        doActualBibleFind( self, extendTo=None )
+        _prepareInternalBible( self, bookCode=None, givenBible=None )
+
+
+    class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ) -- used in HebrewBibleResourceWindow
+        __init__( self, parentWindow, numInterlinearLines )
+        displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False )
+        doClose( self, event=None )
+        #getBeforeAndAfterBibleData( self, newVerseKey )
+        #doBibleFind( self, event=None )
+        #doActualBibleFind( self, extendTo=None )
+        #_prepareInternalBible( self, bookCode=None, givenBible=None )
+
+    demo()
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-21' # by RJH
+LastModifiedDate = '2018-03-12' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -101,22 +139,6 @@ from HebrewWLCBible import ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, errorBit )
-# end of exp
-
-
-
 KNOWN_HTML_TAGS = ('!DOCTYPE','html','head','meta','link','title','body','div',
                    'h1','h2','h3','p','li','a','span','table','tr','td','i','b','em','small')
 NON_FORMATTING_TAGS = 'html','head','body','div','table','tr','td', # Not sure about div yet…
@@ -131,6 +153,386 @@ ALL_POSSIBLE_SPACE_CHARS = ' ' + TRAILING_SPACE_SUBSTITUTE + MULTIPLE_SPACE_SUBS
 
 
 
+class BEntry( Entry ):
+    """
+    A custom (ttk) Entry widget which can call a user function whenever the text changes.
+        This enables autocorrect.
+
+    BEntry stands for Biblelator Entry (widget).
+    """
+    #def __init__( self, *args, **kwargs ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( "BEntry.__init__( {}, {} )".format( args, kwargs ) )
+        #Entry.__init__( self, *args, **kwargs ) # initialise the base class
+        #CallbackAddon.__init__( self ) # initialise the base class
+    ## end of BEntry.__init__
+    pass
+# end of BEntry class
+
+class BCombobox( Combobox ):
+    """
+    A custom (ttk) Combobox widget which can call a user function whenever the text changes.
+        This enables autocorrect.
+
+    BCombobox stands for Biblelator Combobox (widget).
+    """
+    #def __init__( self, *args, **kwargs ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( "BCombobox.__init__( {}, {} )".format( args, kwargs ) )
+        #Combobox.__init__( self, *args, **kwargs ) # initialise the base class
+        #CallbackAddon.__init__( self ) # initialise the base class
+    ## end of BCombobox.__init__
+    pass
+# end of BCombobox class
+
+class BText( tk.Text ):
+    """
+    A custom Text widget with our own keyboard bindings/short-cuts.
+
+    BText stands for Biblelator Text (box).
+    """
+    #def __init__(self, master, **kw):
+        #"""
+        #Initialise the text widget and then set our own keyboard bindings.
+        #"""
+        #tk.apply( tk.Text.__init__, (self, master), kw ) # Run the init of the base class
+
+        ## Now set-up our "default" keyboard bindings
+        #self.bind( ... )
+    pass
+# end of BText class
+
+
+
+class HTMLTextBox( BText ):
+    """
+    A custom Text widget which understands and displays simple HTML.
+
+    It currently accepts:
+        heading tags:           h1,h2,h3
+        paragraph tags:         p, li
+        formatting tags:        span
+        hard-formatting tags:   i, b, em
+
+    For the styling, class names are appended to the tag names following a hyphen,
+        e.g., <span class="Word"> would give an internal style of "spanWord".
+    """
+    def __init__( self, *args, **kwargs ):
+        """
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "HTMLTextBox.__init__( {}, {} )".format( args, kwargs ) )
+        BText.__init__( self, *args, **kwargs ) # initialise the base class
+
+        standardFont = DEFAULT_FONTNAME + ' 12'
+        smallFont = DEFAULT_FONTNAME + ' 10'
+        self.styleDict = { # earliest entries have the highest priority
+            'i': { 'font':standardFont+' italic' },
+            'b': { 'font':standardFont+' bold' },
+            'em': { 'font':standardFont+' bold' },
+            'p_i': { 'font':standardFont+' italic' },
+            'p_b': { 'font':standardFont+' bold' },
+            'p_em': { 'font':standardFont+' bold' },
+
+            'span': { 'foreground':'red', 'font':standardFont },
+            'li': { 'lmargin1':4, 'lmargin2':4, 'background':'pink', 'font':standardFont },
+            'a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
+
+            'small_p': { 'background':'pink', 'font':smallFont, 'spacing1':'1' },
+            'small_p_pGeneratedNotice': { 'justify':tk.CENTER, 'background':'green', 'font':smallFont, 'spacing1':'1' },
+
+            'small_p_a': { 'foreground':'blue', 'font':smallFont, 'underline':1, 'spacing1':'1' },
+            'small_p_b': { 'background':'pink', 'font':smallFont+' bold', 'spacing1':'1' },
+
+            'p': { 'background':'pink', 'font':standardFont, 'spacing1':'1' },
+            'pGeneratedNotice': { 'justify':tk.CENTER, 'background':'green', 'font':smallFont, 'spacing1':'1' },
+
+            'p_a': { 'foreground':'blue', 'font':standardFont, 'underline':1, 'spacing1':'1' },
+            'p_span': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanGreekWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanHebrewWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanKJVUsage': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanStatus': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+
+            'p_spanSource': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanSource_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+            'p_spanSource_span': { 'foreground':'red', 'background':'pink', 'font':standardFont, 'spacing1':'1' },
+            'p_spanSource_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanSource_spanHebrew': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanSource_spanStrongs': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+
+            'p_spanMeaning': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+            'p_spanMeaning_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+            'p_spanMeaning_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
+
+            'p_span_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+            'p_spanKJVUsage_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
+
+            #'td_a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
+            #'h1_td_a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
+
+            'h1': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
+            'h1_a': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5',  'underline':1 },
+            'h1PageHeading': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
+            'h2': { 'justify':tk.CENTER, 'foreground':'green', 'font':DEFAULT_FONTNAME+' 14', 'spacing1':'0.8', 'spacing3':'0.3' },
+            'h3': { 'justify':tk.CENTER, 'foreground':'orange', 'font':DEFAULT_FONTNAME+' 13', 'spacing1':'0.5', 'spacing3':'0.2' },
+            }
+        for tag,styleEntry in self.styleDict.items():
+            self.tag_configure( tag, **styleEntry ) # Create the style
+        #background='yellow', font='helvetica 14 bold', relief=tk.RAISED
+        #"background", "bgstipple", "borderwidth", "elide", "fgstipple",
+        #"font", "foreground", "justify", "lmargin1", "lmargin2", "offset",
+        #"overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
+        #"tabs", "tabstyle", "underline", and "wrap".
+
+        aTags = ('a','p_a','small_p_a','h1_a')
+        if debuggingThisModule:
+            for tag in self.styleDict:
+                if tag.endswith( '_a' ): assert tag in aTags
+        for tag in aTags:
+            assert tag in self.styleDict
+            self.tag_bind( tag, '<Button-1>', self.openHyperlink )
+            #self.tag_bind( tag, '<Enter>', self.overHyperlink )
+            #self.tag_bind( tag, '<Leave>', self.leaveHyperlink )
+
+        self._lastOverLink = None
+    # end of HTMLTextBox.__init__
+
+
+    def insert( self, point, iText ):
+        """
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            #print( "HTMLTextBox.insert( {}, {} )".format( repr(point), repr(iText) ) )
+
+        if point != tk.END:
+            logging.critical( "HTMLTextBox.insert " + _("doesn't know how to insert at {}").format( repr(point) ) )
+            BText.insert( self, point, iText )
+            return
+
+        # Fix whitespace in our text to how we want it
+        remainingText = iText.replace( '\n', ' ' )
+        remainingText = remainingText.replace( '<br>','\n' ).replace( '<br />','\n' ).replace( '<br/>','\n' )
+        while '  ' in remainingText: remainingText = remainingText.replace( '  ', ' ' )
+
+        currentFormatTags, currentHTMLTags = [], []
+        #first = True
+        while remainingText:
+            #try: print( "  Remaining: {}".format( repr(remainingText) ) )
+            #except UnicodeEncodeError: print( "  Remaining: {}".format( len(remainingText) ) )
+            ix = remainingText.find( '<' )
+            if ix == -1: # none found
+                BText.insert( self, point, remainingText, currentFormatTags ) # just insert all the remainingText
+                remainingText = ""
+            else: # presumably we have found the start of a new HTML tag
+                if ix > 0: # this is where text is actually inserted into the box
+                    insertText = remainingText[:ix]
+                    if HTMLTag and HTMLTag == 'title':
+                        pass # This is handled elsewhere
+                    elif insertText: # it's not a title and not blank so we need to display this text
+                        # Combine tag formats (but ignore consecutive identical tags e.g., p with a p
+                        combinedFormats, lastTag, link = '', None, None
+                        #print( "cFT", currentFormatTags )
+                        for tag in currentFormatTags:
+                            if tag.startswith( 'a=' ):
+                                tag, link = 'a', tag[2:]
+                                #print( "Got <a> link {}".format( repr(link) ) )
+                            if tag != lastTag:
+                                if combinedFormats: combinedFormats += '_'
+                                combinedFormats += tag
+                                lastTag = tag
+                        #print( "combinedFormats", repr(combinedFormats) )
+                        if combinedFormats and combinedFormats not in self.styleDict:
+                            print( "  Missing format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags )
+                            #try: print( "   on", repr(remainingText[:ix]) )
+                            #except UnicodeEncodeError: pass
+                        insertText = remainingText[:ix]
+                        #print( "  Got format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags, repr(insertText) )
+                        if 'Hebrew' in combinedFormats:
+                            #print( "Reversing", repr(insertText ) )
+                            insertText = insertText[::-1] # Reverse the string (a horrible way to approximate RTL)
+                        for htmlChars, replacementChars in HTML_REPLACEMENTS:
+                            insertText = insertText.replace( htmlChars, replacementChars )
+                        #if link: print( "insertMarks", repr( (combinedFormats, 'href'+link,) if link else combinedFormats ) )
+                        if link:
+                            hypertag = 'href' + link
+                            BText.insert( self, point, insertText, (combinedFormats, hypertag,) )
+                            self.tag_bind( hypertag, '<Enter>', self.overHyperlink )
+                            self.tag_bind( hypertag, '<Leave>', self.leaveHyperlink )
+                        else: BText.insert( self, point, insertText, combinedFormats )
+                        #first = False
+                    remainingText = remainingText[ix:]
+                #try: print( "  tag", repr(remainingText[:5]) )
+                #except UnicodeEncodeError: print( "  tag" )
+                ixEnd = remainingText.find( '>' )
+                ixNext = remainingText.find( '<', 1 )
+                #print( "ixEnd", ixEnd, "ixNext", ixNext )
+                if ixEnd == -1 \
+                or (ixEnd!=-1 and ixNext!=-1 and ixEnd>ixNext): # no tag close or wrong tag closed
+                    logging.critical( "HTMLTextBox.insert: " + _("Missing close bracket") )
+                    BText.insert( self, point, remainingText, currentFormatTags )
+                    remainingText = ""
+                    break
+                # There's a close marker -- check it's our one
+                fullHTMLTag = remainingText[1:ixEnd] # but without the < >
+                remainingText = remainingText[ixEnd+1:]
+                #if remainingText:
+                    #try: print( "after marker", remainingText[0] )
+                    #except UnicodeEncodeError: pass
+                if not fullHTMLTag:
+                    logging.critical( "HTMLTextBox.insert: " + _("Unexpected empty HTML tags") )
+                    continue
+                selfClosing = fullHTMLTag[-1] == '/'
+                if selfClosing:
+                    fullHTMLTag = fullHTMLTag[:-1]
+                #try: print( "fullHTMLTag", repr(fullHTMLTag), "self-closing" if selfClosing else "" )
+                #except UnicodeEncodeError: pass
+
+                # Can't do a normal split coz can have a space within a link, e.g., href="one two.htm"
+                fullHTMLTagBits = []
+                insideDoubleQuotes = False
+                currentField = ""
+                for char in fullHTMLTag:
+                    if char in (' ',) and not insideDoubleQuotes:
+                        fullHTMLTagBits.append( currentField )
+                        currentField = ""
+                    else:
+                        currentField += char
+                        if char == '"': insideDoubleQuotes = not insideDoubleQuotes
+                if currentField: fullHTMLTagBits.append( currentField ) # Make sure we get the last bit
+                #print( "{} got {}".format( repr(fullHTMLTag), fullHTMLTagBits ) )
+                HTMLTag = fullHTMLTagBits[0]
+                #print( "HTMLTag", repr(HTMLTag) )
+
+                if HTMLTag and HTMLTag[0] == '/': # it's a close tag
+                    assert len(fullHTMLTagBits) == 1 # shouldn't have any attributes on a closing tag
+                    assert not selfClosing
+                    HTMLTag = HTMLTag[1:]
+                    #print( "Got HTML {} close tag".format( repr(HTMLTag) ) )
+                    #print( "cHT1", currentHTMLTags )
+                    #print( "cFT1", currentFormatTags )
+                    if currentHTMLTags and HTMLTag == currentHTMLTags[-1]: # all good
+                        currentHTMLTags.pop() # Drop it
+                        if HTMLTag not in NON_FORMATTING_TAGS:
+                            currentFormatTags.pop()
+                    elif currentHTMLTags:
+                        logging.critical( "HTMLTextBox.insert: " + _("Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
+                    else:
+                        logging.critical( "HTMLTextBox.insert: " + _("Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
+                    #print( "cHT2", currentHTMLTags )
+                    #print( "cFT2", currentFormatTags )
+                else: # it's not a close tag so must be an open tag
+                    if HTMLTag not in KNOWN_HTML_TAGS:
+                        logging.critical( _("HTMLTextBox doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
+                        #currentHTMLTags.append( HTMLTag ) # remember it anyway in case it's closed later
+                        continue
+                    if HTMLTag in ('h1','h2','h3','p','li','table','tr',):
+                        BText.insert( self, point, '\n' )
+                    #elif HTMLTag in ('li',):
+                        #BText.insert( self, point, '\n' )
+                    elif HTMLTag in ('td',):
+                        BText.insert( self, point, '\t' )
+                    formatTag = HTMLTag
+                    if len(fullHTMLTagBits)>1: # our HTML tag has some additional attributes
+                        #print( "Looking for attributes" )
+                        for bit in fullHTMLTagBits[1:]:
+                            #try: print( "  bit", repr(bit) )
+                            #except UnicodeEncodeError: pass
+                            if bit.startswith('class="') and bit[-1]=='"':
+                                formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
+                            elif formatTag=='a' and bit.startswith('href="') and bit[-1]=='"':
+                                formatTag += '=' + bit[6:-1] # create a tag like 'a=http://something.com'
+                            else: logging.error( "HTMLTextBox: " + _("Ignoring {} attribute on {!r} tag").format( bit, HTMLTag ) )
+                    if not selfClosing:
+                        if HTMLTag != '!DOCTYPE':
+                            currentHTMLTags.append( HTMLTag )
+                            if HTMLTag not in NON_FORMATTING_TAGS:
+                                currentFormatTags.append( formatTag )
+        if currentHTMLTags:
+            logging.critical( "HTMLTextBox.insert: " + _("Left-over HTML tags: {}").format( currentHTMLTags ) )
+        if currentFormatTags:
+            logging.critical( "HTMLTextBox.insert: " + _("Left-over format tags: {}").format( currentFormatTags ) )
+    # end of HTMLTextBox.insert
+
+
+    def _getURL( self, event ):
+        """
+        Give a mouse event, get the URL underneath it.
+        """
+        # get the index of the mouse cursor from the event.x and y attributes
+        xy = '@{0},{1}'.format( event.x, event.y )
+        #print( "xy", repr(xy) ) # e.g.., '@34,77'
+        #print( "ixy", repr(self.index(xy)) ) # e.g., '4.3'
+
+        #URL = None
+        tagNames = self.tag_names( xy )
+        #print( "tn", tagNames )
+        for tagName in tagNames:
+            if tagName.startswith( 'href' ):
+                URL = tagName[4:]
+                #print( "URL", repr(URL) )
+                return URL
+    # end of HTMLTextBox._getURL
+
+
+    def openHyperlink( self, event ):
+        """
+        Handle a click on a hyperlink.
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "HTMLTextBox.openHyperlink()" )
+        URL = self._getURL( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Clicked on {}".format( repr(clickedText) ) )
+
+        if URL: self.master.gotoLink( URL )
+    # end of HTMLTextBox.openHyperlink
+
+
+    def overHyperlink( self, event ):
+        """
+        Handle a mouseover on a hyperlink.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "HTMLTextBox.overHyperlink()" )
+        URL = self._getURL( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Over {}".format( repr(clickedText) ) )
+
+        if URL: self.master.overLink( URL )
+    # end of HTMLTextBox.overHyperlink
+
+    def leaveHyperlink( self, event ):
+        """
+        Handle a mouseover on a hyperlink.
+        """
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "HTMLTextBox.leaveHyperlink()" )
+        self.master.leaveLink()
+    # end of HTMLTextBox.leaveHyperlink
+# end of HTMLTextBox class
+
+
+
 class CallbackAddon():
     """
     An add-on class which can call a user function whenever the text changes.
@@ -142,7 +544,7 @@ class CallbackAddon():
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("CallbackAddon.__init__()") )
+            print( "CallbackAddon.__init__()" )
 
         self.callbackFunction = None
         # All widget changes happen via an internal Tcl command with the same name as the widget:
@@ -229,7 +631,7 @@ class CallbackAddon():
             either with a mouse click or arrow keys.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("CallbackAddon.onTextChange( {}, {} )").format( repr(result), args ) )
+            print( "CallbackAddon.onTextChange( {}, {} )".format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.index( tk.INSERT )
@@ -296,388 +698,39 @@ class CallbackAddon():
 
 
 
-class BEntry( Entry, CallbackAddon ):
-    """
-    A custom (ttk) Entry widget which can call a user function whenever the text changes.
-        This enables autocorrect.
-
-    BEntry stands for Biblelator Entry (widget).
-    """
-    def __init__( self, *args, **kwargs ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("BEntry.__init__( {}, {} )").format( args, kwargs ) )
-        Entry.__init__( self, *args, **kwargs ) # initialise the base class
-        CallbackAddon.__init__( self ) # initialise the base class
-    # end of BEntry.__init__
-# end of BEntry class
-
-
-
-class BCombobox( Combobox, CallbackAddon ):
-    """
-    A custom (ttk) Combobox widget which can call a user function whenever the text changes.
-        This enables autocorrect.
-
-    BCombobox stands for Biblelator Combobox (widget).
-    """
-    def __init__( self, *args, **kwargs ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( exp("BCombobox.__init__( {}, {} )").format( args, kwargs ) )
-        Combobox.__init__( self, *args, **kwargs ) # initialise the base class
-        CallbackAddon.__init__( self ) # initialise the base class
-    # end of BCombobox.__init__
-# end of BCombobox class
-
-
-
-class BText( tk.Text ):
-    """
-    A custom Text widget with our own keyboard bindings/short-cuts.
-
-    BText stands for Biblelator Text (box).
-    """
-    #def __init__(self, master, **kw):
+#class CustomEntry( CallbackAddon, BEntry ):
+    #"""
+    #A custom (ttk) Entry widget which can call a user function whenever the text changes.
+        #This enables autocorrect.
+    #"""
+    #def __init__( self, *args, **kwargs ):
         #"""
-        #Initialise the text widget and then set our own keyboard bindings.
         #"""
-        #tk.apply( tk.Text.__init__, (self, master), kw ) # Run the init of the base class
-
-        ## Now set-up our "default" keyboard bindings
-        #self.bind( ... )
-    pass
-# end of BText class
-
-
-
-class HTMLTextBox( BText ):
-    """
-    A custom Text widget which understands and displays simple HTML.
-
-    It currently accepts:
-        heading tags:           h1,h2,h3
-        paragraph tags:         p, li
-        formatting tags:        span
-        hard-formatting tags:   i, b, em
-
-    For the styling, class names are appended to the tag names following a hyphen,
-        e.g., <span class="Word"> would give an internal style of "spanWord".
-    """
-    def __init__( self, *args, **kwargs ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("HTMLTextBox.__init__( {}, {} )").format( args, kwargs ) )
-        BText.__init__( self, *args, **kwargs ) # initialise the base class
-
-        standardFont = DEFAULT_FONTNAME + ' 12'
-        smallFont = DEFAULT_FONTNAME + ' 10'
-        self.styleDict = { # earliest entries have the highest priority
-            'i': { 'font':standardFont+' italic' },
-            'b': { 'font':standardFont+' bold' },
-            'em': { 'font':standardFont+' bold' },
-            'p_i': { 'font':standardFont+' italic' },
-            'p_b': { 'font':standardFont+' bold' },
-            'p_em': { 'font':standardFont+' bold' },
-
-            'span': { 'foreground':'red', 'font':standardFont },
-            'li': { 'lmargin1':4, 'lmargin2':4, 'background':'pink', 'font':standardFont },
-            'a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
-
-            'small_p': { 'background':'pink', 'font':smallFont, 'spacing1':'1' },
-            'small_p_pGeneratedNotice': { 'justify':tk.CENTER, 'background':'green', 'font':smallFont, 'spacing1':'1' },
-
-            'small_p_a': { 'foreground':'blue', 'font':smallFont, 'underline':1, 'spacing1':'1' },
-            'small_p_b': { 'background':'pink', 'font':smallFont+' bold', 'spacing1':'1' },
-
-            'p': { 'background':'pink', 'font':standardFont, 'spacing1':'1' },
-            'pGeneratedNotice': { 'justify':tk.CENTER, 'background':'green', 'font':smallFont, 'spacing1':'1' },
-
-            'p_a': { 'foreground':'blue', 'font':standardFont, 'underline':1, 'spacing1':'1' },
-            'p_span': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanGreekWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanHebrewWord': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanKJVUsage': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanStatus': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-
-            'p_spanSource': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanSource_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-            'p_spanSource_span': { 'foreground':'red', 'background':'pink', 'font':standardFont, 'spacing1':'1' },
-            'p_spanSource_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanSource_spanHebrew': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanSource_spanStrongs': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-
-            'p_spanMeaning': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-            'p_spanMeaning_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-            'p_spanMeaning_spanDef': { 'foreground':'red', 'background':'pink', 'font':standardFont },
-
-            'p_span_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-            'p_spanKJVUsage_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
-
-            #'td_a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
-            #'h1_td_a': { 'foreground':'blue', 'font':standardFont, 'underline':1 },
-
-            'h1': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
-            'h1_a': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5',  'underline':1 },
-            'h1PageHeading': { 'justify':tk.CENTER, 'foreground':'blue', 'font':DEFAULT_FONTNAME+' 15', 'spacing1':'1', 'spacing3':'0.5' },
-            'h2': { 'justify':tk.CENTER, 'foreground':'green', 'font':DEFAULT_FONTNAME+' 14', 'spacing1':'0.8', 'spacing3':'0.3' },
-            'h3': { 'justify':tk.CENTER, 'foreground':'orange', 'font':DEFAULT_FONTNAME+' 13', 'spacing1':'0.5', 'spacing3':'0.2' },
-            }
-        for tag,styleEntry in self.styleDict.items():
-            self.tag_configure( tag, **styleEntry ) # Create the style
-        #background='yellow', font='helvetica 14 bold', relief=tk.RAISED
-        #"background", "bgstipple", "borderwidth", "elide", "fgstipple",
-        #"font", "foreground", "justify", "lmargin1", "lmargin2", "offset",
-        #"overstrike", "relief", "rmargin", "spacing1", "spacing2", "spacing3",
-        #"tabs", "tabstyle", "underline", and "wrap".
-
-        aTags = ('a','p_a','small_p_a','h1_a')
-        for tag in self.styleDict:
-            if tag.endswith( '_a' ): assert tag in aTags
-        for tag in aTags:
-            assert tag in self.styleDict
-            self.tag_bind( tag, '<Button-1>', self.openHyperlink )
-            #self.tag_bind( tag, '<Enter>', self.overHyperlink )
-            #self.tag_bind( tag, '<Leave>', self.leaveHyperlink )
-
-        self._lastOverLink = None
-    # end of HTMLTextBox.__init__
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( "CustomEntry.__init__( {}, {} )".format( args, kwargs ) )
+        #BEntry.__init__( self, *args, **kwargs ) # initialise the base class
+        #CallbackAddon.__init__( self ) # initialise the base class
+    ## end of CustomEntry.__init__
+## end of CustomEntry class
 
 
-    def insert( self, point, iText ):
-        """
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HTMLTextBox.insert( {}, {} )").format( repr(point), repr(iText) ) )
-
-        if point != tk.END:
-            logging.critical( exp("HTMLTextBox.insert doesn't know how to insert at {}").format( repr(point) ) )
-            BText.insert( self, point, iText )
-            return
-
-        # Fix whitespace in our text to how we want it
-        remainingText = iText.replace( '\n', ' ' )
-        remainingText = remainingText.replace( '<br>','\n' ).replace( '<br />','\n' ).replace( '<br/>','\n' )
-        while '  ' in remainingText: remainingText = remainingText.replace( '  ', ' ' )
-
-        currentFormatTags, currentHTMLTags = [], []
-        #first = True
-        while remainingText:
-            #try: print( "  Remaining: {}".format( repr(remainingText) ) )
-            #except UnicodeEncodeError: print( "  Remaining: {}".format( len(remainingText) ) )
-            ix = remainingText.find( '<' )
-            if ix == -1: # none found
-                BText.insert( self, point, remainingText, currentFormatTags ) # just insert all the remainingText
-                remainingText = ""
-            else: # presumably we have found the start of a new HTML tag
-                if ix > 0: # this is where text is actually inserted into the box
-                    insertText = remainingText[:ix]
-                    if HTMLTag and HTMLTag == 'title':
-                        pass # This is handled elsewhere
-                    elif insertText: # it's not a title and not blank so we need to display this text
-                        # Combine tag formats (but ignore consecutive identical tags e.g., p with a p
-                        combinedFormats, lastTag, link = '', None, None
-                        #print( "cFT", currentFormatTags )
-                        for tag in currentFormatTags:
-                            if tag.startswith( 'a=' ):
-                                tag, link = 'a', tag[2:]
-                                #print( "Got <a> link {}".format( repr(link) ) )
-                            if tag != lastTag:
-                                if combinedFormats: combinedFormats += '_'
-                                combinedFormats += tag
-                                lastTag = tag
-                        #print( "combinedFormats", repr(combinedFormats) )
-                        if combinedFormats and combinedFormats not in self.styleDict:
-                            print( "  Missing format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags )
-                            #try: print( "   on", repr(remainingText[:ix]) )
-                            #except UnicodeEncodeError: pass
-                        insertText = remainingText[:ix]
-                        #print( "  Got format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags, repr(insertText) )
-                        if 'Hebrew' in combinedFormats:
-                            #print( "Reversing", repr(insertText ) )
-                            insertText = insertText[::-1] # Reverse the string (a horrible way to approximate RTL)
-                        for htmlChars, replacementChars in HTML_REPLACEMENTS:
-                            insertText = insertText.replace( htmlChars, replacementChars )
-                        #if link: print( "insertMarks", repr( (combinedFormats, 'href'+link,) if link else combinedFormats ) )
-                        if link:
-                            hypertag = 'href' + link
-                            BText.insert( self, point, insertText, (combinedFormats, hypertag,) )
-                            self.tag_bind( hypertag, '<Enter>', self.overHyperlink )
-                            self.tag_bind( hypertag, '<Leave>', self.leaveHyperlink )
-                        else: BText.insert( self, point, insertText, combinedFormats )
-                        #first = False
-                    remainingText = remainingText[ix:]
-                #try: print( "  tag", repr(remainingText[:5]) )
-                #except UnicodeEncodeError: print( "  tag" )
-                ixEnd = remainingText.find( '>' )
-                ixNext = remainingText.find( '<', 1 )
-                #print( "ixEnd", ixEnd, "ixNext", ixNext )
-                if ixEnd == -1 \
-                or (ixEnd!=-1 and ixNext!=-1 and ixEnd>ixNext): # no tag close or wrong tag closed
-                    logging.critical( exp("HTMLTextBox.insert: Missing close bracket") )
-                    BText.insert( self, point, remainingText, currentFormatTags )
-                    remainingText = ""
-                    break
-                # There's a close marker -- check it's our one
-                fullHTMLTag = remainingText[1:ixEnd] # but without the < >
-                remainingText = remainingText[ixEnd+1:]
-                #if remainingText:
-                    #try: print( "after marker", remainingText[0] )
-                    #except UnicodeEncodeError: pass
-                if not fullHTMLTag:
-                    logging.critical( exp("HTMLTextBox.insert: Unexpected empty HTML tags") )
-                    continue
-                selfClosing = fullHTMLTag[-1] == '/'
-                if selfClosing:
-                    fullHTMLTag = fullHTMLTag[:-1]
-                #try: print( "fullHTMLTag", repr(fullHTMLTag), "self-closing" if selfClosing else "" )
-                #except UnicodeEncodeError: pass
-
-                # Can't do a normal split coz can have a space within a link, e.g., href="one two.htm"
-                fullHTMLTagBits = []
-                insideDoubleQuotes = False
-                currentField = ""
-                for char in fullHTMLTag:
-                    if char in (' ',) and not insideDoubleQuotes:
-                        fullHTMLTagBits.append( currentField )
-                        currentField = ""
-                    else:
-                        currentField += char
-                        if char == '"': insideDoubleQuotes = not insideDoubleQuotes
-                if currentField: fullHTMLTagBits.append( currentField ) # Make sure we get the last bit
-                #print( "{} got {}".format( repr(fullHTMLTag), fullHTMLTagBits ) )
-                HTMLTag = fullHTMLTagBits[0]
-                #print( "HTMLTag", repr(HTMLTag) )
-
-                if HTMLTag and HTMLTag[0] == '/': # it's a close tag
-                    assert len(fullHTMLTagBits) == 1 # shouldn't have any attributes on a closing tag
-                    assert not selfClosing
-                    HTMLTag = HTMLTag[1:]
-                    #print( exp("Got HTML {} close tag").format( repr(HTMLTag) ) )
-                    #print( "cHT1", currentHTMLTags )
-                    #print( "cFT1", currentFormatTags )
-                    if currentHTMLTags and HTMLTag == currentHTMLTags[-1]: # all good
-                        currentHTMLTags.pop() # Drop it
-                        if HTMLTag not in NON_FORMATTING_TAGS:
-                            currentFormatTags.pop()
-                    elif currentHTMLTags:
-                        logging.critical( exp("HTMLTextBox.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
-                    else:
-                        logging.critical( exp("HTMLTextBox.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
-                    #print( "cHT2", currentHTMLTags )
-                    #print( "cFT2", currentFormatTags )
-                else: # it's not a close tag so must be an open tag
-                    if HTMLTag not in KNOWN_HTML_TAGS:
-                        logging.critical( exp("HTMLTextBox doesn't recognise or handle {} as an HTML tag").format( repr(HTMLTag) ) )
-                        #currentHTMLTags.append( HTMLTag ) # remember it anyway in case it's closed later
-                        continue
-                    if HTMLTag in ('h1','h2','h3','p','li','table','tr',):
-                        BText.insert( self, point, '\n' )
-                    #elif HTMLTag in ('li',):
-                        #BText.insert( self, point, '\n' )
-                    elif HTMLTag in ('td',):
-                        BText.insert( self, point, '\t' )
-                    formatTag = HTMLTag
-                    if len(fullHTMLTagBits)>1: # our HTML tag has some additional attributes
-                        #print( "Looking for attributes" )
-                        for bit in fullHTMLTagBits[1:]:
-                            #try: print( "  bit", repr(bit) )
-                            #except UnicodeEncodeError: pass
-                            if bit.startswith('class="') and bit[-1]=='"':
-                                formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
-                            elif formatTag=='a' and bit.startswith('href="') and bit[-1]=='"':
-                                formatTag += '=' + bit[6:-1] # create a tag like 'a=http://something.com'
-                            else: logging.critical( "HTMLTextBox: Ignoring {} attribute on {!r} tag".format( bit, HTMLTag ) )
-                    if not selfClosing:
-                        if HTMLTag != '!DOCTYPE':
-                            currentHTMLTags.append( HTMLTag )
-                            if HTMLTag not in NON_FORMATTING_TAGS:
-                                currentFormatTags.append( formatTag )
-        if currentHTMLTags:
-            logging.critical( exp("HTMLTextBox.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
-        if currentFormatTags:
-            logging.critical( exp("HTMLTextBox.insert: Left-over format tags: {}").format( currentFormatTags ) )
-    # end of HTMLTextBox.insert
+#class CustomCombobox( CallbackAddon, BCombobox ):
+    #"""
+    #A custom (ttk) Combobox widget which can call a user function whenever the text changes.
+        #This enables autocorrect.
+    #"""
+    #def __init__( self, *args, **kwargs ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( "CustomCombobox.__init__( {}, {} )".format( args, kwargs ) )
+        #BCombobox.__init__( self, *args, **kwargs ) # initialise the base class
+        #CallbackAddon.__init__( self ) # initialise the base class
+    ## end of CustomCombobox.__init__
+## end of CustomCombobox class
 
 
-    def _getURL( self, event ):
-        """
-        Give a mouse event, get the URL underneath it.
-        """
-        # get the index of the mouse cursor from the event.x and y attributes
-        xy = '@{0},{1}'.format( event.x, event.y )
-        #print( "xy", repr(xy) ) # e.g.., '@34,77'
-        #print( "ixy", repr(self.index(xy)) ) # e.g., '4.3'
-
-        #URL = None
-        tagNames = self.tag_names( xy )
-        #print( "tn", tagNames )
-        for tagName in tagNames:
-            if tagName.startswith( 'href' ):
-                URL = tagName[4:]
-                #print( "URL", repr(URL) )
-                return URL
-    # end of HTMLTextBox._getURL
-
-
-    def openHyperlink( self, event ):
-        """
-        Handle a click on a hyperlink.
-        """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLTextBox.openHyperlink()") )
-        URL = self._getURL( event )
-
-        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
-            #xy = '@{0},{1}'.format( event.x, event.y )
-            #tagNames = self.tag_names( xy )
-            #print( "tn", tagNames )
-            #for tagName in tagNames:
-                #if tagName.startswith( 'href' ): break
-            #tag_range = self.tag_prevrange( tagName, xy )
-            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
-            #clickedText = self.get( *tag_range )
-            #print( "Clicked on {}".format( repr(clickedText) ) )
-
-        if URL: self.master.gotoLink( URL )
-    # end of HTMLTextBox.openHyperlink
-
-
-    def overHyperlink( self, event ):
-        """
-        Handle a mouseover on a hyperlink.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLTextBox.overHyperlink()") )
-        URL = self._getURL( event )
-
-        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
-            #xy = '@{0},{1}'.format( event.x, event.y )
-            #tagNames = self.tag_names( xy )
-            #print( "tn", tagNames )
-            #for tagName in tagNames:
-                #if tagName.startswith( 'href' ): break
-            #tag_range = self.tag_prevrange( tagName, xy )
-            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
-            #clickedText = self.get( *tag_range )
-            #print( "Over {}".format( repr(clickedText) ) )
-
-        if URL: self.master.overLink( URL )
-    # end of HTMLTextBox.overHyperlink
-
-    def leaveHyperlink( self, event ):
-        """
-        Handle a mouseover on a hyperlink.
-        """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("HTMLTextBox.leaveHyperlink()") )
-        self.master.leaveLink()
-    # end of HTMLTextBox.leaveHyperlink
-# end of HTMLTextBox class
-
-
-
-class CustomText( BText, CallbackAddon ):
+class CustomText( CallbackAddon, BText ):
     """
     A custom Text widget which calls a user function whenever the text changes.
 
@@ -687,7 +740,7 @@ class CustomText( BText, CallbackAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("CustomText.__init__( {}, {} )").format( args, kwargs ) )
+            print( "CustomText.__init__( {}, {} )".format( args, kwargs ) )
         BText.__init__( self, *args, **kwargs ) # initialise the base class
         CallbackAddon.__init__( self ) # initialise the base class
     # end of CustomText.__init__
@@ -728,7 +781,7 @@ class CustomText( BText, CallbackAddon ):
             tagDict, e.g, {"background":"red"}
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("CustomText.highlightAllPatterns( {} )").format( patternCollection ) )
+            print( "CustomText.highlightAllPatterns( {} )".format( patternCollection ) )
 
         for regexpFlag, pattern, tagName, tagDict in patternCollection:
             self.tag_configure( tagName, **tagDict )
@@ -742,36 +795,37 @@ class ChildBoxAddon():
     """
     A set of mix-in (add-on) functions that work for any frame or window that has a member: self.textBox
     """
-    def __init__( self, parentApp ):
+    def __init__( self, parentWindow ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.__init__( {} )").format( parentApp ) )
-            assert parentApp
-        self.parentApp = parentApp
+            print( "ChildBoxAddon.__init__( {} )".format( parentWindow ) )
+            assert parentWindow
+        self.parentWindow = parentWindow
 
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = [] # Just for catching setting of duplicates
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.__init__ finished.") )
+            print( "ChildBoxAddon.__init__ finished." )
     # end of ChildBoxAddon.__init__
 
 
-    def _createStandardBoxKeyboardBinding( self, name, command ):
+    def _createStandardBoxKeyboardBinding( self, name, commandFunction ):
         """
         Called from createStandardKeyboardBindings to do the actual work.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("ChildBoxAddon._createStandardBoxKeyboardBinding( {} )").format( name ) )
+            #print( "ChildBoxAddon._createStandardBoxKeyboardBinding( {} )".format( name ) )
 
-        try: kBD = self.parentApp.keyBindingDict
-        except AttributeError: kBD = self.parentWindow.parentApp.keyBindingDict
+        #try: kBD = self.parentApp.keyBindingDict
+        #except AttributeError:
+        kBD = self.parentWindow.parentApp.keyBindingDict
         assert (name,kBD[name][0],) not in self.myKeyboardBindingsList
         if name in kBD:
             for keyCode in kBD[name][1:]:
                 #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                self.textBox.bind( keyCode, command )
+                self.textBox.bind( keyCode, commandFunction )
                 if BibleOrgSysGlobals.debugFlag:
                     if keyCode in self.myKeyboardShortcutsList:
                         print( "ChildBoxAddon._createStandardBoxKeyboardBinding wants to add duplicate {}".format( keyCode ) )
@@ -785,18 +839,18 @@ class ChildBoxAddon():
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.createStandardBoxKeyboardBindings( {} )").format( reset ) )
+            print( "ChildBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
 
-        for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+        for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
                              #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              #('ShowMain',self.parentWindow.doShowMainWindow),
                              ('Close',self.doClose),
                              ):
-            self._createStandardBoxKeyboardBinding( name, command )
+            self._createStandardBoxKeyboardBinding( name, commandFunction )
     # end of ChildBoxAddon.createStandardBoxKeyboardBindings()
 
 
@@ -813,7 +867,7 @@ class ChildBoxAddon():
         Copy the selected text onto the clipboard.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.doCopy( {} )").format( event ) )
+            print( "ChildBoxAddon.doCopy( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
@@ -831,7 +885,7 @@ class ChildBoxAddon():
         Select all the text in the text box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.doSelectAll( {} )").format( event ) )
+            print( "ChildBoxAddon.doSelectAll( {} )".format( event ) )
 
         self.textBox.tag_add( tk.SEL, tkSTART, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, tkSTART )          # move insert point to top
@@ -844,7 +898,7 @@ class ChildBoxAddon():
         """
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doGotoWindowLine {}'.format( forceline ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.doGotoWindowLine( {}, {} )").format( event, forceline ) )
+            print( "ChildBoxAddon.doGotoWindowLine( {}, {} )".format( event, forceline ) )
 
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
@@ -868,7 +922,7 @@ class ChildBoxAddon():
         """
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doBoxFind {!r}'.format( lastkey ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.doBoxFind( {}, {!r} )").format( event, lastkey ) )
+            print( "ChildBoxAddon.doBoxFind( {}, {!r} )".format( event, lastkey ) )
 
         key = lastkey or askstring( APP_NAME, _("Enter search string"), parent=self )
         self.textBox.update()
@@ -895,7 +949,7 @@ class ChildBoxAddon():
         """
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doBoxRefind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.doBoxRefind( {} ) for {!r}").format( event, self.lastfind ) )
+            print( "ChildBoxAddon.doBoxRefind( {} ) for {!r}".format( event, self.lastfind ) )
 
         self.doBoxFind( lastkey=self.lastfind )
     # end of ChildBoxAddon.doBoxRefind
@@ -909,7 +963,7 @@ class ChildBoxAddon():
         """
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.doShowInfo( {} )").format( event ) )
+            print( "ChildBoxAddon.doShowInfo( {} )".format( event ) )
 
         text  = self.getAllText()
         numChars = len( text )
@@ -969,7 +1023,7 @@ class ChildBoxAddon():
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.setAllText( {!r} )").format( newText ) )
+            print( "ChildBoxAddon.setAllText( {!r} )".format( newText ) )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
@@ -987,7 +1041,7 @@ class ChildBoxAddon():
         #Display the main window (it might be minimised or covered).
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("ChildBoxAddon.doShowMainWindow( {} )").format( event ) )
+            #print( "ChildBoxAddon.doShowMainWindow( {} )".format( event ) )
 
         ##self.parentApp.rootWindow.iconify() # Didn't help
         #self.parentApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
@@ -1005,7 +1059,7 @@ class ChildBoxAddon():
         Can be overridden if an edit box needs to save files first.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ChildBoxAddon.doClose( {} )").format( event ) )
+            print( "ChildBoxAddon.doClose( {} )".format( event ) )
 
         self.destroy()
     # end of ChildBoxAddon.doClose
@@ -1018,17 +1072,17 @@ class BibleBoxAddon():
     A set of functions that work for any Bible frame or window that has a member: self.textBox
         and also uses verseKeys
     """
-    def __init__( self, parentApp, BibleBoxType ):
+    def __init__( self, parentWindow, BibleBoxType ):
         """
         This function does absolutely nothing.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleBoxAddon.__init__( {} )").format( parentApp ) )
-            assert parentApp
-        self.parentApp, self.BibleBoxType = parentApp, BibleBoxType
+            print( "BibleBoxAddon.__init__( {}, {} )".format( parentWindow, BibleBoxType ) )
+            assert parentWindow
+        self.parentWindow, self.BibleBoxType = parentWindow, BibleBoxType
 
         # Set-up our standard Bible styles
-        for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
+        for USFMKey, styleDict in self.parentWindow.parentApp.stylesheet.getTKStyles().items():
             self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
@@ -1048,7 +1102,7 @@ class BibleBoxAddon():
 
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleBoxAddon.__init__ finished.") )
+            print( "BibleBoxAddon.__init__ finished." )
     # end of BibleBoxAddon.__init__
 
 
@@ -1057,17 +1111,17 @@ class BibleBoxAddon():
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleBoxAddon.createStandardBoxKeyboardBindings( {} )").format( reset ) )
+            print( "BibleBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
 
-        for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+        for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
                              #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              #('ShowMain',self.doShowMainWindow),
                              ('Close',self.doClose), ):
-            self._createStandardBoxKeyboardBinding( name, command )
+            self._createStandardBoxKeyboardBinding( name, commandFunction )
     # end of BibleBoxAddon.createStandardBoxKeyboardBindings()
 
 
@@ -1076,7 +1130,7 @@ class BibleBoxAddon():
         Can be overriden if necessary.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleBoxAddon.createContextMenu()") )
+            print( "BibleBoxAddon.createContextMenu()" )
 
         self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
         self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
@@ -1150,12 +1204,12 @@ class BibleBoxAddon():
         except AttributeError: # Must be called from a box, not a window so get settings from parent
             cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+            print( "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
 
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("BibleBoxAddon.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
-            ##try: print( exp("BibleBoxAddon.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
-            ##except UnicodeEncodeError: print( exp("BibleBoxAddon.displayAppendVerse"), firstFlag, verseKey, currentVerseFlag )
+            #print( "BibleBoxAddon.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+            ##try: print( "BibleBoxAddon.displayAppendVerse( {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
+            ##except UnicodeEncodeError: print( "BibleBoxAddon.displayAppendVerse", firstFlag, verseKey, currentVerseFlag )
 
         BBB, C, V = verseKey.getBCV()
         C, V = int(C), int(V)
@@ -1177,7 +1231,7 @@ class BibleBoxAddon():
 
         if verseContextData is None:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                print( "  ", exp("displayAppendVerse"), "has no data for", verseKey )
+                print( "  ", "BibleBoxAddon.displayAppendVerse has no data for", verseKey )
             verseDataList = context = None
         elif isinstance( verseContextData, tuple ):
             assert len(verseContextData) == 2
@@ -1233,7 +1287,7 @@ class BibleBoxAddon():
 
         if verseDataList is None:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                print( "  ", exp("BibleBoxAddon.displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+                print( "  ", "BibleBoxAddon.displayAppendVerse has no data for", self.moduleID, verseKey )
             #self.textBox.insert( tk.END, '--' )
         else:
             #hadVerseText = False
@@ -1378,11 +1432,11 @@ class BibleBoxAddon():
                         haveTextFlag = True
                     else:
                         if BibleOrgSysGlobals.debugFlag:
-                            logging.critical( exp("BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
+                            logging.critical( _("BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
                         else:
-                            logging.critical( exp("BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
+                            logging.critical( _("BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
                 else:
-                    logging.critical( exp("BibleBoxAddon.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
+                    logging.critical( _("BibleBoxAddon.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
                     if BibleOrgSysGlobals.debugFlag: halt
 
             if lastFlag and cVM=='ByVerse' and endMarkers:
@@ -1402,11 +1456,13 @@ class BibleBoxAddon():
         Returns the requested verse, the previous verse, and the next n verses.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("BibleBoxAddon.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            print( "BibleBoxAddon.getBeforeAndAfterBibleData( {} )".format( newVerseKey ) )
             assert isinstance( newVerseKey, SimpleVerseKey )
 
         BBB, C, V = newVerseKey.getBCV()
+        #print( "here1", BBB, repr(C), repr(V) )
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
+        #print( "  here2", repr(intC), repr(intV) )
 
         # Determine the PREVIOUS valid verse numbers
         prevBBB, prevIntC, prevIntV = BBB, intC, intV
@@ -1414,14 +1470,14 @@ class BibleBoxAddon():
         for n in range( -self.parentApp.viewVersesBefore, 0 ):
             failed = False
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
-            if prevIntV > 0: prevIntV -= 1
+                print( "  getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
+            if prevIntV is not None and prevIntV > 0: prevIntV -= 1
             elif prevIntC > 0:
                 prevIntC -= 1
                 try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
                 except KeyError:
                     if prevIntC != 0: # we can expect an error for chapter zero
-                        logging.error( exp("BibleBoxAddon.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
+                        logging.error( _("BibleBoxAddon.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
                     failed = True
                 #if not failed:
                     #if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
@@ -1435,7 +1491,7 @@ class BibleBoxAddon():
                     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                         print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
                     if prevIntC is None or prevIntV is None:
-                        logging.error( exp("BibleBoxAddon.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
+                        logging.error( _("BibleBoxAddon.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
                         #failed = True
                         break
             if not failed and prevIntV is not None:
@@ -1477,7 +1533,7 @@ class BibleBoxAddon():
 
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBoxAddon doBibleFind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleBoxAddon.doBibleFind( {} )").format( event ) )
+            print( "BibleBoxAddon.doBibleFind( {} )".format( event ) )
 
         try: haveInternalBible = self.internalBible is not None
         except AttributeError: haveInternalBible = False
@@ -1486,8 +1542,8 @@ class BibleBoxAddon():
             return
         #print( "intBib", self.internalBible )
 
-        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseFlagKey.getBCV()
-        gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        gBSTD = GetBibleFindTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         if gBSTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
@@ -1509,7 +1565,7 @@ class BibleBoxAddon():
 
         self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBoxAddon doActualBibleFind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleBoxAddon.doActualBibleFind( {} )").format( extendTo ) )
+            print( "BibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
 
         self.parentApp.setWaitStatus( _("Searching…") )
         #self.textBox.update()
@@ -1551,9 +1607,9 @@ class BibleBoxAddon():
 
         Leaves the wait cursor displayed.
         """
-        logging.debug( exp("BibleBoxAddon._prepareInternalBible()") )
+        logging.debug( "BibleBoxAddon._prepareInternalBible()" )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleBoxAddon._prepareInternalBible()") )
+            print( "BibleBoxAddon._prepareInternalBible()" )
         if givenBible is None: givenBible = self.internalBible
 
         if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
@@ -1580,14 +1636,14 @@ class BibleBoxAddon():
         #This function is not needed at all, except for debug tracing of __init__ functions (when used).
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("BibleBox.__init__( {} )").format( parentApp ) )
+            #print( "BibleBox.__init__( {} )".format( parentApp ) )
             #assert parentApp
         ##self.parentApp = parentApp
 
         #ChildBox.__init__( self, parentApp )
 
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("BibleBox.__init__ finished.") )
+            #print( "BibleBox.__init__ finished." )
     ## end of BibleBox.__init__
 
 
@@ -1596,17 +1652,17 @@ class BibleBoxAddon():
         ##Create keyboard bindings for this widget.
         ##"""
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("BibleBox.createStandardBoxKeyboardBindings( {} )").format( reset ) )
+            ##print( "BibleBox.createStandardBoxKeyboardBindings( {} )".format( reset ) )
 
         ##if reset:
             ##self.myKeyboardBindingsList = []
 
-        ##for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+        ##for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ##('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
                              ###('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              ###('ShowMain',self.doShowMainWindow),
                              ##('Close',self.doClose), ):
-            ##self._createStandardBoxKeyboardBinding( name, command )
+            ##self._createStandardBoxKeyboardBinding( name, commandFunction )
     ### end of BibleBox.createStandardBoxKeyboardBindings()
 
 
@@ -1615,7 +1671,7 @@ class BibleBoxAddon():
         ##Can be overriden if necessary.
         ##"""
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("BibleBox.createContextMenu()") )
+            ##print( "BibleBox.createContextMenu()" )
 
         ##self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
         ##self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
@@ -1689,12 +1745,12 @@ class BibleBoxAddon():
         ##except AttributeError: # Must be called from a box, not a window so get settings from parent
             ##cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+            ##print( "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
 
         ###if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ###print( exp("BibleBox.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
-            ####try: print( exp("BibleBox.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
-            ####except UnicodeEncodeError: print( exp("BibleBox.displayAppendVerse"), firstFlag, verseKey, currentVerseFlag )
+            ###print( "BibleBox.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+            ####try: print( "BibleBox.displayAppendVerse( {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
+            ####except UnicodeEncodeError: print( "BibleBox.displayAppendVerse", firstFlag, verseKey, currentVerseFlag )
 
         ##BBB, C, V = verseKey.getBCV()
         ##C, V = int(C), int(V)
@@ -1716,7 +1772,7 @@ class BibleBoxAddon():
 
         ##if verseContextData is None:
             ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                ##print( "  ", exp("displayAppendVerse"), "has no data for", verseKey )
+                ##print( "  ", "displayAppendVerse has no data for", verseKey )
             ##verseDataList = context = None
         ##elif isinstance( verseContextData, tuple ):
             ##assert len(verseContextData) == 2
@@ -1772,7 +1828,7 @@ class BibleBoxAddon():
 
         ##if verseDataList is None:
             ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                ##print( "  ", exp("BibleBox.displayAppendVerse"), "has no data for", self.moduleID, verseKey )
+                ##print( "  ", "BibleBox.displayAppendVerse has no data for", self.moduleID, verseKey )
             ###self.textBox.insert( tk.END, '--' )
         ##else:
             ###hadVerseText = False
@@ -1916,11 +1972,11 @@ class BibleBoxAddon():
                         ##haveTextFlag = True
                     ##else:
                         ##if BibleOrgSysGlobals.debugFlag:
-                            ##logging.critical( exp("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
+                            ##logging.critical( _("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
                         ##else:
-                            ##logging.critical( exp("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
+                            ##logging.critical( _("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
                 ##else:
-                    ##logging.critical( exp("BibleBox.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
+                    ##logging.critical( _("BibleBox.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
                     ##if BibleOrgSysGlobals.debugFlag: halt
 
             ##if lastFlag and cVM=='ByVerse' and endMarkers:
@@ -1940,7 +1996,7 @@ class BibleBoxAddon():
         ##Returns the requested verse, the previous verse, and the next n verses.
         ##"""
         ##if BibleOrgSysGlobals.debugFlag:
-            ##print( exp("BibleBox.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            ##print( "BibleBox.getBeforeAndAfterBibleData( {} )".format( newVerseKey ) )
             ##assert isinstance( newVerseKey, SimpleVerseKey )
 
         ##BBB, C, V = newVerseKey.getBCV()
@@ -1959,7 +2015,7 @@ class BibleBoxAddon():
                 ##try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
                 ##except KeyError:
                     ##if prevIntC != 0: # we can expect an error for chapter zero
-                        ##logging.error( exp("BibleBox.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
+                        ##logging.error( _("BibleBox.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
                     ##failed = True
                 ###if not failed:
                     ###if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
@@ -1973,7 +2029,7 @@ class BibleBoxAddon():
                     ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                         ##print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
                     ##if prevIntC is None or prevIntV is None:
-                        ##logging.error( exp("BibleBox.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
+                        ##logging.error( _("BibleBox.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
                         ###failed = True
                         ##break
             ##if not failed and prevIntV is not None:
@@ -2015,7 +2071,7 @@ class BibleBoxAddon():
 
         ##self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doBibleFind' )
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("BibleBox.doBibleFind( {} )").format( event ) )
+            ##print( "BibleBox.doBibleFind( {} )".format( event ) )
 
         ##try: haveInternalBible = self.internalBible is not None
         ##except AttributeError: haveInternalBible = False
@@ -2024,8 +2080,8 @@ class BibleBoxAddon():
             ##return
         ###print( "intBib", self.internalBible )
 
-        ##self.BibleFindOptionsDict['currentBCV'] = self.currentVerseFlagKey.getBCV()
-        ##gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        ##self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        ##gBSTD = GetBibleFindTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         ##if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         ##if gBSTD.result:
             ##if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
@@ -2047,7 +2103,7 @@ class BibleBoxAddon():
 
         ##self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doActualBibleFind' )
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("BibleBox.doActualBibleFind( {} )").format( extendTo ) )
+            ##print( "BibleBox.doActualBibleFind( {} )".format( extendTo ) )
 
         ##self.parentApp.setWaitStatus( _("Searching…") )
         ###self.textBox.update()
@@ -2089,9 +2145,9 @@ class BibleBoxAddon():
 
         ##Leaves the wait cursor displayed.
         ##"""
-        ##logging.debug( exp("BibleBox._prepareInternalBible()") )
+        ##logging.debug( "BibleBox._prepareInternalBible()" )
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            ##print( exp("BibleBox._prepareInternalBible()") )
+            ##print( "BibleBox._prepareInternalBible()" )
         ##if givenBible is None: givenBible = self.internalBible
 
         ##if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
@@ -2116,20 +2172,20 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
     "self" here is a HebrewBibleResourceWindow.
     """
-    def __init__( self, parentApp, numInterlinearLines ):
+    def __init__( self, parentWindow, numInterlinearLines ):
         """
         This function is not needed at all, except for debug tracing of __init__ functions (when used).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("HebrewInterlinearBibleBoxAddon.__init__( {}, nIL={} )").format( parentApp, numInterlinearLines ) )
-            assert parentApp
+            print( "HebrewInterlinearBibleBoxAddon.__init__( {}, nIL={} )".format( parentWindow, numInterlinearLines ) )
+            assert parentWindow
             assert 0 < numInterlinearLines <= 5
         self.numInterlinearLines = numInterlinearLines
 
-        BibleBoxAddon.__init__( self, parentApp, 'HebrewInterlinearBibleBoxAddon' )
+        BibleBoxAddon.__init__( self, parentWindow, 'HebrewInterlinearBibleBoxAddon' )
         self.tabStopCm = 3.0
         self.textBox.config( tabs='3.0c' ) # centimeters'
-        self.pixelsPerCm =  self.parentApp.rootWindow.winfo_fpixels( '1c' ) # gives 37.85488958990536 for me for 2.5c
+        self.pixelsPerCm =  self.parentWindow.parentApp.rootWindow.winfo_fpixels( '1c' ) # gives 37.85488958990536 for me for 2.5c
         self.tabStopPixels = self.tabStopCm * self.pixelsPerCm
 
         self.entryStylesNormal = ( 'HebWord', 'HebStrong', 'HebMorph', 'HebGenericGloss', 'HebSpecificGloss' )
@@ -2137,8 +2193,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         self.fontsNormal, self.fontsSelected = [], []
         #tabWidthsNormal, tabWidthsSelected = [], []
         for entryStyleNormal,entryStyleSelected in zip( self.entryStylesNormal, self.entryStylesSelected ):
-            fontNormal = tkFont.Font( **self.parentApp.stylesheet.getTKStyleDict( entryStyleNormal ) )
-            fontSelected = tkFont.Font( **self.parentApp.stylesheet.getTKStyleDict( entryStyleSelected ) )
+            fontNormal = tkFont.Font( **self.parentWindow.parentApp.stylesheet.getTKStyleDict( entryStyleNormal ) )
+            fontSelected = tkFont.Font( **self.parentWindow.parentApp.stylesheet.getTKStyleDict( entryStyleSelected ) )
             self.fontsNormal.append( fontNormal )
             self.fontsSelected.append( fontSelected )
             #tabWidthNormal = fontNormal.measure( ' '*8 ) # Typically gives around 24 (pixels?)
@@ -2147,14 +2203,14 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             #tabWidthsNormal.append( tabWidthNormal )
             #tabWidthsSelected.append( tabWidthSelected )
 
-        self.requestMissingGlosses = True
+        self.requestMissingGlosses, self.glossWindowGeometry = True, None
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("HebrewInterlinearBibleBoxAddon.__init__ finished.") )
+            print( "HebrewInterlinearBibleBoxAddon.__init__ finished." )
     # end of HebrewInterlinearBibleBoxAddon.__init__
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
+    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, currentWordNumber=1, command=None, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
         """
         Add the requested verse to the end of self.textBox.
 
@@ -2163,10 +2219,13 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
+
+        command can be 'E' for edit, i.e., if a bundle has been double-clicked
         """
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
-                print( "HebrewInterlinearBibleBoxAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
+                print( "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
+                    .format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, command, substituteTrailingSpaces, substituteMultipleSpaces ) )
                 print( "  {}".format( verseContextData[0] ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
@@ -2174,6 +2233,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 assert isinstance( verseContextData, tuple ) and len(verseContextData)==2 or isinstance( verseContextData, str )
             assert isinstance( lastFlag, bool )
             assert isinstance( currentVerseFlag, bool )
+        self.lastDAVargs = firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, None, substituteTrailingSpaces, substituteMultipleSpaces
 
         self.update() # so we can get the geometry
         boxWidth = self.textBox.winfo_width()
@@ -2192,7 +2252,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 if debuggingThisModule:
                     print( "insertAtEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
-                assert isinstance( ieTags, (str,tuple) )
+                assert ieTags is None or isinstance( ieTags, (str,tuple) )
                 assert TRAILING_SPACE_SUBSTITUTE not in ieText
                 assert MULTIPLE_SPACE_SUBSTITUTE not in ieText
 
@@ -2218,7 +2278,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     print( "insertAtEndLine( {}, {!r}, {} )".format( ieLineNumber, ieText, ieTags ) )
                 assert isinstance( ieLineNumber, int )
                 assert isinstance( ieText, str )
-                assert isinstance( ieTags, (str,tuple) )
+                assert ieTags is None or isinstance( ieTags, (str,tuple) )
                 assert TRAILING_SPACE_SUBSTITUTE not in ieText
                 assert MULTIPLE_SPACE_SUBSTITUTE not in ieText
 
@@ -2234,124 +2294,229 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         # end of HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine
 
 
-        def appendVerseText( verseDataEntry, currentVerseKey, currentVerseFlag ):
+        def appendVerseText( verseDataEntry, currentVerseKey, currentVerseFlag, currentWordNumber, command ):
             """
             Appends the (interlinear) verse text to the box (taking multiple lines)
+
+            Always displays the available verse text first
+                then may attempt to extract glosses.
+
+            Returns True if the display needs updating/refreshing
             """
-            from BiblelatorDialogs import GetHebrewGlossWordDialog
+            from BiblelatorDialogs import GetHebrewGlossWordDialog, GetHebrewGlossWordsDialog
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( exp("displayAppendVerse.appendVerseText( {}, {}, {} )").format( verseDataEntry, currentVerseKey, currentVerseFlag ) )
+                print( "displayAppendVerse.appendVerseText( {}, {}, cVF={}, cWN={}, c={} )".format( verseDataEntry, currentVerseKey, currentVerseFlag, currentWordNumber, command ) )
 
             verseDictList = self.internalBible.getVerseDictList( verseDataEntry, currentVerseKey )
             #print( verseKey.getShortText(), "verseDictList", verseDictList )
 
             #self.textBox.insert( tk.END, '\n'*self.numInterlinearLines ) # Make sure we have enough blank lines
-            insertAtEnd( '\n'*self.numInterlinearLines, () ) # Make sure we have enough blank lines
+            insertAtEnd( '\n'*self.numInterlinearLines, None ) # Make sure we have enough blank lines
             haveTextFlag = False
+            savedLineNumber = self.lineNumber
 
-            currentBundleFlag = currentVerseFlag
-            self.acrossIndex = 0
-            for j,verseDict in enumerate( verseDictList ): # each verseDict represents one word or token
-                #print( "verseDict", verseDict )
-                #if bundlesAcross >= self.bundlesPerLine: # Start a new line
-                    ##print( "Start new bundle line" )
-                    ##self.textBox.insert( tk.END, '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
-                    #insertAtEnd( '\n'*(self.numInterlinearLines+1), () ) # Make sure we have enough blank lines
-                    #self.lineNumber += self.numInterlinearLines + 1
-                    #bundlesAcross = 0
-                    #haveTextFlag = False
-                word = verseDict['word']
-                fullRefTuple = currentVerseKey.getBCV() + (str(j+1),)
-                #import Hebrew
-                #h = Hebrew.Hebrew( word )
-                #print( '{!r} is '.format( word ), end=None )
-                #h.printUnicodeData( word )
-                try: strongsNumber = verseDict['strong']
-                except KeyError: strongsNumber = ''
-                try: morphology = verseDict['morph']
-                except KeyError: morphology = ''
-                if self.numInterlinearLines == 3:
-                    bundle = word, strongsNumber, morphology
-                elif self.numInterlinearLines == 4:
-                    assert self.internalBible.glossingDict
-                    normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True ) \
-                                        .replace( ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR )
-                    #if normalizedWord != word:
-                        #print( '   ({}) {!r} normalized to ({}) {!r}'.format( len(word), word, len(normalizedWord), normalizedWord ) )
-                        ##print( '{!r} is '.format( normalizedWord ), end=None )
-                        ##h.printUnicodeData( normalizedWord )
-                    genericGloss,genericReferencesList,specificReferencesDict = self.internalBible.glossingDict[normalizedWord] \
-                                                    if normalizedWord in self.internalBible.glossingDict else ('',[],{})
-                    if not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
-                        #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
-                            #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
-                        if self.requestMissingGlosses:
-                            tempBundle = normalizedWord, strongsNumber, morphology
-                            gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle )
-                            #print( "gwdResult", gwd.result )
-                            if gwd.result is None: # cancel
+            requestMissingGlossesNow = needToRequestMissingGlosses = needToUpdate = False
+            for passNumber in range( 1, 3 ):
+                # We won't request missing glosses until we've displayed what we know first
+                #print( "HebrewInterlinearBibleBoxAddon.appendVerseText: pass #{} {} {}".format( passNumber, requestMissingGlossesNow, needToRequestMissingGlosses ) )
+                self.lineNumber = savedLineNumber
+                self.acrossIndex = 0
+                j = 0
+                while j < len(verseDictList): # Can't use a for loop coz we mess with the index
+                    j += 1 # j is now in range 1..len(verseDictList)
+                    verseDict = verseDictList[j-1] # each verseDict represents one word or token
+                    #print( "pn={}, j={}, c={}, verseDict={}".format( passNumber, j, command, verseDict ) )
+                    #if bundlesAcross >= self.bundlesPerLine: # Start a new line
+                        ##print( "Start new bundle line" )
+                        ##self.textBox.insert( tk.END, '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
+                        #insertAtEnd( '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
+                        #self.lineNumber += self.numInterlinearLines + 1
+                        #bundlesAcross = 0
+                        #haveTextFlag = False
+                    word = verseDict['word']
+                    fullRefTuple = currentVerseKey.getBCV() + (str(j),)
+                    refText = '{} {}:{}.{}'.format( *fullRefTuple )
+                    #import Hebrew
+                    #h = Hebrew.Hebrew( word )
+                    #print( '{!r} is '.format( word ), end=None )
+                    #h.printUnicodeData( word )
+                    try: strongsNumber = verseDict['strong']
+                    except KeyError: strongsNumber = ''
+                    try: morphology = verseDict['morph']
+                    except KeyError: morphology = ''
+                    if self.numInterlinearLines == 3:
+                        bundle = word, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                    elif self.numInterlinearLines == 4:
+                        assert self.internalBible.glossingDict
+                        normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True ) \
+                                            .replace( ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR )
+                        #if normalizedWord != word:
+                            #print( '   ({}) {!r} normalized to ({}) {!r}'.format( len(word), word, len(normalizedWord), normalizedWord ) )
+                            ##print( '{!r} is '.format( normalizedWord ), end=None )
+                            ##h.printUnicodeData( normalizedWord )
+                        genericGloss,genericReferencesList,specificReferencesDict = self.internalBible.glossingDict[normalizedWord] \
+                                                        if normalizedWord in self.internalBible.glossingDict else ('',[],{})
+                        if passNumber>1 and ( command in ('L','R') or (command=='E' and j==currentWordNumber) ):
+                            command = None
+                            tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                            #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
+                            ghgwd = GetHebrewGlossWordDialog( self, _("Edit generic gloss"), tempBundle, genericGloss, geometry=self.glossWindowGeometry )
+                            #print( "ghgwdResultA1", ghgwd.result )
+                            if ghgwd.result is None: # cancel
                                 self.requestMissingGlosses = False
-                                pass
-                            elif gwd.result == 'S': # skip
-                                self.requestMissingGlosses = False
-                                pass
-                            elif isinstance( gwd.result, dict ):
-                                assert gwd.result['word']
-                                genericGloss = gwd.result['word']
+                            elif ghgwd.result == 'S': # skip
+                                needToRequestMissingGlosses = False
+                            elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                command = ghgwd.result
+                            elif isinstance( ghgwd.result, dict ):
+                                #print( "result1", ghgwd.result )
+                                assert ghgwd.result['word']
+                                genericGloss = ghgwd.result['word']
                                 self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
+                                self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                try: command = ghgwd.result['command'] # 'L' or 'R'
+                                except KeyError: command = None
+                                needToRequestMissingGlosses = False
+                                needToUpdate = True
                             else: halt # programming error
-                    bundle = word, strongsNumber, morphology, genericGloss
-                elif self.numInterlinearLines == 5:
-                    assert self.internalBible.glossingDict
-                    normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True ) \
-                                        .replace( ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR )
-                    #if normalizedWord != word:
-                        #print( '   ({}) {!r} normalized to ({}) {!r}'.format( len(word), word, len(normalizedWord), normalizedWord ) )
-                        ##print( '{!r} is '.format( normalizedWord ), end=None )
-                        ##h.printUnicodeData( normalizedWord )
-                    genericGloss,genericReferencesList,specificReferencesDict = self.internalBible.glossingDict[normalizedWord] \
-                                                    if normalizedWord in self.internalBible.glossingDict else ('',[],{})
-                    try: specificGloss = specificReferencesDict[fullRefTuple]
-                    except KeyError: specificGloss = '' # No specific gloss for this reference
-                    if not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
-                        #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
-                            #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
-                        if self.requestMissingGlosses:
-                            tempBundle = normalizedWord, strongsNumber, morphology
-                            gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle )
-                            #print( "gwdResult", gwd.result )
-                            if gwd.result is None: # cancel
+                        elif not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
+                            #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
+                                #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
+                            if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
+                                tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                                #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
+                                ghgwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle, geometry=self.glossWindowGeometry )
+                                #print( "ghgwdResultA2", ghgwd.result )
+                                if ghgwd.result is None: # cancel
+                                    self.requestMissingGlosses = False
+                                elif ghgwd.result == 'S': # skip
+                                    needToRequestMissingGlosses = False
+                                elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                    command = ghgwd.result
+                                elif isinstance( ghgwd.result, dict ):
+                                    #print( "result2", ghgwd.result )
+                                    assert ghgwd.result['word']
+                                    genericGloss = ghgwd.result['word']
+                                    self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
+                                    self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                    try: command = ghgwd.result['command'] # 'L','R','LL','RR'
+                                    except KeyError: command = None
+                                    needToRequestMissingGlosses = False
+                                    needToUpdate = True
+                                else: halt # programming error
+                            else: needToRequestMissingGlosses = True
+                        bundle = word, strongsNumber, morphology, genericGloss
+                    elif self.numInterlinearLines == 5:
+                        assert self.internalBible.glossingDict
+                        normalizedWord =  self.internalBible.removeCantillationMarks( word, removeMetegOrSiluq=True ) \
+                                            .replace( ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR )
+                        #if normalizedWord != word:
+                            #print( '   ({}) {!r} normalized to ({}) {!r}'.format( len(word), word, len(normalizedWord), normalizedWord ) )
+                            ##print( '{!r} is '.format( normalizedWord ), end=None )
+                            ##h.printUnicodeData( normalizedWord )
+                        genericGloss,genericReferencesList,specificReferencesDict = self.internalBible.glossingDict[normalizedWord] \
+                                                        if normalizedWord in self.internalBible.glossingDict else ('',[],{})
+                        try: specificGloss = specificReferencesDict[fullRefTuple]
+                        except KeyError: specificGloss = '' # No specific gloss for this reference
+                        if passNumber>1 and ( command in ('L','R') or (command=='E' and j==currentWordNumber) ):
+                            command = None
+                            tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                            #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
+                            ghgwd = GetHebrewGlossWordsDialog( self, _("Edit generic/specific glosses"), tempBundle, genericGloss, specificGloss, geometry=self.glossWindowGeometry )
+                            #print( "ghgwdResultB1", ghgwd.result )
+                            if ghgwd.result is None: # cancel
                                 self.requestMissingGlosses = False
-                                pass
-                            elif gwd.result == 'S': # skip
-                                self.requestMissingGlosses = False
-                                pass
-                            elif isinstance( gwd.result, dict ):
-                                assert gwd.result['word']
-                                genericGloss = gwd.result['word']
+                            elif ghgwd.result == 'S': # skip
+                                needToRequestMissingGlosses = False
+                            elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                command = ghgwd.result
+                            elif isinstance( ghgwd.result, dict ):
+                                #print( "result3", ghgwd.result )
+                                assert ghgwd.result['word1']
+                                genericGloss = ghgwd.result['word1']
+                                specificGloss = ghgwd.result['word2'] if 'word2' in ghgwd.result else None
                                 self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
+                                if specificGloss:
+                                    self.internalBible.setNewSpecificGloss( normalizedWord, specificGloss, fullRefTuple )
+                                self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                try: command = ghgwd.result['command'] # 'L' or 'R'
+                                except KeyError: command = None
+                                needToRequestMissingGlosses = False
+                                needToUpdate = True
                             else: halt # programming error
-                    bundle = word, strongsNumber, morphology, genericGloss, specificGloss
-                else: halt # Programming error for numInterlinearLines
-                appendBundle( bundle, currentVerseKey, currentBundleFlag, haveTextFlag )
-                currentBundleFlag = False
-                haveTextFlag = True
-                #bundlesAcross += 1
+                        elif not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
+                            #print( "No generic gloss found for ({}) {}{}".format( len(word), word, \
+                                #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
+                            if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
+                                tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
+                                #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
+                                ghgwd = GetHebrewGlossWordsDialog( self, _("Enter new generic/specific glosses"), tempBundle, geometry=self.glossWindowGeometry )
+                                #print( "ghgwdResultB2", ghgwd.result )
+                                if ghgwd.result is None: # cancel
+                                    self.requestMissingGlosses = False
+                                elif ghgwd.result == 'S': # skip
+                                    needToRequestMissingGlosses = False
+                                elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                    command = ghgwd.result
+                                elif isinstance( ghgwd.result, dict ):
+                                    #print( "result4", ghgwd.result )
+                                    assert ghgwd.result['word1']
+                                    genericGloss = ghgwd.result['word1']
+                                    specificGloss = ghgwd.result['word2'] if 'word2' in ghgwd.result else None
+                                    self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
+                                    if specificGloss:
+                                        self.internalBible.setNewSpecificGloss( normalizedWord, specificGloss, fullRefTuple )
+                                    self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                    try: command = ghgwd.result['command'] # 'L' or 'R'
+                                    except KeyError: command = None
+                                    needToRequestMissingGlosses = False
+                                    needToUpdate = True
+                                else: halt # programming error
+                            else: needToRequestMissingGlosses = True
+                        bundle = word, strongsNumber, morphology, genericGloss, specificGloss
+                    else: halt # Programming error for numInterlinearLines
+                    if passNumber == 1:
+                        appendBundle( bundle, j, j==currentWordNumber, haveTextFlag )
+                    haveTextFlag = True
+                    if command == 'L':
+                        if j>1: j = j - 2 # Go left
+                        else: command = None # Already at left side
+                    elif command == 'R':
+                        if j < len(verseDictList): pass
+                        else: command = None # Already at right side
+                    elif command == 'LL':
+                        self.parentApp.doGotoPreviousVerse()
+                        return False
+                    elif command == 'RR':
+                        self.parentApp.doGotoNextVerse()
+                        return False
+                    elif command == 'E': pass
+                    else: assert command is None
+                    #bundlesAcross += 1
+                if self.parentApp.starting: break
+                if command: continue
+                if not self.requestMissingGlosses: break
+                if not needToRequestMissingGlosses: break
+                requestMissingGlossesNow = True
+            return needToUpdate
         # end of HebrewInterlinearBibleBoxAddon.appendVerseText
 
 
-        def appendBundle( textBundle, ref, currentBundleFlag, haveTextFlag ):
+        def appendBundle( textBundle, wordNumber, currentBundleFlag, haveTextFlag ):
             """
             Appends the (interlinear) word bundle to the box (taking multiple lines)
             """
             if BibleOrgSysGlobals.debugFlag:
                 if debuggingThisModule:
-                    print( exp("displayAppendVerse.appendBundle( {}, {}, {}, {} )").format( textBundle, ref, currentBundleFlag, haveTextFlag ) )
+                    print( "displayAppendVerse.appendBundle( {}, wN={}, cBF={}, hTF={} )".format( textBundle, wordNumber, currentBundleFlag, haveTextFlag ) )
                 assert isinstance( textBundle, tuple )
                 assert len(textBundle) == self.numInterlinearLines
 
-            entryStyles = self.entryStylesSelected if currentBundleFlag else self.entryStylesNormal
-            fonts = self.fontsSelected if currentBundleFlag else self.fontsNormal
+            if currentBundleFlag:
+                entryStyles, fonts = self.entryStylesSelected, self.fontsSelected
+                self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations(textBundle[2]) )
+            else:
+                entryStyles, fonts = self.entryStylesNormal, self.fontsNormal
 
             # Find the width of each bundleEntry
             maxWidthPixels = 0
@@ -2360,301 +2525,398 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             for j,bundleEntry in enumerate( textBundle ):
                 #print( "bundleEntry", bundleEntry )
                 #(w,h) = (font.measure(text),font.metrics("linespace"))
-                bundleWidthPixels = fonts[j].measure( bundleEntry ) + 5 # for safety
+                bundleWidthPixels = fonts[j].measure( bundleEntry ) + 6 # for safety
                 bundleWidthsPixels.append( bundleWidthPixels )
                 tabStopsUsed.append( int( bundleWidthPixels / self.tabStopPixels ) + 1 )
                 #print( j, currentBundleFlag, bundleEntry, bundleWidthPixels )
                 if bundleWidthPixels > maxWidthPixels: maxWidthPixels = bundleWidthPixels
             maxTabStopsUsed = int( maxWidthPixels / self.tabStopPixels ) + 1
-            #if maxTabStopsUsed>1: print( "Need more tabs", maxWidthPixels, self.tabStopPixels, maxTabStopsUsed, self.bundlesPerLine )
+            #if maxTabStopsUsed>1:
+                #print( "  Need more tabs bWP={} tSU={} mWP={} tSP={} mTSU={} bpL={}" \
+                        #.format( bundleWidthsPixels, tabStopsUsed, maxWidthPixels, self.tabStopPixels, maxTabStopsUsed, self.bundlesPerLine ) )
 
             if self.acrossIndex+maxTabStopsUsed >= self.bundlesPerLine: # Start a new line
                 #print( "Start new bundle line" )
                 #self.textBox.insert( tk.END, '\n'*(self.numInterlinearLines+1) ) # Make sure we have enough blank lines
-                insertAtEnd( '\n'*(self.numInterlinearLines+1), () ) # Make sure we have enough blank lines
+                insertAtEnd( '\n'*(self.numInterlinearLines+1), None ) # Make sure we have enough blank lines
                 self.lineNumber += self.numInterlinearLines + 1
                 self.acrossIndex = 0
                 haveTextFlag = False
             #print( "About to display bundle {} at row={} col={}".format( textBundle, self.lineNumber, self.acrossIndex ) )
 
-            # Now display the actual bundles
+            # Now display the actual bundles (with tabs appended)
             #for j,bundleEntry in enumerate( textBundle ):
             for j,(bundleEntry,bundleWidthPixels,thisTabStopsUsed) in enumerate( zip(textBundle,bundleWidthsPixels,tabStopsUsed) ):
                 #print( "bundleEntry", bundleEntry, bundleWidthPixels )
                 #print( "bundleEntry", bundleEntry )
                 if j==0: bundleEntry = bundleEntry[::-1] # Reverse string to simulate RTL Hebrew language
-                adjBundleEntry = ('\t' if haveTextFlag else '') + bundleEntry
+                wTag = 'W{}.{}'.format( wordNumber, j )
+                #if numTabsRequired:
+                    #insertAtEndLine( self.lineNumber+j, '\t'*numTabsRequired, self.entryStylesNormal[j] )
+                insertAtEndLine( self.lineNumber+j, bundleEntry, (entryStyles[j],wTag) )
+                self.textBox.tag_bind( wTag, '<Button-1>', self.selectBundle )
+                self.textBox.tag_bind( wTag, '<Double-Button-1>', self.editBundle )
+                numTabsRequired = 1
                 if maxTabStopsUsed > 1:
                     #tabStopsUsed = int( bundleWidthPixels / self.tabStopPixels )
-                    #print( "  Appending {} trailing tabs to {}".format( maxTabStopsUsed - thisTabStopsUsed, bundleEntry ) )
-                    adjBundleEntry += '\t' * (maxTabStopsUsed - thisTabStopsUsed)
-                insertAtEndLine( self.lineNumber+j, adjBundleEntry, entryStyles[j] )
+                    numTabsRequired += maxTabStopsUsed - thisTabStopsUsed
+                #print( "    Appending {} trailing tab{} to {!r}" \
+                            #.format( numTabsRequired, '' if numTabsRequired==1 else 's', bundleEntry ) )
+                insertAtEndLine( self.lineNumber+j, '\t'*numTabsRequired, None )
             self.acrossIndex += maxTabStopsUsed
+            return maxTabStopsUsed
         # end of HebrewInterlinearBibleBoxAddon.appendBundle
 
 
         # Start of main code for HebrewInterlinearBibleBoxAddon.displayAppendVerse
-        self.lineNumber = 0
-        try: cVM, fVM = self._contextViewMode, self._formatViewMode
-        except AttributeError: # Must be called from a box, not a window so get settings from parent
-            cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
-        assert cVM == 'ByVerse'
+        needsRefreshing = False
+        while True:
+            self.lineNumber = 0
+            try: cVM, fVM = self._contextViewMode, self._formatViewMode
+            except AttributeError: # Must be called from a box, not a window so get settings from parent
+                cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                print( "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+            assert cVM == 'ByVerse'
 
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HebrewInterlinearBibleBoxAddon.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}").format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
-            ##try: print( exp("HebrewInterlinearBibleBoxAddon.displayAppendVerse( {}, {}, {}, {} )").format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
-            ##except UnicodeEncodeError: print( exp("HebrewInterlinearBibleBoxAddon.displayAppendVerse"), firstFlag, verseKey, currentVerseFlag )
-
-        BBB, C, V = verseKey.getBCV()
-        C, V = int(C), int(V)
-        #C1 = C2 = int(C); V1 = V2 = int(V)
-        #if V1 > 0: V1 -= 1
-        #elif C1 > 0:
-            #C1 -= 1
-            #V1 = self.getNumVerses( BBB, C1 )
-        #if V2 < self.getNumVerses( BBB, C2 ): V2 += 1
-        #elif C2 < self.getNumChapters( BBB):
-            #C2 += 1
-            #V2 = 0
-        #previousMarkName = 'C{}V{}'.format( C1, V1 )
-        currentMarkName = 'C{}V{}'.format( C, V )
-        #nextMarkName = 'C{}V{}'.format( C2, V2 )
-        #print( "Marks", previousMarkName, currentMarkName, nextMarkName )
-
-        lastCharWasSpace = haveTextFlag = not firstFlag
-
-        if verseContextData is None:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                print( "  ", exp("displayAppendVerse"), "has no data for", verseKey )
-            verseDataList = context = None
-        elif isinstance( verseContextData, tuple ):
-            assert len(verseContextData) == 2
-            verseDataList, context = verseContextData
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                #print( "   VerseDataList: {}".format( verseDataList ) )
-                #print( "   Context: {}".format( context ) )
-        elif isinstance( verseContextData, str ):
-            verseDataList, context = verseContextData.split( '\n' ), None
-        elif BibleOrgSysGlobals.debugFlag: halt
+                #print( "HebrewInterlinearBibleBoxAddon.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+                ##try: print( "HebrewInterlinearBibleBoxAddon.displayAppendVerse( {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
+                ##except UnicodeEncodeError: print( "HebrewInterlinearBibleBoxAddon.displayAppendVerse", firstFlag, verseKey, currentVerseFlag )
 
-        # Display the context preceding the first verse
-        if firstFlag:
-            if context:
-                #print( "context", context )
-                #print( "  Setting context mark to {}".format( previousMarkName ) )
-                #self.textBox.mark_set( previousMarkName, tk.INSERT )
-                #self.textBox.mark_gravity( previousMarkName, tk.LEFT )
-                insertAtEnd( ' '+_("Prior context")+':', 'contextHeader' )
-                contextString, firstMarker = "", True
-                for someMarker in context:
-                    #print( "  someMarker", someMarker )
-                    if someMarker != 'chapters':
+            BBB, C, V = verseKey.getBCV()
+            C, V = int(C), int(V)
+            #C1 = C2 = int(C); V1 = V2 = int(V)
+            #if V1 > 0: V1 -= 1
+            #elif C1 > 0:
+                #C1 -= 1
+                #V1 = self.getNumVerses( BBB, C1 )
+            #if V2 < self.getNumVerses( BBB, C2 ): V2 += 1
+            #elif C2 < self.getNumChapters( BBB):
+                #C2 += 1
+                #V2 = 0
+            #previousMarkName = 'C{}V{}'.format( C1, V1 )
+            currentMarkName = 'C{}V{}'.format( C, V )
+            #nextMarkName = 'C{}V{}'.format( C2, V2 )
+            #print( "Marks", previousMarkName, currentMarkName, nextMarkName )
+
+            lastCharWasSpace = haveTextFlag = not firstFlag
+
+            if verseContextData is None:
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
+                    print( "  ", "displayAppendVerse has no data for", verseKey )
+                verseDataList = context = None
+            elif isinstance( verseContextData, tuple ):
+                assert len(verseContextData) == 2
+                verseDataList, context = verseContextData
+                #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                    #print( "   VerseDataList: {}".format( verseDataList ) )
+                    #print( "   Context: {}".format( context ) )
+            elif isinstance( verseContextData, str ):
+                verseDataList, context = verseContextData.split( '\n' ), None
+            elif BibleOrgSysGlobals.debugFlag: halt
+
+            # Display the context preceding the first verse
+            if firstFlag:
+                if context:
+                    #print( "context", context )
+                    #print( "  Setting context mark to {}".format( previousMarkName ) )
+                    #self.textBox.mark_set( previousMarkName, tk.INSERT )
+                    #self.textBox.mark_gravity( previousMarkName, tk.LEFT )
+                    insertAtEnd( ' '+_("Prior context")+':', 'contextHeader' )
+                    contextString, firstMarker = "", True
+                    for someMarker in context:
+                        #print( "  someMarker", someMarker )
+                        if someMarker != 'chapters':
+                            contextString += (' ' if firstMarker else ', ') + someMarker
+                            firstMarker = False
+                    insertAtEnd( contextString+' ', 'context' )
+                    haveTextFlag = True
+                    self.lineNumber += 1
+                if verseDataList and fVM == 'Formatted':
+                    # Display the first formatting marker in this segment -- don't really need this -- see below
+                    #firstEntry = verseDataList[0]
+                    #if isinstance( firstEntry, InternalBibleEntry ): marker = firstEntry.getMarker()
+                    #elif isinstance( firstEntry, tuple ): marker = firstEntry[0]
+                    #else: marker = None
+                    #if marker in BibleOrgSysGlobals.USFMParagraphMarkers:
+                        #insertAtEnd( ' '+_("Current context")+': ', 'contextHeader' )
+                        #insertAtEnd( marker+' ', 'context' )
+                    # Display all line markers in this segment
+                    markerList = []
+                    for verseData in verseDataList:
+                        if isinstance( verseData, InternalBibleEntry ): marker = verseData.getMarker()
+                        elif isinstance( verseData, tuple ): marker = verseData[0]
+                        else: marker = None
+                        if marker and not marker.startswith('¬') \
+                        and not marker.endswith('~') and not marker.endswith('#'):
+                            markerList.append( marker )
+                    if markerList:
+                        insertAtEnd( ' '+_("Displayed markers")+': ', 'markersHeader' )
+                        insertAtEnd( str(markerList)[1:-1], 'markers' ) # Display list without square brackets
+                        self.textBox.insert ( tk.END, ' ' )
+
+            #print( "  Setting mark to {}".format( currentMarkName ) )
+            self.textBox.mark_set( currentMarkName, tk.INSERT )
+            self.textBox.mark_gravity( currentMarkName, tk.LEFT )
+
+            if verseDataList is None:
+                if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
+                    print( "  ", "HebrewInterlinearBibleBoxAddon.displayAppendVerse has no data for", self.moduleID, verseKey )
+                #self.textBox.insert( tk.END, '--' )
+            else:
+                #hadVerseText = False
+                #try: cVM = self._contextViewMode
+                #except AttributeError: cVM = self.parentWindow._contextViewMode
+                lastParagraphMarker = context[-1] if context and context[-1] in BibleOrgSysGlobals.USFMParagraphMarkers \
+                                            else 'v~' # If we don't know the format of a verse (or for unformatted Bibles)
+                endMarkers = []
+
+                for verseDataEntry in verseDataList:
+                    # This loop is used for several types of data
+                    assert isinstance( verseDataEntry, InternalBibleEntry )
+                    marker, cleanText, extras = verseDataEntry.getMarker(), verseDataEntry.getCleanText(), verseDataEntry.getExtras()
+                    adjustedText, originalText = verseDataEntry.getAdjustedText(), verseDataEntry.getOriginalText()
+                    #print( "marker={} cleanText={!r}{}".format( marker, cleanText, " extras={}".format( extras ) if extras else '' ) )
+                    #print( "marker={} cleanText={!r} extras={}".format( marker, cleanText, extras ) )
+                    #if adjustedText and adjustedText!=cleanText:
+                        #print( ' '*(len(marker)+4), "adjustedText={!r}".format( adjustedText ) )
+                    #if originalText and originalText!=cleanText:
+                        #print( ' '*(len(marker)+4), "originalText={!r}".format( originalText ) )
+                    #elif isinstance( verseDataEntry, tuple ):
+                        #marker, cleanText = verseDataEntry[0], verseDataEntry[3]
+                    #elif isinstance( verseDataEntry, str ): # from a Bible text editor window
+                        #if verseDataEntry=='': continue
+                        #verseDataEntry += '\n'
+                        #if verseDataEntry[0]=='\\':
+                            #marker = ''
+                            #for char in verseDataEntry[1:]:
+                                #if char!='¬' and not char.isalnum(): break
+                                #marker += char
+                            #cleanText = verseDataEntry[len(marker)+1:].lstrip()
+                        #else:
+                            #marker, cleanText = None, verseDataEntry
+                    #elif BibleOrgSysGlobals.debugFlag: halt
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+                        print( "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
+
+                    if fVM == 'Unformatted':
+                        if marker and marker[0]=='¬': pass # Ignore end markers for now
+                        elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
+                        else:
+                            if isinstance( verseDataEntry, str ): # from a Bible text editor window
+                                #print( "marker={!r}, verseDataEntry={!r}".format( marker, verseDataEntry ) )
+                                insertAtEnd( verseDataEntry, marker ) # Do it just as is!
+                            else: # not a str, i.e., not a text editor, but a viewable resource
+                                #if hadVerseText and marker in ( 's', 's1', 's2', 's3' ):
+                                    #print( "  Setting s mark to {}".format( nextMarkName ) )
+                                    #self.textBox.mark_set( nextMarkName, tk.INSERT )
+                                    #self.textBox.mark_gravity( nextMarkName, tk.LEFT )
+                                #print( "  Inserting ({}): {!r}".format( marker, verseDataEntry ) )
+                                if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                                if marker is None:
+                                    insertAtEnd( cleanText, '###' )
+                                else: insertAtEnd( '\\{} {}'.format( marker, cleanText ), marker+'#' )
+                                haveTextFlag = True
+
+                    elif fVM == 'Formatted':
+                        if marker.startswith( '¬' ):
+                            if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
+                        else: endMarkers = [] # Reset when we have normal markers
+
+                        if marker.startswith( '¬' ):
+                            pass # Ignore end markers for now
+                            #assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            #if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            #insertAtEnd( cleanText, marker )
+                            #haveTextFlag = True
+                        elif marker == 'id':
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('ide','rem',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('h','toc1','toc2','toc3','cl¤',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('intro','chapters','list',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('mt1','mt2','mt3','mt4', 'imt1','imt2','imt3','imt4', 'iot','io1','io2','io3','io4',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('ip','ipi','im','imi','ipq','imq','ipr', 'iq1','iq2','iq3','iq4',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('s1','s2','s3','s4', 'is1','is2','is3','is4', 'ms1','ms2','ms3','ms4', 'cl',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('d','sp',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in ('r','mr','sr',):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            insertAtEnd( cleanText, marker )
+                            haveTextFlag = True
+                        elif marker in BibleOrgSysGlobals.USFMParagraphMarkers:
+                            assert not cleanText # No text expected with these markers
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                            lastParagraphMarker = marker
+                            haveTextFlag = True
+                        elif marker in ('b','ib'):
+                            assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
+                            assert not cleanText # No text expected with this marker
+                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
+                        #elif marker in ('m','im'):
+                            #self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
+                            #if cleanText:
+                                #insertAtEnd( cleanText, '*'+marker if currentVerseFlag else marker )
+                                #lastCharWasSpace = False
+                                #haveTextFlag = True
+                        #elif marker == 'p#': # and self.BibleBoxType=='DBPBibleResourceBox':
+                            #pass # Just ignore these for now
+                        elif marker == 'c': # Don't want to display this (original) c marker
+                            #if not firstFlag: haveC = cleanText
+                            #else: print( "   Ignore C={}".format( cleanText ) )
+                            pass
+                        elif marker == 'c#': # Might want to display this (added) c marker
+                            if cleanText != verseKey.getBBB():
+                                if not lastCharWasSpace: insertAtEnd( ' ', 'v-' )
+                                insertAtEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
+                                lastCharWasSpace = False
+                        elif marker == 'v':
+                            if cleanText != '1': # Don't display verse number for v1 in default view
+                                if haveTextFlag:
+                                    insertAtEnd( ' ', (lastParagraphMarker,'v-',) if lastParagraphMarker else ('v-',) )
+                                insertAtEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
+                                #insertAtEnd( '\u2009', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
+                            insertAtEnd( '\n', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
+                            haveTextFlag = True
+                            self.lineNumber += 1
+                        elif marker in ('v~','p~'):
+                            needsRefreshing = appendVerseText( verseDataEntry, verseKey, currentVerseFlag, currentWordNumber=currentWordNumber, command=command )
+                            command = None # So we don't repeat it
+                            haveTextFlag = True
+                        else:
+                            if BibleOrgSysGlobals.debugFlag:
+                                logging.critical( _("HebrewInterlinearBibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
+                            else:
+                                logging.critical( _("HebrewInterlinearBibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
+                    else:
+                        logging.critical( _("HebrewInterlinearBibleBoxAddon.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
+                        if BibleOrgSysGlobals.debugFlag: halt
+
+                if lastFlag and cVM=='ByVerse' and endMarkers:
+                    #print( "endMarkers", endMarkers )
+                    insertAtEnd( ' '+ _("End context")+':', 'contextHeader' )
+                    contextString, firstMarker = "", True
+                    for someMarker in endMarkers:
+                        #print( "  someMarker", someMarker )
                         contextString += (' ' if firstMarker else ', ') + someMarker
                         firstMarker = False
-                insertAtEnd( contextString+' ', 'context' )
-                haveTextFlag = True
-                self.lineNumber += 1
-            if verseDataList and fVM == 'Formatted':
-                # Display the first formatting marker in this segment -- don't really need this -- see below
-                #firstEntry = verseDataList[0]
-                #if isinstance( firstEntry, InternalBibleEntry ): marker = firstEntry.getMarker()
-                #elif isinstance( firstEntry, tuple ): marker = firstEntry[0]
-                #else: marker = None
-                #if marker in BibleOrgSysGlobals.USFMParagraphMarkers:
-                    #insertAtEnd( ' '+_("Current context")+': ', 'contextHeader' )
-                    #insertAtEnd( marker+' ', 'context' )
-                # Display all line markers in this segment
-                markerList = []
-                for verseData in verseDataList:
-                    if isinstance( verseData, InternalBibleEntry ): marker = verseData.getMarker()
-                    elif isinstance( verseData, tuple ): marker = verseData[0]
-                    else: marker = None
-                    if marker and not marker.startswith('¬') \
-                    and not marker.endswith('~') and not marker.endswith('#'):
-                        markerList.append( marker )
-                if markerList:
-                    insertAtEnd( ' '+_("Displayed markers")+': ', 'markersHeader' )
-                    insertAtEnd( str(markerList)[1:-1], 'markers' ) # Display list without square brackets
-                    self.textBox.insert ( tk.END, ' ' )
-
-        #print( "  Setting mark to {}".format( currentMarkName ) )
-        self.textBox.mark_set( currentMarkName, tk.INSERT )
-        self.textBox.mark_gravity( currentMarkName, tk.LEFT )
-
-        if verseDataList is None:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                print( "  ", exp("HebrewInterlinearBibleBoxAddon.displayAppendVerse"), "has no data for", self.moduleID, verseKey )
-            #self.textBox.insert( tk.END, '--' )
-        else:
-            #hadVerseText = False
-            #try: cVM = self._contextViewMode
-            #except AttributeError: cVM = self.parentWindow._contextViewMode
-            lastParagraphMarker = context[-1] if context and context[-1] in BibleOrgSysGlobals.USFMParagraphMarkers \
-                                        else 'v~' # If we don't know the format of a verse (or for unformatted Bibles)
-            endMarkers = []
-
-            for verseDataEntry in verseDataList:
-                # This loop is used for several types of data
-                assert isinstance( verseDataEntry, InternalBibleEntry )
-                marker, cleanText, extras = verseDataEntry.getMarker(), verseDataEntry.getCleanText(), verseDataEntry.getExtras()
-                adjustedText, originalText = verseDataEntry.getAdjustedText(), verseDataEntry.getOriginalText()
-                #print( "marker={} cleanText={!r}{}".format( marker, cleanText, " extras={}".format( extras ) if extras else '' ) )
-                #print( "marker={} cleanText={!r} extras={}".format( marker, cleanText, extras ) )
-                #if adjustedText and adjustedText!=cleanText:
-                    #print( ' '*(len(marker)+4), "adjustedText={!r}".format( adjustedText ) )
-                #if originalText and originalText!=cleanText:
-                    #print( ' '*(len(marker)+4), "originalText={!r}".format( originalText ) )
-                #elif isinstance( verseDataEntry, tuple ):
-                    #marker, cleanText = verseDataEntry[0], verseDataEntry[3]
-                #elif isinstance( verseDataEntry, str ): # from a Bible text editor window
-                    #if verseDataEntry=='': continue
-                    #verseDataEntry += '\n'
-                    #if verseDataEntry[0]=='\\':
-                        #marker = ''
-                        #for char in verseDataEntry[1:]:
-                            #if char!='¬' and not char.isalnum(): break
-                            #marker += char
-                        #cleanText = verseDataEntry[len(marker)+1:].lstrip()
-                    #else:
-                        #marker, cleanText = None, verseDataEntry
-                #elif BibleOrgSysGlobals.debugFlag: halt
-                if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
-
-                if fVM == 'Unformatted':
-                    if marker and marker[0]=='¬': pass # Ignore end markers for now
-                    elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
-                    else:
-                        if isinstance( verseDataEntry, str ): # from a Bible text editor window
-                            #print( "marker={!r}, verseDataEntry={!r}".format( marker, verseDataEntry ) )
-                            insertAtEnd( verseDataEntry, marker ) # Do it just as is!
-                        else: # not a str, i.e., not a text editor, but a viewable resource
-                            #if hadVerseText and marker in ( 's', 's1', 's2', 's3' ):
-                                #print( "  Setting s mark to {}".format( nextMarkName ) )
-                                #self.textBox.mark_set( nextMarkName, tk.INSERT )
-                                #self.textBox.mark_gravity( nextMarkName, tk.LEFT )
-                            #print( "  Inserting ({}): {!r}".format( marker, verseDataEntry ) )
-                            if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                            if marker is None:
-                                insertAtEnd( cleanText, '###' )
-                            else: insertAtEnd( '\\{} {}'.format( marker, cleanText ), marker+'#' )
-                            haveTextFlag = True
-
-                elif fVM == 'Formatted':
-                    if marker.startswith( '¬' ):
-                        if marker != '¬v': endMarkers.append( marker ) # Don't want end-verse markers
-                    else: endMarkers = [] # Reset when we have normal markers
-
-                    if marker.startswith( '¬' ):
-                        pass # Ignore end markers for now
-                        #assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        #if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        #insertAtEnd( cleanText, marker )
-                        #haveTextFlag = True
-                    elif marker == 'id':
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('ide','rem',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('h','toc1','toc2','toc3','cl¤',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('intro','chapters','list',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('mt1','mt2','mt3','mt4', 'imt1','imt2','imt3','imt4', 'iot','io1','io2','io3','io4',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('ip','ipi','im','imi','ipq','imq','ipr', 'iq1','iq2','iq3','iq4',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('s1','s2','s3','s4', 'is1','is2','is3','is4', 'ms1','ms2','ms3','ms4', 'cl',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('d','sp',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in ('r','mr','sr',):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        insertAtEnd( cleanText, marker )
-                        haveTextFlag = True
-                    elif marker in BibleOrgSysGlobals.USFMParagraphMarkers:
-                        assert not cleanText # No text expected with these markers
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                        lastParagraphMarker = marker
-                        haveTextFlag = True
-                    elif marker in ('b','ib'):
-                        assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
-                        assert not cleanText # No text expected with this marker
-                        if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
-                    #elif marker in ('m','im'):
-                        #self.textBox.insert ( tk.END, '\n' if haveTextFlag else '  ', marker )
-                        #if cleanText:
-                            #insertAtEnd( cleanText, '*'+marker if currentVerseFlag else marker )
-                            #lastCharWasSpace = False
-                            #haveTextFlag = True
-                    #elif marker == 'p#': # and self.BibleBoxType=='DBPBibleResourceBox':
-                        #pass # Just ignore these for now
-                    elif marker == 'c': # Don't want to display this (original) c marker
-                        #if not firstFlag: haveC = cleanText
-                        #else: print( "   Ignore C={}".format( cleanText ) )
-                        pass
-                    elif marker == 'c#': # Might want to display this (added) c marker
-                        if cleanText != verseKey.getBBB():
-                            if not lastCharWasSpace: insertAtEnd( ' ', 'v-' )
-                            insertAtEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
-                            lastCharWasSpace = False
-                    elif marker == 'v':
-                        if cleanText != '1': # Don't display verse number for v1 in default view
-                            if haveTextFlag:
-                                insertAtEnd( ' ', (lastParagraphMarker,'v-',) if lastParagraphMarker else ('v-',) )
-                            insertAtEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
-                            #insertAtEnd( '\u2009', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
-                        insertAtEnd( '\n', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
-                        haveTextFlag = True
-                        self.lineNumber += 1
-                    elif marker in ('v~','p~'):
-                        appendVerseText( verseDataEntry, verseKey, currentVerseFlag )
-                        haveTextFlag = True
-                    else:
-                        if BibleOrgSysGlobals.debugFlag:
-                            logging.critical( exp("HebrewInterlinearBibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
-                        else:
-                            logging.critical( exp("HebrewInterlinearBibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
-                else:
-                    logging.critical( exp("HebrewInterlinearBibleBoxAddon.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
-                    if BibleOrgSysGlobals.debugFlag: halt
-
-            if lastFlag and cVM=='ByVerse' and endMarkers:
-                #print( "endMarkers", endMarkers )
-                insertAtEnd( ' '+ _("End context")+':', 'contextHeader' )
-                contextString, firstMarker = "", True
-                for someMarker in endMarkers:
-                    #print( "  someMarker", someMarker )
-                    contextString += (' ' if firstMarker else ', ') + someMarker
-                    firstMarker = False
-                insertAtEnd( contextString+' ', 'context' )
+                    insertAtEnd( contextString+' ', 'context' )
+            if needsRefreshing: self.clearText() # Do another round
+            else: break
     # end of HebrewInterlinearBibleBoxAddon.displayAppendVerse
+
+
+    def _getBundleNumber( self, event ):
+        """
+        Give a mouse event, get the bundleNumber underneath it.
+        """
+        # get the index of the mouse cursor from the event.x and y attributes
+        xy = '@{0},{1}'.format( event.x, event.y )
+        #print( "xy", repr(xy) ) # e.g.., '@34,77'
+        #print( "ixy", repr(self.textBox.index(xy)) ) # e.g., '4.3'
+
+        tagNames = self.textBox.tag_names( xy )
+        #print( "tn", tagNames )
+        for tagName in tagNames:
+            if tagName.startswith( 'W' ):
+                bundleNumber = tagName[1:]
+                assert '.' in bundleNumber
+                #print( "bundleNumber", repr(bundleNumber) )
+                return bundleNumber
+    # end of HebrewInterlinearBibleBoxAddon._getBundleNumber
+
+    def selectBundle( self, event ):
+        """
+        Handle a left-click on a bundle.
+
+        Splits bundleNumber into a
+            word number (e.g., first word is word 1) and
+            line number (e.g., first line in bundle is line 0).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "HebrewInterlinearBibleBoxAddon.selectBundle()" )
+
+        bundleNumber = self._getBundleNumber( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Clicked on {}".format( repr(clickedText) ) )
+
+        if bundleNumber:
+            wordNumberString, lineNumberString = bundleNumber.split( '.', 1 )
+            #print( "select", "wn", wordNumberString, "ln", lineNumberString )
+            self.clearText() # Leaves the text box enabled
+            self.displayAppendVerse( self.lastDAVargs[0], self.lastDAVargs[1], self.lastDAVargs[2], self.lastDAVargs[3], self.lastDAVargs[4], int(wordNumberString), None, self.lastDAVargs[7], self.lastDAVargs[8] )
+    # end of HebrewInterlinearBibleBoxAddon.selectBundle
+
+    def editBundle( self, event ):
+        """
+        Handle a double-click on a bundle.
+
+        Splits bundleNumber into a
+            word number (e.g., first word is word 1) and
+            line number (e.g., first line in bundle is line 0).
+        """
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            print( "HebrewInterlinearBibleBoxAddon.editBundle()" )
+
+        bundleNumber = self._getBundleNumber( event )
+
+        #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
+            #xy = '@{0},{1}'.format( event.x, event.y )
+            #tagNames = self.tag_names( xy )
+            #print( "tn", tagNames )
+            #for tagName in tagNames:
+                #if tagName.startswith( 'href' ): break
+            #tag_range = self.tag_prevrange( tagName, xy )
+            #print( "tr", repr(tag_range) ) # e.g., ('6.0', '6.13')
+            #clickedText = self.get( *tag_range )
+            #print( "Clicked on {}".format( repr(clickedText) ) )
+
+        if bundleNumber:
+            wordNumberString, lineNumberString = bundleNumber.split( '.', 1 )
+            #print( "edit", "wn", wordNumberString, "ln", lineNumberString )
+            self.clearText() # Leaves the text box enabled
+            self.displayAppendVerse( self.lastDAVargs[0], self.lastDAVargs[1], self.lastDAVargs[2], self.lastDAVargs[3], self.lastDAVargs[4], int(wordNumberString), 'E', self.lastDAVargs[7], self.lastDAVargs[8] )
+    # end of HebrewInterlinearBibleBoxAddon.editBundle
 
 
     def doClose( self, event=None ):
@@ -2664,7 +2926,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         Can be overridden if an edit box needs to save files first.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("HebrewInterlinearBibleBoxAddon.doClose( {} )").format( event ) )
+            print( "HebrewInterlinearBibleBoxAddon.doClose( {} )".format( event ) )
 
         try: self.internalBible.saveAnyChangedGlosses()
         except AttributeError: # if self.internalBible is None
@@ -2679,7 +2941,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         #Returns the requested verse, the previous verse, and the next n verses.
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("HebrewInterlinearBibleBoxAddon.getBeforeAndAfterBibleData( {} )").format( newVerseKey ) )
+            #print( "HebrewInterlinearBibleBoxAddon.getBeforeAndAfterBibleData( {} )".format( newVerseKey ) )
             #assert isinstance( newVerseKey, SimpleVerseKey )
 
         #BBB, C, V = newVerseKey.getBCV()
@@ -2698,7 +2960,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                 #try: prevIntV = self.getNumVerses( prevBBB, prevIntC )
                 #except KeyError:
                     #if prevIntC != 0: # we can expect an error for chapter zero
-                        #logging.error( exp("HebrewInterlinearBibleBoxAddon.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
+                        #logging.error( _("HebrewInterlinearBibleBoxAddon.getBeforeAndAfterBibleData1 failed at {} {}").format( prevBBB, prevIntC ) )
                     #failed = True
                 ##if not failed:
                     ##if BibleOrgSysGlobals.debugFlag: print( " Went back to previous chapter", prevIntC, prevIntV, "from", BBB, C, V )
@@ -2712,7 +2974,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                         #print( " Went back to previous book", prevBBB, prevIntC, prevIntV, "from", BBB, C, V )
                     #if prevIntC is None or prevIntV is None:
-                        #logging.error( exp("HebrewInterlinearBibleBoxAddon.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
+                        #logging.error( _("HebrewInterlinearBibleBoxAddon.getBeforeAndAfterBibleData2 failed at {} {}:{}").format( prevBBB, prevIntC, prevIntV ) )
                         ##failed = True
                         #break
             #if not failed and prevIntV is not None:
@@ -2754,7 +3016,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         #self.parentApp.logUsage( ProgName, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doBibleFind' )
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HebrewInterlinearBibleBoxAddon.doBibleFind( {} )").format( event ) )
+            #print( "HebrewInterlinearBibleBoxAddon.doBibleFind( {} )".format( event ) )
 
         #try: haveInternalBible = self.internalBible is not None
         #except AttributeError: haveInternalBible = False
@@ -2763,8 +3025,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             #return
         ##print( "intBib", self.internalBible )
 
-        #self.BibleFindOptionsDict['currentBCV'] = self.currentVerseFlagKey.getBCV()
-        #gBSTD = GetBibleFindTextDialog( self, self.parentApp, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
+        #self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
+        #gBSTD = GetBibleFindTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
         #if BibleOrgSysGlobals.debugFlag: print( "gBSTDResult", repr(gBSTD.result) )
         #if gBSTD.result:
             #if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
@@ -2786,7 +3048,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         #self.parentApp.logUsage( ProgName, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doActualBibleFind' )
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HebrewInterlinearBibleBoxAddon.doActualBibleFind( {} )").format( extendTo ) )
+            #print( "HebrewInterlinearBibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
 
         #self.parentApp.setWaitStatus( _("Searching…") )
         ##self.textBox.update()
@@ -2828,9 +3090,9 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         #Leaves the wait cursor displayed.
         #"""
-        #logging.debug( exp("HebrewInterlinearBibleBoxAddon._prepareInternalBible()") )
+        #logging.debug( "HebrewInterlinearBibleBoxAddon._prepareInternalBible()" )
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("HebrewInterlinearBibleBoxAddon._prepareInternalBible()") )
+            #print( "HebrewInterlinearBibleBoxAddon._prepareInternalBible()" )
         #if givenBible is None: givenBible = self.internalBible
 
         #if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
@@ -2856,7 +3118,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersionDate if BibleOrgSysGlobals.debugFlag else ProgNameVersion )

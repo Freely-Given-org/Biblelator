@@ -5,7 +5,7 @@
 #
 # Functions to support the autocomplete function in text editors
 #
-# Copyright (C) 2016-2017 Robert Hunt
+# Copyright (C) 2016-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-04' # by RJH
+LastModifiedDate = '2018-03-04' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -164,13 +164,16 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
 internalMarkers = None
 DUMMY_VALUE = 999999 # Some number bigger than the number of characters in a line
 
-def countBookWords( BBB, internalBible, filename, isCurrentBook ):
+def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers ):
     """
     Find all the words in the Bible book and their usage counts.
 
     Note that this function doesn't use the internalBible books
         but rather loads the USFM (text) files directly.
 
+    Note also that the internalMarkersList has to be passed as a paramter,
+        because multi-processing on Windows can't access global variables.
+        
     Returns a dictionary containing the results for the book.
     """
     logging.debug( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
@@ -179,12 +182,6 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
     if BBB in AVOID_BOOKS:
         #print( "Didn't load autocomplete words from {} {}".format( internalBible.getAName(), BBB ) )
         return # Sometimes these books contain words from other languages, etc.
-
-    global internalMarkers
-    if internalMarkers is None: # Get our list of markers -- note that the more common note markers are first
-        internalMarkers = BibleOrgSysGlobals.USFMMarkers.getNoteMarkersList() \
-            + BibleOrgSysGlobals.USFMMarkers.getCharacterMarkersList( includeBackslash=False, includeEndMarkers=False, includeNestedMarkers=True, expandNumberableMarkers=True )
-        internalMarkers = ['\\'+marker for marker in internalMarkers]
 
     countIncrement = 3 if isCurrentBook else 1 # Each word in current book counts higher so appears higher in the list
     # NOTE: This idea fails as soon as they change books in the edit window
@@ -326,7 +323,9 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook ):
 
 def countBookWordsHelper( parameters ):
     """
-    Parameter parameters is a 4-tuple containing the BBB, folder, filename, and currentBook flag
+    Parameter parameters is a 4-tuple containing the BBB, folder, filename, currentBook flag, and internalMarkersList
+    
+    The internalMarkers have to be passed, because multi-processing on Windows can't access global variables.
     """
     return countBookWords( *parameters )
 # end of AutocompleteFunctions.countBookWordsHelper
@@ -402,6 +401,12 @@ def loadBibleAutocompleteWords( editWindowObject ):
         print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
         editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
+    global internalMarkers
+    if internalMarkers is None: # Get our list of markers -- note that the more common note markers are first
+        internalMarkers = BibleOrgSysGlobals.USFMMarkers.getNoteMarkersList() \
+            + BibleOrgSysGlobals.USFMMarkers.getCharacterMarkersList( includeBackslash=False, includeEndMarkers=False, includeNestedMarkers=True, expandNumberableMarkers=True )
+        internalMarkers = ['\\'+marker for marker in internalMarkers]
+
     editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(currentBBB) )
@@ -410,7 +415,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     bookWordCounts = {}
     if editWindowObject.internalBible.maximumPossibleFilenameTuples:
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
-            parameters = [(BBB,editWindowObject.internalBible,filename,BBB==currentBBB) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
+            parameters = [(BBB,editWindowObject.internalBible,filename,BBB==currentBBB,internalMarkers) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
             if BibleOrgSysGlobals.verbosityLevel > 1:
                 print( exp("Autocomplete: loading up to {} USFM books using {} processes…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
                 print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
@@ -429,7 +434,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
                     #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.getAName(), editWindowObject.internalBible.sourceFolder ) )
                 bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible, filename, BBB==currentBBB ) # also saves it
     else:
-        logging.critical( exp("No books to load in {}!").format( editWindowObject.internalBible.sourceFolder ) )
+        logging.critical( "Autocomplete: " + _("No books to load in folder '{}'!").format( editWindowObject.internalBible.sourceFolder ) )
 
     # Now combine the books
     autocompleteCounts = {}

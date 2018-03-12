@@ -5,7 +5,7 @@
 #
 # Bible reference collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2015-2017 Robert Hunt
+# Copyright (C) 2015-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-17' # by RJH
+LastModifiedDate = '2018-02-23' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.42'
+ProgVersion = '0.43'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -55,7 +55,8 @@ from BiblelatorGlobals import DEFAULT, tkBREAK, \
         INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
         parseWindowSize
 from BiblelatorHelpers import mapReferencesVerseKey, handleInternalBibles
-from BibleResourceWindows import BibleResourceWindow
+from ChildWindows import ChildWindow
+from BibleResourceWindows import BibleResourceWindowAddon
 from TextBoxes import BibleBoxAddon
 
 # BibleOrgSys imports
@@ -96,7 +97,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         self.internalBible = handleInternalBibles( self.parentApp, internalBible, self )
 
         Frame.__init__( self, parentFrame )
-        BibleBoxAddon.__init__( self, parentApp, 'BibleReferenceBox' )
+        BibleBoxAddon.__init__( self, parentWindow, 'BibleReferenceBox' )
 
         # Set some dummy values required soon
         #self._contextViewRadioVar, self._formatViewRadioVar, self._groupRadioVar = tk.IntVar(), tk.IntVar(), tk.StringVar()
@@ -152,10 +153,10 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-81-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
-        self.getNumVerses = lambda b,c: MAX_PSEUDOVERSES if c=='0' or c==0 \
-                                        else self.BibleOrganisationalSystem.getNumVerses( b, c )
+        self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
+                                        else self.BibleOrganisationalSystem.getNumVerses( BBB, C )
         self.isValidBCVRef = self.BibleOrganisationalSystem.isValidBCVRef
         self.getFirstBookCode = self.BibleOrganisationalSystem.getFirstBookCode
         self.getPreviousBookCode = self.BibleOrganisationalSystem.getPreviousBookCode
@@ -316,7 +317,7 @@ class BibleReferenceBoxes( list ):
 
 
 
-class BibleReferenceCollectionWindow( BibleResourceWindow ):
+class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     """
     """
     def __init__( self, parentApp, internalBible, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
@@ -325,10 +326,9 @@ class BibleReferenceCollectionWindow( BibleResourceWindow ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( "BibleReferenceCollectionWindow.__init__( {}, {} )".format( parentApp, internalBible.getAName() ) )
-        self.parentApp, self.internalBible = parentApp, internalBible
-        BibleResourceWindow.__init__( self, parentApp, 'BibleReferenceCollectionWindow', internalBible.getAName(), defaultContextViewMode, defaultFormatViewMode )
-        #ChildWindow.__init__( self, self.parentApp, 'BibleResource' )
-        #self.windowType = 'InternalBibleReferenceBox'
+        self.internalBible = internalBible
+        ChildWindow.__init__( self, parentApp, genericWindowType='BibleResource' )
+        BibleResourceWindowAddon.__init__( self, 'BibleReferenceCollectionWindow', internalBible.getAName(), defaultContextViewMode, defaultFormatViewMode )
 
         self.geometry( INITIAL_REFERENCE_COLLECTION_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE
