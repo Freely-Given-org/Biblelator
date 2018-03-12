@@ -107,7 +107,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-10' # by RJH
+LastModifiedDate = '2018-03-12' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.43'
@@ -310,7 +310,7 @@ class HTMLTextBox( BText ):
             #print( "HTMLTextBox.insert( {}, {} )".format( repr(point), repr(iText) ) )
 
         if point != tk.END:
-            logging.critical( _("HTMLTextBox.insert doesn't know how to insert at {}").format( repr(point) ) )
+            logging.critical( "HTMLTextBox.insert " + _("doesn't know how to insert at {}").format( repr(point) ) )
             BText.insert( self, point, iText )
             return
 
@@ -373,7 +373,7 @@ class HTMLTextBox( BText ):
                 #print( "ixEnd", ixEnd, "ixNext", ixNext )
                 if ixEnd == -1 \
                 or (ixEnd!=-1 and ixNext!=-1 and ixEnd>ixNext): # no tag close or wrong tag closed
-                    logging.critical( _("HTMLTextBox.insert: Missing close bracket") )
+                    logging.critical( "HTMLTextBox.insert: " + _("Missing close bracket") )
                     BText.insert( self, point, remainingText, currentFormatTags )
                     remainingText = ""
                     break
@@ -384,7 +384,7 @@ class HTMLTextBox( BText ):
                     #try: print( "after marker", remainingText[0] )
                     #except UnicodeEncodeError: pass
                 if not fullHTMLTag:
-                    logging.critical( _("HTMLTextBox.insert: Unexpected empty HTML tags") )
+                    logging.critical( "HTMLTextBox.insert: " + _("Unexpected empty HTML tags") )
                     continue
                 selfClosing = fullHTMLTag[-1] == '/'
                 if selfClosing:
@@ -420,9 +420,9 @@ class HTMLTextBox( BText ):
                         if HTMLTag not in NON_FORMATTING_TAGS:
                             currentFormatTags.pop()
                     elif currentHTMLTags:
-                        logging.critical( _("HTMLTextBox.insert: Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
+                        logging.critical( "HTMLTextBox.insert: " + _("Expected to close {} but got {} instead").format( repr(currentHTMLTags[-1]), repr(HTMLTag) ) )
                     else:
-                        logging.critical( _("HTMLTextBox.insert: Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
+                        logging.critical( "HTMLTextBox.insert: " + _("Unexpected HTML close {} close marker").format( repr(HTMLTag) ) )
                     #print( "cHT2", currentHTMLTags )
                     #print( "cFT2", currentFormatTags )
                 else: # it's not a close tag so must be an open tag
@@ -446,16 +446,16 @@ class HTMLTextBox( BText ):
                                 formatTag += bit[7:-1] # create a tag like 'spanWord' or 'pVerse'
                             elif formatTag=='a' and bit.startswith('href="') and bit[-1]=='"':
                                 formatTag += '=' + bit[6:-1] # create a tag like 'a=http://something.com'
-                            else: logging.critical( "HTMLTextBox: Ignoring {} attribute on {!r} tag".format( bit, HTMLTag ) )
+                            else: logging.error( "HTMLTextBox: " + _("Ignoring {} attribute on {!r} tag").format( bit, HTMLTag ) )
                     if not selfClosing:
                         if HTMLTag != '!DOCTYPE':
                             currentHTMLTags.append( HTMLTag )
                             if HTMLTag not in NON_FORMATTING_TAGS:
                                 currentFormatTags.append( formatTag )
         if currentHTMLTags:
-            logging.critical( _("HTMLTextBox.insert: Left-over HTML tags: {}").format( currentHTMLTags ) )
+            logging.critical( "HTMLTextBox.insert: " + _("Left-over HTML tags: {}").format( currentHTMLTags ) )
         if currentFormatTags:
-            logging.critical( _("HTMLTextBox.insert: Left-over format tags: {}").format( currentFormatTags ) )
+            logging.critical( "HTMLTextBox.insert: " + _("Left-over format tags: {}").format( currentFormatTags ) )
     # end of HTMLTextBox.insert
 
 
