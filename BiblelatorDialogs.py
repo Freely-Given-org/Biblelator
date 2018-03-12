@@ -107,7 +107,7 @@ TODO: Work out how to automatically test keypresses in dialogs.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-12'
+LastModifiedDate = '2018-03-13'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -2140,11 +2140,16 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         Given a string, see if a Strong's number can be found
             and if so, direct the lexicon to this entry.
 
-        Typical strings might be '8034', 'd/776', '3651 c'
+        Typical strings might be '8034', 'd/776', '3651 c', '8423+'
 
         NOTE: doesn't change/update the lexicon word in the main app window.
         """
         #print( "handleStrongs( {!r} )".format( textString ) )
+        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
+            assert textString
+
+        if textString[-1] == '+': textString = textString[:-1] # Is this general enough -- maybe we just to remove all + signs???
+
         strongsNumber = None
         if textString.isdigit(): strongsNumber = textString
         else:
@@ -2637,20 +2642,8 @@ class DownloadResourcesDialog( ModalDialog ):
     def doDownloadFile( self, abbrev ):
         """
         """
-        self.parentWindow.parentApp.setWaitStatus( _("Downloading {} resource…").format( abbrev ) )
-        filename = abbrev + ZIPPED_FILENAME_END
-        filepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
-        url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
-        try: responseObject = urllib.request.urlopen( url )
-        except urllib.error.URLError:
-            if BibleOrgSysGlobals.debugFlag: logging.critical( "DownloadResourcesDialog.makeBody: error fetching {}".format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )
-            return None
-        with open( filepath, 'wb' ) as outputFile:
-            outputFile.write( responseObject.read() )
-        self.downloadCount += 1
-        self.parentWindow.parentApp.setReadyStatus()
+        if self.parentWindow.parentApp.doDownloadResource( abbrev ):
+            self.downloadCount += 1
     # end of DownloadResourcesDialog.doDownloadFile
 
 
