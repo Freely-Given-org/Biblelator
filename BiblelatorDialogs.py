@@ -2174,8 +2174,9 @@ class GetHebrewGlossWordDialog( ModalDialog ):
             if not line: continue # skip missing lines
             thisFont = self.customFont
             if j == 1:
-                if ( not self.word ) and \
-                ( line.startswith( 'ו' 'ַ' '=' ) or line.startswith( 'ו' 'ָ' '=' ) or line.startswith( 'ו' 'ְ' '=' ) ):
+                if not self.word \
+                and ( line.startswith( 'ו' 'ַ' '=' ) or line.startswith( 'ו' 'ָ' '=' ) \
+                  or line.startswith( 'ו' 'ְ' '=' ) ):
                     self.word = 'and='
                 line = line[::-1] # Reverse line to simulate RTL Hebrew language
                 thisFont = self.customHebrewFont
@@ -2348,7 +2349,9 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
             if not line: continue # skip missing lines
             thisFont = self.customFont
             if j == 1:
-                if line.startswith( 'ו' 'ַ' '=' ) and not self.word:
+                if not self.word \
+                and ( line.startswith( 'ו' 'ַ' '=' ) or line.startswith( 'ו' 'ָ' '=' ) \
+                  or line.startswith( 'ו' 'ְ' '=' ) ):
                     self.word = 'and='
                 line = line[::-1] # Reverse line to simulate RTL Hebrew language
                 thisFont = self.customHebrewFont
