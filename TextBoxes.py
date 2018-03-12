@@ -49,13 +49,13 @@ Base widgets to allow display and manipulation of
         setTextChangeCallback( self, callableFunction )
         onTextChange( self, result, *args )
 
-    class CustomEntry( BEntry, CallbackAddon ) -- unused
-        __init__( self, *args, **kwargs )
+    #class CustomEntry( CallbackAddon, BEntry ) -- unused
+        #__init__( self, *args, **kwargs )
 
-    class CustomCombobox( BCombobox, CallbackAddon ) -- unused
-        __init__( self, *args, **kwargs )
+    #class CustomCombobox( CallbackAddon, BCombobox ) -- unused
+        #__init__( self, *args, **kwargs )
 
-    class CustomText( BText, CallbackAddon ) -- used in TextEditWindow
+    class CustomText( CallbackAddon, BText ) -- used in TextEditWindow
         __init__( self, *args, **kwargs )
         highlightPattern( self, pattern, styleTag, startAt=tkSTART, endAt=tk.END, regexpFlag=True )
         highlightAllPatterns( self, patternCollection )
@@ -63,7 +63,7 @@ Base widgets to allow display and manipulation of
 
     class ChildBoxAddon()
         __init__( self, parentApp )
-        _createStandardKeyboardBinding( self, name, command )
+        _createStandardKeyboardBinding( self, name, commandFunction )
         createStandardBoxKeyboardBindings( self )
         setFocus( self, event )
         doCopy( self, event=None )
@@ -83,7 +83,7 @@ Base widgets to allow display and manipulation of
     class BibleBoxAddon() -- used in BibleReferenceBox, BibleResourceBox, BibleWindowAddon
                                 and in HebrewInterlinearBibleBoxAddon below
         __init__( self, parentApp )
-        _createStandardKeyboardBinding( self, name, command )
+        _createStandardKeyboardBinding( self, name, commandFunction )
         createContextMenu( self )
         showContextMenu( self, event )
         displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, substituteTrailingSpaces=False, substituteMultipleSpaces=False )
@@ -107,7 +107,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-09' # by RJH
+LastModifiedDate = '2018-03-10' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.43'
@@ -698,39 +698,39 @@ class CallbackAddon():
 
 
 
-class CustomEntry( BEntry, CallbackAddon ):
-    """
-    A custom (ttk) Entry widget which can call a user function whenever the text changes.
-        This enables autocorrect.
-    """
-    def __init__( self, *args, **kwargs ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( "CustomEntry.__init__( {}, {} )".format( args, kwargs ) )
-        BEntry.__init__( self, *args, **kwargs ) # initialise the base class
-        CallbackAddon.__init__( self ) # initialise the base class
-    # end of CustomEntry.__init__
-# end of CustomEntry class
+#class CustomEntry( CallbackAddon, BEntry ):
+    #"""
+    #A custom (ttk) Entry widget which can call a user function whenever the text changes.
+        #This enables autocorrect.
+    #"""
+    #def __init__( self, *args, **kwargs ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( "CustomEntry.__init__( {}, {} )".format( args, kwargs ) )
+        #BEntry.__init__( self, *args, **kwargs ) # initialise the base class
+        #CallbackAddon.__init__( self ) # initialise the base class
+    ## end of CustomEntry.__init__
+## end of CustomEntry class
 
 
-class CustomCombobox( BCombobox, CallbackAddon ):
-    """
-    A custom (ttk) Combobox widget which can call a user function whenever the text changes.
-        This enables autocorrect.
-    """
-    def __init__( self, *args, **kwargs ):
-        """
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            print( "CustomCombobox.__init__( {}, {} )".format( args, kwargs ) )
-        BCombobox.__init__( self, *args, **kwargs ) # initialise the base class
-        CallbackAddon.__init__( self ) # initialise the base class
-    # end of CustomCombobox.__init__
-# end of CustomCombobox class
+#class CustomCombobox( CallbackAddon, BCombobox ):
+    #"""
+    #A custom (ttk) Combobox widget which can call a user function whenever the text changes.
+        #This enables autocorrect.
+    #"""
+    #def __init__( self, *args, **kwargs ):
+        #"""
+        #"""
+        #if BibleOrgSysGlobals.debugFlag:
+            #print( "CustomCombobox.__init__( {}, {} )".format( args, kwargs ) )
+        #BCombobox.__init__( self, *args, **kwargs ) # initialise the base class
+        #CallbackAddon.__init__( self ) # initialise the base class
+    ## end of CustomCombobox.__init__
+## end of CustomCombobox class
 
 
-class CustomText( BText, CallbackAddon ):
+class CustomText( CallbackAddon, BText ):
     """
     A custom Text widget which calls a user function whenever the text changes.
 
@@ -811,7 +811,7 @@ class ChildBoxAddon():
     # end of ChildBoxAddon.__init__
 
 
-    def _createStandardBoxKeyboardBinding( self, name, command ):
+    def _createStandardBoxKeyboardBinding( self, name, commandFunction ):
         """
         Called from createStandardKeyboardBindings to do the actual work.
         """
@@ -825,7 +825,7 @@ class ChildBoxAddon():
         if name in kBD:
             for keyCode in kBD[name][1:]:
                 #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
-                self.textBox.bind( keyCode, command )
+                self.textBox.bind( keyCode, commandFunction )
                 if BibleOrgSysGlobals.debugFlag:
                     if keyCode in self.myKeyboardShortcutsList:
                         print( "ChildBoxAddon._createStandardBoxKeyboardBinding wants to add duplicate {}".format( keyCode ) )
@@ -844,13 +844,13 @@ class ChildBoxAddon():
         if reset:
             self.myKeyboardBindingsList = []
 
-        for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+        for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
                              #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              #('ShowMain',self.parentWindow.doShowMainWindow),
                              ('Close',self.doClose),
                              ):
-            self._createStandardBoxKeyboardBinding( name, command )
+            self._createStandardBoxKeyboardBinding( name, commandFunction )
     # end of ChildBoxAddon.createStandardBoxKeyboardBindings()
 
 
@@ -1116,12 +1116,12 @@ class BibleBoxAddon():
         if reset:
             self.myKeyboardBindingsList = []
 
-        for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+        for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
                              #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              #('ShowMain',self.doShowMainWindow),
                              ('Close',self.doClose), ):
-            self._createStandardBoxKeyboardBinding( name, command )
+            self._createStandardBoxKeyboardBinding( name, commandFunction )
     # end of BibleBoxAddon.createStandardBoxKeyboardBindings()
 
 
@@ -1657,12 +1657,12 @@ class BibleBoxAddon():
         ##if reset:
             ##self.myKeyboardBindingsList = []
 
-        ##for name,command in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
+        ##for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ##('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
                              ###('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
                              ###('ShowMain',self.doShowMainWindow),
                              ##('Close',self.doClose), ):
-            ##self._createStandardBoxKeyboardBinding( name, command )
+            ##self._createStandardBoxKeyboardBinding( name, commandFunction )
     ### end of BibleBox.createStandardBoxKeyboardBindings()
 
 
@@ -2219,6 +2219,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
+
+        command can be 'E' for edit, i.e., if a bundle has been double-clicked
         """
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
@@ -2314,18 +2316,14 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             savedLineNumber = self.lineNumber
 
             requestMissingGlossesNow = needToRequestMissingGlosses = needToUpdate = False
-            passNumber = 0
-            while True:
+            for passNumber in range( 1, 3 ):
                 # We won't request missing glosses until we've displayed what we know first
-                passNumber += 1
                 #print( "HebrewInterlinearBibleBoxAddon.appendVerseText: pass #{} {} {}".format( passNumber, requestMissingGlossesNow, needToRequestMissingGlosses ) )
-                assert passNumber < 3 # Should only ever be two passes
                 self.lineNumber = savedLineNumber
                 self.acrossIndex = 0
                 j = 0
-                while True:
-                    j += 1
-                    if j > len(verseDictList): break
+                while j < len(verseDictList): # Can't use a for loop coz we mess with the index
+                    j += 1 # j is now in range 1..len(verseDictList)
                     verseDict = verseDictList[j-1] # each verseDict represents one word or token
                     #print( "pn={}, j={}, c={}, verseDict={}".format( passNumber, j, command, verseDict ) )
                     #if bundlesAcross >= self.bundlesPerLine: # Start a new line
@@ -2362,19 +2360,21 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             command = None
                             tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
                             #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
-                            gwd = GetHebrewGlossWordDialog( self, _("Edit generic gloss"), tempBundle, genericGloss, geometry=self.glossWindowGeometry )
-                            #print( "gwdResult", gwd.result )
-                            if gwd.result is None: # cancel
+                            ghgwd = GetHebrewGlossWordDialog( self, _("Edit generic gloss"), tempBundle, genericGloss, geometry=self.glossWindowGeometry )
+                            #print( "ghgwdResultA1", ghgwd.result )
+                            if ghgwd.result is None: # cancel
                                 self.requestMissingGlosses = False
-                            elif gwd.result == 'S': # skip
-                                self.requestMissingGlosses = False
-                            elif isinstance( gwd.result, dict ):
-                                #print( "result1", gwd.result )
-                                assert gwd.result['word']
-                                genericGloss = gwd.result['word']
+                            elif ghgwd.result == 'S': # skip
+                                needToRequestMissingGlosses = False
+                            elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                command = ghgwd.result
+                            elif isinstance( ghgwd.result, dict ):
+                                #print( "result1", ghgwd.result )
+                                assert ghgwd.result['word']
+                                genericGloss = ghgwd.result['word']
                                 self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
-                                self.glossWindowGeometry = gwd.result['geometry'] # Keeps the window size/position
-                                try: command = gwd.result['command'] # 'L' or 'R'
+                                self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                try: command = ghgwd.result['command'] # 'L' or 'R'
                                 except KeyError: command = None
                                 needToRequestMissingGlosses = False
                                 needToUpdate = True
@@ -2385,24 +2385,21 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
                                 tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
                                 #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
-                                gwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle, geometry=self.glossWindowGeometry )
-                                #print( "gwdResult", gwd.result )
-                                if gwd.result is None: # cancel
+                                ghgwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle, geometry=self.glossWindowGeometry )
+                                #print( "ghgwdResultA2", ghgwd.result )
+                                if ghgwd.result is None: # cancel
                                     self.requestMissingGlosses = False
-                                elif gwd.result == 'S': # skip
-                                    self.requestMissingGlosses = False
-                                #elif gwd.result == 'L': # goLeft
-                                    #if j>0: j = j - 2
-                                    #command = 'L'
-                                #elif gwd.result == 'R': # goRight
-                                    #command = 'R'
-                                elif isinstance( gwd.result, dict ):
-                                    #print( "result2", gwd.result )
-                                    assert gwd.result['word']
-                                    genericGloss = gwd.result['word']
+                                elif ghgwd.result == 'S': # skip
+                                    needToRequestMissingGlosses = False
+                                elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                    command = ghgwd.result
+                                elif isinstance( ghgwd.result, dict ):
+                                    #print( "result2", ghgwd.result )
+                                    assert ghgwd.result['word']
+                                    genericGloss = ghgwd.result['word']
                                     self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
-                                    self.glossWindowGeometry = gwd.result['geometry'] # Keeps the window size/position
-                                    try: command = gwd.result['command'] # 'L' or 'R'
+                                    self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                    try: command = ghgwd.result['command'] # 'L','R','LL','RR'
                                     except KeyError: command = None
                                     needToRequestMissingGlosses = False
                                     needToUpdate = True
@@ -2425,27 +2422,24 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             command = None
                             tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
                             #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
-                            gwd = GetHebrewGlossWordsDialog( self, _("Edit generic/specific glosses"), tempBundle, genericGloss, specificGloss, geometry=self.glossWindowGeometry )
-                            #print( "gwdResult", gwd.result )
-                            if gwd.result is None: # cancel
+                            ghgwd = GetHebrewGlossWordsDialog( self, _("Edit generic/specific glosses"), tempBundle, genericGloss, specificGloss, geometry=self.glossWindowGeometry )
+                            #print( "ghgwdResultB1", ghgwd.result )
+                            if ghgwd.result is None: # cancel
                                 self.requestMissingGlosses = False
-                            elif gwd.result == 'S': # skip
-                                self.requestMissingGlosses = False
-                            #elif gwd.result == 'L': # goLeft
-                                #if j>0: j = j - 2
-                                #command = 'L'
-                            #elif gwd.result == 'R': # goRight
-                                #command = 'R'
-                            elif isinstance( gwd.result, dict ):
-                                #print( "result3", gwd.result )
-                                assert gwd.result['word1']
-                                genericGloss = gwd.result['word1']
-                                specificGloss = gwd.result['word2'] if 'word2' in gwd.result else None
+                            elif ghgwd.result == 'S': # skip
+                                needToRequestMissingGlosses = False
+                            elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                command = ghgwd.result
+                            elif isinstance( ghgwd.result, dict ):
+                                #print( "result3", ghgwd.result )
+                                assert ghgwd.result['word1']
+                                genericGloss = ghgwd.result['word1']
+                                specificGloss = ghgwd.result['word2'] if 'word2' in ghgwd.result else None
                                 self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
                                 if specificGloss:
                                     self.internalBible.setNewSpecificGloss( normalizedWord, specificGloss, fullRefTuple )
-                                self.glossWindowGeometry = gwd.result['geometry'] # Keeps the window size/position
-                                try: command = gwd.result['command'] # 'L' or 'R'
+                                self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                try: command = ghgwd.result['command'] # 'L' or 'R'
                                 except KeyError: command = None
                                 needToRequestMissingGlosses = False
                                 needToUpdate = True
@@ -2456,27 +2450,24 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
                                 tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
                                 #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
-                                gwd = GetHebrewGlossWordsDialog( self, _("Enter new generic/specific glosses"), tempBundle, geometry=self.glossWindowGeometry )
-                                #print( "gwdResult", gwd.result )
-                                if gwd.result is None: # cancel
+                                ghgwd = GetHebrewGlossWordsDialog( self, _("Enter new generic/specific glosses"), tempBundle, geometry=self.glossWindowGeometry )
+                                #print( "ghgwdResultB2", ghgwd.result )
+                                if ghgwd.result is None: # cancel
                                     self.requestMissingGlosses = False
-                                elif gwd.result == 'S': # skip
-                                    self.requestMissingGlosses = False
-                                #elif gwd.result == 'L': # goLeft
-                                    #if j>0: j = j - 2
-                                    #command = 'L'
-                                #elif gwd.result == 'R': # goRight
-                                    #command = 'R'
-                                elif isinstance( gwd.result, dict ):
-                                    #print( "result4", gwd.result )
-                                    assert gwd.result['word1']
-                                    genericGloss = gwd.result['word1']
-                                    specificGloss = gwd.result['word2'] if 'word2' in gwd.result else None
+                                elif ghgwd.result == 'S': # skip
+                                    needToRequestMissingGlosses = False
+                                elif ghgwd.result in ('L','R','LL','RR'): # go left/right
+                                    command = ghgwd.result
+                                elif isinstance( ghgwd.result, dict ):
+                                    #print( "result4", ghgwd.result )
+                                    assert ghgwd.result['word1']
+                                    genericGloss = ghgwd.result['word1']
+                                    specificGloss = ghgwd.result['word2'] if 'word2' in ghgwd.result else None
                                     self.internalBible.setNewGenericGloss( normalizedWord, genericGloss, fullRefTuple )
                                     if specificGloss:
                                         self.internalBible.setNewSpecificGloss( normalizedWord, specificGloss, fullRefTuple )
-                                    self.glossWindowGeometry = gwd.result['geometry'] # Keeps the window size/position
-                                    try: command = gwd.result['command'] # 'L' or 'R'
+                                    self.glossWindowGeometry = ghgwd.result['geometry'] # Keeps the window size/position
+                                    try: command = ghgwd.result['command'] # 'L' or 'R'
                                     except KeyError: command = None
                                     needToRequestMissingGlosses = False
                                     needToUpdate = True
@@ -2493,6 +2484,14 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     elif command == 'R':
                         if j < len(verseDictList): pass
                         else: command = None # Already at right side
+                    elif command == 'LL':
+                        self.parentApp.doGotoPreviousVerse()
+                        return False
+                    elif command == 'RR':
+                        self.parentApp.doGotoNextVerse()
+                        return False
+                    elif command == 'E': pass
+                    else: assert command is None
                     #bundlesAcross += 1
                 if self.parentApp.starting: break
                 if command: continue

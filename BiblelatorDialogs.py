@@ -107,7 +107,7 @@ TODO: Work out how to automatically test keypresses in dialogs.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-09'
+LastModifiedDate = '2018-03-12'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.43'
@@ -2114,6 +2114,7 @@ class GetHebrewGlossWordDialog( ModalDialog ):
 
     Returns:
         S for skip,
+        L, R for left/right, or LL, RR
         or None for cancel,
         or else a dictionary possibly containing 'word','command','geometry'
     """
@@ -2165,20 +2166,27 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         """
         row = 0
         Style().configure( 'LR.TButton', background='orange', font=('Helvetica', 24) )
-        Button( master, text='<', width=3, style='LR.TButton', command=self.doGoLeft ).grid( row=row, column=0 )
-        Button( master, text='>', width=3, style='LR.TButton', command=self.doGoRight ).grid( row=row, column=2 )
+        Button( master, text='<<', width=3, style='LR.TButton', command=self.doGoLeft2 ).grid( row=row, column=0 )
+        Button( master, text='<', width=3, style='LR.TButton', command=self.doGoLeft1 ).grid( row=row, column=1 )
+        Button( master, text='>', width=3, style='LR.TButton', command=self.doGoRight1 ).grid( row=row, column=3 )
+        Button( master, text='>>', width=3, style='LR.TButton', command=self.doGoRight2 ).grid( row=row, column=4 )
         for j,line in enumerate( self.contextLines ):
             if not line: continue # skip missing lines
-            thisFont = self.customHebrewFont if j==1 else self.customFont
-            if j == 1: line = line[::-1] # Reverse line to simulate RTL Hebrew language
+            thisFont = self.customFont
+            if j == 1:
+                if ( not self.word ) and \
+                ( line.startswith( 'ו' 'ַ' '=' ) or line.startswith( 'ו' 'ָ' '=' ) or line.startswith( 'ו' 'ְ' '=' ) ):
+                    self.word = 'and='
+                line = line[::-1] # Reverse line to simulate RTL Hebrew language
+                thisFont = self.customHebrewFont
             elif j == 2: self.handleStrongs( line )
             if len(line) > 20:
-                Label( master, text=line, font=thisFont ).grid( row=row, column=0, columnspan=3 )
-            else: Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
+                Label( master, text=line, font=thisFont ).grid( row=row, column=0, columnspan=5 )
+            else: Label( master, text=line, font=thisFont ).grid( row=row, column=1, columnspan=3 )
             row += 1
 
         self.entry = BEntry( master )
-        self.entry.grid( row=row, column=1 )
+        self.entry.grid( row=row, column=2 )
         if self.word: self.entry.insert( 0, self.word )
         return self.entry # initial focus
     # end of GetHebrewGlossWordDialog.makeBody
@@ -2190,19 +2198,19 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         """
         box = Frame( self )
 
+        cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
+        cancelButton.pack( side=tk.RIGHT, padx=5, pady=5 )
+        okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
+        okButton.pack( side=tk.RIGHT, padx=5, pady=5 )
+        skipOoneButton = Button( box, text=_('Skip this one'), command=self.doSkipOne )
+        skipOoneButton.pack( side=tk.RIGHT, padx=5, pady=5 )
         translitButton = Button( box, text=_('Transliterate'), command=self.doTransliterate )
         translitButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        skipOoneButton = Button( box, text=_('Skip this one'), command=self.doSkipOne )
-        skipOoneButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
-        okButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
-        cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
 
         self.bind( '<Return>', self.ok )
         self.bind( '<Escape>', self.cancel )
 
-        box.pack( side=tk.BOTTOM, anchor=tk.E )
+        box.pack( side=tk.BOTTOM, fill=tk.X )
     # end of GetHebrewGlossWordDialog.makeButtonBox
 
 
@@ -2229,20 +2237,30 @@ class GetHebrewGlossWordDialog( ModalDialog ):
     # end of GetHebrewGlossWordDialog.doTransliterate
 
 
-    def doGoLeft( self, event=None ):
-        self.returnCommand = 'L'
-        self.ok()
+    def doGoLeft1( self, event=None ):
+        self.result = self.returnCommand = 'L'
+        self.ok() if self.entry.get() else self.cancel() # So don't have to have text
     # end of GetHebrewGlossWordDialog.doGoLeft
 
-    def doGoRight( self, event=None ):
-        self.returnCommand = 'R'
-        self.ok()
+    def doGoRight1( self, event=None ):
+        self.result = self.returnCommand = 'R'
+        self.ok() if self.entry.get() else self.cancel() # So don't have to have text
+    # end of GetHebrewGlossWordDialog.doGoRight
+
+    def doGoLeft2( self, event=None ):
+        self.result = self.returnCommand = 'LL'
+        self.ok() if self.entry.get() else self.cancel() # So don't have to have text
+    # end of GetHebrewGlossWordDialog.doGoLeft
+
+    def doGoRight2( self, event=None ):
+        self.result = self.returnCommand = 'RR'
+        self.ok() if self.entry.get() else self.cancel() # So don't have to have text
     # end of GetHebrewGlossWordDialog.doGoRight
 
 
     def doSkipOne( self, event=None ):
         self.result = 'S'
-        self.cancel()
+        self.cancel() # So don't have to have text
     # end of GetHebrewGlossWordDialog.doSkipOne
 
 
@@ -2294,6 +2312,7 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
 
     Returns:
         S for skip,
+        L, R for left/right, or LL, RR
         or None for cancel,
         or else a dictionary possibly containing 'word1','word2','command','geometry'
     """
@@ -2321,52 +2340,32 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
         """
         row = 0
         Style().configure( 'LR.TButton', background='orange', font=('Helvetica', 24) )
-        Button( master, text='<', width=3, style='LR.TButton', command=self.doGoLeft ).grid( row=row, column=0 )
-        Button( master, text='>', width=3, style='LR.TButton', command=self.doGoRight ).grid( row=row, column=2 )
+        Button( master, text='<<', width=3, style='LR.TButton', command=self.doGoLeft2 ).grid( row=row, column=0 )
+        Button( master, text='<', width=3, style='LR.TButton', command=self.doGoLeft1 ).grid( row=row, column=1 )
+        Button( master, text='>', width=3, style='LR.TButton', command=self.doGoRight1 ).grid( row=row, column=3 )
+        Button( master, text='>>', width=3, style='LR.TButton', command=self.doGoRight2 ).grid( row=row, column=4 )
         for j,line in enumerate( self.contextLines ):
             if not line: continue # skip missing lines
-            thisFont = self.customHebrewFont if j==1 else self.customFont
-            if j == 1: line = line[::-1] # Reverse line to simulate RTL Hebrew language
+            thisFont = self.customFont
+            if j == 1:
+                if line.startswith( 'ו' 'ַ' '=' ) and not self.word:
+                    self.word = 'and='
+                line = line[::-1] # Reverse line to simulate RTL Hebrew language
+                thisFont = self.customHebrewFont
             elif j == 2: self.handleStrongs( line )
             if len(line) > 20:
-                Label( master, text=line, font=thisFont ).grid( row=row, column=0, columnspan=3 )
-            else: Label( master, text=line, font=thisFont ).grid( row=row, column=1 )
+                Label( master, text=line, font=thisFont ).grid( row=row, column=0, columnspan=5 )
+            else: Label( master, text=line, font=thisFont ).grid( row=row, column=1, columnspan=3 )
             row += 1
 
         self.entry = BEntry( master )
-        self.entry.grid( row=row, column=1 )
+        self.entry.grid( row=row, column=2 )
         self.entry2 = BEntry( master )
-        self.entry2.grid( row=row+1, column=1 )
+        self.entry2.grid( row=row+1, column=2 )
         if self.word: self.entry.insert( 0, self.word )
         if self.word2: self.entry2.insert( 0, self.word2 )
         return self.entry # initial focus
     # end of GetHebrewGlossWordsDialog.makeBody
-
-
-    #def makeButtonBox( self ):
-        #"""
-        #Add our custom button box
-        #"""
-        #box = Frame( self )
-
-        #skipOoneButton = Button( box, text=_('Skip this one'), command=self.doSkipOne )
-        #skipOoneButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        #okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
-        #okButton.pack( side=tk.LEFT, padx=5, pady=5 )
-        #cancelButton = Button( box, text=self.cancelText, width=10, command=self.cancel )
-        #cancelButton.pack( side=tk.LEFT, padx=5, pady=5 )
-
-        #self.bind( '<Return>', self.ok )
-        #self.bind( '<Escape>', self.cancel )
-
-        #box.pack( side=tk.BOTTOM, anchor=tk.E )
-    ## end of GetHebrewGlossWordsDialog.makeButtonBox
-
-
-    #def doSkipOne( self, event=None ):
-        #self.result = 'S'
-        #self.cancel()
-    ## end of GetHebrewGlossWordsDialog.doSkipOne
 
 
     def validate( self ):

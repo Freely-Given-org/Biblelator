@@ -2702,6 +2702,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "doGotoNextUnglossedVerse() from {} {}:{}".format( BBB, C, V ) )
 
+        self.requestMissingGlosses = True # Make sure this is on / back on
         #print( "doGotoNextUnglossedVerse starting at {} {}:{}".format( BBB, C, V ) )
         intC, intV = int( C ), int( V )
         while True:
