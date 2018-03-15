@@ -39,11 +39,11 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-24' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.43'
-SettingsVersion = '0.43' # Only need to change this if the settings format has changed
+ProgVersion = '0.44'
+SettingsVersion = '0.44' # Only need to change this if the settings format has changed
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -59,29 +59,13 @@ from BiblelatorGlobals import APP_NAME, DEFAULT, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
     parseWindowSize, assembleWindowSize
 from BiblelatorSimpleDialogs import showError
-from BiblelatorDialogs import SaveWindowNameDialog, DeleteWindowNameDialog
+from BiblelatorDialogs import SaveWindowsLayoutNameDialog, DeleteWindowsLayoutNameDialog
 from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey
 from PickledBible import ZIPPED_FILENAME_END
-
-
-
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
 
 
 
@@ -112,9 +96,9 @@ def parseAndApplySettings( self ):
 
     "self" refers to a Biblelator Application instance.
     """
-    logging.info( exp("parseAndApplySettings()") )
+    logging.info( "parseAndApplySettings()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("parseAndApplySettings()") )
+        print( "parseAndApplySettings()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "parseAndApplySettings…" )
 
     def retrieveWindowsSettings( self, windowsSettingsName ):
@@ -127,7 +111,7 @@ def parseAndApplySettings( self ):
         Called from parseAndApplySettings().
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("retrieveWindowsSettings( {} )").format( repr(windowsSettingsName) ) )
+            print( "retrieveWindowsSettings( {} )".format( repr(windowsSettingsName) ) )
             self.setDebugText( "retrieveWindowsSettings…" )
         windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
         resultDict = {}
@@ -137,7 +121,7 @@ def parseAndApplySettings( self ):
                 if keyName.startswith( winNumber ):
                     if winNumber not in resultDict: resultDict[winNumber] = {}
                     resultDict[winNumber][keyName[len(winNumber):]] = windowsSettingsFields[keyName]
-        #print( exp("retrieveWindowsSettings"), resultDict )
+        #print( "retrieveWindowsSettings", resultDict )
         return resultDict
     # end of retrieveWindowsSettings
 
@@ -146,7 +130,7 @@ def parseAndApplySettings( self ):
     # Parse main app stuff
     #try: self.rootWindow.geometry( self.settings.data[APP_NAME]['windowGeometry'] )
     #except KeyError: print( "KeyError1" ) # we had no geometry set
-    #except tk.TclError: logging.critical( exp("Application.__init__: Bad window geometry in settings file: {}").format( settings.data[APP_NAME]['windowGeometry'] ) )
+    #except tk.TclError: logging.critical( "Application.__init__: Bad window geometry in settings file: {}".format( settings.data[APP_NAME]['windowGeometry'] ) )
     try:
         windowSize = self.settings.data[APP_NAME]['windowSize'] if 'windowSize' in self.settings.data[APP_NAME] else None
         windowPosition = self.settings.data[APP_NAME]['windowPosition'] if 'windowPosition' in self.settings.data[APP_NAME] else None
@@ -311,13 +295,13 @@ def parseAndApplySettings( self ):
     windowsSettingsNamesList = []
     for name in self.settings.data:
         if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
-    if BibleOrgSysGlobals.debugFlag: print( exp("Available windows settings are: {}").format( windowsSettingsNamesList ) )
+    if BibleOrgSysGlobals.debugFlag: print( "Available windows settings are: {}".format( windowsSettingsNamesList ) )
     if windowsSettingsNamesList: assert 'Current' in windowsSettingsNamesList
     self.windowsSettingsDict = {}
     for windowsSettingsName in windowsSettingsNamesList:
         self.windowsSettingsDict[windowsSettingsName] = retrieveWindowsSettings( self, windowsSettingsName )
     if 'Current' in windowsSettingsNamesList: applyGivenWindowsSettings( self, 'Current' )
-    else: logging.critical( exp("Application.parseAndApplySettings: No current window settings available") )
+    else: logging.critical( "Application.parseAndApplySettings: No current window settings available" )
 # end of parseAndApplySettings
 
 
@@ -330,9 +314,9 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
 
     "self" refers to a Biblelator Application instance.
     """
-    logging.debug( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
+    logging.debug( "applyGivenWindowsSettings( {} )".format( repr(givenWindowsSettingsName) ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("applyGivenWindowsSettings( {} )").format( repr(givenWindowsSettingsName) ) )
+        print( "applyGivenWindowsSettings( {} )".format( repr(givenWindowsSettingsName) ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "applyGivenWindowsSettings…" )
 
     self.doCloseMyChildWindows()
@@ -431,12 +415,12 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 #except: logging.critical( "Unable to read all ESFMEditWindow {} settings".format( j ) )
 
             else:
-                logging.critical( exp("applyGivenWindowsSettings: Unknown {} window type").format( repr(windowType) ) )
+                logging.critical( "applyGivenWindowsSettings: " + _("Unknown {} window type").format( repr(windowType) ) )
                 if BibleOrgSysGlobals.debugFlag: halt
                 rw = None
 
             if rw is None:
-                logging.critical( exp("applyGivenWindowsSettings: Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
+                logging.critical( "applyGivenWindowsSettings: " + _("Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
             else: # we've opened our child window -- now customize it a bit more
                 minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
                 if minimumSize:
@@ -481,9 +465,9 @@ def getCurrentChildWindowSettings( self ):
 
     "self" refers to a Biblelator Application instance.
     """
-    logging.debug( exp("getCurrentChildWindowSettings()") )
+    logging.debug( "getCurrentChildWindowSettings()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("getCurrentChildWindowSettings()") )
+        print( "getCurrentChildWindowSettings()" )
 
     if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
     self.windowsSettingsDict['Current'] = {}
@@ -544,16 +528,16 @@ def getCurrentChildWindowSettings( self ):
             thisOne['EditMode'] = appWin.editMode
 
         else:
-            logging.critical( exp("getCurrentChildWindowSettings: Unknown {} window type").format( repr(appWin.windowType) ) )
+            logging.critical( "getCurrentChildWindowSettings: " + _("Unknown {} window type").format( repr(appWin.windowType) ) )
             if BibleOrgSysGlobals.debugFlag: halt
 
         if 'Bible' in appWin.genericWindowType:
             try: thisOne['GroupCode'] = appWin._groupCode
-            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no groupCode in {}").format( appWin.windowType ) )
+            except AttributeError: logging.critical( "getCurrentChildWindowSettings: " + _("Why no groupCode in {}").format( appWin.windowType ) )
             try: thisOne['ContextViewMode'] = appWin._contextViewMode
-            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no contextViewMode in {}").format( appWin.windowType ) )
+            except AttributeError: logging.critical( "getCurrentChildWindowSettings: " + _("Why no contextViewMode in {}").format( appWin.windowType ) )
             try: thisOne['FormatViewMode'] = appWin._formatViewMode
-            except AttributeError: logging.critical( exp("getCurrentChildWindowSettings: Why no formatViewMode in {}").format( appWin.windowType ) )
+            except AttributeError: logging.critical( "getCurrentChildWindowSettings: " + _("Why no formatViewMode in {}").format( appWin.windowType ) )
 
         if appWin.windowType.endswith( 'EditWindow' ):
             thisOne['AutocompleteMode'] = appWin.autocompleteMode
@@ -568,10 +552,10 @@ def saveNewWindowSetup( self ):
     "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("saveNewWindowSetup()") )
+        print( "saveNewWindowSetup()" )
         self.setDebugText( "saveNewWindowSetup…" )
 
-    swnd = SaveWindowNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
+    swnd = SaveWindowsLayoutNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
     if BibleOrgSysGlobals.debugFlag: print( "swndResult", repr(swnd.result) )
     if swnd.result:
         getCurrentChildWindowSettings( self )
@@ -590,11 +574,11 @@ def deleteExistingWindowSetup( self ):
     "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("deleteExistingWindowSetup()") )
+        print( "deleteExistingWindowSetup()" )
         self.setDebugText( "deleteExistingWindowSetup" )
         assert self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict)
 
-    dwnd = DeleteWindowNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
+    dwnd = DeleteWindowsLayoutNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
     if BibleOrgSysGlobals.debugFlag: print( "dwndResult", repr(dwnd.result) )
     if dwnd.result:
         if BibleOrgSysGlobals.debugFlag:
@@ -613,7 +597,7 @@ def viewSettings( self ):
     "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("viewSettings()") )
+        print( "viewSettings()" )
         self.setDebugText( "viewSettings" )
 
     tEW = TextEditWindow( self )
@@ -636,9 +620,9 @@ def writeSettingsFile( self ):
 
     "self" refers to a Biblelator Application instance.
     """
-    logging.info( exp("writeSettingsFile()") )
+    logging.info( "writeSettingsFile()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("writeSettingsFile()") )
+        print( "writeSettingsFile()" )
     elif BibleOrgSysGlobals.verbosityLevel > 0:
         print( _("  Saving program settings…") )
 
@@ -775,7 +759,7 @@ def writeSettingsFile( self ):
     # Save all the various window set-ups including both the named ones and the current one
     for windowsSettingName in sorted( self.windowsSettingsDict ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("Saving windows set-up {}").format( repr(windowsSettingName) ) )
+            print( "Saving windows set-up {}".format( repr(windowsSettingName) ) )
         try: # Just in case something goes wrong with characters in a settings name
             self.settings.data['WindowSetting'+windowsSettingName] = {}
             thisOne = self.settings.data['WindowSetting'+windowsSettingName]
@@ -783,7 +767,7 @@ def writeSettingsFile( self ):
                 #print( "  ", repr(windowNumber), repr(winDict) )
                 for windowSettingName,value in sorted( winDict.items() ):
                     thisOne[windowNumber+windowSettingName] = convertToString( value )
-        except UnicodeEncodeError: logging.error( exp("writeSettingsFile: unable to write {} windows set-up").format( repr(windowsSettingName) ) )
+        except UnicodeEncodeError: logging.error( "writeSettingsFile: " + _("unable to write {} windows set-up").format( repr(windowsSettingName) ) )
     self.settings.save()
 # end of writeSettingsFile
 
@@ -799,7 +783,7 @@ def doSendUsageStatistics( self ):
     Note that Biblelator is mostly closed down at this stage.
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("doSendUsageStatistics()") )
+        print( "doSendUsageStatistics()" )
         assert self.internetAccessEnabled
         assert self.sendUsageStatisticsEnabled
     elif BibleOrgSysGlobals.verbosityLevel > 0:
@@ -893,10 +877,10 @@ def demo():
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("Platform is"), sys.platform ) # e.g., "win32"
-        print( exp("OS name is"), os.name ) # e.g., "nt"
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() )
-        print( exp("Running main…") )
+        print( "Platform is", sys.platform ) # e.g., "win32"
+        print( "OS name is", os.name ) # e.g., "nt"
+        if sys.platform == "linux": print( "OS uname is", os.uname() )
+        print( "Running main…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
@@ -924,7 +908,6 @@ def demo():
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
-
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )

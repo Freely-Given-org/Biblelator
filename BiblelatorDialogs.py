@@ -31,16 +31,19 @@ Various modal dialog windows for Biblelator Bible display/editing.
         __init__( self, parentWindow, message, title=None )
     class OkCancelDialog( ModalDialog )
         __init__( self, parentWindow, message, title=None )
+
     class BookNameDialog( ModalDialog )
         __init__( self, parentWindow, bookNameList, currentIndex )
     class NumberButtonDialog( ModalDialog ):
         A dialog box which allows the user to select a number from a given range.
         This is used in touch mode to select chapter and/or verse numbers.
         __init__( self, parentWindow, startNumber, endNumber, currentNumber )
-    class SaveWindowNameDialog( ModalDialog )
+
+    class SaveWindowsLayoutNameDialog( ModalDialog )
         __init__( self, parentWindow, existingSettings, title )
-    class DeleteWindowNameDialog( ModalDialog )
+    class DeleteWindowsLayoutNameDialog( ModalDialog )
         __init__( self, parentWindow, existingSettings, title )
+
     class SelectResourceBoxDialog( ModalDialog )
         Given a list of available resources, select one and return the list item.
         __init__( self, parentWindow, availableSettingsList, title )
@@ -59,6 +62,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
         __init__( self, parentWindow, givenBible, currentBBB, currentList, title )
     class SelectIndividualBibleBooksDialog( ModalDialog )
         __init__( self, parentWindow, availableList, currentList, title )
+
     class GetBibleFindTextDialog( ModalDialog )
         Get the search string (and options) for Bible search.
         __init__( self, parentWindow, givenBible, optionsDict, title )
@@ -67,10 +71,12 @@ Various modal dialog windows for Biblelator Bible display/editing.
         __init__( self, parentWindow, givenBible, optionsDict, title )
     class ReplaceConfirmDialog( ModalDialog )
         __init__( self, parentWindow, referenceString, contextBefore, findText, contextAfter, finalText, haveUndos, title )
+
     class SelectInternalBibleDialog( ModalDialog )
         Select one internal Bible from a given list.
         __init__( self, parentWindow, title, internalBibles )
     #class GetSwordPathDialog( ModalDialog )
+
     class GetHebrewGlossWordDialog( ModalDialog )
         Get a new (gloss) word from the user.
         Accepts a bundle (e.g., list, tuple) of short strings to display to the user first.
@@ -91,6 +97,7 @@ Various modal dialog windows for Biblelator Bible display/editing.
             or None for cancel,
             or else a dictionary possibly containing 'word1','word2','command','geometry'
         __init__( self, parentWindow, title, contextLines, word1='', word2='', geometry=None )
+
     class ChooseResourcesDialog( ModalDialog )
         Given a list of available resources, select one and return the list item.
         __init__( self, parentWindow, availableResourceDictsList, title )
@@ -107,10 +114,10 @@ TODO: Work out how to automatically test keypresses in dialogs.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-13'
+LastModifiedDate = '2018-03-15'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -122,7 +129,6 @@ import urllib.request
 
 import tkinter as tk
 import tkinter.font as tkFont
-import tkinter.messagebox as tkmb
 from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 
 # Biblelator imports
@@ -372,17 +378,17 @@ class NumberButtonDialog( ModalDialog ):
 
 
 
-class SaveWindowNameDialog( ModalDialog ):
+class SaveWindowsLayoutNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parentWindow, existingSettings, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SaveWindowNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SaveWindowsLayoutNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parentWindow, title )
-    # end of SaveWindowNameDialog.__init__
+    # end of SaveWindowsLayoutNameDialog.__init__
 
 
     def makeBody( self, master ):
@@ -403,7 +409,7 @@ class SaveWindowNameDialog( ModalDialog ):
         self.cb.grid( row=1 )
 
         return self.cb # initial focus
-    # end of SaveWindowNameDialog.makeBody
+    # end of SaveWindowsLayoutNameDialog.makeBody
 
 
     def validate( self ):
@@ -419,7 +425,7 @@ class SaveWindowNameDialog( ModalDialog ):
         for char in '[]':
             if char in result: return False
         return True
-    # end of SaveWindowNameDialog.validate
+    # end of SaveWindowsLayoutNameDialog.validate
 
 
     def apply( self ):
@@ -431,22 +437,22 @@ class SaveWindowNameDialog( ModalDialog ):
         """
         self.result = self.cb.get()
         #print( "New window set-up name is: {!r}".format( self.result ) )
-    # end of SaveWindowNameDialog.apply
-# end of class SaveWindowNameDialog
+    # end of SaveWindowsLayoutNameDialog.apply
+# end of class SaveWindowsLayoutNameDialog
 
 
 
-class DeleteWindowNameDialog( ModalDialog ):
+class DeleteWindowsLayoutNameDialog( ModalDialog ):
     """
     """
     def __init__( self, parentWindow, existingSettings, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "DeleteWindowNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "DeleteWindowsLayoutNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parentWindow, title, _("Delete") )
-    # end of DeleteWindowNameDialog.__init__
+    # end of DeleteWindowsLayoutNameDialog.__init__
 
 
     def makeBody( self, master ):
@@ -465,7 +471,7 @@ class DeleteWindowNameDialog( ModalDialog ):
         self.cb.grid( row=1 )
 
         return self.cb # initial focus
-    # end of DeleteWindowNameDialog.makeBody
+    # end of DeleteWindowsLayoutNameDialog.makeBody
 
 
     def validate( self ):
@@ -479,7 +485,7 @@ class DeleteWindowNameDialog( ModalDialog ):
         if not result: return False
         if not isinstance( result, str ): return False
         return True
-    # end of DeleteWindowNameDialog.validate
+    # end of DeleteWindowsLayoutNameDialog.validate
 
 
     def apply( self ):
@@ -491,8 +497,8 @@ class DeleteWindowNameDialog( ModalDialog ):
         """
         self.result = self.cb.get()
         print( "Requested window set-up name is: {!r}".format( self.result ) )
-    # end of DeleteWindowNameDialog.apply
-# end of class DeleteWindowNameDialog
+    # end of DeleteWindowsLayoutNameDialog.apply
+# end of class DeleteWindowsLayoutNameDialog
 
 
 
@@ -2694,9 +2700,9 @@ def demo():
     print( "BookNameResult", bnD.result )
     nbD = NumberButtonDialog( tkRootWindow, startNumber=1, endNumber=11, currentNumber=6 )
     print( "NumberButtonResult", nbD.result )
-    swnd = SaveWindowNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test SWND" )
+    swnd = SaveWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test SWND" )
     print( "SaveWindowNameResult", swnd.result )
-    dwnd = DeleteWindowNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test DWND" )
+    dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test DWND" )
     print( "DeleteWindowNameResult", dwnd.result )
     srb = SelectResourceBoxDialog( tkRootWindow, availableSettingsList=[(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], title="Test SRB" )
     print( "SelectResourceBoxResult", srb.result )
@@ -2760,7 +2766,6 @@ def demo():
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
-
 
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )

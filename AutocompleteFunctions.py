@@ -33,10 +33,10 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-04' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "AutocompleteFunctions"
 ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -67,22 +67,6 @@ HUNSPELL_DICTIONARY_FOLDERS = ( '/usr/share/hunspell/', )
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
-
-
-
 def setAutocompleteWords( editWindowObject, wordList, append=False ):
     """
     Given a word list, set the entries into the autocomplete words
@@ -91,10 +75,10 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
     Note that the original word order is preserved (if the supplied wordList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
-    logging.info( exp("AutocompleteFunctions.setAutocompleteWords( …, {}, {} )").format( len(wordList), append ) )
+    logging.info( "AutocompleteFunctions.setAutocompleteWords( …, {}, {} )".format( len(wordList), append ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.setAutocompleteWords( {} )").format( wordList, append ) )
-        print( exp("AutocompleteFunctions.setAutocompleteWords( …, {}, {} )").format( len(wordList), append ) )
+        #print( "AutocompleteFunctions.setAutocompleteWords( {} )".format( wordList, append ) )
+        print( "AutocompleteFunctions.setAutocompleteWords( …, {}, {} )".format( len(wordList), append ) )
         editWindowObject.parentApp.setDebugText( "setAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Setting autocomplete words…") )
@@ -173,7 +157,7 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
 
     Note also that the internalMarkersList has to be passed as a paramter,
         because multi-processing on Windows can't access global variables.
-        
+
     Returns a dictionary containing the results for the book.
     """
     logging.debug( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
@@ -324,7 +308,7 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
 def countBookWordsHelper( parameters ):
     """
     Parameter parameters is a 4-tuple containing the BBB, folder, filename, currentBook flag, and internalMarkersList
-    
+
     The internalMarkers have to be passed, because multi-processing on Windows can't access global variables.
     """
     return countBookWords( *parameters )
@@ -340,9 +324,9 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
 
     NOTE: This list should theoretically be updated as the user enters new words!
     """
-    logging.info( exp("loadBibleBookAutocompleteWords()") )
+    logging.info( "loadBibleBookAutocompleteWords()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("loadBibleBookAutocompleteWords()") )
+        print( "loadBibleBookAutocompleteWords()" )
         editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible book words…").format( editWindowObject.projectName ) )
@@ -398,7 +382,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     """
     startTime = time.time()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("AutocompleteFunctions.loadBibleAutocompleteWords()") )
+        print( "AutocompleteFunctions.loadBibleAutocompleteWords()" )
         editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
     global internalMarkers
@@ -417,7 +401,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
             parameters = [(BBB,editWindowObject.internalBible,filename,BBB==currentBBB,internalMarkers) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
             if BibleOrgSysGlobals.verbosityLevel > 1:
-                print( exp("Autocomplete: loading up to {} USFM books using {} processes…").format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
+                print( "Autocomplete: loading up to {} USFM books using {} processes…".format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
                 print( "  NOTE: Outputs (including error & warning messages) from loading words from Bible books may be interspersed." )
             BibleOrgSysGlobals.alreadyMultiprocessing = True
             with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
@@ -479,9 +463,9 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
     NOTE: This list maybe should be updated as the user enters new words
         or else have an additional user dictionary.
     """
-    logging.info( exp("loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
+    logging.info( "loadHunspellAutocompleteWords( {}, {} )".format( dictionaryFilepath, encoding ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("loadHunspellAutocompleteWords( {}, {} )").format( dictionaryFilepath, encoding ) )
+        print( "loadHunspellAutocompleteWords( {}, {} )".format( dictionaryFilepath, encoding ) )
         editWindowObject.parentApp.setDebugText( "loadHunspellAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
@@ -674,9 +658,9 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     NOTE: This list maybe should be updated as the user enters new words
         or else have an additional user dictionary.
     """
-    logging.info( exp("loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
+    logging.info( "loadILEXAutocompleteWords( {}, {} )".format( dictionaryFilepath, lgCodes ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("loadILEXAutocompleteWords( {}, {} )").format( dictionaryFilepath, lgCodes ) )
+        print( "loadILEXAutocompleteWords( {}, {} )".format( dictionaryFilepath, lgCodes ) )
         editWindowObject.parentApp.setDebugText( "loadILEXAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
@@ -741,7 +725,7 @@ def getCharactersBeforeCursor( self, charCount=1 ):
     Needed for auto-correct functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.getCharactersBeforeCursor( {} )").format( charCount ) )
+        #print( "AutocompleteFunctions.getCharactersBeforeCursor( {} )".format( charCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( charCount ), tk.INSERT )
     #print( 'getCharactersBeforeCursor: returning previousText', repr(previousText) )
@@ -757,7 +741,7 @@ def getWordCharactersBeforeCursor( self, maxCount=4 ):
     Needed for auto-complete functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.getWordCharactersBeforeCursor( {} )").format( maxCount ) )
+        #print( "AutocompleteFunctions.getWordCharactersBeforeCursor( {} )".format( maxCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
     #print( "previousText", repr(previousText) )
@@ -780,7 +764,7 @@ def getCharactersAndWordBeforeCursor( self, maxCount=4 ):
     Needed for auto-complete functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.getCharactersAndWordBeforeCursor( {} )").format( maxCount ) )
+        #print( "AutocompleteFunctions.getCharactersAndWordBeforeCursor( {} )".format( maxCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
     #print( "previousText", repr(previousText) )
@@ -807,7 +791,7 @@ def getWordBeforeSpace( self, maxCount=20 ):
     Needed for auto-complete functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.getWordBeforeSpace( {} )").format( maxCount ) )
+        #print( "AutocompleteFunctions.getWordBeforeSpace( {} )".format( maxCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
     #print( "previousText1", repr(previousText) )
@@ -832,7 +816,7 @@ def acceptAutocompleteSelection( self, includeTrailingSpace=False ):
     Gets the chosen word and inserts the end of it into the text.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("AutocompleteFunctions.acceptAutocompleteSelection( {} )").format( includeTrailingSpace ) )
+        #print( "AutocompleteFunctions.acceptAutocompleteSelection( {} )".format( includeTrailingSpace ) )
         assert self.autocompleteBox is not None
 
     currentWord = self.autocompleteBox.get( tk.ACTIVE )
@@ -868,7 +852,7 @@ def addNewAutocompleteWord( self, possibleNewWord ):
     Used by autocomplete routines in onTextChange.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("AutocompleteFunctions.addNewAutocompleteWord( {!r} )").format( possibleNewWord ) )
+        print( "AutocompleteFunctions.addNewAutocompleteWord( {!r} )".format( possibleNewWord ) )
         assert isinstance( possibleNewWord, str )
         assert possibleNewWord
 
@@ -908,7 +892,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
@@ -925,16 +909,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    #if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        ##from tkinter import TclVersion, TkVersion
-        #print( "TclVersion is", tk.TclVersion )
-        #print( "TkVersion is", tk.TkVersion )
 
     demo()
 

@@ -157,10 +157,10 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-09' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "ChildWindows"
 ProgName = "Biblelator Child Windows"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -171,7 +171,6 @@ import sys, os.path, logging, re
 
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
-#from tkinter.simpledialog import askstring, askinteger
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
@@ -187,7 +186,6 @@ from BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapRe
 from TextBoxes import BText, BCombobox, HTMLTextBox, ChildBoxAddon, BibleBoxAddon
 
 # BibleOrgSys imports
-#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
@@ -3041,18 +3039,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

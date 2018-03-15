@@ -30,10 +30,10 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-21' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "ModalDialog"
 ProgName = "Modal Dialog"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -248,16 +248,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if BibleOrgSysGlobals.debugFlag:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

@@ -107,10 +107,10 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-12' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -130,7 +130,7 @@ from BiblelatorSimpleDialogs import showError, showInfo
 
 
 # BibleOrgSys imports
-if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
+#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from InternalBibleInternals import InternalBibleEntry
 from VerseReferences import SimpleVerseKey
@@ -3140,16 +3140,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

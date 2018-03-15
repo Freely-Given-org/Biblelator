@@ -3,9 +3,9 @@
 #
 # About.py
 #
-# Main program for Biblelator Bible display/editing
+# About box for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2016 Robert Hunt
+# Copyright (C) 2014-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -23,15 +23,15 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow editing of USFM Bibles using Python3 and Tkinter.
+A simple About box window containing text and an optional logo.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "About"
 ProgName = "About Box"
-ProgVersion = '0.39'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -45,24 +45,7 @@ from tkinter.ttk import Frame, Button
 from BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE, MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, \
                                 parseWindowSize, centreWindowOnWindow
 
-#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-
-
-
-#def exp( messageString ):
-    #"""
-    #Expands the message string in debug mode.
-    #Prepends the module name to a error or warning message string
-        #if we are in debug mode.
-    #Returns the new string.
-    #"""
-    #try: nameBit, errorBit = messageString.split( ': ', 1 )
-    #except ValueError: nameBit, errorBit = '', messageString
-    #if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        #nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    #return '{}{}'.format( nameBit, errorBit )
-## end of exp
 
 
 
@@ -80,7 +63,7 @@ class AboutBox( tk.Toplevel ):
         self.maxsize( *parseWindowSize( self.maximumSize ) )
         if parent: centreWindowOnWindow( self, parent )
 
-        self.title( 'About '+progName )
+        self.title( _("About") + ' '+progName )
 
         buttonFrame = Frame( self ) #, cursor='hand2', relief=tk.RAISED, style='MainButtons.TFrame' )
         if logoPath:
@@ -178,12 +161,6 @@ if __name__ == '__main__':
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if BibleOrgSysGlobals.debugFlag:
-        #from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", tk.TclVersion )
-        print( "TkVersion is", tk.TkVersion )
 
     demo()
 

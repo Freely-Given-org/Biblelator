@@ -161,10 +161,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-28' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -179,14 +179,13 @@ import tkinter as tk
 from BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, MAX_PSEUDOVERSES, errorBeep, \
                             BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                             MAXIMUM_LARGE_RESOURCE_SIZE, parseWindowSize
-from ChildWindows import ChildWindow, BibleWindowAddon, HTMLWindow # BibleWindow
+from ChildWindows import ChildWindow, BibleWindowAddon, HTMLWindow
 from TextBoxes import BibleBoxAddon, HebrewInterlinearBibleBoxAddon
 from BiblelatorHelpers import findCurrentSection, handleInternalBibles
 from BiblelatorSimpleDialogs import showInfo, showError
 from BiblelatorDialogs import GetBibleBookRangeDialog
 
 # BibleOrgSys imports
-#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from Bible import Bible
 from VerseReferences import SimpleVerseKey
@@ -3057,18 +3056,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

@@ -39,10 +39,10 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-26' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "BiblelatorGlobals"
 ProgName = "Biblelator Globals"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -54,22 +54,6 @@ import os, re
 # BibleOrgSys imports
 import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-
-
-
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, errorBit )
-# end of exp
 
 
 
@@ -227,7 +211,7 @@ def errorBeep():
     """
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("errorBeep()") )
+        print( "errorBeep()" )
 
     # Does nothing yet :-(
 
@@ -247,7 +231,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     print( "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
@@ -276,16 +260,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

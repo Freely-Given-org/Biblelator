@@ -5,7 +5,7 @@
 #
 # Handle settings for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -44,10 +44,10 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-12-13' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "Settings"
 ProgName = "Biblelator Settings"
-ProgVersion = '0.42'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -62,24 +62,7 @@ from BiblelatorGlobals import APP_NAME
 from BiblelatorSettingsFunctions import SettingsVersion
 
 # BibleOrgSys imports
-if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-
-
-
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
 
 
 
@@ -129,7 +112,7 @@ class Settings:
         Load the settings file (if we found it).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ApplicationSettings.load() from {!r}").format( self.settingsFilepath ) )
+            print( "ApplicationSettings.load() from {!r}".format( self.settingsFilepath ) )
 
         self.reset() # Creates self.data
         assert self.data
@@ -147,7 +130,7 @@ class Settings:
             They must have already been saved into self.data.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ApplicationSettings.save() in {!r}").format( self.settingsFilepath ) )
+            print( "ApplicationSettings.save() in {!r}".format( self.settingsFilepath ) )
             assert self.data
             assert self.settingsFilepath
 
@@ -174,7 +157,7 @@ class ApplicationSettings( Settings ):
         Try to find where the main settings file might be (if anywhere).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )").format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
+            print( "ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )".format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
         # NOTE: Settings.__init__ is NOT called -- not needed
         self.objectNameString = 'Application Settings object'
@@ -188,33 +171,33 @@ class ApplicationSettings( Settings ):
         if os.path.isdir( ourFolderPath1 ) and os.access( ourFolderPath1, os.W_OK ):
             self.dataFolderPath = ourFolderPath1
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( exp("Found dataFolderPath = "), self.dataFolderPath )
+                print( "ApplicationSettings.__init__: Found dataFolderPath = ", self.dataFolderPath )
             ourFolderPath2 = os.path.join( self.dataFolderPath, settingsFolderName )
             if os.path.isdir( ourFolderPath2 ) and os.access( ourFolderPath2, os.W_OK ):
                 self.settingsFolder = ourFolderPath2
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( exp("Found settingsFolder = "), self.settingsFolder )
+                    print( "ApplicationSettings.__init__: Found settingsFolder = ", self.settingsFolder )
                 ourFilepath = os.path.join( ourFolderPath2, self.settingsFilename )
                 if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
                     self.settingsFilepath = ourFilepath
                     if BibleOrgSysGlobals.verbosityLevel > 2 or BibleOrgSysGlobals.debugFlag:
-                        print( exp("Found settingsFilepath = "), self.settingsFilepath )
+                        print( "ApplicationSettings.__init__: Found settingsFilepath = ", self.settingsFilepath )
 
         # Create new data and settings folders if necessary
         if not self.dataFolderPath:
-            logging.info( exp("No data folder found") )
+            logging.info( "ApplicationSettings.__init__ " + _("No data folder found") )
             if os.path.isdir( homeFolderName ) and os.access( homeFolderName, os.W_OK ):
-                logging.info( exp("Creating our data folder in {!r}").format( homeFolderName ) )
+                logging.info( "ApplicationSettings.__init__ " + _("Creating our data folder in {!r}").format( homeFolderName ) )
                 self.dataFolderPath = os.path.join( homeFolderName, dataFolderName )
                 os.mkdir( self.dataFolderPath )
         if not self.settingsFolder:
-            logging.info( exp("No settings folder found") )
+            logging.info( "ApplicationSettings.__init__ " + _("No settings folder found") )
             if os.path.isdir( self.dataFolderPath ) and os.access( self.dataFolderPath, os.W_OK ):
-                logging.info( exp("Creating our settings folder in {!r}").format( self.dataFolderPath ) )
+                logging.info( "ApplicationSettings.__init__ " + _("Creating our settings folder in {!r}").format( self.dataFolderPath ) )
                 self.settingsFolder = os.path.join( self.dataFolderPath, settingsFolderName )
                 os.mkdir( self.settingsFolder )
         if not self.settingsFilepath:
-            logging.info( exp("No settings file found") )
+            logging.info( "ApplicationSettings.__init__ " + _("No settings file found") )
             self.settingsFilepath = os.path.join( self.settingsFolder, self.settingsFilename )
     # end of ApplicationSettings.__init__
 # end of class ApplicationSettings
@@ -230,7 +213,7 @@ class ProjectSettings( Settings ):
         Try to find where the settings file might be (if anywhere).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ProjectSettings.__init__( {!r} )").format( projectFolderPath ) )
+            print( "ProjectSettings.__init__( {!r} )".format( projectFolderPath ) )
         self.projectFolderPath = projectFolderPath
         self.objectNameString = 'Project Settings object'
         self.objectTypeString = 'ProjectSettings'
@@ -239,7 +222,7 @@ class ProjectSettings( Settings ):
 
         self.settingsFilepath = os.path.join( projectFolderPath, self.settingsFilename )
         if not os.path.isdir( self.projectFolderPath ):
-            logging.critical( exp("Project folder {} doesn't exist -- try creating it!").format( self.projectFolderPath ) )
+            logging.critical( _("Project folder {} doesn't exist -- we'll try creating it!").format( self.projectFolderPath ) )
             os.mkdir( self.projectFolderPath )
         self.containingFolderPath, self.folderName = os.path.split( self.projectFolderPath )
     # end of ProjectSettings.__init__
@@ -249,7 +232,7 @@ class ProjectSettings( Settings ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )").format( projectName, projectAbbreviation ) )
+            print( "ProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )".format( projectName, projectAbbreviation ) )
             assert self.data is None
 
         self.reset() # Create new settings in self.data
@@ -265,7 +248,7 @@ class ProjectSettings( Settings ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ProjectSettings.saveNewBookSettings( {} )").format( detailsDict ) )
+            print( "ProjectSettings.saveNewBookSettings( {} )".format( detailsDict ) )
             assert self.data is not None
 
         self.data['NewBooks'] = {}
@@ -282,7 +265,7 @@ class ProjectSettings( Settings ):
             load the information into the given USFMBible object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("ProjectSettings.loadUSFMMetadataInto( {} )").format( theUSFMBible ) )
+            print( "ProjectSettings.loadUSFMMetadataInto( {} )".format( theUSFMBible ) )
 
         self.load() # Load the project settings into self.data
 
@@ -305,7 +288,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    print( exp("Running {} demo…").format( ProgName ) )
+    print( "Running {} demo…".format( ProgName ) )
 
     tkRootWindow = Tk()
     # Calls to the window manager class (wm in Tk)
@@ -320,7 +303,7 @@ def demo():
         #print( repr(something) )
 
 
-    settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    settings = ApplicationSettings( BibleOrgSysGlobals.findHomeFolderPath(), 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
     settings.load()
     print( str(settings) )
     print( repr(settings) )
@@ -336,11 +319,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
 
     demo()
 

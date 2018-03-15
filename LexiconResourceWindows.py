@@ -29,10 +29,10 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "LexiconResourceWindows"
 ProgName = "Biblelator Lexicon Resource Windows"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -50,14 +50,8 @@ from TextBoxes import HTMLTextBox, ChildBoxAddon
 from ChildWindows import ChildWindow
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from BibleLexicon import BibleLexicon
-#import Hebrew
-#from HebrewLexicon import HebrewLexicon
-#from GreekLexicon import GreekLexicon
-#import Greek
-#from GreekNT import GreekNT
 
 
 
@@ -89,8 +83,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         #    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
 
 
-        try: self.BibleLexicon = BibleLexicon( os.path.join( self.lexiconPath, 'HebrewLexicon/' ),
-                                               os.path.join( self.lexiconPath, 'strongs-dictionary-xml/' ) )
+        try: self.BibleLexicon = BibleLexicon( os.path.join( self.lexiconPath, 'HebrewLexicon/' ), # Hebrew
+                                               os.path.join( self.lexiconPath, 'strongs-dictionary-xml/' ) ) # Greek
         except FileNotFoundError:
             logging.critical( "BibleLexiconResourceWindow.__init__ " + _("Unable to find Bible lexicon path: {}").format( repr(self.lexiconPath) ) )
             self.BibleLexicon = None
@@ -309,16 +303,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

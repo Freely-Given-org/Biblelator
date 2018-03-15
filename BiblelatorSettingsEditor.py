@@ -29,10 +29,10 @@ Program to allow viewing of various BOS (Bible Organizational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-24' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -65,8 +65,6 @@ from ChildWindows import ChildWindows
 from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
-#if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
 from BibleOrganizationalSystems import BibleOrganizationalSystem
 from BibleStylesheets import BibleStylesheet
@@ -76,22 +74,6 @@ from BibleStylesheets import BibleStylesheet
 MAIN_APP_NAME = 'Biblelator'
 # Default window size settings (Note: X=width, Y=height)
 INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE = '607x376', '607x460', '550x375', '700x600'
-
-
-
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
 
 
 
@@ -110,7 +92,7 @@ class BiblelatorSettingsEditor( Frame ):
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BiblelatorSettingsEditor.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
+            print( "BiblelatorSettingsEditor.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderPath, loggingFolderPath ) )
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage = rootWindow, homeFolderPath, loggingFolderPath, iconImage
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -209,7 +191,7 @@ class BiblelatorSettingsEditor( Frame ):
             that it contains all the books that we might ever want to navigate to.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setGenericBibleOrganizationalSystem( {} )").format( BOSname ) )
+            print( "setGenericBibleOrganizationalSystem( {} )".format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganizationalSystem = BibleOrganizationalSystem( self.genericBibleOrganizationalSystemName )
@@ -245,7 +227,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createNormalMenuBar()") )
+            print( "createNormalMenuBar()" )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -334,7 +316,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createTouchMenuBar()") )
+            print( "createTouchMenuBar()" )
             assert self.touchMode
 
         self.createNormalMenuBar()
@@ -345,7 +327,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createNormalNavigationBar()") )
+            print( "createNormalNavigationBar()" )
 
     # end of BiblelatorSettingsEditor.createNormalNavigationBar
 
@@ -353,7 +335,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createTouchNavigationBar()") )
+            print( "createTouchNavigationBar()" )
             assert self.touchMode
 
     # end of BiblelatorSettingsEditor.createTouchNavigationBar
@@ -364,7 +346,7 @@ class BiblelatorSettingsEditor( Frame ):
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createToolBar()") )
+            print( "createToolBar()" )
 
     # end of BiblelatorSettingsEditor.createToolBar
 
@@ -373,7 +355,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createMainButtons()") )
+            print( "createMainButtons()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -398,7 +380,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createToolBar()") )
+            print( "createToolBar()" )
 
         self.notebook = Notebook( self )
 
@@ -693,7 +675,7 @@ class BiblelatorSettingsEditor( Frame ):
             and then load them into the variables for our editor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("loadSettingsIntoTabs() for {!r}").format( self.INIname ) )
+            print( "loadSettingsIntoTabs() for {!r}".format( self.INIname ) )
 
         self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         self.settings.load()
@@ -805,7 +787,7 @@ class BiblelatorSettingsEditor( Frame ):
         Update the settings from the editor, and return True/False if they have changed.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("updateSettingsFromTabs()") )
+            print( "updateSettingsFromTabs()" )
 
         changed = False
 
@@ -834,7 +816,7 @@ class BiblelatorSettingsEditor( Frame ):
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createDebugToolBar()") )
+            print( "createDebugToolBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -856,7 +838,7 @@ class BiblelatorSettingsEditor( Frame ):
         Create a status bar containing only one text label at the bottom of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createStatusBar()") )
+            print( "createStatusBar()" )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -876,7 +858,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("createMainKeyboardBindings()") )
+            print( "createMainKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
@@ -902,7 +884,7 @@ class BiblelatorSettingsEditor( Frame ):
         #Puts most recent first
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("addRecentFile( {} )").format( threeTuple ) )
+            #print( "addRecentFile( {} )".format( threeTuple ) )
             #assert len(threeTuple) == 3
 
         #try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
@@ -924,7 +906,7 @@ class BiblelatorSettingsEditor( Frame ):
         Set (or clear) the status bar text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setStatus( {!r} )").format( newStatusText ) )
+            print( "setStatus( {!r} )".format( newStatusText ) )
 
         #print( "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
@@ -944,7 +926,7 @@ class BiblelatorSettingsEditor( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setErrorStatus( {!r} )").format( newStatusText ) )
+            print( "setErrorStatus( {!r} )".format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -958,7 +940,7 @@ class BiblelatorSettingsEditor( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setWaitStatus( {!r} )").format( newStatusText ) )
+            print( "setWaitStatus( {!r} )".format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -987,7 +969,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if debuggingThisModule:
-            #print( exp("setDebugText( {!r} )").format( newMessage ) )
+            #print( "setDebugText( {!r} )".format( newMessage ) )
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
@@ -1026,7 +1008,7 @@ class BiblelatorSettingsEditor( Frame ):
         Set the window theme to the given scheme.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( exp("doChangeTheme( {!r} )").format( newThemeName ) )
+            print( "doChangeTheme( {!r} )".format( newThemeName ) )
             assert newThemeName
             self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
 
@@ -1045,7 +1027,7 @@ class BiblelatorSettingsEditor( Frame ):
         enteredFilename = self.fnVar.get()
         self.logUsage( ProgName, debuggingThisModule, 'selectedNewSettingsFile' )
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("selectedNewSettingsFile( {} ) for {!r}").format( event, enteredFilename ) )
+            print( "selectedNewSettingsFile( {} ) for {!r}".format( event, enteredFilename ) )
             #print( dir(event) )
 
         self.doApply() # Save any changes to current settings file
@@ -1059,7 +1041,7 @@ class BiblelatorSettingsEditor( Frame ):
         Pop-up dialog
         """
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BiblelatorSettingsEditor.doOk( {} )").format( event ) )
+            print( "BiblelatorSettingsEditor.doOk( {} )".format( event ) )
 
         if self.settingsChangedFlag: halt
         self.doCloseMe()
@@ -1070,7 +1052,7 @@ class BiblelatorSettingsEditor( Frame ):
         Pop-up dialog
         """
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BiblelatorSettingsEditor.doApply( {} )").format( event ) )
+            print( "BiblelatorSettingsEditor.doApply( {} )".format( event ) )
 
         if self.settingsChangedFlag: halt
     # end of BiblelatorSettingsEditor.doApply
@@ -1080,7 +1062,7 @@ class BiblelatorSettingsEditor( Frame ):
         Pop-up dialog
         """
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BiblelatorSettingsEditor.doCancel( {} )").format( event ) )
+            print( "BiblelatorSettingsEditor.doCancel( {} )".format( event ) )
 
         if self.settingsChangedFlag: halt
         self.doCloseMe()
@@ -1093,7 +1075,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: print( exp("doViewSettings()") )
+            #if debuggingThisModule: print( "doViewSettings()" )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1114,7 +1096,7 @@ class BiblelatorSettingsEditor( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("doViewLog()") )
+            if debuggingThisModule: print( "doViewLog()" )
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -1138,7 +1120,7 @@ class BiblelatorSettingsEditor( Frame ):
         Pop-up dialog giving goto/reference info.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BiblelatorSettingsEditor.doGotoInfo( {} )").format( event ) )
+            print( "BiblelatorSettingsEditor.doGotoInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organizational System (BOS):\n' \
@@ -1165,7 +1147,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         from Help import HelpBox
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("doHelp()") )
+            print( "doHelp()" )
 
         helpInfo = ProgNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -1192,7 +1174,7 @@ class BiblelatorSettingsEditor( Frame ):
             and then send it all somewhere.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("doSubmitBug()") )
+            print( "doSubmitBug()" )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, ShortProgName, 'You need to allow Internet access first!' )
@@ -1212,7 +1194,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         from About import AboutBox
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("doAbout()") )
+            print( "doAbout()" )
 
         aboutInfo = ProgNameVersion
         aboutInfo += "\nAn editor for the Biblelator (Bible translation editor) settings." \
@@ -1226,7 +1208,7 @@ class BiblelatorSettingsEditor( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doProjectClose()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "doProjectClose()" )
         #self.notWrittenYet()
     ## end of BiblelatorSettingsEditor.doProjectClose
 
@@ -1244,7 +1226,7 @@ class BiblelatorSettingsEditor( Frame ):
         Save files first, and then close child windows.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BiblelatorSettingsEditor.doCloseMyChildWindows()") )
+            print( "BiblelatorSettingsEditor.doCloseMyChildWindows()" )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows[:]:
@@ -1276,7 +1258,7 @@ class BiblelatorSettingsEditor( Frame ):
         Save files first, and then end the application.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BiblelatorSettingsEditor.doCloseMe()") )
+            print( "BiblelatorSettingsEditor.doCloseMe()" )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
             print( _("{} is closing down…").format( ShortProgName ) )
 
@@ -1295,7 +1277,7 @@ def openBiblelatorSettingsEditor( parent ):
     This is used when the BOS Manager is used inside another program.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("BiblelatorSettingsEditor.openBiblelatorSettingsEditor( {} )").format( parent ) )
+        print( "BiblelatorSettingsEditor.openBiblelatorSettingsEditor( {} )".format( parent ) )
 
     myWin = tk.Toplevel( parent )
     application = BiblelatorSettingsEditor( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage )
@@ -1406,10 +1388,6 @@ def main( homeFolderPath, loggingFolderPath ):
 if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
-
     # Configure basic set-up
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
@@ -1420,10 +1398,10 @@ if __name__ == '__main__':
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
 
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("Platform is"), sys.platform ) # e.g., 'linux,'win32'
-        print( exp("OS name is"), os.name ) # e.g., 'posix','nt'
-        if sys.platform == "linux": print( exp("OS uname is"), os.uname() ) # gives about five fields
-        print( exp("Running main…") )
+        print( "Platform is", sys.platform ) # e.g., 'linux,'win32'
+        print( "OS name is", os.name ) # e.g., 'posix','nt'
+        if sys.platform == "linux": print( "OS uname is", os.uname() ) # gives about five fields
+        print( "Running main…" )
 
     main( homeFolderPath, loggingFolderPath )
 

@@ -3,9 +3,9 @@
 #
 # Help.py
 #
-# Help program for Biblelator Bible display/editing
+# Help box for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2016 Robert Hunt
+# Copyright (C) 2014-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -23,15 +23,15 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow editing of USFM Bibles using Python3 and Tkinter.
+A simple Help box window containing text and an optional logo.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2016-11-03' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "Help"
 ProgName = "Help Box"
-ProgVersion = '0.39'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -45,24 +45,7 @@ from tkinter.ttk import Frame, Button
 from BiblelatorGlobals import MINIMUM_HELP_SIZE, MAXIMUM_HELP_SIZE, MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE, \
                             parseWindowSize, centreWindowOnWindow
 
-#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
-
-
-
-#def exp( messageString ):
-    #"""
-    #Expands the message string in debug mode.
-    #Prepends the module name to a error or warning message string
-        #if we are in debug mode.
-    #Returns the new string.
-    #"""
-    #try: nameBit, errorBit = messageString.split( ': ', 1 )
-    #except ValueError: nameBit, errorBit = '', messageString
-    #if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        #nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    #return '{}{}'.format( nameBit, errorBit )
-## end of exp
 
 
 
@@ -165,15 +148,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if BibleOrgSysGlobals.debugFlag:
-        print( "TclVersion is", tk.TclVersion )
-        print( "TkVersion is", tk.TkVersion )
 
     demo()
 

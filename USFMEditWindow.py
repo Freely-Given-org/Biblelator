@@ -23,15 +23,15 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-xxx to allow editing of USFM Bibles using Python3 and Tkinter.
+This is a text editor window that knows about the special structure of USFM files.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-08' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -1691,16 +1691,6 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     # end of USFMEditWindow.doViewLog
 
 
-    #def xxcloseEditor( self ):
-        #"""
-        #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "USFMEditWindow.closeEditor()" )
-        #if self.modified():
-            #pass # refuse to close yet (temp……)
-        #else: self.doClose()
-    ## end of USFMEditWindow.closeEditor
-
-
     #def doHelp( self, event=None ):
         #"""
         #Display a help box.
@@ -1772,19 +1762,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-    import sys
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", tk.TclVersion )
-        print( "TkVersion is", tk.TkVersion )
 
     demo()
 

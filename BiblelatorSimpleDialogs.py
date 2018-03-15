@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2017 Robert Hunt
+# Copyright (C) 2013-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -25,17 +25,17 @@
 """
 Various simple modal dialog windows for Biblelator Bible warnings and errors.
 
-    def showError( parent, title, errorText )
-    def showWarning( parent, title, warningText )
-    def showInfo( parent, title, infoText )
+    def showError( parentWindow, title, errorText )
+    def showWarning( parentWindow, title, warningText )
+    def showInfo( parentWindow, title, infoText )
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2017-04-11'
+LastModifiedDate = '2018-03-15'
 ShortProgName = "BiblelatorSimpleDialogs"
 ProgName = "Biblelator simple dialogs"
-ProgVersion = '0.40'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -45,62 +45,47 @@ debuggingThisModule = True
 import logging
 
 import tkinter as tk
-import tkinter.messagebox as tkmb
+import tkinter.messagebox as tkMsgBox
 
 # BibleOrgSys imports
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
-
-
-
-def showError( parent, title, errorText ):
+def showError( parentWindow, title, errorText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showError( {}, {!r}, {!r} )").format( parent, title, errorText ) )
+        print( "showError( {}, {!r}, {!r} )".format( parentWindow, title, errorText ) )
 
     logging.error( '{}: {}'.format( title, errorText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after error…") )
-    tkmb.showerror( title, errorText, parent=parent )
-    parent.parentApp.setReadyStatus()
-# end of showError
+    parentWindow.parentApp.setStatus( _("Waiting for user input after error…") )
+    tkMsgBox.showerror( title, errorText, parentWindow=parentWindow )
+    parentWindow.parentApp.setReadyStatus()
+# end of BiblelatorSimpleDialogs.showError
 
 
-def showWarning( parent, title, warningText ):
+def showWarning( parentWindow, title, warningText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( exp("showWarning( {}, {!r}, {!r} )").format( parent, title, warningText ) )
+        print( "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after warning…") )
-    tkmb.showwarning( title, warningText, parent=parent )
-    parent.parentApp.setReadyStatus()
-# end of showWarning
+    parentWindow.parentApp.setStatus( _("Waiting for user input after warning…") )
+    tkMsgBox.showwarning( title, warningText, parentWindow=parentWindow )
+    parentWindow.parentApp.setReadyStatus()
+# end of BiblelatorSimpleDialogs.showWarning
 
 
-def showInfo( parent, title, infoText ):
+def showInfo( parentWindow, title, infoText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("showInfo( {}, {!r}, {!r} )").format( parent, title, infoText ) )
+        print( "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
-        for configKey, configTuple  in sorted(parent.configure().items()): # Append the parent window config info
+        for configKey, configTuple  in sorted(parentWindow.configure().items()): # Append the parentWindow window config info
             if debuggingThisModule:
                 print( "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
             if len(configTuple)>2: # don't append alternative names like, bg for background
@@ -112,10 +97,10 @@ def showInfo( parent, title, infoText ):
                 infoText += '  {}={!r}\n'.format( configTuple[0], configTuple[1] )
 
     logging.info( '{}: {}'.format( title, infoText ) )
-    parent.parentApp.setStatus( _("Waiting for user input after info…") )
-    tkmb.showinfo( title, infoText, parent=parent )
-    parent.parentApp.setReadyStatus()
-# end of showInfo
+    parentWindow.parentApp.setStatus( _("Waiting for user input after info…") )
+    tkMsgBox.showinfo( title, infoText, parentWindow=parentWindow )
+    parentWindow.parentApp.setReadyStatus()
+# end of BiblelatorSimpleDialogs.showInfo
 
 
 
@@ -126,18 +111,18 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( ProgNameVersion )
 
-    #swnd = SaveWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
-    #print( "swndResult", swnd.result )
-    #dwnd = DeleteWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
-    #print( "dwndResult", dwnd.result )
-    srb = SelectResourceBoxDialog( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
-    print( "srbResult", srb.result )
-
+    # Doesn't quite work yet :-(
+    tkWindow = tk.Toplevel( tkRootWindow )
+    tkWindow.parentApp = tkRootWindow
+    tkRootWindow.setStatus = lambda s: s
+    showError( tkWindow, "Test Error", "This is just a test of an error box!" )
+    showWarning( tkWindow, "Test Warning", "This is just a test of an warning box!" )
+    showInfo( tkWindow, "Test Info", "This is just a test of an info box!" )
     #tkRootWindow.quit()
 
     # Start the program running
@@ -149,16 +134,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

@@ -38,10 +38,10 @@ TODO: Can some of these non-GUI functions be (made more general and) moved to th
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-01-30' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "BiblelatorHelpers"
 ProgName = "Biblelator helpers"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -56,28 +56,11 @@ import re
 from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 
 # BibleOrgSys imports
-#sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from Bible import Bible
 from VerseReferences import SimpleVerseKey, BBB_RE #, FlexibleVersesKey
 from BibleReferencesLinks import BibleReferencesLinks
 from InternalBibleInternals import InternalBibleEntry
-
-
-
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
-# end of exp
 
 
 
@@ -87,7 +70,7 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
     Returns a string that is the text of a blank USFM book.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("createEmptyUSFMBookText( {} )").format( BBB ) )
+        print( "createEmptyUSFMBookText( {} )".format( BBB ) )
 
     USFMAbbreviation = BibleOrgSysGlobals.BibleBooksCodes.getUSFMAbbreviation( BBB )
     USFMNumber = BibleOrgSysGlobals.BibleBooksCodes.getUSFMNumber( BBB )
@@ -122,7 +105,7 @@ def createEmptyUSFMBooks( folderPath, currentBBB, requestDict ):
     from USFMBible import USFMBible
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("createEmptyUSFMBooks( {}, {}, {} )").format( folderPath, currentBBB, requestDict ) )
+        print( "createEmptyUSFMBooks( {}, {}, {} )".format( folderPath, currentBBB, requestDict ) )
 
 
     versificationObject = BibleVersificationSystem( requestDict['Versification'] ) \
@@ -222,7 +205,7 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
     Returns the total number of verses in the book
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("calculateTotalVersesForBook( {} )").format( BBB ) )
+        print( "calculateTotalVersesForBook( {} )".format( BBB ) )
     totalVerses = 0
     try:
         for C in range( 1, getNumChapters(BBB)+1 ):
@@ -241,7 +224,7 @@ def mapReferenceVerseKey( mainVerseKey ):
     Returns None if we don't have a mapping.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("mapReferenceVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+        print( "mapReferenceVerseKey( {} )".format( mainVerseKey.getShortText() ) )
 
     # A (temporary) dictionary containing NT references to OT
     REFERENCE_VERSE_KEY_DICT = {
@@ -263,7 +246,7 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
     Returns None if we don't have a mapping.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("mapParallelVerseKey( {}, {} )").format( forGroupCode, mainVerseKey.getShortText() ) )
+        print( "mapParallelVerseKey( {}, {} )".format( forGroupCode, mainVerseKey.getShortText() ) )
     groupIndex = BIBLE_GROUP_CODES.index( forGroupCode ) - 1
     parallelVerseKeyDict = {
         SimpleVerseKey('MAT','3','13'): (SimpleVerseKey('MRK','1','9'), SimpleVerseKey('LUK','3','21'), SimpleVerseKey('JHN','1','31') )
@@ -285,7 +268,7 @@ def mapReferencesVerseKey( mainVerseKey ):
     """
     global loadedReferences
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("mapReferencesVerseKey( {} )").format( mainVerseKey.getShortText() ) )
+        print( "mapReferencesVerseKey( {} )".format( mainVerseKey.getShortText() ) )
     if loadedReferences is None:
         loadedReferences = BibleReferencesLinks()
         loadedReferences.loadData()
@@ -326,7 +309,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
     If no sections are found, it goes a maximum of one chapter back or one chapter forward.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("findCurrentSection( {}, … )").format( currentVerseKey.getShortText() ) )
+        print( "findCurrentSection( {}, … )".format( currentVerseKey.getShortText() ) )
 
     def sectionFoundIn( verseData ):
         """
@@ -334,7 +317,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
             returns True or False whether a section heading is found in it
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("sectionFoundIn( {!r} )").format( verseData ) )
+            print( "sectionFoundIn( {!r} )".format( verseData ) )
 
         if verseData is None: return False
 
@@ -440,7 +423,7 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
     """
     debuggingThisFunction = False
     if debuggingThisFunction or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
-        print( exp("handleInternalBibles( {}, {} )").format( internalBible, controllingWindow ) )
+        print( "handleInternalBibles( {}, {} )".format( internalBible, controllingWindow ) )
         assert isinstance( internalBible, Bible )
         #self.setDebugText( "handleInternalBibles" )
         #print( "hereHIB0", repr(internalBible), len(self.internalBibles) )
@@ -501,7 +484,7 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText ):
     Just logs some info about the recently changed book to a log file for the project.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( exp("logChangedFile( {}, {!r}, {}, {} )").format( loggingFolder, projectName, savedBBB, len(bookText) ) )
+        #print( "logChangedFile( {}, {!r}, {}, {} )".format( loggingFolder, projectName, savedBBB, len(bookText) ) )
 
     filepath = getChangeLogFilepath( loggingFolder, projectName )
 
@@ -531,7 +514,7 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
     debuggingThisFunction = False
 
     if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( exp("parseEnteredBooknameField( {!r}, {}, {!r}, {!r}, … )") \
+        print( "parseEnteredBooknameField( {!r}, {}, {!r}, {!r}, … )" \
                                 .format( bookNameEntry, currentBBB, CEntry, VEntry ) )
 
     # Do a bit of preliminary cleaning-up
@@ -665,16 +648,16 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
 
     print( "getLatestPythonModificationDate = ", getLatestPythonModificationDate() )
 
-    #swnd = SaveWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
+    #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
     #print( "swndResult", swnd.result )
-    #dwnd = DeleteWindowNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
+    #dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
     #print( "dwndResult", dwnd.result )
     #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
     #print( "srbResult", srb.result )
@@ -690,20 +673,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-    import sys
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 

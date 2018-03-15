@@ -32,10 +32,10 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-23' # by RJH
+LastModifiedDate = '2018-03-15' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.43'
+ProgVersion = '0.44'
 ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
 ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
 
@@ -46,7 +46,6 @@ import logging
 from collections import OrderedDict
 
 import tkinter as tk
-#from tkinter.filedialog import Open  #, SaveAs
 from tkinter.ttk import Frame, Button, Scrollbar
 
 # Biblelator imports
@@ -60,7 +59,6 @@ from BibleResourceWindows import BibleResourceWindowAddon
 from TextBoxes import BibleBoxAddon
 
 # BibleOrgSys imports
-#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
 from BibleOrganizationalSystems import BibleOrganizationalSystem
@@ -70,29 +68,13 @@ MAX_CACHED_VERSES = 30 # Per Bible resource window
 
 
 
-def exp( messageString ):
-    """
-    Expands the message string in debug mode.
-    Prepends the module name to a error or warning message string
-        if we are in debug mode.
-    Returns the new string.
-    """
-    try: nameBit, errorBit = messageString.split( ': ', 1 )
-    except ValueError: nameBit, errorBit = '', messageString
-    if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
-    return '{}{}'.format( nameBit, errorBit )
-# end of exp
-
-
-
 class BibleReferenceBox( Frame, BibleBoxAddon ):
     """
     """
     def __init__( self, parentWindow, parentFrame, parentApp, internalBible, referenceObject ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("BibleReferenceBox.__init__( {}, {}. {}, {}, {} )").format( parentWindow, parentFrame, parentApp, internalBible.getAName(), referenceObject ) )
+        if BibleOrgSysGlobals.debugFlag: print( "BibleReferenceBox.__init__( {}, {}. {}, {}, {} )".format( parentWindow, parentFrame, parentApp, internalBible.getAName(), referenceObject ) )
         self.parentWindow, self.parentFrame, self.parentApp, self.referenceObject = parentWindow, parentFrame, parentApp, referenceObject
         self.internalBible = handleInternalBibles( self.parentApp, internalBible, self )
 
@@ -177,7 +159,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         Create keyboard bindings for this widget.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceBox.createStandardBoxKeyboardBindings()") )
+            print( "BibleReferenceBox.createStandardBoxKeyboardBindings()" )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
                              #('Info',self.doShowInfo),
@@ -192,7 +174,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         """
 
         """
-        if BibleOrgSysGlobals.debugFlag: print( exp("BibleReferenceBox.gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag: print( "BibleReferenceBox.gotoBCV( {} {}:{} from {} )".format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentWindow.gotoGroupBCV( self._groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -204,19 +186,19 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         Fetches and returns the internal Bible data for the given reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceBox.getContextVerseData( {} )").format( verseKey ) )
+            print( "BibleReferenceBox.getContextVerseData( {} )".format( verseKey ) )
 
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
             except KeyError: # Could be after a verse-bridge ???
                 if verseKey.getChapterNumber() != '0':
-                    logging.error( exp("BibleReferenceBox.getContextVerseData for {} {} got a KeyError") \
+                    logging.error( "BibleReferenceBox.getContextVerseData for {} {} got a KeyError" \
                                                                 .format( self.boxType, verseKey ) )
     # end of BibleReferenceBox.getContextVerseData
 
 
     #def XXXgetSwordVerseKey( self, verseKey ):
-        ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getSwordVerseKey( {} )").format( verseKey ) )
+        ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "getSwordVerseKey( {} )".format( verseKey ) )
         #BBB, C, V = verseKey.getBCV()
         #return self.parentApp.SwordInterface.makeKey( BBB, C, V )
     ## end of BibleReferenceBox.getSwordVerseKey
@@ -230,10 +212,10 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("getCachedVerseData( {} )").format( verseKey ) )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "getCachedVerseData( {} )".format( verseKey ) )
         verseKeyHash = verseKey.makeHash()
         if verseKeyHash in self.verseCache:
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + exp("Retrieved from BibleReferenceBox cache") )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  " + "Retrieved from BibleReferenceBox cache" )
             self.verseCache.move_to_end( verseKeyHash )
             #print( "   returning", self.verseCache[verseKeyHash][0] )
             return self.verseCache[verseKeyHash]
@@ -290,13 +272,13 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         """
         Called to finally and irreversibly remove this box from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("BibleReferenceBox.closeReferenceBox()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "BibleReferenceBox.closeReferenceBox()" )
         if self in self.parentWindow.referenceBoxes:
             self.parentWindow.referenceBoxes.remove( self )
             self.destroy()
         else: # we might not have finished making our box yet
             if BibleOrgSysGlobals.debugFlag:
-                print( exp("BibleReferenceBox.closeReferenceBox() for {} wasn't in list").format( self.windowType ) )
+                print( "BibleReferenceBox.closeReferenceBox() for {} wasn't in list".format( self.windowType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
         if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource box" )
@@ -359,14 +341,14 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         self.referenceBoxes = BibleReferenceBoxes( self )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceCollectionWindow.__init__ finished.") )
+            print( "BibleReferenceCollectionWindow.__init__ finished." )
     # end of BibleReferenceCollectionWindow.__init__
 
     def onCanvasConfigure( self, event ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceCollectionWindow.onCanvasConfigure( {} )").format( event ) )
+            print( "BibleReferenceCollectionWindow.onCanvasConfigure( {} )".format( event ) )
 
         canvas_width = event.width
         #print( "  Set canvas width to {}".format( canvas_width ) )
@@ -381,7 +363,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         #Reset the scroll region to encompass the inner frame.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( exp("BibleReferenceCollectionWindow.OnFrameConfigure( {} )").format( event ) )
+            #print( "BibleReferenceCollectionWindow.OnFrameConfigure( {} )".format( event ) )
 
         #self.canvas.configure( scrollregion=self.canvas.bbox( 'all' ) )
     ## end of BibleReferenceCollectionWindow.OnFrameConfigure
@@ -394,7 +376,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         We're still waiting for the filename.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceCollectionWindow.setFolderPath( {!r} )").format( newFolderPath ) )
+            print( "BibleReferenceCollectionWindow.setFolderPath( {!r} )".format( newFolderPath ) )
             assert self.filename is None
             assert self.filepath is None
 
@@ -406,7 +388,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceCollectionWindow.createMenuBar()") )
+            print( "BibleReferenceCollectionWindow.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -512,14 +494,14 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         #Returns the new DBPBibleReferenceBox object.
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("openDBPBibleReferenceBox()") )
+            #print( "openDBPBibleReferenceBox()" )
             #self.parentApp.setDebugText( "openDBPBibleReferenceBox…" )
             #assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
         ##tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         #dBRB = DBPBibleReferenceBox( self, moduleAbbreviation )
         #if windowGeometry: halt; dBRB.geometry( windowGeometry )
         #if dBRB.DBPModule is None:
-            #logging.critical( exp("Application.openDBPBibleReferenceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
+            #logging.critical( "Application.openDBPBibleReferenceBox: Unable to open resource {}".format( repr(moduleAbbreviation) ) )
             #dBRB.destroy()
             #showError( self, APP_NAME, _("Sorry, unable to open DBP resource") )
             #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleReferenceBox" )
@@ -541,13 +523,13 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         #Returns the new InternalBibleReferenceBox object.
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #print( exp("openInternalBibleReferenceBox()") )
+            #print( "openInternalBibleReferenceBox()" )
             #self.parentApp.setDebugText( "openInternalBibleReferenceBox…" )
         ##tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         #iBRB = InternalBibleReferenceBox( self, modulePath )
         #if windowGeometry: halt; iBRB.geometry( windowGeometry )
         #if iBRB.internalBible is None:
-            #logging.critical( exp("Application.openInternalBibleReferenceBox: Unable to open resource {}").format( repr(modulePath) ) )
+            #logging.critical( "Application.openInternalBibleReferenceBox: Unable to open resource {}".format( repr(modulePath) ) )
             #iBRB.destroy()
             #showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
             #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleReferenceBox" )
@@ -629,7 +611,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         Display a help box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceCollectionWindow.doHelp()") )
+            print( "BibleReferenceCollectionWindow.doHelp()" )
         from Help import HelpBox
 
         helpInfo = ProgNameVersion
@@ -647,7 +629,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         Display an about box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("BibleReferenceCollectionWindow.doAbout()") )
+            print( "BibleReferenceCollectionWindow.doAbout()" )
         from About import AboutBox
 
         aboutInfo = ProgNameVersion + '\n'
@@ -668,7 +650,7 @@ def demo():
     if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
@@ -690,19 +672,9 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
 
-    import sys
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
-
     # Configure basic set-up
     parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-
-    if 1 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", TclVersion )
-        print( "TkVersion is", TkVersion )
 
     demo()
 
