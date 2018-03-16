@@ -32,7 +32,7 @@ Various simple modal dialog windows for Biblelator Bible warnings and errors.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15'
+LastModifiedDate = '2018-03-16'
 ShortProgName = "BiblelatorSimpleDialogs"
 ProgName = "Biblelator simple dialogs"
 ProgVersion = '0.44'
@@ -61,7 +61,7 @@ def showError( parentWindow, title, errorText ):
 
     logging.error( '{}: {}'.format( title, errorText ) )
     parentWindow.parentApp.setStatus( _("Waiting for user input after error…") )
-    tkMsgBox.showerror( title, errorText, parentWindow=parentWindow )
+    tkMsgBox.showerror( title, errorText, parent=parentWindow )
     parentWindow.parentApp.setReadyStatus()
 # end of BiblelatorSimpleDialogs.showError
 
@@ -74,7 +74,7 @@ def showWarning( parentWindow, title, warningText ):
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     parentWindow.parentApp.setStatus( _("Waiting for user input after warning…") )
-    tkMsgBox.showwarning( title, warningText, parentWindow=parentWindow )
+    tkMsgBox.showwarning( title, warningText, parent=parentWindow )
     parentWindow.parentApp.setReadyStatus()
 # end of BiblelatorSimpleDialogs.showWarning
 
@@ -98,7 +98,7 @@ def showInfo( parentWindow, title, infoText ):
 
     logging.info( '{}: {}'.format( title, infoText ) )
     parentWindow.parentApp.setStatus( _("Waiting for user input after info…") )
-    tkMsgBox.showinfo( title, infoText, parentWindow=parentWindow )
+    tkMsgBox.showinfo( title, infoText, parent=parentWindow )
     parentWindow.parentApp.setReadyStatus()
 # end of BiblelatorSimpleDialogs.showInfo
 
@@ -120,6 +120,7 @@ def demo():
     tkWindow = tk.Toplevel( tkRootWindow )
     tkWindow.parentApp = tkRootWindow
     tkRootWindow.setStatus = lambda s: s
+    tkRootWindow.setReadyStatus = lambda: 1
     showError( tkWindow, "Test Error", "This is just a test of an error box!" )
     showWarning( tkWindow, "Test Warning", "This is just a test of an warning box!" )
     showInfo( tkWindow, "Test Info", "This is just a test of an info box!" )
