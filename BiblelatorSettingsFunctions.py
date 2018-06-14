@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
+LastModifiedDate = '2018-05-07' # by RJH
 ShortProgName = "BiblelatorSettingsFunctions"
 ProgName = "Biblelator Settings Functions"
 ProgVersion = '0.44'
@@ -773,10 +773,10 @@ def writeSettingsFile( self ):
 
 
 
-MIME_BOUNDARY = "sdafsZXXdahxcvblkDSFSDFjeflqwertlSDFSDFjkre" # Random string that won't occur in our data
+MIME_BOUNDARY = 'sdafsZXXdahxcvblkDSFSDFjeflqwertlSDFSDFjkre' # Random string that won't occur in our data
 def doSendUsageStatistics( self ):
     """
-    Send usage statistics over the Internet.
+    Send (POST) usage statistics over the Internet.
 
     "self" refers to a Biblelator Application instance.
 

@@ -31,14 +31,13 @@
     findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseData )
     logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText )
     parseEnteredBooknameField( bookNameEntry, CEntry, VEntry, BBBfunction )
-    getLatestPythonModificationDate()
 
 TODO: Can some of these non-GUI functions be (made more general and) moved to the BOS?
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
+LastModifiedDate = '2018-04-24' # by RJH
 ShortProgName = "BiblelatorHelpers"
 ProgName = "Biblelator helpers"
 ProgVersion = '0.44'
@@ -597,49 +596,6 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
 
 
 
-def getLatestPythonModificationDate():
-    """
-    Goes through the .py files in the current folder
-        and tries to find the latest modification date.
-    """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "getLatestPythonModificationDate()…" )
-
-    #collectedFilepaths = []
-    latestYYYY, latestMM, latestDD = 1999, 0, 0
-    for filepath in os.listdir( '.' ):
-        #filepath = os.path.join( '.', filename )
-        if filepath.endswith( '.py' ):
-            with open( filepath, 'rt', encoding='utf-8' ) as pythonFile:
-                for line in pythonFile:
-                    if line.startswith( 'LastModifiedDate = ' ):
-                        #print( filepath, line )
-                        #print( filepath )
-                        lineBit = line[19:]
-                        if '#' in lineBit: lineBit = lineBit.split('#',1)[0]
-                        if lineBit[-1]=='\n': lineBit = lineBit[:-1] # Removing trailing newline character
-                        lineBit = lineBit.replace("'",'').replace('"','').strip()
-                        #print( '  {!r}'.format( lineBit ) )
-                        lineBits = lineBit.split( '-' )
-                        assert len(lineBits) == 3 # YYYY MM DD
-                        YYYY, MM, DD = int(lineBits[0]), int(lineBits[1]), int(lineBits[2])
-                        #print( '  ', YYYY, MM, DD )
-                        if YYYY > latestYYYY:
-                            latestYYYY, latestMM, latestDD = YYYY, MM, DD
-                            #collectedFilepaths.append( (filepath,lineBit) )
-                        elif YYYY==latestYYYY and MM>latestMM:
-                            latestMM, latestDD = MM, DD
-                            #collectedFilepaths.append( (filepath,lineBit) )
-                        elif YYYY==latestYYYY and MM==latestMM and DD>latestDD:
-                            latestDD = DD
-                            #collectedFilepaths.append( (filepath,lineBit) )
-                        break
-    #print( latestYYYY, latestMM, latestDD, collectedFilepaths )
-    return '{}-{:02}-{:02}'.format( latestYYYY, latestMM, latestDD )
-# end of BiblelatorHelpers.getLatestPythonModificationDate
-
-
-
 def demo():
     """
     Main program to handle command line parameters and then run what they want.
@@ -652,8 +608,6 @@ def demo():
 
     tkRootWindow = Tk()
     tkRootWindow.title( ProgNameVersion )
-
-    print( "getLatestPythonModificationDate = ", getLatestPythonModificationDate() )
 
     #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
     #print( "swndResult", swnd.result )

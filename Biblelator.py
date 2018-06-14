@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-13' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-06-14' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.44' # This is the version number displayed on the start-up screen
@@ -61,8 +61,7 @@ from BiblelatorDialogs import SelectResourceBoxDialog, GetNewProjectNameDialog, 
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog, \
                                 DownloadResourcesDialog, ChooseResourcesDialog
-from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, \
-                                parseEnteredBooknameField, getLatestPythonModificationDate
+from BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks, parseEnteredBooknameField
 from Settings import ApplicationSettings, ProjectSettings
 from BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings, \
@@ -3991,7 +3990,7 @@ def demo():
     Which windows open depends on the saved settings from the last use.
     """
     if BibleOrgSysGlobals.verbosityLevel > 0:
-        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), getLatestPythonModificationDate() ) )
+        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), BibleOrgSysGlobals.getLatestPythonModificationDate() ) )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     tkRootWindow = tk.Tk()
@@ -4022,7 +4021,7 @@ def main( homeFolderPath, loggingFolderPath ):
     Main program to handle command line parameters and then run what they want.
     """
     if BibleOrgSysGlobals.verbosityLevel > 0:
-        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), getLatestPythonModificationDate() ) )
+        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), BibleOrgSysGlobals.getLatestPythonModificationDate() ) )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
@@ -4125,10 +4124,6 @@ def main( homeFolderPath, loggingFolderPath ):
 if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
-    #if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-    #    from io import TextIOWrapper
-    #    sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
-
     # Configure basic set-up
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
@@ -4143,8 +4138,6 @@ if __name__ == '__main__':
     #print( 'MP', BibleOrgSysGlobals.maxProcesses )
 
     if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag:
-        # Why don't these show in Windows until the program closes?
-        #   Ah, coz of TextIOWrapper above.
         print( "Platform is", sys.platform ) # e.g., 'linux, or 'win32' for my Windows-10 (64-bit)
         print( "OS name is", os.name ) # e.g., 'posix', or 'nt' for my Windows-10
         if sys.platform == 'linux': print( "OS uname is", os.uname() ) # gives about five fields

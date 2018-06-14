@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-02-24' # by RJH
+LastModifiedDate = '2018-06-14' # by RJH
 ShortProgName = "SwordManager"
 ProgName = "Sword Manager"
 ProgVersion = '0.05' # Separate versioning from Biblelator
@@ -1285,10 +1285,6 @@ def main( homeFolderPath, loggingFolderPath ):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
-
-    if 'win' in sys.platform: # Convert stdout so we don't get zillions of UnicodeEncodeErrors
-        from io import TextIOWrapper
-        sys.stdout = TextIOWrapper( sys.stdout.detach(), sys.stdout.encoding, 'namereplace' if sys.version_info >= (3,5) else 'backslashreplace' )
 
     # Configure basic set-up
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
