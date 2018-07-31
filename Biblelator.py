@@ -44,6 +44,7 @@ debuggingThisModule = True
 import sys, os, logging
 from datetime import datetime
 import multiprocessing, subprocess
+import urllib.request, urllib.error
 
 import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
@@ -1331,7 +1332,6 @@ class Application( Frame ):
             print( "Application.doCheckForMessagesFromDeveloper( {} )".format( event ) )
 
         hadError = False
-        import urllib.request
         site = 'Freely-Given.org'
         # NOTE: needs to be https eventually!!!
         indexString = None
