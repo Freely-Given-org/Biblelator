@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-06-14' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-10-26' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.44' # This is the version number displayed on the start-up screen
@@ -117,7 +117,7 @@ class Application( Frame ):
     Its main job is to keep track of self.currentVerseKey (and self.currentVerseKeyGroup)
         and use that to inform child windows of BCV movements.
     """
-    global settings
+    #global settings
     def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage ):
         """
         Main app initialisation function.
@@ -323,7 +323,7 @@ class Application( Frame ):
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
-            nBBB = BibleOrgSysGlobals.BibleBooksCodes.getReferenceNumber( BBB )
+            #nBBB = BibleOrgSysGlobals.BibleBooksCodes.getReferenceNumber( BBB )
             #print( BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
@@ -420,8 +420,8 @@ class Application( Frame ):
         #projectMenu.add_separator()
         #projectMenu.add_command( label=_('Export'), underline=1, command=self.doProjectExports )
         projectMenu.add_separator()
-        projectMenu.add_command( label=_('Hide all projects'), underline=0, command=self.doHideAllProjects )
-        projectMenu.add_command( label=_('Show all projects'), underline=0, command=self.doShowAllProjects )
+        projectMenu.add_command( label=_('Hide all project windows'), underline=0, command=self.doHideAllProjects )
+        projectMenu.add_command( label=_('Show all project windows'), underline=0, command=self.doShowAllProjects )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
@@ -441,8 +441,8 @@ class Application( Frame ):
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label=_('Open commentary'), underline=5, menu=submenuCommentaryResourceType )
         resourcesMenu.add_separator()
-        resourcesMenu.add_command( label=_('Hide all resources'), underline=0, command=self.doHideAllResources )
-        resourcesMenu.add_command( label=_('Show all resources'), underline=0, command=self.doShowAllResources )
+        resourcesMenu.add_command( label=_('Hide all resource windows'), underline=0, command=self.doHideAllResources )
+        resourcesMenu.add_command( label=_('Show all resource windows'), underline=0, command=self.doShowAllResources )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
@@ -459,11 +459,11 @@ class Application( Frame ):
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
-        windowMenu.add_command( label=_('Hide resources'), underline=0, command=self.doHideAllResources )
-        windowMenu.add_command( label=_('Hide projects'), underline=5, command=self.doHideAllProjects )
-        windowMenu.add_command( label=_('Hide all'), underline=1, command=self.doHideAll )
-        windowMenu.add_command( label=_('Show all'), underline=0, command=self.doShowAll )
-        windowMenu.add_command( label=_('Bring all here'), underline=0, command=self.doBringAll )
+        windowMenu.add_command( label=_('Hide resource windows'), underline=0, command=self.doHideAllResources )
+        windowMenu.add_command( label=_('Hide project windows'), underline=5, command=self.doHideAllProjects )
+        windowMenu.add_command( label=_('Hide all windows'), underline=1, command=self.doHideAll )
+        windowMenu.add_command( label=_('Show all windows'), underline=0, command=self.doShowAll )
+        windowMenu.add_command( label=_('Bring all windows here'), underline=0, command=self.doBringAll )
         windowMenu.add_separator()
         windowMenu.add_command( label=_('Save window setup'), underline=0, command=lambda: saveNewWindowSetup(self) )
         if len(self.windowsSettingsDict)>1 or (self.windowsSettingsDict and 'Current' not in self.windowsSettingsDict):
@@ -580,8 +580,8 @@ class Application( Frame ):
         #projectMenu.add_separator()
         #projectMenu.add_command( label=_('Export'), underline=1, command=self.doProjectExports )
         projectMenu.add_separator()
-        projectMenu.add_command( label=_('Hide all projects'), underline=0, command=self.doHideAllProjects )
-        projectMenu.add_command( label=_('Show all projects'), underline=0, command=self.doShowAllProjects )
+        projectMenu.add_command( label=_('Hide all project windows'), underline=0, command=self.doHideAllProjects )
+        projectMenu.add_command( label=_('Show all project windows'), underline=0, command=self.doShowAllProjects )
 
         resourcesMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=resourcesMenu, label=_('Resources'), underline=0 )
@@ -601,8 +601,8 @@ class Application( Frame ):
         #submenuCommentaryResourceType = tk.Menu( resourcesMenu, tearoff=False )
         #resourcesMenu.add_cascade( label=_('Open commentary'), underline=5, menu=submenuCommentaryResourceType )
         resourcesMenu.add_separator()
-        resourcesMenu.add_command( label=_('Hide all resources'), underline=0, command=self.doHideAllResources )
-        resourcesMenu.add_command( label=_('Show all resources'), underline=0, command=self.doShowAllResources )
+        resourcesMenu.add_command( label=_('Hide all resource windows'), underline=0, command=self.doHideAllResources )
+        resourcesMenu.add_command( label=_('Show all resource windows'), underline=0, command=self.doShowAllResources )
 
         toolsMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=toolsMenu, label=_('Tools'), underline=0 )
@@ -617,11 +617,11 @@ class Application( Frame ):
 
         windowMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
-        windowMenu.add_command( label=_('Hide resources'), underline=5, command=self.doHideAllResources )
-        windowMenu.add_command( label=_('Hide projects'), underline=5, command=self.doHideAllProjects )
-        windowMenu.add_command( label=_('Hide all'), underline=0, command=self.doHideAll )
-        windowMenu.add_command( label=_('Show all'), underline=0, command=self.doShowAll )
-        windowMenu.add_command( label=_('Bring all here'), underline=0, command=self.doBringAll )
+        windowMenu.add_command( label=_('Hide resource windows'), underline=5, command=self.doHideAllResources )
+        windowMenu.add_command( label=_('Hide project windows'), underline=5, command=self.doHideAllProjects )
+        windowMenu.add_command( label=_('Hide all windows'), underline=0, command=self.doHideAll )
+        windowMenu.add_command( label=_('Show all windows'), underline=0, command=self.doShowAll )
+        windowMenu.add_command( label=_('Bring all windows here'), underline=0, command=self.doBringAll )
         windowMenu.add_separator()
         windowMenu.add_command( label=_('Save window setup'), underline=0, command=lambda: saveNewWindowSetup(self) )
         if len(self.windowsSettingsDict)>1 or (self.windowsSettingsDict and 'Current' not in self.windowsSettingsDict):
@@ -1591,7 +1591,7 @@ class Application( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag:
             print( "doDownloadResource( {} )".format( abbrev ) )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doDownloadResource…".format( abbrev ) )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doDownloadResource {}…".format( abbrev ) )
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.internetAccessEnabled
 
@@ -1734,7 +1734,7 @@ class Application( Frame ):
             if self.doDownloadResource( 'WLC' ):
                 requestedFolder = '../BibleOrgSys/DownloadedResources/WLC.BOSPickledBible.zip'
         if not os.path.exists( requestedFolder ):
-            logging.critical( "Application.openInternalBibleResourceWindow: " + _("Unable to open resource {!r}").format( modulePath ) )
+            logging.critical( "Application.openInternalBibleResourceWindow: " + _("Unable to open resource {!r}").format( requestedFolder ) )
             showError( self, APP_NAME, _("Sorry, unable to find Hebrew resource (Install morphhb or enable internet access)") )
             return
 
