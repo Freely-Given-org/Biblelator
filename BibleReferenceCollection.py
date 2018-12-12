@@ -32,7 +32,7 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
+LastModifiedDate = '2018-12-12' # by RJH
 ShortProgName = "BibleReferenceCollection"
 ProgName = "Biblelator Bible Reference Collection"
 ProgVersion = '0.44'
@@ -61,7 +61,7 @@ from TextBoxes import BibleBoxAddon
 # BibleOrgSys imports
 import BibleOrgSysGlobals
 from VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
-from BibleOrganizationalSystems import BibleOrganizationalSystem
+from BibleOrganisationalSystems import BibleOrganisationalSystem
 
 
 MAX_CACHED_VERSES = 30 # Per Bible resource window
@@ -135,7 +135,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack the frame
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganisationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
                                         else self.BibleOrganisationalSystem.getNumVerses( BBB, C )

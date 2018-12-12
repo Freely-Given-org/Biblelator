@@ -76,7 +76,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-06-14' # by RJH
+LastModifiedDate = '2018-12-12' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.44'
@@ -114,7 +114,7 @@ from DBPOnline import DBPBibles, DBPBible
 from SwordResources import SwordType, SwordInterface
 from UnknownBible import UnknownBible
 from PickledBible import ZIPPED_FILENAME_END, getZippedPickledBiblesDetails
-from BibleOrganizationalSystems import BibleOrganizationalSystem
+from BibleOrganisationalSystems import BibleOrganisationalSystem
 
 
 MAX_CACHED_VERSES = 30 # Per Bible resource window
@@ -279,7 +279,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         self.pack( expand=tk.YES, fill=tk.BOTH ) # Pack me into the frame
 
         # Set-up our default Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganisationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
                                         else self.BibleOrganisationalSystem.getNumVerses( BBB, C )

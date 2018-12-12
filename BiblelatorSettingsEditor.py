@@ -3,7 +3,7 @@
 #
 # BiblelatorSettingsEditor.py
 #
-# BOS (Bible Organizational System) manager program
+# BOS (Bible Organisational System) manager program
 #
 # Copyright (C) 2016-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -23,13 +23,13 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow viewing of various BOS (Bible Organizational System) subsystems
+Program to allow viewing of various BOS (Bible Organisational System) subsystems
     such as versification systems, books names systems, etc.
 """
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
+LastModifiedDate = '2018-12-12' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.44'
@@ -66,7 +66,7 @@ from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
-from BibleOrganizationalSystems import BibleOrganizationalSystem
+from BibleOrganisationalSystems import BibleOrganisationalSystem
 from BibleStylesheets import BibleStylesheet
 
 
@@ -185,28 +185,28 @@ class BiblelatorSettingsEditor( Frame ):
     # end of BiblelatorSettingsEditor.__init__
 
 
-    def setGenericBibleOrganizationalSystem( self, BOSname ):
+    def setGenericBibleOrganisationalSystem( self, BOSname ):
         """
-        We usually use a fairly generic BibleOrganizationalSystem (BOS) to ensure
+        We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setGenericBibleOrganizationalSystem( {} )".format( BOSname ) )
+            print( "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
 
         # Set-up our Bible system and our callables
-        self.genericBibleOrganizationalSystem = BibleOrganizationalSystem( self.genericBibleOrganizationalSystemName )
-        self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
-        #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
-        self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
+        self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
+        self.genericBookList = self.genericBibleOrganisationalSystem.getBookList()
+        #self.getNumBooks = self.genericBibleOrganisationalSystem.getNumBooks
+        self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
-                                        else self.genericBibleOrganizationalSystem.getNumVerses( BBB, C )
-        self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
-        self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
-        self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode
-        self.getNextBookCode = self.genericBibleOrganizationalSystem.getNextBookCode
-        self.getBBBFromText = self.genericBibleOrganizationalSystem.getBBBFromText
-        self.getGenericBookName = self.genericBibleOrganizationalSystem.getBookName
-        #self.getBookList = self.genericBibleOrganizationalSystem.getBookList
+                                        else self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
+        self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
+        self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
+        self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
+        self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
+        self.getBBBFromText = self.genericBibleOrganisationalSystem.getBBBFromText
+        self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
+        #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
         #print( self.genericBookList )
@@ -220,7 +220,7 @@ class BiblelatorSettingsEditor( Frame ):
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
         #print( self.bookNumberTable )
-    # end of BiblelatorSettingsEditor.setGenericBibleOrganizationalSystem
+    # end of BiblelatorSettingsEditor.setGenericBibleOrganisationalSystem
 
 
     def createNormalMenuBar( self ):
@@ -644,7 +644,7 @@ class BiblelatorSettingsEditor( Frame ):
         else:
             self.currentWindowsTextBox = ScrolledText( self.currentWindowsPage, bg='orange' )
             self.currentWindowsTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-            #self.currentWindowsTextBox.insert( tk.END, 'Organizations' )
+            #self.currentWindowsTextBox.insert( tk.END, 'Organisations' )
             self.currentWindowsTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
             self.currentWindowsTextBox.insert( tk.END, "We cannot adjust the current windows from inside Biblelator.\n\nIf you wish to adjust current windows, please close Biblelator and run BiblelatorSettingsEditor.py in stand-alone mode." )
 
@@ -1123,12 +1123,12 @@ class BiblelatorSettingsEditor( Frame ):
             print( "BiblelatorSettingsEditor.doGotoInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
-                 + '\nBible Organizational System (BOS):\n' \
-                 + '  Name: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemName() ) \
-                 + '  Versification: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'versificationSystem' ) ) \
-                 + '  Book Order: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'bookOrderSystem' ) ) \
-                 + '  Book Names: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
-                 + '  Books: {}'.format( self.genericBibleOrganizationalSystem.getBookList() )
+                 + '\nBible Organisational System (BOS):\n' \
+                 + '  Name: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemName() ) \
+                 + '  Versification: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemValue( 'versificationSystem' ) ) \
+                 + '  Book Order: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemValue( 'bookOrderSystem' ) ) \
+                 + '  Book Names: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemValue( 'punctuationSystem' ) ) \
+                 + '  Books: {}'.format( self.genericBibleOrganisationalSystem.getBookList() )
         showInfo( self, 'Goto Information', infoString )
     # end of BiblelatorSettingsEditor.doGotoInfo
 

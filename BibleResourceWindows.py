@@ -161,7 +161,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
+LastModifiedDate = '2018-12-12' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.44'
@@ -193,7 +193,7 @@ from SwordResources import SwordType
 from DBPOnline import DBPBible
 from UnknownBible import UnknownBible
 from HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
-from BibleOrganizationalSystems import BibleOrganizationalSystem
+from BibleOrganisationalSystems import BibleOrganisationalSystem
 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
 from BibleWriter import setDefaultControlFolder
 from PickledBible import ZIPPED_FILENAME_END
@@ -252,7 +252,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             ###"tabs", "tabstyle", "underline", and "wrap".
 
         # Set-up our Bible system and our callables
-        self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
+        self.BibleOrganisationalSystem = BibleOrganisationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if BBB=='UNK' or C=='-1' or C==-1 \
                                         else self.BibleOrganisationalSystem.getNumVerses( BBB, C )
@@ -964,7 +964,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             ####"tabs", "tabstyle", "underline", and "wrap".
 
         ## Set-up our Bible system and our callables
-        #self.BibleOrganisationalSystem = BibleOrganizationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
+        #self.BibleOrganisationalSystem = BibleOrganisationalSystem( 'GENERIC-KJV-80-ENG' ) # temp
         #self.getNumChapters = self.BibleOrganisationalSystem.getNumChapters
         #self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if BBB=='UNK' or C=='-1' or C==-1 \
                                         #else self.BibleOrganisationalSystem.getNumVerses( BBB, C )

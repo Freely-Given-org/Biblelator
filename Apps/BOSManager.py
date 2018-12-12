@@ -3,7 +3,7 @@
 #
 # BOSManager.py
 #
-# BOS (Bible Organizational System) manager program
+# BOS (Bible Organisational System) manager program
 #
 # Copyright (C) 2016-2018 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
@@ -23,7 +23,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Tabbed dialog box to allow viewing of various BOS (Bible Organizational System) subsystems
+Tabbed dialog box to allow viewing of various BOS (Bible Organisational System) subsystems
     such as versification systems, books names systems, etc.
 
 This is opened as a TopLevel window in Biblelator
@@ -32,7 +32,7 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-06-14' # by RJH
+LastModifiedDate = '2018-12-12' # by RJH
 ShortProgName = "BOSManager"
 ProgName = "BOS Manager"
 ProgVersion = '0.06' # Separate versioning from Biblelator
@@ -51,6 +51,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
+sys.path.append( '.' ) # So we can run it from the above folder and still do these imports
 from BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
@@ -78,7 +79,7 @@ from TextEditWindow import TextEditWindow
 sys.path.append( '../BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
-from BibleOrganizationalSystems import BibleOrganizationalSystems, BibleOrganizationalSystem
+from BibleOrganisationalSystems import BibleOrganisationalSystems, BibleOrganisationalSystem
 from BibleVersificationSystems import BibleVersificationSystems
 from BibleBookOrders import BibleBookOrderSystems
 from BibleBooksNames import BibleBooksNamesSystems
@@ -151,8 +152,8 @@ class BOSManager( Frame ):
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
-        #self.genericBibleOrganizationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
-        #self.setGenericBibleOrganizationalSystem( self.genericBibleOrganizationalSystemName )
+        #self.genericBibleOrganisationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
+        #self.setGenericBibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
 
         self.stylesheet = BibleStylesheet().loadDefault()
         Frame.__init__( self, self.rootWindow )
@@ -223,28 +224,28 @@ class BOSManager( Frame ):
     # end of BOSManager.__init__
 
 
-    def setGenericBibleOrganizationalSystem( self, BOSname ):
+    def setGenericBibleOrganisationalSystem( self, BOSname ):
         """
-        We usually use a fairly generic BibleOrganizationalSystem (BOS) to ensure
+        We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( exp("setGenericBibleOrganizationalSystem( {} )").format( BOSname ) )
+            print( exp("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
 
         # Set-up our Bible system and our callables
-        self.genericBibleOrganizationalSystem = BibleOrganizationalSystem( self.genericBibleOrganizationalSystemName )
-        self.genericBookList = self.genericBibleOrganizationalSystem.getBookList()
-        #self.getNumBooks = self.genericBibleOrganizationalSystem.getNumBooks
-        self.getNumChapters = self.genericBibleOrganizationalSystem.getNumChapters
+        self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
+        self.genericBookList = self.genericBibleOrganisationalSystem.getBookList()
+        #self.getNumBooks = self.genericBibleOrganisationalSystem.getNumBooks
+        self.getNumChapters = self.genericBibleOrganisationalSystem.getNumChapters
         self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if C=='-1' or C==-1 \
-                                        else self.genericBibleOrganizationalSystem.getNumVerses( BBB, C )
-        self.isValidBCVRef = self.genericBibleOrganizationalSystem.isValidBCVRef
-        self.getFirstBookCode = self.genericBibleOrganizationalSystem.getFirstBookCode
-        self.getPreviousBookCode = self.genericBibleOrganizationalSystem.getPreviousBookCode
-        self.getNextBookCode = self.genericBibleOrganizationalSystem.getNextBookCode
-        self.getBBBFromText = self.genericBibleOrganizationalSystem.getBBBFromText
-        self.getGenericBookName = self.genericBibleOrganizationalSystem.getBookName
-        #self.getBookList = self.genericBibleOrganizationalSystem.getBookList
+                                        else self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
+        self.isValidBCVRef = self.genericBibleOrganisationalSystem.isValidBCVRef
+        self.getFirstBookCode = self.genericBibleOrganisationalSystem.getFirstBookCode
+        self.getPreviousBookCode = self.genericBibleOrganisationalSystem.getPreviousBookCode
+        self.getNextBookCode = self.genericBibleOrganisationalSystem.getNextBookCode
+        self.getBBBFromText = self.genericBibleOrganisationalSystem.getBBBFromText
+        self.getGenericBookName = self.genericBibleOrganisationalSystem.getBookName
+        #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
         #print( self.genericBookList )
@@ -258,7 +259,7 @@ class BOSManager( Frame ):
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
         #print( self.bookNumberTable )
-    # end of BOSManager.setGenericBibleOrganizationalSystem
+    # end of BOSManager.setGenericBibleOrganisationalSystem
 
 
     def createNormalMenuBar( self ):
@@ -823,35 +824,35 @@ class BOSManager( Frame ):
         self.searchName( None ) # Go to the above
         self.namesSearch.delete( 0, tk.END ) # Clear the search box again
 
-        # Bible organizational systems page
+        # Bible organisational systems page
         print( "Create Bibles page" )
-        self.BibleOrganizationalSystems = BibleOrganizationalSystems().loadData() # Doesn't reload the XML unnecessarily :)
-        self.BibleOrganizationalSystemsList = sorted( self.BibleOrganizationalSystems.getAvailableOrganizationalSystemNames() )
-        self.organizationsPage = Frame( self.notebook )
-        organizationsLabel = Label( self.organizationsPage, text="Bible Organization Systems ({})".format( len(self.BibleOrganizationalSystemsList) ) )
-        organizationsLabel.grid( row=0, column=0, columnspan=2 )
-        searchLabel = Label( self.organizationsPage, text=_("Search:") )
+        self.BibleOrganisationalSystems = BibleOrganisationalSystems().loadData() # Doesn't reload the XML unnecessarily :)
+        self.BibleOrganisationalSystemsList = sorted( self.BibleOrganisationalSystems.getAvailableOrganisationalSystemNames() )
+        self.organisationsPage = Frame( self.notebook )
+        organisationsLabel = Label( self.organisationsPage, text="Bible Organisation Systems ({})".format( len(self.BibleOrganisationalSystemsList) ) )
+        organisationsLabel.grid( row=0, column=0, columnspan=2 )
+        searchLabel = Label( self.organisationsPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
-        self.organizationsSearch = BEntry( self.organizationsPage, width=18 )
-        self.organizationsSearch.bind( '<Return>', self.searchOrganization )
-        self.organizationsSearch.grid( row=1, column=1 )
-        sbar = Scrollbar( self.organizationsPage )
-        self.organizationsListbox = tk.Listbox( self.organizationsPage, width=18, relief=tk.SUNKEN )
-        sbar.configure( command=self.organizationsListbox.yview )
-        self.organizationsListbox.configure( yscrollcommand=sbar.set )
-        self.organizationsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
-        #self.organizationsListbox.bind( '<Return>', self.gotoNewOrganization )
+        self.organisationsSearch = BEntry( self.organisationsPage, width=18 )
+        self.organisationsSearch.bind( '<Return>', self.searchOrganisation )
+        self.organisationsSearch.grid( row=1, column=1 )
+        sbar = Scrollbar( self.organisationsPage )
+        self.organisationsListbox = tk.Listbox( self.organisationsPage, width=18, relief=tk.SUNKEN )
+        sbar.configure( command=self.organisationsListbox.yview )
+        self.organisationsListbox.configure( yscrollcommand=sbar.set )
+        self.organisationsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganisation )
+        #self.organisationsListbox.bind( '<Return>', self.gotoNewOrganisation )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
-        self.organizationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
-        self.organizationTextBox = ScrolledText( self.organizationsPage, bg='pink' )
-        self.organizationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.organizationTextBox.insert( tk.END, 'Organizations' )
-        self.organizationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
-        for orgName in self.BibleOrganizationalSystemsList:
-            self.organizationsListbox.insert( tk.END, orgName ) # fill the listbox
-        self.organizationsSearch.insert( tk.END, 'RSV71' )
-        self.searchOrganization( None ) # Go to above
-        self.organizationsSearch.delete( 0, tk.END ) # Clear the search box again
+        self.organisationsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
+        self.organisationTextBox = ScrolledText( self.organisationsPage, bg='pink' )
+        self.organisationTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
+        #self.organisationTextBox.insert( tk.END, 'Organisations' )
+        self.organisationTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
+        for orgName in self.BibleOrganisationalSystemsList:
+            self.organisationsListbox.insert( tk.END, orgName ) # fill the listbox
+        self.organisationsSearch.insert( tk.END, 'RSV71' )
+        self.searchOrganisation( None ) # Go to above
+        self.organisationsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible reference systems page
         print( "Create refs page" )
@@ -893,24 +894,24 @@ class BOSManager( Frame ):
         searchLabel = Label( self.stylesheetsPage, text=_("Search:") )
         searchLabel.grid( row=1, column=0 )
         self.stylesheetSearch = BEntry( self.stylesheetsPage, width=18 )
-        self.stylesheetSearch.bind( '<Return>', self.searchOrganization )
+        self.stylesheetSearch.bind( '<Return>', self.searchOrganisation )
         self.stylesheetSearch.grid( row=1, column=1 )
         sbar = Scrollbar( self.stylesheetsPage )
         self.stylesheetsListbox = tk.Listbox( self.stylesheetsPage, width=18, relief=tk.SUNKEN )
         sbar.configure( command=self.stylesheetsListbox.yview )
         self.stylesheetsListbox.configure( yscrollcommand=sbar.set )
-        self.stylesheetsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganization )
-        #self.stylesheetsListbox.bind( '<Return>', self.gotoNewOrganization )
+        self.stylesheetsListbox.bind('<<ListboxSelect>>', self.gotoNewOrganisation )
+        #self.stylesheetsListbox.bind( '<Return>', self.gotoNewOrganisation )
         sbar.grid( row=0, column=3, rowspan=2, sticky=tk.N+tk.S )
         self.stylesheetsListbox.grid( row=0, column=2, rowspan=2, sticky=tk.N+tk.S )
         self.stylesheetTextBox = ScrolledText( self.stylesheetsPage, bg='orange' )
         self.stylesheetTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-        #self.stylesheetTextBox.insert( tk.END, 'Organizations' )
+        #self.stylesheetTextBox.insert( tk.END, 'Organisations' )
         self.stylesheetTextBox.grid( row=0, column=4, rowspan=2, sticky=tk.N+tk.S+tk.E )
         for ssName in self.BibleStylesheetSystemsList:
             self.stylesheetsListbox.insert( tk.END, ssName ) # fill the listbox
         self.stylesheetSearch.insert( tk.END, 'KJV' ) # Select KJV
-        self.searchOrganization( None ) # Go to KJV
+        self.searchOrganisation( None ) # Go to KJV
         self.stylesheetSearch.delete( 0, tk.END ) # Clear the search box again
 
         print( "Add all pages" )
@@ -920,7 +921,7 @@ class BOSManager( Frame ):
         self.notebook.add( self.mappingsPage, text=_("Mappings") )
         self.notebook.add( self.ordersPage, text=_("Orders") )
         self.notebook.add( self.namesPage, text=_("Names") )
-        self.notebook.add( self.organizationsPage, text=_("Bibles") )
+        self.notebook.add( self.organisationsPage, text=_("Bibles") )
         self.notebook.add( self.referencesPage, text=_("References") )
         self.notebook.add( self.stylesheetsPage, text=_("StyleSheets") )
         self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
@@ -1489,54 +1490,54 @@ class BOSManager( Frame ):
     # end of BOSManager.gotoNewName
 
 
-    def searchOrganization( self, event ):
+    def searchOrganisation( self, event ):
         """
         """
-        enteredText = self.organizationsSearch.get()
+        enteredText = self.organisationsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("searchOrganization( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchOrganization…" )
+            if debuggingThisModule: print( exp("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
+            self.setDebugText( "searchOrganisation…" )
 
         if not enteredText: return
 
-        if len(enteredText)<3: self.setErrorStatus( "Bible organizational system names must be at least three characters" ); return
-        elif ' ' in enteredText: self.setErrorStatus( "Bible organizational system names must have no spaces" ); return
-        elif enteredText not in self.BibleOrganizationalSystemsList:
-            self.setErrorStatus( "Unknown {!r} Bible organizational system name".format( enteredText ) )
+        if len(enteredText)<3: self.setErrorStatus( "Bible organisational system names must be at least three characters" ); return
+        elif ' ' in enteredText: self.setErrorStatus( "Bible organisational system names must have no spaces" ); return
+        elif enteredText not in self.BibleOrganisationalSystemsList:
+            self.setErrorStatus( "Unknown {!r} Bible organisational system name".format( enteredText ) )
             return
 
         # Must be ok
-        self.organizationSystemName = enteredText
-        index = self.BibleOrganizationalSystemsList.index( self.organizationSystemName )
+        self.organisationSystemName = enteredText
+        index = self.BibleOrganisationalSystemsList.index( self.organisationSystemName )
 
         # Select it in the listbox
-        self.organizationsListbox.select_set( index )
-        self.organizationsListbox.see( index )
-        self.organizationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrganization below
-    # end of BOSManager.searchOrganization
+        self.organisationsListbox.select_set( index )
+        self.organisationsListbox.see( index )
+        self.organisationsListbox.event_generate( '<<ListboxSelect>>' ) # Will then execute gotoNewOrganisation below
+    # end of BOSManager.searchOrganisation
 
 
-    def gotoNewOrganization( self, event=None ):
+    def gotoNewOrganisation( self, event=None ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( exp("gotoNewOrganization( {} )").format( event ) )
-            self.setDebugText( "gotoNewOrganization…" )
-            #print( 'You selected items: %s'%[self.organizationsListbox.get(int(i)) for i in self.organizationsListbox.curselection()] )
+            if debuggingThisModule: print( exp("gotoNewOrganisation( {} )").format( event ) )
+            self.setDebugText( "gotoNewOrganisation…" )
+            #print( 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
 
-        index = int( self.organizationsListbox.curselection()[0] ) # Top one selected
-        self.organizationSystemName = self.organizationsListbox.get( index )
-        organizationalSystemDict =  self.BibleOrganizationalSystems.getOrganizationalSystem( self.organizationSystemName )
+        index = int( self.organisationsListbox.curselection()[0] ) # Top one selected
+        self.organisationSystemName = self.organisationsListbox.get( index )
+        organisationalSystemDict =  self.BibleOrganisationalSystems.getOrganisationalSystem( self.organisationSystemName )
 
         # Clear the text box
-        self.organizationTextBox.configure( state=tk.NORMAL )
-        self.organizationTextBox.delete( tkSTART, tk.END )
-        self.organizationTextBox.insert( tk.END, '{} ({})\n\n'.format( self.organizationSystemName, organizationalSystemDict['type'] ) )
-        self.organizationTextBox.insert( tk.END, '{}\n\n'.format( organizationalSystemDict['name'][0] ) )
-        for field,value in sorted( organizationalSystemDict.items() ):
+        self.organisationTextBox.configure( state=tk.NORMAL )
+        self.organisationTextBox.delete( tkSTART, tk.END )
+        self.organisationTextBox.insert( tk.END, '{} ({})\n\n'.format( self.organisationSystemName, organisationalSystemDict['type'] ) )
+        self.organisationTextBox.insert( tk.END, '{}\n\n'.format( organisationalSystemDict['name'][0] ) )
+        for field,value in sorted( organisationalSystemDict.items() ):
             if field not in ( 'type', ):
-                self.organizationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
-    # end of BOSManager.gotoNewOrganization
+                self.organisationTextBox.insert( tk.END, '{}:\t{}\n'.format( field, value ) )
+    # end of BOSManager.gotoNewOrganisation
 
 
     def searchReference( self, event ):
@@ -1693,12 +1694,12 @@ class BOSManager( Frame ):
             print( exp("BOSManager.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
-                 + '\nBible Organizational System (BOS):\n' \
-                 + '  Name: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemName() ) \
-                 + '  Versification: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'versificationSystem' ) ) \
-                 + '  Book Order: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'bookOrderSystem' ) ) \
-                 + '  Book Names: {}\n'.format( self.genericBibleOrganizationalSystem.getOrganizationalSystemValue( 'punctuationSystem' ) ) \
-                 + '  Books: {}'.format( self.genericBibleOrganizationalSystem.getBookList() )
+                 + '\nBible Organisational System (BOS):\n' \
+                 + '  Name: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemName() ) \
+                 + '  Versification: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemValue( 'versificationSystem' ) ) \
+                 + '  Book Order: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemValue( 'bookOrderSystem' ) ) \
+                 + '  Book Names: {}\n'.format( self.genericBibleOrganisationalSystem.getOrganisationalSystemValue( 'punctuationSystem' ) ) \
+                 + '  Books: {}'.format( self.genericBibleOrganisationalSystem.getBookList() )
         showInfo( self, 'Goto Information', infoString )
     # end of BOSManager.doGotoInfo
 
