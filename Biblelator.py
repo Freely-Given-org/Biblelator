@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-12' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2018-12-23' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.44' # This is the version number displayed on the start-up screen
@@ -96,7 +96,7 @@ from SwordResources import SwordType, SwordInterface
 from USFMBible import USFMBible
 from PTX7Bible import PTX7Bible, loadPTX7ProjectData
 from PTX8Bible import PTX8Bible, loadPTX8ProjectData
-from PickledBible import ZIPPED_FILENAME_END, getZippedPickledBiblesDetails
+from PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
 
 
 
@@ -106,7 +106,7 @@ BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI
 PARATEXT8_FILETYPES = [('Settings files','Settings.xml'), ('All files','*')]
 PARATEXT7_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
 NUM_BCV_REFERENCE_POPUP_LINES = 8
-BOS_RESOURCE_FILETYPES = [('Resource files', ZIPPED_FILENAME_END),('All files',  '*')]
+BOS_RESOURCE_FILETYPES = [('Resource files', ZIPPED_PICKLE_FILENAME_END),('All files',  '*')]
 
 
 
@@ -1596,7 +1596,7 @@ class Application( Frame ):
             assert self.internetAccessEnabled
 
         self.setWaitStatus( _("Downloading {} resource…").format( abbrev ) )
-        filename = abbrev + ZIPPED_FILENAME_END
+        filename = abbrev + ZIPPED_PICKLE_FILENAME_END
         filepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
         url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -1657,7 +1657,7 @@ class Application( Frame ):
             assert isinstance( crd.result, list ) # Should be a list of zip files
             for zipFilename in crd.result:
                 #print( "zF", zipFilename )
-                assert zipFilename.endswith( ZIPPED_FILENAME_END )
+                assert zipFilename.endswith( ZIPPED_PICKLE_FILENAME_END )
                 zipFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, zipFilename )
                 assert os.path.isfile( zipFilepath )
                 if '/WLC.' in zipFilepath: self.openHebrewBibleResourceWindow( zipFilepath )

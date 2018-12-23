@@ -114,7 +114,7 @@ TODO: Work out how to automatically test keypresses in dialogs.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15'
+LastModifiedDate = '2018-12-23'
 ShortProgName = "BiblelatorDialogs"
 ProgName = "Biblelator dialogs"
 ProgVersion = '0.44'
@@ -139,7 +139,7 @@ from TextBoxes import BEntry, BCombobox, BText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
-from PickledBible import ZIPPED_FILENAME_END
+from PickledBible import ZIPPED_PICKLE_FILENAME_END
 
 
 
@@ -2573,8 +2573,8 @@ class DownloadResourcesDialog( ModalDialog ):
         responsePageSTR = responseObject.read().decode('utf-8')
         #print( "responsePageSTR", responsePageSTR )
         availableResourceList = []
-        searchString = ZIPPED_FILENAME_END + '</a>'
-        searchRegex1 = '<a href="(\\w{{2,10}}){}">'.format( ZIPPED_FILENAME_END.replace( '.', '\\.' ) )
+        searchString = ZIPPED_PICKLE_FILENAME_END + '</a>'
+        searchRegex1 = '<a href="(\\w{{2,10}}){}">'.format( ZIPPED_PICKLE_FILENAME_END.replace( '.', '\\.' ) )
         searchRegex2 = '>(20\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d) '
         for line in responsePageSTR.split( '\n' ):
             #print( "line", line )
@@ -2601,7 +2601,7 @@ class DownloadResourcesDialog( ModalDialog ):
             self.downloadableList = []
             for abbrev,dateTimeString in availableResourceList:
                 #print( "aRD", repr(availableResourceDict) )
-                filename = abbrev + ZIPPED_FILENAME_END
+                filename = abbrev + ZIPPED_PICKLE_FILENAME_END
                 resourceFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
                 itemString = None
                 if os.path.exists( resourceFilepath ):

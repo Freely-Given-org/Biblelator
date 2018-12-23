@@ -76,7 +76,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-12' # by RJH
+LastModifiedDate = '2018-12-23' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.44'
@@ -113,7 +113,7 @@ from VerseReferences import SimpleVerseKey
 from DBPOnline import DBPBibles, DBPBible
 from SwordResources import SwordType, SwordInterface
 from UnknownBible import UnknownBible
-from PickledBible import ZIPPED_FILENAME_END, getZippedPickledBiblesDetails
+from PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
 from BibleOrganisationalSystems import BibleOrganisationalSystem
 
 
@@ -1048,7 +1048,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             return
         assert isinstance( crd.result, list ) # Should be a list of zip files
         for zipFilename in crd.result:
-            assert zipFilename.endswith( ZIPPED_FILENAME_END )
+            assert zipFilename.endswith( ZIPPED_PICKLE_FILENAME_END )
             zipFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, zipFilename )
             assert os.path.isfile( zipFilepath )
             #if '/WLC.' in zipFilepath: self.openHebrewBibleResourceBox( zipFilepath )

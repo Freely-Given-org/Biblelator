@@ -161,7 +161,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-12' # by RJH
+LastModifiedDate = '2018-12-23' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.44'
@@ -196,7 +196,7 @@ from HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
 from BibleOrganisationalSystems import BibleOrganisationalSystem
 from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
 from BibleWriter import setDefaultControlFolder
-from PickledBible import ZIPPED_FILENAME_END
+from PickledBible import ZIPPED_PICKLE_FILENAME_END
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -2552,7 +2552,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "HebrewBibleResourceWindow.__init__( {}, mP={} )".format( parentApp, modulePath ) )
-            assert modulePath in ('../morphhb/wlc/', DOWNLOADED_RESOURCES_FOLDER+'WLC'+ZIPPED_FILENAME_END )
+            assert modulePath in ('../morphhb/wlc/', DOWNLOADED_RESOURCES_FOLDER+'WLC'+ZIPPED_PICKLE_FILENAME_END )
         self.modulePath = modulePath
         ChildWindow.__init__( self, parentApp, genericWindowType='BibleResource' )
         self.maximumSize = MAXIMUM_LARGE_RESOURCE_SIZE
@@ -2568,7 +2568,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         self.moduleID = self.modulePath = modulePath # Reset it -- it gets set to None in __init__ calls above
         if self.modulePath is not None:
             try:
-                if self.modulePath.endswith( ZIPPED_FILENAME_END ):
+                if self.modulePath.endswith( ZIPPED_PICKLE_FILENAME_END ):
                     HebrewWLCBible = PickledHebrewWLCBible( self.modulePath )
                     HebrewWLCBible.preload()
                 else: HebrewWLCBible = OSISHebrewWLCBible( self.modulePath )
