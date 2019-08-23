@@ -5,7 +5,7 @@
 #
 # Main program for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2019 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -31,7 +31,7 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-23' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LastModifiedDate = '2019-05-12' # by RJH -- note that this isn't necessarily the displayed date at start-up
 ShortProgName = "Biblelator"
 ProgName = "Biblelator"
 ProgVersion = '0.44' # This is the version number displayed on the start-up screen
@@ -1137,7 +1137,7 @@ class Application( Frame ):
         #return tkBREAK # so default tk binding doesn't work
     def entrySelectAllText( self, event ):
         #print( "entrySelectAllText( {} ) {}".format( event, event.widget ) )
-        event.widget.selection_range( 0, tk.END )
+        event.widget.selection_range( tk.END )
         #return tkBREAK # so default tk binding doesn't work
     def spinboxSelectAllText( self, event ):
         #print( "spinboxSelectAllText( {} ) {}".format( event, event.widget ) )
@@ -1604,7 +1604,7 @@ class Application( Frame ):
         try: responseObject = urllib.request.urlopen( url )
         except urllib.error.URLError:
             if BibleOrgSysGlobals.debugFlag:
-                logging.critical( "doDownloadResource: " + _("error fetching {}").format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )
+                logging.critical( "doDownloadResource: " + _("error fetching {}").format( url ) )
             return None
         with open( filepath, 'wb' ) as outputFile:
             outputFile.write( responseObject.read() )
@@ -2949,7 +2949,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             print( "focusInBookNameField( {} )".format( event ) )
 
-        self.bookNameBox.selection_range( 0, tk.END )
+        self.bookNameBox.selection_range( tk.END )
         return tkBREAK # prevent default processsing
     # end of Application.focusInBookNameField
 

@@ -5,7 +5,7 @@
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2018 Robert Hunt
+# Copyright (C) 2014-2019 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -76,7 +76,7 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-23' # by RJH
+LastModifiedDate = '2019-05-12' # by RJH
 ShortProgName = "BibleResourceCollection"
 ProgName = "Biblelator Bible Resource Collection"
 ProgVersion = '0.44'
@@ -433,7 +433,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
             ##for thisC in range( -1, self.getNumChapters( BBB ) ):
                 ##try: numVerses = self.getNumVerses( BBB, thisC )
                 ##except KeyError: numVerses = 0
-                ##for thisV in range( 0, numVerses ):
+                ##for thisV in range( numVerses ):
                     ##thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                     ##thisVerseData = self.getCachedVerseData( thisVerseKey )
                     ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
@@ -446,7 +446,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
             #for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                 #try: numVerses = self.getNumVerses( BBB, thisC )
                 #except KeyError: numVerses = 0
-                #for thisV in range( 0, numVerses ):
+                #for thisV in range( numVerses ):
                     #thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                     #thisVerseData = self.getCachedVerseData( thisVerseKey )
                     #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
@@ -458,7 +458,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
             #intV = newVerseKey.getVerseNumberInt()
             #try: numVerses = self.getNumVerses( BBB, C )
             #except KeyError: numVerses = 0
-            #for thisV in range( 0, numVerses + 1 ):
+            #for thisV in range( numVerses + 1 ):
                 #thisVerseKey = SimpleVerseKey( BBB, C, thisV )
                 #thisVerseData = self.getCachedVerseData( thisVerseKey )
                 #self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerseFlag=thisV==intV )

@@ -5,7 +5,7 @@
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2019 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -161,7 +161,7 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-23' # by RJH
+LastModifiedDate = '2019-05-12' # by RJH
 ShortProgName = "BibleResourceWindows"
 ProgName = "Biblelator Bible Resource Windows"
 ProgVersion = '0.44'
@@ -815,7 +815,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                 try: numVerses = self.getNumVerses( BBB, thisC )
                 except KeyError: numVerses = 0
-                for thisV in range( 0, numVerses ):
+                for thisV in range( numVerses ):
                     thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                     thisVerseData = self.getCachedVerseData( thisVerseKey )
                     self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
@@ -827,7 +827,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             intV = newVerseKey.getVerseNumberInt()
             try: numVerses = self.getNumVerses( BBB, C )
             except KeyError: numVerses = 0
-            for thisV in range( 0, numVerses + 1 ):
+            for thisV in range( numVerses + 1 ):
                 thisVerseKey = SimpleVerseKey( BBB, C, thisV )
                 thisVerseData = self.getCachedVerseData( thisVerseKey )
                 self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerseFlag=thisV==intV )
@@ -1522,7 +1522,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             ##for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                 ##try: numVerses = self.getNumVerses( BBB, thisC )
                 ##except KeyError: numVerses = 0
-                ##for thisV in range( 0, numVerses ):
+                ##for thisV in range( numVerses ):
                     ##thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                     ##thisVerseData = self.getCachedVerseData( thisVerseKey )
                     ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData,
@@ -1534,7 +1534,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             ##intV = newVerseKey.getVerseNumberInt()
             ##try: numVerses = self.getNumVerses( BBB, C )
             ##except KeyError: numVerses = 0
-            ##for thisV in range( 0, numVerses + 1 ):
+            ##for thisV in range( numVerses + 1 ):
                 ##thisVerseKey = SimpleVerseKey( BBB, C, thisV )
                 ##thisVerseData = self.getCachedVerseData( thisVerseKey )
                 ##self.displayAppendVerse( startingFlag, thisVerseKey, thisVerseData, currentVerseFlag=thisV==intV )

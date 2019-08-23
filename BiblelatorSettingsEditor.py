@@ -5,7 +5,7 @@
 #
 # BOS (Bible Organisational System) manager program
 #
-# Copyright (C) 2016-2018 Robert Hunt
+# Copyright (C) 2016-2019 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,7 +29,7 @@ Program to allow viewing of various BOS (Bible Organisational System) subsystems
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-12' # by RJH
+LastModifiedDate = '2010-05-12' # by RJH
 ShortProgName = "BiblelatorSettingsEditor"
 ProgName = "Biblelator Settings Editor"
 ProgVersion = '0.44'
@@ -589,7 +589,7 @@ class BiblelatorSettingsEditor( Frame ):
         print( "Create recent files page" )
         self.recentFilesPage = Frame( self.notebook )
         self.rffnVars, self.rffldVars, self.rftypVars = [], [], []
-        for rr in range( 0, MAX_RECENT_FILES ):
+        for rr in range( MAX_RECENT_FILES ):
             self.rffnVars.append( tk.StringVar() ); self.rffldVars.append( tk.StringVar() ); self.rftypVars.append( tk.StringVar() );
             Label( self.recentFilesPage, text='{}:'.format(rr+1) ).grid( row=2*rr, column=0, padx=0, pady=3, sticky=tk.E )
             BEntry( self.recentFilesPage, width=30, textvariable=self.rffnVars[rr] ).grid( row=2*rr, column=1, padx=2, pady=3, sticky=tk.W )
@@ -760,7 +760,7 @@ class BiblelatorSettingsEditor( Frame ):
         try: self.libfVar.set( self.settings.data['Paths']['lastInternalBibleDir'] )
         except KeyError: self.libfVar.set( '' )
 
-        for rr in range( 0, MAX_RECENT_FILES ):
+        for rr in range( MAX_RECENT_FILES ):
             try:
                 self.rffnVars[rr].set( self.settings.data['RecentFiles']['recent{}Filename'.format(rr+1)] )
                 self.rffldVars[rr].set( self.settings.data['RecentFiles']['recent{}Folder'.format(rr+1)] )

@@ -5,7 +5,7 @@
 #
 # Base of various textboxes for use as widgets and base classes in various windows.
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2019 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -107,7 +107,7 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
+LastModifiedDate = '2019-05-12' # by RJH
 ShortProgName = "TextBoxes"
 ProgName = "Specialised text widgets"
 ProgVersion = '0.44'
@@ -1504,7 +1504,7 @@ class BibleBoxAddon():
         # Determine the NEXT valid verse numbers
         nextBBB, nextIntC, nextIntV = BBB, intC, intV
         nextVersesData = []
-        for n in range( 0, self.parentApp.viewVersesAfter ):
+        for n in range( self.parentApp.viewVersesAfter ):
             try: numVerses = self.getNumVerses( nextBBB, nextIntC )
             except KeyError: numVerses = None # for an invalid BBB
             nextIntV += 1
@@ -2042,7 +2042,7 @@ class BibleBoxAddon():
         ### Determine the NEXT valid verse numbers
         ##nextBBB, nextIntC, nextIntV = BBB, intC, intV
         ##nextVersesData = []
-        ##for n in range( 0, self.parentApp.viewVersesAfter ):
+        ##for n in range( self.parentApp.viewVersesAfter ):
             ##try: numVerses = self.getNumVerses( nextBBB, nextIntC )
             ##except KeyError: numVerses = None # for an invalid BBB
             ##nextIntV += 1
@@ -2987,7 +2987,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         ## Determine the NEXT valid verse numbers
         #nextBBB, nextIntC, nextIntV = BBB, intC, intV
         #nextVersesData = []
-        #for n in range( 0, self.parentApp.viewVersesAfter ):
+        #for n in range( self.parentApp.viewVersesAfter ):
             #try: numVerses = self.getNumVerses( nextBBB, nextIntC )
             #except KeyError: numVerses = None # for an invalid BBB
             #nextIntV += 1

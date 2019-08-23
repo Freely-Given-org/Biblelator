@@ -5,7 +5,7 @@
 #
 # The actual edit window for USFM/PTX/Biblelator Bible text editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2019 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,7 +28,7 @@ This is a text editor window that knows about the special structure of USFM file
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
+LastModifiedDate = '2019-05-12' # by RJH
 ShortProgName = "USFMEditWindow"
 ProgName = "Biblelator USFM Edit Window"
 ProgVersion = '0.44'
@@ -941,7 +941,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         currentEntry = ''
         bookLines = self.bookText.split( '\n' )
         numLines = len( bookLines )
-        for j in range( 0, numLines): # Do it this way to make it easy to look-ahead
+        for j in range( numLines): # Do it this way to make it easy to look-ahead
             line = bookLines[j]
             marker, text = getMarkerText( j )
             #print( "cacheBook line", repr(marker), repr(text), line )
@@ -1278,7 +1278,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 for thisC in range( -1, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses+1 ):
+                    for thisV in range( numVerses+1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''
@@ -1314,7 +1314,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 for thisC in range( -1, numChaps+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses+1 ):
+                    for thisV in range( numVerses+1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''
@@ -1353,7 +1353,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 for thisC in range( -1, self.getNumChapters( BBB )+1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses+1 ):
+                    for thisV in range( numVerses+1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         if thisC < intC1 or (thisC==intC1 and thisV<intV1):
@@ -1372,7 +1372,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses+1 ):
+                    for thisV in range( numVerses+1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         #print( 'tVD', repr(thisVerseData) )
@@ -1387,7 +1387,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
                     try: numVerses = self.getNumVerses( BBB, thisC )
                     except KeyError: numVerses = 0
-                    for thisV in range( 0, numVerses + 1 ):
+                    for thisV in range( numVerses + 1 ):
                         thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
                         thisVerseData = self.getCachedVerseData( thisVerseKey )
                         if thisC < intC: self.bookTextBefore += thisVerseData if thisVerseData else ''
