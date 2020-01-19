@@ -5,7 +5,7 @@
 #
 # Main program for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2019 Robert Hunt
+# Copyright (C) 2013-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -31,18 +31,21 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LastModifiedDate = '2019-05-12' # by RJH -- note that this isn't necessarily the displayed date at start-up
-ShortProgName = "Biblelator"
-ProgName = "Biblelator"
-ProgVersion = '0.44' # This is the version number displayed on the start-up screen
-ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2020-01-05' # by RJH -- note that this isn't necessarily the displayed date at start-up
+shortProgramName = "Biblelator"
+programName = "Biblelator"
+programVersion = '0.45' # This is the version number displayed on the start-up screen
+programNameVersion = f'{shortProgramName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
 
-import sys, os, logging
+import sys
+import os
+import logging
 from datetime import datetime
+from pathlib import Path
 import multiprocessing, subprocess
 
 import tkinter as tk
@@ -84,19 +87,19 @@ from BOSManager import openBOSManager
 from SwordManager import openSwordManager
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
-from BibleOrganisationalSystems import BibleOrganisationalSystem
-from BibleVersificationSystems import BibleVersificationSystems
-from DBPOnline import DBPBibles
-from VerseReferences import SimpleVerseKey
-from BibleStylesheets import BibleStylesheet
-from SwordResources import SwordType, SwordInterface
-from USFMBible import USFMBible
-from PTX7Bible import PTX7Bible, loadPTX7ProjectData
-from PTX8Bible import PTX8Bible, loadPTX8ProjectData
-from PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
+from Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
+from Reference.BibleVersificationSystems import BibleVersificationSystems
+from Online.DBPOnline import DBPBibles
+from Reference.VerseReferences import SimpleVerseKey
+from Reference.BibleStylesheets import BibleStylesheet
+from Formats.SwordResources import SwordType, SwordInterface
+from Formats.USFMBible import USFMBible
+from Formats.PTX7Bible import PTX7Bible, loadPTX7ProjectData
+from Formats.PTX8Bible import PTX8Bible, loadPTX8ProjectData
+from Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
 
 
 
@@ -216,9 +219,9 @@ class Application( Frame ):
             self.lastParatextFileDir = PT8Folder if os.path.isdir( PT8Folder ) else PT7Folder
             self.lastInternalBibleDir = self.lastParatextFileDir
         elif sys.platform == 'linux': # temp hack XXXXXXXXXXXXX …
-            #self.lastParatextFileDir = '../../../../../Data/Work/VirtualBox_Shared_Folder/'
-            self.lastParatextFileDir = '../../../../../Data/Work/Matigsalug/Bible/'
-            self.lastInternalBibleDir = '../../../../../Data/Work/Matigsalug/Bible/'
+            #self.lastParatextFileDir = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( '../../../../../mnt/HDs/Work/VirtualBox_Shared_Folder/' ).resolve()
+            self.lastParatextFileDir = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( '../../../../../mnt/SSDs/Matigsalug/Bible/' ).resolve()
+            self.lastInternalBibleDir = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( '../../../../../mnt/SSDs/Matigsalug/Bible/' ).resolve()
 
         self.recentFiles = []
         self.internalBibles = [] # Contains 2-tuples being (internalBibleObject,list of window objects displaying that Bible)
@@ -241,7 +244,7 @@ class Application( Frame ):
         self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         self.settings.load()
         parseAndApplySettings( self )
-        if ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
+        if programName not in self.settings.data or 'windowSize' not in self.settings.data[programName] or 'windowPosition' not in self.settings.data[programName]:
             initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
@@ -281,14 +284,14 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
         self.starting = False
         self.setReadyStatus()
-        self.logUsage( ProgName, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
+        self.logUsage( programName, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
         if debuggingThisModule: print( "Finished start-up at {} after {} seconds" \
                     .format( datetime.now().strftime( '%H:%M:%S'), (datetime.now()-self.startTime).seconds ) )
     # end of Application.__init__
 
 
     def setMainWindowTitle( self ):
-        self.rootWindow.title( '[{}] {}'.format( self.currentVerseKeyGroup, ProgNameVersion ) \
+        self.rootWindow.title( '[{}] {}'.format( self.currentVerseKeyGroup, programNameVersion ) \
                             + (' ({})'.format( self.currentUserName ) if self.currentUserName else '' ) )
     # end of Application.setMainWindowTitle
 
@@ -1168,7 +1171,7 @@ class Application( Frame ):
         """
         Puts most recent first
         """
-        self.logUsage( ProgName, debuggingThisModule, 'addRecentFile {}'.format( threeTuple ) )
+        self.logUsage( programName, debuggingThisModule, 'addRecentFile {}'.format( threeTuple ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "addRecentFile( {} )".format( threeTuple ) )
             assert len(threeTuple) == 3
@@ -1379,7 +1382,7 @@ class Application( Frame ):
 
                 if msgString:
                     from About import AboutBox
-                    msgInfo = ProgName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
+                    msgInfo = programName + " Message #{} from the Developer".format( self.lastMessageNumberRead+1 )
                     msgInfo += '\n  via {}'.format( site )
                     msgInfo += '\n\n' + msgString
                     ab = AboutBox( self.rootWindow, APP_NAME, msgInfo )
@@ -1597,7 +1600,7 @@ class Application( Frame ):
 
         self.setWaitStatus( _("Downloading {} resource…").format( abbrev ) )
         filename = abbrev + ZIPPED_PICKLE_FILENAME_END
-        filepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
+        filepath = BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( filename )
         url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
@@ -1623,9 +1626,9 @@ class Application( Frame ):
             print( "openBOSBibleResource()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewBOSBibleResourceWindow…" )
 
-        if not os.path.exists( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ): # Seems we have nothing yet
-            os.makedirs( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER )
-        if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ):
+        if not BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.exists(): # Seems we have nothing yet
+            os.makedirs( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH )
+        if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH ):
             print( "Downloadable resources folder is empty" )
             if self.internetAccessEnabled:
                 dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
@@ -1636,15 +1639,15 @@ class Application( Frame ):
                     print( "doDownloadMore: " + _("Nothing was selected!") )
             else:
                 showWarning( self, APP_NAME, _("Can't download resources because internet access is not enabled") )
-        #else: print( os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ) )
-        if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER ):
+        #else: print( os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH ) )
+        if not os.listdir( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH ):
             showWarning( self, APP_NAME, _("No downloaded resources available to open") )
             return
 
         self.setWaitStatus( _("doOpenNewBOSBibleResourceWindow…") )
         while True:
             # Get the info about available resources to display to the user
-            infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, extended=True )
+            infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH, extended=True )
             #print( "infoDictList", len(infoDictList), infoDictList )
             #for infoDict in infoDictList:
                 #print( "infoDict", len(infoDict), infoDict )
@@ -1658,7 +1661,7 @@ class Application( Frame ):
             for zipFilename in crd.result:
                 #print( "zF", zipFilename )
                 assert zipFilename.endswith( ZIPPED_PICKLE_FILENAME_END )
-                zipFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, zipFilename )
+                zipFilepath = BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( zipFilename )
                 assert os.path.isfile( zipFilepath )
                 if '/WLC.' in zipFilepath: self.openHebrewBibleResourceWindow( zipFilepath )
                 else: self.openInternalBibleResourceWindow( zipFilepath )
@@ -1727,13 +1730,13 @@ class Application( Frame ):
         self.setWaitStatus( _("doOpenNewHebrewBibleResourceWindow…") )
 
         # Find the best resource -- the pickled resource opens about 4x faster (but could be less up-to-date)
-        requestedFolder = '../BibleOrgSys/DownloadedResources/WLC.BOSPickledBible.zip'
+        requestedFolder = BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( 'WLC.BOSPickledBible.zip' )
         if not os.path.exists( requestedFolder ):
-            requestedFolder = '../morphhb/wlc/'
+            requestedFolder = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( 'morphhb/wlc/' )
         if not os.path.exists( requestedFolder ) and self.internetAccessEnabled: # Seems we need to download it
             if self.doDownloadResource( 'WLC' ):
-                requestedFolder = '../BibleOrgSys/DownloadedResources/WLC.BOSPickledBible.zip'
-        if not os.path.exists( requestedFolder ):
+                requestedFolder = BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( 'WLC.BOSPickledBible.zip' )
+        if not Path( requestedFolder ).exists():
             logging.critical( "Application.openInternalBibleResourceWindow: " + _("Unable to open resource {!r}").format( requestedFolder ) )
             showError( self, APP_NAME, _("Sorry, unable to find Hebrew resource (Install morphhb or enable internet access)") )
             return
@@ -2984,7 +2987,7 @@ class Application( Frame ):
         """
         Handle a new book setting (or even BCV) from the GUI bookName dropbox.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'acceptNewBookNameField' )
+        self.logUsage( programName, debuggingThisModule, 'acceptNewBookNameField' )
         if BibleOrgSysGlobals.debugFlag:
             print( "acceptNewBookNameField( {} )".format( event ) )
         #print( dir(event) )
@@ -3001,7 +3004,7 @@ class Application( Frame ):
 
         If we have no open Bibles containing that book, we go to the next one.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'spinToNewBookNumber' )
+        self.logUsage( programName, debuggingThisModule, 'spinToNewBookNumber' )
         if BibleOrgSysGlobals.debugFlag:
             print( "spinToNewBookNumber( {} )".format( event ) )
         #print( dir(event) )
@@ -3039,7 +3042,7 @@ class Application( Frame ):
         """
         Handle a new chapter setting from the GUI spinbox.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'spinToNewChapter' )
+        self.logUsage( programName, debuggingThisModule, 'spinToNewChapter' )
         if BibleOrgSysGlobals.debugFlag:
             print( "spinToNewChapter( {} )".format( event ) )
         #print( dir(event) )
@@ -3310,7 +3313,7 @@ class Application( Frame ):
         """
         Handle a new lexicon word setting from the GUI.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'acceptNewLexiconWord' )
+        self.logUsage( programName, debuggingThisModule, 'acceptNewLexiconWord' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "acceptNewLexiconWord()" )
         #print( dir(event) )
 
@@ -3335,7 +3338,7 @@ class Application( Frame ):
         Sets self.lexiconWord
             then calls update on the child windows.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'gotoWord {!r}'.format( lexiconWord ) )
+        self.logUsage( programName, debuggingThisModule, 'gotoWord {!r}'.format( lexiconWord ) )
         if BibleOrgSysGlobals.debugFlag: print( "gotoWord( {} )".format( lexiconWord ) )
         assert lexiconWord is None or isinstance( lexiconWord, str )
         self.lexiconWord = lexiconWord
@@ -3349,7 +3352,7 @@ class Application( Frame ):
         Minimize all of our resource windows,
             i.e., leave the editors and main window
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doHideAllResources' )
+        self.logUsage( programName, debuggingThisModule, 'doHideAllResources' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllResources' )
         self.childWindows.iconifyAll( 'Resource' )
     # end of Application.doHideAllResources
@@ -3359,7 +3362,7 @@ class Application( Frame ):
         Minimize all of our resource windows,
             i.e., leave the resources and main window
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doHideAllProjects' )
+        self.logUsage( programName, debuggingThisModule, 'doHideAllProjects' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAllProjects' )
         self.childWindows.iconifyAll( 'Editor' )
     # end of Application.doHideAllProjects
@@ -3370,7 +3373,7 @@ class Application( Frame ):
         Show/Restore all of our resource windows,
             i.e., leave the editors and main window
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doShowAllResources' )
+        self.logUsage( programName, debuggingThisModule, 'doShowAllResources' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllResources' )
         self.childWindows.deiconifyAll( 'Resource' )
     # end of Application.doShowAllResources
@@ -3380,7 +3383,7 @@ class Application( Frame ):
         Show/Restore all of our project editor windows,
             i.e., leave the resources and main window
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doShowAllProjects' )
+        self.logUsage( programName, debuggingThisModule, 'doShowAllProjects' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doShowAllProjects' )
         self.childWindows.deiconifyAll( 'Editor' )
     # end of Application.doShowAllProjects
@@ -3390,7 +3393,7 @@ class Application( Frame ):
         """
         Minimize all of our windows.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doHideAll' )
+        self.logUsage( programName, debuggingThisModule, 'doHideAll' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doHideAll' )
         self.childWindows.iconifyAll()
         if includeMe: self.rootWindow.iconify()
@@ -3412,7 +3415,7 @@ class Application( Frame ):
         """
         Bring all of our windows close.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doBringAll' )
+        self.logUsage( programName, debuggingThisModule, 'doBringAll' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doBringAll' )
         x, y = parseWindowGeometry( self.rootWindow.winfo_geometry() )[2:4]
         if x > 30: x = x - 20
@@ -3434,7 +3437,7 @@ class Application( Frame ):
         """
         Save any changed files in all of our (edit) windows.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doSaveAll' )
+        self.logUsage( programName, debuggingThisModule, 'doSaveAll' )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'doSaveAll' )
         self.childWindows.saveAll()
     # end of Application.doSaveAll
@@ -3648,7 +3651,7 @@ class Application( Frame ):
         """
         Display the settings editor window.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doOpenSettingsEditor' )
+        self.logUsage( programName, debuggingThisModule, 'doOpenSettingsEditor' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "Application.doOpenSettingsEditor( {} )".format( event ) )
 
@@ -3659,7 +3662,7 @@ class Application( Frame ):
         """
         Display the BOS manager window.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doOpenBOSManager' )
+        self.logUsage( programName, debuggingThisModule, 'doOpenBOSManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "Application.doOpenBOSManager( {} )".format( event ) )
 
@@ -3670,7 +3673,7 @@ class Application( Frame ):
         """
         Display the Sword module manager window.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doOpenSwordManager' )
+        self.logUsage( programName, debuggingThisModule, 'doOpenSwordManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "Application.doOpenSwordManager( {} )".format( event ) )
 
@@ -3695,7 +3698,7 @@ class Application( Frame ):
         with open( self.usageLogPath, 'at', encoding='utf-8' ) as logFile: # Append puts the file pointer at the end of the file
             if dateString:
                 logFile.write( "\nNew start or new day: {} for {!r} as {!r} on {!r} on {}\n". \
-                    format( dateString, self.currentUserName, self.currentUserRole, self.currentProjectName, ProgNameVersion ) )
+                    format( dateString, self.currentUserName, self.currentUserRole, self.currentProjectName, programNameVersion ) )
             if timeString:
                 if timeString.endswith( '00' ):
                     logFile.write( "New time: {} for {}\n".format( timeString, dateString ) )
@@ -3709,11 +3712,11 @@ class Application( Frame ):
         Display a help box.
         """
         from Help import HelpBox
-        self.logUsage( ProgName, debuggingThisModule, 'doHelp' )
+        self.logUsage( programName, debuggingThisModule, 'doHelp' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "Application.doHelp( {} )".format( event ) )
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
         helpInfo += "\n  Use the Resource menu to open study/reference resources."
         helpInfo += "\n  Use the Project menu to open editable Bibles."
@@ -3745,7 +3748,7 @@ class Application( Frame ):
             showError( self, APP_NAME, 'You need to allow Internet access first!' )
             return
 
-        submitInfo = ProgNameVersion
+        submitInfo = programNameVersion
         submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
         ab = AboutBox( self.rootWindow, APP_NAME, submitInfo )
     # end of Application.doSubmitBug
@@ -3756,14 +3759,14 @@ class Application( Frame ):
         Display an about box.
         """
         from About import AboutBox
-        self.logUsage( ProgName, debuggingThisModule, 'doAbout' )
+        self.logUsage( programName, debuggingThisModule, 'doAbout' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "Application.doAbout( {} )".format( event ) )
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
             + "\n\nThis is still an unfinished alpha test version, but it should edit and save your USFM Bible files reliably." \
-            + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( ShortProgName )
+            + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( shortProgramName )
         aboutImage = 'BiblelatorLogoSmall.gif'
         ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo, aboutImage )
     # end of Application.doAbout
@@ -3789,7 +3792,7 @@ class Application( Frame ):
         """
         Save files first, and then close child windows.
         """
-        #self.logUsage( ProgName, debuggingThisModule, 'doCloseMyChildWindows' )
+        #self.logUsage( programName, debuggingThisModule, 'doCloseMyChildWindows' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "Application.doCloseMyChildWindows()" )
 
@@ -3822,7 +3825,7 @@ class Application( Frame ):
         """
         Save files first, and then end the application.
         """
-        self.logUsage( ProgName, debuggingThisModule, 'doCloseMe' )
+        self.logUsage( programName, debuggingThisModule, 'doCloseMe' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "Application.doCloseMe()" )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
@@ -3845,8 +3848,8 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
 
     Try to help the user through this problem.
     """
-    from collections import OrderedDict
-    from USFMBookCompare import USFMBookCompare
+    #from collections import OrderedDict
+    from Misc.USFMBookCompare import USFMBookCompare
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         print( "Application.handlePossibleCrash( {}, {}, {} )".format( homeFolderPath, dataFolderName, settingsFolderName ) )
 
@@ -3857,7 +3860,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     iniName = APP_NAME if BibleOrgSysGlobals.commandLineArguments.override is None else BibleOrgSysGlobals.commandLineArguments.override
     if not iniName.lower().endswith( '.ini' ): iniName += '.ini'
     iniFilepath = os.path.join( homeFolderPath, dataFolderName, settingsFolderName, iniName )
-    currentWindowDict = OrderedDict()
+    currentWindowDict = {}
     try:
         with open( iniFilepath, 'rt' ) as iniFile:
             inCurrent = False
@@ -3983,29 +3986,29 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
     Which windows open depends on the saved settings from the last use.
     """
     if BibleOrgSysGlobals.verbosityLevel > 0:
-        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), BibleOrgSysGlobals.getLatestPythonModificationDate() ) )
+        print( '{} {} {}'.format( programNameVersion, _("last modified"), BibleOrgSysGlobals.getLatestPythonModificationDate() ) )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
+    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, programName )
     settings.load()
 
     application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -4021,7 +4024,7 @@ def main( homeFolderPath, loggingFolderPath ):
     Main program to handle command line parameters and then run what they want.
     """
     if BibleOrgSysGlobals.verbosityLevel > 0:
-        print( '{} {} {}'.format( ProgNameVersion, _("last modified"), BibleOrgSysGlobals.getLatestPythonModificationDate() ) )
+        print( '{} {} {}'.format( programNameVersion, _("last modified"), BibleOrgSysGlobals.getLatestPythonModificationDate() ) )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
@@ -4037,7 +4040,7 @@ def main( homeFolderPath, loggingFolderPath ):
         #print( 'linux processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             # NOTE: Following line assumes that all Python interpreters contain the string 'python'
-            if 'python' in line and ProgName+'.py' in line:
+            if 'python' in line and programName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
                 numMyInstancesFound += 1
             if 'paratext' in line:
@@ -4054,7 +4057,7 @@ def main( homeFolderPath, loggingFolderPath ):
         #print( 'win processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             #print( "tasklist line", repr(line) )
-            if ProgName+'.py' in line:
+            if programName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 # Could possibly check that the line startswith 'cmd.exe' but would need to test that on all Windows versions
                 # NOTE: If .py files have an association, 'python.exe' doesn't necessarily appear in the line
@@ -4067,13 +4070,13 @@ def main( homeFolderPath, loggingFolderPath ):
     else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )
     # Why don't the following work in Windows ???
     if numMyInstancesFound > 1:
-        logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, ProgName ) )
+        logging.critical( _("Found {} instances of {} running.").format( numMyInstancesFound, programName ) )
         try:
             import easygui
         except ImportError:
             result = False
-        else: result = easygui.ynbox( _("Seems {} might be already running: Continue?").format( ProgName ),
-                                                                ProgNameVersion, ('Yes', 'No'))
+        else: result = easygui.ynbox( _("Seems {} might be already running: Continue?").format( programName ),
+                                                                programNameVersion, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
@@ -4084,7 +4087,7 @@ def main( homeFolderPath, loggingFolderPath ):
         except ImportError:
             result = False
         else: result = easygui.ynbox( _("Seems {} might be running: Continue?").format( 'Paratext' ),
-                                                                ProgNameVersion, ('Yes', 'No'))
+                                                                programNameVersion, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
@@ -4106,10 +4109,10 @@ def main( homeFolderPath, loggingFolderPath ):
     # Set the window icon and title
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
-    tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
+    tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
     application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -4126,9 +4129,9 @@ if __name__ == '__main__':
 
     # Configure basic set-up
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
+    # if str(homeFolderPath)[-1] not in '/\\': homeFolderPath += '/'
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion, loggingFolderPath=loggingFolderPath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
@@ -4148,5 +4151,5 @@ if __name__ == '__main__':
 
     main( homeFolderPath, loggingFolderPath )
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of Biblelator.py

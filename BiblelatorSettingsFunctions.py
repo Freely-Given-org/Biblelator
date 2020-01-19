@@ -5,7 +5,7 @@
 #
 # for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -39,18 +39,19 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-23' # by RJH
-ShortProgName = "BiblelatorSettingsFunctions"
-ProgName = "Biblelator Settings Functions"
-ProgVersion = '0.44'
-SettingsVersion = '0.44' # Only need to change this if the settings format has changed
-ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2020-01-05' # by RJH
+shortProgramName = "BiblelatorSettingsFunctions"
+programName = "Biblelator Settings Functions"
+programVersion = '0.45'
+SettingsVersion = '0.45' # Only need to change this if the settings format has changed
+programNameVersion = f'{shortProgramName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
 
-import os, logging
+import os
+import logging
 
 # Biblelator imports
 from BiblelatorGlobals import APP_NAME, DEFAULT, \
@@ -64,8 +65,8 @@ from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
-from VerseReferences import SimpleVerseKey
-from PickledBible import ZIPPED_PICKLE_FILENAME_END
+from Reference.VerseReferences import SimpleVerseKey
+from Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 
 
 
@@ -239,11 +240,13 @@ def parseAndApplySettings( self ):
     try: self.lastParatextFileDir = self.settings.data['Paths']['lastParatextFileDir']
     except KeyError: pass # use program default
     finally:
-        if self.lastParatextFileDir[-1] not in '/\\': self.lastParatextFileDir += '/'
+        if isinstance( self.lastParatextFileDir, str) and self.lastParatextFileDir[-1] not in '/\\':
+            self.lastParatextFileDir += '/'
     try: self.lastInternalBibleDir = self.settings.data['Paths']['lastInternalBibleDir']
     except KeyError: pass # use program default
     finally:
-        if self.lastInternalBibleDir[-1] not in '/\\': self.lastInternalBibleDir += '/'
+        if isinstance( self.lastInternalBibleDir, str) and self.lastInternalBibleDir[-1] not in '/\\':
+            self.lastInternalBibleDir += '/'
     try: self.lastSwordDir = self.settings.data['Paths']['lastSwordDir']
     except KeyError: pass # use program default
     finally:
@@ -643,7 +646,7 @@ def writeSettingsFile( self ):
     self.settings.data[APP_NAME] = {}
     mainStuff = self.settings.data[APP_NAME]
     mainStuff['settingsVersion'] = SettingsVersion
-    mainStuff['programVersion'] = ProgVersion
+    mainStuff['programVersion'] = programVersion
     mainStuff['themeName'] = self.themeName
     if 0 and debuggingThisModule:
         print( " root geometry", self.rootWindow.geometry(), "root winfo_geometry", self.rootWindow.winfo_geometry() )
@@ -696,11 +699,11 @@ def writeSettingsFile( self ):
     # Save the last paths
     self.settings.data['Paths'] = {}
     paths = self.settings.data['Paths']
-    paths['lastFileDir'] = self.lastFileDir
-    paths['lastBiblelatorFileDir'] = self.lastBiblelatorFileDir
-    paths['lastParatextFileDir'] = self.lastParatextFileDir
-    paths['lastInternalBibleDir'] = self.lastInternalBibleDir
-    paths['lastSwordDir'] = self.lastSwordDir
+    paths['lastFileDir'] = str(self.lastFileDir)
+    paths['lastBiblelatorFileDir'] = str(self.lastBiblelatorFileDir)
+    paths['lastParatextFileDir'] = str(self.lastParatextFileDir)
+    paths['lastInternalBibleDir'] = str(self.lastInternalBibleDir)
+    paths['lastSwordDir'] = str(self.lastSwordDir)
 
     # Save the recent files
     self.settings.data['RecentFiles'] = {}
@@ -865,7 +868,7 @@ def doSendUsageStatistics( self ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
@@ -873,7 +876,7 @@ def demo():
     """
     import sys, tkinter as tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag:
@@ -885,7 +888,7 @@ def demo():
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
@@ -894,7 +897,7 @@ def demo():
 
     application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -910,10 +913,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BiblelatorSettingsFunctions.py

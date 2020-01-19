@@ -31,16 +31,17 @@ The add-on can be used to build other editing windows.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
-ShortProgName = "TextEditWindow"
-ProgName = "Biblelator Text Edit Window"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-03-15' # by RJH
+shortProgramName = "BiblelatorTextEditWindow"
+programName = "Biblelator Text Edit Window"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
-import os.path, logging, shutil
+import os.path
+import logging, shutil
 from datetime import datetime
 
 import tkinter as tk
@@ -81,7 +82,7 @@ class TextEditWindowAddon:
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "TextEditWindowAddon.__init__( {}, {}, {} )".format( windowType, folderPath, filename ) )
         self.windowType, self.folderPath, self.filename = windowType, folderPath, filename
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextEditWindowAddon __init__ {} {} {}'.format( windowType, folderPath, filename ) )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'TextEditWindowAddon __init__ {} {} {}'.format( windowType, folderPath, filename ) )
 
         self.filepath = os.path.join( folderPath, filename ) if folderPath and filename else None
         self.moduleID = None
@@ -1222,7 +1223,7 @@ class TextEditWindowAddon:
             if debuggingThisModule: print( "doViewLog()" )
             self.parentApp.setDebugText( "doViewLog…" )
 
-        filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        filename = programName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self.parentApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.parentApp.loggingFolderPath, filename ) \
@@ -1245,7 +1246,7 @@ class TextEditWindowAddon:
             print( "TextEditWindowAddon.doHelp( {} )".format( event ) )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -1263,7 +1264,7 @@ class TextEditWindowAddon:
             print( "TextEditWindowAddon.doAbout( {} )".format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
@@ -1326,7 +1327,7 @@ class TextEditWindow( TextEditWindowAddon, ChildWindow ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "TextEditWindow.__init__( {}, {}, {} )".format( parentApp, folderPath, filename ) )
         self.folderPath, self.filename = folderPath, filename
-        parentApp.logUsage( ProgName, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderPath, filename ) )
+        parentApp.logUsage( programName, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderPath, filename ) )
 
         ChildWindow.__init__( self, parentApp, 'TextEditor' )
         TextEditWindowAddon.__init__( self, 'PlainTextEditWindow', folderPath, filename )
@@ -1413,17 +1414,17 @@ class TextEditWindow( TextEditWindowAddon, ChildWindow ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     tEW = TextEditWindow( tkRootWindow )
@@ -1438,10 +1439,10 @@ if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of TextEditWindow.py

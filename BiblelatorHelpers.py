@@ -37,12 +37,12 @@ TODO: Can some of these non-GUI functions be (made more general and) moved to th
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-04-24' # by RJH
-ShortProgName = "BiblelatorHelpers"
-ProgName = "Biblelator helpers"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-04-24' # by RJH
+shortProgramName = "BiblelatorHelpers"
+programName = "Biblelator helpers"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
@@ -57,9 +57,9 @@ from BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 # BibleOrgSys imports
 import BibleOrgSysGlobals
 from Bible import Bible
-from VerseReferences import SimpleVerseKey, BBB_RE #, FlexibleVersesKey
-from BibleReferencesLinks import BibleReferencesLinks
-from InternalBibleInternals import InternalBibleEntry
+from Reference.VerseReferences import SimpleVerseKey, BBB_RE #, FlexibleVersesKey
+from Reference.BibleReferencesLinks import BibleReferencesLinks
+from Internals.InternalBibleInternals import InternalBibleEntry
 
 
 
@@ -596,18 +596,18 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
 
 
 
-def demo():
+def demo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
     #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
     #print( "swndResult", swnd.result )
@@ -628,10 +628,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BiblelatorHelpers.py

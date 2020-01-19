@@ -30,12 +30,12 @@ Framework for modal dialogs for the Biblelator program.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
-ShortProgName = "ModalDialog"
-ProgName = "Modal Dialog"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-03-15' # by RJH
+shortProgramName = "BiblelatorModalDialog"
+programName = "Biblelator Modal Dialog"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
@@ -43,7 +43,7 @@ debuggingThisModule = False
 import tkinter as tk
 from tkinter.ttk import Frame, Button
 
-if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
@@ -220,19 +220,19 @@ class MyTestDialog( ModalDialog ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
     tkRootWindow.parentApp = tkRootWindow
     def ss( a ): pass
     tkRootWindow.setStatus = ss
@@ -249,10 +249,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of ModalDialog.py

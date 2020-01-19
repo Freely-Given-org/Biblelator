@@ -33,17 +33,19 @@ This module contains most of the helper functions for loading the autocomplete
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-11-25' # by RJH
-ShortProgName = "AutocompleteFunctions"
-ProgName = "Biblelator Autocomplete Functions"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-11-25' # by RJH
+shortProgramName = "AutocompleteFunctions"
+programName = "Biblelator Autocomplete Functions"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
 
-import sys, os, logging
+import sys
+import os
+import logging
 import multiprocessing
 import time
 from collections import defaultdict
@@ -54,10 +56,10 @@ import tkinter as tk
 from TextBoxes import TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE
 
 # BibleOrgSys imports
-if __name__ == '__main__': sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
 #from InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
-from USFM3Markers import USFM_PRINTABLE_MARKERS
+from Reference.USFM3Markers import USFM_PRINTABLE_MARKERS
 
 
 
@@ -883,19 +885,19 @@ def addNewAutocompleteWord( self, possibleNewWord ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     import tkinter as tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     #uEW = AutocompleteFunctions( tkRootWindow, None )
@@ -910,10 +912,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of AutocompleteFunctions.py

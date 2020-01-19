@@ -27,18 +27,18 @@
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
-ShortProgName = "AutocorrectFunctions"
-ProgName = "Biblelator Autocorrect Functions"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-03-15' # by RJH
+shortProgramName = "AutocorrectFunctions"
+programName = "Biblelator Autocorrect Functions"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
 
 # BibleOrgSys imports
-if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
@@ -113,19 +113,19 @@ def setDefaultAutocorrectEntries( self ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     import tkinter as tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     #uEW = AutocorrectFunctions( tkRootWindow, None )
@@ -140,10 +140,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of AutocorrectFunctions.py

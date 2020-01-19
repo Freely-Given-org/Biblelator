@@ -28,12 +28,12 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
-ShortProgName = "ESFMEditWindow"
-ProgName = "Biblelator ESFM Edit Window"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-03-15' # by RJH
+shortProgramName = "ESFMEditWindow"
+programName = "Biblelator ESFM Edit Window"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
@@ -57,9 +57,9 @@ import tkinter as tk
 from USFMEditWindow import USFMEditWindow
 
 # BibleOrgSys imports
-if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
-#from VerseReferences import SimpleVerseKey
+#from Reference.VerseReferences import SimpleVerseKey
 #from BibleWriter import setDefaultControlFolder
 
 
@@ -70,17 +70,17 @@ class ESFMEditWindow( USFMEditWindow ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     eEW = ESFMEditWindow( tkRootWindow, None )
@@ -95,10 +95,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of ESFMEditWindow.py

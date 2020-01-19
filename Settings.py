@@ -44,12 +44,12 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
-ShortProgName = "Settings"
-ProgName = "Biblelator Settings"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-03-15' # by RJH
+shortProgramName = "BiblelatorSettings"
+programName = "Biblelator Settings"
+programVersion = '0.45'
+programNameVersion = f'{shortProgramName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
@@ -279,21 +279,21 @@ class ProjectSettings( Settings ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
-    print( "Running {} demo…".format( ProgName ) )
+    print( "Running {} demo…".format( programName ) )
 
     tkRootWindow = Tk()
     # Calls to the window manager class (wm in Tk)
     tkRootWindow.geometry( "{}x{}+{}+{}".format( 320, 100, 2000, 100 ) ) # width, height, xOffset, yOffset
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
     tkRootWindow.minsize( 300, 50 )
     tkRootWindow.maxsize( 400, 200 )
 
@@ -303,7 +303,7 @@ def demo():
         #print( repr(something) )
 
 
-    settings = ApplicationSettings( BibleOrgSysGlobals.findHomeFolderPath(), 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    settings = ApplicationSettings( BibleOrgSysGlobals.findHomeFolderPath(), 'BiblelatorData/', 'BiblelatorSettings/', programName )
     settings.load()
     print( str(settings) )
     print( repr(settings) )
@@ -320,10 +320,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of Settings.py

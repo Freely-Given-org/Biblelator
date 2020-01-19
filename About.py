@@ -5,7 +5,7 @@
 #
 # About box for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2018 Robert Hunt
+# Copyright (C) 2014-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -28,12 +28,12 @@ A simple About box window containing text and an optional logo.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
-ShortProgName = "About"
-ProgName = "About Box"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2020-01-05' # by RJH
+shortProgramName = "BiblelatorAbout"
+programName = "BiblelatorAbout Box"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
@@ -42,7 +42,7 @@ import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Frame, Button
 
-from BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE, MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE, \
+from BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE, \
                                 parseWindowSize, centreWindowOnWindow
 
 import BibleOrgSysGlobals
@@ -52,7 +52,7 @@ import BibleOrgSysGlobals
 class AboutBox( tk.Toplevel ):
     """
     """
-    def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
+    def __init__( self, parent=None, progName=None, text=None, logoPath=None ) -> None:
         """
         """
         #if BibleOrgSysGlobals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
@@ -126,13 +126,13 @@ class AboutBox( tk.Toplevel ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
     #from tkinter import Tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     print( "Running demo…" )
@@ -142,9 +142,9 @@ def demo():
         #print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
             print( 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
-    tkRootWindow.title( ProgNameVersion )
-    ab = AboutBox( tkRootWindow, ProgName, ProgNameVersion )
-    #ab = AboutBox2( tkRootWindow, ProgName, ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
+    ab = AboutBox( tkRootWindow, programName, programNameVersion )
+    #ab = AboutBox2( tkRootWindow, programName, programNameVersion )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
@@ -159,10 +159,10 @@ if __name__ == '__main__':
 
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of About.py

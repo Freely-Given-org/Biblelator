@@ -114,17 +114,18 @@ TODO: Work out how to automatically test keypresses in dialogs.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-23'
-ShortProgName = "BiblelatorDialogs"
-ProgName = "Biblelator dialogs"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2019-09-19'
+shortProgramName = "BiblelatorDialogs"
+programName = "Biblelator dialogs"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
 
-import os, logging
+import os
+import logging
 import urllib.request
 
 import tkinter as tk
@@ -139,7 +140,7 @@ from TextBoxes import BEntry, BCombobox, BText
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
-from PickledBible import ZIPPED_PICKLE_FILENAME_END
+from Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 
 
 
@@ -2602,15 +2603,15 @@ class DownloadResourcesDialog( ModalDialog ):
             for abbrev,dateTimeString in availableResourceList:
                 #print( "aRD", repr(availableResourceDict) )
                 filename = abbrev + ZIPPED_PICKLE_FILENAME_END
-                resourceFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, filename )
+                resourceFilepath = BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( filename )
                 itemString = None
                 if os.path.exists( resourceFilepath ):
                     if debuggingThisModule: print( "You already have", resourceFilepath )
                     #print( os.stat(resourceFilepath) )
-                    #print( os.stat(resourceFilepath)[8], datetime.fromtimestamp(os.stat(resourceFilepath)[8]) )
-                    #print( os.stat(resourceFilepath)[9], datetime.fromtimestamp(os.stat(resourceFilepath)[9]) )
-                    fileDateTime1 = datetime.fromtimestamp( os.stat(resourceFilepath)[8] )
-                    fileDateTime2 = datetime.fromtimestamp( os.stat(resourceFilepath)[9] )
+                    #print( os.stat(resourceFilepath).st_mtime, datetime.fromtimestamp(os.stat(resourceFilepath).st_mtime) )
+                    #print( os.stat(resourceFilepath).st_ctime, datetime.fromtimestamp(os.stat(resourceFilepath).st_ctime) )
+                    fileDateTime1 = datetime.fromtimestamp( os.stat(resourceFilepath).st_mtime )
+                    fileDateTime2 = datetime.fromtimestamp( os.stat(resourceFilepath).st_ctime )
                     #print( "  fileDateTime1", fileDateTime1 )
                     serverDateTime = datetime.strptime( dateTimeString, '%Y-%m-%d %H:%M' )
                     #print( "  serverDateTime", serverDateTime )
@@ -2671,17 +2672,17 @@ class DownloadResourcesDialog( ModalDialog ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
     # We need to set a parentApp variable and setStatus/setReadyStatus functions
     class tempApp():
@@ -2768,10 +2769,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BiblelatorDialogs.py

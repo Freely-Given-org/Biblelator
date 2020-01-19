@@ -32,12 +32,12 @@ A Bible reference collection is a collection of different Bible references
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-12' # by RJH
-ShortProgName = "BibleReferenceCollection"
-ProgName = "Biblelator Bible Reference Collection"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-12-12' # by RJH
+shortProgramName = "BibleReferenceCollection"
+programName = "Biblelator Bible Reference Collection"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
@@ -60,8 +60,8 @@ from TextBoxes import BibleBoxAddon
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
-from VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
-from BibleOrganisationalSystems import BibleOrganisationalSystem
+from Reference.VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
+from Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
 
 
 MAX_CACHED_VERSES = 30 # Per Bible resource window
@@ -614,7 +614,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             print( "BibleReferenceCollectionWindow.doHelp()" )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -632,7 +632,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             print( "BibleReferenceCollectionWindow.doAbout()" )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion + '\n'
+        aboutInfo = programNameVersion + '\n'
         aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
         aboutInfo += '\n' + _("A Bible Reference Collection box can contain multiple different Scripture references all shown from the same resource translation or commentary.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
@@ -642,25 +642,25 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
-    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', programName )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -673,10 +673,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BibleReferenceCollection.py

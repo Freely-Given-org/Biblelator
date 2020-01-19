@@ -76,17 +76,18 @@ A Bible resource collection is a collection of different Bible resources
 
 from gettext import gettext as _
 
-LastModifiedDate = '2019-05-12' # by RJH
-ShortProgName = "BibleResourceCollection"
-ProgName = "Biblelator Bible Resource Collection"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2019-05-12' # by RJH
+shortProgramName = "BibleResourceCollection"
+programName = "Biblelator Bible Resource Collection"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
 
-import os, logging
+import os
+import logging
 from collections import OrderedDict
 
 import tkinter as tk
@@ -106,15 +107,15 @@ from TextBoxes import BText, ChildBoxAddon, BibleBoxAddon, HebrewInterlinearBibl
 from BiblelatorHelpers import handleInternalBibles
 
 # BibleOrgSys imports
-#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
+#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
 from Bible import Bible
-from VerseReferences import SimpleVerseKey
-from DBPOnline import DBPBibles, DBPBible
-from SwordResources import SwordType, SwordInterface
+from Reference.VerseReferences import SimpleVerseKey
+from Online.DBPOnline import DBPBibles, DBPBible
+from Formats.SwordResources import SwordType, SwordInterface
 from UnknownBible import UnknownBible
-from PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
-from BibleOrganisationalSystems import BibleOrganisationalSystem
+from Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
+from Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
 
 
 MAX_CACHED_VERSES = 30 # Per Bible resource window
@@ -131,7 +132,7 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+        nameBit = '{}{}{}'.format( shortProgramName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit, errorBit )
 # end of exp
 
@@ -482,7 +483,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         """
         Called from the GUI.
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'moveDown: {} {}'.format( self.boxType, self.moduleID ) )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'moveDown: {} {}'.format( self.boxType, self.moduleID ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleResourceBox.doMeDown( {} )").format( event ) )
 
@@ -493,7 +494,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         """
         Called from the GUI.
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'moveUp: {} {}'.format( self.boxType, self.moduleID ) )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'moveUp: {} {}'.format( self.boxType, self.moduleID ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("BibleResourceBox.doMeUp( {} )").format( event ) )
 
@@ -1041,7 +1042,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         self.parentApp.setWaitStatus( _("doOpenNewBOSBibleResourceBox…") )
 
         # Get the info about available resources to display to the user
-        infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, extended=True )
+        infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH, extended=True )
         crd = ChooseResourcesDialog( self, infoDictList, title=_("Select resource(s)") )
         if not crd.result:
             self.parentApp.setReadyStatus()
@@ -1049,7 +1050,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         assert isinstance( crd.result, list ) # Should be a list of zip files
         for zipFilename in crd.result:
             assert zipFilename.endswith( ZIPPED_PICKLE_FILENAME_END )
-            zipFilepath = os.path.join( BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDER, zipFilename )
+            zipFilepath = BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( zipFilename )
             assert os.path.isfile( zipFilepath )
             #if '/WLC.' in zipFilepath: self.openHebrewBibleResourceBox( zipFilepath )
             self.openInternalBibleResourceBox( zipFilepath )
@@ -1197,7 +1198,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             print( exp("BibleResourceCollectionWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -1215,7 +1216,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             print( exp("BibleResourceCollectionWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion + '\n'
+        aboutInfo = programNameVersion + '\n'
         aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
         aboutInfo += '\n' + _("A Bible Resource Collection box can contain multiple different resource translations or commentaries, all showing the same Scripture reference.") + '\n'
         aboutInfo += '\n' + _("Use this window's Resources menu to add a/another resource to the window. Use the up and down arrows to order the resources within the window.")
@@ -1226,25 +1227,25 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( exp("Running demo…") )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
-    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', programName )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -1257,7 +1258,7 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -1267,5 +1268,5 @@ if __name__ == '__main__':
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BibleResourceCollection.py

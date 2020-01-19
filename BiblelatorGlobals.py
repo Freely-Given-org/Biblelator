@@ -39,12 +39,12 @@ Global variables and functions for program
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-10-26' # by RJH
-ShortProgName = "BiblelatorGlobals"
-ProgName = "Biblelator Globals"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-10-26' # by RJH
+shortProgramName = "BiblelatorGlobals"
+programName = "Biblelator Globals"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
@@ -52,14 +52,14 @@ debuggingThisModule = False
 import os, re
 
 # BibleOrgSys imports
-import sys; sys.path.append( '../BibleOrgSys/' )
+import sys; sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
 
 # Programmed settings
-APP_NAME = 'Biblelator' # Ugly coz doesn't necessarily match the ProgName in Biblelator.py
-APP_NAME_VERSION = '{} v{}'.format( APP_NAME, ProgVersion ) # Ugly coz doesn't necessarily match the ProgVersion in Biblelator.py
+APP_NAME = 'Biblelator' # Ugly coz doesn't necessarily match the programName in Biblelator.py
+APP_NAME_VERSION = '{} v{}'.format( APP_NAME, programVersion ) # Ugly coz doesn't necessarily match the programVersion in Biblelator.py
 DATA_FOLDER_NAME = APP_NAME + 'Data/'
 LOGGING_SUBFOLDER_NAME = APP_NAME + 'Logs/'
 SETTINGS_SUBFOLDER_NAME = APP_NAME + 'Settings/'
@@ -223,12 +223,12 @@ def errorBeep():
 # end of errorBeep
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
@@ -242,13 +242,13 @@ def demo():
     print( "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
 
     #tkRootWindow = Tk()
-    #tkRootWindow.title( ProgNameVersion )
-    #settings = ApplicationSettings( DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
+    #tkRootWindow.title( programNameVersion )
+    #settings = ApplicationSettings( DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, programName )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -261,10 +261,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BiblelatorGlobals.py

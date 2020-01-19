@@ -157,17 +157,20 @@ Base windows to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-15' # by RJH
-ShortProgName = "ChildWindows"
-ProgName = "Biblelator Child Windows"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-03-15' # by RJH
+shortProgramName = "ChildWindows"
+programName = "Biblelator Child Windows"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
 
-import sys, os.path, logging, re
+import sys
+import os.path
+import logging
+import re
 
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
@@ -325,7 +328,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        #if 'textBox' in dir(self): # we have one already -- presumably a specialised one
+        #if 'textBox' in self.__dict__: # we have one already -- presumably a specialised one
             #halt # We have one already
         #else: # let's make one
 
@@ -606,7 +609,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
             #print( _("SHOULD NEVER BE USED ChildWindow.doHelp( {} )").format( event ) )
         #from Help import HelpBox
 
-        #helpInfo = ProgNameVersion
+        #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
         #helpInfo += '\n  ' + _("Keyboard shortcuts:")
         #for name,shortcut in self.myKeyboardBindingsList:
@@ -624,7 +627,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
             #print( _("SHOULD NEVER BE USED ChildWindow.doAbout( {} )").format( event ) )
         #from About import AboutBox
 
-        #aboutInfo = ProgNameVersion
+        #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK
@@ -1097,7 +1100,7 @@ class TextWindow( ChildWindow ):
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'TextWindow doShowInfo' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'TextWindow doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( _("ChildBoxAddon.doShowInfo( {} )").format( event ) )
 
@@ -1124,7 +1127,7 @@ class TextWindow( ChildWindow ):
             print( _("TextWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += "\nHelp for {}".format( self.windowType )
         helpInfo += "\n  Keyboard shortcuts:"
         for name,shortcut in self.myKeyboardBindingsList:
@@ -1142,7 +1145,7 @@ class TextWindow( ChildWindow ):
             print( _("TextWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
@@ -1218,7 +1221,7 @@ class HTMLWindow( ChildWindow ):
         self.vScrollbar = Scrollbar( self )
         self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
 
-        #if 'textBox' in dir(self): # we have one already -- presumably a specialised one
+        #if 'textBox' in self.__dict__: # we have one already -- presumably a specialised one
             #halt # We have one already
         #else: # let's make one
 
@@ -1560,7 +1563,7 @@ class HTMLWindow( ChildWindow ):
             print( _("HTMLWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -1578,7 +1581,7 @@ class HTMLWindow( ChildWindow ):
             print( _("HTMLWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
@@ -2059,7 +2062,7 @@ class FindResultWindow( tk.Toplevel ):
         """
         Pop-up dialog giving find info
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'FindResultWindow doShowInfo' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'FindResultWindow doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( _("FindResultWindow.doShowInfo( {} )").format( event ) )
 
@@ -2103,7 +2106,7 @@ class FindResultWindow( tk.Toplevel ):
             print( _("FindResultWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -2121,7 +2124,7 @@ class FindResultWindow( tk.Toplevel ):
             print( _("FindResultWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
@@ -2889,7 +2892,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Pop-up dialog giving find info
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'CollateProjectsWindow doShowInfo' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'CollateProjectsWindow doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( _("CollateProjectsWindow.doShowInfo( {} )").format( event ) )
 
@@ -2933,7 +2936,7 @@ class CollateProjectsWindow( tk.Toplevel ):
             print( _("CollateProjectsWindow.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -2951,7 +2954,7 @@ class CollateProjectsWindow( tk.Toplevel ):
             print( _("CollateProjectsWindow.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
@@ -3009,25 +3012,25 @@ class CollateProjectsWindow( tk.Toplevel ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( _("Running demo…") )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( ProgNameVersion )
-    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    tkRootWindow.title( programNameVersion )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', programName )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -3040,10 +3043,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of ChildWindows.py

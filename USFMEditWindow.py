@@ -28,16 +28,17 @@ This is a text editor window that knows about the special structure of USFM file
 
 from gettext import gettext as _
 
-LastModifiedDate = '2019-05-12' # by RJH
-ShortProgName = "USFMEditWindow"
-ProgName = "Biblelator USFM Edit Window"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2019-05-12' # by RJH
+shortProgramName = "BiblelatorUSFMEditWindow"
+programName = "Biblelator USFM Edit Window"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
-import os.path, logging
+import os.path
+import logging
 from collections import OrderedDict
 
 import tkinter as tk
@@ -61,8 +62,8 @@ from AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutoc
 
 # BibleOrgSys imports
 import BibleOrgSysGlobals
-from VerseReferences import SimpleVerseKey
-from USFMBible import findReplaceText
+from Reference.VerseReferences import SimpleVerseKey
+from Formats.USFMBible import findReplaceText
 
 
 
@@ -164,7 +165,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         logging.debug( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, UBSourceFolder ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.__init__( {}, {} ) {}".format( parentApp, USFMBible, UBSourceFolder ) )
-        parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( UBSourceFolder ) )
+        parentApp.logUsage( programName, debuggingThisModule, 'USFMEditWindow __init__ {}'.format( UBSourceFolder ) )
 
         ChildWindow.__init__( self, parentApp, 'TextEditor' )
         InternalBibleResourceWindowAddon.__init__( self, None, BIBLE_CONTEXT_VIEW_MODES[0], 'Unformatted' )
@@ -294,13 +295,13 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
     #def xxdoHelp( self ):
         #from Help import HelpBox
-        #hb = HelpBox( self.parentApp, ProgName, ProgNameVersion )
+        #hb = HelpBox( self.parentApp, programName, programNameVersion )
     ## end of USFMEditWindow.doHelp
 
 
     #def xxdoAbout( self ):
         #from About import AboutBox
-        #ab = AboutBox( self.parentApp, ProgName, ProgNameVersion )
+        #ab = AboutBox( self.parentApp, programName, programNameVersion )
     ## end of USFMEditWindow.doAbout
 
 
@@ -516,7 +517,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     def doAdjustOptions( self ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'doAdjustOptions' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'doAdjustOptions' )
         logging.debug( "doAdjustOptions()" )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "doAdjustOptions()" )
@@ -531,7 +532,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     def prepareAutocomplete( self ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'prepareAutocomplete' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'prepareAutocomplete' )
         logging.debug( "prepareAutocomplete()" )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "prepareAutocomplete()" )
@@ -793,7 +794,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'doShowInfo' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'doShowInfo' )
         logging.debug( "USFMEditWindow.doShowInfo( {} )".format( event ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.doShowInfo( {} )".format( event ) )
@@ -1451,7 +1452,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     def doBibleReplace( self, event=None ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow doBibleReplace' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'USFMEditWindow doBibleReplace' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.doBibleReplace( {} )".format( event ) )
 
@@ -1470,7 +1471,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             #self.textBox.update()
             #self.textBox.focus()
             #self.lastReplace = key
-            self.parentApp.logUsage( ProgName, debuggingThisModule, ' doBibleReplace {}'.format( self.BibleReplaceOptionsDict ) )
+            self.parentApp.logUsage( programName, debuggingThisModule, ' doBibleReplace {}'.format( self.BibleReplaceOptionsDict ) )
             #self._prepareInternalBible() # Make sure that all books are loaded
             self.doSave() # Make sure that any saves are made to disk
             # We load and search/replace the actual text files
@@ -1551,7 +1552,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             and then link A->B to show OT references from the NT (etc.)
         """
         logging.info( "USFMEditWindow.startReferenceMode()" )
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.startReferenceMode' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'USFMEditWindow.startReferenceMode' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.startReferenceMode()" )
 
@@ -1583,7 +1584,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             and then link A->BCD to show synoptic gospel parallels (etc.)
         """
         logging.info( "USFMEditWindow.startParallelMode()" )
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.startParallelMode' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'USFMEditWindow.startParallelMode' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.startParallelMode()" )
 
@@ -1616,7 +1617,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             and then link A->B to show OT references from the NT (etc.)
         """
         logging.info( "USFMEditWindow.startReferencesMode()" )
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.startReferencesMode' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'USFMEditWindow.startReferencesMode' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "USFMEditWindow.startReferencesMode()" )
 
@@ -1648,7 +1649,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         Open a pop-up text window with the current settings displayed.
         """
         logging.debug( "doViewSettings()" )
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'USFMEditWindow.doViewSettings' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'USFMEditWindow.doViewSettings' )
         if BibleOrgSysGlobals.debugFlag:
             print( "doViewSettings()" )
             self.parentApp.setDebugText( "doViewSettings…" )
@@ -1699,7 +1700,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             #print( "USFMEditWindow.doHelp( {} )".format( event ) )
         #from Help import HelpBox
 
-        #helpInfo = ProgNameVersion
+        #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
         #helpInfo += '\n  ' + _("Keyboard shortcuts:")
         #for name,shortcut in self.myKeyboardBindingsList:
@@ -1716,7 +1717,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             #print( "USFMEditWindow.doAbout( {} )".format( event ) )
         #from About import AboutBox
 
-        #aboutInfo = ProgNameVersion
+        #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK
@@ -1738,17 +1739,17 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     uEW = USFMEditWindow( tkRootWindow, None )
@@ -1763,10 +1764,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of USFMEditWindow.py

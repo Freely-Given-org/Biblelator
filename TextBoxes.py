@@ -107,12 +107,12 @@ Base widgets to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2019-05-12' # by RJH
-ShortProgName = "TextBoxes"
-ProgName = "Specialised text widgets"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2019-05-12' # by RJH
+shortProgramName = "BiblelatorTextBoxes"
+programName = "Biblelator specialised text widgets"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
@@ -130,12 +130,12 @@ from BiblelatorSimpleDialogs import showError, showInfo
 
 
 # BibleOrgSys imports
-#if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
+#import sys; sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
-from InternalBibleInternals import InternalBibleEntry
-from VerseReferences import SimpleVerseKey
-from BibleStylesheets import DEFAULT_FONTNAME, DEFAULT_FONTSIZE
-from HebrewWLCBible import ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR
+from Internals.InternalBibleInternals import InternalBibleEntry
+from Reference.VerseReferences import SimpleVerseKey
+from Reference.BibleStylesheets import DEFAULT_FONTNAME, DEFAULT_FONTSIZE
+from OriginalLanguages.HebrewWLCBible import ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR
 
 
 
@@ -896,7 +896,7 @@ class ChildBoxAddon():
     def doGotoWindowLine( self, event=None, forceline=None ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doGotoWindowLine {}'.format( forceline ) )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'ChildBoxAddon doGotoWindowLine {}'.format( forceline ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "ChildBoxAddon.doGotoWindowLine( {}, {} )".format( event, forceline ) )
 
@@ -920,7 +920,7 @@ class ChildBoxAddon():
     def doBoxFind( self, event=None, lastkey=None ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doBoxFind {!r}'.format( lastkey ) )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'ChildBoxAddon doBoxFind {!r}'.format( lastkey ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "ChildBoxAddon.doBoxFind( {}, {!r} )".format( event, lastkey ) )
 
@@ -947,7 +947,7 @@ class ChildBoxAddon():
     def doBoxRefind( self, event=None ):
         """
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doBoxRefind' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'ChildBoxAddon doBoxRefind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "ChildBoxAddon.doBoxRefind( {} ) for {!r}".format( event, self.lastfind ) )
 
@@ -961,7 +961,7 @@ class ChildBoxAddon():
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'ChildBoxAddon doShowInfo' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'ChildBoxAddon doShowInfo' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "ChildBoxAddon.doShowInfo( {} )".format( event ) )
 
@@ -1531,7 +1531,7 @@ class BibleBoxAddon():
         """
         from BiblelatorDialogs import GetBibleFindTextDialog
 
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBoxAddon doBibleFind' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'BibleBoxAddon doBibleFind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleBoxAddon.doBibleFind( {} )".format( event ) )
 
@@ -1563,7 +1563,7 @@ class BibleBoxAddon():
         """
         from ChildWindows import FindResultWindow
 
-        self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBoxAddon doActualBibleFind' )
+        self.parentApp.logUsage( programName, debuggingThisModule, 'BibleBoxAddon doActualBibleFind' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
 
@@ -1571,7 +1571,7 @@ class BibleBoxAddon():
         #self.textBox.update()
         #self.textBox.focus()
         #self.lastfind = key
-        self.parentApp.logUsage( ProgName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        self.parentApp.logUsage( programName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
         #print( "bookList", repr(self.BibleFindOptionsDict['bookList']) )
         bookCode = None
         if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
@@ -2069,7 +2069,7 @@ class BibleBoxAddon():
         ##"""
         ##from BiblelatorDialogs import GetBibleFindTextDialog
 
-        ##self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doBibleFind' )
+        ##self.parentApp.logUsage( programName, debuggingThisModule, 'BibleBox doBibleFind' )
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             ##print( "BibleBox.doBibleFind( {} )".format( event ) )
 
@@ -2101,7 +2101,7 @@ class BibleBoxAddon():
         ##"""
         ##from ChildWindows import FindResultWindow
 
-        ##self.parentApp.logUsage( ProgName, debuggingThisModule, 'BibleBox doActualBibleFind' )
+        ##self.parentApp.logUsage( programName, debuggingThisModule, 'BibleBox doActualBibleFind' )
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             ##print( "BibleBox.doActualBibleFind( {} )".format( extendTo ) )
 
@@ -2109,7 +2109,7 @@ class BibleBoxAddon():
         ###self.textBox.update()
         ###self.textBox.focus()
         ###self.lastfind = key
-        ##self.parentApp.logUsage( ProgName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        ##self.parentApp.logUsage( programName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
         ###print( "bookList", repr(self.BibleFindOptionsDict['bookList']) )
         ##bookCode = None
         ##if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
@@ -3014,7 +3014,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         #"""
         #from BiblelatorDialogs import GetBibleFindTextDialog
 
-        #self.parentApp.logUsage( ProgName, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doBibleFind' )
+        #self.parentApp.logUsage( programName, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doBibleFind' )
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( "HebrewInterlinearBibleBoxAddon.doBibleFind( {} )".format( event ) )
 
@@ -3046,7 +3046,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         #"""
         #from ChildWindows import FindResultWindow
 
-        #self.parentApp.logUsage( ProgName, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doActualBibleFind' )
+        #self.parentApp.logUsage( programName, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doActualBibleFind' )
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #print( "HebrewInterlinearBibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
 
@@ -3054,7 +3054,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         ##self.textBox.update()
         ##self.textBox.focus()
         ##self.lastfind = key
-        #self.parentApp.logUsage( ProgName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        #self.parentApp.logUsage( programName, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
         ##print( "bookList", repr(self.BibleFindOptionsDict['bookList']) )
         #bookCode = None
         #if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
@@ -3109,26 +3109,26 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
 
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( ProgNameVersionDate if BibleOrgSysGlobals.debugFlag else ProgNameVersion )
+    tkRootWindow.title( programNameVersionDate if BibleOrgSysGlobals.debugFlag else programNameVersion )
 
     HTMLTextBoxbox = HTMLTextBox( tkRootWindow )
     HTMLTextBoxbox.pack()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -3141,10 +3141,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of TextBoxes.py

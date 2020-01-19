@@ -32,19 +32,21 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-12-12' # by RJH
-ShortProgName = "SwordManager"
-ProgName = "Sword Manager"
-ProgVersion = '0.05' # Separate versioning from Biblelator
-ProgNameVersion = '{} v{}'.format( ShortProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-12-12' # by RJH
+shortProgramName = "SwordManager"
+programName = "Sword Manager"
+programVersion = '0.05' # Separate versioning from Biblelator
+programNameVersion = f'{shortProgramName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
 
-import sys, os, logging, subprocess
+import sys
+import os
+import logging, subprocess
 import multiprocessing
-from collections import OrderedDict
+#from collections import OrderedDict
 
 
 import tkinter as tk
@@ -52,7 +54,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
-sys.path.append( '.' ) # So we can run it from the above folder and still do these imports
+sys.path.append( os.path.join(os.path.dirname(__file__), '../BibleOrgSys/') ) # So we can run it from the above folder and still do these imports
 from BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
@@ -71,15 +73,15 @@ from ChildWindows import ChildWindows
 from TextEditWindow import TextEditWindow
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 #if debuggingThisModule: print( 'sys.path = ', sys.path )
 import BibleOrgSysGlobals
-from BibleOrganisationalSystems import BibleOrganisationalSystem
-#from BibleVersificationSystems import BibleVersificationSystems
-#from VerseReferences import SimpleVerseKey
-from BibleStylesheets import BibleStylesheet
-from SwordResources import SwordType, SwordInterface
-from SwordInstallManager import SwordInstallManager
+from Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
+#from Reference.BibleVersificationSystems import BibleVersificationSystems
+#from Reference.VerseReferences import SimpleVerseKey
+from Reference.BibleStylesheets import BibleStylesheet
+from Formats.SwordResources import SwordType, SwordInterface
+from Online.SwordInstallManager import SwordInstallManager
 
 
 
@@ -99,7 +101,7 @@ def exp( messageString ):
     try: nameBit, errorBit = messageString.split( ': ', 1 )
     except ValueError: nameBit, errorBit = '', messageString
     if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
-        nameBit = '{}{}{}'.format( ShortProgName, '.' if nameBit else '', nameBit )
+        nameBit = '{}{}{}'.format( shortProgramName, '.' if nameBit else '', nameBit )
     return '{}{}'.format( nameBit+': ' if nameBit else '', errorBit )
 # end of exp
 
@@ -184,7 +186,7 @@ class SwordManager( Frame ):
 
         # Read and apply the saved settings
         #parseAndApplySettings( self )
-        if not self.settings or ProgName not in self.settings.data or 'windowSize' not in self.settings.data[ProgName] or 'windowPosition' not in self.settings.data[ProgName]:
+        if not self.settings or programName not in self.settings.data or 'windowSize' not in self.settings.data[programName] or 'windowPosition' not in self.settings.data[programName]:
             initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
@@ -206,7 +208,7 @@ class SwordManager( Frame ):
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForDeveloperMessages()
 
-        self.rootWindow.title( ProgNameVersion )
+        self.rootWindow.title( programNameVersion )
         self.minimumSize = MINIMUM_MAIN_SIZE
         self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
@@ -597,7 +599,7 @@ class SwordManager( Frame ):
         # Sources page
         print( "Create sources page" )
         if self.repoDict is None:
-            self.repoDict = OrderedDict()
+            self.repoDict = {}
             for repoName,repoData in self.SwIM.downloadSources.items():
                 var = tk.BooleanVar()
                 self.repoDict[repoName] = (var,repoData)
@@ -984,7 +986,7 @@ class SwordManager( Frame ):
         #if not tEW.setFilepath( self.settings.settingsFilepath ) \
         #or not tEW.loadText():
             #tEW.doClose()
-            #showError( self, ShortProgName, _("Sorry, unable to open settings file") )
+            #showError( self, shortProgramName, _("Sorry, unable to open settings file") )
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
         #else:
             #self.childWindows.append( tEW )
@@ -1002,13 +1004,13 @@ class SwordManager( Frame ):
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
-        filename = ProgName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        filename = programName.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
         or not tEW.loadText():
             tEW.doClose()
-            showError( self, ShortProgName, _("Sorry, unable to open log file") )
+            showError( self, shortProgramName, _("Sorry, unable to open log file") )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
         else:
             self.childWindows.append( tEW )
@@ -1050,7 +1052,7 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doHelp()") )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
         helpInfo += "\n  Click on a tab to view that area of the Sword Manager."
         helpInfo += "\n\nKeyboard shortcuts:"
@@ -1062,7 +1064,7 @@ class SwordManager( Frame ):
         #helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
         #helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
         #helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
-        hb = HelpBox( self.rootWindow, ShortProgName, helpInfo )
+        hb = HelpBox( self.rootWindow, shortProgramName, helpInfo )
     # end of SwordManager.doHelp
 
 
@@ -1075,14 +1077,14 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( exp("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
-            showError( self, ShortProgName, 'You need to allow Internet access first!' )
+            showError( self, shortProgramName, 'You need to allow Internet access first!' )
             return
 
         from About import AboutBox
 
-        submitInfo = ProgNameVersion
+        submitInfo = programNameVersion
         submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
-        ab = AboutBox( self.rootWindow, ShortProgName, submitInfo )
+        ab = AboutBox( self.rootWindow, shortProgramName, submitInfo )
     # end of SwordManager.doSubmitBug
 
 
@@ -1094,13 +1096,13 @@ class SwordManager( Frame ):
             print( exp("doAbout()") )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nA display manager for Sword (from CrossWire) Bible modules." \
             + "\n\nThis is still an unfinished alpha test version, but it should allow you to display and set various parameters" \
             + " and then download and view Bible and commentary modules from the Internet." \
-            + "\n\n{} is written in Python.".format( ShortProgName ) \
+            + "\n\n{} is written in Python.".format( shortProgramName ) \
             + " For more information see our web pages at Freely-Given.org/Software/BibleOrgSys and Freely-Given.org/Software/Biblelator and Freely-Given.org/Software/BibleDropBox/SwordModules.html"
-        ab = AboutBox( self.rootWindow, ShortProgName, aboutInfo )
+        ab = AboutBox( self.rootWindow, shortProgramName, aboutInfo )
     # end of SwordManager.doAbout
 
 
@@ -1159,7 +1161,7 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( exp("SwordManager.doCloseMe()") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
-            print( _("{} is closing down…").format( ShortProgName ) )
+            print( _("{} is closing down…").format( shortProgramName ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -1184,33 +1186,33 @@ def openSwordManager( parent ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
     Which windows open depends on the saved settings from the last use.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
     # Set the window icon and title
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
-    tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
+    tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, ProgName )
+    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, programName )
     settings.load()
 
     application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -1225,7 +1227,7 @@ def main( homeFolderPath, loggingFolderPath ):
     """
     Main program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersionDate )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersionDate )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
@@ -1240,7 +1242,7 @@ def main( homeFolderPath, loggingFolderPath ):
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
-            if 'python' in line and ProgName+'.py' in line:
+            if 'python' in line and programName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
@@ -1253,15 +1255,15 @@ def main( homeFolderPath, loggingFolderPath ):
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
         #print( 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
-            if ProgName+'.py' in line:
+            if programName+'.py' in line:
                 if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
     if numInstancesFound > 1:
         import easygui
-        logging.critical( "Found {} instances of {} running.".format( numInstancesFound, ProgName ) )
-        result = easygui.ynbox('Seems {} might be already running: Continue?'.format( ProgName), ProgNameVersion, ('Yes', 'No'))
+        logging.critical( "Found {} instances of {} running.".format( numInstancesFound, programName ) )
+        result = easygui.ynbox('Seems {} might be already running: Continue?'.format( programName), programNameVersion, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
@@ -1273,10 +1275,10 @@ def main( homeFolderPath, loggingFolderPath ):
     # Set the window icon and title
     iconImage = tk.PhotoImage( file='Biblelator.gif' )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
-    tkRootWindow.title( ProgNameVersion + ' ' + _('starting') + '…' )
+    tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
     application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, None )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -1291,7 +1293,7 @@ if __name__ == '__main__':
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
     if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
     loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion, loggingFolderPath=loggingFolderPath )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion, loggingFolderPath=loggingFolderPath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #print( BibleOrgSysGlobals.commandLineArguments ); halt
@@ -1304,5 +1306,5 @@ if __name__ == '__main__':
 
     main( homeFolderPath, loggingFolderPath )
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of SwordManager.py

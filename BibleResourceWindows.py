@@ -161,12 +161,12 @@ Windows and frames to allow display and manipulation of
 
 from gettext import gettext as _
 
-LastModifiedDate = '2019-05-12' # by RJH
-ShortProgName = "BibleResourceWindows"
-ProgName = "Biblelator Bible Resource Windows"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2019-12-23' # by RJH
+shortProgramName = "BibleResourceWindows"
+programName = "Biblelator Bible Resource Windows"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = False
 
@@ -188,15 +188,15 @@ from BiblelatorDialogs import GetBibleBookRangeDialog
 # BibleOrgSys imports
 import BibleOrgSysGlobals
 from Bible import Bible
-from VerseReferences import SimpleVerseKey
-from SwordResources import SwordType
-from DBPOnline import DBPBible
+from Reference.VerseReferences import SimpleVerseKey
+from Formats.SwordResources import SwordType
+from Online.DBPOnline import DBPBible
 from UnknownBible import UnknownBible
-from HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
-from BibleOrganisationalSystems import BibleOrganisationalSystem
-from InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
-from BibleWriter import setDefaultControlFolder
-from PickledBible import ZIPPED_PICKLE_FILENAME_END
+from OriginalLanguages.HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
+from Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
+from Internals.InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
+from BibleWriter import setDefaultControlFolderpath
+from Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -857,7 +857,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             print( _("BibleResourceWindowAddon.doHelp( {} )").format( event ) )
         from Help import HelpBox
 
-        helpInfo = ProgNameVersion
+        helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -875,7 +875,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             print( _("BibleResourceWindowAddon.doAbout( {} )").format( event ) )
         from About import AboutBox
 
-        aboutInfo = ProgNameVersion
+        aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         try: aboutInfo += "\nDisplaying {}".format( self.internalBible )
         except AttributeError: pass # no internalBible
@@ -1960,7 +1960,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
                 #print( "eFolder", repr(self.exportFolderPathname) )
                 if not os.path.exists( self.exportFolderPathname ):
                     os.mkdir( self.exportFolderPathname )
-            setDefaultControlFolder( '../BibleOrgSys/ControlFiles/' )
+            setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
             self.parentApp.setWaitStatus( _("Export in process…") )
     # end of InternalBibleResourceWindowAddon._prepareForExports
 
@@ -2084,7 +2084,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             #print( _("InternalBibleResourceWindowAddon.doHelp( {} )").format( event ) )
         #from Help import HelpBox
 
-        #helpInfo = ProgNameVersion
+        #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
         #helpInfo += '\n  ' + _("Keyboard shortcuts:")
         #for name,shortcut in self.myKeyboardBindingsList:
@@ -2102,7 +2102,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             #print( _("InternalBibleResourceWindowAddon.doAbout( {} )").format( event ) )
         #from About import AboutBox
 
-        #aboutInfo = ProgNameVersion
+        #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
@@ -2363,7 +2363,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
                 ##print( "eFolder", repr(self.exportFolderPathname) )
                 #if not os.path.exists( self.exportFolderPathname ):
                     #os.mkdir( self.exportFolderPathname )
-            #setDefaultControlFolder( '../BibleOrgSys/ControlFiles/' )
+            #setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
             #self.parentApp.setWaitStatus( _("Export in process…") )
     ## end of InternalBibleResourceWindow._prepareForExports
 
@@ -2487,7 +2487,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #print( _("InternalBibleResourceWindow.doHelp( {} )").format( event ) )
         #from Help import HelpBox
 
-        #helpInfo = ProgNameVersion
+        #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
         #helpInfo += '\n  ' + _("Keyboard shortcuts:")
         #for name,shortcut in self.myKeyboardBindingsList:
@@ -2505,7 +2505,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #print( _("InternalBibleResourceWindow.doAbout( {} )").format( event ) )
         #from About import AboutBox
 
-        #aboutInfo = ProgNameVersion
+        #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
@@ -2552,7 +2552,10 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "HebrewBibleResourceWindow.__init__( {}, mP={} )".format( parentApp, modulePath ) )
-            assert modulePath in ('../morphhb/wlc/', DOWNLOADED_RESOURCES_FOLDER+'WLC'+ZIPPED_PICKLE_FILENAME_END )
+            assert modulePath in (
+                        BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( 'morphhb/wlc/' ),
+                        BibleOrgSysGlobals.DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( 'WLC' + ZIPPED_PICKLE_FILENAME_END ),
+                        )
         self.modulePath = modulePath
         ChildWindow.__init__( self, parentApp, genericWindowType='BibleResource' )
         self.maximumSize = MAXIMUM_LARGE_RESOURCE_SIZE
@@ -2846,7 +2849,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
                 ##print( "eFolder", repr(self.exportFolderPathname) )
                 #if not os.path.exists( self.exportFolderPathname ):
                     #os.mkdir( self.exportFolderPathname )
-            #setDefaultControlFolder( '../BibleOrgSys/ControlFiles/' )
+            #setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
             #self.parentApp.setWaitStatus( _("Export in process…") )
     ## end of HebrewBibleResourceWindow._prepareForExports
 
@@ -2970,7 +2973,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #print( _("HebrewBibleResourceWindow.doHelp( {} )").format( event ) )
         #from Help import HelpBox
 
-        #helpInfo = ProgNameVersion
+        #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
         #helpInfo += '\n  ' + _("Keyboard shortcuts:")
         #for name,shortcut in self.myKeyboardBindingsList:
@@ -2988,7 +2991,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #print( _("HebrewBibleResourceWindow.doAbout( {} )").format( event ) )
         #from About import AboutBox
 
-        #aboutInfo = ProgNameVersion
+        #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
@@ -3026,25 +3029,25 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
 
 
 
-def demo():
+def demo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
     from tkinter import Tk
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( _("Running demo…") )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
-    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', ProgName )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', programName )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( ProgNameVersion )
+    #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -3057,10 +3060,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BibleResourceWindows.py

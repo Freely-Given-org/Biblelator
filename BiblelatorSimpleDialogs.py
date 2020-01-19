@@ -32,12 +32,12 @@ Various simple modal dialog windows for Biblelator Bible warnings and errors.
 
 from gettext import gettext as _
 
-LastModifiedDate = '2018-03-16'
-ShortProgName = "BiblelatorSimpleDialogs"
-ProgName = "Biblelator simple dialogs"
-ProgVersion = '0.44'
-ProgNameVersion = '{} v{}'.format( ProgName, ProgVersion )
-ProgNameVersionDate = '{} {} {}'.format( ProgNameVersion, _("last modified"), LastModifiedDate )
+lastModifiedDate = '2018-03-16'
+shortProgramName = "BiblelatorSimpleDialogs"
+programName = "Biblelator simple dialogs"
+programVersion = '0.45'
+programNameVersion = f'{programName} v{programVersion}'
+programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifiedDate}'
 
 debuggingThisModule = True
 
@@ -48,7 +48,7 @@ import tkinter as tk
 import tkinter.messagebox as tkMsgBox
 
 # BibleOrgSys imports
-if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/' )
+if __name__ == '__main__': import sys; sys.path.append( '../BibleOrgSys/BibleOrgSys/' )
 import BibleOrgSysGlobals
 
 
@@ -104,17 +104,17 @@ def showInfo( parentWindow, title, infoText ):
 
 
 
-def demo():
+def demo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    if BibleOrgSysGlobals.verbosityLevel > 0: print( ProgNameVersion )
+    if BibleOrgSysGlobals.verbosityLevel > 0: print( programNameVersion )
     #if BibleOrgSysGlobals.verbosityLevel > 1: print( "  Available CPU count =", multiprocessing.cpu_count() )
 
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( ProgNameVersion )
+    tkRootWindow.title( programNameVersion )
 
     # Doesn't quite work yet :-(
     tkWindow = tk.Toplevel( tkRootWindow )
@@ -136,10 +136,10 @@ if __name__ == '__main__':
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    parser = BibleOrgSysGlobals.setup( ProgName, ProgVersion )
+    parser = BibleOrgSysGlobals.setup( programName, programVersion )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
     demo()
 
-    BibleOrgSysGlobals.closedown( ProgName, ProgVersion )
+    BibleOrgSysGlobals.closedown( programName, programVersion )
 # end of BiblelatorSimpleDialogs.py
