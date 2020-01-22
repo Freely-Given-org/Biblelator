@@ -39,7 +39,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 
 from gettext import gettext as _
 
-lastModifiedDate = '2020-01-05' # by RJH
+lastModifiedDate = '2020-01-22' # by RJH
 shortProgramName = "BiblelatorSettingsFunctions"
 programName = "Biblelator Settings Functions"
 programVersion = '0.45'
@@ -78,13 +78,13 @@ def convertToPython( text ):
     if text == 'False': return False
     if text == 'None': return None
     if text.lower() == 'true':
-        logging.warning( "Settings: Found {!r} instead of 'True'".format( text ) )
+        logging.warning( f"Settings: Found {text!r} instead of 'True'" )
         return True
     elif text.lower() == 'false':
-        logging.warning( "Settings: Found {!r} instead of 'False'".format( text ) )
+        logging.warning( f"Settings: Found {text!r} instead of 'False'" )
         return False
     if text.lower() == 'none':
-        logging.warning( "Settings: Found {!r} instead of 'None'".format( text ) )
+        logging.warning( f"Settings: Found {text!r} instead of 'None'" )
         return None
     return text
 # end of convertToPython

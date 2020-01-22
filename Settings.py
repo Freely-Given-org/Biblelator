@@ -5,7 +5,7 @@
 #
 # Handle settings for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -44,7 +44,7 @@ ProjectSettings class (Settings)
 
 from gettext import gettext as _
 
-lastModifiedDate = '2018-03-15' # by RJH
+lastModifiedDate = '2020-01-22' # by RJH
 shortProgramName = "BiblelatorSettings"
 programName = "Biblelator Settings"
 programVersion = '0.45'
@@ -54,7 +54,9 @@ programNameVersionDate = f'{programNameVersion} {_("last modified")} {lastModifi
 debuggingThisModule = False
 
 
-import os.path, configparser, logging
+import os.path
+import logging
+import configparser
 from datetime import datetime
 
 # Biblelator imports
@@ -120,7 +122,7 @@ class Settings:
             self.data.read( self.settingsFilepath )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             for section in self.data:
-                print( "  Settings.load: s.d main section =", section )
+                print( f"  Settings.load: s.d main section = {section}" )
     #end of Settings.load
 
 
@@ -137,7 +139,7 @@ class Settings:
         BibleOrgSysGlobals.backupAnyExistingFile( self.settingsFilepath, numBackups=8 )
         with open( self.settingsFilepath, 'wt', encoding='utf-8' ) as settingsFile: # It may or may not have previously existed
             # Put a (comment) heading in the file first
-            settingsFile.write( '# ' + _("{} {} settings file").format( APP_NAME, SettingsVersion ) + '\n' )
+            settingsFile.write( '# ' + _("{} {} settings file v{}").format( APP_NAME, programVersion, SettingsVersion ) + '\n' )
             settingsFile.write( '# ' + _("Originally saved {} as {}") \
                 .format( datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.settingsFilepath ) + '\n\n' )
 
