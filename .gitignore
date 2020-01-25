@@ -2,8 +2,11 @@ __pycache__/
 *.pyc
 *.o
 
-Logs/
-OutputFiles/
-
 *.bak
 *.bak2
+
+# Ignore various tools folders and files
+.mypy_cache/
+.scannerwork/
+sonar-project.properties
+
