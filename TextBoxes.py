@@ -202,7 +202,7 @@ class BText( tk.Text ):
         #tk.apply( tk.Text.__init__, (self, master), kw ) # Run the init of the base class
 
         ## Now set-up our "default" keyboard bindings
-        #self.bind( ... )
+        #self.bind( … )
     pass
 # end of BText class
 

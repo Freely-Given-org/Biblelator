@@ -2128,7 +2128,7 @@ class GetHebrewGlossWordDialog( ModalDialog ):
     def __init__( self, parentWindow, title, contextLines, word='', geometry=None ):
         """
         """
-        #print( "GetHebrewGlossWordDialog( ..., ..., {}, {!r}, {} )".format( contextLines, word, geometry ) )
+        #print( "GetHebrewGlossWordDialog( …, …, {}, {!r}, {} )".format( contextLines, word, geometry ) )
         if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetHebrewGlossWordDialog…" )
         self.parentWindow, self.contextLines, self.word = parentWindow, contextLines, word
 
@@ -2332,7 +2332,7 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
     def __init__( self, parentWindow, title, contextLines, word1='', word2='', geometry=None ):
         """
         """
-        #print( "GetHebrewGlossWordsDialog( ..., ..., {}, {!r}, {!r}, {} )".format( contextLines, word1, word2, geometry ) )
+        #print( "GetHebrewGlossWordsDialog( …, …, {}, {!r}, {!r}, {} )".format( contextLines, word1, word2, geometry ) )
         if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetHebrewGlossWordsDialog…" )
         self.parentWindow, self.contextLines, self.word, self.word2 = parentWindow, contextLines, word1, word2
 
