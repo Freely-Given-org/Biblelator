@@ -219,7 +219,7 @@ class Application( Frame ):
             self.lastParatextFileDir = PT8Folder if os.path.isdir( PT8Folder ) else PT7Folder
             self.lastInternalBibleDir = self.lastParatextFileDir
         elif sys.platform == 'linux': # temp hack XXXXXXXXXXXXX …
-            #self.lastParatextFileDir = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( '../../../../../mnt/HDs/Work/VirtualBox_Shared_Folder/' ).resolve()
+            #self.lastParatextFileDir = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( '../../../../../mnt/SSDs/Work/VirtualBox_Shared_Folder/' ).resolve()
             self.lastParatextFileDir = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( '../../../../../mnt/SSDs/Matigsalug/Bible/' ).resolve()
             self.lastInternalBibleDir = BibleOrgSysGlobals.PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( '../../../../../mnt/SSDs/Matigsalug/Bible/' ).resolve()
 
