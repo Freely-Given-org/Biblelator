@@ -1,12 +1,30 @@
-__pycache__/
+_pycache__/
 *.pyc
 *.o
+*.snap
+*.off
 
 *.bak
+*.bak1
 *.bak2
+*.bak3
+*.bak4
+*.bak5
+*.bak6
+*.bak7
+*.bak8
+*.bak9
+
+build/
+dist/
+myVEnv/
+snap/
 
 # Ignore various tools folders and files
 .mypy_cache/
+.kdev4/
 .scannerwork/
+.vscode/
+Biblelator.egg-info/
+Biblelator.kdev4
 sonar-project.properties
-
