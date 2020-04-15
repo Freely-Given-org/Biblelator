@@ -73,8 +73,8 @@ PROJECTS_SUBFOLDER_NAME = APP_NAME + 'Projects/'
 # Readable folder paths (Writeable ones are further down)
 SOURCE_BASE_FOLDERPATH = Path( __file__ ).parent.resolve() # Folder containing this file
 #print( f"SOURCE_BASE_FOLDERPATH = {SOURCE_BASE_FOLDERPATH}" )
-DATA_FILES_FOLDERPATH = SOURCE_BASE_FOLDERPATH.joinpath( 'DataFiles/' )
-# DERIVED_DATA_FILES_FOLDERPATH = DATA_FILES_FOLDERPATH.joinpath( 'DerivedFiles/' )
+DATAFILES_FOLDERPATH = SOURCE_BASE_FOLDERPATH.joinpath( 'DataFiles/' )
+# DERIVED_DATAFILES_FOLDERPATH = DATAFILES_FOLDERPATH.joinpath( 'DerivedFiles/' )
 
 # LIBRARY_BASE_FOLDERPATH = SOURCE_BASE_FOLDERPATH.parent # Folder above the one containing this file
 # #print( f"LIBRARY_BASE_FOLDERPATH = {LIBRARY_BASE_FOLDERPATH}" )
@@ -243,7 +243,7 @@ def errorBeep():
 # end of errorBeep
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
@@ -275,6 +275,13 @@ def demo() -> None:
 # end of BiblelatorGlobals.demo
 
 
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    briefDemo()
+# end of fullDemo
+
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
@@ -283,7 +290,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of BiblelatorGlobals.py

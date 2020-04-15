@@ -5,7 +5,7 @@
 #
 # Bible Find/REPlace/EXtract program
 #
-# Copyright (C) 2018 Robert Hunt
+# Copyright (C) 2018-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,13 +32,13 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LAST_MODIFIED_DATE = '2018-12-12' # by RJH
+LAST_MODIFIED_DATE = '2020-04-12' # by RJH
 SHORT_PROGRAM_NAME = "FRepEx"
 PROGRAM_NAME = "Bible Find/REPlace/EXtract"
 PROGRAM_VERSION = '0.00' # Separate versioning from Biblelator
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys
@@ -51,7 +51,13 @@ import tkinter as tk
 from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
+
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
@@ -1835,7 +1841,7 @@ def openFRepEx( parent ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
@@ -1871,7 +1877,7 @@ def demo() -> None:
 # end of FRepEx.demo
 
 
-def main( homeFolderPath, loggingFolderPath ):
+def main( homeFolderPath, loggingFolderPath ) -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -1933,7 +1939,9 @@ def main( homeFolderPath, loggingFolderPath ):
 # end of FRepEx.main
 
 
-if __name__ == '__main__':
+def run() -> None:
+    """
+    """
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
@@ -1954,4 +1962,8 @@ if __name__ == '__main__':
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
+# end of FRepEx.run
+
+if __name__ == '__main__':
+    run()
 # end of FRepEx.py

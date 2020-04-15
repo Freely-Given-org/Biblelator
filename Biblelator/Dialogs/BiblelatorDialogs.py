@@ -132,6 +132,11 @@ import tkinter.font as tkFont
 from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import APP_NAME, errorBeep
 from Biblelator.Dialogs.ModalDialog import ModalDialog
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showWarning
@@ -2672,7 +2677,7 @@ class DownloadResourcesDialog( ModalDialog ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -2762,6 +2767,13 @@ def demo() -> None:
 # end of BiblelatorDialogs.demo
 
 
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    briefDemo()
+# end of fullDemo
+
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
@@ -2770,7 +2782,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of BiblelatorDialogs.py

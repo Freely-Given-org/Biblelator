@@ -102,7 +102,7 @@ Base widgets to allow display and manipulation of
         #doActualBibleFind( self, extendTo=None )
         #_prepareInternalBible( self, bookCode=None, givenBible=None )
 
-    demo()
+    fullDemo()
 """
 
 from gettext import gettext as _
@@ -113,7 +113,7 @@ PROGRAM_NAME = "Biblelator specialised text widgets"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import logging
@@ -124,6 +124,11 @@ from tkinter.ttk import Entry, Combobox
 from tkinter.simpledialog import askstring, askinteger
 
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, BIBLE_FORMAT_VIEW_MODES
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 
@@ -3108,7 +3113,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
@@ -3133,6 +3138,13 @@ def demo() -> None:
 # end of TextBoxes.demo
 
 
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    briefDemo()
+# end of fullDemo
+
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
@@ -3141,7 +3153,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of TextBoxes.py

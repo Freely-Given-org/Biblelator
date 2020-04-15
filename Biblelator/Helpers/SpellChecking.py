@@ -34,7 +34,7 @@ PROGRAM_NAME = "Spell Checking routines"
 PROGRAM_VERSION = '0.39' # Still just a copy of "About.py"
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 #import sys
@@ -43,6 +43,11 @@ import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Button
 
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import parseWindowSize, centreWindowOnWindow
 
 from BibleOrgSys import BibleOrgSysGlobals
@@ -106,7 +111,7 @@ class SpellCheckingBox2():
 # end of class SpellCheckingBox
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -129,6 +134,13 @@ def demo() -> None:
 # end of main
 
 
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    briefDemo()
+# end of fullDemo
+
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
@@ -144,7 +156,7 @@ if __name__ == '__main__':
         print( "TclVersion is", tk.TclVersion )
         print( "TkVersion is", tk.TkVersion )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of SpellChecking.py

@@ -35,7 +35,7 @@ PROGRAM_NAME = "Biblelator Settings Editor"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys
@@ -48,6 +48,11 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_RECENT_FILES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, MAX_PSEUDOVERSES, \
@@ -1287,7 +1292,7 @@ def openBiblelatorSettingsEditor( parent ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
@@ -1323,7 +1328,7 @@ def demo() -> None:
 # end of BiblelatorSettingsEditor.demo
 
 
-def main( homeFolderPath, loggingFolderPath ):
+def main( homeFolderPath, loggingFolderPath ) -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -1384,6 +1389,13 @@ def main( homeFolderPath, loggingFolderPath ):
     tkRootWindow.mainloop()
 # end of BiblelatorSettingsEditor.main
 
+
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    briefDemo()
+# end of fullDemo
 
 if __name__ == '__main__':
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables

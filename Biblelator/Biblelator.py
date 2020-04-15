@@ -31,13 +31,13 @@ Note that many times in this application, where the term 'Bible' is used
 
 from gettext import gettext as _
 
-LAST_MODIFIED_DATE = '2020-04-11' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LAST_MODIFIED_DATE = '2020-04-12' # by RJH -- note that this isn't necessarily the displayed date at start-up
 SHORT_PROGRAM_NAME = "Biblelator"
 PROGRAM_NAME = "Biblelator"
 PROGRAM_VERSION = '0.46' # This is the version number displayed on the start-up screen
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys
@@ -51,6 +51,7 @@ import tkinter as tk
 from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Label
 
+
 if __name__ == '__main__':
     aboveFolderPath = os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) )
     if aboveFolderPath not in sys.path:
@@ -58,7 +59,7 @@ if __name__ == '__main__':
 
 # Biblelator imports
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
-        DATA_FILES_FOLDERPATH, \
+        DATAFILES_FOLDERPATH, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
@@ -84,9 +85,9 @@ from Biblelator.Windows.LexiconResourceWindows import BibleLexiconResourceWindow
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 from Biblelator.Windows.USFMEditWindow import USFMEditWindow
 #from Biblelator.Windows.ESFMEditWindow import ESFMEditWindow
-from Biblelator.Settings.BiblelatorSettingsEditor import openBiblelatorSettingsEditor
 
 # Biblelator apps imports
+from Biblelator.Apps.BiblelatorSettingsEditor import openBiblelatorSettingsEditor
 from Biblelator.Apps.BOSManager import openBOSManager
 from Biblelator.Apps.SwordManager import openSwordManager
 
@@ -3989,7 +3990,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
@@ -4020,7 +4021,7 @@ def demo() -> None:
 # end of Biblelator.demo
 
 
-def main( homeFolderPath, loggingFolderPath ):
+def main( homeFolderPath, loggingFolderPath ) -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -4108,7 +4109,7 @@ def main( homeFolderPath, loggingFolderPath ):
         print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
 
     # Set the window icon and title
-    iconImage = tk.PhotoImage( file=DATA_FILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
+    iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
     application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
@@ -4125,7 +4126,9 @@ def main( homeFolderPath, loggingFolderPath ):
 # end of Biblelator.main
 
 
-if __name__ == '__main__':
+def run() -> None:
+    """
+    """
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
@@ -4153,4 +4156,8 @@ if __name__ == '__main__':
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
+# end of Biblelator.run
+
+if __name__ == '__main__':
+    run()
 # end of Biblelator.py

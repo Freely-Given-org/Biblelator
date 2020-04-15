@@ -5,11 +5,10 @@ See:
 https://packaging.python.org/guides/distributing-packages-using-setuptools/
 https://github.com/pypa/sampleproject
 """
-VERSION = '0.0.1'
-LAST_MODIFIED_DATE = '2020-04-11' # by RJH — when setup.py was modified below
+VERSION = '0.0.3'
+LAST_MODIFIED_DATE = '2020-04-14' # by RJH — when setup.py was modified below
 
-INCLUDE_DATA_SOURCE_FILES = False
-INCLUDE_DERIVED_DATA_PICKLE_FILES = True
+# INCLUDE_DERIVED_DATA_PICKLE_FILES = True
 # INCLUDE_DERIVED_DATA_JSON_FILES = False
 
 
@@ -23,17 +22,15 @@ from setuptools import setup # Always prefer setuptools over distutils
 #    long_description = f.read()
 
 
-package_data_list = []
-if INCLUDE_DATA_SOURCE_FILES:
-    package_data_list += [
-                'DataFiles/Biblelator.gif', 'DataFiles/Biblelator.jpg',
-                'DataFiles/BiblelatorLogo.gif', 'DataFiles/BiblelatorLogoSmall.gif',
-                ]
-if INCLUDE_DERIVED_DATA_PICKLE_FILES:
-    package_data_list += [
-                # 'DataFiles/DerivedFiles/iso_639_3_Languages_Tables.pickle',
-                # 'DataFiles/DerivedFiles/USFM2Markers_Tables.pickle',
-                ]
+package_data_list = [
+            'DataFiles/Biblelator.gif', 'DataFiles/Biblelator.jpg',
+            'DataFiles/BiblelatorLogo.gif', 'DataFiles/BiblelatorLogoSmall.gif',
+            ]
+# if INCLUDE_DERIVED_DATA_PICKLE_FILES:
+#     package_data_list += [
+#                 'DataFiles/DerivedFiles/iso_639_3_Languages_Tables.pickle',
+#                 'DataFiles/DerivedFiles/USFM2Markers_Tables.pickle',
+#                 ]
 # if INCLUDE_DERIVED_DATA_JSON_FILES:
 #     package_data_list += [
 #                 'DataFiles/DerivedFiles/iso_639_3_Languages_Tables.json',
@@ -85,8 +82,21 @@ setup(
 A USFM Bible editor using the BibleOrgSys library and
 Python's tKinter windowing library for simple and easy installation.
 
+The app can be run from the command line with:
+    `Biblelator`
+or to view all the available options:
+    `Biblelator --help`
+You can discover the version with:
+    `Biblelator --version`
+
+Biblelator reads or creates a `BiblelatorData` folder in your home folder.
+Log files are stored in a subfolder there and may be useful for reporting errors.
+(If you have start-up problems, you might want to edit the settings there,
+or even delete the entire settings file if you have no saved windows settings yet.)
+
 NOTE: This packaging is still being tested following massive restructuring,
-and is not necessarily fully functional until it is marked as v0.1.0 or higher.
+and is not necessarily fully functional until it is marked as v0.1.0 or higher
+when some open-licensed resources will also be downloadable.
 We also have hopes to improve documentation before v0.2.0.
 
 After that point, we also hope to release Docker and Snap versions.
@@ -103,7 +113,7 @@ The API will not become fixed/stable until the v1.0.0 release.
 No attempt at all has been made at memory or speed optimisations
 and this is not planned until after the release of v1.0.0.
 
-Biblelator is developed and tested on Linux (Ubuntu) but also runs on Windows (although not so well tested).
+Biblelator is developed and tested on Linux (Ubuntu) but should also run on Windows (although not so well tested).
 
 See https://ubsicap.github.io/usfm/ for more information about USFM.
 """,
@@ -125,13 +135,13 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords="Bible editor USFM",
+    keywords="Bible Scripture translation editor USFM",
 
     # This should be a valid link to your project's main homepage.
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url="http://freely-given.org/Software/Biblelator/",
+    url="http://Freely-Given.org/Software/Biblelator/",
 
     # List additional URLs that are relevant to your project as a dict.
     #
@@ -198,19 +208,6 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['BibleOrgSys'],
 
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). Users will be able to install these using the "extras"
-    # syntax, for example:
-    #
-    #   $ pip install sampleproject[dev]
-    #
-    # Similar to `install_requires` above, these must be valid existing
-    # projects.
-    #extras_require={  # Optional
-    #    'dev': ['check-manifest'],
-    #    'test': ['coverage'],
-    #},
-
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # `pip` to create the appropriate form of executable for the target
@@ -223,4 +220,9 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     #         'sample=sample:main',
     #     ],
     # },
+    entry_points={
+        'console_scripts': [
+            'Biblelator=Biblelator.Biblelator:run',
+        ],
+    },
 )

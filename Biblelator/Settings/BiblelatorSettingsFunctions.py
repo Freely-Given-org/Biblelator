@@ -34,12 +34,12 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
     viewSettings( self )
     writeSettingsFile( self )
     doSendUsageStatistics( self )
-    demo()
+    fullDemo()
 """
 
 from gettext import gettext as _
 
-LAST_MODIFIED_DATE = '2020-04-11' # by RJH
+LAST_MODIFIED_DATE = '2020-04-13' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
 PROGRAM_VERSION = '0.46'
@@ -53,6 +53,11 @@ import os
 import logging
 
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, \
     DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
@@ -232,25 +237,28 @@ def parseAndApplySettings( self ):
     try: self.lastFileDir = self.settings.data['Paths']['lastFileDir']
     except KeyError: pass # use program default
     finally:
-        if self.lastFileDir[-1] not in '/\\': self.lastFileDir += '/'
+        if str(self.lastFileDir)[-1] not in '/\\':
+            self.lastFileDir = f'{self.lastFileDir}/'
     try: self.lastBiblelatorFileDir = self.settings.data['Paths']['lastBiblelatorFileDir']
     except KeyError: pass # use program default
     finally:
-        if self.lastBiblelatorFileDir[-1] not in '/\\': self.lastBiblelatorFileDir += '/'
+        if str(self.lastBiblelatorFileDir)[-1] not in '/\\':
+            self.lastBiblelatorFileDir = f'{self.lastBiblelatorFileDir}/'
     try: self.lastParatextFileDir = self.settings.data['Paths']['lastParatextFileDir']
     except KeyError: pass # use program default
     finally:
-        if isinstance( self.lastParatextFileDir, str) and self.lastParatextFileDir[-1] not in '/\\':
-            self.lastParatextFileDir += '/'
+        if str(self.lastParatextFileDir)[-1] not in '/\\':
+            self.lastParatextFileDir = f'{self.lastParatextFileDir}/'
     try: self.lastInternalBibleDir = self.settings.data['Paths']['lastInternalBibleDir']
     except KeyError: pass # use program default
     finally:
-        if isinstance( self.lastInternalBibleDir, str) and self.lastInternalBibleDir[-1] not in '/\\':
-            self.lastInternalBibleDir += '/'
+        if str(self.lastInternalBibleDir)[-1] not in '/\\':
+            self.lastInternalBibleDir = f'{self.lastInternalBibleDir}/'
     try: self.lastSwordDir = self.settings.data['Paths']['lastSwordDir']
     except KeyError: pass # use program default
     finally:
-        if self.lastSwordDir[-1] not in '/\\': self.lastSwordDir += '/'
+        if self.lastSwordDir[-1] not in '/\\':
+            self.lastSwordDir = f'{self.lastSwordDir}/'
 
     # Parse recent files
     assert not self.recentFiles
@@ -258,14 +266,15 @@ def parseAndApplySettings( self ):
     except KeyError: recentFields = None
     if recentFields: # in settings file
         for j in range( 1, MAX_RECENT_FILES+1 ):
-            recentName = 'recent{}'.format( j )
+            recentName = f'recent{j}'
             for keyName in recentFields:
                 if keyName.startswith( recentName ): # This index number (j) is present
                     filename = convertToPython( self.settings.data['RecentFiles']['recent{}Filename'.format( j )] )
                     #if filename == 'None': filename = None
                     folder = convertToPython( self.settings.data['RecentFiles']['recent{}Folder'.format( j )] )
                     #if folder == 'None': folder = None
-                    if folder and folder[-1] not in '/\\': folder += '/'
+                    if folder and str(folder)[-1] not in '/\\':
+                        folder = f'{folder}/'
                     windowType = self.settings.data['RecentFiles']['recent{}Type'.format( j )]
                     self.recentFiles.append( (filename,folder,windowType) )
                     assert len(self.recentFiles) == j
@@ -346,14 +355,14 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 folderPath = thisStuff['BibleFolderPath']
                 if folderPath[-1] not in '/\\' \
                 and not str(folderPath).endswith( ZIPPED_PICKLE_FILENAME_END ):
-                    folderPath += '/'
+                    folderPath = f'{folderPath}/'
                 rw = self.openInternalBibleResourceWindow( folderPath, windowGeometry )
                 #except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
             elif windowType == 'HebrewBibleResourceWindow':
                 folderPath = thisStuff['BibleFolderPath']
                 if folderPath[-1] not in '/\\' \
                 and not str(folderPath).endswith( ZIPPED_PICKLE_FILENAME_END ):
-                    folderPath += '/'
+                    folderPath = f'{folderPath}/'
                 rw = self.openHebrewBibleResourceWindow( folderPath, windowGeometry )
 
             #elif windowType == 'HebrewLexiconResourceWindow':
@@ -401,7 +410,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
             elif windowType == 'BiblelatorUSFMBibleEditWindow':
                 folderPath = thisStuff['ProjectFolderPath']
-                if folderPath[-1] not in '/\\': folderPath += '/'
+                if folderPath[-1] not in '/\\': folderPath = f'{folderPath}/'
                 rw = self.openBiblelatorBibleEditWindow( folderPath, thisStuff['EditMode'], windowGeometry )
                 #except: logging.critical( "Unable to read all BiblelatorUSFMBibleEditWindow {} settings".format( j ) )
             elif windowType == 'Paratext8USFMBibleEditWindow':
@@ -413,7 +422,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 #except: logging.critical( "Unable to read all Paratext7USFMBibleEditWindow {} settings".format( j ) )
             elif windowType == 'ESFMEditWindow':
                 folderPath = thisStuff['ESFMFolder']
-                if folderPath[-1] not in '/\\': folderPath += '/'
+                if folderPath[-1] not in '/\\': folderPath = f'{folderPath}/'
                 rw = self.openESFMEditWindow( folderPath, thisStuff['EditMode'], windowGeometry )
                 #except: logging.critical( "Unable to read all ESFMEditWindow {} settings".format( j ) )
 
@@ -868,7 +877,7 @@ def doSendUsageStatistics( self ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
@@ -907,6 +916,13 @@ def demo() -> None:
 # end of Biblelator.demo
 
 
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    briefDemo()
+# end of fullDemo
+
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
@@ -915,7 +931,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of BiblelatorSettingsFunctions.py

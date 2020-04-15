@@ -5,7 +5,7 @@
 #
 # BOS (Bible Organisational System) manager program
 #
-# Copyright (C) 2016-2018 Robert Hunt
+# Copyright (C) 2016-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -32,13 +32,13 @@ This is opened as a TopLevel window in Biblelator
 
 from gettext import gettext as _
 
-LAST_MODIFIED_DATE = '2018-12-12' # by RJH
+LAST_MODIFIED_DATE = '2020-04-12' # by RJH
 SHORT_PROGRAM_NAME = "BOSManager"
 PROGRAM_NAME = "BOS Manager"
-PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
+PROGRAM_VERSION = '0.07' # Separate versioning from Biblelator
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys
@@ -51,8 +51,13 @@ import tkinter as tk
 from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
+
 # Biblelator imports
-sys.path.insert( 0, os.path.join(os.path.dirname(__file__), '../BibleOrgSys/') ) # So we can run it from the above folder and still do these imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
@@ -1835,7 +1840,7 @@ def openBOSManager( parent ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Unattended demo program to handle command line parameters and then run what they want.
 
@@ -1871,7 +1876,7 @@ def demo() -> None:
 # end of BOSManager.demo
 
 
-def main( homeFolderPath, loggingFolderPath ):
+def main( homeFolderPath, loggingFolderPath ) -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
@@ -1933,7 +1938,9 @@ def main( homeFolderPath, loggingFolderPath ):
 # end of BOSManager.main
 
 
-if __name__ == '__main__':
+def run() -> None:
+    """
+    """
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
@@ -1954,4 +1961,8 @@ if __name__ == '__main__':
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
+# end of BOSManager.run
+
+if __name__ == '__main__':
+    run()
 # end of BOSManager.py

@@ -52,6 +52,11 @@ from collections import defaultdict
 import tkinter as tk
 
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.Windows.TextBoxes import TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE
 
 # BibleOrgSys imports
@@ -883,12 +888,27 @@ def addNewAutocompleteWord( self, possibleNewWord ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    import tkinter as tk
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
+    tkRootWindow = tk.Tk()
+    tkRootWindow.title( programNameVersion )
+    tkRootWindow.textBox = tk.Text( tkRootWindow )
+
+    #uEW = AutocompleteFunctions( tkRootWindow, None )
+
+    # Start the program running
+    # tkRootWindow.mainloop()
+# end of AutocompleteFunctions.briefDemo
+
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
     if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
 
@@ -900,8 +920,7 @@ def demo() -> None:
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of AutocompleteFunctions.demo
-
+# end of AutocompleteFunctions.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support
@@ -911,7 +930,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of AutocompleteFunctions.py

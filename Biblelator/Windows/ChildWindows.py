@@ -152,7 +152,7 @@ Base windows to allow display and manipulation of
         doRefresh( self )
         doRefind( self )
 
-    demo()
+    fullDemo()
 """
 
 from gettext import gettext as _
@@ -163,7 +163,7 @@ PROGRAM_NAME = "Biblelator Child Windows"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = True
+debuggingThisModule = False
 
 
 import sys
@@ -176,6 +176,11 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
 
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
                              BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                              parseWindowGeometry, parseWindowSize, assembleWindowGeometry, errorBeep, \
@@ -3013,7 +3018,7 @@ class CollateProjectsWindow( tk.Toplevel ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
@@ -3037,6 +3042,13 @@ def demo() -> None:
 # end of ChildWindows.demo
 
 
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    briefDemo()
+# end of fullDemo
+
 if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support() # Multiprocessing support for frozen Windows executables
@@ -3045,7 +3057,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of ChildWindows.py

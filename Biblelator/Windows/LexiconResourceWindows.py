@@ -5,7 +5,7 @@
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -26,18 +26,7 @@
 Windows and frames to allow display and manipulation of
     Bible and lexicon resource windows.
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-03-15' # by RJH
-SHORT_PROGRAM_NAME = "LexiconResourceWindows"
-PROGRAM_NAME = "Biblelator Lexicon Resource Windows"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import os.path
 import logging
 
@@ -45,6 +34,11 @@ import tkinter as tk
 from tkinter.ttk import Style, Frame, Button
 
 # Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import tkBREAK
 from Biblelator.Windows.TextBoxes import HTMLTextBox, ChildBoxAddon
 from Biblelator.Windows.ChildWindows import ChildWindow
@@ -53,6 +47,16 @@ from Biblelator.Windows.ChildWindows import ChildWindow
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 from BibleOrgSys.OriginalLanguages.BibleLexicon import BibleLexicon
+
+
+
+LAST_MODIFIED_DATE = '2020-04-13' # by RJH
+SHORT_PROGRAM_NAME = "LexiconResourceWindows"
+PROGRAM_NAME = "Biblelator Lexicon Resource Windows"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 
@@ -65,6 +69,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             print( "BibleLexiconResourceWindow.__init__( {}, {} )".format( parentApp, lexiconPath ) )
         self.lexiconPath = lexiconPath
+        self.lexiconWord = None
 
         ChildWindow.__init__( self, parentApp, 'LexiconResource' )
         ChildBoxAddon.__init__( self, parentApp )
@@ -275,7 +280,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
 
 
 
-def demo() -> None:
+def briefDemo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
@@ -293,9 +298,29 @@ def demo() -> None:
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
-    tkRootWindow.mainloop()
-# end of LexiconResourceWindows.demo
+    # tkRootWindow.mainloop()
+# end of LexiconResourceWindows.briefDemo
 
+def fullDemo() -> None:
+    """
+    Full demo to check class is working
+    """
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
+
+    tkRootWindow = tk.Tk()
+    tkRootWindow.title( programNameVersion )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
+    #settings.load()
+
+    #application = Application( parent=tkRootWindow, settings=settings )
+    # Calls to the window manager class (wm in Tk)
+    #application.master.title( programNameVersion )
+    #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support
@@ -305,7 +330,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    demo()
+    fullDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of LexiconResourceWindows.py
