@@ -83,8 +83,8 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
     """
     logging.info( "AutocompleteFunctions.setAutocompleteWords( …, {}, {} )".format( len(wordList), append ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "AutocompleteFunctions.setAutocompleteWords( {} )".format( wordList, append ) )
-        print( "AutocompleteFunctions.setAutocompleteWords( …, {}, {} )".format( len(wordList), append ) )
+        #vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.setAutocompleteWords( {} )".format( wordList, append ) )
+        vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.setAutocompleteWords( …, {}, {} )".format( len(wordList), append ) )
         editWindowObject.parentApp.setDebugText( "setAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Setting autocomplete words…") )
@@ -99,7 +99,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
             if firstLetter not in editWindowObject.autocompleteWords: editWindowObject.autocompleteWords[firstLetter] = []
             if remainder in editWindowObject.autocompleteWords[firstLetter]:
                 if 0 and BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( "    setAutocompleteWords discarded {!r} duplicate".format( word ) )
+                    vPrint( 'Quiet', debuggingThisModule, "    setAutocompleteWords discarded {!r} duplicate".format( word ) )
             else: # not already in the list
                 editWindowObject.autocompleteWords[firstLetter].append( remainder )
                 for char in word:
@@ -108,15 +108,15 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
                         if char not in ' .':
                             editWindowObject.autocompleteWordChars += char
                             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                                print( "    setAutocompleteWords added {!r} as new wordChar".format( char ) )
+                                vPrint( 'Quiet', debuggingThisModule, "    setAutocompleteWords added {!r} as new wordChar".format( char ) )
         #elif BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( "    setAutocompleteWords discarded {!r} as too short".format( word ) )
+            #vPrint( 'Quiet', debuggingThisModule, "    setAutocompleteWords discarded {!r} as too short".format( word ) )
         #elif BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #if "'" not in word:
-                #print( "    setAutocompleteWords discarded {!r} as unwanted".format( word ) )
+                #vPrint( 'Quiet', debuggingThisModule, "    setAutocompleteWords discarded {!r} as unwanted".format( word ) )
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule: # write wordlist
-        print( "  setAutocompleteWords: Writing autocomplete words to file…" )
+        vPrint( 'Quiet', debuggingThisModule, "  setAutocompleteWords: Writing autocomplete words to file…" )
         sortedKeys = sorted( editWindowObject.autocompleteWords.keys() )
         with open( 'autocompleteWordList.txt', 'wt', encoding='utf-8' ) as wordFile:
             wordCount = 0
@@ -129,7 +129,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
 
     if BibleOrgSysGlobals.debugFlag: # print detailed stats
         sortedKeys = sorted( editWindowObject.autocompleteWords.keys() )
-        if debuggingThisModule: print( "  autocomplete first letters", len(editWindowObject.autocompleteWords), sortedKeys )
+        if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "  autocomplete first letters", len(editWindowObject.autocompleteWords), sortedKeys )
         grandtotal = 0
         wordNumTotals = defaultdict( int )
         for firstLetter in sortedKeys:
@@ -137,14 +137,14 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
             for wordRemainder in editWindowObject.autocompleteWords[firstLetter]:
                 wordNumTotals[wordRemainder.count(' ')] += 1
             if debuggingThisModule:
-                print( "    {!r} {:,}{}" \
+                vPrint( 'Quiet', debuggingThisModule, "    {!r} {:,}{}" \
                     .format( firstLetter, total, '' if total>19 else ' '+str(editWindowObject.autocompleteWords[firstLetter]) ) )
             grandtotal += total
         #if BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel > 1:
-        print( "  autocomplete total words loaded = {:,}".format( grandtotal ) )
+        vPrint( 'Quiet', debuggingThisModule, "  autocomplete total words loaded = {:,}".format( grandtotal ) )
         if debuggingThisModule:
             for spaceCount in wordNumTotals:
-                print( "    {} words: {}".format( spaceCount+1, wordNumTotals[spaceCount] ) )
+                vPrint( 'Quiet', debuggingThisModule, "    {} words: {}".format( spaceCount+1, wordNumTotals[spaceCount] ) )
 
     editWindowObject.parentApp.setReadyStatus()
 # end of AutocompleteFunctions.setAutocompleteWords
@@ -168,9 +168,9 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
     """
     logging.debug( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
+        vPrint( 'Quiet', debuggingThisModule, "countBookWords( {}, {}, {} )".format( BBB, internalBible, filename ) )
     if BBB in AVOID_BOOKS:
-        #print( "Didn't load autocomplete words from {} {}".format( internalBible.getAName(), BBB ) )
+        #vPrint( 'Quiet', debuggingThisModule, "Didn't load autocomplete words from {} {}".format( internalBible.getAName(), BBB ) )
         return # Sometimes these books contain words from other languages, etc.
 
     countIncrement = 3 if isCurrentBook else 1 # Each word in current book counts higher so appears higher in the list
@@ -186,14 +186,14 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
         """
         Note: Punctuation etc. is NOT removed.
         """
-        #print( "countWords( {!r} )".format( textLine ) )
+        #vPrint( 'Quiet', debuggingThisModule, "countWords( {!r} )".format( textLine ) )
         if '\\' in textLine: # we have internal markers to remove
-            #print( "  INT", marker, textLine )
+            #vPrint( 'Quiet', debuggingThisModule, "  INT", marker, textLine )
             for iMarker in internalMarkers:
-                #print( "   GOT", repr(iMarker) )
+                #vPrint( 'Quiet', debuggingThisModule, "   GOT", repr(iMarker) )
                 textLine = textLine.replace( iMarker+' ',' ' ).replace( iMarker+'*',' ' )
                 if not '\\' in textLine: break
-            #print( "  NOW", marker, textLine )
+            #vPrint( 'Quiet', debuggingThisModule, "  NOW", marker, textLine )
         words = textLine.replace('—','— ').replace('–','– ').split() # Treat em-dash and en-dash as word break characters
 
         # Now look for (and count) single and some multiple word sequences
@@ -208,25 +208,25 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
             #if word[-1] not in '—.–':
             if wx < len(words)-1: # it's not the last word in the line
                 doubleWord = word+' '+words[wx+1]
-                #print( 'doubleWord', repr(doubleWord) )
+                #vPrint( 'Quiet', debuggingThisModule, 'doubleWord', repr(doubleWord) )
                 adjustedDoubleWord = doubleWord[:-1] if doubleWord[-1] in END_CHARS_TO_REMOVE else doubleWord
                 if '. ' not in adjustedDoubleWord: # don't go across sentence boundaries
                     wordCounts[adjustedDoubleWord] += countIncrement
                 if wx < len(words)-2: # there's still two words after this one
                     tripleWord = doubleWord+' '+words[wx+2]
-                    #print( 'tripleWord', repr(tripleWord) )
+                    #vPrint( 'Quiet', debuggingThisModule, 'tripleWord', repr(tripleWord) )
                     adjustedTripleWord = tripleWord[:-1] if tripleWord[-1] in END_CHARS_TO_REMOVE else tripleWord
                     if '. ' not in adjustedTripleWord: # don't go across sentence boundaries
                         wordCounts[adjustedTripleWord] += countIncrement
                     if wx < len(words)-3: # there's still three words after this one
                         quadWord = tripleWord+' '+words[wx+3]
-                        #print( 'quadWord', repr(quadWord) )
+                        #vPrint( 'Quiet', debuggingThisModule, 'quadWord', repr(quadWord) )
                         adjustedQuadWord = quadWord[:-1] if quadWord[-1] in END_CHARS_TO_REMOVE else quadWord
                         if '. ' not in adjustedQuadWord: # don't go across sentence boundaries
                             wordCounts[adjustedQuadWord] += countIncrement
                         if wx < len(words)-4: # there's still four words after this one
                             quinWord = quadWord+' '+words[wx+4]
-                            #print( 'quinWord', repr(quinWord) )
+                            #vPrint( 'Quiet', debuggingThisModule, 'quinWord', repr(quinWord) )
                             adjustedQuinWord = quinWord[:-1] if quinWord[-1] in END_CHARS_TO_REMOVE else quinWord
                             if '. ' not in adjustedQuinWord: # don't go across sentence boundaries
                                 wordCounts[adjustedQuinWord] += countIncrement
@@ -244,22 +244,22 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
                 if line and line[-1]=='\n': line=line[:-1] # Removing trailing newline character
                 if not line: continue # Just discard blank lines
                 lastLine = line
-                #print ( 'USFM file line is {!r}'.format( line ) )
+                #vPrint( 'Quiet', debuggingThisModule, 'USFM file line is {!r}'.format( line ) )
                 #if line[0:2]=='\\_': continue # Just discard Toolbox header lines
                 if line[0]=='#': continue # Just discard comment lines
 
                 if line[0]!='\\': # Not a SFM line
                     if lastMarker is None: # We don't have any SFM data lines yet
                         logging.error( "countBookWords: Non-USFM line in {} -- line ignored at #{}".format( USFMFilepath, lineCount) )
-                        #print( "SFMFile.py: XXZXResult is", lineDuples, len(line) )
+                        #vPrint( 'Quiet', debuggingThisModule, "SFMFile.py: XXZXResult is", lineDuples, len(line) )
                         #for x in range(0, min(6,len(line))):
-                            #print( x, "'" + str(ord(line[x])) + "'" )
+                            #vPrint( 'Quiet', debuggingThisModule, x, "'" + str(ord(line[x])) + "'" )
                         #raise IOError('Oops: Line break on last line ??? not handled here "' + line + '"')
                     else: # Append this continuation line
                         if lastMarker in USFM_PRINTABLE_MARKERS:
                             #oldmarker, oldtext = lineDuples.pop()
-                            #print ("Popped",oldmarker,oldtext)
-                            #print ("Adding", line, "to", oldmarker, oldtext)
+                            #vPrint( 'Quiet', debuggingThisModule, "Popped",oldmarker,oldtext)
+                            #vPrint( 'Quiet', debuggingThisModule, "Adding", line, "to", oldmarker, oldtext)
                             #lineDuples.append( (oldmarker, oldtext+' '+line) )
                             countWords( line )
                         continue
@@ -287,24 +287,24 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
                     marker = lineAfterBackslash
                     text = ''
 
-                #print( " ", repr(marker), repr(text) )
+                #vPrint( 'Quiet', debuggingThisModule, " ", repr(marker), repr(text) )
                 #if marker not in ignoreSFMs:
                 if marker in USFM_PRINTABLE_MARKERS and text:
-                    #print( "   1", marker, text )
+                    #vPrint( 'Quiet', debuggingThisModule, "   1", marker, text )
                     if marker == 'v' and text[0].isdigit():
                         try: text = text.split( None, 1 )[1]
                         except IndexError: text = ''
-                    #print( "   2", marker, text )
+                    #vPrint( 'Quiet', debuggingThisModule, "   2", marker, text )
                     countWords( text )
                     #if not lineDuples: # Just for detection of start of real USFM
                         #lineDuples.append( (marker, text) )
                 lastMarker = marker
 
         except UnicodeError as err:
-            print( "Unicode error:", sys.exc_info()[0], err )
+            vPrint( 'Quiet', debuggingThisModule, "Unicode error:", sys.exc_info()[0], err )
             logging.critical( "countBookWords: Invalid line in {} -- line ignored at #{}".format( USFMFilepath, lineCount) )
-            if lineCount > 1: print( 'Previous line was: ', lastLine )
-            #print( line )
+            if lineCount > 1: vPrint( 'Quiet', debuggingThisModule, 'Previous line was: ', lastLine )
+            #vPrint( 'Quiet', debuggingThisModule, line )
             #raise
 
     return wordCounts
@@ -332,12 +332,12 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     """
     logging.info( "loadBibleBookAutocompleteWords()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "loadBibleBookAutocompleteWords()" )
+        vPrint( 'Quiet', debuggingThisModule, "loadBibleBookAutocompleteWords()" )
         editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible book words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
-    #print( "  got BBB", repr(BBB) )
+    #vPrint( 'Quiet', debuggingThisModule, "  got BBB", repr(BBB) )
     if currentBBB == 'UNK': return # UNKnown book -- no use here
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
@@ -346,7 +346,7 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         if BBB2 == currentBBB: foundFilename = filename; break
 
     wordCountResults = countBookWords( currentBBB, editWindowObject.internalBible, foundFilename, False )
-    #print( 'wordCountResults', len(wordCountResults) )
+    #vPrint( 'Quiet', debuggingThisModule, 'wordCountResults', len(wordCountResults) )
 
     # Would be nice to load current book first, but we don't know it yet
     autocompleteWords = []
@@ -354,21 +354,21 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
         #autocompleteWords = [ 'Lord God', 'Lord your(pl) God', '(is)', '(are)', '(were)', '(one who)', ]
     try:
         # Sort the word-list for the book to put the most common words first
-        #print( 'wordCountResults', currentBBB, discoveryResults )
-        #print( currentBBB, 'mTWC', discoveryResults['mainTextWordCounts'] )
+        #vPrint( 'Quiet', debuggingThisModule, 'wordCountResults', currentBBB, discoveryResults )
+        #vPrint( 'Quiet', debuggingThisModule, currentBBB, 'mTWC', discoveryResults['mainTextWordCounts'] )
         #qqq = sorted( discoveryResults['mainTextWordCounts'].items(), key=lambda c: -c[1] )
-        #print( 'qqq', qqq )
+        #vPrint( 'Quiet', debuggingThisModule, 'qqq', qqq )
         for word,count in sorted( wordCountResults.items(),
                                 key=lambda duple: -duple[1] ):
             if len(word) >= editWindowObject.autocompleteMinLength \
             and word not in autocompleteWords: # just in case we had some (common) words in there already
                 if ' ' not in word or count > 4:
                     autocompleteWords.append( word )
-                #else: print( 'loadBibleBookAutocompleteWords discarding', repr(word) )
+                #else: vPrint( 'Quiet', debuggingThisModule, 'loadBibleBookAutocompleteWords discarding', repr(word) )
     except KeyError:
-        print( "Why did {} have no words???".format( currentBBB ) )
+        vPrint( 'Quiet', debuggingThisModule, "Why did {} have no words???".format( currentBBB ) )
         #pass # Nothing for this book
-    #print( 'autocompleteWords', len(autocompleteWords) )
+    #vPrint( 'Quiet', debuggingThisModule, 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
     editWindowObject.addAllNewWords = True
 # end of AutocompleteFunctions.loadBibleBookAutocompleteWords
@@ -388,7 +388,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     """
     startTime = time.time()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "AutocompleteFunctions.loadBibleAutocompleteWords()" )
+        vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.loadBibleAutocompleteWords()" )
         editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
 
     global internalMarkers
@@ -399,7 +399,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
 
     editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "  got current BBB", repr(currentBBB) )
+    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "  got current BBB", repr(currentBBB) )
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
     bookWordCounts = {}
@@ -413,14 +413,14 @@ def loadBibleAutocompleteWords( editWindowObject ):
                 results = pool.map( countBookWordsHelper, parameters ) # have the pool do our loads
                 assert len(results) == len(editWindowObject.internalBible.maximumPossibleFilenameTuples)
                 for (BBB,filename),counts in zip( editWindowObject.internalBible.maximumPossibleFilenameTuples, results ):
-                    #print( "XX", BBB, filename, len(counts) if counts else counts )
+                    #vPrint( 'Quiet', debuggingThisModule, "XX", BBB, filename, len(counts) if counts else counts )
                     bookWordCounts[BBB] = counts
                 BibleOrgSysGlobals.alreadyMultiprocessing = False
         else: # Just single threaded
             # Load the books one by one -- assuming that they have regular Paratext style filenames
             for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples:
                 #if BibleOrgSysGlobals.verbosityLevel>1 or BibleOrgSysGlobals.debugFlag:
-                    #print( _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.getAName(), editWindowObject.internalBible.sourceFolder ) )
+                    #vPrint( 'Quiet', debuggingThisModule, _("  USFMBible: Loading {} from {} from {}…").format( BBB, editWindowObject.internalBible.getAName(), editWindowObject.internalBible.sourceFolder ) )
                 bookWordCounts[BBB] = countBookWords( BBB, editWindowObject.internalBible, filename, BBB==currentBBB ) # also saves it
     else:
         logging.critical( "Autocomplete: " + _("No books to load in folder '{}'!").format( editWindowObject.internalBible.sourceFolder ) )
@@ -428,14 +428,14 @@ def loadBibleAutocompleteWords( editWindowObject ):
     # Now combine the books
     autocompleteCounts = {}
     for BBB,counts in bookWordCounts.items(): # combine word counts for all books
-        #print( "here", BBB, len(counts) )
+        #vPrint( 'Quiet', debuggingThisModule, "here", BBB, len(counts) )
         if counts:
             for word, count in counts.items():
-                #print( "  ", word, count )
+                #vPrint( 'Quiet', debuggingThisModule, "  ", word, count )
                 if len(word) >= editWindowObject.autocompleteMinLength:
                     if word in autocompleteCounts: autocompleteCounts[word] += count
                     else: autocompleteCounts[word] = count
-    #print( "there", len(autocompleteCounts) )
+    #vPrint( 'Quiet', debuggingThisModule, "there", len(autocompleteCounts) )
 
     # Now make our list sorted with most common words first
     autocompleteWords = []
@@ -445,14 +445,14 @@ def loadBibleAutocompleteWords( editWindowObject ):
         if ' ' not in word or count > 9:
             autocompleteWords.append( word )
         #else:
-            #print( 'loadBibleAutocompleteWords discarding', repr(word) )
+            #vPrint( 'Quiet', debuggingThisModule, 'loadBibleAutocompleteWords discarding', repr(word) )
             #if ' ' not in word: halt
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'acW', autocompleteWords )
+    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, 'acW', autocompleteWords )
 
-    #print( 'autocompleteWords', len(autocompleteWords) )
+    #vPrint( 'Quiet', debuggingThisModule, 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "loadBibleAutocompleteWords took", time.time()-startTime )
+        vPrint( 'Quiet', debuggingThisModule, "loadBibleAutocompleteWords took", time.time()-startTime )
     editWindowObject.addAllNewWords = True
 # end of AutocompleteFunctions.loadBibleAutocompleteWords
 
@@ -470,7 +470,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
     """
     logging.info( "loadHunspellAutocompleteWords( {}, {} )".format( dictionaryFilepath, encoding ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "loadHunspellAutocompleteWords( {}, {} )".format( dictionaryFilepath, encoding ) )
+        vPrint( 'Quiet', debuggingThisModule, "loadHunspellAutocompleteWords( {}, {} )".format( dictionaryFilepath, encoding ) )
         editWindowObject.parentApp.setDebugText( "loadHunspellAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
@@ -485,7 +485,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
                 line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
             if line and line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
-            #print( "line", lineCount, repr(line) )
+            #vPrint( 'Quiet', debuggingThisModule, "line", lineCount, repr(line) )
 
             if lineCount==1 and line.isdigit(): # first line seems to be a count
                 internalCount = int( line )
@@ -494,7 +494,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
             try: word, codes = line.split( '/', 1 )
             except ValueError: word, codes = line, ''
             if word in ('3GPP','AA','ACAS',): continue # Throw out rubbish
-            #print( "word", repr(word), repr(codes) )
+            #vPrint( 'Quiet', debuggingThisModule, "word", repr(word), repr(codes) )
             autocompleteWords.append( word )
 
             wordDeleteA = word[:-1] if word[-1]=='a' else word
@@ -545,7 +545,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
             7 -able, last syllable NOT stressed, -ate words <= 2 syllables
             """
             for code in codes:
-                #print( "  code", code, "for", repr(word) )
+                #vPrint( 'Quiet', debuggingThisModule, "  code", code, "for", repr(word) )
                 if code == 'A': generatedWords.append( 're' + word )
                 elif code == 'a': generatedWords.append( 'mis' + word )
                 elif code == 'B': generatedWords.append( word+'able' ); generatedWords.append( word+'ability' )
@@ -624,7 +624,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
                     generatedWords.append( wordDeleteE + 'y' )
                 elif code == 'z': # e.g., cage -> adverbial ending where adjective adds y
                     generatedWords.append( wordDeleteEY + 'ily' )
-                elif code == '1': print( ' 1 on', repr(word), 'ignored' )
+                elif code == '1': vPrint( 'Quiet', debuggingThisModule, ' 1 on', repr(word), 'ignored' )
                 elif code == '2': # e.g., bone -> y+ness ending, simplified rules
                     generatedWords.append( wordDeleteEY + 'iness' )
                 elif code == '3': generatedWords.append( wordDeleteEY+'ist' ); generatedWords.append( wordDeleteE+'ists' ); generatedWords.append( wordDeleteE+"ist's" )
@@ -635,17 +635,17 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
                     generatedWords.append( word + 'ful' )
                 elif code == '7': generatedWords.append( word + 'able' )
                 elif BibleOrgSysGlobals.debugFlag:
-                    print( lineCount, "code", code, "for", repr(word), repr(codes) )
+                    vPrint( 'Quiet', debuggingThisModule, lineCount, "code", code, "for", repr(word), repr(codes) )
                     halt
-            print( "  generated", generatedWords, 'from', repr(word), repr(codes) )
+            vPrint( 'Quiet', debuggingThisModule, "  generated", generatedWords, 'from', repr(word), repr(codes) )
             autocompleteWords.extend( generatedWords )
 
             #lastLine = line
             #if lineCount > 60: break
-    #print( 'acW', len(autocompleteWords), autocompleteWords )
+    #vPrint( 'Quiet', debuggingThisModule, 'acW', len(autocompleteWords), autocompleteWords )
 
     if editWindowObject.autocompleteMinLength < 4:
-        print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
+        vPrint( 'Quiet', debuggingThisModule, "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
     editWindowObject.addAllNewWords = False
@@ -665,7 +665,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     """
     logging.info( "loadILEXAutocompleteWords( {}, {} )".format( dictionaryFilepath, lgCodes ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "loadILEXAutocompleteWords( {}, {} )".format( dictionaryFilepath, lgCodes ) )
+        vPrint( 'Quiet', debuggingThisModule, "loadILEXAutocompleteWords( {}, {} )".format( dictionaryFilepath, lgCodes ) )
         editWindowObject.parentApp.setDebugText( "loadILEXAutocompleteWords…" )
 
     editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
@@ -683,7 +683,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
                     line = line[3:] # Remove the UTF-8 Unicode Byte Order Marker (BOM)
             if line and line[-1]=='\n': line=line[:-1] # Remove trailing newline character
             if not line: continue # Just discard blank lines
-            #print( "line", lineCount, repr(line) )
+            #vPrint( 'Quiet', debuggingThisModule, "line", lineCount, repr(line) )
 
             # wd, lg, ps, and sc are the four compulsory fields in each record
             if line.startswith( '\\wd ' ):
@@ -703,10 +703,10 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
 
             #lastLine = line
             #if lineCount > 600: break
-    #print( 'acW', len(autocompleteWords), autocompleteWords )
+    #vPrint( 'Quiet', debuggingThisModule, 'acW', len(autocompleteWords), autocompleteWords )
 
     if editWindowObject.autocompleteMinLength < 4:
-        print( "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
+        vPrint( 'Quiet', debuggingThisModule, "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
     editWindowObject.addAllNewWords = False
@@ -730,10 +730,10 @@ def getCharactersBeforeCursor( self, charCount=1 ):
     Needed for auto-correct functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "AutocompleteFunctions.getCharactersBeforeCursor( {} )".format( charCount ) )
+        #vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.getCharactersBeforeCursor( {} )".format( charCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( charCount ), tk.INSERT )
-    #print( 'getCharactersBeforeCursor: returning previousText', repr(previousText) )
+    #vPrint( 'Quiet', debuggingThisModule, 'getCharactersBeforeCursor: returning previousText', repr(previousText) )
     return previousText
 # end of AutocompleteFunctions.getCharactersBeforeCursor
 
@@ -746,16 +746,16 @@ def getWordCharactersBeforeCursor( self, maxCount=4 ):
     Needed for auto-complete functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "AutocompleteFunctions.getWordCharactersBeforeCursor( {} )".format( maxCount ) )
+        #vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.getWordCharactersBeforeCursor( {} )".format( maxCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-    #print( "previousText", repr(previousText) )
+    #vPrint( 'Quiet', debuggingThisModule, "previousText", repr(previousText) )
     wordText = ''
     for previousChar in reversed( previousText ):
         if previousChar in self.autocompleteWordChars:
             wordText = previousChar + wordText
         else: break
-    #print( 'getWordCharactersBeforeCursor: returning wordText', repr(wordText) )
+    #vPrint( 'Quiet', debuggingThisModule, 'getWordCharactersBeforeCursor: returning wordText', repr(wordText) )
     return wordText
 # end of AutocompleteFunctions.getWordCharactersBeforeCursor
 
@@ -769,10 +769,10 @@ def getCharactersAndWordBeforeCursor( self, maxCount=4 ):
     Needed for auto-complete functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "AutocompleteFunctions.getCharactersAndWordBeforeCursor( {} )".format( maxCount ) )
+        #vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.getCharactersAndWordBeforeCursor( {} )".format( maxCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-    #print( "previousText", repr(previousText) )
+    #vPrint( 'Quiet', debuggingThisModule, "previousText", repr(previousText) )
     delimiterCount = 0
     wordText = ''
     for previousChar in reversed( previousText ):
@@ -780,10 +780,10 @@ def getCharactersAndWordBeforeCursor( self, maxCount=4 ):
             wordText = previousChar + wordText
         elif previousChar in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE:
             if delimiterCount > 0: break
-            #print( "Found delimiter {!r}".format( previousChar ) )
+            #vPrint( 'Quiet', debuggingThisModule, "Found delimiter {!r}".format( previousChar ) )
             wordText = previousChar + wordText
             delimiterCount += 1
-    #print( 'getCharactersAndWordBeforeCursor: returning wordText', repr(wordText) )
+    #vPrint( 'Quiet', debuggingThisModule, 'getCharactersAndWordBeforeCursor: returning wordText', repr(wordText) )
     return wordText
 # end of AutocompleteFunctions.getCharactersAndWordBeforeCursor
 
@@ -796,20 +796,20 @@ def getWordBeforeSpace( self, maxCount=20 ):
     Needed for auto-complete functions.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "AutocompleteFunctions.getWordBeforeSpace( {} )".format( maxCount ) )
+        #vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.getWordBeforeSpace( {} )".format( maxCount ) )
 
     previousText = self.textBox.get( tk.INSERT+'-{}c'.format( maxCount ), tk.INSERT )
-    #print( "previousText1", repr(previousText) )
+    #vPrint( 'Quiet', debuggingThisModule, "previousText1", repr(previousText) )
     assert previousText and previousText[-1] in BibleOrgSysGlobals.TRAILING_WORD_END_CHARS+MULTIPLE_SPACE_SUBSTITUTE+TRAILING_SPACE_SUBSTITUTE
     previousText = previousText[:-1] # Drop the character that ended the word
-    #print( "previousText2", repr(previousText) )
+    #vPrint( 'Quiet', debuggingThisModule, "previousText2", repr(previousText) )
     wordText = ''
     if 1 or previousText and previousText[-1].isalpha():
         for previousChar in reversed( previousText ):
             if previousChar in self.autocompleteWordChars:
                 wordText = previousChar + wordText
             else: break
-    #print( 'getWordBeforeSpace: returning word Text', repr(wordText) )
+    #vPrint( 'Quiet', debuggingThisModule, 'getWordBeforeSpace: returning word Text', repr(wordText) )
     return wordText
 # end of AutocompleteFunctions.getWordBeforeSpace
 
@@ -821,15 +821,15 @@ def acceptAutocompleteSelection( self, includeTrailingSpace=False ):
     Gets the chosen word and inserts the end of it into the text.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "AutocompleteFunctions.acceptAutocompleteSelection( {} )".format( includeTrailingSpace ) )
+        #vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.acceptAutocompleteSelection( {} )".format( includeTrailingSpace ) )
         assert self.autocompleteBox is not None
 
     currentWord = self.autocompleteBox.get( tk.ACTIVE )
-    #print( '  autocompleteBox currentWord', currentWord )
+    #vPrint( 'Quiet', debuggingThisModule, '  autocompleteBox currentWord', currentWord )
     self.removeAutocompleteBox()
 
     if self.autocompleteOverlap:
-        #print( "Have {!r} with overlap {!r}".format( currentWord, self.autocompleteOverlap ) )
+        #vPrint( 'Quiet', debuggingThisModule, "Have {!r} with overlap {!r}".format( currentWord, self.autocompleteOverlap ) )
         assert currentWord.startswith( self.autocompleteOverlap )
         #currentWord = currentWord[len(self.autocompleteOverlap):]
 
@@ -839,7 +839,7 @@ def acceptAutocompleteSelection( self, includeTrailingSpace=False ):
     self.textBox.insert( tk.INSERT, currentWord[len(self.autocompleteOverlap):] \
                                     + (' ' if includeTrailingSpace else '') )
 
-    #print( "acceptAutocompleteSelection for {!r}".format( currentWord ) )
+    #vPrint( 'Quiet', debuggingThisModule, "acceptAutocompleteSelection for {!r}".format( currentWord ) )
     addNewAutocompleteWord( self, currentWord )
 
     ## Put this word at the beginning of the list so it comes up on top next time
@@ -857,7 +857,7 @@ def addNewAutocompleteWord( self, possibleNewWord ):
     Used by autocomplete routines in onTextChange.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "AutocompleteFunctions.addNewAutocompleteWord( {!r} )".format( possibleNewWord ) )
+        vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.addNewAutocompleteWord( {!r} )".format( possibleNewWord ) )
         assert isinstance( possibleNewWord, str )
         assert possibleNewWord
 
@@ -865,17 +865,17 @@ def addNewAutocompleteWord( self, possibleNewWord ):
         remainder = possibleNewWord
         while ' ' in remainder:
             individualWord, remainder = remainder.split( None, 1 )
-            #print( "  word={!r}, remainder={!r}".format( individualWord, remainder ) )
-            #print( "Recursive1 of {!r}".format( individualWord ) )
+            #vPrint( 'Quiet', debuggingThisModule, "  word={!r}, remainder={!r}".format( individualWord, remainder ) )
+            #vPrint( 'Quiet', debuggingThisModule, "Recursive1 of {!r}".format( individualWord ) )
             addNewAutocompleteWord( self, individualWord ) # recursive call
-            #print( "Recursive2 of {!r}".format( remainder ) )
+            #vPrint( 'Quiet', debuggingThisModule, "Recursive2 of {!r}".format( remainder ) )
             addNewAutocompleteWord( self, remainder ) # recursive call
 
     while possibleNewWord and possibleNewWord[-1] in END_CHARS_TO_REMOVE:
         possibleNewWord = possibleNewWord[:-1] # Remove certain final punctuation
 
     if len( possibleNewWord ) > self.autocompleteMinLength:
-        #print( "Adding new autocomplete word: {!r}".format( possibleNewWord ) )
+        #vPrint( 'Quiet', debuggingThisModule, "Adding new autocomplete word: {!r}".format( possibleNewWord ) )
         # Put this word at the beginning of the list so it comes up on top next time
         firstLetter, remainder = possibleNewWord[0], possibleNewWord[1:]
         try: self.autocompleteWords[firstLetter].remove( remainder )
@@ -893,7 +893,7 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
@@ -910,7 +910,7 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

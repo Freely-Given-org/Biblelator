@@ -61,7 +61,7 @@ class AboutBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None, logoPath=None ) -> None:
         """
         """
-        #if BibleOrgSysGlobals.debugFlag: print( "AboutBox.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "AboutBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_ABOUT_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
@@ -99,7 +99,7 @@ class AboutBox( tk.Toplevel ):
     #def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
         #"""
         #"""
-        ##if BibleOrgSysGlobals.debugFlag: print( "AboutBox2.__init__( {} )".format( parent ) )
+        ##if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "AboutBox2.__init__( {} )".format( parent ) )
         #ab = tk.Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
         #ab.minsize( self.minimumXSize, self.minimumYSize )
@@ -137,13 +137,13 @@ def briefDemo() -> None:
     Main program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    print( "Running demo…" )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        #print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        #vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
-            print( 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
+            vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
     tkRootWindow.title( programNameVersion )
     ab = AboutBox( tkRootWindow, PROGRAM_NAME, programNameVersion )
     #ab = AboutBox2( tkRootWindow, PROGRAM_NAME, programNameVersion )

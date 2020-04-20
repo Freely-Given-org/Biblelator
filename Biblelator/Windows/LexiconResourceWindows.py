@@ -67,7 +67,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleLexiconResourceWindow.__init__( {}, {} )".format( parentApp, lexiconPath ) )
+            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.__init__( {}, {} )".format( parentApp, lexiconPath ) )
         self.lexiconPath = lexiconPath
         self.lexiconWord = None
 
@@ -106,7 +106,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleLexiconResourceWindow.createMenuBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -170,7 +170,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         Create a tool bar containing some helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createToolBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createToolBar()" )
 
         xPad, yPad = (6, 8) if self.parentApp.touchMode else (4, 4)
 
@@ -194,7 +194,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoPreviousEntry() from {}".format( repr(self.lexiconWord) ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoPreviousEntry() from {}".format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoPreviousEntry…" )
 
         if self.lexiconWord is None:
@@ -211,7 +211,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoNextEntry() from {}".format( repr(self.lexiconWord) ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoNextEntry() from {}".format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoNextEntry…" )
 
         if self.lexiconWord is None:
@@ -228,7 +228,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Leaves text box in disabled state. (Not user editable.)
         """
-        if BibleOrgSysGlobals.debugFlag: print( "updateLexiconWord( {} )".format( newLexiconWord ) )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "updateLexiconWord( {} )".format( newLexiconWord ) )
 
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
@@ -250,7 +250,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         Display a help box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
         from Help import HelpBox
 
         helpInfo = programNameVersion
@@ -268,7 +268,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         Display an about box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
         from About import AboutBox
 
         aboutInfo = programNameVersion
@@ -285,7 +285,7 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
@@ -306,7 +306,7 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

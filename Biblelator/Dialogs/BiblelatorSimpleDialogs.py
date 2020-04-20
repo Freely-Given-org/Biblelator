@@ -57,7 +57,7 @@ def showError( parentWindow, title, errorText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( "showError( {}, {!r}, {!r} )".format( parentWindow, title, errorText ) )
+        vPrint( 'Quiet', debuggingThisModule, "showError( {}, {!r}, {!r} )".format( parentWindow, title, errorText ) )
 
     logging.error( '{}: {}'.format( title, errorText ) )
     parentWindow.parentApp.setStatus( _("Waiting for user input after error…") )
@@ -70,7 +70,7 @@ def showWarning( parentWindow, title, warningText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag:
-        print( "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
+        vPrint( 'Quiet', debuggingThisModule, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     parentWindow.parentApp.setStatus( _("Waiting for user input after warning…") )
@@ -83,11 +83,11 @@ def showInfo( parentWindow, title, infoText ):
     """
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
+        vPrint( 'Quiet', debuggingThisModule, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parentWindow.configure().items()): # Append the parentWindow window config info
             if debuggingThisModule:
-                print( "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
+                vPrint( 'Quiet', debuggingThisModule, "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
             if len(configTuple)>2: # don't append alternative names like, bg for background
                 # Don't display the last field if it just duplicates the previous one
                 infoText += '  {}: {!r}{}\n'.format( configTuple[2], configTuple[3],
@@ -109,7 +109,7 @@ def briefDemo() -> None:
     Main program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

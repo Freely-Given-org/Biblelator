@@ -133,7 +133,7 @@ class Application( Frame ):
         """
         if debuggingThisModule: self.startTime = datetime.now()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderPath, loggingFolderPath ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderPath, loggingFolderPath ) )
 
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage = rootWindow, homeFolderPath, loggingFolderPath, iconImage
         self.parentApp = self # Yes, that's me, myself!
@@ -145,9 +145,9 @@ class Application( Frame ):
 
         # if 0:
         #     from tkinter import font
-        #     print( "tkDefaultFont", font.nametofont("TkDefaultFont").configure() )
-        #     print( "tkTextFont", font.nametofont("TkTextFont").configure() )
-        #     print( "tkFixedFont", font.nametofont("TkFixedFont").configure() )
+        #     vPrint( 'Quiet', debuggingThisModule, "tkDefaultFont", font.nametofont("TkDefaultFont").configure() )
+        #     vPrint( 'Quiet', debuggingThisModule, "tkTextFont", font.nametofont("TkTextFont").configure() )
+        #     vPrint( 'Quiet', debuggingThisModule, "tkFixedFont", font.nametofont("TkFixedFont").configure() )
 
         self.themeName = 'default'
         self.style = Style()
@@ -169,8 +169,8 @@ class Application( Frame ):
         self.usageLogPath = os.path.join ( loggingFolderPath, self.usageFilename )
         self.lastLoggedUsageDate = self.lastLoggedUsageTime = None
 
-        if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
-        if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
@@ -198,7 +198,7 @@ class Application( Frame ):
 
         self.SwordInterface = None
         self.DBPInterface = None
-        #print( "Preload the Sword library…" )
+        #vPrint( 'Quiet', debuggingThisModule, "Preload the Sword library…" )
         #self.SwordInterface = SwordResources.SwordInterface() # Preload the Sword library
 
         self.currentProjectName = 'TranslationTest'
@@ -241,7 +241,7 @@ class Application( Frame ):
         self.viewVersesBefore, self.viewVersesAfter = 2, 6 # TODO: Not really the right place to have this
         if BibleOrgSysGlobals.commandLineArguments.override is None:
             self.INIname = APP_NAME
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( self.INIname ) )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
@@ -289,7 +289,7 @@ class Application( Frame ):
         self.starting = False
         self.setReadyStatus()
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
-        if debuggingThisModule: print( "Finished start-up at {} after {} seconds" \
+        if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Finished start-up at {} after {} seconds" \
                     .format( datetime.now().strftime( '%H:%M:%S'), (datetime.now()-self.startTime).seconds ) )
     # end of Application.__init__
 
@@ -306,7 +306,7 @@ class Application( Frame ):
             that it contains all the books that we might ever want to navigate to.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
+            vPrint( 'Quiet', debuggingThisModule, "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -324,17 +324,17 @@ class Application( Frame ):
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
-        #print( self.genericBookList )
+        #vPrint( 'Quiet', debuggingThisModule, self.genericBookList )
         self.offsetGenesis = self.genericBookList.index( 'GEN' )
-        #print( 'offsetGenesis', self.offsetGenesis )
+        #vPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
             #nBBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getReferenceNumber( BBB )
-            #print( BBB, nBBB )
+            #vPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
-        #print( self.bookNumberTable )
+        #vPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
     # end of Application.setGenericBibleOrganisationalSystem
 
 
@@ -342,7 +342,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createMenuBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createMenuBar()" )
 
         if self.touchMode:
             self.createTouchMenuBar()
@@ -354,7 +354,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createNormalMenuBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createNormalMenuBar()" )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -513,7 +513,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createTouchMenuBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createTouchMenuBar()" )
             assert self.touchMode
 
         #self.win = Toplevel( self )
@@ -671,7 +671,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "OnPreviousBCVBCVMouseDown( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "OnPreviousBCVBCVMouseDown( {} )".format( event ) )
 
         self.previousButtonPressed = True
         self.previousCount = 0
@@ -684,7 +684,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "OnNextBCVBCVMouseDown( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "OnNextBCVBCVMouseDown( {} )".format( event ) )
 
         self.nextButtonPressed = True
         self.nextCount = 0
@@ -697,7 +697,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "__OnPreviousBCVMouseUp( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "__OnPreviousBCVMouseUp( {} )".format( event ) )
 
         self.previousButtonPressed = False
         if self.longPressAfterID is not None: self.after_cancel( self.longPressAfterID )
@@ -707,7 +707,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "__OnNextBCVMouseUp( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "__OnNextBCVMouseUp( {} )".format( event ) )
 
         self.nextButtonPressed = False
         if self.longPressAfterID is not None: self.after_cancel( self.longPressAfterID )
@@ -719,7 +719,7 @@ class Application( Frame ):
             wait for a long press.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "__longBCVPressPoll()" )
+            vPrint( 'Quiet', debuggingThisModule, "__longBCVPressPoll()" )
 
         if self.previousButtonPressed:
             self.previousCount += 1
@@ -739,7 +739,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createNormalNavigationBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createNormalNavigationBar()" )
 
         Style().configure('NavigationBar.TFrame', background='yellow')
 
@@ -775,7 +775,7 @@ class Application( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks,
                                             textvariable=self.bookNumberVar, command=self.spinToNewBookNumber )
         self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
@@ -796,7 +796,7 @@ class Application( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
 
         # valid percent substitutions (from the Tk entry man page)
                 # Note: you only have to register the ones you need
@@ -823,7 +823,7 @@ class Application( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
+        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
 
         vcmd = ( self.register( self.validateVerseNumberEntry ), '%d', '%P' )
@@ -858,7 +858,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createTouchNavigationBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createTouchNavigationBar()" )
             assert self.touchMode
 
         xPad, yPad = 6, 8
@@ -895,7 +895,7 @@ class Application( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks,
                                             textvariable=self.bookNumberVar, command=self.spinToNewBookNumber )
         self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
@@ -919,7 +919,7 @@ class Application( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
 
         # valid percent substitutions (from the Tk entry man page)
                 # note: you only have to register the ones you need; this
@@ -950,7 +950,7 @@ class Application( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
+        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
 
         vcmd = ( self.register( self.validateVerseNumberEntry ), '%d', '%P' )
@@ -997,7 +997,7 @@ class Application( Frame ):
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createToolBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createToolBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (4, 4)
 
@@ -1031,7 +1031,7 @@ class Application( Frame ):
         Create an information bar containing several helpful displays at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createInfoBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createInfoBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (4, 4)
 
@@ -1066,7 +1066,7 @@ class Application( Frame ):
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createDebugToolBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createDebugToolBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -1088,7 +1088,7 @@ class Application( Frame ):
         Create a status bar containing only one text label at the bottom of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "createStatusBar()" )
+            vPrint( 'Quiet', debuggingThisModule, "createStatusBar()" )
 
         #Style().configure( 'MainStatusBar.TLabel', background='pink' )
         #Style().configure( 'MainStatusBar.TLabel', background='DarkOrange1' )
@@ -1110,14 +1110,14 @@ class Application( Frame ):
             and/or to certain widget classes.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setupGlobalKeyboardBindings()" )
+            vPrint( 'Quiet', debuggingThisModule, "setupGlobalKeyboardBindings()" )
 
         # These bindings apply to/from all windows and widgets
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #vPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.rootWindow.bind_all( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {!r}'.format( name ) )
@@ -1137,17 +1137,17 @@ class Application( Frame ):
     # end of Application.setupGlobalKeyboardBindings()
 
     def textSelectAllText( self, event ):
-        #print( "textSelectAllText( {} ) {}".format( event, event.widget ) )
+        #vPrint( 'Quiet', debuggingThisModule, "textSelectAllText( {} ) {}".format( event, event.widget ) )
         event.widget.tag_add( tk.SEL, tkSTART, tk.END )
         #event.widget.mark_set( tk.INSERT, tk.END )
         #event.widget.see( tk.INSERT )
         #return tkBREAK # so default tk binding doesn't work
     def entrySelectAllText( self, event ):
-        #print( "entrySelectAllText( {} ) {}".format( event, event.widget ) )
+        #vPrint( 'Quiet', debuggingThisModule, "entrySelectAllText( {} ) {}".format( event, event.widget ) )
         event.widget.selection_range( tk.END )
         #return tkBREAK # so default tk binding doesn't work
     def spinboxSelectAllText( self, event ):
-        #print( "spinboxSelectAllText( {} ) {}".format( event, event.widget ) )
+        #vPrint( 'Quiet', debuggingThisModule, "spinboxSelectAllText( {} ) {}".format( event, event.widget ) )
         event.widget.selection_adjust( 0 )
         event.widget.selection_adjust( tk.END )
         #return tkBREAK # so default tk binding doesn't work
@@ -1158,13 +1158,13 @@ class Application( Frame ):
             and/or to certain widget classes.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setupMainWindowKeyboardBindings()" )
+            vPrint( 'Quiet', debuggingThisModule, "setupMainWindowKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #vPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {!r}'.format( name ) )
@@ -1177,7 +1177,7 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'addRecentFile {}'.format( threeTuple ) )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "addRecentFile( {} )".format( threeTuple ) )
+            vPrint( 'Quiet', debuggingThisModule, "addRecentFile( {} )".format( threeTuple ) )
             assert len(threeTuple) == 3
 
         try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
@@ -1214,9 +1214,9 @@ class Application( Frame ):
         Set (or clear) the status bar text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setStatus( {!r} )".format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, "setStatus( {!r} )".format( newStatusText ) )
 
-        #print( "SB is", repr( self.statusTextVariable.get() ) )
+        #vPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( tkSTART, tk.END )
@@ -1234,7 +1234,7 @@ class Application( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setErrorStatus( {!r} )".format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, "setErrorStatus( {!r} )".format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='MainStatusBar.TLabelWait' )
@@ -1248,7 +1248,7 @@ class Application( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setWaitStatus( {!r} )".format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, "setWaitStatus( {!r} )".format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='MainStatusBar.TLabelWait' )
@@ -1277,7 +1277,7 @@ class Application( Frame ):
         """
         """
         if debuggingThisModule:
-            #print( "setDebugText( {!r} )".format( newMessage ) )
+            #vPrint( 'Quiet', debuggingThisModule, "setDebugText( {!r} )".format( newMessage ) )
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
@@ -1315,7 +1315,7 @@ class Application( Frame ):
         Set the window theme to the given scheme.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doChangeTheme( {!r} )".format( newThemeName ) )
+            vPrint( 'Quiet', debuggingThisModule, "doChangeTheme( {!r} )".format( newThemeName ) )
         if BibleOrgSysGlobals.debugFlag:
             self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
             assert newThemeName
@@ -1334,7 +1334,7 @@ class Application( Frame ):
         """
         logging.info( "Application.doCheckForMessagesFromDeveloper()" )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doCheckForMessagesFromDeveloper( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doCheckForMessagesFromDeveloper( {} )".format( event ) )
 
         hadError = False
         import urllib.request
@@ -1345,7 +1345,7 @@ class Application( Frame ):
         try:
             with urllib.request.urlopen( url ) as response:
                 indexData = response.read() # a `bytes` object
-            #print( "indexData", repr(indexData) )
+            #vPrint( 'Quiet', debuggingThisModule, "indexData", repr(indexData) )
         except urllib.error.HTTPError as err:
             logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}: {}".format( url, err ) )
             hadError = True
@@ -1353,7 +1353,7 @@ class Application( Frame ):
             logging.debug( "doCheckForMessagesFromDeveloper got URLError from {}: {}".format( url, err ) )
             hadError = True
         else: indexString = indexData.decode('utf-8')
-        #print( "indexString", repr(indexString) )
+        #vPrint( 'Quiet', debuggingThisModule, "indexString", repr(indexString) )
 
         #except requests.exceptions.InvalidSchema as err:
             #logging.critical( "doCheckForMessagesFromDeveloper: Unable to check for developer messages" )
@@ -1368,21 +1368,21 @@ class Application( Frame ):
             except ValueError:
                 logging.debug( "doCheckForMessagesFromDeveloper got an unexpected response from {}".format( url ) )
                 hadError = True
-                #print( 'n', repr(n), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
+                #vPrint( 'Quiet', debuggingThisModule, 'n', repr(n), 'ext', repr(ext), 'lmnr', self.lastMessageNumberRead )
                 ni = -1 # so that nothing at all happens below
             if ni > self.lastMessageNumberRead:
                 msgString = None
                 url2 = 'http://{}/Software/Biblelator/DevMsg/{}.{}'.format( site, self.lastMessageNumberRead+1, ext )
-                #print( 'url2', repr(url2) )
+                #vPrint( 'Quiet', debuggingThisModule, 'url2', repr(url2) )
                 try:
                     with urllib.request.urlopen( url2 ) as response:
                         msgData = response.read() # a `bytes` object
-                        #print( "msgData", repr(msgData) )
+                        #vPrint( 'Quiet', debuggingThisModule, "msgData", repr(msgData) )
                 except urllib.error.HTTPError:
                     logging.debug( "doCheckForMessagesFromDeveloper got HTTPError from {}".format( url2 ) )
                     hadError = True
                 else: msgString = msgData.decode('utf-8')
-                #print( "msgString", repr(msgString) )
+                #vPrint( 'Quiet', debuggingThisModule, "msgString", repr(msgString) )
 
                 if msgString:
                     from About import AboutBox
@@ -1394,7 +1394,7 @@ class Application( Frame ):
                     self.lastMessageNumberRead += 1
 
         if hadError:
-            print( "doCheckForMessagesFromDeveloper was unable to communicate with the server." )
+            vPrint( 'Quiet', debuggingThisModule, "doCheckForMessagesFromDeveloper was unable to communicate with the server." )
     # end of Application.doCheckForMessagesFromDeveloper
 
 
@@ -1425,14 +1425,14 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doOpenRecent( {} )".format( recentIndex ) )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenRecent( {} )".format( recentIndex ) )
         if BibleOrgSysGlobals.debugFlag:
             self.setDebugText( "doOpenRecent…" )
             assert recentIndex < len(self.recentFiles)
 
         filename, folder, windowType = self.recentFiles[recentIndex]
-        print( "Need to open", filename, folder, windowType )
-        print( "NOT WRITTEN YET" )
+        vPrint( 'Quiet', debuggingThisModule, "Need to open", filename, folder, windowType )
+        vPrint( 'Quiet', debuggingThisModule, "NOT WRITTEN YET" )
     # end of Application.doOpenRecent
 
 
@@ -1443,7 +1443,7 @@ class Application( Frame ):
         Requests a version name from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doOpenNewDBPBibleResourceWindow()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenNewDBPBibleResourceWindow()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewDBPBibleResourceWindow…" )
 
         if self.internetAccessEnabled:
@@ -1451,17 +1451,17 @@ class Application( Frame ):
             if self.DBPInterface is None:
                 self.DBPInterface = DBPBibles()
                 availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
-                #print( "aV1", repr(availableVolumes) )
+                #vPrint( 'Quiet', debuggingThisModule, "aV1", repr(availableVolumes) )
                 if availableVolumes:
                     srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
-                    #print( "srbResult", repr(srb.result) )
+                    #vPrint( 'Quiet', debuggingThisModule, "srbResult", repr(srb.result) )
                     if srb.result:
                         for entry in srb.result:
                             self.openDBPBibleResourceWindow( entry[1] )
                             self.addRecentFile( (entry[1],'','DBPBibleResourceWindow') )
                         #self.acceptNewBnCV()
                         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-                    elif BibleOrgSysGlobals.debugFlag: print( "doOpenNewDBPBibleResourceWindow: no resource selected!" )
+                    elif BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "doOpenNewDBPBibleResourceWindow: no resource selected!" )
                 else:
                     logging.critical( "doOpenNewDBPBibleResourceWindow: " + _("no volumes available") )
                     self.setStatus( "Digital Bible Platform unavailable (offline?)" )
@@ -1479,7 +1479,7 @@ class Application( Frame ):
         Returns the new DBPBibleResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openDBPBibleResourceWindow()" )
+            vPrint( 'Quiet', debuggingThisModule, "openDBPBibleResourceWindow()" )
         if BibleOrgSysGlobals.debugFlag:
             self.setDebugText( "openDBPBibleResourceWindow…" )
             assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
@@ -1510,7 +1510,7 @@ class Application( Frame ):
         Requests a module abbreviation from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openSwordResource()" )
+            vPrint( 'Quiet', debuggingThisModule, "openSwordResource()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewSwordResourceWindow…" )
 
         self.setWaitStatus( _("doOpenNewSwordResourceWindow…") )
@@ -1538,17 +1538,17 @@ class Application( Frame ):
                 self.SwordInterface.augmentModules( requestedFolder )
                 # Try again now
                 givenDupleList = self.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
-        #print( 'givenDupleList', givenDupleList )
+        #vPrint( 'Quiet', debuggingThisModule, 'givenDupleList', givenDupleList )
 
         ourList = None
         if givenDupleList:
             genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
             ourList = ['{} ({})'.format(moduleRoughName,genericName[moduleType]) for moduleRoughName,moduleType in givenDupleList]
-            if BibleOrgSysGlobals.debugFlag: print( "{} Sword module codes available".format( len(ourList) ) )
-        #print( "ourList", ourList )
+            if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "{} Sword module codes available".format( len(ourList) ) )
+        #vPrint( 'Quiet', debuggingThisModule, "ourList", ourList )
         if ourList:
             srb = SelectResourceBoxDialog( self, ourList, title=_("Open Sword resource") )
-            print( "srbResult", repr(srb.result) )
+            vPrint( 'Quiet', debuggingThisModule, "srbResult", repr(srb.result) )
             if srb.result:
                 for entryString in srb.result:
                     requestedModuleName, rest = entryString.split( ' (', 1 )
@@ -1557,7 +1557,7 @@ class Application( Frame ):
                     self.addRecentFile( (requestedModuleName,'','SwordBibleResourceWindow') )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
-            elif BibleOrgSysGlobals.debugFlag: print( "doOpenNewSwordResourceWindow: " + _("no resource selected!") )
+            elif BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "doOpenNewSwordResourceWindow: " + _("no resource selected!") )
         else:
             logging.critical( "doOpenNewSwordResourceWindow: " + _("no list available") )
             showError( self, APP_NAME, _("Sorry, no Sword resources discovered") )
@@ -1572,7 +1572,7 @@ class Application( Frame ):
         Returns the new SwordBibleResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openSwordBibleResourceWindow( {}, {} )".format( moduleAbbreviation, windowGeometry ) )
+            vPrint( 'Quiet', debuggingThisModule, "openSwordBibleResourceWindow( {}, {} )".format( moduleAbbreviation, windowGeometry ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openSwordBibleResourceWindow…" )
 
         self.setWaitStatus( _("openSwordBibleResourceWindow…") )
@@ -1597,7 +1597,7 @@ class Application( Frame ):
         Returns True if we succeed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doDownloadResource( {} )".format( abbrev ) )
+            vPrint( 'Quiet', debuggingThisModule, "doDownloadResource( {} )".format( abbrev ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doDownloadResource {}…".format( abbrev ) )
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.internetAccessEnabled
@@ -1607,7 +1607,7 @@ class Application( Frame ):
         filepath = BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( filename )
         url = BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL + filename
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
+            vPrint( 'Quiet', debuggingThisModule, "doDownloadFile( {} ) -> {}".format( abbrev, url ) )
         try: responseObject = urllib.request.urlopen( url )
         except urllib.error.URLError:
             if BibleOrgSysGlobals.debugFlag:
@@ -1627,23 +1627,23 @@ class Application( Frame ):
         NOTE: This may include a Hebrew interlinear window which has to be treated as a special case.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openBOSBibleResource()" )
+            vPrint( 'Quiet', debuggingThisModule, "openBOSBibleResource()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewBOSBibleResourceWindow…" )
 
         if not BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH.exists(): # Seems we have nothing yet
             os.makedirs( BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH )
         if not os.listdir( BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH ):
-            print( "Downloadable resources folder is empty" )
+            vPrint( 'Quiet', debuggingThisModule, "Downloadable resources folder is empty" )
             if self.internetAccessEnabled:
                 dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
-                if BibleOrgSysGlobals.debugFlag: print( "doDownloadMore dRD result", repr(dRD.result) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "doDownloadMore dRD result", repr(dRD.result) )
                 if dRD.result:
-                    print( "{} resources downloaded".format( dRD.result ) )
+                    vPrint( 'Quiet', debuggingThisModule, "{} resources downloaded".format( dRD.result ) )
                 else:
-                    print( "doDownloadMore: " + _("Nothing was selected!") )
+                    vPrint( 'Quiet', debuggingThisModule, "doDownloadMore: " + _("Nothing was selected!") )
             else:
                 showWarning( self, APP_NAME, _("Can't download resources because internet access is not enabled") )
-        #else: print( os.listdir( BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH ) )
+        #else: vPrint( 'Quiet', debuggingThisModule, os.listdir( BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH ) )
         if not os.listdir( BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH ):
             showWarning( self, APP_NAME, _("No downloaded resources available to open") )
             return
@@ -1652,9 +1652,9 @@ class Application( Frame ):
         while True:
             # Get the info about available resources to display to the user
             infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH, extended=True )
-            #print( "infoDictList", len(infoDictList), infoDictList )
+            #vPrint( 'Quiet', debuggingThisModule, "infoDictList", len(infoDictList), infoDictList )
             #for infoDict in infoDictList:
-                #print( "infoDict", len(infoDict), infoDict )
+                #vPrint( 'Quiet', debuggingThisModule, "infoDict", len(infoDict), infoDict )
             crd = ChooseResourcesDialog( self, infoDictList, title=_("Select resource(s)") )
             if not crd.result:
                 self.setReadyStatus()
@@ -1663,7 +1663,7 @@ class Application( Frame ):
                 continue # They downloaded some resources, so try again
             assert isinstance( crd.result, list ) # Should be a list of zip files
             for zipFilename in crd.result:
-                #print( "zF", zipFilename )
+                #vPrint( 'Quiet', debuggingThisModule, "zF", zipFilename )
                 assert zipFilename.endswith( ZIPPED_PICKLE_FILENAME_END )
                 zipFilepath = BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( zipFilename )
                 assert os.path.isfile( zipFilepath )
@@ -1680,7 +1680,7 @@ class Application( Frame ):
         Requests a folder from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openInternalBibleResource()" )
+            vPrint( 'Quiet', debuggingThisModule, "openInternalBibleResource()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewInternalBibleResourceWindow…" )
 
         self.setWaitStatus( _("doOpenNewInternalBibleResourceWindow…") )
@@ -1702,7 +1702,7 @@ class Application( Frame ):
         Returns the new InternalBibleResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openInternalBibleResourceWindow( {}, {} )".format( modulePath, windowGeometry ) )
+            vPrint( 'Quiet', debuggingThisModule, "openInternalBibleResourceWindow( {}, {} )".format( modulePath, windowGeometry ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openInternalBibleResourceWindow…" )
 
         self.setWaitStatus( _("openInternalBibleResourceWindow…") )
@@ -1729,7 +1729,7 @@ class Application( Frame ):
         Open a local Hebrew Bible (called from a menu/GUI action).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openHebrewResource()" )
+            vPrint( 'Quiet', debuggingThisModule, "openHebrewResource()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewHebrewBibleResourceWindow…" )
         self.setWaitStatus( _("doOpenNewHebrewBibleResourceWindow…") )
 
@@ -1757,7 +1757,7 @@ class Application( Frame ):
         Returns the new HebrewBibleResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openHebrewBibleResourceWindow( {}, {} )".format( modulePath, windowGeometry ) )
+            vPrint( 'Quiet', debuggingThisModule, "openHebrewBibleResourceWindow( {}, {} )".format( modulePath, windowGeometry ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openHebrewBibleResourceWindow…" )
 
         self.setWaitStatus( _("openHebrewBibleResourceWindow…") )
@@ -1786,7 +1786,7 @@ class Application( Frame ):
         Requests a folder from the user.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doOpenBibleLexiconResourceWindow()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenBibleLexiconResourceWindow()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenBibleLexiconResourceWindow…" )
 
         self.setWaitStatus( _("doOpenBibleLexiconResourceWindow…") )
@@ -1805,7 +1805,7 @@ class Application( Frame ):
         Returns the new BibleLexiconResourceWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openBibleLexiconResourceWindow()" )
+            vPrint( 'Quiet', debuggingThisModule, "openBibleLexiconResourceWindow()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openBibleLexiconResourceWindow…" )
 
         self.setWaitStatus( _("openBibleLexiconResourceWindow…") )
@@ -1833,7 +1833,7 @@ class Application( Frame ):
         Open a collection of Bible resources (called from a menu/GUI action).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doOpenNewBibleResourceCollectionWindow()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenNewBibleResourceCollectionWindow()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewBibleResourceCollectionWindow…" )
 
         self.setWaitStatus( _("doOpenNewBibleResourceCollectionWindow…") )
@@ -1853,7 +1853,7 @@ class Application( Frame ):
         Returns the new BibleCollectionWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openBibleResourceCollectionWindow( {!r} )".format( collectionName ) )
+            vPrint( 'Quiet', debuggingThisModule, "openBibleResourceCollectionWindow( {!r} )".format( collectionName ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openBibleResourceCollectionWindow…" )
 
         self.setWaitStatus( _("openBibleResourceCollectionWindow…") )
@@ -1880,7 +1880,7 @@ class Application( Frame ):
         Open a collection of Bible References (called from a menu/GUI action).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doOpenBibleReferenceCollection()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenBibleReferenceCollection()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenBibleReferenceCollection…" )
 
         self.setWaitStatus( _("doOpenBibleReferenceCollection…") )
@@ -1900,7 +1900,7 @@ class Application( Frame ):
         Returns the new BibleCollectionWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openBibleReferenceCollectionWindow( {!r} )".format( collectionName ) )
+            vPrint( 'Quiet', debuggingThisModule, "openBibleReferenceCollectionWindow( {!r} )".format( collectionName ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openBibleReferenceCollectionWindow…" )
 
         self.setWaitStatus( _("openBibleReferenceCollectionWindow…") )
@@ -1926,7 +1926,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doOpenNewTextEditWindow()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenNewTextEditWindow()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenNewTextEditWindow…" )
 
         self.setWaitStatus( _("doOpenNewTextEditWindow…") )
@@ -1945,7 +1945,7 @@ class Application( Frame ):
         Then open the file in a plain text edit window.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doOpenFileTextEditWindow()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenFileTextEditWindow()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenFileTextEditWindow…" )
 
         self.setWaitStatus( _("doOpenFileTextEditWindow…") )
@@ -1960,7 +1960,7 @@ class Application( Frame ):
             return
 
         folderPath = os.path.split( fileResult )[0]
-        #print( '\n\n\nFP doOpenFileTextEditWindow', repr(folderPath) )
+        #vPrint( 'Quiet', debuggingThisModule, '\n\n\nFP doOpenFileTextEditWindow', repr(folderPath) )
         self.lastFileDir = folderPath
 
         self.openFileTextEditWindow( fileResult )
@@ -1971,7 +1971,7 @@ class Application( Frame ):
         Then open the file in a plain text edit window.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( "openFileTextEditWindow( {} )".format( filepath ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "openFileTextEditWindow( {} )".format( filepath ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openFileTextEditWindow…" )
 
         self.setWaitStatus( _("openFileTextEditWindow…") )
@@ -2002,7 +2002,7 @@ class Application( Frame ):
         Open a pop-up text window with a list of all the current windows displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( "doViewWindowsList()" )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewWindowsList()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doViewWindowsList…" )
 
         windowsListText = ""
@@ -2019,7 +2019,7 @@ class Application( Frame ):
                                     appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
                                     appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' )
                                         #extra )
-        print( "windowsListText", windowsListText )
+        vPrint( 'Quiet', debuggingThisModule, "windowsListText", windowsListText )
     # end of Application.doViewWindowsList
 
 
@@ -2028,20 +2028,20 @@ class Application( Frame ):
         Open a pop-up text window with a list of all the current Bibles displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( "doViewBiblesList()" )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewBiblesList()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doViewBiblesList…" )
 
         BiblesListText = ""
         #for something in self.internalBibles:
-            #print( "  ", something )
+            #vPrint( 'Quiet', debuggingThisModule, "  ", something )
             #BiblesListText += "\n{}".format( something )
-        #print( self.internalBibles )
+        #vPrint( 'Quiet', debuggingThisModule, self.internalBibles )
         for j,(iB,controllingWindowList) in enumerate( self.internalBibles ):
             BiblesListText += "\n  {}/ {} in {}".format( j+1, iB.getAName(), controllingWindowList )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension )
             BiblesListText += "\n      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding )
-        print( "BiblesListText", BiblesListText )
+        vPrint( 'Quiet', debuggingThisModule, "BiblesListText", BiblesListText )
     # end of Application.doViewBiblesList
 
 
@@ -2058,7 +2058,7 @@ class Application( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( "doViewLog()" )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewLog()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -2085,7 +2085,7 @@ class Application( Frame ):
         and then opens an editor window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doStartNewProject()" )
+            vPrint( 'Quiet', debuggingThisModule, "doStartNewProject()" )
 
         self.setWaitStatus( _("doStartNewProject…") )
         gnpn = GetNewProjectNameDialog( self, title=_("New Project Name") )
@@ -2095,7 +2095,7 @@ class Application( Frame ):
         if gnpn.result: # This is a dictionary
             projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
             newFolderPath = os.path.join( self.homeFolderPath, DATA_FOLDER_NAME, projAbbrev )
-            print( '\n\n\nFP doStartNewProject', repr(newFolderPath) )
+            vPrint( 'Quiet', debuggingThisModule, '\n\n\nFP doStartNewProject', repr(newFolderPath) )
             if os.path.isdir( newFolderPath ):
                 showError( self, _("New Project"), _("Sorry, we already have a {!r} project folder in {}") \
                                             .format( projAbbrev, os.path.join( self.homeFolderPath, DATA_FOLDER_NAME ) ) )
@@ -2111,7 +2111,7 @@ class Application( Frame ):
                                 thisBBB, availableVersifications )
             #if not cnpf.result: return
             if cnpf.result: # This is a dictionary
-                print( "Dialog results:", cnpf.result )
+                vPrint( 'Quiet', debuggingThisModule, "Dialog results:", cnpf.result )
                 if cnpf.result['Fill'] == 'Version': # Need to find a USFM project to copy
                     openDialog = Directory( title=_("Select USFM folder"), initialdir=self.lastInternalBibleDir )
                     requestedFolder = openDialog.show()
@@ -2142,7 +2142,7 @@ class Application( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doOpenBiblelatorProject()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenBiblelatorProject()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenBiblelatorProject…" )
 
         self.setWaitStatus( _("doOpenBiblelatorProject…") )
@@ -2156,7 +2156,7 @@ class Application( Frame ):
             self.setReadyStatus()
             return
         containingFolderPath, settingsFilename = os.path.split( projectSettingsFilepath )
-        #print( '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
+        #vPrint( 'Quiet', debuggingThisModule, '\n\n\nFP doOpenBiblelatorProject', repr(containingFolderPath) )
         if BibleOrgSysGlobals.debugFlag: assert settingsFilename == 'ProjectSettings.ini'
         self.openBiblelatorBibleEditWindow( containingFolderPath )
         self.addRecentFile( (containingFolderPath,containingFolderPath,'BiblelatorBibleEditWindow') )
@@ -2169,7 +2169,7 @@ class Application( Frame ):
         Returns the new USFMEditWindow object.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "openBiblelatorBibleEditWindow( {!r} )".format( projectFolderPath ) )
+            vPrint( 'Quiet', debuggingThisModule, "openBiblelatorBibleEditWindow( {!r} )".format( projectFolderPath ) )
         if BibleOrgSysGlobals.debugFlag:
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openBiblelatorBibleEditWindow…" )
             assert os.path.isdir( projectFolderPath )
@@ -2191,7 +2191,7 @@ class Application( Frame ):
         self.childWindows.append( uEW )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openBiblelatorBibleEditWindow" )
         self.setReadyStatus()
-        #print( "openBiblelatorBibleEditWindow uB", uB )
+        #vPrint( 'Quiet', debuggingThisModule, "openBiblelatorBibleEditWindow uB", uB )
         return uEW
     # end of Application.openBiblelatorBibleEditWindow
 
@@ -2200,7 +2200,7 @@ class Application( Frame ):
     #def doOpenBibleditProject( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "doOpenBibleditProject()" )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doOpenBibleditProject()" )
         #self.notWrittenYet()
     ## end of Application.doOpenBibleditProject
 
@@ -2213,7 +2213,7 @@ class Application( Frame ):
             (Unlike PTX7, this should be in the same folder as the
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doOpenParatext8Project()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenParatext8Project()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenParatext8Project…" )
 
         self.setWaitStatus( _("doOpenParatext8Project…") )
@@ -2236,9 +2236,9 @@ class Application( Frame ):
             assert 'Settings' not in ptx8Bible.suppliedMetadata['PTX8']
             ptx8Bible.suppliedMetadata['PTX8']['Settings'] = PTXSettingsDict
             ptx8Bible.applySuppliedMetadata( 'PTX8' ) # Copy some files to ptx8Bible.settingsDict
-        #print( "ptx/ssf" )
+        #vPrint( 'Quiet', debuggingThisModule, "ptx/ssf" )
         #for something in ptx8Bible.suppliedMetadata['PTX8']['Settings']:
-            #print( "  ", something, repr(ptx8Bible.suppliedMetadata['PTX8']['Settings'][something]) )
+            #vPrint( 'Quiet', debuggingThisModule, "  ", something, repr(ptx8Bible.suppliedMetadata['PTX8']['Settings'][something]) )
         try: ptx8BibleName = ptx8Bible.suppliedMetadata['PTX8']['Settings']['Name']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'Name' in " + settingsFilepath )
@@ -2262,7 +2262,7 @@ class Application( Frame ):
         Returns the new USFMEditWindow object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "openParatext8BibleEditWindow( {!r} )".format( settingsFolder ) )
+            vPrint( 'Quiet', debuggingThisModule, "openParatext8BibleEditWindow( {!r} )".format( settingsFolder ) )
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openParatext8BibleEditWindow…" )
             assert os.path.isdir( settingsFolder )
 
@@ -2292,12 +2292,12 @@ class Application( Frame ):
         self.setReadyStatus()
 
         if ptx8Bible.conflicts:
-            print( "openParatext8BibleEditWindow {!r} has {} conflicts".format( ptx8Bible.getAName( abbrevFirst=True ), len(ptx8Bible.conflicts) ) )
+            vPrint( 'Quiet', debuggingThisModule, "openParatext8BibleEditWindow {!r} has {} conflicts".format( ptx8Bible.getAName( abbrevFirst=True ), len(ptx8Bible.conflicts) ) )
             # TODO: more in here
-        #else: print( "openParatext8BibleEditWindow {!r} has NO conflicts".format( ptx8Bible.getAName( abbrevFirst=True ) ) )
+        #else: vPrint( 'Quiet', debuggingThisModule, "openParatext8BibleEditWindow {!r} has NO conflicts".format( ptx8Bible.getAName( abbrevFirst=True ) ) )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "openParatext8BibleEditWindow finished." )
+            vPrint( 'Quiet', debuggingThisModule, "openParatext8BibleEditWindow finished." )
         return uEW
     # end of Application.openParatext8BibleEditWindow
 
@@ -2309,7 +2309,7 @@ class Application( Frame ):
         Requests a SSF file from the user.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doOpenParatext7Project()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenParatext7Project()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenParatext7Project…" )
 
         self.setWaitStatus( _("doOpenParatext7Project…") )
@@ -2332,9 +2332,9 @@ class Application( Frame ):
             assert 'SSF' not in ptx7Bible.suppliedMetadata['PTX7']
             ptx7Bible.suppliedMetadata['PTX7']['SSF'] = PTXSettingsDict
             ptx7Bible.applySuppliedMetadata( 'SSF' ) # Copy some to ptx7Bible.settingsDict
-        #print( "ptx/ssf" )
+        #vPrint( 'Quiet', debuggingThisModule, "ptx/ssf" )
         #for something in ptx7Bible.suppliedMetadata['PTX7']['SSF']:
-            #print( "  ", something, repr(ptx7Bible.suppliedMetadata['PTX7']['SSF'][something]) )
+            #vPrint( 'Quiet', debuggingThisModule, "  ", something, repr(ptx7Bible.suppliedMetadata['PTX7']['SSF'][something]) )
         try: ptx7BibleName = ptx7Bible.suppliedMetadata['PTX7']['SSF']['Name']
         except KeyError:
             showError( self, APP_NAME, "Could not find 'Name' in " + SSFFilepath )
@@ -2358,14 +2358,14 @@ class Application( Frame ):
                 showWarning( self, APP_NAME, 'SSF project {} ({}) folder {!r} not found on this system -- trying folder below SSF instead'.format( ptx7BibleName, ptx7BibleFullName, ssfDirectory ) )
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( "doOpenParatext7Project: Not MS-Windows" )
-                    print( 'doOpenParatext7Project: ssD1', repr(ssfDirectory) )
+                    vPrint( 'Quiet', debuggingThisModule, "doOpenParatext7Project: Not MS-Windows" )
+                    vPrint( 'Quiet', debuggingThisModule, 'doOpenParatext7Project: ssD1', repr(ssfDirectory) )
                 slash = '\\' if '\\' in ssfDirectory else '/'
                 if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
                 ix = ssfDirectory.rfind( slash ) # Find the last slash
                 if ix!= -1:
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
-                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( 'doOpenParatext7Project: ssD2', repr(ssfDirectory) )
+                    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, 'doOpenParatext7Project: ssD2', repr(ssfDirectory) )
                     if not os.path.exists( ssfDirectory ):
                         showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ptx7BibleName ) )
                         return
@@ -2380,7 +2380,7 @@ class Application( Frame ):
         Returns the new USFMEditWindow object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "openParatext7BibleEditWindow( {!r} )".format( SSFFilepath ) )
+            vPrint( 'Quiet', debuggingThisModule, "openParatext7BibleEditWindow( {!r} )".format( SSFFilepath ) )
         if BibleOrgSysGlobals.debugFlag:
             if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openParatext7BibleEditWindow…" )
             assert os.path.isfile( SSFFilepath )
@@ -2402,14 +2402,14 @@ class Application( Frame ):
         if ssfDirectory is None or not os.path.exists( ssfDirectory ):
             if not sys.platform.startswith( 'win' ): # Let's try the next folder down
                 #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    #print( "openParatext7BibleEditWindow: Not windows" )
-                    #print( 'openParatext7BibleEditWindow: ssD1', repr(ssfDirectory) )
+                    #vPrint( 'Quiet', debuggingThisModule, "openParatext7BibleEditWindow: Not windows" )
+                    #vPrint( 'Quiet', debuggingThisModule, 'openParatext7BibleEditWindow: ssD1', repr(ssfDirectory) )
                 slash = '\\' if '\\' in ssfDirectory else '/'
                 if ssfDirectory[-1] == slash: ssfDirectory = ssfDirectory[:-1] # Remove the trailing slash
                 ix = ssfDirectory.rfind( slash ) # Find the last slash
                 if ix!= -1:
                     ssfDirectory = os.path.join( os.path.dirname(SSFFilepath), ssfDirectory[ix+1:] + '/' )
-                    #print( 'ssD2', repr(ssfDirectory) )
+                    #vPrint( 'Quiet', debuggingThisModule, 'ssD2', repr(ssfDirectory) )
         if not os.path.exists( ssfDirectory ):
             showError( self, APP_NAME, 'Unable to discover Paratext {} project folder'.format( ssfDirectory ) )
             self.setReadyStatus()
@@ -2429,7 +2429,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openParatext7BibleEditWindow" )
         self.setReadyStatus()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "openParatext7BibleEditWindow finished." )
+            vPrint( 'Quiet', debuggingThisModule, "openParatext7BibleEditWindow finished." )
         return uEW
     # end of Application.openParatext7BibleEditWindow
 
@@ -2439,7 +2439,7 @@ class Application( Frame ):
         Open the collate projects window (called from a menu/GUI action).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doOpenCollateProjects()" )
+            vPrint( 'Quiet', debuggingThisModule, "doOpenCollateProjects()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenCollateProjects…" )
 
         self.openCollateProjectsWindow( self )
@@ -2452,7 +2452,7 @@ class Application( Frame ):
         Returns the new CollateProjectsWindow object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "openCollateProjectsWindow( {!r} )".format( openedFrom ) )
+            vPrint( 'Quiet', debuggingThisModule, "openCollateProjectsWindow( {!r} )".format( openedFrom ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openCollateProjectsWindow…" )
 
         self.setWaitStatus( _("openCollateProjectsWindow…") )
@@ -2463,7 +2463,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openCollateProjectsWindow" )
         self.setReadyStatus()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "openCollateProjectsWindow finished." )
+            vPrint( 'Quiet', debuggingThisModule, "openCollateProjectsWindow finished." )
         return cPW
     # end of Application.openCollateProjectsWindow
 
@@ -2482,10 +2482,10 @@ class Application( Frame ):
         Go back to the previous BCV reference (if any).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGoBackward( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGoBackward( {} )".format( event ) )
             #self.setDebugText( "doGoBackward…" )
 
-        #print( dir(event) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
         assert self.BCVHistory
         assert self.BCVHistoryIndex
         self.BCVHistoryIndex -= 1
@@ -2503,10 +2503,10 @@ class Application( Frame ):
         Go back to the next BCV reference (if any).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doGoForward( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGoForward( {} )".format( event ) )
             #self.setDebugText( "doGoForward…" )
 
-        #print( dir(event) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
         assert self.BCVHistory
         assert self.BCVHistoryIndex < len(self.BCVHistory)-1
         self.BCVHistoryIndex += 1
@@ -2524,10 +2524,10 @@ class Application( Frame ):
         Give a pop-up menu of previous BCV references (if any).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "__doGoBackwardForwardMenu()" )
+            vPrint( 'Quiet', debuggingThisModule, "__doGoBackwardForwardMenu()" )
             #self.setDebugText( "__doGoBackwardForwardMenu…" )
 
-        #print( dir(event) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
         assert self.BCVNavigationBox is None
         assert self.BCVHistory
         assert self.BCVHistoryIndex
@@ -2540,7 +2540,7 @@ class Application( Frame ):
         Create a pop-up listbox in order to be able to display possible BCV references.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.makeBCVNavigationBox()" )
+            vPrint( 'Quiet', debuggingThisModule, "Application.makeBCVNavigationBox()" )
             assert self.BCVNavigationBox is None
 
         # Create the pop-up listbox
@@ -2565,7 +2565,7 @@ class Application( Frame ):
         assert self.BCVHistoryIndex
         assert self.BCVHistoryIndex < len( self.BCVHistory )
         for reference in self.BCVHistory: # These are SimpleVerseKey objects
-            #print( "Got BCVRef {} {} {} ".format( reference, reference.getVerseKeyText(), reference.getShortText() ) )
+            #vPrint( 'Quiet', debuggingThisModule, "Got BCVRef {} {} {} ".format( reference, reference.getVerseKeyText(), reference.getShortText() ) )
             self.BCVNavigationBox.insert( tk.END, reference.getShortText() )
         # Do a bit more set-up
         self.BCVNavigationBox.select_set( self.BCVHistoryIndex )
@@ -2583,7 +2583,7 @@ class Application( Frame ):
         Handles key presses entered into the pop-up word selection (list) box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.OnBCVNavigationChar( {!r}, {!r} )".format( event.char, event.keysym ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.OnBCVNavigationChar( {!r}, {!r} )".format( event.char, event.keysym ) )
             assert self.BCVNavigationBox is not None
 
         if event.keysym == 'Return':
@@ -2600,16 +2600,16 @@ class Application( Frame ):
         Gets the chosen word and inserts the end of it into the text.
         """
         if  BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doAcceptBCVNavigationSelection({} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doAcceptBCVNavigationSelection({} )".format( event ) )
             assert self.BCVNavigationBox is not None
 
         selectedBCVString = self.BCVNavigationBox.get( tk.ACTIVE ) # Returns a string 'BBB C:V'
-        #print( '  BCVNavigationBox selectedBCVString', repr(selectedBCVString) )
+        #vPrint( 'Quiet', debuggingThisModule, '  BCVNavigationBox selectedBCVString', repr(selectedBCVString) )
         self.removeBCVNavigationBox()
 
         #BBB, CV = selectedBCV.split( None, 1 )
         #C, V = CV.split( ':', 1 )
-        #print( '    BCVNavigationBox selectedBCV', repr(BBB), repr(C), repr(V) )
+        #vPrint( 'Quiet', debuggingThisModule, '    BCVNavigationBox selectedBCV', repr(BBB), repr(C), repr(V) )
         #self.gotoBCV( BBB, C, V )
         #self.setReadyStatus()
 
@@ -2618,7 +2618,7 @@ class Application( Frame ):
             if verseKey.getShortText() == selectedBCVString:
                 found = True; break
         if not found: halt # programming error
-        #print( "  Heading to #{}={} {}".format( index, selectedBCVString, self.BCVHistory[index] ) )
+        #vPrint( 'Quiet', debuggingThisModule, "  Heading to #{}={} {}".format( index, selectedBCVString, self.BCVHistory[index] ) )
         assert 0 <= index <= len( self.BCVHistory )
         self.BCVHistoryIndex = index
 
@@ -2633,7 +2633,7 @@ class Application( Frame ):
         Remove the pop-up Listbox (in a Frame in a Toplevel) when it's no longer required.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.removeBCVNavigationBox( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.removeBCVNavigationBox( {} )".format( event ) )
             assert self.BCVNavigationBox is not None
 
         self.previousBCVButton.focus()
@@ -2647,16 +2647,16 @@ class Application( Frame ):
         Used in touch mode.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doBookNameButton( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "doBookNameButton( {} )".format( event ) )
 
         nBBB = self.bookNumberVar.get()
         #BBB = self.bookNumberTable[int(nBBB)]
         bnd = BookNameDialog( self, self.genericBookList, int(nBBB)+self.offsetGenesis-1 )
-        #print( "bndResult", repr(bnd.result) )
+        #vPrint( 'Quiet', debuggingThisModule, "bndResult", repr(bnd.result) )
         if bnd.result is not None:
             self.bookNumberVar.set( bnd.result + 1 - self.offsetGenesis )
             self.spinToNewBookNumber()
-        #elif BibleOrgSysGlobals.debugFlag: print( "doBookNameButton: no book selected!" )
+        #elif BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "doBookNameButton: no book selected!" )
     # end of Application.doBookNameButton
 
     def doChapterNumberButton( self, event=None ):
@@ -2664,15 +2664,15 @@ class Application( Frame ):
         Used in touch mode.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doChapterNumberButton( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "doChapterNumberButton( {} )".format( event ) )
 
         C = self.chapterNumberVar.get()
         nbd = NumberButtonDialog( self, 0, self.maxChaptersThisBook, int(C) )
-        #print( "C.nbdResult", repr(nbd.result) )
+        #vPrint( 'Quiet', debuggingThisModule, "C.nbdResult", repr(nbd.result) )
         if nbd.result is not None:
             self.chapterNumberVar.set( nbd.result )
             self.spinToNewChapter()
-        #elif BibleOrgSysGlobals.debugFlag: print( "doChapterNumberButton: no chapter selected!" )
+        #elif BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "doChapterNumberButton: no chapter selected!" )
     # end of Application.doChapterNumberButton
 
     def doVerseNumberButton( self, event=None ):
@@ -2680,15 +2680,15 @@ class Application( Frame ):
         Used in touch mode.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doVerseNumberButton( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "doVerseNumberButton( {} )".format( event ) )
 
         V = self.verseNumberVar.get()
         nbd = NumberButtonDialog( self, 0, self.maxVersesThisChapter, int(V) )
-        #print( "V.nbdResult", repr(nbd.result) )
+        #vPrint( 'Quiet', debuggingThisModule, "V.nbdResult", repr(nbd.result) )
         if nbd.result is not None:
             self.verseNumberVar.set( nbd.result )
             self.acceptNewBnCV()
-        #elif BibleOrgSysGlobals.debugFlag: print( "doVerseNumberButton: no chapter selected!" )
+        #elif BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "doVerseNumberButton: no chapter selected!" )
     # end of Application.doVerseNumberButton
 
     def doWordButton( self, event=None ):
@@ -2696,7 +2696,7 @@ class Application( Frame ):
         Used in touch mode.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "doWordButton( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "doWordButton( {} )".format( event ) )
 
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doWordButton
@@ -2707,7 +2707,7 @@ class Application( Frame ):
         Change the group to the given one (and then do a acceptNewBnCV)
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "updateBCVGroup( {} )".format( newGroupLetter ) )
+            vPrint( 'Quiet', debuggingThisModule, "updateBCVGroup( {} )".format( newGroupLetter ) )
         if BibleOrgSysGlobals.debugFlag:
             self.setDebugText( "updateBCVGroup…" )
             assert newGroupLetter in BIBLE_GROUP_CODES
@@ -2733,7 +2733,7 @@ class Application( Frame ):
         Updates the display showing the selected group and the selected BCV reference.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "updateBCVGroupButtons()" )
+            vPrint( 'Quiet', debuggingThisModule, "updateBCVGroupButtons()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "updateBCVGroupButtons…" )
 
         groupButtons = [ self.GroupAButton, self.GroupBButton, self.GroupCButton, self.GroupDButton, self.GroupEButton ]
@@ -2758,7 +2758,7 @@ class Application( Frame ):
         Updates the display showing the previous/next buttons as enabled or disabled.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "updateBCVPreviousNextButtonsState()" )
+            vPrint( 'Quiet', debuggingThisModule, "updateBCVPreviousNextButtonsState()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "updateBCVPreviousNextButtonsState…" )
 
         self.previousBCVButton.configure( state=tk.NORMAL if self.BCVHistory and self.BCVHistoryIndex>0 else tk.DISABLED )
@@ -2788,7 +2788,7 @@ class Application( Frame ):
         #Find the number of verses in this chapter (in the generic BOS)
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( "getNumVerses( {}, {} )".format( BBB, C ) )
+            #vPrint( 'Quiet', debuggingThisModule, "getNumVerses( {}, {} )".format( BBB, C ) )
 
         #if C=='-1' or C==0: return MAX_PSEUDOVERSES
         #try: return self.genericBibleOrganisationalSystem.getNumVerses( BBB, C )
@@ -2801,7 +2801,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoPreviousBook( {}, {} ) from {} {}:{}".format( event, gotoEnd, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoPreviousBook( {}, {} ) from {} {}:{}".format( event, gotoEnd, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoPreviousBook…" )
         newBBB = self.getPreviousBookCode( BBB )
         if newBBB is None: self.gotoBCV( BBB, '0', '0' )
@@ -2818,7 +2818,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoNextBook( {} ) from {} {}:{}".format( event, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoNextBook( {} ) from {} {}:{}".format( event, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoNextBook…" )
         newBBB = self.getNextBookCode( BBB )
         if newBBB is None: pass # stay just where we are
@@ -2834,7 +2834,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoPreviousChapter( {}, {} ) from {} {}:{}".format( event, gotoEnd, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoPreviousChapter( {}, {} ) from {} {}:{}".format( event, gotoEnd, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoPreviousChapter…" )
         intC, intV = int( C ), int( V )
         if intC > 0:
@@ -2849,7 +2849,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoNextChapter( {} ) from {} {}:{}".format( event, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoNextChapter( {} ) from {} {}:{}".format( event, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoNextChapter…" )
         intC = int( C )
         if self.maxChaptersThisBook is not None and intC < self.maxChaptersThisBook:
@@ -2864,7 +2864,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoPreviousVerse( {} ) from {} {}:{}".format( event, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoPreviousVerse( {} ) from {} {}:{}".format( event, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoPreviousVerse…" )
         intC, intV = int( C ), int( V )
         if intV > 0: self.gotoBCV( BBB, C, intV-1 )
@@ -2878,7 +2878,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoNextVerse( {} ) from {} {}:{} with max {}".format( event, BBB, C, V, self.maxVersesThisChapter ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoNextVerse( {} ) from {} {}:{} with max {}".format( event, BBB, C, V, self.maxVersesThisChapter ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoNextVerse…" )
 
         intV = int( V )
@@ -2892,7 +2892,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoPreviousListItem( {} ) from {} {}:{}".format( event, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoPreviousListItem( {} ) from {} {}:{}".format( event, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoPreviousListItem…" )
         self.notWrittenYet()
     # end of Application.doGotoPreviousListItem
@@ -2903,7 +2903,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoNextListItem( {} ) from {} {}:{}".format( event, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoNextListItem( {} ) from {} {}:{}".format( event, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoNextListItem…" )
         self.notWrittenYet()
     # end of Application.doGotoNextListItem
@@ -2914,7 +2914,7 @@ class Application( Frame ):
         """
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            print( "doGotoBook( {} ) from {} {}:{}".format( event, BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoBook( {} ) from {} {}:{}".format( event, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doGotoBook…" )
         self.notWrittenYet()
     # end of Application.doGotoBook
@@ -2925,7 +2925,7 @@ class Application( Frame ):
         Pop-up dialog giving goto/reference info.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doShowInfo( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doShowInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
                  + '  {}\n'.format( self.currentVerseKey.getShortText() ) \
@@ -2954,7 +2954,7 @@ class Application( Frame ):
         We want it to default to ALL TEXT SELECTED.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "focusInBookNameField( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "focusInBookNameField( {} )".format( event ) )
 
         self.bookNameBox.selection_range( tk.END )
         return tkBREAK # prevent default processsing
@@ -2967,7 +2967,7 @@ class Application( Frame ):
         We want it to default to ALL TEXT SELECTED.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "focusInChapterField( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "focusInChapterField( {} )".format( event ) )
 
         self.chapterSpinbox.selection( 'range', 0, tk.END )
         return tkBREAK # prevent default processsing
@@ -2980,7 +2980,7 @@ class Application( Frame ):
         We want it to default to ALL TEXT SELECTED.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "focusInVerseField( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "focusInVerseField( {} )".format( event ) )
 
         self.verseSpinbox.selection( 'range', 0, tk.END )
         return tkBREAK # prevent default processsing
@@ -2993,8 +2993,8 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'acceptNewBookNameField' )
         if BibleOrgSysGlobals.debugFlag:
-            print( "acceptNewBookNameField( {} )".format( event ) )
-        #print( dir(event) )
+            vPrint( 'Quiet', debuggingThisModule, "acceptNewBookNameField( {} )".format( event ) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         #self.chapterNumberVar.set( '1' )
         #self.verseNumberVar.set( '1' )
@@ -3010,26 +3010,26 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'spinToNewBookNumber' )
         if BibleOrgSysGlobals.debugFlag:
-            print( "spinToNewBookNumber( {} )".format( event ) )
-        #print( dir(event) )
+            vPrint( 'Quiet', debuggingThisModule, "spinToNewBookNumber( {} )".format( event ) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         nBBB = self.bookNumberVar.get()
         nBBBint = int(nBBB)
         offset = -1 if nBBBint<self.lastBookNumber else 1 # go up or down
-        #print( "spinToNewBookNumber to {} from {} with {}".format( nBBBint, self.lastBookNumber, offset ) )
+        #vPrint( 'Quiet', debuggingThisModule, "spinToNewBookNumber to {} from {} with {}".format( nBBBint, self.lastBookNumber, offset ) )
 
         while True: # Check if that book actually exists in any of our Bibles
             BBB = self.bookNumberTable[nBBBint]
-            #print( "  Go to {} {} from {}".format( nBBBint, BBB, nBBB ) )
+            #vPrint( 'Quiet', debuggingThisModule, "  Go to {} {} from {}".format( nBBBint, BBB, nBBB ) )
             #self.doViewBiblesList()
             foundBook = foundAnyBooks = False
             for internalBible,controllingWindowList in self.internalBibles:
                 if internalBible.availableBBBs:
                     foundAnyBooks = True
                     if BBB in internalBible.availableBBBs:
-                        #print( "    Found {} in {}".format( BBB, internalBible.name ) )
+                        #vPrint( 'Quiet', debuggingThisModule, "    Found {} in {}".format( BBB, internalBible.name ) )
                         foundBook = True; break
-                #else: print( "    {} has no list of availableBBBs!".format( internalBible.name ) )
+                #else: vPrint( 'Quiet', debuggingThisModule, "    {} has no list of availableBBBs!".format( internalBible.name ) )
             if foundBook or not foundAnyBooks \
             or (offset==-1 and nBBBint<=1) \
             or (offset==1 and nBBBint>=self.maxBooks): break
@@ -3048,8 +3048,8 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'spinToNewChapter' )
         if BibleOrgSysGlobals.debugFlag:
-            print( "spinToNewChapter( {} )".format( event ) )
-        #print( dir(event) )
+            vPrint( 'Quiet', debuggingThisModule, "spinToNewChapter( {} )".format( event ) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         # Normally if we enter a new chapter number we set the verse number to 1
         #   but for chapter zero (book intro) we set it to (line) number 0
@@ -3063,8 +3063,8 @@ class Application( Frame ):
             and then set focus to verse number box.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "spinToNewChapterPlusJump( {} )".format( event ) )
-        #print( dir(event) )
+            vPrint( 'Quiet', debuggingThisModule, "spinToNewChapterPlusJump( {} )".format( event ) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         self.spinToNewChapter()
         self.verseSpinbox.focus()
@@ -3078,8 +3078,8 @@ class Application( Frame ):
         Must return True (allowed) or False (disallowed).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "validateChapterNumberEntry( {!r}, {!r} )".format( actionCode, potentialString ) )
-        #print( dir(event) )
+            vPrint( 'Quiet', debuggingThisModule, "validateChapterNumberEntry( {!r}, {!r} )".format( actionCode, potentialString ) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         if len( potentialString ) > 3: return False # No chapter numbers greater than 999
         if actionCode=='0' and potentialString=='': return True # Allow "delete everything"
@@ -3097,8 +3097,8 @@ class Application( Frame ):
         Must return True (allowed) or False (disallowed).
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "validateVerseNumberEntry( {!r}, {!r} )".format( actionCode, potentialString ) )
-        #print( dir(event) )
+            vPrint( 'Quiet', debuggingThisModule, "validateVerseNumberEntry( {!r}, {!r} )".format( actionCode, potentialString ) )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         if len( potentialString ) > 3: return False # No chapter numbers greater than 999
         if actionCode=='0' and potentialString=='': return True # Allow "delete everything"
@@ -3117,8 +3117,8 @@ class Application( Frame ):
         """
         enteredBooknameField = self.bookNameVar.get()
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "acceptNewBnCV( {} ) for {!r}".format( event, enteredBooknameField ) )
-            #print( dir(event) )
+            vPrint( 'Quiet', debuggingThisModule, "acceptNewBnCV( {} ) for {!r}".format( event, enteredBooknameField ) )
+            #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         BBB, C, V = parseEnteredBooknameField( enteredBooknameField, self.currentVerseKey.getBBB(),
                                     self.chapterNumberVar.get(), self.verseNumberVar.get(), self.getBBBFromText )
@@ -3142,7 +3142,7 @@ class Application( Frame ):
     def haveSwordResourcesOpen( self ):
         """
         """
-        #if BibleOrgSysGlobals.debugFlag: print( "haveSwordResourcesOpen()" )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "haveSwordResourcesOpen()" )
         for appWin in self.childWindows:
             if 'Sword' in appWin.windowType:
                 if self.SwordInterface is None:
@@ -3161,11 +3161,11 @@ class Application( Frame ):
 
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #print( "gotoBnCV( {!r} {}:{} )".format( enteredBookname, C, V ) )
+            #vPrint( 'Quiet', debuggingThisModule, "gotoBnCV( {!r} {}:{} )".format( enteredBookname, C, V ) )
 
         ##self.BnameCV = (enteredBookname,C,V,)
         #BBB = self.getBBBFromText( enteredBookname )
-        ##print( "BBB", BBB )
+        ##vPrint( 'Quiet', debuggingThisModule, "BBB", BBB )
         #if BBB is None:
             #self.setErrorStatus( "Unable to determine book name" )
             #self.bookNameBox.focus_set()
@@ -3181,7 +3181,7 @@ class Application( Frame ):
         NOTE: C and V have NOT been tested to see if they are valid for this book.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "gotoBCV( {} {}:{} {} ) = {} from {}".format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
+            vPrint( 'Quiet', debuggingThisModule, "gotoBCV( {} {}:{} {} ) = {} from {}".format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
 
         self.setWaitStatus( _("Moving to new Bible reference ({} {}:{})…").format( BBB, C, V ) )
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
@@ -3191,7 +3191,7 @@ class Application( Frame ):
                 assert self.isValidBCVRef( self.currentVerseKey, 'gotoBCV '+str(self.currentVerseKey), extended=True )
         if self.haveSwordResourcesOpen():
             self.SwordKey = self.SwordInterface.makeKey( BBB, C, V )
-            #print( "swK", self.SwordKey.getText() )
+            #vPrint( 'Quiet', debuggingThisModule, "swK", self.SwordKey.getText() )
         self.childWindows.updateThisBibleGroup( self.currentVerseKeyGroup, self.currentVerseKey, originator=originator )
         self.setReadyStatus()
     # end of Application.gotoBCV
@@ -3205,7 +3205,7 @@ class Application( Frame ):
         Called from child windows.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( "gotoGroupBCV( {}, {} {}:{} {} )".format( groupCode, BBB, C, V, originator ) )
+            vPrint( 'Quiet', debuggingThisModule, "gotoGroupBCV( {}, {} {}:{} {} )".format( groupCode, BBB, C, V, originator ) )
             assert groupCode in BIBLE_GROUP_CODES
 
         newVerseKey = SimpleVerseKey( BBB, C, V )
@@ -3231,7 +3231,7 @@ class Application( Frame ):
         Then it updates the main GUI spinboxes and our history.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "setCurrentVerseKey( {} )".format( newVerseKey ) )
+            vPrint( 'Quiet', debuggingThisModule, "setCurrentVerseKey( {} )".format( newVerseKey ) )
             #self.setDebugText( "setCurrentVerseKey…" )
             assert isinstance( newVerseKey, SimpleVerseKey )
 
@@ -3255,7 +3255,7 @@ class Application( Frame ):
         Uses self.currentVerseKey
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "updateGUIBCVControls()" )
+            vPrint( 'Quiet', debuggingThisModule, "updateGUIBCVControls()" )
             #self.setDebugText( "updateGUIBCVControls…" )
 
         BBB, C, V = self.currentVerseKey.getBCV()
@@ -3304,7 +3304,7 @@ class Application( Frame ):
         for j,verseCount in enumerate( verseList ):
             totalVerses += verseCount
             if j<intC: passedVerses += verseCount
-        #print( passedVerses, totalVerses )
+        #vPrint( 'Quiet', debuggingThisModule, passedVerses, totalVerses )
         try: percentTotalVerses = round( passedVerses * 100 / totalVerses )
         except TypeError: percentTotalVerses = 0
         try: self.InfoLabelRight['text'] = _("{} verses in book ({}% passed)") \
@@ -3318,17 +3318,17 @@ class Application( Frame ):
         Handle a new lexicon word setting from the GUI.
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'acceptNewLexiconWord' )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "acceptNewLexiconWord()" )
-        #print( dir(event) )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "acceptNewLexiconWord()" )
+        #vPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         newWord = self.wordVar.get()
-        #print( "Got newWord", repr(newWord) )
+        #vPrint( 'Quiet', debuggingThisModule, "Got newWord", repr(newWord) )
 
         # Adjust the word a bit
         adjWord = newWord.replace( ' ', '' ) # Remove any spaces
         if len(adjWord)>=2 and adjWord[0] in 'GgHh' and adjWord[1:].isdigit():
             adjWord = adjWord[0].upper() + str( int( adjWord[1:] ) ) # Capitalize and remove any leading zeroes
-        #print( "Got adjWord", repr(adjWord) )
+        #vPrint( 'Quiet', debuggingThisModule, "Got adjWord", repr(adjWord) )
         if adjWord != newWord: self.wordVar.set( adjWord )
 
         self.gotoWord( adjWord )
@@ -3343,7 +3343,7 @@ class Application( Frame ):
             then calls update on the child windows.
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'gotoWord {!r}'.format( lexiconWord ) )
-        if BibleOrgSysGlobals.debugFlag: print( "gotoWord( {} )".format( lexiconWord ) )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "gotoWord( {} )".format( lexiconWord ) )
         assert lexiconWord is None or isinstance( lexiconWord, str )
         self.lexiconWord = lexiconWord
         if self.touchMode: self.wordButton['text'] = lexiconWord
@@ -3426,7 +3426,7 @@ class Application( Frame ):
         if y > 30: y = y - 20
         for j, win in enumerate( self.childWindows ):
             geometrySet = parseWindowGeometry( win.winfo_geometry() )
-            #print( geometrySet )
+            #vPrint( 'Quiet', debuggingThisModule, geometrySet )
             newX = x + 10*j
             if newX < 10*j: newX = 10*j
             newY = y + 10*j
@@ -3564,9 +3564,9 @@ class Application( Frame ):
                             msg = '%s@%d  [%s]' % (filepath, linenum + 1, linestr)
                             matches.append(msg)
                 except UnicodeError as X:
-                    print( 'Unicode error in:', filepath, X)       # eg: decode, bom
+                    vPrint( 'Quiet', debuggingThisModule, 'Unicode error in:', filepath, X)       # eg: decode, bom
                 except IOError as X:
-                    print( 'IO error in:', filepath, X)            # eg: permission
+                    vPrint( 'Quiet', debuggingThisModule, 'IO error in:', filepath, X)            # eg: permission
         finally:
             myqueue.put( matches )      # stop consumer loop on find excs: filenames?
     # end of Application.grepThreadProducer
@@ -3630,10 +3630,10 @@ class Application( Frame ):
                 self.tk.Listbox = matchBox
 
             def runCommand(self, selection):                       # redefine me lower
-                print('You selected:', selection)
+                vPrint( 'Quiet', debuggingThisModule, 'You selected:', selection)
         # end of class ScrolledList
 
-        print( 'Matches for %s: %s' % (grepkey, len(matches)))
+        vPrint( 'Quiet', debuggingThisModule, 'Matches for %s: %s' % (grepkey, len(matches)))
 
         # catch list double-click
         class ScrolledFilenames(ScrolledList):
@@ -3657,7 +3657,7 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenSettingsEditor' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doOpenSettingsEditor( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doOpenSettingsEditor( {} )".format( event ) )
 
         openBiblelatorSettingsEditor( self )
     # end of Application.doOpenSettingsEditor
@@ -3668,7 +3668,7 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenBOSManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doOpenBOSManager( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doOpenBOSManager( {} )".format( event ) )
 
         openBOSManager( self )
     # end of Application.doOpenBOSManager
@@ -3679,7 +3679,7 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenSwordManager' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doOpenSwordManager( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doOpenSwordManager( {} )".format( event ) )
 
         openSwordManager( self )
     # end of Application.doOpenSwordManager
@@ -3718,7 +3718,7 @@ class Application( Frame ):
         from Help import HelpBox
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doHelp' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doHelp( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doHelp( {} )".format( event ) )
 
         helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -3746,7 +3746,7 @@ class Application( Frame ):
         """
         from About import AboutBox
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doSubmitBug( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doSubmitBug( {} )".format( event ) )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, APP_NAME, 'You need to allow Internet access first!' )
@@ -3765,7 +3765,7 @@ class Application( Frame ):
         from About import AboutBox
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doAbout' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doAbout( {} )".format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doAbout( {} )".format( event ) )
 
         aboutInfo = programNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
@@ -3779,7 +3779,7 @@ class Application( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "doProjectClose()" )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doProjectClose()" )
         #self.notWrittenYet()
     ## end of Application.doProjectClose
 
@@ -3798,10 +3798,10 @@ class Application( Frame ):
         """
         #self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doCloseMyChildWindows' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doCloseMyChildWindows()" )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doCloseMyChildWindows()" )
 
         # Try to close edit windows first coz they might have work to save
-        for appWin in self.childWindows[:]:
+        for appWin in self.childWindows.copy():
             if 'Editor' in appWin.genericWindowType and appWin.modified():
                 appWin.doClose()
                 #appWin.onCloseEditor( terminate=False )
@@ -3819,7 +3819,7 @@ class Application( Frame ):
             return False
 
         # Should be able to close all apps now
-        for appWin in self.childWindows[:]:
+        for appWin in self.childWindows.copy():
             appWin.doClose()
         return True
     # end of Application.doCloseMyChildWindows
@@ -3831,9 +3831,9 @@ class Application( Frame ):
         """
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doCloseMe' )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "Application.doCloseMe()" )
+            vPrint( 'Quiet', debuggingThisModule, "Application.doCloseMe()" )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
-            print( _("{} is closing down…").format( APP_NAME ) )
+            vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( APP_NAME ) )
 
         writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -3855,11 +3855,11 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
     #from collections import OrderedDict
     from BibleOrgSys.Misc.USFMBookCompare import USFMBookCompare
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "Application.handlePossibleCrash( {}, {}, {} )".format( homeFolderPath, dataFolderName, settingsFolderName ) )
+        vPrint( 'Quiet', debuggingThisModule, "Application.handlePossibleCrash( {}, {}, {} )".format( homeFolderPath, dataFolderName, settingsFolderName ) )
 
-    print( '\n' + _("Is there another copy of {} already running?").format( APP_NAME ) )
-    print( _("If not, perhaps {} didn't close nicely (i.e., crashed?) last time?").format( APP_NAME ) )
-    print( '  ' + _("(There's a \"{}\" file at {})").format( LOCK_FILENAME, os.path.abspath( LOCK_FILENAME ) ) )
+    vPrint( 'Quiet', debuggingThisModule, '\n' + _("Is there another copy of {} already running?").format( APP_NAME ) )
+    vPrint( 'Quiet', debuggingThisModule, _("If not, perhaps {} didn't close nicely (i.e., crashed?) last time?").format( APP_NAME ) )
+    vPrint( 'Quiet', debuggingThisModule, '  ' + _("(There's a \"{}\" file at {})").format( LOCK_FILENAME, os.path.abspath( LOCK_FILENAME ) ) )
 
     iniName = APP_NAME if BibleOrgSysGlobals.commandLineArguments.override is None else BibleOrgSysGlobals.commandLineArguments.override
     if not iniName.lower().endswith( '.ini' ): iniName += '.ini'
@@ -3871,7 +3871,7 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
             for line in iniFile:
                 line = line.strip()
                 #while line and line[-1] in '\n\r': line = line[:-1]
-                #print( repr(line) )
+                #vPrint( 'Quiet', debuggingThisModule, repr(line) )
                 if inCurrent:
                     if line.startswith( 'window' ):
                         num = line[6]
@@ -3882,105 +3882,105 @@ def handlePossibleCrash( homeFolderPath, dataFolderName, settingsFolderName ):
                 elif line == '[WindowSettingCurrent]':
                     inCurrent = True
     except FileNotFoundError:
-        print( _("Settings file {!r} not found -- may have been manually deleted???").format( iniFilepath ) )
-    #print( currentWindowDict )
+        vPrint( 'Quiet', debuggingThisModule, _("Settings file {!r} not found -- may have been manually deleted???").format( iniFilepath ) )
+    #vPrint( 'Quiet', debuggingThisModule, currentWindowDict )
 
     hadAny = False
     file1Name, file2Name =  _("Bible file"), _("Autosaved file")
     for num in currentWindowDict:
         if currentWindowDict[num]['Type'] == 'BiblelatorUSFMBibleEditWindow':
             projectFolder = currentWindowDict[num]['ProjectFolderPath']
-            print( '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
+            vPrint( 'Quiet', debuggingThisModule, '  ' + _("Seems you might have been editing in {}").format( projectFolder ) )
             # Look for an Autosave folder
             autosaveFolderPath = os.path.join( projectFolder, 'AutoSave/' )
             if os.path.exists( autosaveFolderPath ):
-                print( '    ' + _("Checking in {}").format( autosaveFolderPath ) )
+                vPrint( 'Quiet', debuggingThisModule, '    ' + _("Checking in {}").format( autosaveFolderPath ) )
                 for something in os.listdir( autosaveFolderPath ):
                     somepath = os.path.join( autosaveFolderPath, something )
                     #if os.path.isdir( somepath ): foundFolders.append( something )
                     if os.path.isfile( somepath ):
                         filepath = os.path.join( projectFolder, something )
                         if os.path.exists( filepath ):
-                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            #vPrint( 'Quiet', debuggingThisModule, "      Comparing {!r} with {!r}".format( filepath, somepath ) )
                             resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
-                            #print( resultDict )
+                            #vPrint( 'Quiet', debuggingThisModule, resultDict )
                             haveSuggestions = False
                             for someKey,someValue in resultDict['Summary'].items():
                                 if someValue.startswith( 'file2' ): # autosave file might be important
                                     haveSuggestions = True
                             if haveSuggestions:
-                                print( '      ' + _("Comparing file1 {}").format( filepath ) )
-                                print( '      ' + _("     with file2 {}").format( somepath ) )
+                                vPrint( 'Quiet', debuggingThisModule, '      ' + _("Comparing file1 {}").format( filepath ) )
+                                vPrint( 'Quiet', debuggingThisModule, '      ' + _("     with file2 {}").format( somepath ) )
                                 for someKey,someValue in resultDict['Summary'].items():
-                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                    vPrint( 'Quiet', debuggingThisModule, '        {}: {}'.format( someKey, someValue ) )
                                 hadAny = True
         elif currentWindowDict[num]['Type'] == 'Paratext8USFMBibleEditWindow':
             settingsFolder = currentWindowDict[num]['ProjectFolder']
             possibleName = os.path.dirname( settingsFolder )
-            print( '\n' + _("Seems you might have been editing {}").format( possibleName ) )
+            vPrint( 'Quiet', debuggingThisModule, '\n' + _("Seems you might have been editing {}").format( possibleName ) )
             projectFolder = settingsFolder
             # Look for an Autosave folder
             autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
             if os.path.exists( autosaveFolderPath ):
-                print( '    ' + _("Checking in {}").format( autosaveFolderPath ) )
+                vPrint( 'Quiet', debuggingThisModule, '    ' + _("Checking in {}").format( autosaveFolderPath ) )
                 for something in os.listdir( autosaveFolderPath ):
                     somepath = os.path.join( autosaveFolderPath, something )
                     #if os.path.isdir( somepath ): foundFolders.append( something )
                     if os.path.isfile( somepath ):
                         filepath = os.path.join( projectFolder, something )
                         if os.path.exists( filepath ):
-                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            #vPrint( 'Quiet', debuggingThisModule, "      Comparing {!r} with {!r}".format( filepath, somepath ) )
                             resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
-                            #print( resultDict )
+                            #vPrint( 'Quiet', debuggingThisModule, resultDict )
                             haveSuggestions = False
                             for someKey,someValue in resultDict['Summary'].items():
                                 if someValue.startswith( 'file2' ): # autosave file might be important
                                     haveSuggestions = True
                             if haveSuggestions:
-                                print( '      ' + _("Comparing file1 {}").format( filepath ) )
-                                print( '      ' + _("     with file2 {}").format( somepath ) )
+                                vPrint( 'Quiet', debuggingThisModule, '      ' + _("Comparing file1 {}").format( filepath ) )
+                                vPrint( 'Quiet', debuggingThisModule, '      ' + _("     with file2 {}").format( somepath ) )
                                 for someKey,someValue in resultDict['Summary'].items():
-                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                    vPrint( 'Quiet', debuggingThisModule, '        {}: {}'.format( someKey, someValue ) )
                                 hadAny = True
         elif currentWindowDict[num]['Type'] == 'Paratext7USFMBibleEditWindow':
             ssfFilepath = currentWindowDict[num]['SSFFilepath']
             ssfFolder, ssfFilename = os.path.split( ssfFilepath )
-            #print( "ssfFolder", ssfFolder )
+            #vPrint( 'Quiet', debuggingThisModule, "ssfFolder", ssfFolder )
             ssfName = ssfFilename[:-4]
-            print( '\n' + _("Seems you might have been editing {}").format( ssfName ) )
+            vPrint( 'Quiet', debuggingThisModule, '\n' + _("Seems you might have been editing {}").format( ssfName ) )
             projectFolder = os.path.join( ssfFolder+'/', ssfName+'/' )
             # Look for an Autosave folder
             autosaveFolderPath = os.path.join( projectFolder, APP_NAME+'/', 'AutoSave/' )
             if os.path.exists( autosaveFolderPath ):
-                print( '    ' + _("Checking in {}").format( autosaveFolderPath ) )
+                vPrint( 'Quiet', debuggingThisModule, '    ' + _("Checking in {}").format( autosaveFolderPath ) )
                 for something in os.listdir( autosaveFolderPath ):
                     somepath = os.path.join( autosaveFolderPath, something )
                     #if os.path.isdir( somepath ): foundFolders.append( something )
                     if os.path.isfile( somepath ):
                         filepath = os.path.join( projectFolder, something )
                         if os.path.exists( filepath ):
-                            #print( "      Comparing {!r} with {!r}".format( filepath, somepath ) )
+                            #vPrint( 'Quiet', debuggingThisModule, "      Comparing {!r} with {!r}".format( filepath, somepath ) )
                             resultDict = USFMBookCompare( filepath, somepath, file1Name=file1Name, file2Name=file2Name )
-                            #print( resultDict )
+                            #vPrint( 'Quiet', debuggingThisModule, resultDict )
                             haveSuggestions = False
                             for someKey,someValue in resultDict['Summary'].items():
                                 if someValue.startswith( 'file2' ): # autosave file might be important
                                     haveSuggestions = True
                             if haveSuggestions:
-                                print( '      ' + _("Comparing file1 {}").format( filepath ) )
-                                print( '      ' + _("     with file2 {}").format( somepath ) )
+                                vPrint( 'Quiet', debuggingThisModule, '      ' + _("Comparing file1 {}").format( filepath ) )
+                                vPrint( 'Quiet', debuggingThisModule, '      ' + _("     with file2 {}").format( somepath ) )
                                 for someKey,someValue in resultDict['Summary'].items():
-                                    print( '        {}: {}'.format( someKey, someValue ) )
+                                    vPrint( 'Quiet', debuggingThisModule, '        {}: {}'.format( someKey, someValue ) )
                                 hadAny = True
     if hadAny:
-        print( '  ' + _("You might want to copy the above AutoSave files for safety???") )
-        print( '\n' + _("{} will not open while the lock file exists.").format( APP_NAME ) )
-        print( '    ' + _("(Remove {!r} from {!r} after backing-up / recovering any files first)").format( LOCK_FILENAME, os.getcwd() ) )
+        vPrint( 'Quiet', debuggingThisModule, '  ' + _("You might want to copy the above AutoSave files for safety???") )
+        vPrint( 'Quiet', debuggingThisModule, '\n' + _("{} will not open while the lock file exists.").format( APP_NAME ) )
+        vPrint( 'Quiet', debuggingThisModule, '    ' + _("(Remove {!r} from {!r} after backing-up / recovering any files first)").format( LOCK_FILENAME, os.getcwd() ) )
         sys.exit()
     else:
-        if currentWindowDict: print( '  ' + _("Seems that your files are ok / up-to-date (as far as we can tell)") )
-        print( '\n' + _("Do you want to delete the lock file and proceed?") )
-        print( '    ' + _("(Only do this if you're sure that no data was lost and that another copy of {} is not running)").format( APP_NAME ) )
+        if currentWindowDict: vPrint( 'Quiet', debuggingThisModule, '  ' + _("Seems that your files are ok / up-to-date (as far as we can tell)") )
+        vPrint( 'Quiet', debuggingThisModule, '\n' + _("Do you want to delete the lock file and proceed?") )
+        vPrint( 'Quiet', debuggingThisModule, '    ' + _("(Only do this if you're sure that no data was lost and that another copy of {} is not running)").format( APP_NAME ) )
         result = input( '  ' + _("Delete lock file and proceed? [YES or no] (default is no)?") )
         #resultUpper = result.upper()
         #if resultUpper not in ('Y','YES'): sys.exit()
@@ -4000,7 +4000,7 @@ def briefDemo() -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( programNameVersion )
 
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
@@ -4018,7 +4018,7 @@ def briefDemo() -> None:
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of Biblelator.demo
+# end of Biblelator.briefDemo
 
 
 def main( homeFolderPath, loggingFolderPath ) -> None:
@@ -4028,45 +4028,45 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
     #vPrint( 'Normal', debuggingThisModule, "  Available CPU count =", multiprocessing.cpu_count() )
 
-    #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
+    #vPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
 
     numMyInstancesFound = numParatextInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #print( 'linux processes', repr(programOutputString) )
+        #vPrint( 'Quiet', debuggingThisModule, 'linux processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             # NOTE: Following line assumes that all Python interpreters contain the string 'python'
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 if 'pylint' not in line:
                     numMyInstancesFound += 1
             if 'paratext' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
         myProcess = subprocess.Popen( ['tasklist.exe','/V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #print( 'win processes', repr(programOutputString) )
+        #vPrint( 'Quiet', debuggingThisModule, 'win processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
-            #print( "tasklist line", repr(line) )
+            #vPrint( 'Quiet', debuggingThisModule, "tasklist line", repr(line) )
             if PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 # Could possibly check that the line startswith 'cmd.exe' but would need to test that on all Windows versions
                 # NOTE: If .py files have an association, 'python.exe' doesn't necessarily appear in the line
                 if 'python.exe' in line or not line.startswith( 'notepad' ): # includes Notepad++
                     numMyInstancesFound += 1
             if 'Paratext.exe' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )
@@ -4094,7 +4094,7 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
             logging.info( "Exiting as user requested." )
             sys.exit()
     #if sys.platform in ( 'win32', 'win64', ):
-        #print( "Found", numMyInstancesFound, numParatextInstancesFound )
+        #vPrint( 'Quiet', debuggingThisModule, "Found", numMyInstancesFound, numParatextInstancesFound )
         #halt
 
     if os.path.exists( LOCK_FILENAME ): # perhaps the program crashed last time
@@ -4106,7 +4106,7 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
+        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
 
     # Set the window icon and title
     iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
@@ -4138,20 +4138,20 @@ def run() -> None:
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderPath=loggingFolderPath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-    #print( BibleOrgSysGlobals.commandLineArguments ); halt
+    #vPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
     #if 'win' in sys.platform: # Disable multiprocessing until we get less bugs in Biblelator
-        #print( "Limiting to single-threading on Windows (until we solve some bugs)" )
+        #vPrint( 'Quiet', debuggingThisModule, "Limiting to single-threading on Windows (until we solve some bugs)" )
         #BibleOrgSysGlobals.maxProcesses = 1
-    #print( 'MP', BibleOrgSysGlobals.maxProcesses )
+    #vPrint( 'Quiet', debuggingThisModule, 'MP', BibleOrgSysGlobals.maxProcesses )
 
     if 'win' in sys.platform or BibleOrgSysGlobals.debugFlag:
-        print( "Platform is", sys.platform ) # e.g., 'linux, or 'win32' for my Windows-10 (64-bit)
-        print( "OS name is", os.name ) # e.g., 'posix', or 'nt' for my Windows-10
-        if sys.platform == 'linux': print( "OS uname is", os.uname() ) # gives about five fields
+        vPrint( 'Quiet', debuggingThisModule, "Platform is", sys.platform ) # e.g., 'linux, or 'win32' for my Windows-10 (64-bit)
+        vPrint( 'Quiet', debuggingThisModule, "OS name is", os.name ) # e.g., 'posix', or 'nt' for my Windows-10
+        if sys.platform == 'linux': vPrint( 'Quiet', debuggingThisModule, "OS uname is", os.uname() ) # gives about five fields
         import locale
-        print( "default locale", locale.getdefaultlocale() ) # ('en_NZ', 'cp1252') for my Windows-10
-        print( "preferredEncoding", locale.getpreferredencoding() ) # cp1252 for my Windows-10
-        print( "About to run main()…" )
+        vPrint( 'Quiet', debuggingThisModule, "default locale", locale.getdefaultlocale() ) # ('en_NZ', 'cp1252') for my Windows-10
+        vPrint( 'Quiet', debuggingThisModule, "preferredEncoding", locale.getpreferredencoding() ) # cp1252 for my Windows-10
+        vPrint( 'Quiet', debuggingThisModule, "About to run main()…" )
 
     main( homeFolderPath, loggingFolderPath )
 

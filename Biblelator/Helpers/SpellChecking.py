@@ -58,7 +58,7 @@ from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
 class SpellCheckingBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
-        #if BibleOrgSysGlobals.debugFlag: print( "SpellCheckingBox.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "SpellCheckingBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_ABOUT_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
@@ -85,7 +85,7 @@ class SpellCheckingBox( tk.Toplevel ):
 
 class SpellCheckingBox2():
     def __init__( self, parent=None, progName=None, text=None ):
-        #if BibleOrgSysGlobals.debugFlag: print( "SpellCheckingBox2.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "SpellCheckingBox2.__init__( {} )".format( parent ) )
         ab = tk.Toplevel( parent )
         self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
         ab.minsize( self.minimumXSize, self.minimumYSize )
@@ -116,13 +116,13 @@ def briefDemo() -> None:
     Main program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    print( "Running demo…" )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        #print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        #vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
-            print( 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
+            vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
     tkRootWindow.title( programNameVersion )
     ab = SpellCheckingBox( tkRootWindow, PROGRAM_NAME, programNameVersion )
     ab = SpellCheckingBox2( tkRootWindow, PROGRAM_NAME, programNameVersion )
@@ -153,8 +153,8 @@ if __name__ == '__main__':
 
     if BibleOrgSysGlobals.debugFlag:
         #from tkinter import TclVersion, TkVersion
-        print( "TclVersion is", tk.TclVersion )
-        print( "TkVersion is", tk.TkVersion )
+        vPrint( 'Quiet', debuggingThisModule, "TclVersion is", tk.TclVersion )
+        vPrint( 'Quiet', debuggingThisModule, "TkVersion is", tk.TkVersion )
 
     fullDemo()
 

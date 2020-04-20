@@ -120,7 +120,7 @@ class Settings:
         Load the settings file (if we found it).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "ApplicationSettings.load() from {!r}".format( self.settingsFilepath ) )
+            vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.load() from {!r}".format( self.settingsFilepath ) )
 
         self.reset() # Creates self.data
         assert self.data
@@ -128,7 +128,7 @@ class Settings:
             self.data.read( self.settingsFilepath )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             for section in self.data:
-                print( f"  Settings.load: s.d main section = {section}" )
+                vPrint( 'Quiet', debuggingThisModule, f"  Settings.load: s.d main section = {section}" )
     #end of Settings.load
 
 
@@ -138,7 +138,7 @@ class Settings:
             They must have already been saved into self.data.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "ApplicationSettings.save() in {!r}".format( self.settingsFilepath ) )
+            vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.save() in {!r}".format( self.settingsFilepath ) )
             assert self.data
             assert self.settingsFilepath
 
@@ -165,7 +165,7 @@ class ApplicationSettings( Settings ):
         Try to find where the main settings file might be (if anywhere).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )".format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
+            vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )".format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
         # NOTE: Settings.__init__ is NOT called -- not needed
         self.objectNameString = 'Application Settings object'
@@ -179,17 +179,17 @@ class ApplicationSettings( Settings ):
         if os.path.isdir( ourFolderPath1 ) and os.access( ourFolderPath1, os.W_OK ):
             self.dataFolderPath = ourFolderPath1
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                print( "ApplicationSettings.__init__: Found dataFolderPath = ", self.dataFolderPath )
+                vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__: Found dataFolderPath = ", self.dataFolderPath )
             ourFolderPath2 = os.path.join( self.dataFolderPath, settingsFolderName )
             if os.path.isdir( ourFolderPath2 ) and os.access( ourFolderPath2, os.W_OK ):
                 self.settingsFolder = ourFolderPath2
                 if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    print( "ApplicationSettings.__init__: Found settingsFolder = ", self.settingsFolder )
+                    vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__: Found settingsFolder = ", self.settingsFolder )
                 ourFilepath = os.path.join( ourFolderPath2, self.settingsFilename )
                 if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
                     self.settingsFilepath = ourFilepath
                     if BibleOrgSysGlobals.verbosityLevel > 2 or BibleOrgSysGlobals.debugFlag:
-                        print( "ApplicationSettings.__init__: Found settingsFilepath = ", self.settingsFilepath )
+                        vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__: Found settingsFilepath = ", self.settingsFilepath )
 
         # Create new data and settings folders if necessary
         if not self.dataFolderPath:
@@ -221,7 +221,7 @@ class ProjectSettings( Settings ):
         Try to find where the settings file might be (if anywhere).
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "ProjectSettings.__init__( {!r} )".format( projectFolderPath ) )
+            vPrint( 'Quiet', debuggingThisModule, "ProjectSettings.__init__( {!r} )".format( projectFolderPath ) )
         self.projectFolderPath = projectFolderPath
         self.objectNameString = 'Project Settings object'
         self.objectTypeString = 'ProjectSettings'
@@ -240,7 +240,7 @@ class ProjectSettings( Settings ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "ProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )".format( projectName, projectAbbreviation ) )
+            vPrint( 'Quiet', debuggingThisModule, "ProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )".format( projectName, projectAbbreviation ) )
             assert self.data is None
 
         self.reset() # Create new settings in self.data
@@ -256,7 +256,7 @@ class ProjectSettings( Settings ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "ProjectSettings.saveNewBookSettings( {} )".format( detailsDict ) )
+            vPrint( 'Quiet', debuggingThisModule, "ProjectSettings.saveNewBookSettings( {} )".format( detailsDict ) )
             assert self.data is not None
 
         self.data['NewBooks'] = {}
@@ -273,7 +273,7 @@ class ProjectSettings( Settings ):
             load the information into the given USFMBible object.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( "ProjectSettings.loadUSFMMetadataInto( {} )".format( theUSFMBible ) )
+            vPrint( 'Quiet', debuggingThisModule, "ProjectSettings.loadUSFMMetadataInto( {} )".format( theUSFMBible ) )
 
         self.load() # Load the project settings into self.data
 
@@ -294,7 +294,7 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    print( "Running {} demo…".format( PROGRAM_NAME ) )
+    vPrint( 'Quiet', debuggingThisModule, "Running {} demo…".format( PROGRAM_NAME ) )
 
     tkRootWindow = Tk()
     # Calls to the window manager class (wm in Tk)
@@ -304,15 +304,15 @@ def briefDemo() -> None:
     tkRootWindow.maxsize( 400, 200 )
 
     #geometryMap = parseWindowGeometry( tkRootWindow.winfo_geometry() )
-    #print( "geometry", geometryMap )
+    #vPrint( 'Quiet', debuggingThisModule, "geometry", geometryMap )
     #for something in geometryMap:
-        #print( repr(something) )
+        #vPrint( 'Quiet', debuggingThisModule, repr(something) )
 
 
     settings = ApplicationSettings( BibleOrgSysGlobals.findHomeFolderPath(), 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
     settings.load()
-    print( str(settings) )
-    print( repr(settings) )
+    vPrint( 'Quiet', debuggingThisModule, str(settings) )
+    vPrint( 'Quiet', debuggingThisModule, repr(settings) )
 
     #tkRootWindow.destroy() #  Useful if we want to measure the start-up time
 

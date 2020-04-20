@@ -29,21 +29,11 @@ Tabbed dialog box to allow viewing of various BOS (Bible Organisational System) 
 This is opened as a TopLevel window in Biblelator
     but can also be run as a stand-alone program.
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2020-04-12' # by RJH
-SHORT_PROGRAM_NAME = "SwordManager"
-PROGRAM_NAME = "Sword Manager"
-PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
-programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import sys
 import os
-import logging, subprocess
+import logging
+import subprocess
 import multiprocessing
 
 import tkinter as tk
@@ -58,6 +48,7 @@ if __name__ == '__main__':
     if aboveAboveFolderPath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
+        DATAFILES_FOLDERPATH, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
@@ -85,6 +76,14 @@ from BibleOrgSys.Formats.SwordResources import SwordType, SwordInterface
 from BibleOrgSys.Online.SwordInstallManager import SwordInstallManager
 
 
+LAST_MODIFIED_DATE = '2020-04-19' # by RJH
+SHORT_PROGRAM_NAME = "SwordManager"
+PROGRAM_NAME = "Sword Manager"
+PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
+programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
+
 
 MAIN_APP_NAME = 'Biblelator'
 # Default window size settings (Note: X=width, Y=height)
@@ -107,7 +106,7 @@ class SwordManager( Frame ):
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("SwordManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
+            vPrint( 'Quiet', debuggingThisModule, _("SwordManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage, self.settings = rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -129,8 +128,8 @@ class SwordManager( Frame ):
         self.lexiconWord = None
         self.currentProject = None
 
-        if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
-        if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
@@ -208,7 +207,7 @@ class SwordManager( Frame ):
             that it contains all the books that we might ever want to navigate to.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -226,17 +225,17 @@ class SwordManager( Frame ):
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
-        #print( self.genericBookList )
+        #vPrint( 'Quiet', debuggingThisModule, self.genericBookList )
         self.offsetGenesis = self.genericBookList.index( 'GEN' )
-        #print( 'offsetGenesis', self.offsetGenesis )
+        #vPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
             nBBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getReferenceNumber( BBB )
-            #print( BBB, nBBB )
+            #vPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
-        #print( self.bookNumberTable )
+        #vPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
     # end of SwordManager.setGenericBibleOrganisationalSystem
 
 
@@ -244,7 +243,7 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createNormalMenuBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createNormalMenuBar()") )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -296,7 +295,7 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createTouchMenuBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createTouchMenuBar()") )
             assert self.touchMode
 
         self.createNormalMenuBar()
@@ -307,7 +306,7 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createNormalNavigationBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createNormalNavigationBar()") )
 
         return
 
@@ -336,7 +335,7 @@ class SwordManager( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         #self.bookNumberSpinbox['width'] = 3
         self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -358,7 +357,7 @@ class SwordManager( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         #self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -375,7 +374,7 @@ class SwordManager( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
+        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -417,7 +416,7 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createTouchNavigationBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createTouchNavigationBar()") )
             assert self.touchMode
 
         return
@@ -453,7 +452,7 @@ class SwordManager( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         #self.bookNumberSpinbox['width'] = 3
         self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -479,7 +478,7 @@ class SwordManager( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         #self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -500,7 +499,7 @@ class SwordManager( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
+        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -546,7 +545,7 @@ class SwordManager( Frame ):
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createToolBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
 
         return
 
@@ -575,14 +574,14 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createToolBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
 
         self.notebook = Notebook( self )
 
         # Adding Frames as pages for the ttk.Notebook
 
         # Sources page
-        print( "Create sources page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create sources page" )
         if self.repoDict is None:
             self.repoDict = {}
             for repoName,repoData in self.SwIM.downloadSources.items():
@@ -622,7 +621,7 @@ class SwordManager( Frame ):
             e2.grid( row=j+1, column=7, sticky=tk.W )
 
         # Folders page
-        print( "Create folders page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create folders page" )
         self.foldersPage = Frame( self.notebook )
         foldersLabel = Label( self.foldersPage, text="Install folder(s)" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
@@ -657,24 +656,24 @@ class SwordManager( Frame ):
 
 
         # Folders page
-        print( "Create install page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create install page" )
         self.installPage = Frame( self.notebook )
         foldersLabel = Label( self.installPage, text="Install new module(s)" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
 
         # Folders page
-        print( "Create update page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create update page" )
         self.updatePage = Frame( self.notebook )
         foldersLabel = Label( self.updatePage, text="Update module(s)" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
 
         # Folders page
-        print( "Create modules page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create modules page" )
         self.modulesPage = Frame( self.notebook )
         foldersLabel = Label( self.modulesPage, text="View modules" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
 
-        print( "Add all pages" )
+        vPrint( 'Quiet', debuggingThisModule, "Add all pages" )
         self.notebook.add( self.sourcesPage, text=_("Sources") )
         self.notebook.add( self.foldersPage, text=_("Folders") )
         self.notebook.add( self.installPage, text=_("Install new") )
@@ -699,7 +698,7 @@ class SwordManager( Frame ):
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createDebugToolBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createDebugToolBar()") )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -721,7 +720,7 @@ class SwordManager( Frame ):
         Create a status bar containing only one text label at the bottom of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createStatusBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createStatusBar()") )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -741,7 +740,7 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createMainKeyboardBindings()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createMainKeyboardBindings()") )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp),
@@ -750,7 +749,7 @@ class SwordManager( Frame ):
                               ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #vPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {!r}'.format( name ) )
@@ -770,7 +769,7 @@ class SwordManager( Frame ):
         #Puts most recent first
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( _("addRecentFile( {} )").format( threeTuple ) )
+            #vPrint( 'Quiet', debuggingThisModule, _("addRecentFile( {} )").format( threeTuple ) )
             #assert len(threeTuple) == 3
 
         #try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
@@ -792,9 +791,9 @@ class SwordManager( Frame ):
         Set (or clear) the status bar text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setStatus( {!r} )").format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
 
-        #print( "SB is", repr( self.statusTextVariable.get() ) )
+        #vPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( tkSTART, tk.END )
@@ -812,7 +811,7 @@ class SwordManager( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setErrorStatus( {!r} )").format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -826,7 +825,7 @@ class SwordManager( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setWaitStatus( {!r} )").format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -855,7 +854,7 @@ class SwordManager( Frame ):
         """
         """
         if debuggingThisModule:
-            #print( _("setDebugText( {!r} )").format( newMessage ) )
+            #vPrint( 'Quiet', debuggingThisModule, _("setDebugText( {!r} )").format( newMessage ) )
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
@@ -893,7 +892,7 @@ class SwordManager( Frame ):
         Set the window theme to the given scheme.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( _("doChangeTheme( {!r} )").format( newThemeName ) )
+            vPrint( 'Quiet', debuggingThisModule, _("doChangeTheme( {!r} )").format( newThemeName ) )
             assert newThemeName
             self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
 
@@ -910,7 +909,7 @@ class SwordManager( Frame ):
         """
         enteredText = self.foldersSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchFolder( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchFolder( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchFolder…" )
 
         if not enteredText: return
@@ -938,11 +937,11 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewCode( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
             self.setDebugText( "gotoNewCode…" )
-            #print( 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
-        print( "code cursel", repr(self.codesListbox.curselection()) )
+        vPrint( 'Quiet', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
         self.BBB = self.codesListbox.get( index )
         codeDict =  BibleOrgSysGlobals.loadedBibleBooksCodes._getFullEntry( self.BBB )
@@ -964,7 +963,7 @@ class SwordManager( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: print( _("doViewSettings()") )
+            #if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewSettings()") )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -985,7 +984,7 @@ class SwordManager( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("doViewLog()") )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -1009,7 +1008,7 @@ class SwordManager( Frame ):
         Pop-up dialog giving goto/reference info.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("SwordManager.doGotoInfo( {} )").format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, _("SwordManager.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1034,7 +1033,7 @@ class SwordManager( Frame ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( _("doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()") )
         from Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1059,7 +1058,7 @@ class SwordManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( _("doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1078,7 +1077,7 @@ class SwordManager( Frame ):
         Display an about box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("doAbout()") )
+            vPrint( 'Quiet', debuggingThisModule, _("doAbout()") )
         from About import AboutBox
 
         aboutInfo = programNameVersion
@@ -1094,7 +1093,7 @@ class SwordManager( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( _("doProjectClose()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()") )
         #self.notWrittenYet()
     ## end of SwordManager.doProjectClose
 
@@ -1112,10 +1111,10 @@ class SwordManager( Frame ):
         Save files first, and then close child windows.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("SwordManager.doCloseMyChildWindows()") )
+            vPrint( 'Quiet', debuggingThisModule, _("SwordManager.doCloseMyChildWindows()") )
 
         # Try to close edit windows first coz they might have work to save
-        for appWin in self.childWindows[:]:
+        for appWin in self.childWindows.copy():
             if 'Editor' in appWin.genericWindowType and appWin.modified():
                 appWin.doClose()
                 #appWin.onCloseEditor( terminate=False )
@@ -1133,7 +1132,7 @@ class SwordManager( Frame ):
             return False
 
         # Should be able to close all apps now
-        for appWin in self.childWindows[:]:
+        for appWin in self.childWindows.copy():
             appWin.doClose()
         return True
     # end of SwordManager.doCloseMyChildWindows
@@ -1144,9 +1143,9 @@ class SwordManager( Frame ):
         Save files first, and then end the application.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("SwordManager.doCloseMe()") )
+            vPrint( 'Quiet', debuggingThisModule, _("SwordManager.doCloseMe()") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
-            print( _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
+            vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -1163,7 +1162,7 @@ def openSwordManager( parent ):
     This is used when the Sword Manager is used inside another program.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( _("SwordManager.openSwordManager( {} )").format( parent ) )
+        vPrint( 'Quiet', debuggingThisModule, _("SwordManager.openSwordManager( {} )").format( parent ) )
 
     myWin = tk.Toplevel( parent )
     application = SwordManager( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage, parent.settings )
@@ -1181,11 +1180,11 @@ def briefDemo() -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( programNameVersion )
 
     # Set the window icon and title
-    iconImage = tk.PhotoImage( file='Biblelator.gif' )
+    iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
@@ -1213,33 +1212,33 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
 
-    #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
+    #vPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
 
     numInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
         myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
@@ -1253,10 +1252,10 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
+        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
 
     # Set the window icon and title
-    iconImage = tk.PhotoImage( file='Biblelator.gif' )
+    iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
     application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, None )
@@ -1276,18 +1275,19 @@ def run() -> None:
 
     # Configure basic set-up
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
-    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    # if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
+    # loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    loggingFolderPath = homeFolderPath.joinpath( DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderPath=loggingFolderPath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-    #print( BibleOrgSysGlobals.commandLineArguments ); halt
+    #vPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
 
     if BibleOrgSysGlobals.debugFlag:
-        print( _("Platform is"), sys.platform ) # e.g., 'linux,'win32'
-        print( _("OS name is"), os.name ) # e.g., 'posix','nt'
-        if sys.platform == "linux": print( _("OS uname is"), os.uname() ) # gives about five fields
-        print( _("Running main…") )
+        vPrint( 'Quiet', debuggingThisModule, _("Platform is"), sys.platform ) # e.g., 'linux,'win32'
+        vPrint( 'Quiet', debuggingThisModule, _("OS name is"), os.name ) # e.g., 'posix','nt'
+        if sys.platform == "linux": vPrint( 'Quiet', debuggingThisModule, _("OS uname is"), os.uname() ) # gives about five fields
+        vPrint( 'Quiet', debuggingThisModule, _("Running main…") )
 
     main( homeFolderPath, loggingFolderPath )
 

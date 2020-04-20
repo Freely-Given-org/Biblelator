@@ -95,7 +95,7 @@ class ModalDialog( tk.Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        if BibleOrgSysGlobals.debugFlag: print( "This 'body' method must be overridden!" ); halt
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "This 'body' method must be overridden!" ); halt
     # end of ModalDialog.makeBody
 
 
@@ -151,7 +151,7 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        if BibleOrgSysGlobals.debugFlag: print( "This 'validate' method can be overridden!" )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "This 'validate' method can be overridden!" )
         return True # override
     # end of ModalDialog.validate
 
@@ -163,7 +163,7 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        if BibleOrgSysGlobals.debugFlag: print( "This 'apply' method should be overridden!" )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "This 'apply' method should be overridden!" )
         self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog
@@ -198,7 +198,7 @@ class MyTestDialog( ModalDialog ):
         """
         try: int( self.e1.get() ) and int( self.e2.get() )
         except ValueError:
-            print( "ERROR: We need two valid integers!" )
+            vPrint( 'Quiet', debuggingThisModule, "ERROR: We need two valid integers!" )
             return False
         return True
     # end of MyTestDialog.validate
@@ -213,7 +213,7 @@ class MyTestDialog( ModalDialog ):
         """
         first = int( self.e1.get() )
         second = int( self.e2.get() )
-        print( first, second ) # or something
+        vPrint( 'Quiet', debuggingThisModule, first, second ) # or something
         self.result = (first, second,)
     # end of MyTestDialog.apply
 # end of class MyTestDialog
@@ -227,7 +227,7 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    print( "Running demo…" )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( programNameVersion )
@@ -235,7 +235,7 @@ def briefDemo() -> None:
     def ss( a ): pass
     tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
-    print( "Result is:", repr(md.result) )
+    vPrint( 'Quiet', debuggingThisModule, "Result is:", repr(md.result) )
 
     # Start the program running
     tkRootWindow.mainloop()

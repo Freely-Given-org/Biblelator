@@ -29,21 +29,11 @@ Tabbed dialog box to allow viewing of various BOS (Bible Organisational System) 
 This is opened as a TopLevel window in Biblelator
     but can also be run as a stand-alone program.
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2020-04-12' # by RJH
-SHORT_PROGRAM_NAME = "BOSManager"
-PROGRAM_NAME = "BOS Manager"
-PROGRAM_VERSION = '0.07' # Separate versioning from Biblelator
-programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import sys
 import os
-import logging, subprocess
+import logging
+import subprocess
 import multiprocessing
 
 import tkinter as tk
@@ -59,6 +49,7 @@ if __name__ == '__main__':
     if aboveAboveFolderPath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
+        DATAFILES_FOLDERPATH, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
@@ -92,6 +83,14 @@ from BibleOrgSys.Reference.BiblePunctuationSystems import BiblePunctuationSystem
 from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
 
 
+LAST_MODIFIED_DATE = '2020-04-19' # by RJH
+SHORT_PROGRAM_NAME = "BOSManager"
+PROGRAM_NAME = "BOS Manager"
+PROGRAM_VERSION = '0.07' # Separate versioning from Biblelator
+programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
+
 
 MAIN_APP_NAME = 'Biblelator'
 # Default window size settings (Note: X=width, Y=height)
@@ -114,7 +113,7 @@ class BOSManager( Frame ):
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
+            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderPath, loggingFolderPath ) )
         self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage, self.settings = rootWindow, homeFolderPath, loggingFolderPath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -136,8 +135,8 @@ class BOSManager( Frame ):
         self.lexiconWord = None
         self.currentProject = None
 
-        if BibleOrgSysGlobals.debugFlag: print( "Button default font", Style().lookup('TButton', 'font') )
-        if BibleOrgSysGlobals.debugFlag: print( "Label default font", Style().lookup('TLabel', 'font') )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
+        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
@@ -177,7 +176,7 @@ class BOSManager( Frame ):
         # Read and apply the saved settings
         if BibleOrgSysGlobals.commandLineArguments.override is None:
             self.INIname = MAIN_APP_NAME # We use the Biblelator settings
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( "Using default {!r} ini file".format( self.INIname ) )
+            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
@@ -219,7 +218,7 @@ class BOSManager( Frame ):
             that it contains all the books that we might ever want to navigate to.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -237,17 +236,17 @@ class BOSManager( Frame ):
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
-        #print( self.genericBookList )
+        #vPrint( 'Quiet', debuggingThisModule, self.genericBookList )
         self.offsetGenesis = self.genericBookList.index( 'GEN' )
-        #print( 'offsetGenesis', self.offsetGenesis )
+        #vPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
             nBBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getReferenceNumber( BBB )
-            #print( BBB, nBBB )
+            #vPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
-        #print( self.bookNumberTable )
+        #vPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
     # end of BOSManager.setGenericBibleOrganisationalSystem
 
 
@@ -255,7 +254,7 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createNormalMenuBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createNormalMenuBar()") )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -344,7 +343,7 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createTouchMenuBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createTouchMenuBar()") )
             assert self.touchMode
 
         self.createNormalMenuBar()
@@ -355,7 +354,7 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createNormalNavigationBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createNormalNavigationBar()") )
 
         return
 
@@ -384,7 +383,7 @@ class BOSManager( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         #self.bookNumberSpinbox['width'] = 3
         self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -406,7 +405,7 @@ class BOSManager( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         #self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -423,7 +422,7 @@ class BOSManager( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
+        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -465,7 +464,7 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createTouchNavigationBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createTouchNavigationBar()") )
             assert self.touchMode
 
         return
@@ -501,7 +500,7 @@ class BOSManager( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         #self.bookNumberSpinbox['width'] = 3
         self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -527,7 +526,7 @@ class BOSManager( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #print( "maxChapters", self.maxChaptersThisBook )
+        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         #self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -548,7 +547,7 @@ class BOSManager( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #print( "maxVerses", self.maxVersesThisChapter )
+        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -594,7 +593,7 @@ class BOSManager( Frame ):
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createToolBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
 
         return
 
@@ -623,14 +622,14 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createToolBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
 
         self.notebook = Notebook( self )
 
         # Adding Frames as pages for the ttk.Notebook
 
         # Bible books codes page
-        print( "Create codes page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create codes page" )
         self.BibleBooksCodesList = BibleOrgSysGlobals.loadedBibleBooksCodes.getAllReferenceAbbreviations()
         self.codesPage = Frame( self.notebook )
         codesLabel = Label( self.codesPage, text="Books Codes ({})".format( len(self.BibleBooksCodesList) ) )
@@ -664,7 +663,7 @@ class BOSManager( Frame ):
         self.codesSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible punctuations systems page
-        print( "Create punct page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create punct page" )
         self.BiblePunctuationSystems = BiblePunctuationSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BiblePunctuationsList = sorted( self.BiblePunctuationSystems.getAvailablePunctuationSystemNames() )
         self.punctuationPage = Frame( self.notebook )
@@ -694,7 +693,7 @@ class BOSManager( Frame ):
         self.punctuationsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible versification systems page
-        print( "Create vers page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create vers page" )
         self.BibleVersificationsSystems = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleVersificationsSystemsList = sorted( self.BibleVersificationsSystems.getAvailableVersificationSystemNames() )
         self.versificationsPage = Frame( self.notebook )
@@ -724,7 +723,7 @@ class BOSManager( Frame ):
         self.versificationsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible versification mappings page
-        print( "Create mappings page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create mappings page" )
         #self.BibleMappingsSystems = BibleMappingSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleMappingsSystemsList = []
         self.mappingsPage = Frame( self.notebook )
@@ -754,7 +753,7 @@ class BOSManager( Frame ):
         self.mappingsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible book order systems page
-        print( "Create orders page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create orders page" )
         self.BibleOrdersSystems = BibleBookOrderSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleOrdersSystemsList = sorted( self.BibleOrdersSystems.getAvailableBookOrderSystemNames() )
         self.ordersPage = Frame( self.notebook )
@@ -784,7 +783,7 @@ class BOSManager( Frame ):
         self.ordersSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible book name systems page
-        print( "Create names page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create names page" )
         self.BibleNamesSystems = BibleBooksNamesSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleNamesSystemsList = sorted( self.BibleNamesSystems.getAvailableBooksNamesSystemNames() )
         self.namesPage = Frame( self.notebook )
@@ -814,7 +813,7 @@ class BOSManager( Frame ):
         self.namesSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible organisational systems page
-        print( "Create Bibles page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create Bibles page" )
         self.BibleOrganisationalSystems = BibleOrganisationalSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleOrganisationalSystemsList = sorted( self.BibleOrganisationalSystems.getAvailableOrganisationalSystemNames() )
         self.organisationsPage = Frame( self.notebook )
@@ -844,7 +843,7 @@ class BOSManager( Frame ):
         self.organisationsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible reference systems page
-        print( "Create refs page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create refs page" )
         #self.BibleReferenceSystems = BibleReferenceSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleReferenceSystemsList = []
         self.referencesPage = Frame( self.notebook )
@@ -874,7 +873,7 @@ class BOSManager( Frame ):
         self.referenceSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible stylesheet systems page
-        print( "Create stylesheets page" )
+        vPrint( 'Quiet', debuggingThisModule, "Create stylesheets page" )
         #self.BibleStylesheetSystems = BibleStylesheetSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleStylesheetSystemsList = []
         self.stylesheetsPage = Frame( self.notebook )
@@ -903,7 +902,7 @@ class BOSManager( Frame ):
         self.searchOrganisation( None ) # Go to KJV
         self.stylesheetSearch.delete( 0, tk.END ) # Clear the search box again
 
-        print( "Add all pages" )
+        vPrint( 'Quiet', debuggingThisModule, "Add all pages" )
         self.notebook.add( self.codesPage, text=_("Codes") )
         self.notebook.add( self.punctuationPage, text=_("Punctuation") )
         self.notebook.add( self.versificationsPage, text=_("Versifications") )
@@ -932,7 +931,7 @@ class BOSManager( Frame ):
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createDebugToolBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createDebugToolBar()") )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -954,7 +953,7 @@ class BOSManager( Frame ):
         Create a status bar containing only one text label at the bottom of the main window.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createStatusBar()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createStatusBar()") )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -974,13 +973,13 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("createMainKeyboardBindings()") )
+            vPrint( 'Quiet', debuggingThisModule, _("createMainKeyboardBindings()") )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
-                    #print( "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #vPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {!r}'.format( name ) )
@@ -1000,7 +999,7 @@ class BOSManager( Frame ):
         #Puts most recent first
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #print( _("addRecentFile( {} )").format( threeTuple ) )
+            #vPrint( 'Quiet', debuggingThisModule, _("addRecentFile( {} )").format( threeTuple ) )
             #assert len(threeTuple) == 3
 
         #try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
@@ -1022,9 +1021,9 @@ class BOSManager( Frame ):
         Set (or clear) the status bar text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setStatus( {!r} )").format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
 
-        #print( "SB is", repr( self.statusTextVariable.get() ) )
+        #vPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( tkSTART, tk.END )
@@ -1042,7 +1041,7 @@ class BOSManager( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setErrorStatus( {!r} )").format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1056,7 +1055,7 @@ class BOSManager( Frame ):
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("setWaitStatus( {!r} )").format( newStatusText ) )
+            vPrint( 'Quiet', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1085,7 +1084,7 @@ class BOSManager( Frame ):
         """
         """
         if debuggingThisModule:
-            #print( _("setDebugText( {!r} )").format( newMessage ) )
+            #vPrint( 'Quiet', debuggingThisModule, _("setDebugText( {!r} )").format( newMessage ) )
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
@@ -1123,7 +1122,7 @@ class BOSManager( Frame ):
         Set the window theme to the given scheme.
         """
         if BibleOrgSysGlobals.debugFlag:
-            print( _("doChangeTheme( {!r} )").format( newThemeName ) )
+            vPrint( 'Quiet', debuggingThisModule, _("doChangeTheme( {!r} )").format( newThemeName ) )
             assert newThemeName
             self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
 
@@ -1141,7 +1140,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.codesSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchBBBCode…" )
 
         if not enteredText: return
@@ -1174,7 +1173,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.codesSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchCode( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchCode( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchCode…" )
 
         if not enteredText: return
@@ -1205,11 +1204,11 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewCode( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
             self.setDebugText( "gotoNewCode…" )
-            #print( 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
-        print( "code cursel", repr(self.codesListbox.curselection()) )
+        vPrint( 'Quiet', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
         self.BBB = self.codesListbox.get( index )
         codeDict =  BibleOrgSysGlobals.loadedBibleBooksCodes._getFullEntry( self.BBB )
@@ -1230,7 +1229,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.punctuationsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchPunctuation…" )
 
         if not enteredText: return
@@ -1256,11 +1255,11 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewPunctuation( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewPunctuation( {} )").format( event ) )
             self.setDebugText( "gotoNewPunctuation…" )
-            #print( 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
 
-        print( "punct cursel", repr(self.punctuationsListbox.curselection()) )
+        vPrint( 'Quiet', debuggingThisModule, "punct cursel", repr(self.punctuationsListbox.curselection()) )
         index = int( self.punctuationsListbox.curselection()[0] ) # Top one selected
         self.punctuationSystemName = self.punctuationsListbox.get( index )
         punctuationDict =  self.BiblePunctuationSystems.getPunctuationSystem( self.punctuationSystemName )
@@ -1281,7 +1280,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.versificationsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchVersification( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchVersification( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchVersification…" )
 
         if not enteredText: return
@@ -1307,11 +1306,11 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewVersification( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewVersification( {} )").format( event ) )
             self.setDebugText( "gotoNewVersification…" )
-            #print( 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
 
-        print( "vers cursel", repr(self.versificationsListbox.curselection()) )
+        vPrint( 'Quiet', debuggingThisModule, "vers cursel", repr(self.versificationsListbox.curselection()) )
         index = int( self.versificationsListbox.curselection()[0] ) # Top one selected
         self.versificationSystemName = self.versificationsListbox.get( index )
         versificationSystem =  self.BibleVersificationsSystems.getVersificationSystem( self.versificationSystemName )
@@ -1332,7 +1331,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.mappingsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchMapping( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchMapping( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchMapping…" )
 
         if not enteredText: return
@@ -1358,9 +1357,9 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewMapping( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewMapping( {} )").format( event ) )
             self.setDebugText( "gotoNewMapping…" )
-            #print( 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
 
         index = int( self.mappingsListbox.curselection()[0] ) # Top one selected
         self.mappingSystemName = self.mappingsListbox.get( index )
@@ -1382,7 +1381,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.ordersSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchOrder( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchOrder( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchOrder…" )
 
         if not enteredText: return
@@ -1408,11 +1407,11 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewOrder( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewOrder( {} )").format( event ) )
             self.setDebugText( "gotoNewOrder…" )
-            #print( 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
 
-        print( "order cursel", repr(self.ordersListbox.curselection()) )
+        vPrint( 'Quiet', debuggingThisModule, "order cursel", repr(self.ordersListbox.curselection()) )
         index = int( self.ordersListbox.curselection()[0] ) # Top one selected
         self.orderSystemName = self.ordersListbox.get( index )
         orderSystem =  self.BibleOrdersSystems.getBookOrderSystem( self.orderSystemName )
@@ -1433,7 +1432,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.namesSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchName( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchName( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchName…" )
 
         if not enteredText: return
@@ -1459,11 +1458,11 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewName( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewName( {} )").format( event ) )
             self.setDebugText( "gotoNewName…" )
-            #print( 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
 
-        print( "name cursel", repr(self.namesListbox.curselection()) )
+        vPrint( 'Quiet', debuggingThisModule, "name cursel", repr(self.namesListbox.curselection()) )
         index = int( self.namesListbox.curselection()[0] ) # Top one selected
         self.nameSystemName = self.namesListbox.get( index )
         nameSystem =  self.BibleNamesSystems.getBooksNamesSystem( self.nameSystemName )
@@ -1484,7 +1483,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.organisationsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchOrganisation…" )
 
         if not enteredText: return
@@ -1510,9 +1509,9 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewOrganisation( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewOrganisation( {} )").format( event ) )
             self.setDebugText( "gotoNewOrganisation…" )
-            #print( 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
 
         index = int( self.organisationsListbox.curselection()[0] ) # Top one selected
         self.organisationSystemName = self.organisationsListbox.get( index )
@@ -1534,7 +1533,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.referenceSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchReference( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchReference( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchReference…" )
 
         if not enteredText: return
@@ -1560,9 +1559,9 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewReference( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewReference( {} )").format( event ) )
             self.setDebugText( "gotoNewReference…" )
-            #print( 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
 
         index = int( self.referencesListbox.curselection()[0] ) # Top one selected
         self.referenceSystemName = self.referencesListbox.get( index )
@@ -1584,7 +1583,7 @@ class BOSManager( Frame ):
         """
         enteredText = self.stylesheetsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchStylesheet…" )
 
         if not enteredText: return
@@ -1610,9 +1609,9 @@ class BOSManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("gotoNewStylesheet( {} )").format( event ) )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewStylesheet( {} )").format( event ) )
             self.setDebugText( "gotoNewStylesheet…" )
-            #print( 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
+            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
 
         index = int( self.stylesheetsListbox.curselection()[0] ) # Top one selected
         self.stylesheetSystemName = self.stylesheetsListbox.get( index )
@@ -1635,7 +1634,7 @@ class BOSManager( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: print( _("doViewSettings()") )
+            #if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewSettings()") )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1656,7 +1655,7 @@ class BOSManager( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: print( _("doViewLog()") )
+            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -1680,7 +1679,7 @@ class BOSManager( Frame ):
         Pop-up dialog giving goto/reference info.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("BOSManager.doGotoInfo( {} )").format( event ) )
+            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1705,7 +1704,7 @@ class BOSManager( Frame ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( _("doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()") )
         from Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1730,7 +1729,7 @@ class BOSManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( _("doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()") )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1749,7 +1748,7 @@ class BOSManager( Frame ):
         Display an about box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("doAbout()") )
+            vPrint( 'Quiet', debuggingThisModule, _("doAbout()") )
         from About import AboutBox
 
         aboutInfo = programNameVersion
@@ -1763,7 +1762,7 @@ class BOSManager( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: print( _("doProjectClose()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()") )
         #self.notWrittenYet()
     ## end of BOSManager.doProjectClose
 
@@ -1781,10 +1780,10 @@ class BOSManager( Frame ):
         Save files first, and then close child windows.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("BOSManager.doCloseMyChildWindows()") )
+            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.doCloseMyChildWindows()") )
 
         # Try to close edit windows first coz they might have work to save
-        for appWin in self.childWindows[:]:
+        for appWin in self.childWindows.copy():
             if 'Editor' in appWin.genericWindowType and appWin.modified():
                 appWin.doClose()
                 #appWin.onCloseEditor( terminate=False )
@@ -1802,7 +1801,7 @@ class BOSManager( Frame ):
             return False
 
         # Should be able to close all apps now
-        for appWin in self.childWindows[:]:
+        for appWin in self.childWindows.copy():
             appWin.doClose()
         return True
     # end of BOSManager.doCloseMyChildWindows
@@ -1813,9 +1812,9 @@ class BOSManager( Frame ):
         Save files first, and then end the application.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            print( _("BOSManager.doCloseMe()") )
+            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.doCloseMe()") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
-            print( _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
+            vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -1832,7 +1831,7 @@ def openBOSManager( parent ):
     This is used when the BOS Manager is used inside another program.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( _("BOSManager.openBOSManager( {} )").format( parent ) )
+        vPrint( 'Quiet', debuggingThisModule, _("BOSManager.openBOSManager( {} )").format( parent ) )
 
     myWin = tk.Toplevel( parent )
     application = BOSManager( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage, parent.settings )
@@ -1850,11 +1849,11 @@ def briefDemo() -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( programNameVersion )
 
     # Set the window icon and title
-    iconImage = tk.PhotoImage( file='Biblelator.gif' )
+    iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
@@ -1882,33 +1881,33 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
 
-    #print( 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
+    #vPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
 
     numInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in ps xa:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
         myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #print( 'pob', programOutputBytes, programErrorOutputBytes )
+        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #print( 'processes', repr(programOutputString) )
+        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: print( 'Found in tasklist:', repr(line) )
+                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
@@ -1922,10 +1921,10 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        print( 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
+        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
 
     # Set the window icon and title
-    iconImage = tk.PhotoImage( file='Biblelator.gif' )
+    iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
     application = BOSManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, None )
@@ -1945,18 +1944,19 @@ def run() -> None:
 
     # Configure basic set-up
     homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
-    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    # if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
+    # loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    loggingFolderPath = homeFolderPath.joinpath( DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderPath=loggingFolderPath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-    #print( BibleOrgSysGlobals.commandLineArguments ); halt
+    #vPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
 
     if BibleOrgSysGlobals.debugFlag:
-        print( _("Platform is"), sys.platform ) # e.g., 'linux,'win32'
-        print( _("OS name is"), os.name ) # e.g., 'posix','nt'
-        if sys.platform == "linux": print( _("OS uname is"), os.uname() ) # gives about five fields
-        print( _("Running main…") )
+        vPrint( 'Quiet', debuggingThisModule, _("Platform is"), sys.platform ) # e.g., 'linux,'win32'
+        vPrint( 'Quiet', debuggingThisModule, _("OS name is"), os.name ) # e.g., 'posix','nt'
+        if sys.platform == "linux": vPrint( 'Quiet', debuggingThisModule, _("OS uname is"), os.uname() ) # gives about five fields
+        vPrint( 'Quiet', debuggingThisModule, _("Running main…") )
 
     main( homeFolderPath, loggingFolderPath )
 

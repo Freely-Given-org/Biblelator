@@ -61,7 +61,7 @@ class HelpBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
         """
         """
-        #if BibleOrgSysGlobals.debugFlag: print( "HelpBox.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "HelpBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_HELP_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
@@ -99,7 +99,7 @@ class HelpBox( tk.Toplevel ):
     #def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag: print( "HelpBox2.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "HelpBox2.__init__( {} )".format( parent ) )
         #hb = tk.Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE
         #hb.minsize( self.minimumXSize, self.minimumYSize )
@@ -134,7 +134,7 @@ def briefDemo() -> None:
     Main program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    print( "Running demo…" )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

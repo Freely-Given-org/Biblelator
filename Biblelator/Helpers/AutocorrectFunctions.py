@@ -52,8 +52,8 @@ def setAutocorrectEntries( self, autocorrectEntryList, append=False ):
         so that more common/likely words can appear at the top of the list if desired.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #print( "AutocorrectFunctions.setAutocorrectEntries( {} )".format( autocorrectEntryList, append ) )
-        print( "AutocorrectFunctions.setAutocorrectEntries( {}.., {} )".format( len(autocorrectEntryList), append ) )
+        #vPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setAutocorrectEntries( {} )".format( autocorrectEntryList, append ) )
+        vPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setAutocorrectEntries( {}.., {} )".format( len(autocorrectEntryList), append ) )
 
     if append: self.autocorrectEntries.extend( autocorrectEntryList )
     else: self.autocorrectEntries = autocorrectEntryList
@@ -64,7 +64,7 @@ def setAutocorrectEntries( self, autocorrectEntryList, append=False ):
         self.maxAutocorrectLength = max( len(inChars), self.maxAutocorrectLength )
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "  autocorrect total entries loaded = {:,}".format( len(self.autocorrectEntries) ) )
+        vPrint( 'Quiet', debuggingThisModule, "  autocorrect total entries loaded = {:,}".format( len(self.autocorrectEntries) ) )
 # end of AutocorrectFunctions.setAutocorrectEntries
 
 
@@ -77,7 +77,7 @@ def setDefaultAutocorrectEntries( self ):
         so that more common/likely words can appear at the top of the list if desired.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        print( "AutocorrectFunctions.setDefaultAutocorrectEntries()" )
+        vPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setDefaultAutocorrectEntries()" )
 
     ourAutocorrectEntries = []
 
@@ -120,7 +120,7 @@ def briefDemo() -> None:
     import tkinter as tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: print( "Running demo…" )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

@@ -5,15 +5,16 @@ See:
 https://packaging.python.org/guides/distributing-packages-using-setuptools/
 https://github.com/pypa/sampleproject
 """
+from setuptools import setup # Always prefer setuptools over distutils
+# from os import path
+
 VERSION = '0.0.3'
-LAST_MODIFIED_DATE = '2020-04-14' # by RJH — when setup.py was modified below
+LAST_MODIFIED_DATE = '2020-04-20' # by RJH — when setup.py was modified below
+
 
 # INCLUDE_DERIVED_DATA_PICKLE_FILES = True
 # INCLUDE_DERIVED_DATA_JSON_FILES = False
 
-
-from setuptools import setup # Always prefer setuptools over distutils
-# from os import path
 
 # this_folderpath = path.abspath(path.dirname(__file__))
 
@@ -79,8 +80,9 @@ setup(
     # This field corresponds to the "Description" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#description-optional
     long_description="""
-A USFM Bible editor using the BibleOrgSys library and
-Python's tKinter windowing library for simple and easy installation.
+A USFM Bible editor using the [BibleOrgSys](https://pypi.org/project/BibleOrgSys/)
+library and Python's tKinter windowing library for simple and easy installation.
+(It's all in the standard CPython install.)
 
 The app can be run from the command line with:
     `Biblelator`
@@ -93,6 +95,12 @@ Biblelator reads or creates a `BiblelatorData` folder in your home folder.
 Log files are stored in a subfolder there and may be useful for reporting errors.
 (If you have start-up problems, you might want to edit the settings there,
 or even delete the entire settings file if you have no saved windows settings yet.)
+
+The other auxilliary apps included are `BiblelatorSettingsEditor`,
+`BOSManager` (for inspecting Bible organisational systems), and
+`SwordManager` for viewing
+and downloading [Sword](https://crosswire.org/sword/index.jsp) modules.
+(All are at various stages of incompleteness.)
 
 NOTE: This packaging is still being tested following massive restructuring,
 and is not necessarily fully functional until it is marked as v0.1.0 or higher
@@ -223,6 +231,9 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     entry_points={
         'console_scripts': [
             'Biblelator=Biblelator.Biblelator:run',
+            'BiblelatorSettingsEditor=Biblelator.Apps.BiblelatorSettingsEditor:run',
+            'BOSManager=Biblelator.Apps.BOSManager:run',
+            'SwordManager=Biblelator.Apps.SwordManager:run',
         ],
     },
 )
