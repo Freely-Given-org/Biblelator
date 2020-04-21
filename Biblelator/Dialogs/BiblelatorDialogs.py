@@ -126,7 +126,7 @@ if __name__ == '__main__':
     aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderPath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderPath )
-from Biblelator.BiblelatorGlobals import APP_NAME, errorBeep
+from Biblelator.BiblelatorGlobals import APP_NAME #, errorBeep
 from Biblelator.Dialogs.ModalDialog import ModalDialog
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showWarning
 from Biblelator.Windows.TextBoxes import BEntry, BCombobox, BText
@@ -137,7 +137,7 @@ from BibleOrgSys.BibleOrgSysGlobals import vPrint
 from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 
 
-LAST_MODIFIED_DATE = '2020-04-19'
+LAST_MODIFIED_DATE = '2020-04-21'
 SHORT_PROGRAM_NAME = "BiblelatorDialogs"
 PROGRAM_NAME = "Biblelator dialogs"
 PROGRAM_VERSION = '0.46'
@@ -2616,7 +2616,7 @@ class DownloadResourcesDialog( ModalDialog ):
                 resourceFilepath = BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( filename )
                 itemString = None
                 if os.path.exists( resourceFilepath ):
-                    if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "You already have", resourceFilepath )
+                    vPrint( 'Never', debuggingThisModule, "You already have", resourceFilepath )
                     #vPrint( 'Quiet', debuggingThisModule, os.stat(resourceFilepath) )
                     #vPrint( 'Quiet', debuggingThisModule, os.stat(resourceFilepath).st_mtime, datetime.fromtimestamp(os.stat(resourceFilepath).st_mtime) )
                     #vPrint( 'Quiet', debuggingThisModule, os.stat(resourceFilepath).st_ctime, datetime.fromtimestamp(os.stat(resourceFilepath).st_ctime) )
@@ -2626,12 +2626,12 @@ class DownloadResourcesDialog( ModalDialog ):
                     serverDateTime = datetime.strptime( dateTimeString, '%Y-%m-%d %H:%M' )
                     #vPrint( 'Quiet', debuggingThisModule, "  serverDateTime", serverDateTime )
                     if (serverDateTime - fileDateTime1 ).total_seconds() > 3600: # one hour later
-                        if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Updateable resource:", abbrev )
+                        vPrint( 'Never', debuggingThisModule, "Updateable resource:", abbrev )
                         itemString = '{} {}{}{}'.format( _("Update"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
-                    elif debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "  Seems up-to-date:", abbrev )
+                    else: vPrint( 'Never', debuggingThisModule, "  Seems up-to-date:", abbrev )
                 else: # Seems we don't have this one
-                        if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "New resource:", abbrev )
-                        itemString = '{}    {}{}{}'.format( _("New"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
+                    vPrint( 'Never', debuggingThisModule, "New resource:", abbrev )
+                    itemString = '{}    {}{}{}'.format( _("New"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
                 if itemString: self.downloadableList.append( (abbrev,itemString) )
             if self.downloadableList:
                 Label( master, text=_("Select one or more resources to download") ).pack( side=tk.TOP, fill=tk.X )
@@ -2769,15 +2769,96 @@ def briefDemo() -> None:
 
     # Start the program running
     #tkRootWindow.mainloop()
-# end of BiblelatorDialogs.demo
-
+# end of BiblelatorDialogs.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = tk.Tk()
+    tkRootWindow.title( programNameVersion )
+
+    # We need to set a parentApp variable and setStatus/setReadyStatus functions
+    class tempApp():
+        def __init__( self ):
+            self.childWindows=[]
+            self.internetAccessEnabled = True
+        def setStatus( self, newStatusText='' ): pass
+        def setReadyStatus( self ): pass
+    tkRootWindow.parentApp = tempApp()
+
+    ynD = YesNoDialog( tkRootWindow, message="Choose yes or no", title="Testing YesNoDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "YesNoResult", ynD.result )
+    ocD = OkCancelDialog( tkRootWindow, message="Choose ok or cancel", title="Testing OkCancelDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "OkCancelResult", ocD.result )
+    bnD = BookNameDialog( tkRootWindow, bookNameList=["aaa","BBB","CcC"], currentIndex=1 )
+    vPrint( 'Quiet', debuggingThisModule, "BookNameResult", bnD.result )
+    nbD = NumberButtonDialog( tkRootWindow, startNumber=1, endNumber=11, currentNumber=6 )
+    vPrint( 'Quiet', debuggingThisModule, "NumberButtonResult", nbD.result )
+    swnd = SaveWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test SWND" )
+    vPrint( 'Quiet', debuggingThisModule, "SaveWindowNameResult", swnd.result )
+    dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test DWND" )
+    vPrint( 'Quiet', debuggingThisModule, "DeleteWindowNameResult", dwnd.result )
+    srb = SelectResourceBoxDialog( tkRootWindow, availableSettingsList=[(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], title="Test SRB" )
+    vPrint( 'Quiet', debuggingThisModule, "SelectResourceBoxResult", srb.result )
+    gnpnD = GetNewProjectNameDialog( tkRootWindow, title="Testing GetNewProjectNameDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "GetNewProjectNameResult", gnpnD.result )
+
+    from BibleVersificationSystems import BibleVersificationSystems
+    bvss = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
+    availableVersifications = bvss.getAvailableVersificationSystemNames()
+    cnpfD = CreateNewProjectFilesDialog( tkRootWindow, title="Testing CreateNewProjectFilesDialog", currentBBB='PSA', availableVersifications=availableVersifications )
+    vPrint( 'Quiet', debuggingThisModule, "CreateNewProjectFilesResult", cnpfD.result )
+
+    gncnD = GetNewCollectionNameDialog( tkRootWindow, existingNames=["aaa","BBB","CcC"], title="Testing GetNewCollectionNameDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "GetNewCollectionNameResult", gncnD.result )
+    rrcD = RenameResourceCollectionDialog( tkRootWindow, existingName="xyz", existingNames=["aaa","BBB","CcC"], title="Testing RenameResourceCollectionDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "RenameResourceCollectionResult", rrcD.result )
+
+    class internalBible():
+        def __init__( self ): self.BBB='GEN'
+        def __len__( self ): return 3
+        def getBookList( self ): return ['EXO','MAT','REV']
+        def getAName( self ): return 'Fred'
+    testBible = internalBible()
+
+    gbbrD = GetBibleBookRangeDialog( tkRootWindow, givenBible=testBible, currentBBB='SA1', currentList=["aaa","BBB","CcC"], title="Testing GetBibleBookRangeDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "GetBibleBookRangeResult", gbbrD.result )
+
+    sibbD = SelectIndividualBibleBooksDialog( tkRootWindow, availableList=["aaa","BBB"], currentList=["aaa","BBB","CcC"], title="Testing SelectIndividualBibleBooksDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "SelectIndividualBibleBooksResult", sibbD.result )
+
+    tkRootWindow.textBox = tk.Text( tkRootWindow, width=40, height=10 )
+    testOptionsDict = {'currentBCV':('ACT','1','1')}
+    gbftD = GetBibleFindTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleFindTextDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "GetBibleFindTextResult", gbftD.result )
+    gbrtD = GetBibleReplaceTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleReplaceTextDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "GetBibleReplaceTextResult", gbrtD.result )
+    rcD = ReplaceConfirmDialog( tkRootWindow, referenceString="def", contextBefore="abc", findText="def", contextAfter="ghi", finalText="xyz", haveUndos=True, title="Testing ReplaceConfirmDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "ReplaceConfirmResult", rcD.result )
+
+    sibD = SelectInternalBibleDialog( tkRootWindow, title="Testing SelectInternalBibleDialog", internalBibles=[testBible] )
+    vPrint( 'Quiet', debuggingThisModule, "SelectInternalBibleResult", sibD.result )
+
+    ghgwD = GetHebrewGlossWordDialog( tkRootWindow, title="Testing GetHebrewGlossWordDialog", contextLines=['abc','def','ghi'], word="word" )
+    vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordResult", ghgwD.result )
+    ghgwsD = GetHebrewGlossWordsDialog( tkRootWindow, title="Testing GetHebrewGlossWordsDialog", contextLines=['abc','def','ghi'], word1="generic", word2="specific" )
+    vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordsResult", ghgwsD.result )
+
+    availableResourceDictsList = [{'abbreviation':"aaa",'givenName':"AAA",'zipFilename':'a.zip'},{'abbreviation':"ddd",'givenName':"BBB",'zipFilename':'b.zip'},{'abbreviation':"ccc",'givenName':"CCC",'zipFilename':'c.zip'}]
+    crD = ChooseResourcesDialog( tkRootWindow, availableResourceDictsList=availableResourceDictsList, title="Testing ChooseResourcesDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "ChooseResourcesResult", crD.result )
+    drD = DownloadResourcesDialog( tkRootWindow, title="Testing DownloadResourcesDialog" )
+    vPrint( 'Quiet', debuggingThisModule, "DownloadResourcesResult", drD.result )
+
+    #tkRootWindow.quit()
+
+    # Start the program running
+    #tkRootWindow.mainloop()
+# end of BiblelatorDialogs.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

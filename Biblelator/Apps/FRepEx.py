@@ -1141,7 +1141,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.codesSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchBBBCode…" )
 
         if not enteredText: return
@@ -1174,7 +1174,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.codesSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchCode( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchCode( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchCode…" )
 
         if not enteredText: return
@@ -1205,7 +1205,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
             self.setDebugText( "gotoNewCode…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
@@ -1230,7 +1230,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.punctuationsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchPunctuation…" )
 
         if not enteredText: return
@@ -1256,7 +1256,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewPunctuation( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewPunctuation( {} )").format( event ) )
             self.setDebugText( "gotoNewPunctuation…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
 
@@ -1281,7 +1281,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.versificationsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchVersification( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchVersification( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchVersification…" )
 
         if not enteredText: return
@@ -1307,7 +1307,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewVersification( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewVersification( {} )").format( event ) )
             self.setDebugText( "gotoNewVersification…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
 
@@ -1332,7 +1332,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.mappingsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchMapping( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchMapping( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchMapping…" )
 
         if not enteredText: return
@@ -1358,7 +1358,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewMapping( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewMapping( {} )").format( event ) )
             self.setDebugText( "gotoNewMapping…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
 
@@ -1382,7 +1382,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.ordersSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchOrder( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchOrder( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchOrder…" )
 
         if not enteredText: return
@@ -1408,7 +1408,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewOrder( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewOrder( {} )").format( event ) )
             self.setDebugText( "gotoNewOrder…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
 
@@ -1433,7 +1433,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.namesSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchName( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchName( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchName…" )
 
         if not enteredText: return
@@ -1459,7 +1459,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewName( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewName( {} )").format( event ) )
             self.setDebugText( "gotoNewName…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
 
@@ -1484,7 +1484,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.organisationsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchOrganisation…" )
 
         if not enteredText: return
@@ -1510,7 +1510,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewOrganisation( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewOrganisation( {} )").format( event ) )
             self.setDebugText( "gotoNewOrganisation…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
 
@@ -1534,7 +1534,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.referenceSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchReference( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchReference( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchReference…" )
 
         if not enteredText: return
@@ -1560,7 +1560,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewReference( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewReference( {} )").format( event ) )
             self.setDebugText( "gotoNewReference…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
 
@@ -1584,7 +1584,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.stylesheetsSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchStylesheet…" )
 
         if not enteredText: return
@@ -1610,7 +1610,7 @@ class FRepEx( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewStylesheet( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewStylesheet( {} )").format( event ) )
             self.setDebugText( "gotoNewStylesheet…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
 
@@ -1635,7 +1635,7 @@ class FRepEx( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewSettings()") )
+            #vPrint( 'Never', debuggingThisModule, _("doViewSettings()") )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1656,7 +1656,7 @@ class FRepEx( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewLog()") )
+            vPrint( 'Never', debuggingThisModule, _("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )

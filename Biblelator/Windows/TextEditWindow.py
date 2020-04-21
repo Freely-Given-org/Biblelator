@@ -1226,7 +1226,7 @@ class TextEditWindowAddon:
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewLog()" )
+            vPrint( 'Never', debuggingThisModule, "doViewLog()" )
             self.parentApp.setDebugText( "doViewLog…" )
 
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'

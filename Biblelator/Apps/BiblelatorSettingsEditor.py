@@ -39,7 +39,6 @@ from tkinter.scrolledtext import ScrolledText
 
 # Biblelator imports
 if __name__ == '__main__':
-    import sys
     aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderPath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderPath )
@@ -68,7 +67,7 @@ from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisational
 from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
 
 
-LAST_MODIFIED_DATE = '2020-04-19' # by RJH
+LAST_MODIFIED_DATE = '2020-04-21' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsEditor"
 PROGRAM_NAME = "Biblelator Settings Editor"
 PROGRAM_VERSION = '0.46'
@@ -1081,7 +1080,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewSettings()" )
+            #vPrint( 'Never', debuggingThisModule, "doViewSettings()" )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1102,7 +1101,7 @@ class BiblelatorSettingsEditor( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewLog()" )
+            vPrint( 'Never', debuggingThisModule, "doViewLog()" )
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )

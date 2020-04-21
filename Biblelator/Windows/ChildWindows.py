@@ -1931,7 +1931,7 @@ class FindResultWindow( tk.Toplevel ):
             Text after
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("FindResultWindow.makeTreeView()") )
+            vPrint( 'Never', debuggingThisModule, _("FindResultWindow.makeTreeView()") )
             assert self.resultList
 
         self.lineMode = not self.modeVar.get()

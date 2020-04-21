@@ -289,7 +289,8 @@ class Application( Frame ):
         self.starting = False
         self.setReadyStatus()
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderPath, loggingFolderPath ) )
-        if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Finished start-up at {} after {} seconds" \
+        if debuggingThisModule:
+            vPrint( 'Verbose', debuggingThisModule, "Finished start-up at {} after {} seconds" \
                     .format( datetime.now().strftime( '%H:%M:%S'), (datetime.now()-self.startTime).seconds ) )
     # end of Application.__init__
 
@@ -1971,7 +1972,7 @@ class Application( Frame ):
         Then open the file in a plain text edit window.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "openFileTextEditWindow( {} )".format( filepath ) )
+            vPrint( 'Never', debuggingThisModule, "openFileTextEditWindow( {} )".format( filepath ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openFileTextEditWindow…" )
 
         self.setWaitStatus( _("openFileTextEditWindow…") )
@@ -2002,7 +2003,7 @@ class Application( Frame ):
         Open a pop-up text window with a list of all the current windows displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewWindowsList()" )
+            vPrint( 'Never', debuggingThisModule, "doViewWindowsList()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doViewWindowsList…" )
 
         windowsListText = ""
@@ -2028,7 +2029,7 @@ class Application( Frame ):
         Open a pop-up text window with a list of all the current Bibles displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewBiblesList()" )
+            vPrint( 'Never', debuggingThisModule, "doViewBiblesList()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doViewBiblesList…" )
 
         BiblesListText = ""
@@ -2058,7 +2059,7 @@ class Application( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewLog()" )
+            vPrint( 'Never', debuggingThisModule, "doViewLog()" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )

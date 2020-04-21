@@ -76,7 +76,7 @@ from BibleOrgSys.Formats.SwordResources import SwordType, SwordInterface
 from BibleOrgSys.Online.SwordInstallManager import SwordInstallManager
 
 
-LAST_MODIFIED_DATE = '2020-04-19' # by RJH
+LAST_MODIFIED_DATE = '2020-04-21' # by RJH
 SHORT_PROGRAM_NAME = "SwordManager"
 PROGRAM_NAME = "Sword Manager"
 PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
@@ -649,7 +649,7 @@ class SwordManager( Frame ):
         self.folderTextBox.grid( row=0, column=4, rowspan=3, sticky=tk.N+tk.S+tk.E )
         #for BBB in self.BibleBooksCodesList:
             #self.foldersListbox.insert( tk.END, BBB ) # fill the listbox
-        self.foldersSearch.insert( tk.END, str(self.SwIM.currentInstallFolder) )
+        self.foldersSearch.insert( tk.END, str(self.SwIM.currentInstallFolderpath) )
         self.foldersSearch2.insert( tk.END, str(self.SwIM.currentTempFolder) )
         #self.searchCode( None ) # Go to the above
         #self.foldersSearch.delete( 0, tk.END ) # Clear the search box again
@@ -909,7 +909,7 @@ class SwordManager( Frame ):
         """
         enteredText = self.foldersSearch.get()
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("searchFolder( {}, {!r} )").format( event, enteredText ) )
+            vPrint( 'Never', debuggingThisModule, _("searchFolder( {}, {!r} )").format( event, enteredText ) )
             self.setDebugText( "searchFolder…" )
 
         if not enteredText: return
@@ -937,7 +937,7 @@ class SwordManager( Frame ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
+            vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
             self.setDebugText( "gotoNewCode…" )
             #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
@@ -963,7 +963,7 @@ class SwordManager( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewSettings()") )
+            #vPrint( 'Never', debuggingThisModule, _("doViewSettings()") )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -984,7 +984,7 @@ class SwordManager( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doViewLog()") )
+            vPrint( 'Never', debuggingThisModule, _("doViewLog()") )
             self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )

@@ -912,7 +912,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             Check for duplicates before
                 adding a new BCV entry to the book cache.
             """
-            #if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "addCacheEntry", BBB, C, V, data )
+            #vPrint( 'Never', debuggingThisModule, "addCacheEntry", BBB, C, V, data )
             assert BBB and C and V and data
             verseKeyHash = SimpleVerseKey( BBB, C, V ).makeHash()
             if verseKeyHash in self.verseCache: # Oh, how come we already have this key???
@@ -1680,7 +1680,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         logging.debug( "doViewLog()" )
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doViewLog()" )
+            vPrint( 'Never', debuggingThisModule, "doViewLog()" )
             self.parentApp.setDebugText( "doViewLog…" )
 
         tEW = TextEditWindow( self.parentApp )

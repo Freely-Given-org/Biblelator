@@ -129,7 +129,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
 
     if BibleOrgSysGlobals.debugFlag: # print detailed stats
         sortedKeys = sorted( editWindowObject.autocompleteWords.keys() )
-        if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "  autocomplete first letters", len(editWindowObject.autocompleteWords), sortedKeys )
+        vPrint( 'Never', debuggingThisModule, "  autocomplete first letters", len(editWindowObject.autocompleteWords), sortedKeys )
         grandtotal = 0
         wordNumTotals = defaultdict( int )
         for firstLetter in sortedKeys:

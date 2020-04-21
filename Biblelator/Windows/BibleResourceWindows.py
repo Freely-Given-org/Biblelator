@@ -158,20 +158,8 @@ Windows and frames to allow display and manipulation of
 
     fullDemo()
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2020-04-11' # by RJH
-SHORT_PROGRAM_NAME = "BibleResourceWindows"
-PROGRAM_NAME = "Biblelator Bible Resource Windows"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import os
-import sys
 import logging
 from collections import OrderedDict
 import tkinter as tk
@@ -204,6 +192,15 @@ from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisational
 from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
 from BibleOrgSys.BibleWriter import setDefaultControlFolderpath
 from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
+
+
+LAST_MODIFIED_DATE = '2020-04-21' # by RJH
+SHORT_PROGRAM_NAME = "BibleResourceWindows"
+PROGRAM_NAME = "Biblelator Bible Resource Windows"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -412,7 +409,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             else: halt # unknown Bible view mode
         else: halt # window type view mode not handled yet
         if self._contextViewMode != previousContextViewMode: # we need to update our view
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Update contextViewMode to", self._contextViewMode )
+            vPrint( 'Never', debuggingThisModule, "Update contextViewMode to", self._contextViewMode )
             self.updateShownBCV( self.currentVerseKey )
     # end of BibleResourceWindowAddon.changeBibleContextView
 
@@ -3058,15 +3055,31 @@ def briefDemo() -> None:
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of BibleResourceWindows.demo
-
+# end of BibleResourceWindows.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    from tkinter import Tk
+
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, _("Running demo…") )
+
+    tkRootWindow = Tk()
+    tkRootWindow.title( programNameVersion )
+
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
+    #settings.load()
+
+    #application = Application( parent=tkRootWindow, settings=settings )
+    # Calls to the window manager class (wm in Tk)
+    #application.master.title( programNameVersion )
+    #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of BibleResourceWindows.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

@@ -2934,7 +2934,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         try: self.internalBible.saveAnyChangedGlosses()
         except AttributeError: # if self.internalBible is None
-            if debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Why is Hebrew internalBible None?" )
+            vPrint( 'Never', debuggingThisModule, "Why is Hebrew internalBible None?" )
 
         self.destroy()
     # end of HebrewInterlinearBibleBoxAddon.doClose
