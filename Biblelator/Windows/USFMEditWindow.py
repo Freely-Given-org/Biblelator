@@ -5,7 +5,7 @@
 #
 # The actual edit window for USFM/PTX/Biblelator Bible text editing
 #
-# Copyright (C) 2013-2019 Robert Hunt
+# Copyright (C) 2013-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -25,23 +25,19 @@
 """
 This is a text editor window that knows about the special structure of USFM files.
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2019-05-12' # by RJH
-SHORT_PROGRAM_NAME = "BiblelatorUSFMEditWindow"
-PROGRAM_NAME = "Biblelator USFM Edit Window"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
 import os.path
 import logging
 from collections import OrderedDict
 
 import tkinter as tk
 from tkinter.ttk import Style, Notebook, Frame, Label, Radiobutton
+
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
+from BibleOrgSys.Formats.USFMBible import findReplaceText
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -64,12 +60,14 @@ from Biblelator.Windows.TextEditWindow import TextEditWindow, TextEditWindowAddo
 from Biblelator.Helpers.AutocompleteFunctions import loadBibleAutocompleteWords, loadBibleBookAutocompleteWords, \
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
-from BibleOrgSys.Formats.USFMBible import findReplaceText
 
+LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+SHORT_PROGRAM_NAME = "BiblelatorUSFMEditWindow"
+PROGRAM_NAME = "Biblelator USFM Edit Window"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 class ToolsOptionsDialog( ModalDialog ):
@@ -260,7 +258,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                               #'for','while', 'return', 'try','accept','finally', 'assert', ):
             #self.patternsToHighlight.append( (True,'\\y'+pythonKeyword+'\\y','bold',boldDict) )
 
-        self.folderPath = self.filename = self.filepath = None
+        self.folderpath = self.filename = self.filepath = None
         self.lastBBB = None
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.bookTextModified = False
@@ -299,13 +297,13 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
 
     #def xxdoHelp( self ):
-        #from Help import HelpBox
+        #from Biblelator.Dialogs.Help import HelpBox
         #hb = HelpBox( self.parentApp, PROGRAM_NAME, programNameVersion )
     ## end of USFMEditWindow.doHelp
 
 
     #def xxdoAbout( self ):
-        #from About import AboutBox
+        #from Biblelator.Dialogs.About import AboutBox
         #ab = AboutBox( self.parentApp, PROGRAM_NAME, programNameVersion )
     ## end of USFMEditWindow.doAbout
 
@@ -828,7 +826,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             + '  Chars: {:,}\n  Lines: {:,}\n  Words: {:,}\n'.format( numChars, numLines, numWords ) \
             + '\nFile info:\n' \
             + '  Name: {}\n  Folder: {}\n  BookFN: {}\n  SourceFldr: {}\n' \
-                    .format( self.filename, self.folderPath, self.bookFilename, self.internalBible.sourceFolder ) \
+                    .format( self.filename, self.folderpath, self.bookFilename, self.internalBible.sourceFolder ) \
             + '\nSettings:\n' \
             + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
                 .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, round(self.autosaveTime/1000), self.saveChangesAutomatically )
@@ -1530,8 +1528,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             vPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.doSave( {} )".format( event ) )
 
         if self.modified():
-            if self.folderPath and self.filename:
-                filepath = os.path.join( self.folderPath, self.filename )
+            if self.folderpath and self.filename:
+                filepath = os.path.join( self.folderpath, self.filename )
                 self.bookText = self.getEntireText()
                 vPrint( 'Quiet', debuggingThisModule, "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
                 logging.debug( "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
@@ -1571,7 +1569,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #if windowGeometry: uEW.geometry( windowGeometry )
         uEW.windowType = self.windowType # override the default
         uEW.moduleID = self.moduleID
-        uEW.setFolderPath( self.folderPath )
+        uEW.setFolderPath( self.folderpath )
         uEW.settings = self.settings
         #uEW.settings.loadUSFMMetadataInto( uB )
         uEW.setWindowGroup( BIBLE_GROUP_CODES[1] )
@@ -1604,7 +1602,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             #if windowGeometry: uEW.geometry( windowGeometry )
             uEW.windowType = self.windowType # override the default
             uEW.moduleID = self.moduleID
-            uEW.setFolderPath( self.folderPath )
+            uEW.setFolderPath( self.folderpath )
             uEW.settings = self.settings
             #uEW.settings.loadUSFMMetadataInto( uB )
             uEW.setWindowGroup( BIBLE_GROUP_CODES[j] )
@@ -1636,7 +1634,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #if windowGeometry: uEW.geometry( windowGeometry )
         #BRCW.windowType = self.windowType # override the default
         BRCW.moduleID = self.moduleID
-        BRCW.setFolderPath( self.folderPath )
+        BRCW.setFolderPath( self.folderpath )
         BRCW.settings = self.settings
         #BRCW.settings.loadUSFMMetadataInto( uB )
         BRCW.setWindowGroup( BIBLE_GROUP_CODES[0] ) # Stays the same as the source window!
@@ -1679,9 +1677,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         Open a pop-up text window with the current log displayed.
         """
         logging.debug( "doViewLog()" )
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Never', debuggingThisModule, "doViewLog()" )
-            self.parentApp.setDebugText( "doViewLog…" )
+        vPrint( 'Never', debuggingThisModule, "doViewLog()" )
+        if debuggingThisModule: self.parentApp.setDebugText( "doViewLog…" )
 
         tEW = TextEditWindow( self.parentApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1703,7 +1700,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.doHelp( {} )".format( event ) )
-        #from Help import HelpBox
+        #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -1720,7 +1717,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.doAbout( {} )".format( event ) )
-        #from About import AboutBox
+        #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -1757,17 +1754,33 @@ def briefDemo() -> None:
 
     uEW = USFMEditWindow( tkRootWindow, None )
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # Start the program running
     tkRootWindow.mainloop()
-# end of USFMEditWindow.demo
+# end of USFMEditWindow.briefDemo
 
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = tk.Tk()
+    tkRootWindow.title( programNameVersion )
+    tkRootWindow.textBox = tk.Text( tkRootWindow )
+
+    uEW = USFMEditWindow( tkRootWindow, None )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of USFMEditWindow.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

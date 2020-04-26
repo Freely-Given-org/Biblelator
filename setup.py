@@ -8,8 +8,8 @@ https://github.com/pypa/sampleproject
 from setuptools import setup # Always prefer setuptools over distutils
 # from os import path
 
-VERSION = '0.0.3'
-LAST_MODIFIED_DATE = '2020-04-20' # by RJH — when setup.py was modified below
+VERSION = '0.0.4'
+LAST_MODIFIED_DATE = '2020-04-25' # by RJH — when setup.py was modified below
 
 
 # INCLUDE_DERIVED_DATA_PICKLE_FILES = True
@@ -214,7 +214,7 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['BibleOrgSys'],
+    install_requires=['BibleOrgSys>=0.0.15'],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow

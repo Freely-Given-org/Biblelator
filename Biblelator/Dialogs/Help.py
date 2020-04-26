@@ -5,7 +5,7 @@
 #
 # Help box for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2018 Robert Hunt
+# Copyright (C) 2014-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -25,22 +25,17 @@
 """
 A simple Help box window containing text and an optional logo.
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-03-15' # by RJH
-SHORT_PROGRAM_NAME = "BiblelatorHelp"
-PROGRAM_NAME = "Biblelator Help Box"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
 
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Frame, Button
 
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+
+# Biblelator imports
 if __name__ == '__main__':
     import sys
     aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
@@ -49,8 +44,14 @@ if __name__ == '__main__':
 from Biblelator.BiblelatorGlobals import MINIMUM_HELP_SIZE, MAXIMUM_HELP_SIZE, MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE, \
                             parseWindowSize, centreWindowOnWindow
 
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+
+LAST_MODIFIED_DATE = '2020-04-25' # by RJH
+SHORT_PROGRAM_NAME = "BiblelatorHelp"
+PROGRAM_NAME = "Biblelator Help Box"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 
@@ -138,22 +139,40 @@ def briefDemo() -> None:
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
-    ab = HelpBox( tkRootWindow, PROGRAM_NAME, programNameVersion, 'BiblelatorLogoSmall.gif' )
-    #ab = HelpBox2( tkRootWindow, PROGRAM_NAME, programNameVersion, 'BiblelatorLogoSmall.gif' )
+
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
+    ab = HelpBox( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
+    #ab = HelpBox2( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of main
-
+# end of Help.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = tk.Tk()
+    tkRootWindow.title( programNameVersion )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    ab = HelpBox( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
+    #ab = HelpBox2( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
+    # Calls to the window manager class (wm in Tk)
+    #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of Help.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

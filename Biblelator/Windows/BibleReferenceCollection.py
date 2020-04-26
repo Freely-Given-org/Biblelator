@@ -5,7 +5,7 @@
 #
 # Bible reference collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2015-2018 Robert Hunt
+# Copyright (C) 2015-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -31,21 +31,17 @@ A Bible reference collection is a collection of different Bible references
 """
 
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-12-12' # by RJH
-SHORT_PROGRAM_NAME = "BibleReferenceCollection"
-PROGRAM_NAME = "Biblelator Bible Reference Collection"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import logging
 from collections import OrderedDict
 
 import tkinter as tk
 from tkinter.ttk import Frame, Button, Scrollbar
+
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
+from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -62,11 +58,14 @@ from Biblelator.Windows.ChildWindows import ChildWindow
 from Biblelator.Windows.BibleResourceWindows import BibleResourceWindowAddon
 from Biblelator.Windows.TextBoxes import BibleBoxAddon
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
-from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
+
+LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+SHORT_PROGRAM_NAME = "BibleReferenceCollection"
+PROGRAM_NAME = "Biblelator Bible Reference Collection"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 MAX_CACHED_VERSES = 30 # Per Bible resource window
@@ -342,7 +341,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         self.canvas.bind('<Configure>', self.onCanvasConfigure )
 
         #self.BCVUpdateType = 'ReferencesMode' # Leave as default
-        self.folderPath = self.filename = self.filepath = None
+        self.folderpath = self.filename = self.filepath = None
         self.referenceBoxes = BibleReferenceBoxes( self )
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -385,7 +384,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             assert self.filename is None
             assert self.filepath is None
 
-        self.folderPath = newFolderPath
+        self.folderpath = newFolderPath
     # end of BibleReferenceCollectionWindow.setFolderPath
 
 
@@ -617,7 +616,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.doHelp()" )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -635,7 +634,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.doAbout()" )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion + '\n'
         aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'
@@ -667,17 +666,39 @@ def briefDemo() -> None:
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # Start the program running
     tkRootWindow.mainloop()
-# end of BibleReferenceCollection.demo
-
+# end of BibleReferenceCollection.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    from tkinter import Tk
+
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = Tk()
+    tkRootWindow.title( programNameVersion )
+
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
+    #settings.load()
+
+    #application = Application( parent=tkRootWindow, settings=settings )
+    # Calls to the window manager class (wm in Tk)
+    #application.master.title( programNameVersion )
+    #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of BibleReferenceCollection.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

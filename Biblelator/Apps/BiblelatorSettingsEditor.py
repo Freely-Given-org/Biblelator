@@ -37,6 +37,12 @@ import tkinter as tk
 from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
+from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
+
 # Biblelator imports
 if __name__ == '__main__':
     aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
@@ -60,14 +66,8 @@ from Biblelator.Windows.TextBoxes import BEntry, BCombobox
 from Biblelator.Windows.ChildWindows import ChildWindows
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
-from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
 
-
-LAST_MODIFIED_DATE = '2020-04-21' # by RJH
+LAST_MODIFIED_DATE = '2020-04-26' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsEditor"
 PROGRAM_NAME = "Biblelator Settings Editor"
 PROGRAM_VERSION = '0.46'
@@ -122,7 +122,7 @@ class BiblelatorSettingsEditor( Frame ):
         if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
 
         self.stylesheet = BibleStylesheet().loadDefault()
-        Frame.__init__( self, self.rootWindow )
+        super().__init__( self.rootWindow )
         self.pack()
 
         self.rootWindow.protocol( 'WM_DELETE_WINDOW', self.doCloseMe ) # Catch when app is closed
@@ -145,7 +145,7 @@ class BiblelatorSettingsEditor( Frame ):
             self.debugTextBox.pack( side=tk.BOTTOM, fill=tk.BOTH )
             #self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
             self.debugTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-            self.setDebugText( "Starting up…" )
+            if debuggingThisModule: self.setDebugText( "Starting up…" )
 
         self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
         self.myKeyboardBindingsList = []
@@ -1015,7 +1015,7 @@ class BiblelatorSettingsEditor( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             vPrint( 'Quiet', debuggingThisModule, "doChangeTheme( {!r} )".format( newThemeName ) )
             assert newThemeName
-            self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
+            if debuggingThisModule: self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
 
         self.themeName = newThemeName
         try:
@@ -1100,9 +1100,8 @@ class BiblelatorSettingsEditor( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Never', debuggingThisModule, "doViewLog()" )
-            self.setDebugText( "doViewLog…" )
+        vPrint( 'Never', debuggingThisModule, "doViewLog()" )
+        if debuggingThisModule: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
@@ -1150,7 +1149,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         Display a help box.
         """
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "doHelp()" )
 
@@ -1167,7 +1166,7 @@ class BiblelatorSettingsEditor( Frame ):
         #helpInfo += "\n  {}\t{}".format( 'Next Chapter', 'Alt+. (>)' )
         #helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
         #helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
-        helpImage = 'BiblelatorLogoSmall.gif'
+        helpImage = DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' )
         hb = HelpBox( self.rootWindow, SHORT_PROGRAM_NAME, helpInfo, helpImage )
     # end of BiblelatorSettingsEditor.doHelp
 
@@ -1185,7 +1184,7 @@ class BiblelatorSettingsEditor( Frame ):
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
             return
 
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         submitInfo = programNameVersion
         submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
@@ -1197,7 +1196,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         Display an about box.
         """
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "doAbout()" )
 
@@ -1205,7 +1204,7 @@ class BiblelatorSettingsEditor( Frame ):
         aboutInfo += "\nAn editor for the Biblelator (Bible translation editor) settings." \
             + "\n\nThis is still an unfinished alpha test version, but it should allow you to view (not yet alter/save) various settings in Biblelator." \
             + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( SHORT_PROGRAM_NAME )
-        aboutImage = 'BiblelatorLogoSmall.gif'
+        aboutImage = DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' )
         ab = AboutBox( self.rootWindow, SHORT_PROGRAM_NAME, aboutInfo, aboutImage )
     # end of BiblelatorSettingsEditor.doAbout
 
@@ -1319,7 +1318,7 @@ def briefDemo() -> None:
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
-    tkRootWindow.after( 30000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
 
     # Start the program running
     tkRootWindow.mainloop()
@@ -1352,7 +1351,7 @@ def fullDemo() -> None:
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
-    tkRootWindow.after( 30000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
 
     # Start the program running
     tkRootWindow.mainloop()
@@ -1419,7 +1418,9 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
     tkRootWindow.mainloop()
 # end of BiblelatorSettingsEditor.main
 
-if __name__ == '__main__':
+def run() -> None:
+    """
+    """
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
@@ -1441,4 +1442,8 @@ if __name__ == '__main__':
     main( homeFolderPath, loggingFolderPath )
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
+# end of BiblelatorSettingsEditor.run
+
+if __name__ == '__main__':
+    run()
 # end of BiblelatorSettingsEditor.py

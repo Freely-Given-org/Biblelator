@@ -1184,7 +1184,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("BibleResourceCollectionWindow.doHelp( {} )").format( event ) )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -1202,7 +1202,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("BibleResourceCollectionWindow.doAbout( {} )").format( event ) )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion + '\n'
         aboutInfo += '\n' + _("Information about {}").format( self.windowType ) + '\n'

@@ -5,7 +5,7 @@
 #
 # Base of Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -154,18 +154,7 @@ Base windows to allow display and manipulation of
 
     fullDemo()
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-03-15' # by RJH
-SHORT_PROGRAM_NAME = "ChildWindows"
-PROGRAM_NAME = "Biblelator Child Windows"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import sys
 import os.path
 import logging
@@ -174,6 +163,10 @@ import re
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Style, Frame, Scrollbar, Label, Button, Treeview
+
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -192,9 +185,14 @@ from Biblelator.Dialogs.BiblelatorDialogs import SelectInternalBibleDialog
 from Biblelator.Helpers.BiblelatorHelpers import mapReferenceVerseKey, mapParallelVerseKey #, mapReferencesVerseKey
 from Biblelator.Windows.TextBoxes import BText, BCombobox, HTMLTextBox, ChildBoxAddon, BibleBoxAddon
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+
+LAST_MODIFIED_DATE = '2020-04-25' # by RJH
+SHORT_PROGRAM_NAME = "ChildWindows"
+PROGRAM_NAME = "Biblelator Child Windows"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 
@@ -314,7 +312,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         self.geometry( INITIAL_RESOURCE_SIZE )
         self.minimumSize, self.maximumSize = MINIMUM_RESOURCE_SIZE, MAXIMUM_RESOURCE_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
-        self.maxsize( *parseWindowSize( self.maximumSize ) )
+        # self.maxsize( *parseWindowSize( self.maximumSize ) )
 
         # Allow child windows to have an optional status bar
         self._showStatusBarVar = tk.BooleanVar()
@@ -613,7 +611,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("SHOULD NEVER BE USED ChildWindow.doHelp( {} )").format( event ) )
-        #from Help import HelpBox
+        #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -631,7 +629,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("SHOULD NEVER BE USED ChildWindow.doAbout( {} )").format( event ) )
-        #from About import AboutBox
+        #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -1131,7 +1129,7 @@ class TextWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("TextWindow.doHelp( {} )").format( event ) )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += "\nHelp for {}".format( self.windowType )
@@ -1149,7 +1147,7 @@ class TextWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("TextWindow.doAbout( {} )").format( event ) )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -1475,7 +1473,7 @@ class HTMLWindow( ChildWindow ):
             vPrint( 'Quiet', debuggingThisModule, _("HTMLWindow.load( {} )").format( filepath ) )
 
         self.filepath = filepath
-        self.folderPath, self.filename = os.path.split( self.filepath )
+        self.folderpath, self.filename = os.path.split( self.filepath )
 
         fileContents = self.read()
         match = re.search( '<title>(.+?)</title>', fileContents )
@@ -1499,7 +1497,7 @@ class HTMLWindow( ChildWindow ):
             vPrint( 'Quiet', debuggingThisModule, _("HTMLWindow.gotoLink( {} )").format( link ) )
 
         if not os.path.isabs( link ): # relative filepath
-            link = os.path.join( self.folderPath, link )
+            link = os.path.join( self.folderpath, link )
         self.load( link )
         self.historyList.append( link )
         self.historyIndex = 1
@@ -1567,7 +1565,7 @@ class HTMLWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("HTMLWindow.doHelp( {} )").format( event ) )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -1585,7 +1583,7 @@ class HTMLWindow( ChildWindow ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("HTMLWindow.doAbout( {} )").format( event ) )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -1930,9 +1928,8 @@ class FindResultWindow( tk.Toplevel ):
             Actual text found (only if noCase was True)
             Text after
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Never', debuggingThisModule, _("FindResultWindow.makeTreeView()") )
-            assert self.resultList
+        vPrint( 'Never', debuggingThisModule, _("FindResultWindow.makeTreeView()") )
+        if debuggingThisModule: assert self.resultList
 
         self.lineMode = not self.modeVar.get()
 
@@ -2110,7 +2107,7 @@ class FindResultWindow( tk.Toplevel ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("FindResultWindow.doHelp( {} )").format( event ) )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -2128,7 +2125,7 @@ class FindResultWindow( tk.Toplevel ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("FindResultWindow.doAbout( {} )").format( event ) )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -2940,7 +2937,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("CollateProjectsWindow.doHelp( {} )").format( event ) )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -2958,7 +2955,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("CollateProjectsWindow.doAbout( {} )").format( event ) )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -3037,17 +3034,38 @@ def briefDemo() -> None:
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # Start the program running
     tkRootWindow.mainloop()
-# end of ChildWindows.demo
-
+# end of ChildWindows.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    from tkinter import Tk
+
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, _("Running demo…") )
+
+    tkRootWindow = Tk()
+    tkRootWindow.title( programNameVersion )
+    #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
+    #settings.load()
+
+    #application = Application( parent=tkRootWindow, settings=settings )
+    # Calls to the window manager class (wm in Tk)
+    #application.master.title( programNameVersion )
+    #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of ChildWindows.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

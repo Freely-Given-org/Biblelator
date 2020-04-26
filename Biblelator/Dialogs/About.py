@@ -25,17 +25,7 @@
 """
 A simple About box window containing text and an optional logo.
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2020-01-05' # by RJH
-SHORT_PROGRAM_NAME = "BiblelatorAbout"
-PROGRAM_NAME = "BiblelatorAbout Box"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
 
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
@@ -51,6 +41,15 @@ from Biblelator.BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE,
 
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
+
+
+LAST_MODIFIED_DATE = '2020-04-25' # by RJH
+SHORT_PROGRAM_NAME = "BiblelatorAbout"
+PROGRAM_NAME = "BiblelatorAbout Box"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 
@@ -150,17 +149,37 @@ def briefDemo() -> None:
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
+    # Program a shutdown
+    tkRootWindow.after( 30000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
     # Start the program running
     tkRootWindow.mainloop()
-# end of main
-
+# end of About.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = tk.Tk()
+    if BibleOrgSysGlobals.debugFlag:
+        #vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
+            vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
+    tkRootWindow.title( programNameVersion )
+    ab = AboutBox( tkRootWindow, PROGRAM_NAME, programNameVersion )
+    #ab = AboutBox2( tkRootWindow, PROGRAM_NAME, programNameVersion )
+    # Calls to the window manager class (wm in Tk)
+    #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Program a shutdown
+    tkRootWindow.after( 30000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of About.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

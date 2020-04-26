@@ -251,7 +251,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -269,7 +269,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )

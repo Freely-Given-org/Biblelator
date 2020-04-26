@@ -7,7 +7,7 @@
 #
 # Adapted from: http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 #
-# Copyright (C) 2014-2018 Robert Hunt
+# Copyright (C) 2014-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -27,24 +27,29 @@
 """
 Framework for modal dialogs for the Biblelator program.
 """
-
 from gettext import gettext as _
+import tkinter as tk
+from tkinter.ttk import Frame, Button
 
-LAST_MODIFIED_DATE = '2018-03-15' # by RJH
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+
+# Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderPath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderPath )
+
+
+LAST_MODIFIED_DATE = '2020-04-26' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorModalDialog"
 PROGRAM_NAME = "Biblelator Modal Dialog"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
-
-
-import tkinter as tk
-from tkinter.ttk import Frame, Button
-
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-
 
 
 
@@ -178,6 +183,7 @@ class MyTestDialog( ModalDialog ):
             to set up the dialog how we want it.
         """
         from tkinter.ttk import Label, Entry
+        from Biblelator.Windows.TextBoxes import BEntry
 
         Label( master, text="First:" ).grid( row=0 )
         Label( master, text="Second:" ).grid( row=1 )
@@ -232,6 +238,10 @@ def briefDemo() -> None:
     tkRootWindow = Tk()
     tkRootWindow.title( programNameVersion )
     tkRootWindow.parentApp = tkRootWindow
+
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     def ss( a ): pass
     tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
@@ -239,15 +249,32 @@ def briefDemo() -> None:
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of main
-
+# end of ModalDialog.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    from tkinter import Tk
+
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = Tk()
+    tkRootWindow.title( programNameVersion )
+    tkRootWindow.parentApp = tkRootWindow
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    def ss( a ): pass
+    tkRootWindow.setStatus = ss
+    md = MyTestDialog( tkRootWindow, "Just playing" )
+    vPrint( 'Quiet', debuggingThisModule, "Result is:", repr(md.result) )
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of ModalDialog.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

@@ -40,6 +40,15 @@ import tkinter as tk
 from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
+#from BibleOrgSys.Reference.BibleVersificationSystems import BibleVersificationSystems
+#from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
+from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
+from BibleOrgSys.Formats.SwordResources import SwordType, SwordInterface
+from BibleOrgSys.Online.SwordInstallManager import SwordInstallManager
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -65,18 +74,8 @@ from Biblelator.Windows.TextBoxes import BEntry, BCombobox
 from Biblelator.Windows.ChildWindows import ChildWindows
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
-#from BibleOrgSys.Reference.BibleVersificationSystems import BibleVersificationSystems
-#from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
-from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
-from BibleOrgSys.Formats.SwordResources import SwordType, SwordInterface
-from BibleOrgSys.Online.SwordInstallManager import SwordInstallManager
 
-
-LAST_MODIFIED_DATE = '2020-04-21' # by RJH
+LAST_MODIFIED_DATE = '2020-04-22' # by RJH
 SHORT_PROGRAM_NAME = "SwordManager"
 PROGRAM_NAME = "Sword Manager"
 PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
@@ -137,7 +136,7 @@ class SwordManager( Frame ):
         #self.setGenericBibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
 
         self.stylesheet = BibleStylesheet().loadDefault()
-        Frame.__init__( self, self.rootWindow )
+        super().__init__( self.rootWindow )
         self.pack()
 
         self.rootWindow.protocol( 'WM_DELETE_WINDOW', self.doCloseMe ) # Catch when app is closed
@@ -162,7 +161,7 @@ class SwordManager( Frame ):
             self.debugTextBox.pack( side=tk.BOTTOM, fill=tk.BOTH )
             #self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
             self.debugTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-            self.setDebugText( "Starting up…" )
+            if debuggingThisModule: self.setDebugText( "Starting up…" )
 
         self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
         self.myKeyboardBindingsList = []
@@ -894,7 +893,7 @@ class SwordManager( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             vPrint( 'Quiet', debuggingThisModule, _("doChangeTheme( {!r} )").format( newThemeName ) )
             assert newThemeName
-            self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
+            if debuggingThisModule: self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
 
         self.themeName = newThemeName
         try:
@@ -908,9 +907,8 @@ class SwordManager( Frame ):
         """
         """
         enteredText = self.foldersSearch.get()
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Never', debuggingThisModule, _("searchFolder( {}, {!r} )").format( event, enteredText ) )
-            self.setDebugText( "searchFolder…" )
+        vPrint( 'Never', debuggingThisModule, _("searchFolder( {}, {!r} )").format( event, enteredText ) )
+        if debuggingThisModule: self.setDebugText( "searchFolder…" )
 
         if not enteredText: return
 
@@ -936,10 +934,9 @@ class SwordManager( Frame ):
     def gotoNewCode( self, event=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
-            self.setDebugText( "gotoNewCode…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+        vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
+        if debuggingThisModule: self.setDebugText( "gotoNewCode…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
         vPrint( 'Quiet', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
@@ -983,9 +980,8 @@ class SwordManager( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Never', debuggingThisModule, _("doViewLog()") )
-            self.setDebugText( "doViewLog…" )
+        vPrint( 'Never', debuggingThisModule, _("doViewLog()") )
+        if debuggingThisModule: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
@@ -1034,7 +1030,7 @@ class SwordManager( Frame ):
         Display a help box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()") )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -1064,7 +1060,7 @@ class SwordManager( Frame ):
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
             return
 
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         submitInfo = programNameVersion
         submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
@@ -1078,7 +1074,7 @@ class SwordManager( Frame ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("doAbout()") )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nA display manager for Sword (from CrossWire) Bible modules." \
@@ -1199,12 +1195,46 @@ def briefDemo() -> None:
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
-    tkRootWindow.after( 30000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
 
     # Start the program running
     tkRootWindow.mainloop()
-# end of SwordManager.demo
+# end of SwordManager.briefdemo
 
+def fullDemo() -> None:
+    """
+    Unattended demo program to handle command line parameters and then run what they want.
+
+    Which windows open depends on the saved settings from the last use.
+    """
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+
+    tkRootWindow = tk.Tk()
+    if BibleOrgSysGlobals.debugFlag:
+        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+    tkRootWindow.title( programNameVersion )
+
+    # Set the window icon and title
+    iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
+    tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
+    tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
+
+    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
+    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    settings.load()
+
+    application = SwordManager( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage, settings )
+    # Calls to the window manager class (wm in Tk)
+    #application.master.title( programNameVersion )
+    #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    tkRootWindow.mainloop()
+# end of SwordManager.fulldemo
 
 def main( homeFolderPath, loggingFolderPath ) -> None:
     """
@@ -1266,7 +1296,6 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
     # Start the program running
     tkRootWindow.mainloop()
 # end of SwordManager.main
-
 
 def run() -> None:
     """

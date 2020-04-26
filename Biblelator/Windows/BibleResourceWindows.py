@@ -164,6 +164,20 @@ import logging
 from collections import OrderedDict
 import tkinter as tk
 
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.Bible import Bible
+from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
+from BibleOrgSys.Formats.SwordResources import SwordType
+from BibleOrgSys.Online.DBPOnline import DBPBible
+from BibleOrgSys.UnknownBible import UnknownBible
+from BibleOrgSys.OriginalLanguages.HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
+from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
+from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
+from BibleOrgSys.BibleWriter import setDefaultControlFolderpath
+from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
+
 # Biblelator imports
 if __name__ == '__main__':
     import sys
@@ -179,22 +193,8 @@ from Biblelator.Helpers.BiblelatorHelpers import findCurrentSection, handleInter
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showInfo, showError
 from Biblelator.Dialogs.BiblelatorDialogs import GetBibleBookRangeDialog
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.Bible import Bible
-from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
-from BibleOrgSys.Formats.SwordResources import SwordType
-from BibleOrgSys.Online.DBPOnline import DBPBible
-from BibleOrgSys.UnknownBible import UnknownBible
-from BibleOrgSys.OriginalLanguages.HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
-from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
-from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
-from BibleOrgSys.BibleWriter import setDefaultControlFolderpath
-from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 
-
-LAST_MODIFIED_DATE = '2020-04-21' # by RJH
+LAST_MODIFIED_DATE = '2020-04-26' # by RJH
 SHORT_PROGRAM_NAME = "BibleResourceWindows"
 PROGRAM_NAME = "Biblelator Bible Resource Windows"
 PROGRAM_VERSION = '0.46'
@@ -211,7 +211,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     """
     The superclass must provide a getContextVerseData function.
     """
-    def __init__( self, windowType, moduleID, defaultContextViewMode, defaultFormatViewMode ):
+    def __init__( self, windowType:str, moduleID, defaultContextViewMode, defaultFormatViewMode ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "BibleResourceWindowAddon.__init__( wt={}, m={}, dCVM={}, dFVM={} )" \
                             .format( windowType, moduleID, defaultContextViewMode, defaultFormatViewMode ) )
@@ -859,7 +859,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("BibleResourceWindowAddon.doHelp( {} )").format( event ) )
-        from Help import HelpBox
+        from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -877,7 +877,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, _("BibleResourceWindowAddon.doAbout( {} )").format( event ) )
-        from About import AboutBox
+        from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -1958,7 +1958,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         if self.internalBible is not None:
             self.parentApp.setWaitStatus( _("Preparing for export…") )
             if self.exportFolderPathname is None:
-                fp = self.folderPath
+                fp = self.folderpath
                 if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
                 self.exportFolderPathname = fp + 'Export/'
                 #vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderPathname) )
@@ -2069,10 +2069,10 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             displayExternally = False
             if displayExternally: # Call up a browser window
                 import webbrowser
-                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                indexFile = self.internalBible.makeErrorHTML( self.folderpath, gBBRD.result )
                 webbrowser.open( indexFile )
             else: # display internally in our HTMLWindow
-                indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                indexFile = self.internalBible.makeErrorHTML( self.folderpath, gBBRD.result )
                 hW = HTMLWindow( self, indexFile )
                 self.parentApp.childWindows.append( hW )
                 if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
@@ -2086,7 +2086,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doHelp( {} )").format( event ) )
-        #from Help import HelpBox
+        #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -2104,7 +2104,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doAbout( {} )").format( event ) )
-        #from About import AboutBox
+        #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -2166,14 +2166,41 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
                 logging.error( _("InternalBibleResourceWindow.__init__ Unable to find module path: {!r}").format( self.modulePath ) )
                 self.UnknownBible = None
             if self.UnknownBible is not None:
-                result = self.UnknownBible.search( autoLoadAlways=True )
+                # TODO: Temporary code below
+                lcPath = self.modulePath.lower()
+                if 'unfolding' in lcPath or 'ult' in lcPath or 'ust' in lcPath or 'ugnt' in lcPath or 'uhb' in lcPath:
+                    from BibleOrgSys.Formats.USFMBible import USFMBible
+                    result = self.UnknownBible.search( autoLoad=False ) # Don't autoload books
+                    # print( "InternalBibleResourceWindow result", repr(result) )
+                    # TODO: This is a hack !!!!
+                    if 'ult' in lcPath: abbreviation, name = 'ULT', 'unfoldingWord Literal Text'
+                    elif 'ust' in lcPath: abbreviation, name = 'UST', 'unfoldingWord Simple Text'
+                    elif 'ugnt' in lcPath: abbreviation, name = 'UGNT', 'unfoldingWord Greek New Testament'
+                    elif 'uhb' in lcPath: abbreviation, name = 'UHB', 'unfoldingWord Hebrew Bible'
+                    else: abbreviation = name = None
+                    if result == 'USFM Bible':
+                        result = USFMBible( sourceFolder=self.modulePath, givenName=name, givenAbbreviation=abbreviation )
+                        result.uWaligned = True
+                        result.preload()
+                        result.loadBooks() # Load and process the book files
+                    elif isinstance( result, Bible ):
+                        result.uWaligned = True
+                        try:
+                            if not result.abbreviation: result.abbreviation = abbreviation
+                        except AttributeError: result.abbreviation = abbreviation
+                        result.preload()
+                        result.loadBooks() # Load and process the book files
+                else: # not unfoldingWord
+                    result = self.UnknownBible.search( autoLoadAlways=True )
                 if isinstance( result, str ):
-                    vPrint( 'Quiet', debuggingThisModule, "Unknown Bible returned: {!r}".format( result ) )
+                    vPrint( 'Quiet', debuggingThisModule, f"Unknown Bible returned: {result!r}" )
                     self.internalBible = None
                 else:
+                    assert isinstance( result, Bible )
                     #vPrint( 'Quiet', debuggingThisModule, "Handle internalBible for internalBibleRW" )
                     self.internalBible = handleInternalBibles( self.parentApp, result, self )
         if self.internalBible is not None: # Define which functions we use by default
+            assert isinstance( self.internalBible, Bible )
             self.getNumVerses = self.internalBible.getNumVerses
             self.getNumChapters = self.internalBible.getNumChapters
 
@@ -2361,7 +2388,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
         #if self.internalBible is not None:
             #self.parentApp.setWaitStatus( _("Preparing for export…") )
             #if self.exportFolderPathname is None:
-                #fp = self.folderPath
+                #fp = self.folderpath
                 #if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
                 #self.exportFolderPathname = fp + 'Export/'
                 ##vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderPathname) )
@@ -2472,10 +2499,10 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #displayExternally = False
             #if displayExternally: # Call up a browser window
                 #import webbrowser
-                #indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                #indexFile = self.internalBible.makeErrorHTML( self.folderpath, gBBRD.result )
                 #webbrowser.open( indexFile )
             #else: # display internally in our HTMLWindow
-                #indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                #indexFile = self.internalBible.makeErrorHTML( self.folderpath, gBBRD.result )
                 #hW = HTMLWindow( self, indexFile )
                 #self.parentApp.childWindows.append( hW )
                 #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
@@ -2489,7 +2516,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doHelp( {} )").format( event ) )
-        #from Help import HelpBox
+        #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -2507,7 +2534,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doAbout( {} )").format( event ) )
-        #from About import AboutBox
+        #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -2847,7 +2874,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         #if self.internalBible is not None:
             #self.parentApp.setWaitStatus( _("Preparing for export…") )
             #if self.exportFolderPathname is None:
-                #fp = self.folderPath
+                #fp = self.folderpath
                 #if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
                 #self.exportFolderPathname = fp + 'Export/'
                 ##vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderPathname) )
@@ -2958,10 +2985,10 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #displayExternally = False
             #if displayExternally: # Call up a browser window
                 #import webbrowser
-                #indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                #indexFile = self.internalBible.makeErrorHTML( self.folderpath, gBBRD.result )
                 #webbrowser.open( indexFile )
             #else: # display internally in our HTMLWindow
-                #indexFile = self.internalBible.makeErrorHTML( self.folderPath, gBBRD.result )
+                #indexFile = self.internalBible.makeErrorHTML( self.folderpath, gBBRD.result )
                 #hW = HTMLWindow( self, indexFile )
                 #self.parentApp.childWindows.append( hW )
                 #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openCheckWindow" )
@@ -2975,7 +3002,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doHelp( {} )").format( event ) )
-        #from Help import HelpBox
+        #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
@@ -2993,7 +3020,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doAbout( {} )").format( event ) )
-        #from About import AboutBox
+        #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
@@ -3053,6 +3080,9 @@ def briefDemo() -> None:
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # Start the program running
     tkRootWindow.mainloop()
 # end of BibleResourceWindows.briefDemo
@@ -3076,6 +3106,9 @@ def fullDemo() -> None:
     # Calls to the window manager class (wm in Tk)
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
 
     # Start the program running
     tkRootWindow.mainloop()

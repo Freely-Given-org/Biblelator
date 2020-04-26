@@ -5,7 +5,7 @@
 #
 # Various non-GUI helper functions for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2018 Robert Hunt
+# Copyright (C) 2014-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -24,7 +24,7 @@
 
 """
     createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses )
-    createEmptyUSFMBooks( folderPath, BBB, availableVersifications, availableVersions, requestDict )
+    createEmptyUSFMBooks( folderpath, BBB, availableVersifications, availableVersions, requestDict )
     calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses )
     mapReferenceVerseKey( mainVerseKey )
     mapParallelVerseKey( forGroupCode, mainVerseKey )
@@ -34,21 +34,18 @@
 
 TODO: Can some of these non-GUI functions be (made more general and) moved to the BOS?
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-04-24' # by RJH
-SHORT_PROGRAM_NAME = "BiblelatorHelpers"
-PROGRAM_NAME = "Biblelator helpers"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import os.path
 from datetime import datetime
 import re
+
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.Bible import Bible
+from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey, BBB_RE #, FlexibleVersesKey
+from BibleOrgSys.Reference.BibleReferencesLinks import BibleReferencesLinks
+from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntry
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -58,13 +55,14 @@ if __name__ == '__main__':
         sys.path.insert( 0, aboveAboveFolderPath )
 from Biblelator.BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.Bible import Bible
-from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey, BBB_RE #, FlexibleVersesKey
-from BibleOrgSys.Reference.BibleReferencesLinks import BibleReferencesLinks
-from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntry
+
+LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+SHORT_PROGRAM_NAME = "BiblelatorHelpers"
+PROGRAM_NAME = "Biblelator helpers"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 
@@ -94,9 +92,9 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
 
 
 
-def createEmptyUSFMBooks( folderPath, currentBBB, requestDict ):
+def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
     """
-    Create empty USFM books or CV shells in the given folderPath
+    Create empty USFM books or CV shells in the given folderpath
         as requested by the dictionary parameters:
             Books: 'OT'
             Fill: 'Versification'
@@ -109,7 +107,7 @@ def createEmptyUSFMBooks( folderPath, currentBBB, requestDict ):
     from BibleOrgSys.Formats.USFMBible import USFMBible
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "createEmptyUSFMBooks( {}, {}, {} )".format( folderPath, currentBBB, requestDict ) )
+        vPrint( 'Quiet', debuggingThisModule, "createEmptyUSFMBooks( {}, {}, {} )".format( folderpath, currentBBB, requestDict ) )
 
 
     versificationObject = BibleVersificationSystem( requestDict['Versification'] ) \
@@ -194,7 +192,7 @@ def createEmptyUSFMBooks( folderPath, currentBBB, requestDict ):
 
         # Write the actual file
         filename = '{}-{}.USFM'.format( USFMNumber, USFMAbbreviation )
-        with open( os.path.join( folderPath, filename ), mode='wt', encoding='utf-8' ) as theFile:
+        with open( os.path.join( folderpath, filename ), mode='wt', encoding='utf-8' ) as theFile:
             theFile.write( bookText )
         count += 1
     vPrint( 'Quiet', debuggingThisModule, len(skippedBooklist), "books skipped:", skippedBooklist ) # Should warn the user here
@@ -432,7 +430,7 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
         #self.setDebugText( "handleInternalBibles" )
         #vPrint( 'Quiet', debuggingThisModule, "hereHIB0", repr(internalBible), len(self.internalBibles) )
 
-    result = internalBible
+    result = internalBible # Default to returning what we were given
     if debuggingThisFunction and internalBible is None:
         vPrint( 'Quiet', debuggingThisModule, "  hIB: Got None" )
     if internalBible is not None:
@@ -442,9 +440,9 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
             # Some of these variables will be None but they'll still match
             #and internalBible.sourceFilepath == iB.sourceFilepath \ # PTX Bible sets sourceFilepath but others don't!
             if type(internalBible) is type(iB) \
-            and internalBible.abbreviation == iB.abbreviation \
-            and internalBible.name == iB.name \
-            and internalBible.sourceFilename == iB.sourceFilename \
+            and internalBible.abbreviation and internalBible.abbreviation == iB.abbreviation \
+            and internalBible.name and internalBible.name == iB.name \
+            and internalBible.sourceFilename and internalBible.sourceFilename == iB.sourceFilename \
             and internalBible.encoding == iB.encoding: # Let's assume they're the same
                 if internalBible.sourceFolder == iB.sourceFolder:
                     if debuggingThisFunction: vPrint( 'Quiet', debuggingThisModule, "  Got an IB match for {}!".format( iB.name ) )
@@ -460,7 +458,7 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
         if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
 
-    if debuggingThisModule or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
+    if debuggingThisFunction or debuggingThisModule or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
         vPrint( 'Quiet', debuggingThisModule, "Internal Bibles ({}) now:".format( len(self.internalBibles) ) )
         for something in self.internalBibles:
             vPrint( 'Quiet', debuggingThisModule, "  ", something )
@@ -471,6 +469,8 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
             vPrint( 'Quiet', debuggingThisModule, "      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension ) )
             vPrint( 'Quiet', debuggingThisModule, "      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding ) )
 
+    if debuggingThisModule or debuggingThisFunction:
+        vPrint( 'Quiet', debuggingThisModule, f"  handleInternalBibles is returning: {result}")
     return result
 # end of BiblelatorHelpers.handleInternalBibles
 
@@ -620,19 +620,38 @@ def briefDemo() -> None:
     #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
     #vPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
 
-    #tkRootWindow.quit()
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
 
     # Start the program running
     #tkRootWindow.mainloop()
-# end of BiblelatorHelpers.demo
-
+# end of BiblelatorHelpers.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    from tkinter import Tk
+
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = Tk()
+    tkRootWindow.title( programNameVersion )
+
+    #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
+    #vPrint( 'Quiet', debuggingThisModule, "swndResult", swnd.result )
+    #dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
+    #vPrint( 'Quiet', debuggingThisModule, "dwndResult", dwnd.result )
+    #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
+    #vPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    #tkRootWindow.mainloop()
+# end of BiblelatorHelpers.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

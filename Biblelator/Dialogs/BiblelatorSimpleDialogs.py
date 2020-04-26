@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2018 Robert Hunt
+# Copyright (C) 2013-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -29,18 +29,7 @@ Various simple modal dialog windows for Biblelator Bible warnings and errors.
     def showWarning( parentWindow, title, warningText )
     def showInfo( parentWindow, title, infoText )
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-03-16'
-SHORT_PROGRAM_NAME = "BiblelatorSimpleDialogs"
-PROGRAM_NAME = "Biblelator simple dialogs"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import logging
 
 import tkinter as tk
@@ -49,6 +38,15 @@ import tkinter.messagebox as tkMsgBox
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
+
+
+LAST_MODIFIED_DATE = '2020-04-25'
+SHORT_PROGRAM_NAME = "BiblelatorSimpleDialogs"
+PROGRAM_NAME = "Biblelator simple dialogs"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 
@@ -124,6 +122,9 @@ def briefDemo() -> None:
     showInfo( tkWindow, "Test Info", "This is just a test of an info box!" )
     #tkRootWindow.quit()
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # Start the program running
     #tkRootWindow.mainloop()
 # end of BiblelatorSimpleDialogs.demo
@@ -133,8 +134,28 @@ def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    tkRootWindow = tk.Tk()
+    tkRootWindow.title( programNameVersion )
+
+    # Doesn't quite work yet :-(
+    tkWindow = tk.Toplevel( tkRootWindow )
+    tkWindow.parentApp = tkRootWindow
+    tkRootWindow.setStatus = lambda s: s
+    tkRootWindow.setReadyStatus = lambda: 1
+    showError( tkWindow, "Test Error", "This is just a test of an error box!" )
+    showWarning( tkWindow, "Test Warning", "This is just a test of an warning box!" )
+    showInfo( tkWindow, "Test Info", "This is just a test of an info box!" )
+    #tkRootWindow.quit()
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
+
+    # Start the program running
+    #tkRootWindow.mainloop()
+# end of BiblelatorSimpleDialogs.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

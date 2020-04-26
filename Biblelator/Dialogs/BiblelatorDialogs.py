@@ -120,6 +120,11 @@ import tkinter as tk
 import tkinter.font as tkFont
 from tkinter.ttk import Style, Label, Radiobutton, Button, Frame
 
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
+
 # Biblelator imports
 if __name__ == '__main__':
     import sys
@@ -131,13 +136,8 @@ from Biblelator.Dialogs.ModalDialog import ModalDialog
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showWarning
 from Biblelator.Windows.TextBoxes import BEntry, BCombobox, BText
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 
-
-LAST_MODIFIED_DATE = '2020-04-21'
+LAST_MODIFIED_DATE = '2020-04-25'
 SHORT_PROGRAM_NAME = "BiblelatorDialogs"
 PROGRAM_NAME = "Biblelator dialogs"
 PROGRAM_VERSION = '0.46'
@@ -2692,6 +2692,9 @@ def briefDemo() -> None:
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # We need to set a parentApp variable and setStatus/setReadyStatus functions
     class tempApp():
         def __init__( self ):
@@ -2780,6 +2783,9 @@ def fullDemo() -> None:
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
 
     # We need to set a parentApp variable and setStatus/setReadyStatus functions
     class tempApp():
