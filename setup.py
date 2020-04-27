@@ -8,8 +8,8 @@ https://github.com/pypa/sampleproject
 from setuptools import setup # Always prefer setuptools over distutils
 # from os import path
 
-VERSION = '0.0.4'
-LAST_MODIFIED_DATE = '2020-04-25' # by RJH — when setup.py was modified below
+VERSION = '0.0.5'
+LAST_MODIFIED_DATE = '2020-04-27' # by RJH — when setup.py was modified below
 
 
 # INCLUDE_DERIVED_DATA_PICKLE_FILES = True
@@ -84,44 +84,63 @@ A USFM Bible editor using the [BibleOrgSys](https://pypi.org/project/BibleOrgSys
 library and Python's tKinter windowing library for simple and easy installation.
 (It's all in the standard CPython install.)
 
+On many systems, BibleOrgSys can be installed with:
+
+    `python3 -m pip install Biblelator`
+
+but if it complains, maybe
+
+    `python3 -m pip install --user Biblelator`
+
 The app can be run from the command line with:
+
     `Biblelator`
+
 or to view all the available options:
+
     `Biblelator --help`
+
 You can discover the version with:
+
     `Biblelator --version`
 
 Biblelator reads or creates a `BiblelatorData` folder in your home folder.
 Log files are stored in a subfolder there and may be useful for reporting errors.
 (If you have start-up problems, you might want to edit the settings there,
-or even delete the entire settings file if you have no saved windows settings yet.)
+or even delete the entire settings file if you have no complex saved windows settings yet.)
+
+Because some Bible users need to remain anonymous, Biblelator defaults to no internet use.
+However this reduces functionality, and most users will want to run the program once,
+and then close it and edit the `Biblelator.ini` file created in the `BiblelatorData/BiblelatorSettings` folder
+and change `internetAccess` to `Enabled`.
+While there, you might as well update the `currentUserName` and other entries under [Users].
 
 The other auxilliary apps included are `BiblelatorSettingsEditor`,
-`BOSManager` (for inspecting Bible organisational systems), and
+`BOSManager` (for inspecting Bible Organisational Systems), and
 `SwordManager` for viewing
 and downloading [Sword](https://crosswire.org/sword/index.jsp) modules.
-(All are at various stages of incompleteness.)
+(All three are at various stages of incompleteness.)
 
 NOTE: This packaging is still being tested following massive restructuring,
 and is not necessarily fully functional until it is marked as v0.1.0 or higher
 when some open-licensed resources will also be downloadable.
 We also have hopes to improve documentation before v0.2.0.
+After that point, we also hope to release some prepackaged versions—
+probably including Docker and Snap.
 
-After that point, we also hope to release Docker and Snap versions.
-
-This software has been developed in small chunks of spare time since 2013
+This software has been developed in very small chunks of spare time since 2013
 (so it's not necessarily well-thought out, and definitely not polished).
 However, it was used as my main Bible editor instead of Paratext
 for a couple of years.
 
 This package will not reach v1.0.0 until after the BibleOrgSys reaches it.
-
 The API will not become fixed/stable until the v1.0.0 release.
 
 No attempt at all has been made at memory or speed optimisations
 and this is not planned until after the release of v1.0.0.
+So if it becomes very slow, you might need to close some Bible resource windows.
 
-Biblelator is developed and tested on Linux (Ubuntu) but should also run on Windows (although not so well tested).
+Biblelator is developed and tested on Linux (Ubuntu) but should also run on Windows and OS X (although not so well tested).
 
 See https://ubsicap.github.io/usfm/ for more information about USFM.
 """,
@@ -214,7 +233,7 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['BibleOrgSys>=0.0.15'],
+    install_requires=['BibleOrgSys>=0.0.16'],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
