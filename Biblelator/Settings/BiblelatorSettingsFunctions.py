@@ -395,6 +395,11 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                                 #if boxSource[-1] not in '/\\': boxSource += '/' # Are they all folders -- might be wrong
                             rw.openBox( boxType, boxSource )
 
+            elif windowType == 'TSVBibleEditWindow':
+                try: filepath = convertToPython( thisStuff['TSVTablePath'] )
+                except KeyError: filepath = None
+                rw = self.openFileTSVEditWindow( filepath, windowGeometry )
+
             elif windowType == 'BibleReferenceCollectionWindow':
                 xyz = "JustTesting!"
                 rw = self.openBibleReferenceCollectionWindow( xyz, windowGeometry )
@@ -514,6 +519,9 @@ def getCurrentChildWindowSettings( self ):
         elif appWin.windowType == 'HebrewBibleResourceWindow':
             thisOne['BibleFolderPath'] = appWin.moduleID
 
+        elif appWin.windowType == 'TSVBibleEditWindow':
+            thisOne['TSVTablePath'] = appWin.filepath
+
         elif appWin.windowType == 'BibleLexiconResourceWindow':
             thisOne['BibleLexiconPath'] = appWin.moduleID
 
@@ -545,9 +553,13 @@ def getCurrentChildWindowSettings( self ):
             try: thisOne['GroupCode'] = appWin._groupCode
             except AttributeError: logging.critical( "getCurrentChildWindowSettings: " + _("Why no groupCode in {}").format( appWin.windowType ) )
             try: thisOne['ContextViewMode'] = appWin._contextViewMode
-            except AttributeError: logging.critical( "getCurrentChildWindowSettings: " + _("Why no contextViewMode in {}").format( appWin.windowType ) )
+            except AttributeError:
+                if 'TSV' not in appWin.windowType:
+                    logging.critical( "getCurrentChildWindowSettings: " + _("Why no contextViewMode in {}").format( appWin.windowType ) )
             try: thisOne['FormatViewMode'] = appWin._formatViewMode
-            except AttributeError: logging.critical( "getCurrentChildWindowSettings: " + _("Why no formatViewMode in {}").format( appWin.windowType ) )
+            except AttributeError:
+                if 'TSV' not in appWin.windowType:
+                    logging.critical( "getCurrentChildWindowSettings: " + _("Why no formatViewMode in {}").format( appWin.windowType ) )
 
         if appWin.windowType.endswith( 'EditWindow' ):
             thisOne['AutocompleteMode'] = appWin.autocompleteMode

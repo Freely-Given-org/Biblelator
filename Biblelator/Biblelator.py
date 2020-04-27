@@ -29,7 +29,7 @@ Note that many times in this application, where the term 'Bible' is used
     it can refer to any versified resource, e.g., typically including commentaries.
 """
 from gettext import gettext as _
-from typing import Optional
+from typing import Dict, List, Tuple, Optional
 import sys
 import os
 import logging
@@ -43,7 +43,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Label
 
 # BibleOrgSys imports
-# sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
+sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
@@ -97,7 +97,7 @@ from Biblelator.Apps.BOSManager import openBOSManager
 from Biblelator.Apps.SwordManager import openSwordManager
 
 
-LAST_MODIFIED_DATE = '2020-04-26' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LAST_MODIFIED_DATE = '2020-04-27' # by RJH -- note that this isn't necessarily the displayed date at start-up
 SHORT_PROGRAM_NAME = "Biblelator"
 PROGRAM_NAME = "Biblelator"
 PROGRAM_VERSION = '0.46' # This is the version number displayed on the start-up screen
@@ -108,7 +108,7 @@ debuggingThisModule = False
 
 LOCK_FILENAME = '{}.lock'.format( APP_NAME )
 TEXT_FILETYPES = [('All files',  '*'), ('Text files', '.txt')]
-TSV_FILETYPES = [('TSV files', '.tsv'), ('All files',  '*')]
+# TSV_FILETYPES = [('TSV files', '.tsv'), ('All files',  '*')]
 BIBLELATOR_PROJECT_FILETYPES = [('ProjectSettings','ProjectSettings.ini'), ('INI files','.ini'), ('All files','*')]
 PARATEXT8_FILETYPES = [('Settings files','Settings.xml'), ('All files','*')]
 PARATEXT7_FILETYPES = [('SSF files','.ssf'), ('All files','*')]
@@ -376,7 +376,7 @@ class Application( Frame ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
-        fileOpenSubmenu.add_command( label=_('uW TSV file…'), underline=0, command=self.doOpenFileTSVEditWindow )
+        # fileOpenSubmenu.add_command( label=_('uW TSV file…'), underline=0, command=self.doOpenFileTSVEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Save all…'), underline=0, command=self.doSaveAll )
         fileMenu.add_separator()
@@ -423,6 +423,7 @@ class Application( Frame ):
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
         submenuProjectOpenType.add_command( label=_('Paratext9/8…'), underline=0, command=self.doOpenParatext8Project )
         submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
+        submenuProjectOpenType.add_command( label=_('uW TSV…'), underline=3, command=self.doOpenTSVProject )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -537,7 +538,7 @@ class Application( Frame ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
-        fileOpenSubmenu.add_command( label=_('uW TSV file…'), underline=0, command=self.doOpenFileTSVEditWindow )
+        # fileOpenSubmenu.add_command( label=_('uW TSV file…'), underline=0, command=self.doOpenFileTSVEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Save all…'), underline=0, command=self.doSaveAll )
         fileMenu.add_separator()
@@ -584,6 +585,7 @@ class Application( Frame ):
         #submenuProjectOpenType.add_command( label=_('Bibledit…'), underline=0, command=self.doOpenBibleditProject )
         submenuProjectOpenType.add_command( label=_('Paratext9/8…'), underline=0, command=self.doOpenParatext8Project )
         submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
+        submenuProjectOpenType.add_command( label=_('uW TSV…'), underline=3, command=self.doOpenTSVProject )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -1174,7 +1176,7 @@ class Application( Frame ):
     # end of Application.setupMainWindowKeyboardBindings()
 
 
-    def addRecentFile( self, threeTuple ) -> None:
+    def addRecentFile( self, threeTuple:Tuple[str,str,str] ) -> None:
         """
         Puts most recent first
         """
@@ -1297,15 +1299,15 @@ class Application( Frame ):
             #try: extra = ' ({})'.format( appWin.BCVUpdateType )
             #except AttributeError: extra = ''
             self.debugTextBox.insert( tk.END, "\n  {} wT={} gWT={} {} modID={} cVM={} BCV={}" \
-                                    .format( j+1,
-                                        appWin.windowType,
-                                        #appWin.windowType.replace('ChildWindow',''),
-                                        appWin.genericWindowType,
-                                        #appWin.genericWindowType.replace('Resource',''),
-                                        appWin.winfo_geometry(), appWin.moduleID,
-                                        appWin._contextViewMode if 'Bible' in appWin.genericWindowType else 'N/A',
-                                        appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
-                                        #extra ) )
+                        .format( j+1,
+                            appWin.windowType,
+                            #appWin.windowType.replace('ChildWindow',''),
+                            appWin.genericWindowType,
+                            #appWin.genericWindowType.replace('Resource',''),
+                            appWin.winfo_geometry(), appWin.moduleID,
+                            appWin._contextViewMode if 'Bible' in appWin.genericWindowType and 'TSV' not in appWin.genericWindowType else 'N/A',
+                            appWin.BCVUpdateType if 'Bible' in appWin.genericWindowType else 'N/A' ) )
+                            #extra ) )
         #self.debugTextBox.insert( tk.END, '\n{} resource frames:'.format( len(self.childWindows) ) )
         #for j, projFrame in enumerate( self.childWindows ):
             #self.debugTextBox.insert( tk.END, "\n  {} {}".format( j, projFrame ) )
@@ -1427,15 +1429,18 @@ class Application( Frame ):
     def doOpenRecent( self, recentIndex ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "doOpenRecent( {} )".format( recentIndex ) )
+        vPrint( 'Quiet', debuggingThisModule, "doOpenRecent( {} )".format( recentIndex ) )
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule: self.setDebugText( "doOpenRecent…" )
             assert recentIndex < len(self.recentFiles)
 
-        filename, folder, windowType = self.recentFiles[recentIndex]
-        vPrint( 'Quiet', debuggingThisModule, "Need to open", filename, folder, windowType )
-        vPrint( 'Quiet', debuggingThisModule, "NOT WRITTEN YET" )
+        filename, folderpath, windowType = self.recentFiles[recentIndex]
+        vPrint( 'Quiet', debuggingThisModule, f"Need to open {windowType} from '{filename}' in '{folderpath}'" )
+        if windowType == 'TSVBibleEditWindow':
+            if filename and not folderpath: # Temp XXXX
+                folderpath, filename = os.path.split( filename )
+            self.openFileTSVEditWindow( os.path.join( folderpath, filename ) )
+        else: vPrint( 'Quiet', debuggingThisModule, "doOpenRecent NOT WRITTEN YET" )
     # end of Application.doOpenRecent
 
 
@@ -1999,58 +2004,58 @@ class Application( Frame ):
     # end of Application.openFileTextEditWindow
 
 
-    def doOpenFileTSVEditWindow( self ) -> None:
-        """
-        Open a pop-up window and request the user to select a file.
+    # def doOpenFileTSVEditWindow( self ) -> None:
+    #     """
+    #     Open a pop-up window and request the user to select a file.
 
-        Then open the file in a TSV edit window.
-        """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "doOpenFileTSVEditWindow()" )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenFileTSVEditWindow…" )
+    #     Then open the file in a TSV edit window.
+    #     """
+    #     if BibleOrgSysGlobals.debugFlag:
+    #         vPrint( 'Quiet', debuggingThisModule, "doOpenFileTSVEditWindow()" )
+    #     if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenFileTSVEditWindow…" )
 
-        self.setWaitStatus( _("doOpenFileTSVEditWindow…") )
-        openDialog = Open( title=_("Select TSV file"), initialdir=self.lastFileDir, filetypes=TSV_FILETYPES )
-        fileResult = openDialog.show()
-        if not fileResult:
-            self.setReadyStatus()
-            return
-        if not os.path.isfile( fileResult ):
-            showError( self, APP_NAME, 'Could not open file ' + fileResult )
-            self.setReadyStatus()
-            return
+    #     self.setWaitStatus( _("doOpenFileTSVEditWindow…") )
+    #     openDialog = Open( title=_("Select TSV file"), initialdir=self.lastFileDir, filetypes=TSV_FILETYPES )
+    #     fileResult = openDialog.show()
+    #     if not fileResult:
+    #         self.setReadyStatus()
+    #         return
+    #     if not os.path.isfile( fileResult ):
+    #         showError( self, APP_NAME, 'Could not open file ' + fileResult )
+    #         self.setReadyStatus()
+    #         return
 
-        folderpath = os.path.split( fileResult )[0]
-        #vPrint( 'Quiet', debuggingThisModule, '\n\n\nFP doOpenFileTextEditWindow', repr(folderpath) )
-        self.lastFileDir = folderpath
+    #     folderpath = os.path.split( fileResult )[0]
+    #     #vPrint( 'Quiet', debuggingThisModule, '\n\n\nFP doOpenFileTextEditWindow', repr(folderpath) )
+    #     self.lastFileDir = folderpath
 
-        self.openFileTSVEditWindow( fileResult )
-    # end of Application.doOpenFileTSVEditWindow
+    #     self.openFileTSVEditWindow( fileResult )
+    # # end of Application.doOpenFileTSVEditWindow
 
-    def openFileTSVEditWindow( self, filepath, windowGeometry=None ):
-        """
-        Then open the file in a TSV edit window.
-        """
-        vPrint( 'Never', debuggingThisModule, "openFileTSVEditWindow( {} )".format( filepath ) )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openFileTSVEditWindow…" )
+    # def openFileTSVEditWindow( self, filepath, windowGeometry=None ):
+    #     """
+    #     Then open the file in a TSV edit window.
+    #     """
+    #     vPrint( 'Never', debuggingThisModule, "openFileTSVEditWindow( {} )".format( filepath ) )
+    #     if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openFileTSVEditWindow…" )
 
-        self.setWaitStatus( _("openFileTSVEditWindow…") )
-        if filepath is None: # it's a blank window
-            # tsvEW = TSVEditWindow( self )
-            # if windowGeometry: tsvEW.geometry( windowGeometry )
-            # self.childWindows.append( tsvEW )
-            return
-        else: # check the TSV file and fill the window
-            folderpath, filename = os.path.split( filepath )
-            tsvEW = TSVEditWindow( self, folderpath, filename )
-            if windowGeometry: tsvEW.geometry( windowGeometry )
-            self.childWindows.append( tsvEW )
-            self.addRecentFile( (filepath,'','TSVBibleEditWindow') )
+    #     self.setWaitStatus( _("openFileTSVEditWindow…") )
+    #     if filepath is None: # it's a blank window
+    #         # tsvEW = TSVEditWindow( self )
+    #         # if windowGeometry: tsvEW.geometry( windowGeometry )
+    #         # self.childWindows.append( tsvEW )
+    #         return
+    #     else: # check the TSV file and fill the window
+    #         folderpath, filename = os.path.split( filepath )
+    #         tsvEW = TSVEditWindow( self, folderpath, filename )
+    #         if windowGeometry: tsvEW.geometry( windowGeometry )
+    #         self.childWindows.append( tsvEW )
+    #         self.addRecentFile( (filename,folderpath,'TSVBibleEditWindow') )
 
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openFileTSVEditWindow" )
-        self.setReadyStatus()
-        return tsvEW
-    # end of Application.openFileTSVEditWindow
+    #     if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openFileTSVEditWindow" )
+    #     self.setReadyStatus()
+    #     return tsvEW
+    # # end of Application.openFileTSVEditWindow
 
 
     def doViewWindowsList( self ) -> None:
@@ -2485,6 +2490,50 @@ class Application( Frame ):
             vPrint( 'Quiet', debuggingThisModule, "openParatext7BibleEditWindow finished." )
         return uEW
     # end of Application.openParatext7BibleEditWindow
+
+
+    def doOpenTSVProject( self ) -> None:
+        """
+        Open a pop-up window and request the user to select a folder.
+
+        Then open the file in a TSV edit window.
+        """
+        if BibleOrgSysGlobals.debugFlag:
+            vPrint( 'Quiet', debuggingThisModule, "doOpenTSVProject()" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenTSVProject…" )
+
+        self.setWaitStatus( _("doOpenTSVProject…") )
+        openDialog = Directory( title=_("Select TSV folder"), initialdir=self.lastInternalBibleDir )
+        requestedFolder = openDialog.show()
+        if requestedFolder:
+            self.lastInternalBibleDir = requestedFolder
+            self.openTSVEditWindow( requestedFolder )
+            self.addRecentFile( (requestedFolder,requestedFolder,'TSVBibleEditWindow') )
+    # end of Application.doOpenTSVProject
+
+    def openTSVEditWindow( self, folderpath, windowGeometry=None ):
+        """
+        Then open the folder in a TSV edit window.
+        """
+        vPrint( 'Never', debuggingThisModule, "openTSVEditWindow( {} )".format( folderpath ) )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openTSVEditWindow…" )
+
+        self.setWaitStatus( _("openTSVEditWindow…") )
+        if folderpath is None: # it's a blank window
+            # tsvEW = TSVEditWindow( self )
+            # if windowGeometry: tsvEW.geometry( windowGeometry )
+            # self.childWindows.append( tsvEW )
+            return
+        else: # check the TSV file and fill the window
+            tsvEW = TSVEditWindow( self, folderpath )
+            if windowGeometry: tsvEW.geometry( windowGeometry )
+            self.childWindows.append( tsvEW )
+            self.addRecentFile( (folderpath,folderpath,'TSVBibleEditWindow') )
+
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openTSVEditWindow" )
+        self.setReadyStatus()
+        return tsvEW
+    # end of Application.openTSVEditWindow
 
 
     def doOpenCollateProjects( self ) -> None:
@@ -3233,8 +3282,10 @@ class Application( Frame ):
 
         NOTE: C and V have NOT been tested to see if they are valid for this book.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "gotoBCV( {} {}:{} {} ) = {} from {}".format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
+        try: vPrint( 'Verbose', debuggingThisModule, "gotoBCV( {} {}:{} {} ) = {} from {}".format( BBB, C, V, originator, self.bookNumberTable[BBB], self.currentVerseKey ) )
+        except AttributeError: # self.currentVerseKey probably doesn't exist yet
+            if debuggingThisModule or BibleOrgSysGlobals.debugFlag: assert self.starting
+            vPrint( 'Verbose', debuggingThisModule, f"gotoBCV( {BBB}, {C}, {V}, {originator} )…" )
 
         self.setWaitStatus( _("Moving to new Bible reference ({} {}:{})…").format( BBB, C, V ) )
         self.setCurrentVerseKey( SimpleVerseKey( BBB, C, V ) )
@@ -3314,7 +3365,12 @@ class Application( Frame ):
         BBB, C, V = self.currentVerseKey.getBCV()
         self.maxChaptersThisBook = self.getNumChapters( BBB )
         #if self.maxChaptersThisBook is None: self.maxChaptersThisBook = 0
-        self.chapterSpinbox['to'] = self.maxChaptersThisBook
+        try:
+            self.chapterSpinbox['to'] = self.maxChaptersThisBook
+        except AttributeError: # it doesn't exist yet
+            if debuggingThisModule or BibleOrgSysGlobals.debugFlag: assert self.starting
+            return
+
         self.maxVersesThisChapter = self.getNumVerses( BBB, C )
         self.verseSpinbox['to'] = self.maxVersesThisChapter
 
@@ -3335,11 +3391,15 @@ class Application( Frame ):
 
         intV = int( V )
         if intV > 0: intV -= 1 # assume that we haven't done this verse yet
-        try: percentVerses = round( intV * 100 / int(self.maxVersesThisChapter) )
-        except ZeroDivisionError: percentVerses = 0
-        try: self.InfoLabelLeft['text'] = _("{} verses in ch.{} ({}% thru)") \
-                                            .format( self.maxVersesThisChapter, C, percentVerses )
-        except AttributeError: pass
+        if C == '-1': # Intro
+            self.InfoLabelLeft['text'] = _("Introduction (before first chapter)")
+        else: # Not the introduction
+            try: percentVerses = round( intV * 100 / int(self.maxVersesThisChapter) )
+            except ZeroDivisionError: percentVerses = 0
+            try:
+                self.InfoLabelLeft['text'] = _("{} verses in ch.{} ({}% thru)") \
+                                .format( self.maxVersesThisChapter, C, percentVerses )
+            except AttributeError: pass
 
         intC = int( C )
         if intC > 0: intC -= 1 # assume that we haven't done this chapter yet
@@ -3347,8 +3407,8 @@ class Application( Frame ):
         #except TypeError: percentChapters = 0
         #try: self.InfoLabelCentre['text'] = _("{} chapters in book ({}% thru)") \
                                             #.format( self.maxChaptersThisBook, percentChapters )
-        try: self.InfoLabelCentre['text'] = _("{} chapters in {}") \
-                                            .format( self.maxChaptersThisBook, bookName )
+        try: self.InfoLabelCentre['text'] = _("{} chapter{} in {}") \
+                .format( self.maxChaptersThisBook, '' if self.maxChaptersThisBook==1 else 's', bookName )
         except AttributeError: pass
 
         try: verseList = self.genericBibleOrganisationalSystem.getNumVersesList( BBB )
