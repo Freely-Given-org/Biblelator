@@ -170,10 +170,9 @@ from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
 # Biblelator imports
 if __name__ == '__main__':
-    import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
                              BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                              parseWindowGeometry, parseWindowSize, assembleWindowGeometry, errorBeep, \
@@ -186,7 +185,7 @@ from Biblelator.Helpers.BiblelatorHelpers import mapReferenceVerseKey, mapParall
 from Biblelator.Windows.TextBoxes import BText, BCombobox, HTMLTextBox, ChildBoxAddon, BibleBoxAddon
 
 
-LAST_MODIFIED_DATE = '2020-04-25' # by RJH
+LAST_MODIFIED_DATE = '2020-04-29' # by RJH
 SHORT_PROGRAM_NAME = "ChildWindows"
 PROGRAM_NAME = "Biblelator Child Windows"
 PROGRAM_VERSION = '0.46'
@@ -249,8 +248,7 @@ class ChildWindows( list ):
 
         Note that this new verse key is in the reference versification system.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "ChildWindows.updateThisBibleGroup( {}, {}, {} )".format( groupCode, newVerseKey, originator ) )
+        vPrint( 'Never', debuggingThisModule, "ChildWindows.updateThisBibleGroup( {}, {}, {} )".format( groupCode, newVerseKey.getShortText(), originator ) )
 
         for appWin in self:
             if 'Bible' in appWin.genericWindowType: # e.g., BibleResource, BibleEditor
@@ -349,7 +347,8 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         self.optionsDict = {}
         self.optionsDict['caseinsens'] = True
 
-        self.parentApp.rootWindow.tk.call( 'wm', 'iconphoto', self._w, self.parentApp.iconImage )
+        # Disabled for OSX
+        # self.parentApp.rootWindow.tk.call( 'wm', 'iconphoto', self._w, self.parentApp.iconImage )
         #self.refreshTitle() # Must be in superclass
 
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -2019,7 +2018,7 @@ class FindResultWindow( tk.Toplevel ):
         ref = self.resultList[int(j)][0] # Add one to skip past the optionDict which is the first results item
         BBB,C,V = ref.getBCV()
         #vPrint( 'Quiet', debuggingThisModule, 'itemSelected', j, ref, BBB, C, V )
-        self.parentApp.gotoBCV( BBB, C, V )
+        self.parentApp.gotoBCV( BBB, C,V, 'FindResultWindow.itemSelected' )
         # NOTE: Ideally we should select the actual text here also
     # end of FindResultWindow.itemSelected
 

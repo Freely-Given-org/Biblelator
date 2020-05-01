@@ -8,8 +8,8 @@ https://github.com/pypa/sampleproject
 from setuptools import setup # Always prefer setuptools over distutils
 # from os import path
 
-VERSION = '0.0.5'
-LAST_MODIFIED_DATE = '2020-04-27' # by RJH — when setup.py was modified below
+VERSION = '0.0.8'
+LAST_MODIFIED_DATE = '2020-04-30' # by RJH — when setup.py was modified below
 
 
 # INCLUDE_DERIVED_DATA_PICKLE_FILES = True
@@ -84,23 +84,24 @@ A USFM Bible editor using the [BibleOrgSys](https://pypi.org/project/BibleOrgSys
 library and Python's tKinter windowing library for simple and easy installation.
 (It's all in the standard CPython install.)
 
-On many systems, BibleOrgSys can be installed with:
+On most systems, Biblelator can be installed (as shown above) with:
+
+    `pip install Biblelator`
+
+but if it complains, maybe:
 
     `python3 -m pip install Biblelator`
-
-but if it complains, maybe
-
-    `python3 -m pip install --user Biblelator`
 
 The app can be run from the command line with:
 
     `Biblelator`
 
+which should start up and display a smallish window,
 or to view all the available options:
 
     `Biblelator --help`
 
-You can discover the version with:
+You can discover the program version (doesn't match the package version) with:
 
     `Biblelator --version`
 
@@ -113,7 +114,8 @@ Because some Bible users need to remain anonymous, Biblelator defaults to no int
 However this reduces functionality, and most users will want to run the program once,
 and then close it and edit the `Biblelator.ini` file created in the `BiblelatorData/BiblelatorSettings` folder
 and change `internetAccess` to `Enabled`.
-While there, you might as well update the `currentUserName` and other entries under [Users].
+While there, you might as well update the `currentUserName` and other entries
+under `[Users]`.
 
 The other auxilliary apps included are `BiblelatorSettingsEditor`,
 `BOSManager` (for inspecting Bible Organisational Systems), and
@@ -129,7 +131,7 @@ After that point, we also hope to release some prepackaged versions—
 probably including Docker and Snap.
 
 This software has been developed in very small chunks of spare time since 2013
-(so it's not necessarily well-thought out, and definitely not polished).
+(so it's not necessarily well structured, and definitely not polished).
 However, it was used as my main Bible editor instead of Paratext
 for a couple of years.
 
@@ -233,7 +235,7 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['BibleOrgSys>=0.0.16'],
+    install_requires=['BibleOrgSys>=0.0.17'],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow

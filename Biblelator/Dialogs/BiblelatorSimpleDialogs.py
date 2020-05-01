@@ -40,7 +40,7 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
 
-LAST_MODIFIED_DATE = '2020-04-25'
+LAST_MODIFIED_DATE = '2020-04-29'
 SHORT_PROGRAM_NAME = "BiblelatorSimpleDialogs"
 PROGRAM_NAME = "Biblelator simple dialogs"
 PROGRAM_VERSION = '0.46'
@@ -127,8 +127,7 @@ def briefDemo() -> None:
 
     # Start the program running
     #tkRootWindow.mainloop()
-# end of BiblelatorSimpleDialogs.demo
-
+# end of BiblelatorSimpleDialogs.briefDemo
 
 def fullDemo() -> None:
     """

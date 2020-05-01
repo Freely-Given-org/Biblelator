@@ -45,9 +45,9 @@ from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
 
 # Biblelator imports
 if __name__ == '__main__':
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_RECENT_FILES, errorBeep, \
         DATAFILES_FOLDERPATH, \
         DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
@@ -59,7 +59,7 @@ from Biblelator.Dialogs.BiblelatorDialogs import SelectResourceBoxDialog, GetNew
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog
 from Biblelator.Helpers.BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
-from Biblelator.Settings.Settings import ApplicationSettings, ProjectSettings
+from Biblelator.Settings.Settings import ApplicationSettings
 from Biblelator.Settings.BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
 from Biblelator.Windows.TextBoxes import BEntry, BCombobox
@@ -67,7 +67,7 @@ from Biblelator.Windows.ChildWindows import ChildWindows
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+LAST_MODIFIED_DATE = '2020-05-01' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsEditor"
 PROGRAM_NAME = "Biblelator Settings Editor"
 PROGRAM_VERSION = '0.46'
@@ -90,15 +90,15 @@ class BiblelatorSettingsEditor( Frame ):
         and use that to inform child windows of BCV movements.
     """
     global settings
-    def __init__( self, rootWindow, homeFolderPath, loggingFolderPath, iconImage ):
+    def __init__( self, rootWindow, homeFolderpath, loggingFolderpath, iconImage ):
         """
         Main app initialisation function.
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "BiblelatorSettingsEditor.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderPath, loggingFolderPath ) )
-        self.rootWindow, self.homeFolderPath, self.loggingFolderPath, self.iconImage = rootWindow, homeFolderPath, loggingFolderPath, iconImage
+            vPrint( 'Quiet', debuggingThisModule, "BiblelatorSettingsEditor.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
+        self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage = rootWindow, homeFolderpath, loggingFolderpath, iconImage
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
 
@@ -158,7 +158,7 @@ class BiblelatorSettingsEditor( Frame ):
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
-        #self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        #self.settings = ApplicationSettings( self.homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         #self.settings.load()
         #if PROGRAM_NAME not in self.settings.data or 'windowSize' not in self.settings.data[PROGRAM_NAME] or 'windowPosition' not in self.settings.data[PROGRAM_NAME]:
         initialMainSize = INITIAL_MAIN_SIZE_DEBUG if BibleOrgSysGlobals.debugFlag else INITIAL_MAIN_SIZE
@@ -184,7 +184,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.rootWindow.title( programNameVersion )
         self.minimumSize = MINIMUM_MAIN_SIZE
         self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "__init__ finished." )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "BiblelatorSettingsEditor.__init__ finished." )
         self.starting = False
         self.setReadyStatus()
     # end of BiblelatorSettingsEditor.__init__
@@ -595,7 +595,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.recentFilesPage = Frame( self.notebook )
         self.rffnVars, self.rffldVars, self.rftypVars = [], [], []
         for rr in range( MAX_RECENT_FILES ):
-            self.rffnVars.append( tk.StringVar() ); self.rffldVars.append( tk.StringVar() ); self.rftypVars.append( tk.StringVar() );
+            self.rffnVars.append( tk.StringVar() ); self.rffldVars.append( tk.StringVar() ); self.rftypVars.append( tk.StringVar() )
             Label( self.recentFilesPage, text='{}:'.format(rr+1) ).grid( row=2*rr, column=0, padx=0, pady=3, sticky=tk.E )
             BEntry( self.recentFilesPage, width=30, textvariable=self.rffnVars[rr] ).grid( row=2*rr, column=1, padx=2, pady=3, sticky=tk.W )
             BEntry( self.recentFilesPage, width=30, textvariable=self.rftypVars[rr] ).grid( row=2*rr, column=2, padx=2, pady=3, sticky=tk.W )
@@ -682,7 +682,7 @@ class BiblelatorSettingsEditor( Frame ):
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "loadSettingsIntoTabs() for {!r}".format( self.INIname ) )
 
-        self.settings = ApplicationSettings( self.homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        self.settings = ApplicationSettings( self.homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         self.settings.load()
         self.settingsChangedFlag = False
 
@@ -1107,7 +1107,7 @@ class BiblelatorSettingsEditor( Frame ):
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        if not tEW.setPathAndFile( self.loggingFolderPath, filename ) \
+        if not tEW.setPathAndFile( self.loggingFolderpath, filename ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, SHORT_PROGRAM_NAME, _("Sorry, unable to open log file") )
@@ -1284,7 +1284,7 @@ def openBiblelatorSettingsEditor( parent ):
         vPrint( 'Quiet', debuggingThisModule, "BiblelatorSettingsEditor.openBiblelatorSettingsEditor( {} )".format( parent ) )
 
     myWin = tk.Toplevel( parent )
-    application = BiblelatorSettingsEditor( myWin, parent.homeFolderPath, parent.loggingFolderPath, parent.iconImage )
+    application = BiblelatorSettingsEditor( myWin, parent.homeFolderpath, parent.loggingFolderpath, parent.iconImage )
 # end of BiblelatorSettingsEditor.openBiblelatorSettingsEditor
 
 
@@ -1307,12 +1307,12 @@ def briefDemo() -> None:
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
-    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
-    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
+    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -1340,12 +1340,12 @@ def fullDemo() -> None:
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
-    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
-    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
+    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -1357,13 +1357,13 @@ def fullDemo() -> None:
     tkRootWindow.mainloop()
 # end of BiblelatorSettingsEditor.fullDemo
 
-def main( homeFolderPath, loggingFolderPath ) -> None:
+def main( homeFolderpath, loggingFolderpath ) -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
 
-    #vPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderPath), repr(loggingFolderPath) )
+    #vPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderpath), repr(loggingFolderpath) )
 
     numInstancesFound = 0
     if sys.platform == 'linux':
@@ -1409,7 +1409,7 @@ def main( homeFolderPath, loggingFolderPath ) -> None:
     iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
-    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderPath, loggingFolderPath, iconImage )
+    application = BiblelatorSettingsEditor( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
@@ -1424,11 +1424,11 @@ def run() -> None:
     multiprocessing.freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up
-    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    # if homeFolderPath[-1] not in '/\\': homeFolderPath += '/'
-    # loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    loggingFolderPath = homeFolderPath.joinpath( DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderPath=loggingFolderPath )
+    homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
+    # if homeFolderpath[-1] not in '/\\': homeFolderpath += '/'
+    # loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    loggingFolderpath = homeFolderpath.joinpath( DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
     #vPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
@@ -1439,7 +1439,7 @@ def run() -> None:
         if sys.platform == "linux": vPrint( 'Quiet', debuggingThisModule, "OS uname is", os.uname() ) # gives about five fields
         vPrint( 'Quiet', debuggingThisModule, "Running main…" )
 
-    main( homeFolderPath, loggingFolderPath )
+    main( homeFolderpath, loggingFolderpath )
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of BiblelatorSettingsEditor.run

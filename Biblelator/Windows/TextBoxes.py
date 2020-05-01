@@ -123,9 +123,9 @@ from BibleOrgSys.OriginalLanguages.HebrewWLCBible import ORIGINAL_MORPHEME_BREAK
 # Biblelator imports
 if __name__ == '__main__':
     import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, BIBLE_FORMAT_VIEW_MODES
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 

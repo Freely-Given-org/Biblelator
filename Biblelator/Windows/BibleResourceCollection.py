@@ -96,9 +96,9 @@ from tkinter.ttk import Frame, Button, Scrollbar
 # Biblelator imports
 if __name__ == '__main__':
     import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
                 BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \

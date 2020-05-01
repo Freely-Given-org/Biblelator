@@ -46,9 +46,9 @@ from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisational
 # Biblelator imports
 if __name__ == '__main__':
     import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkBREAK, \
         BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, MAX_PSEUDOVERSES, \
         INITIAL_REFERENCE_COLLECTION_SIZE, MINIMUM_REFERENCE_COLLECTION_SIZE, MAXIMUM_REFERENCE_COLLECTION_SIZE, \
@@ -373,19 +373,19 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     ## end of BibleReferenceCollectionWindow.OnFrameConfigure
 
 
-    def setFolderPath( self, newFolderPath ):
+    def setFolderpath( self, newFolderpath ):
         """
         Store the folder path for where our internal Bible files will be.
 
         We're still waiting for the filename.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.setFolderPath( {!r} )".format( newFolderPath ) )
+            vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.setFolderpath( {!r} )".format( newFolderpath ) )
             assert self.filename is None
             assert self.filepath is None
 
-        self.folderpath = newFolderPath
-    # end of BibleReferenceCollectionWindow.setFolderPath
+        self.folderpath = newFolderpath
+    # end of BibleReferenceCollectionWindow.setFolderpath
 
 
     def createMenuBar( self ):

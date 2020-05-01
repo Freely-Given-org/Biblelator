@@ -181,9 +181,9 @@ from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 # Biblelator imports
 if __name__ == '__main__':
     import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, MAX_PSEUDOVERSES, errorBeep, \
                             BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                             MAXIMUM_LARGE_RESOURCE_SIZE, parseWindowSize
@@ -473,12 +473,12 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoPreviousBook…" )
         newBBB = self.getPreviousBookCode( BBB )
-        if newBBB is None: self.gotoBCV( BBB, '0', '0' )
+        if newBBB is None: self.gotoBCV( BBB, '0','0', 'BibleResourceWindowAddon.doGotoPreviousBook' )
         else:
             self.maxChaptersThisBook = self.getNumChapters( newBBB )
             self.maxVersesThisChapter = self.getNumVerses( newBBB, self.maxChaptersThisBook )
-            if gotoEnd: self.gotoBCV( newBBB, self.maxChaptersThisBook, self.maxVersesThisChapter )
-            else: self.gotoBCV( newBBB, '0', '0' ) # go to the beginning
+            if gotoEnd: self.gotoBCV( newBBB, self.maxChaptersThisBook,self.maxVersesThisChapter, 'BibleResourceWindowAddon.doGotoPreviousBook' )
+            else: self.gotoBCV( newBBB, '0','0', 'BibleResourceWindowAddon.doGotoPreviousBook' ) # go to the beginning
     # end of BibleResourceWindowAddon.doGotoPreviousBook
 
 
@@ -497,7 +497,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         else:
             self.maxChaptersThisBook = self.getNumChapters( newBBB )
             self.maxVersesThisChapter = self.getNumVerses( newBBB, '0' )
-            self.gotoBCV( newBBB, '0', '0' ) # go to the beginning of the book
+            self.gotoBCV( newBBB, '0','0' 'BibleResourceWindowAddon.doGotoNextBook' ) # go to the beginning of the book
     # end of BibleResourceWindowAddon.doGotoNextBook
 
 
@@ -512,7 +512,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoPreviousChapter…" )
         intC, intV = int( C ), int( V )
-        if intC > 0: self.gotoBCV( BBB, intC-1, self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0' )
+        if intC > 0: self.gotoBCV( BBB, intC-1,self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0', 'BibleResourceWindowAddon.doGotoPreviousChapter' )
         else: self.doGotoPreviousBook( gotoEnd=True )
     # end of BibleResourceWindowAddon.doGotoPreviousChapter
 
@@ -528,7 +528,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextChapter…" )
         intC = int( C )
-        if intC < self.maxChaptersThisBook: self.gotoBCV( BBB, intC+1, '0' )
+        if intC < self.maxChaptersThisBook: self.gotoBCV( BBB, intC+1,'0', 'BibleResourceWindowAddon.doGotoNextChapter' )
         else: self.doGotoNextBook()
     # end of BibleResourceWindowAddon.doGotoNextChapter
 
@@ -560,7 +560,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         sectionStart2, sectionEnd2 = findCurrentSection( SimpleVerseKey( BBB, intC1, intV1), self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
         vPrint( 'Quiet', debuggingThisModule, "section2 Start/End", sectionStart2, sectionEnd2 )
         BBB2, C2, V2 = sectionStart2.getBCV()
-        self.gotoBCV( BBB2, C2, V2 )
+        self.gotoBCV( BBB2, C2,V2,'BibleResourceWindowAddon.doGotoPreviousSection' )
     # end of BibleResourceWindowAddon.doGotoPreviousSection
 
 
@@ -580,7 +580,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         intC2, intV2 = sectionEnd.getChapterNumberInt(), sectionEnd.getVerseNumberInt()
         if intC2 < self.maxChaptersThisBook \
         or (intC2==self.maxChaptersThisBook and intV2< self.getNumVerses( BBB, intC2) ):
-            self.gotoBCV( BBB, intC2, intV2 )
+            self.gotoBCV( BBB, intC2,intV2, 'BibleResourceWindowAddon.doGotoNextSection' )
         else: self.doGotoNextBook()
     # end of BibleResourceWindowAddon.doGotoNextSection
 
@@ -593,7 +593,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("doGotoPreviousVerse() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoPreviousVerse…" )
         intC, intV = int( C ), int( V )
-        if intV > 0: self.gotoBCV( BBB, C, intV-1 )
+        if intV > 0: self.gotoBCV( BBB, C,intV-1, 'BibleResourceWindowAddon.doGotoPreviousVerse' )
         elif intC > 0: self.doGotoPreviousChapter( gotoEnd=True )
         else: self.doGotoPreviousBook( gotoEnd=True )
     # end of BibleResourceWindowAddon.doGotoPreviousVerse
@@ -607,7 +607,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("doGotoNextVerse() from {} {}:{}").format( BBB, C, V ) )
             self.parentApp.setDebugText( "BRW doGotoNextVerse…" )
         intV = int( V )
-        if intV < self.maxVersesThisChapter: self.gotoBCV( BBB, C, intV+1 )
+        if intV < self.maxVersesThisChapter: self.gotoBCV( BBB, C,intV+1, 'BibleResourceWindowAddon.doGotoNextVerse' )
         else: self.doGotoNextChapter()
     # end of BibleResourceWindowAddon.doGotoNextVerse
 
@@ -669,12 +669,11 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     # end of BibleResourceWindowAddon.doGotoBook
 
 
-    def gotoBCV( self, BBB, C, V ):
+    def gotoBCV( self, BBB:str, C:str, V:str, originator:str ) -> None:
         """
 
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("gotoBCV( {} {}:{} from {} )").format( BBB, C, V, self.currentVerseKey ) )
+        vPrint( 'Verbose', debuggingThisModule, _("gotoBCV( {} {}:{}, '{originator}' ) from {}").format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentApp.gotoGroupBCV( self._groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -1957,13 +1956,13 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         self._prepareInternalBible()
         if self.internalBible is not None:
             self.parentApp.setWaitStatus( _("Preparing for export…") )
-            if self.exportFolderPathname is None:
+            if self.exportFolderpath is None:
                 fp = self.folderpath
                 if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
-                self.exportFolderPathname = fp + 'Export/'
-                #vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderPathname) )
-                if not os.path.exists( self.exportFolderPathname ):
-                    os.mkdir( self.exportFolderPathname )
+                self.exportFolderpath = fp + 'Export/'
+                #vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderpath) )
+                if not os.path.exists( self.exportFolderpath ):
+                    os.mkdir( self.exportFolderpath )
             setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
             self.parentApp.setWaitStatus( _("Export in process…") )
     # end of InternalBibleResourceWindowAddon._prepareForExports
@@ -1977,7 +1976,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doMostExports()") )
 
         self._prepareForExports()
-        self.internalBible.doAllExports( self.exportFolderPathname )
+        self.internalBible.doAllExports( self.exportFolderpath )
         self._doneExports()
     # end of InternalBibleResourceWindowAddon.doMostExports
 
@@ -1990,7 +1989,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doPhotoBibleExport()") )
 
         self._prepareForExports()
-        self.internalBible.toPhotoBible( os.path.join( self.exportFolderPathname, 'BOS_PhotoBible_Export/' ) )
+        self.internalBible.toPhotoBible( os.path.join( self.exportFolderpath, 'BOS_PhotoBible_Export/' ) )
         self._doneExports()
     # end of InternalBibleResourceWindowAddon.doPhotoBibleExport
 
@@ -2003,7 +2002,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doODFsExport()") )
 
         self._prepareForExports()
-        self.internalBible.toODF( os.path.join( self.exportFolderPathname, 'BOS_ODF_Export/' ) )
+        self.internalBible.toODF( os.path.join( self.exportFolderpath, 'BOS_ODF_Export/' ) )
         self._doneExports()
     # end of InternalBibleResourceWindowAddon.doODFsExport
 
@@ -2016,7 +2015,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doPDFsExport()") )
 
         self._prepareForExports()
-        self.internalBible.toTeX( os.path.join( self.exportFolderPathname, 'BOS_PDF(TeX)_Export/' ) )
+        self.internalBible.toTeX( os.path.join( self.exportFolderpath, 'BOS_PDF(TeX)_Export/' ) )
         self._doneExports()
     # end of InternalBibleResourceWindowAddon.doPDFsExport
 
@@ -2029,7 +2028,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doAllExports()") )
 
         self._prepareForExports()
-        self.internalBible.doAllExports( self.exportFolderPathname, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
+        self.internalBible.doAllExports( self.exportFolderpath, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
         self._doneExports()
     # end of InternalBibleResourceWindowAddon.doAllExports
 
@@ -2038,7 +2037,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         """
         """
         self.parentApp.setStatus( _("Waiting for user input…") )
-        infoString = _("Results should be in {}").format( self.exportFolderPathname )
+        infoString = _("Results should be in {}").format( self.exportFolderpath )
         showInfo( self, 'Folder Information', infoString )
         self.parentApp.setReadyStatus()
     # end of InternalBibleResourceWindowAddon.doAllExports
@@ -2387,13 +2386,13 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
         #self._prepareInternalBible()
         #if self.internalBible is not None:
             #self.parentApp.setWaitStatus( _("Preparing for export…") )
-            #if self.exportFolderPathname is None:
+            #if self.exportFolderpath is None:
                 #fp = self.folderpath
                 #if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
-                #self.exportFolderPathname = fp + 'Export/'
-                ##vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderPathname) )
-                #if not os.path.exists( self.exportFolderPathname ):
-                    #os.mkdir( self.exportFolderPathname )
+                #self.exportFolderpath = fp + 'Export/'
+                ##vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderpath) )
+                #if not os.path.exists( self.exportFolderpath ):
+                    #os.mkdir( self.exportFolderpath )
             #setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
             #self.parentApp.setWaitStatus( _("Export in process…") )
     ## end of InternalBibleResourceWindow._prepareForExports
@@ -2407,7 +2406,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doMostExports()") )
 
         #self._prepareForExports()
-        #self.internalBible.doAllExports( self.exportFolderPathname )
+        #self.internalBible.doAllExports( self.exportFolderpath )
         #self._doneExports()
     ## end of InternalBibleResourceWindow.doMostExports
 
@@ -2420,7 +2419,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doPhotoBibleExport()") )
 
         #self._prepareForExports()
-        #self.internalBible.toPhotoBible( os.path.join( self.exportFolderPathname, 'BOS_PhotoBible_Export/' ) )
+        #self.internalBible.toPhotoBible( os.path.join( self.exportFolderpath, 'BOS_PhotoBible_Export/' ) )
         #self._doneExports()
     ## end of InternalBibleResourceWindow.doPhotoBibleExport
 
@@ -2433,7 +2432,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doODFsExport()") )
 
         #self._prepareForExports()
-        #self.internalBible.toODF( os.path.join( self.exportFolderPathname, 'BOS_ODF_Export/' ) )
+        #self.internalBible.toODF( os.path.join( self.exportFolderpath, 'BOS_ODF_Export/' ) )
         #self._doneExports()
     ## end of InternalBibleResourceWindow.doODFsExport
 
@@ -2446,7 +2445,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doPDFsExport()") )
 
         #self._prepareForExports()
-        #self.internalBible.toTeX( os.path.join( self.exportFolderPathname, 'BOS_PDF(TeX)_Export/' ) )
+        #self.internalBible.toTeX( os.path.join( self.exportFolderpath, 'BOS_PDF(TeX)_Export/' ) )
         #self._doneExports()
     ## end of InternalBibleResourceWindow.doPDFsExport
 
@@ -2459,7 +2458,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #vPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doAllExports()") )
 
         #self._prepareForExports()
-        #self.internalBible.doAllExports( self.exportFolderPathname, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
+        #self.internalBible.doAllExports( self.exportFolderpath, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
         #self._doneExports()
     ## end of InternalBibleResourceWindow.doAllExports
 
@@ -2468,7 +2467,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
         #"""
         #"""
         #self.parentApp.setStatus( _("Waiting for user input…") )
-        #infoString = _("Results should be in {}").format( self.exportFolderPathname )
+        #infoString = _("Results should be in {}").format( self.exportFolderpath )
         #showInfo( self, 'Folder Information', infoString )
         #self.parentApp.setReadyStatus()
     ## end of InternalBibleResourceWindow.doAllExports
@@ -2787,9 +2786,9 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
                                                             if normalizedWord in self.internalBible.glossingDict else ('',[],{})
                             if not genericGloss:
                                 #vPrint( 'Quiet', debuggingThisModule, "      doGotoNextUnglossedVerse found empty gloss at {} {}:{}!".format( BBB, intC, intV ) )
-                                self.gotoBCV( BBB, intC, intV )
+                                self.gotoBCV( BBB, intC,intV, 'HebrewBibleResourceWindow.doGotoNextUnglossedVerse' )
                                 return # Found an empty gloss -- done
-    # end of Application.doGotoNextUnglossedVerse
+    # end of HebrewBibleResourceWindow.doGotoNextUnglossedVerse
 
 
     #def refreshTitle( self ):
@@ -2873,13 +2872,13 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         #self._prepareInternalBible()
         #if self.internalBible is not None:
             #self.parentApp.setWaitStatus( _("Preparing for export…") )
-            #if self.exportFolderPathname is None:
+            #if self.exportFolderpath is None:
                 #fp = self.folderpath
                 #if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
-                #self.exportFolderPathname = fp + 'Export/'
-                ##vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderPathname) )
-                #if not os.path.exists( self.exportFolderPathname ):
-                    #os.mkdir( self.exportFolderPathname )
+                #self.exportFolderpath = fp + 'Export/'
+                ##vPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderpath) )
+                #if not os.path.exists( self.exportFolderpath ):
+                    #os.mkdir( self.exportFolderpath )
             #setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
             #self.parentApp.setWaitStatus( _("Export in process…") )
     ## end of HebrewBibleResourceWindow._prepareForExports
@@ -2893,7 +2892,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #vPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doMostExports()") )
 
         #self._prepareForExports()
-        #self.internalBible.doAllExports( self.exportFolderPathname )
+        #self.internalBible.doAllExports( self.exportFolderpath )
         #self._doneExports()
     ## end of HebrewBibleResourceWindow.doMostExports
 
@@ -2906,7 +2905,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #vPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doPhotoBibleExport()") )
 
         #self._prepareForExports()
-        #self.internalBible.toPhotoBible( os.path.join( self.exportFolderPathname, 'BOS_PhotoBible_Export/' ) )
+        #self.internalBible.toPhotoBible( os.path.join( self.exportFolderpath, 'BOS_PhotoBible_Export/' ) )
         #self._doneExports()
     ## end of HebrewBibleResourceWindow.doPhotoBibleExport
 
@@ -2919,7 +2918,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #vPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doODFsExport()") )
 
         #self._prepareForExports()
-        #self.internalBible.toODF( os.path.join( self.exportFolderPathname, 'BOS_ODF_Export/' ) )
+        #self.internalBible.toODF( os.path.join( self.exportFolderpath, 'BOS_ODF_Export/' ) )
         #self._doneExports()
     ## end of HebrewBibleResourceWindow.doODFsExport
 
@@ -2932,7 +2931,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #vPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doPDFsExport()") )
 
         #self._prepareForExports()
-        #self.internalBible.toTeX( os.path.join( self.exportFolderPathname, 'BOS_PDF(TeX)_Export/' ) )
+        #self.internalBible.toTeX( os.path.join( self.exportFolderpath, 'BOS_PDF(TeX)_Export/' ) )
         #self._doneExports()
     ## end of HebrewBibleResourceWindow.doPDFsExport
 
@@ -2945,7 +2944,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #vPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doAllExports()") )
 
         #self._prepareForExports()
-        #self.internalBible.doAllExports( self.exportFolderPathname, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
+        #self.internalBible.doAllExports( self.exportFolderpath, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
         #self._doneExports()
     ## end of HebrewBibleResourceWindow.doAllExports
 
@@ -2954,7 +2953,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         #"""
         #"""
         #self.parentApp.setStatus( _("Waiting for user input…") )
-        #infoString = _("Results should be in {}").format( self.exportFolderPathname )
+        #infoString = _("Results should be in {}").format( self.exportFolderpath )
         #showInfo( self, 'Folder Information', infoString )
         #self.parentApp.setReadyStatus()
     ## end of HebrewBibleResourceWindow.doAllExports

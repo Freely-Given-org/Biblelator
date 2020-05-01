@@ -46,9 +46,9 @@ from BibleOrgSys.BibleOrgSysGlobals import vPrint
 # Biblelator imports
 if __name__ == '__main__':
     import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT, DATA_FOLDER_NAME
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 from Biblelator.Dialogs.BiblelatorDialogs import YesNoDialog, OkCancelDialog
@@ -61,7 +61,7 @@ from Biblelator.Helpers.AutocompleteFunctions import getCharactersBeforeCursor, 
                                 getWordBeforeSpace, addNewAutocompleteWord, acceptAutocompleteSelection
 
 
-LAST_MODIFIED_DATE = '2020-04-23' # by RJH
+LAST_MODIFIED_DATE = '2020-04-29' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTextEditWindow"
 PROGRAM_NAME = "Biblelator Text Edit Window"
 PROGRAM_VERSION = '0.46'
@@ -916,19 +916,19 @@ class TextEditWindowAddon:
     # Utilities, useful outside this class
     ############################################################################
 
-    def setFolderPath( self, newFolderPath ):
+    def setFolderpath( self, newFolderpath ):
         """
         Store the folder path for where our files will be.
 
         We're still waiting for the filename.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.setFolderPath( {} )".format( repr(newFolderPath) ) )
+            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.setFolderpath( {} )".format( repr(newFolderpath) ) )
             assert self.filename is None
             assert self.filepath is None
 
-        self.folderpath = newFolderPath
-    # end of TextEditWindowAddon.setFolderPath
+        self.folderpath = newFolderpath
+    # end of TextEditWindowAddon.setFolderpath
 
     def setFilename( self, filename, createFile=False ):
         """
@@ -1166,19 +1166,19 @@ class TextEditWindowAddon:
             #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAutosave()" )
 
         if self.modified():
-            partialAutosaveFolderPath = self.folderpath if self.folderpath else self.parentApp.homeFolderPath
+            partialAutosaveFolderpath = self.folderpath if self.folderpath else self.parentApp.homeFolderpath
             # NOTE: Don't use a hidden folder coz user might not be able to find it
-            autosaveFolderPath = os.path.join( partialAutosaveFolderPath, 'AutoSave/' ) \
-                                    if APP_NAME in partialAutosaveFolderPath \
-                                    else os.path.join( partialAutosaveFolderPath, DATA_FOLDER_NAME, 'AutoSave/' )
-            if not os.path.exists( autosaveFolderPath ): os.makedirs( autosaveFolderPath )
-            lastDayFolderPath = os.path.join( autosaveFolderPath, 'LastDay/' )
-            if not os.path.exists( lastDayFolderPath ): os.mkdir( lastDayFolderPath )
+            autosaveFolderpath = os.path.join( partialAutosaveFolderpath, 'AutoSave/' ) \
+                                    if APP_NAME in partialAutosaveFolderpath \
+                                    else os.path.join( partialAutosaveFolderpath, DATA_FOLDER_NAME, 'AutoSave/' )
+            if not os.path.exists( autosaveFolderpath ): os.makedirs( autosaveFolderpath )
+            lastDayFolderpath = os.path.join( autosaveFolderpath, 'LastDay/' )
+            if not os.path.exists( lastDayFolderpath ): os.mkdir( lastDayFolderpath )
 
             autosaveFilename = self.filename if self.filename else 'Autosave.txt'
-            #vPrint( 'Quiet', debuggingThisModule, 'autosaveFolderPath', repr(autosaveFolderPath), 'autosaveFilename', repr(autosaveFilename) )
-            autosaveFilepath = os.path.join( autosaveFolderPath, autosaveFilename )
-            lastDayFilepath = os.path.join( lastDayFolderPath, autosaveFilename )
+            #vPrint( 'Quiet', debuggingThisModule, 'autosaveFolderpath', repr(autosaveFolderpath), 'autosaveFilename', repr(autosaveFilename) )
+            autosaveFilepath = os.path.join( autosaveFolderpath, autosaveFilename )
+            lastDayFilepath = os.path.join( lastDayFolderpath, autosaveFilename )
 
             # Check if we need a daily save
             if os.path.isfile( autosaveFilepath ) \
@@ -1229,7 +1229,7 @@ class TextEditWindowAddon:
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self.parentApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        if not tEW.setPathAndFile( self.parentApp.loggingFolderPath, filename ) \
+        if not tEW.setPathAndFile( self.parentApp.loggingFolderpath, filename ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
@@ -1294,14 +1294,14 @@ class TextEditWindowAddon:
                     #self.doSave()
                     #self.doClose()
                 #else: # we need to ask where to save it
-                place = 'in {}'.format( self.filename) if self.folderpath and self.filename else ''
+                place = ' in {}'.format( self.filename) if self.folderpath and self.filename else ''
                 ocd = OkCancelDialog( self, _('Do you want to save your work{}?').format( place ), title=_('Save work?') )
                 #vPrint( 'Quiet', debuggingThisModule, "ocdResult", repr(ocd.result) )
                 if ocd.result == True: # Yes was chosen
                     saveWork = True
                 else:
-                    place = 'to {}'.format( self.filename) if self.folderpath and self.filename else ''
-                    ynd = YesNoDialog( self, _('Are you sure you want to lose your changes?').format( place ), title=_('Lose changes?') )
+                    # place = 'to {}'.format( self.filename) if self.folderpath and self.filename else ''
+                    ynd = YesNoDialog( self, _('Are you sure you want to lose your changes?'), title=_('Lose changes?') )
                     #vPrint( 'Quiet', debuggingThisModule, "yndResult", repr(ynd.result) )
                     if ynd.result == True: # Yes was chosen
                         self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag

@@ -26,6 +26,7 @@
 This is a text editor window that knows about the special structure of USFM files.
 """
 from gettext import gettext as _
+from typing import Dict, List, Tuple, Optional
 import os.path
 import logging
 from collections import OrderedDict
@@ -42,9 +43,9 @@ from BibleOrgSys.Formats.USFMBible import findReplaceText
 # Biblelator imports
 if __name__ == '__main__':
     import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, \
                                 errorBeep
 from Biblelator.Dialogs.ModalDialog import ModalDialog
@@ -61,7 +62,7 @@ from Biblelator.Helpers.AutocompleteFunctions import loadBibleAutocompleteWords,
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
 
-LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+LAST_MODIFIED_DATE = '2020-05-01' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorUSFMEditWindow"
 PROGRAM_NAME = "Biblelator USFM Edit Window"
 PROGRAM_VERSION = '0.46'
@@ -262,7 +263,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         self.lastBBB = None
         self.bookTextBefore = self.bookText = self.bookTextAfter = None # The current text for this book
         self.bookTextModified = False
-        self.exportFolderPathname = None
+        self.exportFolderpath = None
 
         self.saveChangesAutomatically = True # different from AutoSave (which is in different files in different folders)
 
@@ -839,7 +840,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     # end of USFMEditWindow.modified
 
 
-    def getBookDataFromDisk( self, BBB ):
+    def getBookDataFromDisk( self, BBB:str ) -> Optional[str]:
         """
         Fetches and returns the internal Bible data for the given book
             by reading the USFM source file completely
@@ -856,11 +857,11 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         if self.internalBible is not None:
             try: self.bookFilename = self.internalBible.possibleFilenameDict[BBB]
             except (AttributeError,KeyError) as err: # we have no books, or at least, not this book!
-                #vPrint( 'Quiet', debuggingThisModule, "  getBookDataFromDisk error: {}".format( err ) )
+                vPrint( 'Quiet', debuggingThisModule, f"  getBookDataFromDisk error: {err}" )
                 #return None
                 uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber(BBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(BBB)
                 if uNumber is None or uAbbrev is None: self.bookFilename = None
-                else: self.bookFilename = '{}-{}.USFM'.format( uNumber, uAbbrev )
+                else: self.bookFilename = f'{uNumber}-{uAbbrev}.USFM'
             if self.bookFilename:
                 self.bookFilepath = os.path.join( self.internalBible.sourceFolder, self.bookFilename )
                 if self.setFilepath( self.bookFilepath ): # For title displays, etc.
@@ -1134,9 +1135,9 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 assert isinstance( cachedVerseData, str )
                 if matchFunction( cachedVerseData ):
                     #vPrint( 'Quiet', debuggingThisModule, "      doGotoNextEmptySomething found empty {} at {} {}:{}!".format( somethingName, BBB, intC, intV ) )
-                    self.gotoBCV( BBB, intC, intV )
+                    self.gotoBCV( BBB, intC,intV, 'USFMEditWindow.doGotoNextEmptySomething' )
                     break # Found an empty verse -- done
-    # end of Application.doGotoNextEmptySomething
+    # end of USFMEditWindow.doGotoNextEmptySomething
 
     def doGotoNextEmptyVerse( self, event=None ):
         """
@@ -1151,7 +1152,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             self.parentApp.setDebugText( "UEW doGotoNextEmptyVerse…" )
 
         self.doGotoNextEmptySomething( 'verse', self.emptyVerseMatch )
-    # end of Application.doGotoNextEmptyVerse
+    # end of USFMEditWindow.doGotoNextEmptyVerse
 
     def doGotoNextEmptyMarker( self, event=None ):
         """
@@ -1166,7 +1167,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             self.parentApp.setDebugText( "UEW doGotoNextEmptyMarker…" )
 
         self.doGotoNextEmptySomething( 'marker', self.emptyMarkerMatch )
-    # end of Application.doGotoNextEmptyMarker
+    # end of USFMEditWindow.doGotoNextEmptyMarker
 
 
     def updateShownBCV( self, newReferenceVerseKey, originator=None ):
@@ -1544,7 +1545,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 #self.internalBible.reloadBook( self.currentVerseKey.getBBB() ) # coz it's now out of date -- what? why?
                 self.cacheBook( BBB ) # Wasted if we're closing the window/program, but important if we're continuing to edit
                 self.refreshTitle()
-                logChangedFile( self.parentApp.currentUserName, self.parentApp.loggingFolderPath, self.projectName, BBB, self.bookText )
+                logChangedFile( self.parentApp.currentUserName, self.parentApp.loggingFolderpath, self.projectName, BBB, self.bookText )
             else: self.doSaveAs()
     # end of USFMEditWindow.doSave
 
@@ -1569,7 +1570,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #if windowGeometry: uEW.geometry( windowGeometry )
         uEW.windowType = self.windowType # override the default
         uEW.moduleID = self.moduleID
-        uEW.setFolderPath( self.folderpath )
+        uEW.setFolderpath( self.folderpath )
         uEW.settings = self.settings
         #uEW.settings.loadUSFMMetadataInto( uB )
         uEW.setWindowGroup( BIBLE_GROUP_CODES[1] )
@@ -1602,7 +1603,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             #if windowGeometry: uEW.geometry( windowGeometry )
             uEW.windowType = self.windowType # override the default
             uEW.moduleID = self.moduleID
-            uEW.setFolderPath( self.folderpath )
+            uEW.setFolderpath( self.folderpath )
             uEW.settings = self.settings
             #uEW.settings.loadUSFMMetadataInto( uB )
             uEW.setWindowGroup( BIBLE_GROUP_CODES[j] )
@@ -1634,7 +1635,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #if windowGeometry: uEW.geometry( windowGeometry )
         #BRCW.windowType = self.windowType # override the default
         BRCW.moduleID = self.moduleID
-        BRCW.setFolderPath( self.folderpath )
+        BRCW.setFolderpath( self.folderpath )
         BRCW.settings = self.settings
         #BRCW.settings.loadUSFMMetadataInto( uB )
         BRCW.setWindowGroup( BIBLE_GROUP_CODES[0] ) # Stays the same as the source window!
@@ -1682,7 +1683,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
         tEW = TextEditWindow( self.parentApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        if not tEW.setFilepath( getChangeLogFilepath( self.parentApp.loggingFolderPath, self.projectName ) ) \
+        if not tEW.setFilepath( getChangeLogFilepath( self.parentApp.loggingFolderpath, self.projectName ) ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )

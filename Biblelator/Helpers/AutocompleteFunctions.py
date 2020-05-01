@@ -5,7 +5,7 @@
 #
 # Functions to support the autocomplete function in text editors
 #
-# Copyright (C) 2016-2018 Robert Hunt
+# Copyright (C) 2016-2020 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -30,18 +30,7 @@ Autocomplete is the ability to pop-up a little window of suggested word completi
 This module contains most of the helper functions for loading the autocomplete
     words (which may be from a Bible or from a dictionary, etc.)
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-11-25' # by RJH
-SHORT_PROGRAM_NAME = "AutocompleteFunctions"
-PROGRAM_NAME = "Biblelator Autocomplete Functions"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import sys
 import os
 import logging
@@ -53,10 +42,9 @@ import tkinter as tk
 
 # Biblelator imports
 if __name__ == '__main__':
-    import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.Windows.TextBoxes import TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE
 
 # BibleOrgSys imports
@@ -65,6 +53,14 @@ from BibleOrgSys.BibleOrgSysGlobals import vPrint
 #from BibleOrgSys.Internals.InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
 from BibleOrgSys.Reference.USFM3Markers import USFM_PRINTABLE_MARKERS
 
+
+LAST_MODIFIED_DATE = '2020-04-30' # by RJH
+SHORT_PROGRAM_NAME = "AutocompleteFunctions"
+PROGRAM_NAME = "Biblelator Autocomplete Functions"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 AVOID_BOOKS = ( 'FRT', 'BAK', 'GLS', 'XXA','XXB','XXC','XXD','XXE','XXF','XXG', 'NDX', 'UNK', )
@@ -901,6 +897,9 @@ def briefDemo() -> None:
 
     #uEW = AutocompleteFunctions( tkRootWindow, None )
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # Start the program running
     # tkRootWindow.mainloop()
 # end of AutocompleteFunctions.briefDemo
@@ -917,6 +916,9 @@ def fullDemo() -> None:
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     #uEW = AutocompleteFunctions( tkRootWindow, None )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
 
     # Start the program running
     tkRootWindow.mainloop()

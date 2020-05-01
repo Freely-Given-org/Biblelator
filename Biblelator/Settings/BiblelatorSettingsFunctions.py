@@ -49,9 +49,9 @@ from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END
 # Biblelator imports
 if __name__ == '__main__':
     import sys
-    aboveAboveFolderPath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
-    if aboveAboveFolderPath not in sys.path:
-        sys.path.insert( 0, aboveAboveFolderPath )
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, \
     DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
@@ -62,11 +62,11 @@ from Biblelator.Dialogs.BiblelatorDialogs import SaveWindowsLayoutNameDialog, De
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+LAST_MODIFIED_DATE = '2020-05-01' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
 PROGRAM_VERSION = '0.46'
-SettingsVersion = '0.45' # Only need to change this if the settings format has changed
+SettingsVersion = '0.46' # Only need to change this if the settings format has changed
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -335,6 +335,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
     for j in range( 1, MAX_WINDOWS ):
         winNumber = 'window{}'.format( j )
         if winNumber in windowsSettingsFields:
+            rw = None
             thisStuff = windowsSettingsFields[winNumber]
             windowType = thisStuff['Type']
             #windowGeometry = thisStuff['Geometry'] if 'Geometry' in thisStuff else None
@@ -344,24 +345,33 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
             #vPrint( 'Quiet', debuggingThisModule, "applyGivenWindowsSettings", windowType, windowGeometry )
 
             if windowType == 'SwordBibleResourceWindow':
-                rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
-                #except: logging.critical( "Unable to read all SwordBibleResourceWindow {} settings".format( j ) )
+                try:
+                    rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'SwordBibleResourceWindow {j}' settings" )
             elif windowType == 'DBPBibleResourceWindow':
-                rw = self.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
-                #except: logging.critical( "Unable to read all DBPBibleResourceWindow {} settings".format( j ) )
+                try:
+                    rw = self.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'DBPBibleResourceWindow {j}' settings" )
             elif windowType == 'InternalBibleResourceWindow':
-                folderpath = thisStuff['BibleFolderPath']
-                if folderpath[-1] not in '/\\' \
-                and not str(folderpath).endswith( ZIPPED_PICKLE_FILENAME_END ):
-                    folderpath = f'{folderpath}/'
-                rw = self.openInternalBibleResourceWindow( folderpath, windowGeometry )
-                #except: logging.critical( "Unable to read all InternalBibleResourceWindow {} settings".format( j ) )
+                try:
+                    folderpath = thisStuff['BibleFolderpath']
+                    if folderpath[-1] not in '/\\' \
+                    and not str(folderpath).endswith( ZIPPED_PICKLE_FILENAME_END ):
+                        folderpath = f'{folderpath}/'
+                    rw = self.openInternalBibleResourceWindow( folderpath, windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'InternalBibleResourceWindow {j}' settings" )
             elif windowType == 'HebrewBibleResourceWindow':
-                folderpath = thisStuff['BibleFolderPath']
-                if folderpath[-1] not in '/\\' \
-                and not str(folderpath).endswith( ZIPPED_PICKLE_FILENAME_END ):
-                    folderpath = f'{folderpath}/'
-                rw = self.openHebrewBibleResourceWindow( folderpath, windowGeometry )
+                try:
+                    folderpath = thisStuff['BibleFolderpath']
+                    if folderpath[-1] not in '/\\' \
+                    and not str(folderpath).endswith( ZIPPED_PICKLE_FILENAME_END ):
+                        folderpath = f'{folderpath}/'
+                    rw = self.openHebrewBibleResourceWindow( folderpath, windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'HebrewBibleResourceWindow {j}' settings" )
 
             #elif windowType == 'HebrewLexiconResourceWindow':
                 #self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
@@ -396,9 +406,9 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                             rw.openBox( boxType, boxSource )
 
             elif windowType == 'TSVBibleEditWindow':
-                try: filepath = convertToPython( thisStuff['TSVTablePath'] )
-                except KeyError: filepath = None
-                rw = self.openFileTSVEditWindow( filepath, windowGeometry )
+                try: folderpath = convertToPython( thisStuff['TSVFolderpath'] )
+                except KeyError: folderpath = None
+                rw = self.openTSVEditWindow( folderpath, windowGeometry )
 
             elif windowType == 'BibleReferenceCollectionWindow':
                 xyz = "JustTesting!"
@@ -412,27 +422,40 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 rw = self.openFileTextEditWindow( filepath, windowGeometry )
                 #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
             elif windowType == 'BiblelatorUSFMBibleEditWindow':
-                folderpath = thisStuff['ProjectFolderPath']
-                if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
-                rw = self.openBiblelatorBibleEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
-                #except: logging.critical( "Unable to read all BiblelatorUSFMBibleEditWindow {} settings".format( j ) )
+                try:
+                    folderpath = thisStuff['ProjectFolderpath']
+                    if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
+                    rw = self.openBiblelatorBibleEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'BiblelatorUSFMBibleEditWindow {j}' settings" )
+            elif windowType == 'uWUSFMBibleEditWindow':
+                try:
+                    folderpath = thisStuff['ProjectFolderpath']
+                    if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
+                    rw = self.openUWUSFMBibleEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'uWUSFMBibleEditWindow {j}' settings" )
             elif windowType == 'Paratext8USFMBibleEditWindow':
-                rw = self.openParatext8BibleEditWindow( thisStuff['ProjectFolder'], thisStuff['EditMode'], windowGeometry )
-                #except: logging.critical( "Unable to read all Paratext8USFMBibleEditWindow {} settings".format( j ) )
-            elif windowType == 'Paratext7USFMBibleEditWindow' \
-            or windowType == 'ParatextUSFMBibleEditWindow': # This 2nd alternative can be deleted after a week or two
-                rw = self.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
-                #except: logging.critical( "Unable to read all Paratext7USFMBibleEditWindow {} settings".format( j ) )
+                try:
+                    rw = self.openParatext8BibleEditWindow( thisStuff['ProjectFolder'], thisStuff['EditMode'], windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'Paratext8USFMBibleEditWindow {j}' settings" )
+            elif windowType == 'Paratext7USFMBibleEditWindow':
+                try:
+                    rw = self.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all 'Paratext7USFMBibleEditWindow {j}' settings" )
             elif windowType == 'ESFMEditWindow':
-                folderpath = thisStuff['ESFMFolder']
-                if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
-                rw = self.openESFMEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
-                #except: logging.critical( "Unable to read all ESFMEditWindow {} settings".format( j ) )
+                try:
+                    folderpath = thisStuff['ESFMFolder']
+                    if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
+                    rw = self.openESFMEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
+                except KeyError:
+                    logging.critical( f"Unable to read all ESFMEditWindow {j} settings" )
 
             else:
                 logging.critical( "applyGivenWindowsSettings: " + _("Unknown {} window type").format( repr(windowType) ) )
                 if BibleOrgSysGlobals.debugFlag: halt
-                rw = None
 
             if rw is None:
                 logging.critical( "applyGivenWindowsSettings: " + _("Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
@@ -515,12 +538,12 @@ def getCurrentChildWindowSettings( self ):
         elif appWin.windowType == 'DBPBibleResourceWindow':
             thisOne['ModuleAbbreviation'] = appWin.moduleID
         elif appWin.windowType == 'InternalBibleResourceWindow':
-            thisOne['BibleFolderPath'] = appWin.moduleID
+            thisOne['BibleFolderpath'] = appWin.moduleID
         elif appWin.windowType == 'HebrewBibleResourceWindow':
-            thisOne['BibleFolderPath'] = appWin.moduleID
+            thisOne['BibleFolderpath'] = appWin.moduleID
 
         elif appWin.windowType == 'TSVBibleEditWindow':
-            thisOne['TSVTablePath'] = appWin.filepath
+            thisOne['TSVFolderpath'] = appWin.folderpath
 
         elif appWin.windowType == 'BibleLexiconResourceWindow':
             thisOne['BibleLexiconPath'] = appWin.moduleID
@@ -536,7 +559,10 @@ def getCurrentChildWindowSettings( self ):
             except AttributeError: pass # It's possible to have a blank new text edit window open
 
         elif appWin.windowType == 'BiblelatorUSFMBibleEditWindow':
-            thisOne['ProjectFolderPath'] = appWin.moduleID
+            thisOne['ProjectFolderpath'] = appWin.moduleID
+            thisOne['EditMode'] = appWin.editMode
+        elif appWin.windowType == 'uWUSFMBibleEditWindow':
+            thisOne['ProjectFolderpath'] = appWin.moduleID
             thisOne['EditMode'] = appWin.editMode
         elif appWin.windowType == 'Paratext8USFMBibleEditWindow':
             thisOne['ProjectFolder'] = appWin.moduleID
@@ -606,7 +632,7 @@ def deleteExistingWindowSetup( self ):
         if BibleOrgSysGlobals.debugFlag:
             assert dwnd.result in self.windowsSettingsDict
         del self.windowsSettingsDict[dwnd.result]
-        self.settings.save() # Save file now in case we crash ###-- don't worry -- it's easy to delete one
+        self.settings.saveINI() # Save file now in case we crash ###-- don't worry -- it's easy to delete one
         self.createMenuBar() # refresh
 # end of deleteExistingWindowSetup
 
@@ -790,7 +816,7 @@ def writeSettingsFile( self ):
                 for windowSettingName,value in sorted( winDict.items() ):
                     thisOne[windowNumber+windowSettingName] = convertToString( value )
         except UnicodeEncodeError: logging.error( "writeSettingsFile: " + _("unable to write {} windows set-up").format( repr(windowsSettingName) ) )
-    self.settings.save()
+    self.settings.saveINI()
 # end of writeSettingsFile
 
 
@@ -822,10 +848,10 @@ def doSendUsageStatistics( self ):
 
     # Add log file(s)
     filename = adjAppName + '_log.txt'
-    #vPrint( 'Quiet', debuggingThisModule, "zipF1", repr(self.loggingFolderPath) )
+    #vPrint( 'Quiet', debuggingThisModule, "zipF1", repr(self.loggingFolderpath) )
     #vPrint( 'Quiet', debuggingThisModule, "zipF2", repr(filename) )
     for extension in BibleOrgSysGlobals.STANDARD_BACKUP_EXTENSIONS:
-        filepath = os.path.join( self.loggingFolderPath, filename+extension )
+        filepath = os.path.join( self.loggingFolderpath, filename+extension )
         #vPrint( 'Quiet', debuggingThisModule, "  zipF3", repr(filepath) )
         if os.path.exists( filepath ):
             #vPrint( 'Quiet', debuggingThisModule, "  zipF4", repr(filepath) )
@@ -908,18 +934,18 @@ def briefDemo() -> None:
         vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( programNameVersion )
 
-    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
-    settings.load()
+    homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
+    settings.loadINI()
 
-    application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
+    application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
-    tkRootWindow.after( 10_000, tkRootWindow.destroy ) # Destroy the widget after 10 seconds
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
 
     # Start the program running
     tkRootWindow.mainloop()
@@ -944,12 +970,12 @@ def fullDemo() -> None:
         vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
     tkRootWindow.title( programNameVersion )
 
-    homeFolderPath = BibleOrgSysGlobals.findHomeFolderPath()
-    loggingFolderPath = os.path.join( homeFolderPath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderPath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
-    settings.load()
+    homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
+    settings.loadINI()
 
-    application = Application( tkRootWindow, homeFolderPath, loggingFolderPath, settings )
+    application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )
     # Calls to the window manager class (wm in Tk)
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
