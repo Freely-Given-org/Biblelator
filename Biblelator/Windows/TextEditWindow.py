@@ -49,7 +49,7 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
-from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT, DATA_FOLDER_NAME
+from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT, DATA_SUBFOLDER_NAME
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 from Biblelator.Dialogs.BiblelatorDialogs import YesNoDialog, OkCancelDialog
 from Biblelator.Windows.TextBoxes import CustomText, TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPACE_SUBSTITUTE, \
@@ -83,8 +83,7 @@ class TextEditWindowAddon:
     def __init__( self, windowType:str, folderpath=None, filename=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.__init__( {}, {}, {} )".format( windowType, folderpath, filename ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.__init__( {}, {}, {} )".format( windowType, folderpath, filename ) )
         self.windowType, self.folderpath, self.filename = windowType, folderpath, filename
         self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'TextEditWindowAddon __init__ {} {} {}'.format( windowType, folderpath, filename ) )
 
@@ -162,16 +161,14 @@ class TextEditWindowAddon:
         self.loading = self.hadTextWarning = False
         #self.lastTextChangeTime = time()
 
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.__init__ finished." )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.__init__ finished." )
     # end of TextEditWindowAddon.__init__
 
 
     def createEditorKeyboardBindings( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.createEditorKeyboardBindings()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.createEditorKeyboardBindings()" )
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -196,8 +193,7 @@ class TextEditWindowAddon:
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.createMenuBar()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -294,8 +290,7 @@ class TextEditWindowAddon:
     def createContextMenu( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.createContextMenu()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=False )
         self.contextMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict[_('Cut')][0] )
@@ -362,8 +357,7 @@ class TextEditWindowAddon:
         """
         Make the font one point bigger
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.OnFontBigger()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.OnFontBigger()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size+1 )
@@ -373,15 +367,14 @@ class TextEditWindowAddon:
         """
         Make the font one point smaller
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.OnFontSmaller()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.OnFontSmaller()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size-1 )
     # end if TextEditWindowAddon.OnFontSmaller
 
 
-    def getAllText( self ):
+    def getAllText( self ) -> str:
         """
         Returns all the text as a string.
         """
@@ -394,12 +387,12 @@ class TextEditWindowAddon:
     # end of USFMEditWindow.getAllText
 
 
-    def makeAutocompleteBox( self ):
+    def makeAutocompleteBox( self ) -> None:
         """
         Create a pop-up listbox in order to be able to display possible autocomplete words.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.makeAutocompleteBox()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.makeAutocompleteBox()" )
+        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.autocompleteBox is None
 
         # Create the pop-up listbox
@@ -506,8 +499,7 @@ class TextEditWindowAddon:
             self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed checks which are scheduled
             self.onTextNoChangeID = None
         if self.loading: return # So we don't get called a million times for nothing
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.onTextChange( {}, {} )".format( repr(result), args ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.onTextChange( {}, {} )".format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -734,8 +726,7 @@ class TextEditWindowAddon:
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doShowInfo( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doShowInfo( {} )".format( event ) )
 
         text  = self.getEntireText()
         numChars = len( text )
@@ -765,8 +756,7 @@ class TextEditWindowAddon:
 
 
     def doUndo( self, event=None ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doUndo( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doUndo( {} )".format( event ) )
 
         try: self.textBox.edit_undo()
         except tk.TclError: showInfo( self, APP_NAME, _("Nothing to undo") )
@@ -775,8 +765,7 @@ class TextEditWindowAddon:
 
 
     def doRedo( self, event=None ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doRedo( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doRedo( {} )".format( event ) )
 
         try: self.textBox.edit_redo()
         except tk.TclError: showInfo( self, APP_NAME, _("Nothing to redo") )
@@ -785,8 +774,7 @@ class TextEditWindowAddon:
 
 
     def doDelete( self, event=None ):                         # delete selected text, no save
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doDelete( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doDelete( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showError( self, APP_NAME, _("No text selected") )
@@ -795,11 +783,10 @@ class TextEditWindowAddon:
     # end of TextEditWindowAddon.doDelete
 
 
-    def doCut( self, event=None ):
+    def doCut( self, event=None ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doCut( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doCut( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showError( self, APP_NAME, _("No text selected") )
@@ -809,12 +796,11 @@ class TextEditWindowAddon:
     # end of TextEditWindowAddon.doCut
 
 
-    def doPaste( self, event=None ):
+    def doPaste( self, event=None ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doPaste( {} )".format( event ) )
-            vPrint( 'Quiet', debuggingThisModule, "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doPaste( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 
         try:
             text = self.selection_get( selection='CLIPBOARD')
@@ -916,21 +902,21 @@ class TextEditWindowAddon:
     # Utilities, useful outside this class
     ############################################################################
 
-    def setFolderpath( self, newFolderpath ):
+    def setFolderpath( self, newFolderpath ) -> None:
         """
         Store the folder path for where our files will be.
 
         We're still waiting for the filename.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.setFolderpath( {} )".format( repr(newFolderpath) ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.setFolderpath( {} )".format( repr(newFolderpath) ) )
+        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.filename is None
             assert self.filepath is None
 
         self.folderpath = newFolderpath
     # end of TextEditWindowAddon.setFolderpath
 
-    def setFilename( self, filename, createFile=False ):
+    def setFilename( self, filename:str, createFile:bool=False ):
         """
         Store the filepath to our file.
 
@@ -940,8 +926,8 @@ class TextEditWindowAddon:
 
         Returns True/False success flag.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.setFilename( {} )".format( repr(filename) ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.setFilename( {} )".format( repr(filename) ) )
+        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.folderpath
 
         self.filename = filename
@@ -951,7 +937,7 @@ class TextEditWindowAddon:
         return self._checkFilepath()
     # end of TextEditWindowAddon.setFilename
 
-    def setPathAndFile( self, folderpath, filename ):
+    def setPathAndFile( self, folderpath, filename:str ):
         """
         Store the filepath to our file.
 
@@ -961,8 +947,7 @@ class TextEditWindowAddon:
 
         Returns True/False success flag.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.setPathAndFile( {}, {} )".format( repr(folderpath), repr(filename) ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.setPathAndFile( {}, {} )".format( repr(folderpath), repr(filename) ) )
 
         self.folderpath, self.filename = folderpath, filename
         self.filepath = os.path.join( self.folderpath, self.filename )
@@ -977,8 +962,7 @@ class TextEditWindowAddon:
 
         Returns True/False success flag.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.setFilepath( {!r} )".format( newFilePath ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.setFilepath( {!r} )".format( newFilePath ) )
 
         self.filepath = newFilePath
         self.folderpath, self.filename = os.path.split( newFilePath )
@@ -993,8 +977,7 @@ class TextEditWindowAddon:
 
         Returns True/False success flag.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon._checkFilepath()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon._checkFilepath()" )
 
         if not os.path.isfile( self.filepath ):
             showError( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
@@ -1020,8 +1003,7 @@ class TextEditWindowAddon:
         """
         self.lastFiletime = os.stat( self.filepath ).st_mtime
         self.lastFilesize = os.stat( self.filepath ).st_size
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, " rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
+        vPrint( 'Never', debuggingThisModule, " rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
     # end of TextEditWindowAddon.rememberFileTimeAndSize
 
 
@@ -1033,8 +1015,7 @@ class TextEditWindowAddon:
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.setAllText( {!r} )".format( newText ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.setAllText( {!r} )".format( newText ) )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
@@ -1057,8 +1038,7 @@ class TextEditWindowAddon:
 
         Returns True/False success flag.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.loadText()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.loadText()" )
 
         self.loading = True
         text = open( self.filepath, 'rt', encoding='utf-8' ).read()
@@ -1077,8 +1057,7 @@ class TextEditWindowAddon:
         This function can be overloaded in super classes
             (where the edit window might not display the entire text).
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.getEntireText()" )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.getEntireText()" )
 
         return self.getAllText()
     # end of TextEditWindowAddon.getEntireText
@@ -1116,8 +1095,7 @@ class TextEditWindowAddon:
         """
         Called if the user requests a saveAs from the GUI.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doSaveAs( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doSaveAs( {} )".format( event ) )
 
         if self.modified():
             saveAsFilepath = asksaveasfilename( parent=self )
@@ -1131,8 +1109,7 @@ class TextEditWindowAddon:
         """
         Called if the user requests a save from the GUI.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doSave( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doSave( {} )".format( event ) )
 
         if self.modified():
             if self.folderpath and self.filename:
@@ -1170,7 +1147,7 @@ class TextEditWindowAddon:
             # NOTE: Don't use a hidden folder coz user might not be able to find it
             autosaveFolderpath = os.path.join( partialAutosaveFolderpath, 'AutoSave/' ) \
                                     if APP_NAME in partialAutosaveFolderpath \
-                                    else os.path.join( partialAutosaveFolderpath, DATA_FOLDER_NAME, 'AutoSave/' )
+                                    else os.path.join( partialAutosaveFolderpath, DATA_SUBFOLDER_NAME, 'AutoSave/' )
             if not os.path.exists( autosaveFolderpath ): os.makedirs( autosaveFolderpath )
             lastDayFolderpath = os.path.join( autosaveFolderpath, 'LastDay/' )
             if not os.path.exists( lastDayFolderpath ): os.mkdir( lastDayFolderpath )
@@ -1245,8 +1222,7 @@ class TextEditWindowAddon:
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doHelp( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1263,8 +1239,7 @@ class TextEditWindowAddon:
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAbout( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -1280,8 +1255,7 @@ class TextEditWindowAddon:
 
         Determines if we want/need to save any changes.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doClose( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.doClose( {} )".format( event ) )
 
         if self.modified():
             saveWork = False
@@ -1327,8 +1301,7 @@ class TextEditWindow( TextEditWindowAddon, ChildWindow ):
     def __init__( self, parentApp, folderpath=None, filename=None ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindow.__init__( {}, {}, {} )".format( parentApp, folderpath, filename ) )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindow.__init__( {}, {}, {} )".format( parentApp, folderpath, filename ) )
         self.folderpath, self.filename = folderpath, filename
         parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderpath, filename ) )
 
@@ -1410,8 +1383,7 @@ class TextEditWindow( TextEditWindowAddon, ChildWindow ):
         #self.loading = self.hadTextWarning = False
         ##self.lastTextChangeTime = time()
 
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindow.__init__ finished." )
+        vPrint( 'Never', debuggingThisModule, "TextEditWindow.__init__ finished." )
     # end of TextEditWindow.__init__
 # end of TextEditWindow class
 

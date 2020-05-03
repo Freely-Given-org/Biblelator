@@ -112,6 +112,7 @@ TODO: Put title parameter consistently after parentWindow parameter.
 TODO: Work out how to automatically test keypresses in dialogs.
 """
 from gettext import gettext as _
+from typing import List
 import os
 import logging
 import urllib.request
@@ -137,7 +138,7 @@ from Biblelator.Dialogs.BiblelatorSimpleDialogs import showWarning
 from Biblelator.Windows.TextBoxes import BEntry, BCombobox, BText
 
 
-LAST_MODIFIED_DATE = '2020-04-25'
+LAST_MODIFIED_DATE = '2020-05-03'
 SHORT_PROGRAM_NAME = "BiblelatorDialogs"
 PROGRAM_NAME = "Biblelator dialogs"
 PROGRAM_VERSION = '0.46'
@@ -510,7 +511,7 @@ class SelectResourceBoxDialog( ModalDialog ):
     """
     Given a list of available resources, select one and return the list item.
     """
-    def __init__( self, parentWindow, availableSettingsList, title ):
+    def __init__( self, parentWindow, availableSettingsList:List[str], title:str ) -> None:
         """
         """
         if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SelectResourceBoxDialog…" )
@@ -524,7 +525,9 @@ class SelectResourceBoxDialog( ModalDialog ):
 
 
     def makeBody( self, master ):
-        Label( master, text=_("Select a resource to open") ).grid( row=0 )
+        """
+        """
+        Label( master, text=_("Select a resource to open") ).pack( padx=2, pady=2 )
 
         self.lb = tk.Listbox( master, selectmode=tk.EXTENDED )
         """ Note: selectmode can be
@@ -540,13 +543,13 @@ class SelectResourceBoxDialog( ModalDialog ):
             #vPrint( 'Quiet', debuggingThisModule, "it", repr(item) )
             if isinstance( item, tuple ): item = item[0]
             self.lb.insert( tk.END, item )
-        self.lb.grid( row=1 )
+        self.lb.pack( padx=5, pady=5, fill=tk.BOTH, expand=tk.YES )
 
         return self.lb # initial focus
     # end of SelectResourceBoxDialog.makeBody
 
 
-    def validate( self ):
+    def validate( self ) -> bool:
         """
         Override the empty ModalDialog.validate function
             to check that the results are how we need them.
@@ -559,7 +562,7 @@ class SelectResourceBoxDialog( ModalDialog ):
     # end of SelectResourceBoxDialog.validate
 
 
-    def apply( self ):
+    def apply( self ) -> None:
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.
@@ -2234,7 +2237,7 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         """
         Copy a transliterated version of the Hebrew text into the entry.
         """
-        from Hebrew import Hebrew
+        from BibleOrgSys.OriginalLanguages.Hebrew import Hebrew
 
         #if not self.entry.get():
         self.entry.delete( 0, tk.END )
@@ -2501,7 +2504,7 @@ class ChooseResourcesDialog( ModalDialog ):
 
     def doDownloadMore( self ):
         """
-        Allow the user to select resources to download from Freely-Given.org.
+        Allow the user to select resources to download from our support site.
         """
         self.parentApp = self.parentWindow.parentApp # Need to set this up before calling dialog from a dialog
         dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
@@ -2604,8 +2607,7 @@ class DownloadResourcesDialog( ModalDialog ):
                         dateTimeString = match.group(1)
                         #vPrint( 'Quiet', debuggingThisModule, "dateString", repr(dateString), "timeString", repr(timeString) )
                         availableResourceList.append( (fileAbbreviation,dateTimeString) )
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "availableResourceList", len(availableResourceList), availableResourceList )
+        vPrint( 'Never', debuggingThisModule, "availableResourceList", len(availableResourceList), availableResourceList )
 
         if availableResourceList:
             maxAbbrevWidth = max([len(aR[0]) for aR in availableResourceList])

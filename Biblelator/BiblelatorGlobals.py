@@ -36,18 +36,7 @@ Global variables and functions for program
     centreWindowOnWindow( self, parentWindow, width=400, height=250 )
     errorBeep()
 """
-
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2020-04-11' # by RJH
-SHORT_PROGRAM_NAME = "BiblelatorGlobals"
-PROGRAM_NAME = "Biblelator Globals"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 import os
 from pathlib import Path
 import re
@@ -57,20 +46,27 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
 
+LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+SHORT_PROGRAM_NAME = "BiblelatorGlobals"
+PROGRAM_NAME = "Biblelator Globals"
+PROGRAM_VERSION = '0.46' # This is the version number that will be displayed inside the app
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 # Programmed settings
 APP_NAME = 'Biblelator' # Ugly coz doesn't necessarily match the PROGRAM_NAME in Biblelator.py
-APP_NAME_VERSION = '{} v{}'.format( APP_NAME, PROGRAM_VERSION ) # Ugly coz doesn't necessarily match the PROGRAM_VERSION in Biblelator.py
-DATA_FOLDER_NAME = APP_NAME + 'Data/'
-LOGGING_SUBFOLDER_NAME = APP_NAME + 'Logs/'
-SETTINGS_SUBFOLDER_NAME = APP_NAME + 'Settings/'
-PROJECTS_SUBFOLDER_NAME = APP_NAME + 'Projects/'
+APP_NAME_VERSION = f'{APP_NAME} v{PROGRAM_VERSION}' # Ugly coz doesn't necessarily match the PROGRAM_VERSION in Biblelator.py
+DATA_SUBFOLDER_NAME = f'{APP_NAME}Data/'
+LOGGING_SUBFOLDER_NAME = f'{APP_NAME}Logs/'
+SETTINGS_SUBFOLDER_NAME = f'{APP_NAME}Settings/'
+PROJECTS_SUBFOLDER_NAME = f'{APP_NAME}Projects/'
 
 
 ##########################################################################################################
 #
-# Readable folder paths (Writeable ones are further down)
+# Readable folder paths
 SOURCE_BASE_FOLDERPATH = Path( __file__ ).parent.resolve() # Folder containing this file
 #vPrint( 'Quiet', debuggingThisModule, f"SOURCE_BASE_FOLDERPATH = {SOURCE_BASE_FOLDERPATH}" )
 DATAFILES_FOLDERPATH = SOURCE_BASE_FOLDERPATH.joinpath( 'DataFiles/' )
@@ -262,7 +258,7 @@ def briefDemo() -> None:
 
     #tkRootWindow = Tk()
     #tkRootWindow.title( programNameVersion )
-    #settings = ApplicationSettings( DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    #settings = ApplicationSettings( DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
@@ -272,15 +268,38 @@ def briefDemo() -> None:
 
     # Start the program running
     #tkRootWindow.mainloop()
-# end of BiblelatorGlobals.demo
-
+# end of BiblelatorGlobals.briefDemo
 
 def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    briefDemo()
-# end of fullDemo
+    from tkinter import Tk
+
+    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+
+    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
+    g1, g2 = "493x152+820+491", "493x123+-119+9"
+    p1, p2 = parseWindowGeometry( g1 ), parseWindowGeometry( g2 )
+    vPrint( 'Quiet', debuggingThisModule, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
+    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
+    vPrint( 'Quiet', debuggingThisModule, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
+    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
+
+    #tkRootWindow = Tk()
+    #tkRootWindow.title( programNameVersion )
+    #settings = ApplicationSettings( DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    #settings.load()
+
+    #application = Application( parent=tkRootWindow, settings=settings )
+    # Calls to the window manager class (wm in Tk)
+    #application.master.title( programNameVersion )
+    #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Start the program running
+    #tkRootWindow.mainloop()
+# end of BiblelatorGlobals.fullDemo
 
 if __name__ == '__main__':
     from multiprocessing import freeze_support

@@ -38,6 +38,7 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 from gettext import gettext as _
 import os
+from pathlib import Path
 import logging
 
 # BibleOrgSys imports
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, \
-    DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
+    DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
     parseWindowSize, assembleWindowSize
@@ -62,14 +63,14 @@ from Biblelator.Dialogs.BiblelatorDialogs import SaveWindowsLayoutNameDialog, De
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2020-05-01' # by RJH
+LAST_MODIFIED_DATE = '2020-05-03' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
 PROGRAM_VERSION = '0.46'
 SettingsVersion = '0.46' # Only need to change this if the settings format has changed
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+debuggingThisModule = 99
 
 
 
@@ -380,7 +381,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 #self.openGreekLexiconResourceWindow( thisStuff['GreekLexiconPath'], windowGeometry )
                 ##except: logging.critical( "Unable to read all GreekLexiconResourceWindow {} settings".format( j ) )
             elif windowType == 'BibleLexiconResourceWindow':
-                rw = self.openBibleLexiconResourceWindow( thisStuff['BibleLexiconPath'], windowGeometry )
+                rw = self.openBibleLexiconResourceWindow( windowGeometry )
                 #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
             elif windowType == 'BibleResourceCollectionWindow':
@@ -413,7 +414,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
             elif windowType == 'BibleReferenceCollectionWindow':
                 xyz = "JustTesting!"
                 rw = self.openBibleReferenceCollectionWindow( xyz, windowGeometry )
-                #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
+                #except: logging.critical( "Unable to read all BibleReferenceCollectionWindow {} settings".format( j ) )
 
             elif windowType == 'PlainTextEditWindow':
                 try: filepath = convertToPython( thisStuff['TextFilepath'] )
@@ -546,7 +547,8 @@ def getCurrentChildWindowSettings( self ):
             thisOne['TSVFolderpath'] = appWin.folderpath
 
         elif appWin.windowType == 'BibleLexiconResourceWindow':
-            thisOne['BibleLexiconPath'] = appWin.moduleID
+            pass # No details to save
+        #     thisOne['BibleLexiconPath'] = appWin.moduleID
 
         elif appWin.windowType == 'BibleResourceCollectionWindow':
             thisOne['CollectionName'] = appWin.moduleID
@@ -674,15 +676,21 @@ def writeSettingsFile( self ):
     elif BibleOrgSysGlobals.verbosityLevel > 0:
         vPrint( 'Quiet', debuggingThisModule, _("  Saving program settings…") )
 
-    def convertToString( setting ):
+    def convertToString( thisSetting ):
         """
         Takes special Python values and converts them to strings.
         """
-        if setting is None: return 'None'
-        if setting == True: return 'True'
-        if setting == False: return 'False'
-        return setting
+        if thisSetting is None: return 'None'
+        if thisSetting is True: return 'True'
+        if thisSetting is False: return 'False'
+        if isinstance( thisSetting, Path ):
+            try:
+                if thisSetting.is_dir(): return f'{thisSetting}/'
+            except: pass
+            return str( thisSetting )
+        return thisSetting
     # end of convertToString
+
 
     # Main code for writeSettingsFile()
     if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'writeSettingsFile' )
@@ -806,14 +814,14 @@ def writeSettingsFile( self ):
     getCurrentChildWindowSettings( self )
     # Save all the various window set-ups including both the named ones and the current one
     for windowsSettingName in sorted( self.windowsSettingsDict ):
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "Saving windows set-up {}".format( repr(windowsSettingName) ) )
+        vPrint( 'Never', debuggingThisModule, "Saving windows set-up {}".format( repr(windowsSettingName) ) )
         try: # Just in case something goes wrong with characters in a settings name
             self.settings.data['WindowSetting'+windowsSettingName] = {}
             thisOne = self.settings.data['WindowSetting'+windowsSettingName]
             for windowNumber,winDict in sorted( self.windowsSettingsDict[windowsSettingName].items() ):
-                #vPrint( 'Quiet', debuggingThisModule, "  ", repr(windowNumber), repr(winDict) )
+                vPrint( 'Never', debuggingThisModule, f"  {windowNumber} {winDict}" )
                 for windowSettingName,value in sorted( winDict.items() ):
+                    vPrint( 'Never', debuggingThisModule, f"  {windowSettingName} {value!r}" )
                     thisOne[windowNumber+windowSettingName] = convertToString( value )
         except UnicodeEncodeError: logging.error( "writeSettingsFile: " + _("unable to write {} windows set-up").format( repr(windowsSettingName) ) )
     self.settings.saveINI()
@@ -894,7 +902,7 @@ def doSendUsageStatistics( self ):
     #vPrint( 'Quiet', debuggingThisModule, "\nheaders", headers )
 
     import http.client
-    conn = http.client.HTTPConnection( 'Freely-Given.org' )
+    conn = http.client.HTTPConnection( BibleOrgSysGlobals.SUPPORT_SITE_NAME )
     conn.request( 'POST', '/Software/Biblelator/StatusInputs/SubmitAction.phtml', parameterString, headers )
     try: response = conn.getresponse()
     except http.client.RemoteDisconnected:
@@ -935,8 +943,8 @@ def briefDemo() -> None:
     tkRootWindow.title( programNameVersion )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
     settings.loadINI()
 
     application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )
@@ -971,8 +979,8 @@ def fullDemo() -> None:
     tkRootWindow.title( programNameVersion )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, APP_NAME )
     settings.loadINI()
 
     application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )

@@ -60,7 +60,7 @@ if __name__ == '__main__':
         sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATAFILES_FOLDERPATH, \
-        DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
+        DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
@@ -112,8 +112,7 @@ class FRepEx( Frame ):
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("FRepEx.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
+        vPrint( 'Never', debuggingThisModule, _("FRepEx.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -180,7 +179,7 @@ class FRepEx( Frame ):
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
-        #self.settings = ApplicationSettings( self.homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        #self.settings = ApplicationSettings( self.homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         #self.settings.load()
         #parseAndApplySettings( self )
         if not self.settings or PROGRAM_NAME not in self.settings.data or 'windowSize' not in self.settings.data[PROGRAM_NAME] or 'windowPosition' not in self.settings.data[PROGRAM_NAME]:
@@ -217,8 +216,7 @@ class FRepEx( Frame ):
         We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
+        vPrint( 'Never', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -253,8 +251,7 @@ class FRepEx( Frame ):
     def createNormalMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createNormalMenuBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createNormalMenuBar()…") )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -342,8 +339,7 @@ class FRepEx( Frame ):
     def createTouchMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createTouchMenuBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createTouchMenuBar()…") )
             assert self.touchMode
 
         self.createNormalMenuBar()
@@ -353,8 +349,7 @@ class FRepEx( Frame ):
     def createNormalNavigationBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createNormalNavigationBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createNormalNavigationBar()…") )
 
         return
 
@@ -463,8 +458,7 @@ class FRepEx( Frame ):
     def createTouchNavigationBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createTouchNavigationBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createTouchNavigationBar()…") )
             assert self.touchMode
 
         return
@@ -592,8 +586,7 @@ class FRepEx( Frame ):
         """
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
 
         return
 
@@ -621,8 +614,7 @@ class FRepEx( Frame ):
     def createNotebook( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
 
         self.notebook = Notebook( self )
 
@@ -930,8 +922,7 @@ class FRepEx( Frame ):
         """
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createDebugToolBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createDebugToolBar()…") )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -952,8 +943,7 @@ class FRepEx( Frame ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createStatusBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createStatusBar()…") )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -972,8 +962,7 @@ class FRepEx( Frame ):
     def createMainKeyboardBindings( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createMainKeyboardBindings()") )
+        vPrint( 'Never', debuggingThisModule, _("createMainKeyboardBindings()…") )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
@@ -1020,8 +1009,7 @@ class FRepEx( Frame ):
         """
         Set (or clear) the status bar text.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
+        vPrint( 'Never', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
 
         #vPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
@@ -1040,8 +1028,7 @@ class FRepEx( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
+        vPrint( 'Never', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1054,8 +1041,7 @@ class FRepEx( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
+        vPrint( 'Never', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1615,7 +1601,7 @@ class FRepEx( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #vPrint( 'Never', debuggingThisModule, _("doViewSettings()") )
+            #vPrint( 'Never', debuggingThisModule, _("doViewSettings()…") )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1635,7 +1621,7 @@ class FRepEx( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        vPrint( 'Never', debuggingThisModule, _("doViewLog()") )
+        vPrint( 'Never', debuggingThisModule, _("doViewLog()…") )
             if debuggingThisModule: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -1658,8 +1644,7 @@ class FRepEx( Frame ):
         """
         Pop-up dialog giving goto/reference info.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("FRepEx.doGotoInfo( {} )").format( event ) )
+        vPrint( 'Never', debuggingThisModule, _("FRepEx.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1684,7 +1669,7 @@ class FRepEx( Frame ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()…") )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1709,7 +1694,7 @@ class FRepEx( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()…") )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1727,8 +1712,7 @@ class FRepEx( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("doAbout()") )
+        vPrint( 'Never', debuggingThisModule, _("doAbout()…") )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -1742,7 +1726,7 @@ class FRepEx( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()…") )
         #self.notWrittenYet()
     ## end of FRepEx.doProjectClose
 
@@ -1759,8 +1743,7 @@ class FRepEx( Frame ):
         """
         Save files first, and then close child windows.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("FRepEx.doCloseMyChildWindows()") )
+        vPrint( 'Never', debuggingThisModule, _("FRepEx.doCloseMyChildWindows()…") )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():
@@ -1791,8 +1774,7 @@ class FRepEx( Frame ):
         """
         Save files first, and then end the application.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("FRepEx.doCloseMe()") )
+        vPrint( 'Never', debuggingThisModule, _("FRepEx.doCloseMe()…") )
         elif BibleOrgSysGlobals.verbosityLevel > 0:
             vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
@@ -1838,8 +1820,8 @@ def briefDemo() -> None:
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
     application = FRepEx( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage, settings )
@@ -1873,8 +1855,8 @@ def fullDemo() -> None:
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
     application = FRepEx( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage, settings )
@@ -1888,6 +1870,7 @@ def fullDemo() -> None:
     # Start the program running
     tkRootWindow.mainloop()
 # end of FRepEx.fullDemo
+
 
 def main( homeFolderpath, loggingFolderpath ) -> None:
     """
@@ -1958,8 +1941,8 @@ def run() -> None:
     # Configure basic set-up
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
     # if homeFolderpath[-1] not in '/\\': homeFolderpath += '/'
-    # loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    loggingFolderpath = homeFolderpath.joinpath( DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    # loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    loggingFolderpath = homeFolderpath.joinpath( DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )

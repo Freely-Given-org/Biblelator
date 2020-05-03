@@ -56,7 +56,7 @@ if __name__ == '__main__':
 from Biblelator.BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
 
 
-LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+LAST_MODIFIED_DATE = '2020-05-03' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorHelpers"
 PROGRAM_NAME = "Biblelator helpers"
 PROGRAM_VERSION = '0.46'
@@ -101,9 +101,9 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
             Versification: 'KJV'
             Version: 'KJV1611'
     """
-    from BibleVersificationSystems import BibleVersificationSystem
-    from InternalBible import OT39_BOOKLIST, NT27_BOOKLIST
-    from InternalBibleInternals import BOS_ALL_ADDED_MARKERS
+    from BibleOrgSys.Reference.BibleVersificationSystems import BibleVersificationSystem
+    from BibleOrgSys.Internals.InternalBible import OT39_BOOKLIST, NT27_BOOKLIST
+    from BibleOrgSys.Internals.InternalBibleInternals import BOS_ALL_ADDED_MARKERS
     from BibleOrgSys.Formats.USFMBible import USFMBible
 
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -235,8 +235,7 @@ def mapReferenceVerseKey( mainVerseKey ):
         }
 
     if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+        vPrint( 'Never', debuggingThisModule, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
         return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferenceVerseKey
 
@@ -254,8 +253,7 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
         SimpleVerseKey('MAT','3','13'): (SimpleVerseKey('MRK','1','9'), SimpleVerseKey('LUK','3','21'), SimpleVerseKey('JHN','1','31') )
         }
     if mainVerseKey in parallelVerseKeyDict:
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, '  returning {}'.format( parallelVerseKeyDict[mainVerseKey][groupIndex].getShortText() ) )
+        vPrint( 'Never', debuggingThisModule, '  returning {}'.format( parallelVerseKeyDict[mainVerseKey][groupIndex].getShortText() ) )
         return parallelVerseKeyDict[mainVerseKey][groupIndex]
 # end of BiblelatorHelpers.mapParallelVerseKey
 
@@ -318,8 +316,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         Given some verse data (a string or an InternalBibleEntryList
             returns True or False whether a section heading is found in it
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "sectionFoundIn( {!r} )".format( verseData ) )
+        vPrint( 'Never', debuggingThisModule, "sectionFoundIn( {!r} )".format( verseData ) )
 
         if verseData is None: return False
 

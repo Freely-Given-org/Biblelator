@@ -43,6 +43,7 @@ from tkinter.filedialog import Open, Directory, askopenfilename #, SaveAs
 from tkinter.ttk import Style, Frame, Button, Label
 
 # BibleOrgSys imports
+sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
@@ -56,14 +57,15 @@ from BibleOrgSys.Formats.PTX7Bible import PTX7Bible, loadPTX7ProjectData
 from BibleOrgSys.Formats.PTX8Bible import PTX8Bible, loadPTX8ProjectData
 from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
 
+# Biblelator imports
 if __name__ == '__main__':
     aboveFolderpath = os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) )
     if aboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveFolderpath )
-# Biblelator imports
-from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, tkSTART, tkBREAK, errorBeep, \
+from Biblelator.BiblelatorGlobals import APP_NAME, \
+        DEFAULT, tkSTART, tkBREAK, errorBeep, \
         DATAFILES_FOLDERPATH, \
-        DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
+        DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         INITIAL_MAIN_SIZE, INITIAL_MAIN_SIZE_DEBUG, MAX_RECENT_FILES, \
         BIBLE_GROUP_CODES, MAX_PSEUDOVERSES, \
         DEFAULT_KEY_BINDING_DICT, \
@@ -96,7 +98,7 @@ from Biblelator.Apps.BOSManager import openBOSManager
 from Biblelator.Apps.SwordManager import openSwordManager
 
 
-LAST_MODIFIED_DATE = '2020-04-30' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LAST_MODIFIED_DATE = '2020-05-03' # by RJH -- note that this isn't necessarily the displayed date at start-up
 SHORT_PROGRAM_NAME = "Biblelator"
 PROGRAM_NAME = "Biblelator"
 PROGRAM_VERSION = '0.46' # This is the version number displayed on the start-up screen
@@ -210,7 +212,7 @@ class Application( Frame ):
 
         # Set default folders
         self.lastFileDir = '.'
-        self.lastBiblelatorFileDir = self.homeFolderpath.joinpath( DATA_FOLDER_NAME )
+        self.lastBiblelatorFileDir = self.homeFolderpath.joinpath( DATA_SUBFOLDER_NAME )
         trySwordFolder = self.homeFolderpath.joinpath( '.sword/' )
         if not os.path.isdir( trySwordFolder ): trySwordFolder = self.homeFolderpath
         self.lastSwordDir = trySwordFolder
@@ -244,7 +246,7 @@ class Application( Frame ):
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
-        self.settings = ApplicationSettings( self.homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        self.settings = ApplicationSettings( self.homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         self.settings.loadINI()
         parseAndApplySettings( self )
         if PROGRAM_NAME not in self.settings.data or 'windowSize' not in self.settings.data[PROGRAM_NAME] or 'windowPosition' not in self.settings.data[PROGRAM_NAME]:
@@ -1335,10 +1337,9 @@ class Application( Frame ):
 
         hadError = False
         import urllib.request
-        site = 'Freely-Given.org'
         # NOTE: needs to be https eventually!!!
         indexString = None
-        url = 'http://{}/Software/Biblelator/DevMsg/DevMsg.idx'.format( site )
+        url = f'{BibleOrgSysGlobals.SUPPORT_SITE_URL}Software/Biblelator/DevMsg/DevMsg.idx'
         try:
             with urllib.request.urlopen( url ) as response:
                 indexData = response.read() # a `bytes` object
@@ -1782,12 +1783,12 @@ class Application( Frame ):
         #requestedFolder = askdirectory()
         #if requestedFolder:
         #requestedFolder = None
-        self.openBibleLexiconResourceWindow( lexiconPath=None )
+        self.openBibleLexiconResourceWindow()
         #self.addRecentFile( ('',requestedFolder,'BibleLexiconResourceWindow') )
         #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
     # end of Application.doOpenBibleLexiconResourceWindow
 
-    def openBibleLexiconResourceWindow( self, lexiconPath, windowGeometry=None ):
+    def openBibleLexiconResourceWindow( self, windowGeometry=None ):
         """
         Create the actual requested local/internal Bible lexicon resource window.
 
@@ -1797,8 +1798,7 @@ class Application( Frame ):
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openBibleLexiconResourceWindow…" )
 
         self.setWaitStatus( _("openBibleLexiconResourceWindow…") )
-        if lexiconPath is None: lexiconPath = '../'
-        bLRW = BibleLexiconResourceWindow( self, lexiconPath )
+        bLRW = BibleLexiconResourceWindow( self )
         if windowGeometry: bLRW.geometry( windowGeometry )
         if bLRW.BibleLexicon is None:
             logging.critical( "Application.openBibleLexiconResourceWindow: " + _("Unable to open Bible lexicon resource {!r}").format( lexiconPath ) )
@@ -2125,11 +2125,11 @@ class Application( Frame ):
             return
         if gnpn.result: # This is a dictionary
             projName, projAbbrev = gnpn.result['Name'], gnpn.result['Abbreviation']
-            newFolderpath = os.path.join( self.homeFolderpath, DATA_FOLDER_NAME, projAbbrev )
+            newFolderpath = os.path.join( self.homeFolderpath, DATA_SUBFOLDER_NAME, projAbbrev )
             vPrint( 'Quiet', debuggingThisModule, '\n\n\nFP doStartNewProject', repr(newFolderpath) )
             if os.path.isdir( newFolderpath ):
                 showError( self, _("New Project"), _("Sorry, we already have a {!r} project folder in {}") \
-                                            .format( projAbbrev, os.path.join( self.homeFolderpath, DATA_FOLDER_NAME ) ) )
+                                            .format( projAbbrev, os.path.join( self.homeFolderpath, DATA_SUBFOLDER_NAME ) ) )
                 self.setReadyStatus()
                 return None
             os.mkdir( newFolderpath )
@@ -2967,7 +2967,7 @@ class Application( Frame ):
     # end of Application.selectGroupE
 
 
-    #def getNumVerses( self, BBB, C ):
+    #def getNumVerses( self, BBB:str, C ):
         #"""
         #Find the number of verses in this chapter (in the generic BOS)
         #"""
@@ -4170,8 +4170,8 @@ def briefDemo() -> None:
     tkRootWindow.title( programNameVersion )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
     application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )
@@ -4200,8 +4200,8 @@ def fullDemo() -> None:
     tkRootWindow.title( programNameVersion )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
     application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )
@@ -4215,6 +4215,7 @@ def fullDemo() -> None:
     # Start the program running
     tkRootWindow.mainloop()
 # end of Biblelator.fullDemo
+
 
 def main( homeFolderpath, loggingFolderpath ) -> None:
     """
@@ -4293,7 +4294,7 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         #halt
 
     if os.path.exists( LOCK_FILENAME ): # perhaps the program crashed last time
-        handlePossibleCrash( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME )
+        handlePossibleCrash( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME )
 
     # Create the lock file on normal startup
     with open( LOCK_FILENAME, 'wt' ) as lockFile:
@@ -4332,7 +4333,7 @@ def run() -> None:
     # Configure basic set-up
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
     # if str(homeFolderpath)[-1] not in '/\\': homeFolderpath += '/'
-    loggingFolderpath = homeFolderpath.joinpath( DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    loggingFolderpath = homeFolderpath.joinpath( DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )

@@ -58,7 +58,7 @@ if __name__ == '__main__':
         sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator.BiblelatorGlobals import DEFAULT, tkSTART, MAX_PSEUDOVERSES, errorBeep, \
         DATAFILES_FOLDERPATH, \
-        DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
+        DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
         DEFAULT_KEY_BINDING_DICT, \
         parseWindowGeometry, assembleWindowGeometryFromList, centreWindow, \
         parseWindowSize
@@ -110,8 +110,7 @@ class BOSManager( Frame ):
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
+        vPrint( 'Never', debuggingThisModule, _("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
         self.parentApp = self # Yes, that's me, myself!
         self.starting = True
@@ -178,7 +177,7 @@ class BOSManager( Frame ):
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
-        #self.settings = ApplicationSettings( self.homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
+        #self.settings = ApplicationSettings( self.homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         #self.settings.load()
         #parseAndApplySettings( self )
         if not self.settings or PROGRAM_NAME not in self.settings.data or 'windowSize' not in self.settings.data[PROGRAM_NAME] or 'windowPosition' not in self.settings.data[PROGRAM_NAME]:
@@ -215,8 +214,7 @@ class BOSManager( Frame ):
         We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
+        vPrint( 'Never', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -251,8 +249,7 @@ class BOSManager( Frame ):
     def createNormalMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createNormalMenuBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createNormalMenuBar()…") )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -337,22 +334,21 @@ class BOSManager( Frame ):
         helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
     # end of BOSManager.createNormalMenuBar
 
-    def createTouchMenuBar( self ):
+    def createTouchMenuBar( self ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createTouchMenuBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createTouchMenuBar()…") )
+        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.touchMode
 
         self.createNormalMenuBar()
     # end of BOSManager.createTouchMenuBar
 
 
-    def createNormalNavigationBar( self ):
+    def createNormalNavigationBar( self ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createNormalNavigationBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createNormalNavigationBar()…") )
 
         return
 
@@ -458,11 +454,11 @@ class BOSManager( Frame ):
         navigationBar.pack( side=tk.TOP, fill=tk.X )
     # end of BOSManager.createNormalNavigationBar
 
-    def createTouchNavigationBar( self ):
+    def createTouchNavigationBar( self ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createTouchNavigationBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createTouchNavigationBar()…") )
+        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.touchMode
 
         return
@@ -590,8 +586,7 @@ class BOSManager( Frame ):
         """
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
 
         return
 
@@ -619,8 +614,7 @@ class BOSManager( Frame ):
     def createNotebook( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createToolBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
 
         self.notebook = Notebook( self )
 
@@ -928,8 +922,7 @@ class BOSManager( Frame ):
         """
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createDebugToolBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createDebugToolBar()…") )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -950,8 +943,7 @@ class BOSManager( Frame ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createStatusBar()") )
+        vPrint( 'Never', debuggingThisModule, _("createStatusBar()…") )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -970,8 +962,7 @@ class BOSManager( Frame ):
     def createMainKeyboardBindings( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("createMainKeyboardBindings()") )
+        vPrint( 'Never', debuggingThisModule, _("createMainKeyboardBindings()…") )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
@@ -1018,8 +1009,7 @@ class BOSManager( Frame ):
         """
         Set (or clear) the status bar text.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
+        vPrint( 'Never', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
 
         #vPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
@@ -1038,8 +1028,7 @@ class BOSManager( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
+        vPrint( 'Never', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1052,8 +1041,7 @@ class BOSManager( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
+        vPrint( 'Never', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1613,7 +1601,7 @@ class BOSManager( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #vPrint( 'Never', debuggingThisModule, _("doViewSettings()") )
+            #vPrint( 'Never', debuggingThisModule, _("doViewSettings()…") )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1633,7 +1621,7 @@ class BOSManager( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        vPrint( 'Never', debuggingThisModule, _("doViewLog()") )
+        vPrint( 'Never', debuggingThisModule, _("doViewLog()…") )
         if debuggingThisModule: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -1656,8 +1644,7 @@ class BOSManager( Frame ):
         """
         Pop-up dialog giving goto/reference info.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.doGotoInfo( {} )").format( event ) )
+        vPrint( 'Never', debuggingThisModule, _("BOSManager.doGotoInfo( {} )").format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1682,7 +1669,7 @@ class BOSManager( Frame ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()…") )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1707,7 +1694,7 @@ class BOSManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()") )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()…") )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1725,8 +1712,7 @@ class BOSManager( Frame ):
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("doAbout()") )
+        vPrint( 'Never', debuggingThisModule, _("doAbout()…") )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -1740,7 +1726,7 @@ class BOSManager( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()") )
+        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()…") )
         #self.notWrittenYet()
     ## end of BOSManager.doProjectClose
 
@@ -1757,8 +1743,7 @@ class BOSManager( Frame ):
         """
         Save files first, and then close child windows.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.doCloseMyChildWindows()") )
+        vPrint( 'Never', debuggingThisModule, _("BOSManager.doCloseMyChildWindows()…") )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():
@@ -1789,10 +1774,8 @@ class BOSManager( Frame ):
         """
         Save files first, and then end the application.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, _("BOSManager.doCloseMe()") )
-        elif BibleOrgSysGlobals.verbosityLevel > 0:
-            vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
+        vPrint( 'Never', debuggingThisModule, _("BOSManager.doCloseMe()…") )
+        vPrint( 'Never', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -1836,8 +1819,8 @@ def briefDemo() -> None:
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
     application = BOSManager( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage, settings )
@@ -1871,8 +1854,8 @@ def fullDemo() -> None:
     tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
-    loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    settings = ApplicationSettings( homeFolderpath, DATA_FOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
+    loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    settings = ApplicationSettings( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     settings.load()
 
     application = BOSManager( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage, settings )
@@ -1886,6 +1869,7 @@ def fullDemo() -> None:
     # Start the program running
     tkRootWindow.mainloop()
 # end of BOSManager.fullDemo
+
 
 def main( homeFolderpath, loggingFolderpath ) -> None:
     """
@@ -1956,8 +1940,8 @@ def run() -> None:
     # Configure basic set-up
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
     # if homeFolderpath[-1] not in '/\\': homeFolderpath += '/'
-    # loggingFolderpath = os.path.join( homeFolderpath, DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
-    loggingFolderpath = homeFolderpath.joinpath( DATA_FOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    # loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
+    loggingFolderpath = homeFolderpath.joinpath( DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )

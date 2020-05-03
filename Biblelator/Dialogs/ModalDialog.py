@@ -28,6 +28,8 @@
 Framework for modal dialogs for the Biblelator program.
 """
 from gettext import gettext as _
+from typing import Optional
+
 import tkinter as tk
 from tkinter.ttk import Frame, Button
 
@@ -38,12 +40,13 @@ from BibleOrgSys.BibleOrgSysGlobals import vPrint
 # Biblelator imports
 if __name__ == '__main__':
     import sys
+    import os
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
 
 
-LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+LAST_MODIFIED_DATE = '2020-05-03' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorModalDialog"
 PROGRAM_NAME = "Biblelator Modal Dialog"
 PROGRAM_VERSION = '0.46'
@@ -58,7 +61,7 @@ class ModalDialog( tk.Toplevel ):
     A Toplevel window that's a modal dialog
         and intended to be subclassed.
     """
-    def __init__(self, parentWindow, title=None, okText=None, cancelText=None, geometry=None):
+    def __init__(self, parentWindow, title:Optional[str]=None, okText:Optional[str]=None, cancelText:Optional[str]=None, geometry=None) -> None:
 
         tk.Toplevel.__init__( self, parentWindow )
         self.transient( parentWindow )
@@ -94,17 +97,17 @@ class ModalDialog( tk.Toplevel ):
 
 
     # construction hooks
-    def makeBody( self, master ):
+    def makeBody( self, master ) -> None:
         """
         Create dialog body -- this method must be overridden.
 
         Returns the widget that should have initial focus.
         """
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "This 'body' method must be overridden!" ); halt
+        vPrint( 'Normal', debuggingThisModule, "This 'body' method must be overridden!" ); halt
     # end of ModalDialog.makeBody
 
 
-    def makeButtonBox( self ):
+    def makeButtonBox( self ) -> None:
         """
         Add our standard button box
 
@@ -126,7 +129,7 @@ class ModalDialog( tk.Toplevel ):
 
     #
     # standard button semantics
-    def ok( self, event=None ):
+    def ok( self, event=None ) -> None:
 
         if not self.validate():
             self.initial_focus.focus_set() # put focus back
@@ -140,7 +143,7 @@ class ModalDialog( tk.Toplevel ):
     # end of ModalDialog.ok
 
 
-    def cancel( self, event=None ):
+    def cancel( self, event=None ) -> None:
 
         # put focus back to the parent window
         self.parentWindow.parentApp.setReadyStatus()
@@ -151,7 +154,7 @@ class ModalDialog( tk.Toplevel ):
 
     #
     # command hooks
-    def validate( self ):
+    def validate( self ) -> bool:
         """
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
@@ -161,7 +164,7 @@ class ModalDialog( tk.Toplevel ):
     # end of ModalDialog.validate
 
 
-    def apply( self ):
+    def apply( self ) -> None:
         """
         This method is designed to be overridden
             and is called to obtain the entered data after the window is destroyed.
@@ -197,7 +200,7 @@ class MyTestDialog( ModalDialog ):
     # end of MyTestDialog.apply
 
 
-    def validate( self ):
+    def validate( self ) -> bool:
         """
         Override the empty ModalDialog.validate function
             to check that the results are how we need them.
@@ -210,7 +213,7 @@ class MyTestDialog( ModalDialog ):
     # end of MyTestDialog.validate
 
 
-    def apply( self ):
+    def apply( self ) -> None:
         """
         Override the empty ModalDialog.apply function
             to process the results how we need them.

@@ -33,6 +33,11 @@ import logging
 import tkinter as tk
 from tkinter.ttk import Style, Frame, Button
 
+# BibleOrgSys imports
+from BibleOrgSys import BibleOrgSysGlobals
+from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.OriginalLanguages.BibleLexicon import BibleLexicon
+
 # Biblelator imports
 if __name__ == '__main__':
     import sys
@@ -43,14 +48,9 @@ from Biblelator.BiblelatorGlobals import tkBREAK
 from Biblelator.Windows.TextBoxes import HTMLTextBox, ChildBoxAddon
 from Biblelator.Windows.ChildWindows import ChildWindow
 
-# BibleOrgSys imports
-from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
-from BibleOrgSys.OriginalLanguages.BibleLexicon import BibleLexicon
 
 
-
-LAST_MODIFIED_DATE = '2020-04-13' # by RJH
+LAST_MODIFIED_DATE = '2020-05-03' # by RJH
 SHORT_PROGRAM_NAME = "LexiconResourceWindows"
 PROGRAM_NAME = "Biblelator Lexicon Resource Windows"
 PROGRAM_VERSION = '0.46'
@@ -63,17 +63,15 @@ debuggingThisModule = False
 class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     """
     """
-    def __init__( self, parentApp, lexiconPath=None ):
+    def __init__( self, parentApp ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.__init__( {}, {} )".format( parentApp, lexiconPath ) )
-        self.lexiconPath = lexiconPath
+        vPrint( 'Quiet', debuggingThisModule, f"BibleLexiconResourceWindow.__init__( {parentApp} )…" )
         self.lexiconWord = None
 
         ChildWindow.__init__( self, parentApp, 'LexiconResource' )
         ChildBoxAddon.__init__( self, parentApp )
-        self.moduleID = self.lexiconPath
+        self.moduleID = 'BibleLexicon'
         self.windowType = 'BibleLexiconResourceWindow'
 
         # Make our own textBox
@@ -89,24 +87,24 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         #    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
 
 
-        try: self.BibleLexicon = BibleLexicon( os.path.join( self.lexiconPath, 'HebrewLexicon/' ), # Hebrew
-                                               os.path.join( self.lexiconPath, 'strongs-dictionary-xml/' ) ) # Greek
+        try: self.BibleLexicon = BibleLexicon()
+        #  os.path.join( self.lexiconPath, 'HebrewLexicon/' ), # Hebrew
+        #                                        os.path.join( self.lexiconPath, 'strongs-dictionary-xml/' ) ) # Greek
         except FileNotFoundError:
-            logging.critical( "BibleLexiconResourceWindow.__init__ " + _("Unable to find Bible lexicon path: {}").format( repr(self.lexiconPath) ) )
+            logging.critical( "BibleLexiconResourceWindow.__init__ " + _("Unable to find Bible lexicon path") )
             self.BibleLexicon = None
     # end of BibleLexiconResourceWindow.__init__
 
 
-    def refreshTitle( self ):
+    def refreshTitle( self ) -> None:
         self.title( "[{}] {}".format( repr(self.lexiconWord), _("Bible Lexicon") ) )
     # end if BibleLexiconResourceWindow.refreshTitle
 
 
-    def createMenuBar( self ):
+    def createMenuBar( self ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.createMenuBar()" )
+        vPrint( 'Never', debuggingThisModule, "BibleLexiconResourceWindow.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -165,12 +163,11 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     # end of BibleLexiconResourceWindow.createMenuBar
 
 
-    def createToolBar( self ):
+    def createToolBar( self ) -> None:
         """
         Create a tool bar containing some helpful buttons at the top of the main window.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "createToolBar()" )
+        vPrint( 'Never', debuggingThisModule, "createToolBar()" )
 
         xPad, yPad = (6, 8) if self.parentApp.touchMode else (4, 4)
 
@@ -190,7 +187,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     # end of BibleLexiconResourceWindow.createToolBar
 
 
-    def doGotoPreviousEntry( self ):
+    def doGotoPreviousEntry( self ) -> None:
         """
         """
         if BibleOrgSysGlobals.debugFlag:
@@ -207,7 +204,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     # end of BibleResourceWindow.doGotoPreviousEntry
 
 
-    def doGotoNextEntry( self ):
+    def doGotoNextEntry( self ) -> None:
         """
         """
         if BibleOrgSysGlobals.debugFlag:
@@ -224,7 +221,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     # end of BibleResourceWindow.doGotoNextEntry
 
 
-    def updateLexiconWord( self, newLexiconWord ):
+    def updateLexiconWord( self, newLexiconWord:str ) -> None:
         """
         Leaves text box in disabled state. (Not user editable.)
         """
@@ -235,22 +232,19 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         if self.BibleLexicon is None:
             self.textBox.insert( tk.END, "<p>No lexicon loaded so can't display entry for {}.</p>".format( repr(newLexiconWord) ) )
         else:
-            self.textBox.insert( tk.END, "<h1>Entry for {}</h1>".format( repr(newLexiconWord) ) )
-            #txt = self.BibleLexicon.getEntryData( self.lexiconWord )
-            #if txt: self.textBox.insert( tk.END, '\n'+txt )
+            self.textBox.insert( tk.END, "<h1>Entry for '{}'</h1>".format( newLexiconWord ) )
             txt = self.BibleLexicon.getEntryHTML( self.lexiconWord )
-            if txt: self.textBox.insert( tk.END, '<p>'+txt+'</p>' )
+            if txt: self.textBox.insert( tk.END, f'<p>{txt}</p>' )
         self.textBox.configure( state=tk.DISABLED ) # Don't allow editing
         self.refreshTitle()
     # end of BibleLexiconResourceWindow.updateLexiconWord
 
 
-    def doHelp( self, event=None ):
+    def doHelp( self, event=None ) -> None:
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -263,12 +257,11 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     # end of BibleLexiconResourceWindow.doHelp
 
 
-    def doAbout( self, event=None ):
+    def doAbout( self, event=None ) -> None:
         """
         Display an about box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
+        vPrint( 'Never', debuggingThisModule, "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -297,6 +290,9 @@ def briefDemo() -> None:
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
+    # Program a shutdown
+    tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
+
     # Start the program running
     # tkRootWindow.mainloop()
 # end of LexiconResourceWindows.briefDemo
@@ -317,6 +313,9 @@ def fullDemo() -> None:
     # Calls to the window manager class (wm in Tk)
     #application.master.title( programNameVersion )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
+
+    # Program a shutdown
+    tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
 
     # Start the program running
     tkRootWindow.mainloop()
