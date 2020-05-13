@@ -69,7 +69,7 @@ from Biblelator.BiblelatorGlobals import APP_NAME
 from Biblelator.Settings.BiblelatorSettingsFunctions import SettingsVersion
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2020-05-08' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettings"
 PROGRAM_NAME = "Biblelator Settings"
 PROGRAM_VERSION = '0.46'
@@ -158,7 +158,7 @@ class Settings:
     # end of Settings.saveINI
 
 
-    def loadYAML( self ) -> None:
+    def loadYAML( self, yamlFilepath=None ) -> None:
         """
         Load the settings file (if we found it).
 
@@ -166,135 +166,16 @@ class Settings:
 
         Might still be fragile -- not fully debugged.
         """
-        import re
+        from BibleOrgSys.Formats.uWNotesBible import loadYAML
 
-        debuggingThisFunction = False
+        vPrint( 'Quiet', debuggingThisModule, f"Settings.loadYAML( {yamlFilepath} )…" )
+        if yamlFilepath is None: yamlFilepath = self.settingsFilepath
 
-        vPrint( 'Quiet', debuggingThisModule, f"Settings.loadYAML() from {self.settingsFilepath}" )
-
-        self.data = {}
-        if self.settingsFilepath and os.path.isfile( self.settingsFilepath ) and os.access( self.settingsFilepath, os.R_OK ):
-            with open( self.settingsFilepath, 'rt' ) as yamlFile:
-                state = None
-                indent = 2 # TODO: Really should deduce this number from the file
-                for j, line in enumerate( yamlFile, start=1 ):
-                    line = line.rstrip( '\n\r ' )
-                    if not line: continue
-                    if line.startswith( '#' ): continue # comment line
-                    if line == '---': state = 0; continue # start of table
-                    numLeadingSpaces = len(line) - len( line.lstrip( ' ' ) )
-                    if debuggingThisFunction: print( f'Line {j:3} State {state} numLS={numLeadingSpaces}: "{line}"' )
-
-                    # Check if we need to go back a level
-                    if numLeadingSpaces==0:
-                        if debuggingThisFunction: print( f"S-0: Returned to 0" )
-                        state = 0
-                    if numLeadingSpaces==indent:
-                        if debuggingThisFunction: print( f"S-1: Returned to 1" )
-                        state = 1
-
-                    if state == 0:
-                        match = re.match( r"([^ :]+?): ?'(.+?)'$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"0-0: 1={match.group(1)}' 2='{match.group(2)}'" )
-                            self.data[match.group(1)] = match.group(2); continue
-                        match = re.match( r"([^ :]+?): ?(\d+?)$", line )
-                        if match: self.data[match.group(1)] = int(match.group(2)); continue
-
-                        match = re.match( r"([^ :]+?):$", line )
-                        if match: key1 = match.group(1); state = 1; continue
-
-                    elif state == 1:
-                        if line == f"{' '*indent}-":
-                            if debuggingThisFunction: print( f"1-0: '{line}' with k1='{key1}'" )
-                            if key1 not in self.data: self.data[key1] = [{}]
-                            else:
-                                assert isinstance( self.data[key1], list )
-                                assert isinstance( self.data[key1][-1], dict )
-                                self.data[key1].append( {} )
-                            state = 3; continue
-                        match = re.match( rf"{' '*indent}([^ :]+?): ?'(.+?)'$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"1-1: 1={match.group(1)}' 2='{match.group(2)}'" )
-                            if key1 not in self.data: self.data[key1] = {}
-                            else: assert isinstance( self.data[key1], dict )
-                            self.data[key1][match.group(1)] = match.group(2); continue
-                        match = re.match( rf"{' '*indent}([^ :]+?): ?(\d+?)$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"1-2: 1={match.group(1)}' 2='{match.group(2)}'" )
-                            if key1 not in self.data: self.data[key1] = {}
-                            else: assert isinstance( self.data[key1], dict )
-                            self.data[key1][match.group(1)] = int(match.group(2)); continue
-
-                        match = re.match( rf"{' '*indent}([^ :]+?):$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"1-3: 1={match.group(1)}'" )
-                            if key1 not in self.data: self.data[key1] = {}
-                            key2 = match.group(1); state = 2; continue
-
-                    elif state == 2:
-                        if line == f"{' '*2*indent}-":
-                            if debuggingThisFunction: print( f"2-0: '{line}' with k1='{key1}' k2='{key2}'" )
-                            if key2 not in self.data[key1]:
-                                self.data[key1][key2] = [{}]
-                            else:
-                                assert isinstance( self.data[key1][key2], list )
-                                assert isinstance( self.data[key1][key2][-1], dict )
-                                self.data[key1][key2].append( {} )
-                            state = 4; continue
-                        match = re.match( rf"{' '*2*indent}([^ :]+?): ?'(.+?)'$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"2-1: 1={match.group(1)}' 2='{match.group(2)}'" )
-                            if key2 not in self.data[key1]: self.data[key1][key2] = {}
-                            else: assert isinstance( self.data[key1][key2], dict )
-                            self.data[key1][key2][match.group(1)] = match.group(2); continue
-                        match = re.match( rf"{' '*2*indent}([^ :]+?): ?(\d+?)$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"2-2: 1={match.group(1)}' 2='{match.group(2)}'" )
-                            if key2 not in self.data[key1]: self.data[key1][key2] = {}
-                            else: assert isinstance( self.data[key1][key2], dict )
-                            self.data[key1][key2][match.group(1)] = int(match.group(2)); continue
-                        match = re.match( rf"{' '*2*indent}- '(.+?)'$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"2-3: 1={match.group(1)}'" )
-                            if key2 not in self.data[key1]: self.data[key1][key2] = []
-                            else: assert isinstance( self.data[key1][key2], list )
-                            self.data[key1][key2].append( match.group(1) ); continue
-
-                    elif state == 3:
-                        if line == f"{' '*indent}-":
-                            if debuggingThisFunction: print( f"3-0: '{line}' with k1='{key1}'" )
-                            assert isinstance( self.data[key1], list )
-                            assert isinstance( self.data[key1][-1], dict )
-                            self.data[key1].append( {} )
-                            continue
-                        match = re.match( rf"{' '*2*indent}([^ :]+?): ?'(.+?)'$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"3-1: 1={match.group(1)}' 2='{match.group(2)}'" )
-                            if key1 not in self.data: self.data[key1] = [{}]
-                            else: assert isinstance( self.data[key1], list )
-                            self.data[key1][-1][match.group(1)] = match.group(2); continue
-
-                    elif state == 4:
-                        if line == f"{' '*2*indent}-":
-                            if debuggingThisFunction: print( f"4-0: '{line}' with k1='{key1}' k2='{key2}'" )
-                            assert isinstance( self.data[key1][key2], list )
-                            assert isinstance( self.data[key1][key2][-1], dict )
-                            self.data[key1][key2].append( {} )
-                            continue
-                        match = re.match( rf"{' '*3*indent}([^ :]+?): ?'(.+?)'$", line )
-                        if match:
-                            if debuggingThisFunction: print( f"4-1: 1={match.group(1)}' 2='{match.group(2)}'" )
-                            if key2 not in self.data[key1]: self.data[key1][key2] = [{}]
-                            else: assert isinstance( self.data[key1][key2], list )
-                            self.data[key1][key2][-1][match.group(1)] = match.group(2); continue
-        else:
-            logging.critical( f"loadYAML: Unable to load and YAML from {self.filepath}" )
-
+        self.data = loadYAML( yamlFilepath )
         # print( "\nSettings", len(self.data), self.data.keys() )
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            for section, value in self.data.items():
-                vPrint( 'Quiet', debuggingThisModule, f"  loadYAML.load: {section} = {value!r}" )
+        if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+            for j, (section,value) in enumerate( self.data.items(), start=1 ):
+                vPrint( 'Normal', debuggingThisModule, f"  Settings.loadYAML.load {j}: {section} = {value!r}" )
     #end of Settings.loadYAML
 # end of class Settings
 
@@ -450,8 +331,8 @@ class uWProjectSettings( Settings ):
         self.settingsFilepath = os.path.join( projectFolderpath, self.settingsFilename )
         if not os.path.isdir( self.projectFolderpath ):
             logging.critical( _("Project folder {} doesn't exist -- we'll try creating it!").format( self.projectFolderpath ) )
-            os.mkdir( self.projectFolderpath )
-        self.containingFolderpath, self.folderName = os.path.split( self.projectFolderpath )
+            # os.mkdir( self.projectFolderpath )
+        # self.containingFolderpath, self.folderName = os.path.split( self.projectFolderpath )
     # end of uWProjectSettings.__init__
 
 
@@ -535,9 +416,12 @@ def fullDemo() -> None:
     s = Settings()
     print( "New s", s )
 
-    s.settingsFilepath = '/mnt/SSDs/Bibles/English translations/unfoldingWordVersions/en_ust/manifest.yaml'
-    s.loadYAML()
-    print( "Filled s", s )
+    for filepath in ( '/mnt/SSDs/Bibles/English translations/unfoldingWordVersions/en_ust/manifest.yaml',
+                      '/mnt/SSDs/Bibles/unfoldingWordHelps/en_ta/intro/toc.yaml',
+                    ):
+        s.settingsFilepath = filepath
+        s.loadYAML()
+        print( "Filled s", s, len(s.data), s.data )
 # end of Settings.fullDemo
 
 if __name__ == '__main__':

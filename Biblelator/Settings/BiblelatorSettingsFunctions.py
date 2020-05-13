@@ -23,17 +23,14 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Program to allow editing of USFM Bibles using Python3 and Tkinter.
-
-"self" refers to a Biblelator Application instance.
-    parseAndApplySettings( self )
-    applyGivenWindowsSettings( self, givenWindowsSettingsName )
-    getCurrentChildWindowSettings( self )
-    saveNewWindowSetup( self )
-    deleteExistingWindowSetup( self )
-    viewSettings( self )
-    writeSettingsFile( self )
-    doSendUsageStatistics( self )
+    parseAndApplySettings()
+    applyGivenWindowsSettings( givenWindowsSettingsName )
+    getCurrentChildWindowSettings()
+    saveNewWindowSetup()
+    deleteExistingWindowSetup()
+    viewSettings()
+    writeSettingsFile()
+    doSendUsageStatistics()
     fullDemo()
 """
 from gettext import gettext as _
@@ -53,6 +50,7 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
+from Biblelator import BiblelatorGlobals
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, \
     DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
@@ -63,14 +61,14 @@ from Biblelator.Dialogs.BiblelatorDialogs import SaveWindowsLayoutNameDialog, De
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2020-05-10' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
 PROGRAM_VERSION = '0.46'
 SettingsVersion = '0.46' # Only need to change this if the settings format has changed
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = 99
+debuggingThisModule = False
 
 
 
@@ -95,18 +93,16 @@ def convertToPython( text ):
 
 
 
-def parseAndApplySettings( self ) -> None:
+def parseAndApplySettings() -> None:
     """
     Parse the settings out of the .INI file.
-
-    "self" refers to a Biblelator Application instance.
     """
     logging.info( "parseAndApplySettings()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "parseAndApplySettings()" )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "parseAndApplySettings…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "parseAndApplySettings…" )
 
-    def retrieveWindowsSettings( self, windowsSettingsName:str ):
+    def retrieveWindowsSettings( windowsSettingsName:str ):
         """
         Gets a certain windows settings from the settings (INI) file information
             and puts it into a dictionary.
@@ -117,8 +113,8 @@ def parseAndApplySettings( self ) -> None:
         """
         if BibleOrgSysGlobals.debugFlag:
             vPrint( 'Quiet', debuggingThisModule, "retrieveWindowsSettings( {} )".format( repr(windowsSettingsName) ) )
-            if debuggingThisModule: self.setDebugText( "retrieveWindowsSettings…" )
-        windowsSettingsFields = self.settings.data['WindowSetting'+windowsSettingsName]
+            if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "retrieveWindowsSettings…" )
+        windowsSettingsFields = BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingsName]
         resultDict = {}
         for j in range( 1, MAX_WINDOWS+1 ):
             winNumber = 'window{}'.format( j )
@@ -133,206 +129,204 @@ def parseAndApplySettings( self ) -> None:
 
     # Main code for parseAndApplySettings()
     # Parse main app stuff
-    #try: self.rootWindow.geometry( self.settings.data[APP_NAME]['windowGeometry'] )
+    #try: BiblelatorGlobals.theApp.rootWindow.geometry( BiblelatorGlobals.theApp.settings.data[APP_NAME]['windowGeometry'] )
     #except KeyError: vPrint( 'Quiet', debuggingThisModule, "KeyError1" ) # we had no geometry set
     #except tk.TclError: logging.critical( "Application.__init__: Bad window geometry in settings file: {}".format( settings.data[APP_NAME]['windowGeometry'] ) )
     try:
-        windowSize = self.settings.data[APP_NAME]['windowSize'] if 'windowSize' in self.settings.data[APP_NAME] else None
-        windowPosition = self.settings.data[APP_NAME]['windowPosition'] if 'windowPosition' in self.settings.data[APP_NAME] else None
+        windowSize = BiblelatorGlobals.theApp.settings.data[APP_NAME]['windowSize'] if 'windowSize' in BiblelatorGlobals.theApp.settings.data[APP_NAME] else None
+        windowPosition = BiblelatorGlobals.theApp.settings.data[APP_NAME]['windowPosition'] if 'windowPosition' in BiblelatorGlobals.theApp.settings.data[APP_NAME] else None
         if 0 and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "main window settings (across/down from ini file) size", repr(windowSize), "pos", repr(windowPosition) )
         if windowSize and windowPosition:
-            self.update() # Make sure that the window has finished being created
-            self.rootWindow.geometry( windowSize + '+' + windowPosition )
+            BiblelatorGlobals.theApp.update() # Make sure that the window has finished being created
+            BiblelatorGlobals.theApp.rootWindow.geometry( windowSize + '+' + windowPosition )
         else: logging.warning( "Settings.KeyError: no windowSize & windowPosition" )
     except KeyError: pass # no [APP_NAME] entries
 
-    try: self.minimumSize = self.settings.data[APP_NAME]['minimumSize']
-    except KeyError: self.minimumSize = MINIMUM_MAIN_SIZE
-    self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
-    try: self.maximumSize = self.settings.data[APP_NAME]['maximumSize']
-    except KeyError: self.maximumSize = MAXIMUM_MAIN_SIZE
-    self.rootWindow.maxsize( *parseWindowSize( self.maximumSize ) )
+    try: BiblelatorGlobals.theApp.minimumSize = BiblelatorGlobals.theApp.settings.data[APP_NAME]['minimumSize']
+    except KeyError: BiblelatorGlobals.theApp.minimumSize = MINIMUM_MAIN_SIZE
+    BiblelatorGlobals.theApp.rootWindow.minsize( *parseWindowSize( BiblelatorGlobals.theApp.minimumSize ) )
+    try: BiblelatorGlobals.theApp.maximumSize = BiblelatorGlobals.theApp.settings.data[APP_NAME]['maximumSize']
+    except KeyError: BiblelatorGlobals.theApp.maximumSize = MAXIMUM_MAIN_SIZE
+    BiblelatorGlobals.theApp.rootWindow.maxsize( *parseWindowSize( BiblelatorGlobals.theApp.maximumSize ) )
     if 0 and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "  apply min", repr(self.minimumSize), repr(parseWindowSize(self.minimumSize)), "max", repr(self.maximumSize), repr(parseWindowSize(self.maximumSize)) )
+        vPrint( 'Quiet', debuggingThisModule, "  apply min", repr(BiblelatorGlobals.theApp.minimumSize), repr(parseWindowSize(BiblelatorGlobals.theApp.minimumSize)), "max", repr(BiblelatorGlobals.theApp.maximumSize), repr(parseWindowSize(BiblelatorGlobals.theApp.maximumSize)) )
 
-    try: self.doChangeTheme( self.settings.data[APP_NAME]['themeName'] )
+    try: BiblelatorGlobals.theApp.doChangeTheme( BiblelatorGlobals.theApp.settings.data[APP_NAME]['themeName'] )
     except KeyError: logging.warning( "Settings.KeyError: no themeName" )
 
     # Parse Interface stuff
-    try: self.interfaceLanguage = self.settings.data['Interface']['interfaceLanguage']
-    except KeyError: self.interfaceLanguage = DEFAULT
-    if BibleOrgSysGlobals.debugFlag: assert self.interfaceLanguage in ( DEFAULT, )
-    try: self.interfaceComplexity = self.settings.data['Interface']['interfaceComplexity']
-    except KeyError: self.interfaceComplexity = DEFAULT
-    if BibleOrgSysGlobals.debugFlag: assert self.interfaceComplexity in ( DEFAULT, 'Basic', 'Advanced', )
-    try: self.touchMode = convertToPython( self.settings.data['Interface']['touchMode'] )
-    except KeyError: self.touchMode = False
-    if BibleOrgSysGlobals.debugFlag: assert self.touchMode in ( False, True )
-    try: self.tabletMode = convertToPython( self.settings.data['Interface']['tabletMode'] )
-    except KeyError: self.tabletMode = False
-    if BibleOrgSysGlobals.debugFlag: assert self.tabletMode in ( False, True )
-    try: self.showDebugMenu = convertToPython( self.settings.data['Interface']['showDebugMenu'] )
-    except KeyError: self.showDebugMenu = False
-    if BibleOrgSysGlobals.debugFlag: assert self.showDebugMenu in ( False, True )
+    try: BiblelatorGlobals.theApp.interfaceLanguage = BiblelatorGlobals.theApp.settings.data['Interface']['interfaceLanguage']
+    except KeyError: BiblelatorGlobals.theApp.interfaceLanguage = DEFAULT
+    if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.interfaceLanguage in ( DEFAULT, )
+    try: BiblelatorGlobals.theApp.interfaceComplexity = BiblelatorGlobals.theApp.settings.data['Interface']['interfaceComplexity']
+    except KeyError: BiblelatorGlobals.theApp.interfaceComplexity = DEFAULT
+    if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.interfaceComplexity in ( DEFAULT, 'Basic', 'Advanced', )
+    try: BiblelatorGlobals.theApp.touchMode = convertToPython( BiblelatorGlobals.theApp.settings.data['Interface']['touchMode'] )
+    except KeyError: BiblelatorGlobals.theApp.touchMode = False
+    if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.touchMode in ( False, True )
+    try: BiblelatorGlobals.theApp.tabletMode = convertToPython( BiblelatorGlobals.theApp.settings.data['Interface']['tabletMode'] )
+    except KeyError: BiblelatorGlobals.theApp.tabletMode = False
+    if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.tabletMode in ( False, True )
+    try: BiblelatorGlobals.theApp.showDebugMenu = convertToPython( BiblelatorGlobals.theApp.settings.data['Interface']['showDebugMenu'] )
+    except KeyError: BiblelatorGlobals.theApp.showDebugMenu = False
+    if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.showDebugMenu in ( False, True )
 
     # Parse Internet stuff
     try:
-        internetAccessString = self.settings.data['Internet']['internetAccess']
-        self.internetAccessEnabled = internetAccessString == 'Enabled'
-    except KeyError: self.internetAccessEnabled = False # default
+        internetAccessString = BiblelatorGlobals.theApp.settings.data['Internet']['internetAccess']
+        BiblelatorGlobals.theApp.internetAccessEnabled = internetAccessString == 'Enabled'
+    except KeyError: BiblelatorGlobals.theApp.internetAccessEnabled = False # default
     try:
-        fastString = self.settings.data['Internet']['internetFast']
-        self.internetFast = fastString.lower() in ('true' ,'yes',)
-    except KeyError: self.internetFast = True # default
+        fastString = BiblelatorGlobals.theApp.settings.data['Internet']['internetFast']
+        BiblelatorGlobals.theApp.internetFast = fastString.lower() in ('true' ,'yes',)
+    except KeyError: BiblelatorGlobals.theApp.internetFast = True # default
     try:
-        expensiveString = self.settings.data['Internet']['internetExpensive']
-        self.internetExpensive = expensiveString.lower() in ('true' ,'yes',)
-    except KeyError: self.internetExpensive = True # default
+        expensiveString = BiblelatorGlobals.theApp.settings.data['Internet']['internetExpensive']
+        BiblelatorGlobals.theApp.internetExpensive = expensiveString.lower() in ('true' ,'yes',)
+    except KeyError: BiblelatorGlobals.theApp.internetExpensive = True # default
     try:
-        cloudBackupsString = self.settings.data['Internet']['cloudBackups']
-        self.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
-    except KeyError: self.cloudBackupsEnabled = True # default
+        cloudBackupsString = BiblelatorGlobals.theApp.settings.data['Internet']['cloudBackups']
+        BiblelatorGlobals.theApp.cloudBackupsEnabled = cloudBackupsString == 'Enabled'
+    except KeyError: BiblelatorGlobals.theApp.cloudBackupsEnabled = True # default
     try:
-        checkForMessagesString = self.settings.data['Internet']['checkForDeveloperMessages']
-        self.checkForDeveloperMessagesEnabled = checkForMessagesString == 'Enabled'
-    except KeyError: self.checkForDeveloperMessagesEnabled = True # default
+        checkForMessagesString = BiblelatorGlobals.theApp.settings.data['Internet']['checkForDeveloperMessages']
+        BiblelatorGlobals.theApp.checkForDeveloperMessagesEnabled = checkForMessagesString == 'Enabled'
+    except KeyError: BiblelatorGlobals.theApp.checkForDeveloperMessagesEnabled = True # default
     try:
-        lastMessageNumberString = self.settings.data['Internet']['lastMessageNumberRead']
-        self.lastMessageNumberRead = int( lastMessageNumberString )
-    except (KeyError, ValueError): self.lastMessageNumberRead = 0
+        lastMessageNumberString = BiblelatorGlobals.theApp.settings.data['Internet']['lastMessageNumberRead']
+        BiblelatorGlobals.theApp.lastMessageNumberRead = int( lastMessageNumberString )
+    except (KeyError, ValueError): BiblelatorGlobals.theApp.lastMessageNumberRead = 0
     else:
-        if self.lastMessageNumberRead < 0: self.lastMessageNumberRead = 0 # Handle errors in ini file
+        if BiblelatorGlobals.theApp.lastMessageNumberRead < 0: BiblelatorGlobals.theApp.lastMessageNumberRead = 0 # Handle errors in ini file
     try:
-        sendUsageStatisticsString = self.settings.data['Internet']['sendUsageStatistics']
-        self.sendUsageStatisticsEnabled = sendUsageStatisticsString == 'Enabled'
-    except KeyError: self.sendUsageStatisticsEnabled = True # default
+        sendUsageStatisticsString = BiblelatorGlobals.theApp.settings.data['Internet']['sendUsageStatistics']
+        BiblelatorGlobals.theApp.sendUsageStatisticsEnabled = sendUsageStatisticsString == 'Enabled'
+    except KeyError: BiblelatorGlobals.theApp.sendUsageStatisticsEnabled = True # default
     try:
-        automaticUpdatesString = self.settings.data['Internet']['automaticUpdates']
-        self.automaticUpdatesEnabled = automaticUpdatesString == 'Enabled'
-    except KeyError: self.automaticUpdatesEnabled = True # default
+        automaticUpdatesString = BiblelatorGlobals.theApp.settings.data['Internet']['automaticUpdates']
+        BiblelatorGlobals.theApp.automaticUpdatesEnabled = automaticUpdatesString == 'Enabled'
+    except KeyError: BiblelatorGlobals.theApp.automaticUpdatesEnabled = True # default
     try:
-        useDevelopmentVersionsString = self.settings.data['Internet']['useDevelopmentVersions']
-        self.useDevelopmentVersionsEnabled = useDevelopmentVersionsString == 'Enabled'
-    except KeyError: self.useDevelopmentVersionsEnabled = False # default
+        useDevelopmentVersionsString = BiblelatorGlobals.theApp.settings.data['Internet']['useDevelopmentVersions']
+        BiblelatorGlobals.theApp.useDevelopmentVersionsEnabled = useDevelopmentVersionsString == 'Enabled'
+    except KeyError: BiblelatorGlobals.theApp.useDevelopmentVersionsEnabled = False # default
 
     # Parse project info
-    try: self.currentProjectName = self.settings.data['Project']['currentProjectName']
+    try: BiblelatorGlobals.theApp.currentProjectName = BiblelatorGlobals.theApp.settings.data['Project']['currentProjectName']
     except KeyError: pass # use program default
 
     # Parse users
-    try: self.currentUserName = self.settings.data['Users']['currentUserName']
+    try: BiblelatorGlobals.theApp.currentUserName = BiblelatorGlobals.theApp.settings.data['Users']['currentUserName']
     except KeyError: pass # use program default
-    try: self.currentUserInitials = self.settings.data['Users']['currentUserInitials']
+    try: BiblelatorGlobals.theApp.currentUserInitials = BiblelatorGlobals.theApp.settings.data['Users']['currentUserInitials']
     except KeyError: pass # use program default
-    try: self.currentUserEmail = self.settings.data['Users']['currentUserEmail']
+    try: BiblelatorGlobals.theApp.currentUserEmail = BiblelatorGlobals.theApp.settings.data['Users']['currentUserEmail']
     except KeyError: pass # use program default
-    try: self.currentUserRole = self.settings.data['Users']['currentUserRole']
+    try: BiblelatorGlobals.theApp.currentUserRole = BiblelatorGlobals.theApp.settings.data['Users']['currentUserRole']
     except KeyError: pass # use program default
-    try: self.currentUserAssignments = self.settings.data['Users']['currentUserAssignments']
+    try: BiblelatorGlobals.theApp.currentUserAssignments = BiblelatorGlobals.theApp.settings.data['Users']['currentUserAssignments']
     except KeyError: pass # use program default
 
     # Parse paths
-    try: self.lastFileDir = self.settings.data['Paths']['lastFileDir']
+    try: BiblelatorGlobals.theApp.lastFileDir = BiblelatorGlobals.theApp.settings.data['Paths']['lastFileDir']
     except KeyError: pass # use program default
     finally:
-        if str(self.lastFileDir)[-1] not in '/\\':
-            self.lastFileDir = f'{self.lastFileDir}/'
-    try: self.lastBiblelatorFileDir = self.settings.data['Paths']['lastBiblelatorFileDir']
+        if str(BiblelatorGlobals.theApp.lastFileDir)[-1] not in '/\\':
+            BiblelatorGlobals.theApp.lastFileDir = f'{BiblelatorGlobals.theApp.lastFileDir}/'
+    try: BiblelatorGlobals.theApp.lastBiblelatorFileDir = BiblelatorGlobals.theApp.settings.data['Paths']['lastBiblelatorFileDir']
     except KeyError: pass # use program default
     finally:
-        if str(self.lastBiblelatorFileDir)[-1] not in '/\\':
-            self.lastBiblelatorFileDir = f'{self.lastBiblelatorFileDir}/'
-    try: self.lastParatextFileDir = self.settings.data['Paths']['lastParatextFileDir']
+        if str(BiblelatorGlobals.theApp.lastBiblelatorFileDir)[-1] not in '/\\':
+            BiblelatorGlobals.theApp.lastBiblelatorFileDir = f'{BiblelatorGlobals.theApp.lastBiblelatorFileDir}/'
+    try: BiblelatorGlobals.theApp.lastParatextFileDir = BiblelatorGlobals.theApp.settings.data['Paths']['lastParatextFileDir']
     except KeyError: pass # use program default
     finally:
-        if str(self.lastParatextFileDir)[-1] not in '/\\':
-            self.lastParatextFileDir = f'{self.lastParatextFileDir}/'
-    try: self.lastInternalBibleDir = self.settings.data['Paths']['lastInternalBibleDir']
+        if str(BiblelatorGlobals.theApp.lastParatextFileDir)[-1] not in '/\\':
+            BiblelatorGlobals.theApp.lastParatextFileDir = f'{BiblelatorGlobals.theApp.lastParatextFileDir}/'
+    try: BiblelatorGlobals.theApp.lastInternalBibleDir = BiblelatorGlobals.theApp.settings.data['Paths']['lastInternalBibleDir']
     except KeyError: pass # use program default
     finally:
-        if str(self.lastInternalBibleDir)[-1] not in '/\\':
-            self.lastInternalBibleDir = f'{self.lastInternalBibleDir}/'
-    try: self.lastSwordDir = self.settings.data['Paths']['lastSwordDir']
+        if str(BiblelatorGlobals.theApp.lastInternalBibleDir)[-1] not in '/\\':
+            BiblelatorGlobals.theApp.lastInternalBibleDir = f'{BiblelatorGlobals.theApp.lastInternalBibleDir}/'
+    try: BiblelatorGlobals.theApp.lastSwordDir = BiblelatorGlobals.theApp.settings.data['Paths']['lastSwordDir']
     except KeyError: pass # use program default
     finally:
-        if str(self.lastSwordDir)[-1] not in '/\\':
-            self.lastSwordDir = f'{self.lastSwordDir}/'
+        if str(BiblelatorGlobals.theApp.lastSwordDir)[-1] not in '/\\':
+            BiblelatorGlobals.theApp.lastSwordDir = f'{BiblelatorGlobals.theApp.lastSwordDir}/'
 
     # Parse recent files
-    assert not self.recentFiles
-    try: recentFields = self.settings.data['RecentFiles']
+    assert not BiblelatorGlobals.theApp.recentFiles
+    try: recentFields = BiblelatorGlobals.theApp.settings.data['RecentFiles']
     except KeyError: recentFields = None
     if recentFields: # in settings file
         for j in range( 1, MAX_RECENT_FILES+1 ):
             recentName = f'recent{j}'
             for keyName in recentFields:
                 if keyName.startswith( recentName ): # This index number (j) is present
-                    filename = convertToPython( self.settings.data['RecentFiles']['recent{}Filename'.format( j )] )
+                    filename = convertToPython( BiblelatorGlobals.theApp.settings.data['RecentFiles']['recent{}Filename'.format( j )] )
                     #if filename == 'None': filename = None
-                    folder = convertToPython( self.settings.data['RecentFiles']['recent{}Folder'.format( j )] )
+                    folder = convertToPython( BiblelatorGlobals.theApp.settings.data['RecentFiles']['recent{}Folder'.format( j )] )
                     #if folder == 'None': folder = None
                     if folder and str(folder)[-1] not in '/\\':
                         folder = f'{folder}/'
-                    windowType = self.settings.data['RecentFiles']['recent{}Type'.format( j )]
-                    self.recentFiles.append( (filename,folder,windowType) )
-                    assert len(self.recentFiles) == j
+                    windowType = BiblelatorGlobals.theApp.settings.data['RecentFiles']['recent{}Type'.format( j )]
+                    BiblelatorGlobals.theApp.recentFiles.append( (filename,folder,windowType) )
+                    assert len(BiblelatorGlobals.theApp.recentFiles) == j
                     break # go to next j
 
     # Parse BCV groups
-    try: self.genericBibleOrganisationalSystemName = self.settings.data['BCVGroups']['genericBibleOrganisationalSystemName']
+    try: BiblelatorGlobals.theApp.genericBibleOrganisationalSystemName = BiblelatorGlobals.theApp.settings.data['BCVGroups']['genericBibleOrganisationalSystemName']
     #except KeyError: pass # use program default
-    except KeyError: self.genericBibleOrganisationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
-    finally: self.setGenericBibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
+    except KeyError: BiblelatorGlobals.theApp.genericBibleOrganisationalSystemName = 'GENERIC-KJV-ENG' # Handles all bookcodes
+    finally: BiblelatorGlobals.theApp.setGenericBibleOrganisationalSystem( BiblelatorGlobals.theApp.genericBibleOrganisationalSystemName )
 
-    try: self.currentVerseKeyGroup = self.settings.data['BCVGroups']['currentGroup']
-    except KeyError: self.currentVerseKeyGroup = 'A'
+    try: BiblelatorGlobals.theApp.currentVerseKeyGroup = BiblelatorGlobals.theApp.settings.data['BCVGroups']['currentGroup']
+    except KeyError: BiblelatorGlobals.theApp.currentVerseKeyGroup = 'A'
 
-    try: self.GroupA_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['A-Book'],self.settings.data['BCVGroups']['A-Chapter'],self.settings.data['BCVGroups']['A-Verse'])
-    except (KeyError,TypeError): self.GroupA_VerseKey = SimpleVerseKey( 'GEN', '1', '1' )
-    try: self.GroupB_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['B-Book'],self.settings.data['BCVGroups']['B-Chapter'],self.settings.data['BCVGroups']['B-Verse'])
-    except (KeyError,TypeError): self.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
-    try: self.GroupC_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['C-Book'],self.settings.data['BCVGroups']['C-Chapter'],self.settings.data['BCVGroups']['C-Verse'])
-    except (KeyError,TypeError): self.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
-    try: self.GroupD_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['D-Book'],self.settings.data['BCVGroups']['D-Chapter'],self.settings.data['BCVGroups']['D-Verse'])
-    except (KeyError,TypeError): self.GroupD_VerseKey = SimpleVerseKey( 'CO1', '12', '12' )
-    try: self.GroupE_VerseKey = SimpleVerseKey(self.settings.data['BCVGroups']['E-Book'],self.settings.data['BCVGroups']['E-Chapter'],self.settings.data['BCVGroups']['E-Verse'])
-    except (KeyError,TypeError): self.GroupE_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
+    try: BiblelatorGlobals.theApp.GroupA_VerseKey = SimpleVerseKey(BiblelatorGlobals.theApp.settings.data['BCVGroups']['A-Book'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['A-Chapter'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['A-Verse'])
+    except (KeyError,TypeError): BiblelatorGlobals.theApp.GroupA_VerseKey = SimpleVerseKey( 'GEN', '1', '1' )
+    try: BiblelatorGlobals.theApp.GroupB_VerseKey = SimpleVerseKey(BiblelatorGlobals.theApp.settings.data['BCVGroups']['B-Book'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['B-Chapter'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['B-Verse'])
+    except (KeyError,TypeError): BiblelatorGlobals.theApp.GroupB_VerseKey = SimpleVerseKey( 'PSA', '119', '1' )
+    try: BiblelatorGlobals.theApp.GroupC_VerseKey = SimpleVerseKey(BiblelatorGlobals.theApp.settings.data['BCVGroups']['C-Book'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['C-Chapter'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['C-Verse'])
+    except (KeyError,TypeError): BiblelatorGlobals.theApp.GroupC_VerseKey = SimpleVerseKey( 'MAT', '1', '1' )
+    try: BiblelatorGlobals.theApp.GroupD_VerseKey = SimpleVerseKey(BiblelatorGlobals.theApp.settings.data['BCVGroups']['D-Book'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['D-Chapter'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['D-Verse'])
+    except (KeyError,TypeError): BiblelatorGlobals.theApp.GroupD_VerseKey = SimpleVerseKey( 'CO1', '12', '12' )
+    try: BiblelatorGlobals.theApp.GroupE_VerseKey = SimpleVerseKey(BiblelatorGlobals.theApp.settings.data['BCVGroups']['E-Book'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['E-Chapter'],BiblelatorGlobals.theApp.settings.data['BCVGroups']['E-Verse'])
+    except (KeyError,TypeError): BiblelatorGlobals.theApp.GroupE_VerseKey = SimpleVerseKey( 'REV', '22', '1' )
 
-    try: self.lexiconWord = self.settings.data['Lexicon']['currentWord']
-    except KeyError: self.lexiconWord = None
+    try: BiblelatorGlobals.theApp.lexiconWord = BiblelatorGlobals.theApp.settings.data['Lexicon']['currentWord']
+    except KeyError: BiblelatorGlobals.theApp.lexiconWord = None
 
-    # We keep our copy of all the windows settings in self.windowsSettingsDict
+    # We keep our copy of all the windows settings in BiblelatorGlobals.theApp.windowsSettingsDict
     windowsSettingsNamesList = []
-    for name in self.settings.data:
+    for name in BiblelatorGlobals.theApp.settings.data:
         if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
     if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Available windows settings are: {}".format( windowsSettingsNamesList ) )
     if windowsSettingsNamesList: assert 'Current' in windowsSettingsNamesList
-    self.windowsSettingsDict = {}
+    BiblelatorGlobals.theApp.windowsSettingsDict = {}
     for windowsSettingsName in windowsSettingsNamesList:
-        self.windowsSettingsDict[windowsSettingsName] = retrieveWindowsSettings( self, windowsSettingsName )
-    if 'Current' in windowsSettingsNamesList: applyGivenWindowsSettings( self, 'Current' )
+        BiblelatorGlobals.theApp.windowsSettingsDict[windowsSettingsName] = retrieveWindowsSettings( windowsSettingsName )
+    if 'Current' in windowsSettingsNamesList: applyGivenWindowsSettings( 'Current' )
     else: logging.critical( "Application.parseAndApplySettings: No current window settings available" )
 # end of parseAndApplySettings
 
 
 
-def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
+def applyGivenWindowsSettings( givenWindowsSettingsName ):
     """
     Given the name of windows settings,
         find the settings in our dictionary
         and then apply it by creating the windows.
-
-    "self" refers to a Biblelator Application instance.
     """
     logging.debug( "applyGivenWindowsSettings( {} )".format( repr(givenWindowsSettingsName) ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "applyGivenWindowsSettings( {} )".format( repr(givenWindowsSettingsName) ) )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "applyGivenWindowsSettings…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "applyGivenWindowsSettings…" )
 
-    self.doCloseMyChildWindows()
+    BiblelatorGlobals.theApp.doCloseMyChildWindows()
 
-    windowsSettingsFields = self.windowsSettingsDict[givenWindowsSettingsName]
+    windowsSettingsFields = BiblelatorGlobals.theApp.windowsSettingsDict[givenWindowsSettingsName]
     for j in range( 1, MAX_WINDOWS ):
         winNumber = 'window{}'.format( j )
         if winNumber in windowsSettingsFields:
@@ -347,12 +341,12 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
 
             if windowType == 'SwordBibleResourceWindow':
                 try:
-                    rw = self.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openSwordBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'SwordBibleResourceWindow {j}' settings" )
             elif windowType == 'DBPBibleResourceWindow':
                 try:
-                    rw = self.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openDBPBibleResourceWindow( thisStuff['ModuleAbbreviation'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'DBPBibleResourceWindow {j}' settings" )
             elif windowType == 'InternalBibleResourceWindow':
@@ -361,7 +355,7 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                     if folderpath[-1] not in '/\\' \
                     and not str(folderpath).endswith( ZIPPED_PICKLE_FILENAME_END ):
                         folderpath = f'{folderpath}/'
-                    rw = self.openInternalBibleResourceWindow( folderpath, windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openInternalBibleResourceWindow( folderpath, windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'InternalBibleResourceWindow {j}' settings" )
             elif windowType == 'HebrewBibleResourceWindow':
@@ -370,26 +364,26 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                     if folderpath[-1] not in '/\\' \
                     and not str(folderpath).endswith( ZIPPED_PICKLE_FILENAME_END ):
                         folderpath = f'{folderpath}/'
-                    rw = self.openHebrewBibleResourceWindow( folderpath, windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openHebrewBibleResourceWindow( folderpath, windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'HebrewBibleResourceWindow {j}' settings" )
 
             #elif windowType == 'HebrewLexiconResourceWindow':
-                #self.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
+                #BiblelatorGlobals.theApp.openHebrewLexiconResourceWindow( thisStuff['HebrewLexiconPath'], windowGeometry )
                 ##except: logging.critical( "Unable to read all HebrewLexiconResourceWindow {} settings".format( j ) )
             #elif windowType == 'GreekLexiconResourceWindow':
-                #self.openGreekLexiconResourceWindow( thisStuff['GreekLexiconPath'], windowGeometry )
+                #BiblelatorGlobals.theApp.openGreekLexiconResourceWindow( thisStuff['GreekLexiconPath'], windowGeometry )
                 ##except: logging.critical( "Unable to read all GreekLexiconResourceWindow {} settings".format( j ) )
             elif windowType == 'BibleLexiconResourceWindow':
-                rw = self.openBibleLexiconResourceWindow( windowGeometry )
+                rw = BiblelatorGlobals.theApp.openBibleLexiconResourceWindow( windowGeometry )
                 #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
 
             elif windowType == 'BibleResourceCollectionWindow':
                 collectionName = thisStuff['CollectionName']
-                rw = self.openBibleResourceCollectionWindow( collectionName, windowGeometry )
+                rw = BiblelatorGlobals.theApp.openBibleResourceCollectionWindow( collectionName, windowGeometry )
                 #except: logging.critical( "Unable to read all BibleLexiconResourceWindow {} settings".format( j ) )
-                if 'BibleResourceCollection'+collectionName in self.settings.data:
-                    collectionSettingsFields = self.settings.data['BibleResourceCollection'+collectionName]
+                if 'BibleResourceCollection'+collectionName in BiblelatorGlobals.theApp.settings.data:
+                    collectionSettingsFields = BiblelatorGlobals.theApp.settings.data['BibleResourceCollection'+collectionName]
                     for k in range( 1, MAX_WINDOWS ):
                         boxNumber = 'box{}'.format( k )
                         boxType = boxSource = None
@@ -409,48 +403,60 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
             elif windowType == 'TSVBibleEditWindow':
                 try: folderpath = convertToPython( thisStuff['TSVFolderpath'] )
                 except KeyError: folderpath = None
-                rw = self.openTSVEditWindow( folderpath, windowGeometry )
+                rw = BiblelatorGlobals.theApp.openTSVEditWindow( folderpath, windowGeometry )
+            elif windowType == 'BibleNotesWindow':
+                try: folderpath = convertToPython( thisStuff['NotesFolderpath'] )
+                except KeyError: folderpath = None
+                rw = BiblelatorGlobals.theApp.openBibleNotesWindow( folderpath, windowGeometry )
+
+            elif windowType == 'TranslationManualWindow':
+                try:
+                    try: folderpath = convertToPython( thisStuff['TMFolderpath'] )
+                    except KeyError: folderpath = None
+                    rw = BiblelatorGlobals.theApp.openTranslationManualWindow( folderpath, windowGeometry )
+                except:
+                    logging.critical( f"Unable to read all 'TranslationManualWindow {j}' settings" )
 
             elif windowType == 'BibleReferenceCollectionWindow':
                 xyz = "JustTesting!"
-                rw = self.openBibleReferenceCollectionWindow( xyz, windowGeometry )
+                rw = BiblelatorGlobals.theApp.openBibleReferenceCollectionWindow( xyz, windowGeometry )
                 #except: logging.critical( "Unable to read all BibleReferenceCollectionWindow {} settings".format( j ) )
 
             elif windowType == 'PlainTextEditWindow':
                 try: filepath = convertToPython( thisStuff['TextFilepath'] )
                 except KeyError: filepath = None
                 #if filepath == 'None': filepath = None
-                rw = self.openFileTextEditWindow( filepath, windowGeometry )
+                rw = BiblelatorGlobals.theApp.openFileTextEditWindow( filepath, windowGeometry )
                 #except: logging.critical( "Unable to read all PlainTextEditWindow {} settings".format( j ) )
             elif windowType == 'BiblelatorUSFMBibleEditWindow':
                 try:
                     folderpath = thisStuff['ProjectFolderpath']
                     if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
-                    rw = self.openBiblelatorBibleEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openBiblelatorBibleEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'BiblelatorUSFMBibleEditWindow {j}' settings" )
             elif windowType == 'uWUSFMBibleEditWindow':
                 try:
                     folderpath = thisStuff['ProjectFolderpath']
                     if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
-                    rw = self.openUWUSFMBibleEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openUWUSFMBibleEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'uWUSFMBibleEditWindow {j}' settings" )
             elif windowType == 'Paratext8USFMBibleEditWindow':
                 try:
-                    rw = self.openParatext8BibleEditWindow( thisStuff['ProjectFolder'], thisStuff['EditMode'], windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openParatext8BibleEditWindow( thisStuff['ProjectFolder'], thisStuff['EditMode'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'Paratext8USFMBibleEditWindow {j}' settings" )
             elif windowType == 'Paratext7USFMBibleEditWindow':
                 try:
-                    rw = self.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'Paratext7USFMBibleEditWindow {j}' settings" )
             elif windowType == 'ESFMEditWindow':
                 try:
                     folderpath = thisStuff['ESFMFolder']
                     if folderpath[-1] not in '/\\': folderpath = f'{folderpath}/'
-                    rw = self.openESFMEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
+                    rw = BiblelatorGlobals.theApp.openESFMEditWindow( folderpath, thisStuff['EditMode'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all ESFMEditWindow {j} settings" )
 
@@ -459,7 +465,8 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
                 if BibleOrgSysGlobals.debugFlag: halt
 
             if rw is None:
-                logging.critical( "applyGivenWindowsSettings: " + _("Failed to reopen {} window type!!! How did this happen?").format( repr(windowType) ) )
+                logging.critical( "applyGivenWindowsSettings: " + _("Failed to reopen '{}' window type!!! How did this happen?").format( windowType ) )
+                showError( APP_NAME, _("Failed to reopen '{}'! (Program error or bad settings file.)").format( windowType ) )
             else: # we've opened our child window -- now customize it a bit more
                 minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
                 if minimumSize:
@@ -497,26 +504,24 @@ def applyGivenWindowsSettings( self, givenWindowsSettingsName ):
 
 
 
-def getCurrentChildWindowSettings( self ):
+def getCurrentChildWindowSettings():
     """
     Go through the currently open windows and get their settings data
-        and save it in self.windowsSettingsDict['Current'].
-
-    "self" refers to a Biblelator Application instance.
+        and save it in BiblelatorGlobals.theApp.windowsSettingsDict['Current'].
     """
     logging.debug( "getCurrentChildWindowSettings()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "getCurrentChildWindowSettings()" )
 
-    if 'Current' in self.windowsSettingsDict: del self.windowsSettingsDict['Current']
-    self.windowsSettingsDict['Current'] = {}
-    for j, appWin in enumerate( self.childWindows ):
+    if 'Current' in BiblelatorGlobals.theApp.windowsSettingsDict: del BiblelatorGlobals.theApp.windowsSettingsDict['Current']
+    BiblelatorGlobals.theApp.windowsSettingsDict['Current'] = {}
+    for j, appWin in enumerate( BiblelatorGlobals.theApp.childWindows ):
         if appWin.windowType in ( 'HTMLWindow', 'FindResultWindow' ):
             continue # We don't save these
 
         winNumber = "window{}".format( j+1 )
-        self.windowsSettingsDict['Current'][winNumber] = {}
-        thisOne = self.windowsSettingsDict['Current'][winNumber]
+        BiblelatorGlobals.theApp.windowsSettingsDict['Current'][winNumber] = {}
+        thisOne = BiblelatorGlobals.theApp.windowsSettingsDict['Current'][winNumber]
         thisOne['Type'] = appWin.windowType #.replace( 'Window', 'Window' )
         if 0 and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "Child", j, appWin.genericWindowType, appWin.windowType )
@@ -545,6 +550,15 @@ def getCurrentChildWindowSettings( self ):
 
         elif appWin.windowType == 'TSVBibleEditWindow':
             thisOne['TSVFolderpath'] = appWin.folderpath
+        elif appWin.windowType == 'BibleNotesWindow':
+            thisOne['NotesFolderpath'] = appWin.folderpath
+
+        elif appWin.windowType == 'TranslationManualWindow':
+            thisFolderpath = appWin.folderpath # e.g., '/mnt/SSDs/Bibles/unfoldingWordHelps/en_ta/./intro/ta-intro'
+            # print( "thisFolderpath", thisFolderpath)
+            ix = str(thisFolderpath).find( './' )
+            if ix > 0: thisFolderpath = str(thisFolderpath)[:ix] # Remove subpath
+            thisOne['TMFolderpath'] = thisFolderpath
 
         elif appWin.windowType == 'BibleLexiconResourceWindow':
             pass # No details to save
@@ -595,80 +609,72 @@ def getCurrentChildWindowSettings( self ):
 
 
 
-def saveNewWindowSetup( self ):
+def saveNewWindowSetup():
     """
     Gets the name for the new window setup and saves the information.
-
-    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
         vPrint( 'Quiet', debuggingThisModule, "saveNewWindowSetup()" )
-        if debuggingThisModule: self.setDebugText( "saveNewWindowSetup…" )
+        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "saveNewWindowSetup…" )
 
-    swnd = SaveWindowsLayoutNameDialog( self, self.windowsSettingsDict, title=_('Save window setup') )
+    swnd = SaveWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Save window setup') )
     if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "swndResult", repr(swnd.result) )
     if swnd.result:
-        getCurrentChildWindowSettings( self )
-        self.windowsSettingsDict[swnd.result] = self.windowsSettingsDict['Current'] # swnd.result is the new window name
-        #vPrint( 'Quiet', debuggingThisModule, "swS", self.windowsSettingsDict )
-        writeSettingsFile( self ) # Save file now in case we crash
-        self.createMenuBar() # refresh
+        getCurrentChildWindowSettings()
+        BiblelatorGlobals.theApp.windowsSettingsDict[swnd.result] = BiblelatorGlobals.theApp.windowsSettingsDict['Current'] # swnd.result is the new window name
+        #vPrint( 'Quiet', debuggingThisModule, "swS", BiblelatorGlobals.theApp.windowsSettingsDict )
+        writeSettingsFile() # Save file now in case we crash
+        BiblelatorGlobals.theApp.createMenuBar() # refresh
 # end of saveNewWindowSetup
 
 
 
-def deleteExistingWindowSetup( self ):
+def deleteExistingWindowSetup():
     """
     Gets the name of an existing window setting and deletes the setting.
-
-    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
         vPrint( 'Quiet', debuggingThisModule, "deleteExistingWindowSetup()" )
-        if debuggingThisModule: self.setDebugText( "deleteExistingWindowSetup" )
-        assert self.windowsSettingsDict and (len(self.windowsSettingsDict)>1 or 'Current' not in self.windowsSettingsDict)
+        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "deleteExistingWindowSetup" )
+        assert BiblelatorGlobals.theApp.windowsSettingsDict and (len(BiblelatorGlobals.theApp.windowsSettingsDict)>1 or 'Current' not in BiblelatorGlobals.theApp.windowsSettingsDict)
 
-    dwnd = DeleteWindowsLayoutNameDialog( self, self.windowsSettingsDict, title=_('Delete saved window setup') )
+    dwnd = DeleteWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Delete saved window setup') )
     if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "dwndResult", repr(dwnd.result) )
     if dwnd.result:
         if BibleOrgSysGlobals.debugFlag:
-            assert dwnd.result in self.windowsSettingsDict
-        del self.windowsSettingsDict[dwnd.result]
-        self.settings.saveINI() # Save file now in case we crash ###-- don't worry -- it's easy to delete one
-        self.createMenuBar() # refresh
+            assert dwnd.result in BiblelatorGlobals.theApp.windowsSettingsDict
+        del BiblelatorGlobals.theApp.windowsSettingsDict[dwnd.result]
+        BiblelatorGlobals.theApp.settings.saveINI() # Save file now in case we crash ###-- don't worry -- it's easy to delete one
+        BiblelatorGlobals.theApp.createMenuBar() # refresh
 # end of deleteExistingWindowSetup
 
 
 
-def viewSettings( self ):
+def viewSettings():
     """
     Open a pop-up text window with the current settings displayed.
-
-    "self" refers to a Biblelator Application instance.
     """
     if BibleOrgSysGlobals.debugFlag:
         vPrint( 'Quiet', debuggingThisModule, "viewSettings()" )
-        if debuggingThisModule: self.setDebugText( "viewSettings" )
+        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "viewSettings" )
 
-    tEW = TextEditWindow( self )
+    tEW = TextEditWindow()
     #if windowGeometry: tEW.geometry( windowGeometry )
-    if not tEW.setFilepath( self.settings.settingsFilepath ) \
+    if not tEW.setFilepath( BiblelatorGlobals.theApp.settings.settingsFilepath ) \
     or not tEW.loadText():
         tEW.doClose()
-        showError( self, APP_NAME, _("Sorry, unable to open settings file") )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed viewSettings" )
+        showError( APP_NAME, _("Sorry, unable to open settings file") )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed viewSettings" )
     else:
-        self.childWindows.append( tEW )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished viewSettings" )
-    self.setReadyStatus()
+        BiblelatorGlobals.theApp.childWindows.append( tEW )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished viewSettings" )
+    BiblelatorGlobals.theApp.setReadyStatus()
 # end of viewSettings
 
 
-def writeSettingsFile( self ):
+def writeSettingsFile():
     """
     Update our program settings and save them.
-
-    "self" refers to a Biblelator Application instance.
     """
     logging.info( "writeSettingsFile()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
@@ -693,115 +699,115 @@ def writeSettingsFile( self ):
 
 
     # Main code for writeSettingsFile()
-    if BibleOrgSysGlobals.debugFlag: self.setDebugText( 'writeSettingsFile' )
-    self.settings.reset()
+    if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( 'writeSettingsFile' )
+    BiblelatorGlobals.theApp.settings.reset()
 
-    self.settings.data[APP_NAME] = {}
-    mainStuff = self.settings.data[APP_NAME]
+    BiblelatorGlobals.theApp.settings.data[APP_NAME] = {}
+    mainStuff = BiblelatorGlobals.theApp.settings.data[APP_NAME]
     mainStuff['settingsVersion'] = SettingsVersion
     mainStuff['PROGRAM_VERSION'] = PROGRAM_VERSION
-    mainStuff['themeName'] = self.themeName
+    mainStuff['themeName'] = BiblelatorGlobals.theApp.themeName
     if 0 and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, " root geometry", self.rootWindow.geometry(), "root winfo_geometry", self.rootWindow.winfo_geometry() )
-        vPrint( 'Quiet', debuggingThisModule, " root winfo x", self.rootWindow.winfo_x(), "root winfo rootx", self.rootWindow.winfo_rootx() )
-        vPrint( 'Quiet', debuggingThisModule, " root winfo y", self.rootWindow.winfo_y(), "root winfo rooty", self.rootWindow.winfo_rooty() )
-    mainStuff['windowSize'], mainStuff['windowPosition'] = self.rootWindow.geometry().split( '+', 1 )
+        vPrint( 'Quiet', debuggingThisModule, " root geometry", BiblelatorGlobals.theApp.rootWindow.geometry(), "root winfo_geometry", BiblelatorGlobals.theApp.rootWindow.winfo_geometry() )
+        vPrint( 'Quiet', debuggingThisModule, " root winfo x", BiblelatorGlobals.theApp.rootWindow.winfo_x(), "root winfo rootx", BiblelatorGlobals.theApp.rootWindow.winfo_rootx() )
+        vPrint( 'Quiet', debuggingThisModule, " root winfo y", BiblelatorGlobals.theApp.rootWindow.winfo_y(), "root winfo rooty", BiblelatorGlobals.theApp.rootWindow.winfo_rooty() )
+    mainStuff['windowSize'], mainStuff['windowPosition'] = BiblelatorGlobals.theApp.rootWindow.geometry().split( '+', 1 )
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
-    mainStuff['minimumSize'] = self.minimumSize
-    mainStuff['maximumSize'] = self.maximumSize
+    mainStuff['minimumSize'] = BiblelatorGlobals.theApp.minimumSize
+    mainStuff['maximumSize'] = BiblelatorGlobals.theApp.maximumSize
     if 0 and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, " saved size (across/down) to ini file", repr(mainStuff['windowSize']), "pos", repr(mainStuff['windowPosition']) )
         vPrint( 'Quiet', debuggingThisModule, "   min", repr(mainStuff['minimumSize']), "max", repr(mainStuff['maximumSize']) )
 
     # Save the user interface settings
-    self.settings.data['Interface'] = {}
-    interface = self.settings.data['Interface']
-    interface['interfaceLanguage'] = self.interfaceLanguage
-    interface['interfaceComplexity'] = self.interfaceComplexity
-    interface['touchMode'] = convertToString( self.touchMode )
-    interface['tabletMode'] = convertToString( self.tabletMode )
-    interface['showDebugMenu'] = convertToString( self.showDebugMenu )
+    BiblelatorGlobals.theApp.settings.data['Interface'] = {}
+    interface = BiblelatorGlobals.theApp.settings.data['Interface']
+    interface['interfaceLanguage'] = BiblelatorGlobals.theApp.interfaceLanguage
+    interface['interfaceComplexity'] = BiblelatorGlobals.theApp.interfaceComplexity
+    interface['touchMode'] = convertToString( BiblelatorGlobals.theApp.touchMode )
+    interface['tabletMode'] = convertToString( BiblelatorGlobals.theApp.tabletMode )
+    interface['showDebugMenu'] = convertToString( BiblelatorGlobals.theApp.showDebugMenu )
 
     # Save the Internet access controls
-    self.settings.data['Internet'] = {}
-    internet = self.settings.data['Internet']
-    internet['internetAccess'] = 'Enabled' if self.internetAccessEnabled else 'Disabled'
-    internet['internetFast'] = 'True' if self.internetFast else 'False'
-    internet['internetExpensive'] = 'True' if self.internetExpensive else 'False'
-    internet['cloudBackups'] = 'Enabled' if self.cloudBackupsEnabled else 'Disabled'
-    internet['checkForDeveloperMessages'] = 'Enabled' if self.checkForDeveloperMessagesEnabled else 'Disabled'
-    internet['lastMessageNumberRead'] = str( self.lastMessageNumberRead )
-    internet['sendUsageStatistics'] = 'Enabled' if self.sendUsageStatisticsEnabled else 'Disabled'
-    internet['automaticUpdates'] = 'Enabled' if self.automaticUpdatesEnabled else 'Disabled'
-    internet['useDevelopmentVersions'] = 'Enabled' if self.useDevelopmentVersionsEnabled else 'Disabled'
+    BiblelatorGlobals.theApp.settings.data['Internet'] = {}
+    internet = BiblelatorGlobals.theApp.settings.data['Internet']
+    internet['internetAccess'] = 'Enabled' if BiblelatorGlobals.theApp.internetAccessEnabled else 'Disabled'
+    internet['internetFast'] = 'True' if BiblelatorGlobals.theApp.internetFast else 'False'
+    internet['internetExpensive'] = 'True' if BiblelatorGlobals.theApp.internetExpensive else 'False'
+    internet['cloudBackups'] = 'Enabled' if BiblelatorGlobals.theApp.cloudBackupsEnabled else 'Disabled'
+    internet['checkForDeveloperMessages'] = 'Enabled' if BiblelatorGlobals.theApp.checkForDeveloperMessagesEnabled else 'Disabled'
+    internet['lastMessageNumberRead'] = str( BiblelatorGlobals.theApp.lastMessageNumberRead )
+    internet['sendUsageStatistics'] = 'Enabled' if BiblelatorGlobals.theApp.sendUsageStatisticsEnabled else 'Disabled'
+    internet['automaticUpdates'] = 'Enabled' if BiblelatorGlobals.theApp.automaticUpdatesEnabled else 'Disabled'
+    internet['useDevelopmentVersions'] = 'Enabled' if BiblelatorGlobals.theApp.useDevelopmentVersionsEnabled else 'Disabled'
 
     # Save the project information
-    self.settings.data['Project'] = {}
-    users = self.settings.data['Project']
-    users['currentProjectName'] = self.currentProjectName
+    BiblelatorGlobals.theApp.settings.data['Project'] = {}
+    users = BiblelatorGlobals.theApp.settings.data['Project']
+    users['currentProjectName'] = BiblelatorGlobals.theApp.currentProjectName
 
     # Save the user information
-    self.settings.data['Users'] = {}
-    users = self.settings.data['Users']
-    users['currentUserName'] = self.currentUserName
-    users['currentUserInitials'] = self.currentUserInitials
-    users['currentUserEmail'] = self.currentUserEmail
-    users['currentUserRole'] = self.currentUserRole
-    users['currentUserAssignments'] = self.currentUserAssignments
+    BiblelatorGlobals.theApp.settings.data['Users'] = {}
+    users = BiblelatorGlobals.theApp.settings.data['Users']
+    users['currentUserName'] = BiblelatorGlobals.theApp.currentUserName
+    users['currentUserInitials'] = BiblelatorGlobals.theApp.currentUserInitials
+    users['currentUserEmail'] = BiblelatorGlobals.theApp.currentUserEmail
+    users['currentUserRole'] = BiblelatorGlobals.theApp.currentUserRole
+    users['currentUserAssignments'] = BiblelatorGlobals.theApp.currentUserAssignments
 
     # Save the last paths
-    self.settings.data['Paths'] = {}
-    paths = self.settings.data['Paths']
-    paths['lastFileDir'] = str(self.lastFileDir)
-    paths['lastBiblelatorFileDir'] = str(self.lastBiblelatorFileDir)
-    paths['lastParatextFileDir'] = str(self.lastParatextFileDir)
-    paths['lastInternalBibleDir'] = str(self.lastInternalBibleDir)
-    paths['lastSwordDir'] = str(self.lastSwordDir)
+    BiblelatorGlobals.theApp.settings.data['Paths'] = {}
+    paths = BiblelatorGlobals.theApp.settings.data['Paths']
+    paths['lastFileDir'] = str(BiblelatorGlobals.theApp.lastFileDir)
+    paths['lastBiblelatorFileDir'] = str(BiblelatorGlobals.theApp.lastBiblelatorFileDir)
+    paths['lastParatextFileDir'] = str(BiblelatorGlobals.theApp.lastParatextFileDir)
+    paths['lastInternalBibleDir'] = str(BiblelatorGlobals.theApp.lastInternalBibleDir)
+    paths['lastSwordDir'] = str(BiblelatorGlobals.theApp.lastSwordDir)
 
     # Save the recent files
-    self.settings.data['RecentFiles'] = {}
-    recent = self.settings.data['RecentFiles']
-    for j, (filename,folder,windowType) in enumerate( self.recentFiles ):
+    BiblelatorGlobals.theApp.settings.data['RecentFiles'] = {}
+    recent = BiblelatorGlobals.theApp.settings.data['RecentFiles']
+    for j, (filename,folder,windowType) in enumerate( BiblelatorGlobals.theApp.recentFiles ):
         recentName = 'recent{}'.format( j+1 )
         recent[recentName+'Filename'] = convertToString( filename )
         recent[recentName+'Folder'] = convertToString( folder )
         recent[recentName+'Type'] = windowType
 
     # Save the referenceGroups A..D
-    self.settings.data['BCVGroups'] = {}
-    groups = self.settings.data['BCVGroups']
-    groups['genericBibleOrganisationalSystemName'] = self.genericBibleOrganisationalSystemName
-    groups['currentGroup'] = self.currentVerseKeyGroup
-    groups['A-Book'] = self.GroupA_VerseKey[0]
-    groups['A-Chapter'] = self.GroupA_VerseKey[1]
-    groups['A-Verse'] = self.GroupA_VerseKey[2]
-    groups['B-Book'] = self.GroupB_VerseKey[0]
-    groups['B-Chapter'] = self.GroupB_VerseKey[1]
-    groups['B-Verse'] = self.GroupB_VerseKey[2]
-    groups['C-Book'] = self.GroupC_VerseKey[0]
-    groups['C-Chapter'] = self.GroupC_VerseKey[1]
-    groups['C-Verse'] = self.GroupC_VerseKey[2]
-    groups['D-Book'] = self.GroupD_VerseKey[0]
-    groups['D-Chapter'] = self.GroupD_VerseKey[1]
-    groups['D-Verse'] = self.GroupD_VerseKey[2]
-    groups['E-Book'] = self.GroupE_VerseKey[0]
-    groups['E-Chapter'] = self.GroupE_VerseKey[1]
-    groups['E-Verse'] = self.GroupE_VerseKey[2]
+    BiblelatorGlobals.theApp.settings.data['BCVGroups'] = {}
+    groups = BiblelatorGlobals.theApp.settings.data['BCVGroups']
+    groups['genericBibleOrganisationalSystemName'] = BiblelatorGlobals.theApp.genericBibleOrganisationalSystemName
+    groups['currentGroup'] = BiblelatorGlobals.theApp.currentVerseKeyGroup
+    groups['A-Book'] = BiblelatorGlobals.theApp.GroupA_VerseKey[0]
+    groups['A-Chapter'] = BiblelatorGlobals.theApp.GroupA_VerseKey[1]
+    groups['A-Verse'] = BiblelatorGlobals.theApp.GroupA_VerseKey[2]
+    groups['B-Book'] = BiblelatorGlobals.theApp.GroupB_VerseKey[0]
+    groups['B-Chapter'] = BiblelatorGlobals.theApp.GroupB_VerseKey[1]
+    groups['B-Verse'] = BiblelatorGlobals.theApp.GroupB_VerseKey[2]
+    groups['C-Book'] = BiblelatorGlobals.theApp.GroupC_VerseKey[0]
+    groups['C-Chapter'] = BiblelatorGlobals.theApp.GroupC_VerseKey[1]
+    groups['C-Verse'] = BiblelatorGlobals.theApp.GroupC_VerseKey[2]
+    groups['D-Book'] = BiblelatorGlobals.theApp.GroupD_VerseKey[0]
+    groups['D-Chapter'] = BiblelatorGlobals.theApp.GroupD_VerseKey[1]
+    groups['D-Verse'] = BiblelatorGlobals.theApp.GroupD_VerseKey[2]
+    groups['E-Book'] = BiblelatorGlobals.theApp.GroupE_VerseKey[0]
+    groups['E-Chapter'] = BiblelatorGlobals.theApp.GroupE_VerseKey[1]
+    groups['E-Verse'] = BiblelatorGlobals.theApp.GroupE_VerseKey[2]
 
     # Save the lexicon info
-    self.settings.data['Lexicon'] = {}
-    lexicon = self.settings.data['Lexicon']
-    if self.lexiconWord: lexicon['currentWord'] = self.lexiconWord
+    BiblelatorGlobals.theApp.settings.data['Lexicon'] = {}
+    lexicon = BiblelatorGlobals.theApp.settings.data['Lexicon']
+    if BiblelatorGlobals.theApp.lexiconWord: lexicon['currentWord'] = BiblelatorGlobals.theApp.lexiconWord
 
     # Save any open Bible resource collections
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "save collection data…" )
-    for appWin in self.childWindows:
+    vPrint( 'Never', debuggingThisModule, "save collection data…" )
+    for appWin in BiblelatorGlobals.theApp.childWindows:
         #vPrint( 'Quiet', debuggingThisModule, "  gT", appWin.genericWindowType )
         #vPrint( 'Quiet', debuggingThisModule, "  wT", appWin.windowType )
         if appWin.windowType == 'BibleResourceCollectionWindow':
             if appWin.resourceBoxesList: # so we don't create just an empty heading for an empty collection
-                self.settings.data['BibleResourceCollection'+appWin.moduleID] = {}
-                thisOne = self.settings.data['BibleResourceCollection'+appWin.moduleID]
+                BiblelatorGlobals.theApp.settings.data['BibleResourceCollection'+appWin.moduleID] = {}
+                thisOne = BiblelatorGlobals.theApp.settings.data['BibleResourceCollection'+appWin.moduleID]
                 #vPrint( 'Quiet', debuggingThisModule, "  found", appWin.moduleID )
                 for j, box in enumerate( appWin.resourceBoxesList ):
                     boxNumber = 'box{}'.format( j+1 )
@@ -811,72 +817,71 @@ def writeSettingsFile( self ):
                     thisOne[boxNumber+'Source'] = box.moduleID
 
     # Get the current child window settings
-    getCurrentChildWindowSettings( self )
+    getCurrentChildWindowSettings()
     # Save all the various window set-ups including both the named ones and the current one
-    for windowsSettingName in sorted( self.windowsSettingsDict ):
+    for windowsSettingName in sorted( BiblelatorGlobals.theApp.windowsSettingsDict ):
         vPrint( 'Never', debuggingThisModule, "Saving windows set-up {}".format( repr(windowsSettingName) ) )
         try: # Just in case something goes wrong with characters in a settings name
-            self.settings.data['WindowSetting'+windowsSettingName] = {}
-            thisOne = self.settings.data['WindowSetting'+windowsSettingName]
-            for windowNumber,winDict in sorted( self.windowsSettingsDict[windowsSettingName].items() ):
+            BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingName] = {}
+            thisOne = BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingName]
+            for windowNumber,winDict in sorted( BiblelatorGlobals.theApp.windowsSettingsDict[windowsSettingName].items() ):
                 vPrint( 'Never', debuggingThisModule, f"  {windowNumber} {winDict}" )
                 for windowSettingName,value in sorted( winDict.items() ):
                     vPrint( 'Never', debuggingThisModule, f"  {windowSettingName} {value!r}" )
                     thisOne[windowNumber+windowSettingName] = convertToString( value )
         except UnicodeEncodeError: logging.error( "writeSettingsFile: " + _("unable to write {} windows set-up").format( repr(windowsSettingName) ) )
-    self.settings.saveINI()
+    BiblelatorGlobals.theApp.settings.saveINI()
 # end of writeSettingsFile
 
 
 
 MIME_BOUNDARY = 'sdafsZXXdahxcvblkDSFSDFjeflqwertlSDFSDFjkre' # Random string that won't occur in our data
-def doSendUsageStatistics( self ):
+def doSendUsageStatistics():
     """
     Send (POST) usage statistics over the Internet.
-
-    "self" refers to a Biblelator Application instance.
 
     Note that Biblelator is mostly closed down at this stage.
     """
     if BibleOrgSysGlobals.debugFlag:
         vPrint( 'Quiet', debuggingThisModule, "doSendUsageStatistics()" )
-        assert self.internetAccessEnabled
-        assert self.sendUsageStatisticsEnabled
+        assert BiblelatorGlobals.theApp.internetAccessEnabled
+        assert BiblelatorGlobals.theApp.sendUsageStatisticsEnabled
     elif BibleOrgSysGlobals.verbosityLevel > 0:
         vPrint( 'Quiet', debuggingThisModule, _("  Sending program usage info…") )
 
     adjAppName = APP_NAME.replace('/','-').replace(':','_').replace('\\','_').replace(' ','_')
-    adjUserName = self.currentUserName.replace('/','-').replace(':','_').replace('\\','_')
+    adjUserName = BiblelatorGlobals.theApp.currentUserName.replace('/','-').replace(':','_').replace('\\','_')
 
     # Package our stuff up into a zip file
-    import tempfile, zipfile
+    import tempfile
+    import zipfile
     zipFilepath = os.path.join( tempfile.gettempdir(), adjAppName+'.zip' )
     #vPrint( 'Quiet', debuggingThisModule, "zipF0", repr(zipFilepath) )
     zf = zipfile.ZipFile( zipFilepath, 'w', compression=zipfile.ZIP_DEFLATED )
 
     # Add log file(s)
     filename = adjAppName + '_log.txt'
-    #vPrint( 'Quiet', debuggingThisModule, "zipF1", repr(self.loggingFolderpath) )
+    #vPrint( 'Quiet', debuggingThisModule, "zipF1", repr(BiblelatorGlobals.theApp.loggingFolderpath) )
     #vPrint( 'Quiet', debuggingThisModule, "zipF2", repr(filename) )
     for extension in BibleOrgSysGlobals.STANDARD_BACKUP_EXTENSIONS:
-        filepath = os.path.join( self.loggingFolderpath, filename+extension )
+        filepath = os.path.join( BiblelatorGlobals.theApp.loggingFolderpath, filename+extension )
         #vPrint( 'Quiet', debuggingThisModule, "  zipF3", repr(filepath) )
         if os.path.exists( filepath ):
             #vPrint( 'Quiet', debuggingThisModule, "  zipF4", repr(filepath) )
             zf.write( filepath, filename+extension )
 
     # Add usage file(s)
-    zf.write( self.usageLogPath, self.usageFilename )
+    zf.write( BiblelatorGlobals.theApp.usageLogPath, BiblelatorGlobals.theApp.usageFilename )
 
     # Add settings file(s)
-    #vPrint( 'Quiet', debuggingThisModule, "zipF5", repr(self.settings.settingsFilepath) )
-    #vPrint( 'Quiet', debuggingThisModule, "zipF6", repr(self.settings.settingsFilename) )
+    #vPrint( 'Quiet', debuggingThisModule, "zipF5", repr(BiblelatorGlobals.theApp.settings.settingsFilepath) )
+    #vPrint( 'Quiet', debuggingThisModule, "zipF6", repr(BiblelatorGlobals.theApp.settings.settingsFilename) )
     for extension in BibleOrgSysGlobals.STANDARD_BACKUP_EXTENSIONS:
-        filepath = self.settings.settingsFilepath+extension
+        filepath = BiblelatorGlobals.theApp.settings.settingsFilepath+extension
         #vPrint( 'Quiet', debuggingThisModule, "  zipF7", repr(filepath) )
         if os.path.exists( filepath ):
             #vPrint( 'Quiet', debuggingThisModule, "  zipF8", repr(filepath) )
-            zf.write( filepath, self.settings.settingsFilename+extension )
+            zf.write( filepath, BiblelatorGlobals.theApp.settings.settingsFilename+extension )
     zf.close()
     with open( zipFilepath, 'rb' ) as zFile:
         zData = zFile.read()
@@ -886,11 +891,11 @@ def doSendUsageStatistics( self ):
     # Post the zip file to our server
     parameterList = []
     parameterList.extend( ('--' + MIME_BOUNDARY, "Content-Disposition: form-data; name=nameLine",
-                           '', self.currentUserName ) )
+                           '', BiblelatorGlobals.theApp.currentUserName ) )
     parameterList.extend( ('--' + MIME_BOUNDARY, "Content-Disposition: form-data; name=emailLine",
-                           '', self.currentUserEmail ) )
+                           '', BiblelatorGlobals.theApp.currentUserEmail ) )
     parameterList.extend( ('--' + MIME_BOUNDARY, "Content-Disposition: form-data; name=projectLine",
-                           '', self.currentProjectName ) )
+                           '', BiblelatorGlobals.theApp.currentProjectName ) )
     parameterList.extend( ('--' + MIME_BOUNDARY,
                     'Content-Disposition: form-data; name=uploadedZipFile; filename="{}.zip"'.format( adjUserName ),
                     'Content-Type: application/zip', '', zDataStr ) )
