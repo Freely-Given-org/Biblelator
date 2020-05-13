@@ -46,7 +46,7 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2020-05-10' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorGlobals"
 PROGRAM_NAME = "Biblelator Globals"
 PROGRAM_VERSION = '0.46' # This is the version number that will be displayed inside the app
@@ -55,13 +55,28 @@ programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 debuggingThisModule = False
 
 
-# Programmed settings
+# Programme settings
 APP_NAME = 'Biblelator' # Ugly coz doesn't necessarily match the PROGRAM_NAME in Biblelator.py
 APP_NAME_VERSION = f'{APP_NAME} v{PROGRAM_VERSION}' # Ugly coz doesn't necessarily match the PROGRAM_VERSION in Biblelator.py
 DATA_SUBFOLDER_NAME = f'{APP_NAME}Data/'
 LOGGING_SUBFOLDER_NAME = f'{APP_NAME}Logs/'
 SETTINGS_SUBFOLDER_NAME = f'{APP_NAME}Settings/'
 PROJECTS_SUBFOLDER_NAME = f'{APP_NAME}Projects/'
+
+
+##########################################################################################################
+#
+# Most of this file is "constants" and useful functions.
+#
+# This section has actual global variables.
+#
+theApp = None # This will contain a pointer to the main Application class
+              #     so we don't have to keep passing it thru all the levels.
+
+def setApp( mainApp ):
+    global theApp
+    assert mainApp
+    theApp = mainApp
 
 
 ##########################################################################################################

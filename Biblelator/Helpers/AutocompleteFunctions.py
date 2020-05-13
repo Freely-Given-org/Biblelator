@@ -81,9 +81,9 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         #vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.setAutocompleteWords( {} )".format( wordList, append ) )
         vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.setAutocompleteWords( …, {}, {} )".format( len(wordList), append ) )
-        editWindowObject.parentApp.setDebugText( "setAutocompleteWords…" )
+        BiblelatorGlobals.theApp.setDebugText( "setAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( _("Setting autocomplete words…") )
+    BiblelatorGlobals.theApp.setWaitStatus( _("Setting autocomplete words…") )
     if not append: editWindowObject.autocompleteWords = {}
 
     for word in wordList:
@@ -142,7 +142,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
             for spaceCount in wordNumTotals:
                 vPrint( 'Quiet', debuggingThisModule, "    {} words: {}".format( spaceCount+1, wordNumTotals[spaceCount] ) )
 
-    editWindowObject.parentApp.setReadyStatus()
+    BiblelatorGlobals.theApp.setReadyStatus()
 # end of AutocompleteFunctions.setAutocompleteWords
 
 
@@ -329,9 +329,9 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
     logging.info( "loadBibleBookAutocompleteWords()" )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "loadBibleBookAutocompleteWords()" )
-        editWindowObject.parentApp.setDebugText( "loadBibleBookAutocompleteWords…" )
+        BiblelatorGlobals.theApp.setDebugText( "loadBibleBookAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible book words…").format( editWindowObject.projectName ) )
+    BiblelatorGlobals.theApp.setWaitStatus( _("Loading {} Bible book words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
     #vPrint( 'Quiet', debuggingThisModule, "  got BBB", repr(BBB) )
     if currentBBB == 'UNK': return # UNKnown book -- no use here
@@ -385,7 +385,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
     startTime = time.time()
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "AutocompleteFunctions.loadBibleAutocompleteWords()" )
-        editWindowObject.parentApp.setDebugText( "loadBibleAutocompleteWords…" )
+        BiblelatorGlobals.theApp.setDebugText( "loadBibleAutocompleteWords…" )
 
     global internalMarkers
     if internalMarkers is None: # Get our list of markers -- note that the more common note markers are first
@@ -393,9 +393,9 @@ def loadBibleAutocompleteWords( editWindowObject ):
             + BibleOrgSysGlobals.loadedUSFMMarkers.getCharacterMarkersList( includeBackslash=False, includeEndMarkers=False, includeNestedMarkers=True, expandNumberableMarkers=True )
         internalMarkers = ['\\'+marker for marker in internalMarkers]
 
-    editWindowObject.parentApp.setWaitStatus( _("Loading {} Bible words…").format( editWindowObject.projectName ) )
+    BiblelatorGlobals.theApp.setWaitStatus( _("Loading {} Bible words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "  got current BBB", repr(currentBBB) )
+    vPrint( 'Never', debuggingThisModule, "  got current BBB", repr(currentBBB) )
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
     bookWordCounts = {}
@@ -443,7 +443,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
         #else:
             #vPrint( 'Quiet', debuggingThisModule, 'loadBibleAutocompleteWords discarding', repr(word) )
             #if ' ' not in word: halt
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, 'acW', autocompleteWords )
+    #vPrint( 'Never', debuggingThisModule, 'acW', autocompleteWords )
 
     #vPrint( 'Quiet', debuggingThisModule, 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
@@ -467,9 +467,9 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
     logging.info( "loadHunspellAutocompleteWords( {}, {} )".format( dictionaryFilepath, encoding ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "loadHunspellAutocompleteWords( {}, {} )".format( dictionaryFilepath, encoding ) )
-        editWindowObject.parentApp.setDebugText( "loadHunspellAutocompleteWords…" )
+        BiblelatorGlobals.theApp.setDebugText( "loadHunspellAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
+    BiblelatorGlobals.theApp.setWaitStatus( _("Loading dictionary…") )
     internalCount = None
     autocompleteWords = []
     lineCount = 0
@@ -662,9 +662,9 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     logging.info( "loadILEXAutocompleteWords( {}, {} )".format( dictionaryFilepath, lgCodes ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "loadILEXAutocompleteWords( {}, {} )".format( dictionaryFilepath, lgCodes ) )
-        editWindowObject.parentApp.setDebugText( "loadILEXAutocompleteWords…" )
+        BiblelatorGlobals.theApp.setDebugText( "loadILEXAutocompleteWords…" )
 
-    editWindowObject.parentApp.setWaitStatus( _("Loading dictionary…") )
+    BiblelatorGlobals.theApp.setWaitStatus( _("Loading dictionary…") )
     autocompleteWords = []
     lineCount = 0
     with open( dictionaryFilepath, 'rt', encoding='utf-8' ) as dictionaryFile:

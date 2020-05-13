@@ -41,6 +41,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # BibleOrgSys imports
+sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
@@ -81,7 +82,7 @@ PROGRAM_NAME = "Sword Manager"
 PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+debuggingThisModule = 99
 
 
 MAIN_APP_NAME = 'Biblelator'
@@ -106,8 +107,7 @@ class SwordManager( Frame ):
         """
         vPrint( 'Never', debuggingThisModule, _("SwordManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
-        self.parentApp = self # Yes, that's me, myself!
-        self.starting = True
+        self.isStarting = True
 
         self.themeName = 'default'
         self.style = Style()
@@ -194,7 +194,7 @@ class SwordManager( Frame ):
         self.minimumSize = MINIMUM_MAIN_SIZE
         self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "SwordManager.__init__ finished." )
-        self.starting = False
+        self.isStarting = False
         self.setReadyStatus()
     # end of SwordManager.__init__
 
@@ -828,7 +828,7 @@ class SwordManager( Frame ):
         unless we're still starting
             (this covers any slow start-up functions that don't yet set helpful statuses)
         """
-        if self.starting: self.setWaitStatus( _("Starting up…") )
+        if self.isStarting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
             #self.statusTextLabel.configure( style='StatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
@@ -891,12 +891,12 @@ class SwordManager( Frame ):
     # end of SwordManager.doChangeTheme
 
 
-    def searchCode( self, event ):
+    def searchCode( self, event=None ) -> None:
         """
         """
         enteredText = self.foldersSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchFolder( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchFolder…" )
+        vPrint( 'Never', debuggingThisModule, _("searchCode( {}, {!r} )").format( event, enteredText ) )
+        if debuggingThisModule: self.setDebugText( "searchCode…" )
 
         if not enteredText: return
 
@@ -1016,7 +1016,7 @@ class SwordManager( Frame ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()…") )
+        vPrint( 'Never', debuggingThisModule, _("doHelp()…") )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1041,7 +1041,7 @@ class SwordManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()…") )
+        vPrint( 'Never', debuggingThisModule, _("doSubmitBug()…") )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1075,7 +1075,7 @@ class SwordManager( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()…") )
+        #vPrint( 'Never', debuggingThisModule, _("doProjectClose()…") )
         #self.notWrittenYet()
     ## end of SwordManager.doProjectClose
 

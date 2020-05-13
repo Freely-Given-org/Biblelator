@@ -62,7 +62,7 @@ Base widgets to allow display and manipulation of
 
 
     class ChildBoxAddon()
-        __init__( self, parentApp )
+        __init__( self )
         _createStandardKeyboardBinding( self, name, commandFunction )
         createStandardBoxKeyboardBindings( self )
         setFocus( self, event )
@@ -82,7 +82,7 @@ Base widgets to allow display and manipulation of
 
     class BibleBoxAddon() -- used in BibleReferenceBox, BibleResourceBox, BibleWindowAddon
                                 and in HebrewInterlinearBibleBoxAddon below
-        __init__( self, parentApp )
+        __init__( self )
         _createStandardKeyboardBinding( self, name, commandFunction )
         createContextMenu( self )
         showContextMenu( self, event )
@@ -105,12 +105,16 @@ Base widgets to allow display and manipulation of
     fullDemo()
 """
 from gettext import gettext as _
+from typing import Optional
 import logging
 
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter.ttk import Entry, Combobox
 from tkinter.simpledialog import askstring, askinteger
+
+# PyPI imports
+from markdown import markdown
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
@@ -127,11 +131,12 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
+from Biblelator import BiblelatorGlobals
 from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, BIBLE_FORMAT_VIEW_MODES
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2020-05-09' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTextBoxes"
 PROGRAM_NAME = "Biblelator specialised text widgets"
 PROGRAM_VERSION = '0.46'
@@ -169,7 +174,6 @@ class BEntry( Entry ):
         #Entry.__init__( self, *args, **kwargs ) # initialise the base class
         #CallbackAddon.__init__( self ) # initialise the base class
     ## end of BEntry.__init__
-    pass
 # end of BEntry class
 
 class BCombobox( Combobox ):
@@ -187,7 +191,6 @@ class BCombobox( Combobox ):
         #Combobox.__init__( self, *args, **kwargs ) # initialise the base class
         #CallbackAddon.__init__( self ) # initialise the base class
     ## end of BCombobox.__init__
-    pass
 # end of BCombobox class
 
 class BText( tk.Text ):
@@ -196,15 +199,20 @@ class BText( tk.Text ):
 
     BText stands for Biblelator Text (box).
     """
-    #def __init__(self, master, **kw):
-        #"""
-        #Initialise the text widget and then set our own keyboard bindings.
-        #"""
-        #tk.apply( tk.Text.__init__, (self, master), kw ) # Run the init of the base class
+    # def __init__( self, *args, **kwargs ):
+    #     """
+    #     Initialise the text widget and then set our own keyboard bindings.
+    #     """
+    #     vPrint( 'Never', debuggingThisModule, f"BText.__init__( {args}, {kwargs} )…" )
 
-        ## Now set-up our "default" keyboard bindings
-        #self.bind( … )
-    pass
+    #     # tk.apply( tk.Text.__init__, (self, master), kwargs ) # Run the init of the base class
+    #     super().__init__( *args, **kwargs )
+
+    #     self.textType = None # plain text, cf. markdown or something
+    #     self.textDisplayType = DEFAULT # cf. raw or something
+
+        # Now set-up our "default" keyboard bindings
+        # self.bind( … )
 # end of BText class
 
 
@@ -219,14 +227,14 @@ class HTMLTextBox( BText ):
         formatting tags:        span
         hard-formatting tags:   i, b, em
 
-    For the styling, class names are appended to the tag names following a hyphen,
+    For the styling, class names are appended to the tag names,
         e.g., <span class="Word"> would give an internal style of "spanWord".
     """
     def __init__( self, *args, **kwargs ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "HTMLTextBox.__init__( {}, {} )".format( args, kwargs ) )
-        BText.__init__( self, *args, **kwargs ) # initialise the base class
+        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox.__init__( {args}, {kwargs} )…" )
+        super().__init__( *args, **kwargs ) # initialise the base class
 
         standardFont = DEFAULT_FONTNAME + ' 12'
         smallFont = DEFAULT_FONTNAME + ' 10'
@@ -303,11 +311,10 @@ class HTMLTextBox( BText ):
     # end of HTMLTextBox.__init__
 
 
-    def insert( self, point, iText ):
+    def insert( self, point, iText ) -> None:
         """
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "HTMLTextBox.insert( {}, {} )".format( repr(point), repr(iText) ) )
+        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox.insert( {point}, {len(iText)} chars )…" )
 
         if point != tk.END:
             logging.critical( "HTMLTextBox.insert " + _("doesn't know how to insert at {}").format( repr(point) ) )
@@ -317,6 +324,11 @@ class HTMLTextBox( BText ):
         # Fix whitespace in our text to how we want it
         remainingText = iText.replace( '\n', ' ' )
         remainingText = remainingText.replace( '<br>','\n' ).replace( '<br />','\n' ).replace( '<br/>','\n' )
+
+        # Temp fix-up for UTA --------------- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        remainingText = remainingText.replace('<ul>','\n\n').replace('</ul>','\n\n')
+        remainingText = remainingText.replace('<li>',' ● ').replace('</li>','\n')
+
         while '  ' in remainingText: remainingText = remainingText.replace( '  ', ' ' )
 
         currentFormatTags, currentHTMLTags = [], []
@@ -463,6 +475,8 @@ class HTMLTextBox( BText ):
         """
         Give a mouse event, get the URL underneath it.
         """
+        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox._getURL( {event} )…" )
+
         # get the index of the mouse cursor from the event.x and y attributes
         xy = '@{0},{1}'.format( event.x, event.y )
         #vPrint( 'Quiet', debuggingThisModule, "xy", repr(xy) ) # e.g.., '@34,77'
@@ -483,7 +497,7 @@ class HTMLTextBox( BText ):
         """
         Handle a click on a hyperlink.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "HTMLTextBox.openHyperlink()" )
+        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox.openHyperlink( {event} )…" )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -505,7 +519,7 @@ class HTMLTextBox( BText ):
         """
         Handle a mouseover on a hyperlink.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "HTMLTextBox.overHyperlink()" )
+        #vPrint( 'Never', debuggingThisModule, "HTMLTextBox.overHyperlink()" )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -526,7 +540,7 @@ class HTMLTextBox( BText ):
         """
         Handle a mouseover on a hyperlink.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "HTMLTextBox.leaveHyperlink()" )
+        #vPrint( 'Never', debuggingThisModule, "HTMLTextBox.leaveHyperlink()" )
         self.master.leaveLink()
     # end of HTMLTextBox.leaveHyperlink
 # end of HTMLTextBox class
@@ -814,9 +828,9 @@ class ChildBoxAddon():
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, "ChildBoxAddon._createStandardBoxKeyboardBinding( {} )".format( name ) )
 
-        #try: kBD = self.parentApp.keyBindingDict
+        #try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         #except AttributeError:
-        kBD = self.parentWindow.parentApp.keyBindingDict
+        kBD = BiblelatorGlobals.theApp.keyBindingDict
         assert (name,kBD[name][0],) not in self.myKeyboardBindingsList
         if name in kBD:
             for keyCode in kBD[name][1:]:
@@ -889,7 +903,7 @@ class ChildBoxAddon():
     def doGotoWindowLine( self, event=None, forceline=None ):
         """
         """
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doGotoWindowLine {}'.format( forceline ) )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doGotoWindowLine {}'.format( forceline ) )
         vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.doGotoWindowLine( {}, {} )".format( event, forceline ) )
 
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
@@ -912,7 +926,7 @@ class ChildBoxAddon():
     def doBoxFind( self, event=None, lastkey=None ):
         """
         """
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doBoxFind {!r}'.format( lastkey ) )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doBoxFind {!r}'.format( lastkey ) )
         vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.doBoxFind( {}, {!r} )".format( event, lastkey ) )
 
         key = lastkey or askstring( APP_NAME, _("Enter search string"), parent=self )
@@ -938,7 +952,7 @@ class ChildBoxAddon():
     def doBoxRefind( self, event=None ):
         """
         """
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doBoxRefind' )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doBoxRefind' )
         vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.doBoxRefind( {} ) for {!r}".format( event, self.lastfind ) )
 
         self.doBoxFind( lastkey=self.lastfind )
@@ -951,7 +965,7 @@ class ChildBoxAddon():
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doShowInfo' )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'ChildBoxAddon doShowInfo' )
         vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.doShowInfo( {} )".format( event ) )
 
         text  = self.getAllText()
@@ -1003,7 +1017,7 @@ class ChildBoxAddon():
     # end of ChildBoxAddon.getAllText
 
 
-    def setAllText( self, newText ):
+    def setAllText( self, newText:str, textType:Optional[str]=None ) -> None:
         """
         Sets the textBox (assumed to be enabled) to the given text
             then positions the insert cursor at the BEGINNING of the text.
@@ -1011,7 +1025,12 @@ class ChildBoxAddon():
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.setAllText( {!r} )".format( newText ) )
+        vPrint( 'Never', debuggingThisModule, f"ChildBoxAddon.setAllText( {len(newText)} chars, {textType} )" )
+        assert textType in ( None, 'Markdown', 'YAML' )
+        self.textType = textType
+        if textType == 'Markdown':
+            newText = markdown( newText )
+            # print( f"Markdown got '{newText}'" )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
@@ -1031,12 +1050,12 @@ class ChildBoxAddon():
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, "ChildBoxAddon.doShowMainWindow( {} )".format( event ) )
 
-        ##self.parentApp.rootWindow.iconify() # Didn't help
-        #self.parentApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
-        #self.parentApp.rootWindow.update()
-        #self.parentApp.rootWindow.deiconify()
-        ##self.parentApp.rootWindow.focus_set()
-        #self.parentApp.rootWindow.lift() # aboveThis=self )
+        ##theApp.rootWindow.iconify() # Didn't help
+        #theApp.rootWindow.withdraw() # For some reason, doing this first makes the window always appear above others
+        #theApp.rootWindow.update()
+        #theApp.rootWindow.deiconify()
+        ##theApp.rootWindow.focus_set()
+        #theApp.rootWindow.lift() # aboveThis=self )
     ## end of ChildBoxAddon.doShowMainWindow
 
 
@@ -1069,7 +1088,7 @@ class BibleBoxAddon():
         self.parentWindow, self.BibleBoxType = parentWindow, BibleBoxType
 
         # Set-up our standard Bible styles
-        for USFMKey, styleDict in self.parentWindow.parentApp.stylesheet.getTKStyles().items():
+        for USFMKey, styleDict in BiblelatorGlobals.theApp.stylesheet.getTKStyles().items():
             self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
@@ -1117,15 +1136,15 @@ class BibleBoxAddon():
         vPrint( 'Never', debuggingThisModule, "BibleBoxAddon.createContextMenu()" )
 
         self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
-        self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
         self.textBox.contextMenu.add_separator()
-        self.textBox.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        self.textBox.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('SelectAll')][0] )
         self.textBox.contextMenu.add_separator()
-        self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
         self.textBox.contextMenu.add_separator()
-        self.textBox.contextMenu.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )#, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        self.textBox.contextMenu.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )#, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
         #self.contextMenu.add_separator()
-        #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        #self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Close')][0] )
 
         self.textBox.bind( '<Button-3>', self.showContextMenu ) # right-click
         #self.pack()
@@ -1138,7 +1157,7 @@ class BibleBoxAddon():
     # end of BibleBoxAddon.showContextMenu
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag:bool=True, currentVerseFlag:bool=False, substituteTrailingSpaces:bool=False, substituteMultipleSpaces:bool=False ) -> None:
+    def displayAppendVerse( self, firstFlag:bool, verseKey, verseContextData, lastFlag:bool=True, currentVerseFlag:bool=False, substituteTrailingSpaces:bool=False, substituteMultipleSpaces:bool=False ) -> None:
         """
         Add the requested verse to the end of self.textBox.
 
@@ -1452,7 +1471,7 @@ class BibleBoxAddon():
         # Determine the PREVIOUS valid verse numbers
         prevBBB, prevIntC, prevIntV = BBB, intC, intV
         previousVersesData = []
-        for n in range( -self.parentApp.viewVersesBefore, 0 ):
+        for n in range( -BiblelatorGlobals.theApp.viewVersesBefore, 0 ):
             failed = False
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 vPrint( 'Quiet', debuggingThisModule, "  getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
@@ -1489,7 +1508,7 @@ class BibleBoxAddon():
         # Determine the NEXT valid verse numbers
         nextBBB, nextIntC, nextIntV = BBB, intC, intV
         nextVersesData = []
-        for n in range( self.parentApp.viewVersesAfter ):
+        for n in range( BiblelatorGlobals.theApp.viewVersesAfter ):
             try: numVerses = self.getNumVerses( nextBBB, nextIntC )
             except KeyError: numVerses = None # for an invalid BBB
             nextIntV += 1
@@ -1516,7 +1535,7 @@ class BibleBoxAddon():
         """
         from BiblelatorDialogs import GetBibleFindTextDialog
 
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBoxAddon doBibleFind' )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBoxAddon doBibleFind' )
         vPrint( 'Never', debuggingThisModule, "BibleBoxAddon.doBibleFind( {} )".format( event ) )
 
         try: haveInternalBible = self.internalBible is not None
@@ -1533,7 +1552,7 @@ class BibleBoxAddon():
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
             self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
             self.doActualBibleFind()
-        self.parentApp.setReadyStatus()
+        BiblelatorGlobals.theApp.setReadyStatus()
 
         #return tkBREAK
     # end of BibleBoxAddon.doBibleFind
@@ -1547,14 +1566,14 @@ class BibleBoxAddon():
         """
         from ChildWindows import FindResultWindow
 
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBoxAddon doActualBibleFind' )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBoxAddon doActualBibleFind' )
         vPrint( 'Never', debuggingThisModule, "BibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
 
-        self.parentApp.setWaitStatus( _("Searching…") )
+        BiblelatorGlobals.theApp.setWaitStatus( _("Searching…") )
         #self.textBox.update()
         #self.textBox.focus()
         #self.lastfind = key
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
         #vPrint( 'Quiet', debuggingThisModule, "bookList", repr(self.BibleFindOptionsDict['bookList']) )
         bookCode = None
         if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
@@ -1574,8 +1593,8 @@ class BibleBoxAddon():
             findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, findResultList,
                                     findFunction=self.doBibleFind, refindFunction=self.doActualBibleFind,
                                     replaceFunction=replaceFunction, extendTo=extendTo )
-            self.parentApp.childWindows.append( findResultWindow )
-        self.parentApp.setReadyStatus()
+            BiblelatorGlobals.theApp.childWindows.append( findResultWindow )
+        BiblelatorGlobals.theApp.setReadyStatus()
     # end of BibleBoxAddon.doActualBibleFind
 
 
@@ -1596,12 +1615,12 @@ class BibleBoxAddon():
 
         if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
         if givenBible is not None:
-            self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
+            BiblelatorGlobals.theApp.setWaitStatus( _("Preparing internal Bible…") )
             if bookCode is None:
-                self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
+                BiblelatorGlobals.theApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
                 givenBible.load()
             else:
-                self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
+                BiblelatorGlobals.theApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
                 givenBible.loadBook( bookCode )
     # end of BibleBoxAddon._prepareInternalBible
 # end of class BibleBoxAddon
@@ -1613,16 +1632,14 @@ class BibleBoxAddon():
     #A set of functions that work for any Bible frame or window that has a member: self.textBox
         #and also uses verseKeys
     #"""
-    #def __init__( self, parentApp ):
+    #def __init__( self ):
         #"""
         #This function is not needed at all, except for debug tracing of __init__ functions (when used).
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "BibleBox.__init__( {} )".format( parentApp ) )
-            #assert parentApp
-        ##self.parentApp = parentApp
+            #vPrint( 'Quiet', debuggingThisModule, "BibleBox.__init__( {} )".format() )
 
-        #ChildBox.__init__( self, parentApp )
+        #ChildBox.__init__( self )
 
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, "BibleBox.__init__ finished." )
@@ -1656,15 +1673,15 @@ class BibleBoxAddon():
             ##vPrint( 'Quiet', debuggingThisModule, "BibleBox.createContextMenu()" )
 
         ##self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
-        ##self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        ##self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
         ##self.textBox.contextMenu.add_separator()
-        ##self.textBox.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        ##self.textBox.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('SelectAll')][0] )
         ##self.textBox.contextMenu.add_separator()
-        ##self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        ##self.textBox.contextMenu.add_command( label=_('Bible Find…'), underline=6, command=self.doBibleFind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
         ##self.textBox.contextMenu.add_separator()
-        ##self.textBox.contextMenu.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )#, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
+        ##self.textBox.contextMenu.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )#, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
         ###self.contextMenu.add_separator()
-        ###self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        ###self.contextMenu.add_command( label=_('Close window'), underline=1, command=self.doClose, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Close')][0] )
 
         ##self.textBox.bind( '<Button-3>', self.showContextMenu ) # right-click
         ###self.pack()
@@ -1987,7 +2004,7 @@ class BibleBoxAddon():
         ### Determine the PREVIOUS valid verse numbers
         ##prevBBB, prevIntC, prevIntV = BBB, intC, intV
         ##previousVersesData = []
-        ##for n in range( -self.parentApp.viewVersesBefore, 0 ):
+        ##for n in range( -BiblelatorGlobals.theApp.viewVersesBefore, 0 ):
             ##failed = False
             ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 ##vPrint( 'Quiet', debuggingThisModule, "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
@@ -2024,7 +2041,7 @@ class BibleBoxAddon():
         ### Determine the NEXT valid verse numbers
         ##nextBBB, nextIntC, nextIntV = BBB, intC, intV
         ##nextVersesData = []
-        ##for n in range( self.parentApp.viewVersesAfter ):
+        ##for n in range( BiblelatorGlobals.theApp.viewVersesAfter ):
             ##try: numVerses = self.getNumVerses( nextBBB, nextIntC )
             ##except KeyError: numVerses = None # for an invalid BBB
             ##nextIntV += 1
@@ -2051,7 +2068,7 @@ class BibleBoxAddon():
         ##"""
         ##from BiblelatorDialogs import GetBibleFindTextDialog
 
-        ##self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBox doBibleFind' )
+        ##theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBox doBibleFind' )
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             ##vPrint( 'Quiet', debuggingThisModule, "BibleBox.doBibleFind( {} )".format( event ) )
 
@@ -2069,7 +2086,7 @@ class BibleBoxAddon():
             ##if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
             ##self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
             ##self.doActualBibleFind()
-        ##self.parentApp.setReadyStatus()
+        ##theApp.setReadyStatus()
 
         ###return tkBREAK
     ### end of BibleBox.doBibleFind
@@ -2083,15 +2100,15 @@ class BibleBoxAddon():
         ##"""
         ##from ChildWindows import FindResultWindow
 
-        ##self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBox doActualBibleFind' )
+        ##theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'BibleBox doActualBibleFind' )
         ##if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             ##vPrint( 'Quiet', debuggingThisModule, "BibleBox.doActualBibleFind( {} )".format( extendTo ) )
 
-        ##self.parentApp.setWaitStatus( _("Searching…") )
+        ##theApp.setWaitStatus( _("Searching…") )
         ###self.textBox.update()
         ###self.textBox.focus()
         ###self.lastfind = key
-        ##self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        ##theApp.logUsage( PROGRAM_NAME, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
         ###vPrint( 'Quiet', debuggingThisModule, "bookList", repr(self.BibleFindOptionsDict['bookList']) )
         ##bookCode = None
         ##if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
@@ -2111,8 +2128,8 @@ class BibleBoxAddon():
             ##findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, findResultList,
                                     ##findFunction=self.doBibleFind, refindFunction=self.doActualBibleFind,
                                     ##replaceFunction=replaceFunction, extendTo=extendTo )
-            ##self.parentApp.childWindows.append( findResultWindow )
-        ##self.parentApp.setReadyStatus()
+            ##theApp.childWindows.append( findResultWindow )
+        ##theApp.setReadyStatus()
     ### end of BibleBox.doActualBibleFind
 
 
@@ -2134,12 +2151,12 @@ class BibleBoxAddon():
 
         ##if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
         ##if givenBible is not None:
-            ##self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
+            ##theApp.setWaitStatus( _("Preparing internal Bible…") )
             ##if bookCode is None:
-                ##self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
+                ##theApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
                 ##givenBible.load()
             ##else:
-                ##self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
+                ##theApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
                 ##givenBible.loadBook( bookCode )
     ### end of BibleBox._prepareInternalBible
 ## end of class BibleBox
@@ -2167,7 +2184,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         BibleBoxAddon.__init__( self, parentWindow, 'HebrewInterlinearBibleBoxAddon' )
         self.tabStopCm = 3.0
         self.textBox.config( tabs='3.0c' ) # centimeters'
-        self.pixelsPerCm =  self.parentWindow.parentApp.rootWindow.winfo_fpixels( '1c' ) # gives 37.85488958990536 for me for 2.5c
+        self.pixelsPerCm =  BiblelatorGlobals.theApp.rootWindow.winfo_fpixels( '1c' ) # gives 37.85488958990536 for me for 2.5c
         self.tabStopPixels = self.tabStopCm * self.pixelsPerCm
 
         self.entryStylesNormal = ( 'HebWord', 'HebStrong', 'HebMorph', 'HebGenericGloss', 'HebSpecificGloss' )
@@ -2175,8 +2192,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         self.fontsNormal, self.fontsSelected = [], []
         #tabWidthsNormal, tabWidthsSelected = [], []
         for entryStyleNormal,entryStyleSelected in zip( self.entryStylesNormal, self.entryStylesSelected ):
-            fontNormal = tkFont.Font( **self.parentWindow.parentApp.stylesheet.getTKStyleDict( entryStyleNormal ) )
-            fontSelected = tkFont.Font( **self.parentWindow.parentApp.stylesheet.getTKStyleDict( entryStyleSelected ) )
+            fontNormal = tkFont.Font( **BiblelatorGlobals.theApp.stylesheet.getTKStyleDict( entryStyleNormal ) )
+            fontSelected = tkFont.Font( **BiblelatorGlobals.theApp.stylesheet.getTKStyleDict( entryStyleSelected ) )
             self.fontsNormal.append( fontNormal )
             self.fontsSelected.append( fontSelected )
             #tabWidthNormal = fontNormal.measure( ' '*8 ) # Typically gives around 24 (pixels?)
@@ -2185,13 +2202,14 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             #tabWidthsNormal.append( tabWidthNormal )
             #tabWidthsSelected.append( tabWidthSelected )
 
-        self.requestMissingGlosses, self.glossWindowGeometry = True, None
+        self.glossWindowGeometry = None
+        self.requestMissingGlosses = BibleOrgSysGlobals.commandLineArguments.export
 
         vPrint( 'Never', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.__init__ finished." )
     # end of HebrewInterlinearBibleBoxAddon.__init__
 
 
-    def displayAppendVerse( self, firstFlag, verseKey, verseContextData, lastFlag=True, currentVerseFlag=False, currentWordNumber=1, command=None, substituteTrailingSpaces=False, substituteMultipleSpaces=False ):
+    def displayAppendVerse( self, firstFlag:bool, verseKey, verseContextData, lastFlag:bool=True, currentVerseFlag:bool=False, currentWordNumber:int=1, command=None, substituteTrailingSpaces:bool=False, substituteMultipleSpaces:bool=False ) -> None:
         """
         Add the requested verse to the end of self.textBox.
 
@@ -2362,7 +2380,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                         elif not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
                             #vPrint( 'Quiet', debuggingThisModule, "No generic gloss found for ({}) {}{}".format( len(word), word, \
                                 #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
-                            if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
+                            if self.requestMissingGlosses and requestMissingGlossesNow and not BiblelatorGlobals.theApp.isStarting:
                                 tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
                                 #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
                                 ghgwd = GetHebrewGlossWordDialog( self, _("Enter new generic gloss"), tempBundle, geometry=self.glossWindowGeometry )
@@ -2427,7 +2445,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                         elif not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
                             #vPrint( 'Quiet', debuggingThisModule, "No generic gloss found for ({}) {}{}".format( len(word), word, \
                                 #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
-                            if self.requestMissingGlosses and requestMissingGlossesNow and not self.parentApp.starting:
+                            if self.requestMissingGlosses and requestMissingGlossesNow and not BiblelatorGlobals.theApp.isStarting:
                                 tempBundle = refText, normalizedWord, strongsNumber, morphology, self.internalBible.expandMorphologyAbbreviations( morphology )
                                 #self.parentWindow.setStatus( self.internalBible.expandMorphologyAbbreviations( morphology ) )
                                 ghgwd = GetHebrewGlossWordsDialog( self, _("Enter new generic/specific glosses"), tempBundle, geometry=self.glossWindowGeometry )
@@ -2465,15 +2483,15 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                         if j < len(verseDictList): pass
                         else: command = None # Already at right side
                     elif command == 'LL':
-                        self.parentApp.doGotoPreviousVerse()
+                        BiblelatorGlobals.theApp.doGotoPreviousVerse()
                         return False
                     elif command == 'RR':
-                        self.parentApp.doGotoNextVerse()
+                        BiblelatorGlobals.theApp.doGotoNextVerse()
                         return False
                     elif command == 'E': pass
                     else: assert command is None
                     #bundlesAcross += 1
-                if self.parentApp.starting: break
+                if BiblelatorGlobals.theApp.isStarting: break
                 if command: continue
                 if not self.requestMissingGlosses: break
                 if not needToRequestMissingGlosses: break
@@ -2927,7 +2945,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         ## Determine the PREVIOUS valid verse numbers
         #prevBBB, prevIntC, prevIntV = BBB, intC, intV
         #previousVersesData = []
-        #for n in range( -self.parentApp.viewVersesBefore, 0 ):
+        #for n in range( -BiblelatorGlobals.theApp.viewVersesBefore, 0 ):
             #failed = False
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 #vPrint( 'Quiet', debuggingThisModule, "  getBeforeAndAfterBibleData here with", n, prevIntC, prevIntV )
@@ -2964,7 +2982,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         ## Determine the NEXT valid verse numbers
         #nextBBB, nextIntC, nextIntV = BBB, intC, intV
         #nextVersesData = []
-        #for n in range( self.parentApp.viewVersesAfter ):
+        #for n in range( BiblelatorGlobals.theApp.viewVersesAfter ):
             #try: numVerses = self.getNumVerses( nextBBB, nextIntC )
             #except KeyError: numVerses = None # for an invalid BBB
             #nextIntV += 1
@@ -2991,7 +3009,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         #"""
         #from BiblelatorDialogs import GetBibleFindTextDialog
 
-        #self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doBibleFind' )
+        #theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doBibleFind' )
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.doBibleFind( {} )".format( event ) )
 
@@ -3009,7 +3027,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             #if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
             #self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
             #self.doActualBibleFind()
-        #self.parentApp.setReadyStatus()
+        #theApp.setReadyStatus()
 
         ##return tkBREAK
     ## end of HebrewInterlinearBibleBoxAddon.doBibleFind
@@ -3023,15 +3041,15 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         #"""
         #from ChildWindows import FindResultWindow
 
-        #self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doActualBibleFind' )
+        #theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'HebrewInterlinearBibleBoxAddon doActualBibleFind' )
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
 
-        #self.parentApp.setWaitStatus( _("Searching…") )
+        #theApp.setWaitStatus( _("Searching…") )
         ##self.textBox.update()
         ##self.textBox.focus()
         ##self.lastfind = key
-        #self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
+        #theApp.logUsage( PROGRAM_NAME, debuggingThisModule, ' doActualBibleFind {}'.format( self.BibleFindOptionsDict ) )
         ##vPrint( 'Quiet', debuggingThisModule, "bookList", repr(self.BibleFindOptionsDict['bookList']) )
         #bookCode = None
         #if isinstance( self.BibleFindOptionsDict['bookList'], str ) \
@@ -3051,8 +3069,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             #findResultWindow = FindResultWindow( self, self.BibleFindOptionsDict, resultSummaryDict, findResultList,
                                     #findFunction=self.doBibleFind, refindFunction=self.doActualBibleFind,
                                     #replaceFunction=replaceFunction, extendTo=extendTo )
-            #self.parentApp.childWindows.append( findResultWindow )
-        #self.parentApp.setReadyStatus()
+            #theApp.childWindows.append( findResultWindow )
+        #theApp.setReadyStatus()
     ## end of HebrewInterlinearBibleBoxAddon.doActualBibleFind
 
 
@@ -3074,12 +3092,12 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         #if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
         #if givenBible is not None:
-            #self.parentApp.setWaitStatus( _("Preparing internal Bible…") )
+            #theApp.setWaitStatus( _("Preparing internal Bible…") )
             #if bookCode is None:
-                #self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
+                #theApp.setWaitStatus( _("Loading/Preparing internal Bible…") )
                 #givenBible.load()
             #else:
-                #self.parentApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
+                #theApp.setWaitStatus( _("Loading/Preparing internal Bible book…") )
                 #givenBible.loadBook( bookCode )
     ## end of HebrewInterlinearBibleBoxAddon._prepareInternalBible
 # end of class HebrewInterlinearBibleBoxAddon

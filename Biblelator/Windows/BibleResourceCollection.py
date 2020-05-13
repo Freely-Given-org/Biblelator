@@ -58,7 +58,7 @@ A Bible resource collection is a collection of different Bible resources
         getContextVerseData( self, verseKey )
 
     class BibleResourceCollectionWindow( BibleResourceWindow )
-        __init__( self, parentApp, collectionName )
+        __init__( self, collectionName )
         createMenuBar( self )
         refreshTitle( self )
         doRename( self )
@@ -99,6 +99,7 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
+from Biblelator import BiblelatorGlobals
 from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, tkBREAK, \
                 BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
                 INITIAL_RESOURCE_COLLECTION_SIZE, MINIMUM_RESOURCE_COLLECTION_SIZE, MAXIMUM_RESOURCE_COLLECTION_SIZE, \
@@ -117,7 +118,7 @@ PROGRAM_NAME = "Biblelator Bible Resource Collection"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+debuggingThisModule = 99
 
 
 MAX_CACHED_VERSES = 30 # Per Bible resource window
@@ -213,7 +214,6 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         if BibleOrgSysGlobals.debugFlag:
             vPrint( 'Quiet', debuggingThisModule, _("BibleResourceBox.__init__( {}, {}, {} )").format( parentWindow, boxType, moduleID ) )
         self.parentWindow, self.boxType, self.moduleID = parentWindow, boxType, moduleID
-        self.parentApp = self.parentWindow.parentApp
         Frame.__init__( self, parentWindow )
         ChildBoxAddon.__init__( self, self.parentWindow )
 
@@ -251,7 +251,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         BibleBoxAddon.__init__( self, self.parentWindow, boxType )
 
         # Set-up our standard Bible styles
-        for USFMKey, styleDict in self.parentApp.stylesheet.getTKStyles().items():
+        for USFMKey, styleDict in BiblelatorGlobals.theApp.stylesheet.getTKStyles().items():
             self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
         # Add our extra specialised styles
         self.textBox.tag_configure( 'contextHeader', background='pink', font='helvetica 6 bold' )
@@ -308,9 +308,9 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
     def getSwordVerseKey( self, verseKey ):
         """
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("getSwordVerseKey( {} )").format( verseKey ) )
+        #vPrint( 'Never', debuggingThisModule, _("getSwordVerseKey( {} )").format( verseKey ) )
         BBB, C, V = verseKey.getBCV()
-        return self.parentApp.SwordInterface.makeKey( BBB, C, V )
+        return BiblelatorGlobals.theApp.SwordInterface.makeKey( BBB, C, V )
     # end of BibleResourceBox.getSwordVerseKey
 
 
@@ -322,10 +322,10 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("getCachedVerseData( {} )").format( verseKey ) )
+        #vPrint( 'Never', debuggingThisModule, _("getCachedVerseData( {} )").format( verseKey ) )
         verseKeyHash = verseKey.makeHash()
         if verseKeyHash in self.verseCache:
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "  " + _("Retrieved from BibleResourceBox cache") )
+            #vPrint( 'Never', debuggingThisModule, "  " + _("Retrieved from BibleResourceBox cache") )
             self.verseCache.move_to_end( verseKeyHash )
             return self.verseCache[verseKeyHash]
         verseContextData = self.getContextVerseData( verseKey )
@@ -342,8 +342,8 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         Called to set the current verse key.
         """
         vPrint( 'Never', debuggingThisModule, _("BibleResourceBox.setCurrentVerseKey( {} )").format( newVerseKey ) )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "BRW setCurrentVerseKey…" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
-            self.parentApp.setDebugText( "BRW setCurrentVerseKey…" )
             assert isinstance( newVerseKey, SimpleVerseKey )
         self.currentVerseKey = newVerseKey
 
@@ -464,7 +464,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         """
         Called from the GUI.
         """
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'moveDown: {} {}'.format( self.boxType, self.moduleID ) )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'moveDown: {} {}'.format( self.boxType, self.moduleID ) )
         vPrint( 'Never', debuggingThisModule, _("BibleResourceBox.doMeDown( {} )").format( event ) )
 
         self.parentWindow.resourceBoxesList.moveDown( self )
@@ -474,7 +474,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         """
         Called from the GUI.
         """
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'moveUp: {} {}'.format( self.boxType, self.moduleID ) )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'moveUp: {} {}'.format( self.boxType, self.moduleID ) )
         vPrint( 'Never', debuggingThisModule, _("BibleResourceBox.doMeUp( {} )").format( event ) )
 
         self.parentWindow.resourceBoxesList.moveUp( self )
@@ -494,7 +494,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
         """
         Called to finally and irreversibly remove this box from our list and close it.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("BibleResourceBox.closeResourceBox()…") )
+        vPrint( 'Never', debuggingThisModule, _("BibleResourceBox.closeResourceBox()…") )
         if self in self.parentWindow.resourceBoxesList:
             self.parentWindow.resourceBoxesList.remove( self )
             self.destroy()
@@ -503,7 +503,7 @@ class BibleResourceBox( Frame, ChildBoxAddon, BibleBoxAddon ):
                 vPrint( 'Quiet', debuggingThisModule, _("BibleResourceBox.closeResourceBox() for {} wasn't in list").format( self.windowType ) )
             try: self.destroy()
             except tk.TclError: pass # never mind
-        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Closed resource box" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Closed resource box" )
     # end of BibleResourceBox.closeResourceBox
 # end of BibleResourceBox class
 
@@ -521,13 +521,13 @@ class SwordBibleResourceBox( BibleResourceBox ):
         #self.boxType = 'SwordBibleResourceBox'
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
-        self.SwordModule = self.parentApp.SwordInterface.getModule( self.moduleAbbreviation )
+        self.SwordModule = BiblelatorGlobals.theApp.SwordInterface.getModule( self.moduleAbbreviation )
         if self.SwordModule is None:
             logging.error( _("SwordBibleResourceBox.__init__ Unable to open Sword module: {}").format( self.moduleAbbreviation ) )
             self.SwordModule = None
         if isinstance( self.SwordModule, Bible ):
             #vPrint( 'Quiet', debuggingThisModule, "Handle internalBible for SwordModule" )
-            handleInternalBibles( self.parentApp, self.SwordModule, self )
+            handleInternalBibles( self.SwordModule, self )
         else: vPrint( 'Quiet', debuggingThisModule, "SwordModule using {} is {}".format( SwordType, self.SwordModule ) )
 
         vPrint( 'Never', debuggingThisModule, _("SwordBibleResourceBox.__init__ finished.") )
@@ -543,7 +543,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
-                rawContextInternalBibleData = self.parentApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
+                rawContextInternalBibleData = BiblelatorGlobals.theApp.SwordInterface.getContextVerseData( self.SwordModule, SwordKey )
                 rawInternalBibleData, context = rawContextInternalBibleData
                 # Clean up the data -- not sure that it should be done here! … XXXXXXXXXXXXXXXXXXX
                 from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntryList, InternalBibleEntry
@@ -593,7 +593,7 @@ class DBPBibleResourceBox( BibleResourceBox ):
             self.DBPModule = None
         #if isinstance( self.DBPModule, Bible ): # Never true
             ##vPrint( 'Quiet', debuggingThisModule, "Handle internalBible for DBPModule" )
-            #handleInternalBibles( self.parentApp, self.DBPModule, self )
+            #handleInternalBibles( self.DBPModule, self )
         #elif
         if BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel > 2:
             vPrint( 'Quiet', debuggingThisModule, "DBPModule is", type(self.DBPModule), self.DBPModule )
@@ -643,7 +643,7 @@ class InternalBibleResourceBox( BibleResourceBox ):
                 self.internalBible = None
             else:
                 #vPrint( 'Quiet', debuggingThisModule, "Handle internalBible for internalBible" )
-                self.internalBible = handleInternalBibles( self.parentApp, result, self )
+                self.internalBible = handleInternalBibles( result, self )
         if self.internalBible is not None: # Define which functions we use by default
             self.getNumVerses = self.internalBible.getNumVerses
             self.getNumChapters = self.internalBible.getNumChapters
@@ -697,7 +697,7 @@ class InternalBibleResourceBox( BibleResourceBox ):
                 #self.internalBible = None
             #else:
                 ##vPrint( 'Quiet', debuggingThisModule, "Handle internalBible for internalBible" )
-                #self.internalBible = handleInternalBibles( self.parentApp, result, self )
+                #self.internalBible = handleInternalBibles( result, self )
         #if self.internalBible is not None: # Define which functions we use by default
             #self.getNumVerses = self.internalBible.getNumVerses
             #self.getNumChapters = self.internalBible.getNumChapters
@@ -725,13 +725,12 @@ class InternalBibleResourceBox( BibleResourceBox ):
 class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     """
     """
-    def __init__( self, parentApp, collectionName, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
+    def __init__( self, parentWindow, collectionName, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
         """
         Given a collection name, try to open an empty Bible resource collection window.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleResourceCollectionWindow.__init__( {}, {} )".format( parentApp, collectionName ) )
-        #self.parentApp = parentApp
-        ChildWindow.__init__( self, parentApp, genericWindowType='BibleResource' )
+        vPrint( 'Never', debuggingThisModule, f"BibleResourceCollectionWindow.__init__( pw={parentWindow}, cN={collectionName}, dCVM={defaultContextViewMode}, dFVM={defaultFormatViewMode} )…" )
+        ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleResourceWindowAddon.__init__( self, 'BibleResourceCollectionWindow', collectionName, defaultContextViewMode, defaultFormatViewMode )
 
         self.geometry( INITIAL_RESOURCE_COLLECTION_SIZE )
@@ -749,6 +748,9 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         self.resourceBoxesList = BibleResourceBoxesList( self )
         self.createMenuBar()
 
+        if not BiblelatorGlobals.theApp.isStarting:
+            showInfo( self, title=f"'{collectionName}' {_('Resource Collection')}", infoText=_("Now you can use the Resource menu here to open some resources within this collection.") )
+
         vPrint( 'Never', debuggingThisModule, _("BibleResourceCollectionWindow.__init__ finished.") )
     # end of BibleResourceCollectionWindow.__init__
 
@@ -756,7 +758,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     def createMenuBar( self ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("BibleResourceBox.createMenuBar()…") )
+        vPrint( 'Never', debuggingThisModule, _("BibleResourceBox.createMenuBar()…") )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -765,23 +767,23 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
         fileMenu.add_command( label=_('Rename'), underline=0, command=self.doRename )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
+        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Info')][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] ) # close this window
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Close')][0] ) # close this window
 
         # if 0:
         #     editMenu = tk.Menu( self.menubar )
         #     self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
-        #     editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        #     editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
         #     editMenu.add_separator()
-        #     editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        #     editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('SelectAll')][0] )
 
         #     searchMenu = tk.Menu( self.menubar )
         #     self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        #     searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        #     searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Line')][0] )
         #     searchMenu.add_separator()
-        #     searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        #     searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        #     searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
+        #     searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -840,13 +842,13 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
         windowMenu.add_separator()
-        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('ShowMain')][0] )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict[_('About')][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
     # end of BibleResourceCollectionWindow.createMenuBar
 
 
@@ -858,11 +860,10 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
 
     def doRename( self ):
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doRename()…") )
-            self.parentApp.setDebugText( "doRename…" )
+        vPrint( 'Quiet', debuggingThisModule, _("doRename()…") )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "doRename…" )
         existingNames = []
-        for cw in self.parentApp.childWindows:
+        for cw in BiblelatorGlobals.theApp.childWindows:
             existingNames.append( cw.moduleID.upper() )
         rrc = RenameResourceCollectionDialog( self, self.moduleID, existingNames, title=_('Rename collection') )
         if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "rrcResult", repr(rrc.result) )
@@ -878,19 +879,18 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         Requests a version name from the user.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doOpenNewDBPBibleResourceBox()…") )
-            self.parentApp.setDebugText( "doOpenNewDBPBibleResourceBox…" )
+        vPrint( 'Quiet', debuggingThisModule, _("doOpenNewDBPBibleResourceBox()…") )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "doOpenNewDBPBibleResourceBox…" )
 
-        if self.parentApp.internetAccessEnabled:
-            self.parentApp.setWaitStatus( _("doOpenNewDBPBibleResourceBox…") )
-            if self.parentApp.DBPInterface is None:
-                try: self.parentApp.DBPInterface = DBPBibles()
+        if BiblelatorGlobals.theApp.internetAccessEnabled:
+            BiblelatorGlobals.theApp.setWaitStatus( _("doOpenNewDBPBibleResourceBox…") )
+            if BiblelatorGlobals.theApp.DBPInterface is None:
+                try: BiblelatorGlobals.theApp.DBPInterface = DBPBibles()
                 except FileNotFoundError: # probably the key file wasn't found
                     showError( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
                     return
 
-                availableVolumes = self.parentApp.DBPInterface.fetchAllEnglishTextVolumes()
+                availableVolumes = BiblelatorGlobals.theApp.DBPInterface.fetchAllEnglishTextVolumes()
                 #vPrint( 'Quiet', debuggingThisModule, "aV1", repr(availableVolumes) )
                 if availableVolumes:
                     srb = SelectResourceBoxDialog( self, [(x,y) for x,y in availableVolumes.items()], title=_('Open DBP resource') )
@@ -903,12 +903,12 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
                     elif BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, _("doOpenNewDBPBibleResourceBox: no resource selected!") )
                 else:
                     logging.critical( _("doOpenNewDBPBibleResourceBox: no volumes available") )
-                    self.parentApp.setStatus( "Digital Bible Platform unavailable (offline?)" )
+                    BiblelatorGlobals.theApp.setStatus( "Digital Bible Platform unavailable (offline?)" )
         else: # no Internet allowed
             logging.critical( _("doOpenNewDBPBibleResourceBox: Internet not enabled") )
-            self.parentApp.setStatus( "Digital Bible Platform unavailable (You have disabled Internet access.)" )
+            BiblelatorGlobals.theApp.setStatus( "Digital Bible Platform unavailable (You have disabled Internet access.)" )
 
-        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished doOpenNewDBPBibleResourceBox" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished doOpenNewDBPBibleResourceBox" )
     # end of BibleResourceCollectionWindow.doOpenNewDBPBibleResourceBox
 
     def openDBPBibleResourceBox( self, moduleAbbreviation, windowGeometry=None ):
@@ -917,9 +917,9 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         Returns the new DBPBibleResourceBox object.
         """
+        vPrint( 'Quiet', debuggingThisModule, _("openDBPBibleResourceBox()…") )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("openDBPBibleResourceBox()…") )
-            self.parentApp.setDebugText( "openDBPBibleResourceBox…" )
+            BiblelatorGlobals.theApp.setDebugText( "openDBPBibleResourceBox…" )
             assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
         #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         dBRB = DBPBibleResourceBox( self, moduleAbbreviation )
@@ -928,14 +928,14 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             logging.critical( _("Application.openDBPBibleResourceBox: Unable to open resource {}").format( repr(moduleAbbreviation) ) )
             dBRB.destroy()
             showError( self, APP_NAME, _("Sorry, unable to open DBP resource") )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openDBPBibleResourceBox" )
-            self.parentApp.setReadyStatus()
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed openDBPBibleResourceBox" )
+            BiblelatorGlobals.theApp.setReadyStatus()
             return None
         else:
-            dBRB.updateShownBCV( self.parentApp.getVerseKey( self._groupCode ) )
+            dBRB.updateShownBCV( BiblelatorGlobals.theApp.getVerseKey( self._groupCode ) )
             self.resourceBoxesList.append( dBRB )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openDBPBibleResourceBox" )
-            self.parentApp.setReadyStatus()
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished openDBPBibleResourceBox" )
+            BiblelatorGlobals.theApp.setReadyStatus()
             return dBRB
     # end of BibleResourceCollectionWindow.openDBPBibleResourceBox
 
@@ -946,18 +946,17 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         Requests a module abbreviation from the user.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("openSwordResource()…") )
-            self.parentApp.setDebugText( "doOpenNewSwordResourceBox…" )
-        self.parentApp.setWaitStatus( _("doOpenNewSwordResourceBox…") )
-        if self.parentApp.SwordInterface is None and SwordType is not None:
-            self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
-        if self.parentApp.SwordInterface is None: # still
+        vPrint( 'Quiet', debuggingThisModule, _("openSwordResource()…") )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "doOpenNewSwordResourceBox…" )
+        BiblelatorGlobals.theApp.setWaitStatus( _("doOpenNewSwordResourceBox…") )
+        if BiblelatorGlobals.theApp.SwordInterface is None and SwordType is not None:
+            BiblelatorGlobals.theApp.SwordInterface = SwordInterface() # Load the Sword library
+        if BiblelatorGlobals.theApp.SwordInterface is None: # still
             logging.critical( _("doOpenNewSwordResourceBox: no Sword interface available") )
             showError( self, APP_NAME, _("Sorry, no Sword interface discovered") )
             return
 
-        givenDupleList = self.parentApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
+        givenDupleList = BiblelatorGlobals.theApp.SwordInterface.getAvailableModuleCodeDuples( ['Biblical Texts','Commentaries'] )
 
         #vPrint( 'Quiet', debuggingThisModule, 'givenDupleList', givenDupleList )
         genericName = { 'Biblical Texts':'Bible', 'Commentaries':'Commentary' }
@@ -971,9 +970,9 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             if srb.result:
                 for entryString in srb.result:
                     requestedModuleName, rest = entryString.split( ' (', 1 )
-                    self.parentApp.setWaitStatus( _("Loading {!r} Sword module…").format( requestedModuleName ) )
+                    BiblelatorGlobals.theApp.setWaitStatus( _("Loading {!r} Sword module…").format( requestedModuleName ) )
                     self.openSwordBibleResourceBox( requestedModuleName )
-                    self.parentApp.addRecentFile( (requestedModuleName,'','SwordBibleResourceBox') )
+                    BiblelatorGlobals.theApp.addRecentFile( (requestedModuleName,'','SwordBibleResourceBox') )
                 #self.acceptNewBnCV()
                 #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
             elif BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, _("doOpenNewSwordResourceBox: no resource selected!") )
@@ -988,18 +987,17 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         Returns the new SwordBibleResourceBox object.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("openSwordBibleResourceBox()…") )
-            self.parentApp.setDebugText( "openSwordBibleResourceBox…" )
-        if self.parentApp.SwordInterface is None:
-            self.parentApp.SwordInterface = SwordInterface() # Load the Sword library
+        vPrint( 'Quiet', debuggingThisModule, _("openSwordBibleResourceBox()…") )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "openSwordBibleResourceBox…" )
+        if BiblelatorGlobals.theApp.SwordInterface is None:
+            BiblelatorGlobals.theApp.SwordInterface = SwordInterface() # Load the Sword library
         #tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
         swBRB = SwordBibleResourceBox( self, moduleAbbreviation )
         if windowGeometry: halt; swBRB.geometry( windowGeometry )
-        swBRB.updateShownBCV( self.parentApp.getVerseKey( self._groupCode ) )
+        swBRB.updateShownBCV( BiblelatorGlobals.theApp.getVerseKey( self._groupCode ) )
         self.resourceBoxesList.append( swBRB )
-        if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openSwordBibleResourceBox" )
-        self.parentApp.setReadyStatus()
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished openSwordBibleResourceBox" )
+        BiblelatorGlobals.theApp.setReadyStatus()
         return swBRB
     # end of BibleResourceCollectionWindow.openSwordBibleResourceBox
 
@@ -1010,16 +1008,15 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         NOTE: This may include a Hebrew interlinear window which has to be treated different.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doOpenNewBOSBibleResourceBox()…") )
-            self.parentApp.setDebugText( "doOpenNewBOSBibleResourceBox" )
-        self.parentApp.setWaitStatus( _("doOpenNewBOSBibleResourceBox…") )
+        vPrint( 'Quiet', debuggingThisModule, _("doOpenNewBOSBibleResourceBox()…") )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "doOpenNewBOSBibleResourceBox" )
+        BiblelatorGlobals.theApp.setWaitStatus( _("doOpenNewBOSBibleResourceBox…") )
 
         # Get the info about available resources to display to the user
         infoDictList = getZippedPickledBiblesDetails( BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH, extended=True )
         crd = ChooseResourcesDialog( self, infoDictList, title=_("Select resource(s)") )
         if not crd.result:
-            self.parentApp.setReadyStatus()
+            BiblelatorGlobals.theApp.setReadyStatus()
             return
         assert isinstance( crd.result, list ) # Should be a list of zip files
         for zipFilename in crd.result:
@@ -1037,16 +1034,15 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         Requests a folder from the user.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doOpenNewInternalBibleResourceBox()…") )
-            self.parentApp.setDebugText( "doOpenNewInternalBibleResourceBox…" )
-        self.parentApp.setWaitStatus( _("doOpenNewInternalBibleResourceBox…") )
+        vPrint( 'Quiet', debuggingThisModule, _("doOpenNewInternalBibleResourceBox()…") )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "doOpenNewInternalBibleResourceBox…" )
+        BiblelatorGlobals.theApp.setWaitStatus( _("doOpenNewInternalBibleResourceBox…") )
 
         #requestedFolder = askdirectory()
-        openDialog = Directory( initialdir=self.parentApp.lastInternalBibleDir, parent=self )
+        openDialog = Directory( initialdir=BiblelatorGlobals.theApp.lastInternalBibleDir, parent=self )
         requestedFolder = openDialog.show()
         if requestedFolder:
-            self.parentApp.lastInternalBibleDir = requestedFolder
+            BiblelatorGlobals.theApp.lastInternalBibleDir = requestedFolder
             self.openInternalBibleResourceBox( requestedFolder )
             #self.acceptNewBnCV()
             #self.after_idle( self.acceptNewBnCV ) # Do the acceptNewBnCV once we're idle
@@ -1059,8 +1055,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         Returns the new InternalBibleResourceBox object.
         """
         vPrint( 'Never', debuggingThisModule, _("openInternalBibleResourceBox()…") )
-        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
-            self.parentApp.setDebugText( "openInternalBibleResourceBox…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "openInternalBibleResourceBox…" )
 
         #tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         iBRB = InternalBibleResourceBox( self, modulePath )
@@ -1069,14 +1064,14 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             logging.critical( _("Application.openInternalBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
             iBRB.destroy()
             showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openInternalBibleResourceBox" )
-            self.parentApp.setReadyStatus()
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed openInternalBibleResourceBox" )
+            BiblelatorGlobals.theApp.setReadyStatus()
             return None
         else:
-            iBRB.updateShownBCV( self.parentApp.getVerseKey( self._groupCode ) )
+            iBRB.updateShownBCV( BiblelatorGlobals.theApp.getVerseKey( self._groupCode ) )
             self.resourceBoxesList.append( iBRB )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openInternalBibleResourceBox" )
-            self.parentApp.setReadyStatus()
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished openInternalBibleResourceBox" )
+            BiblelatorGlobals.theApp.setReadyStatus()
             return iBRB
     # end of BibleResourceCollectionWindow.openInternalBibleResourceBox
 
@@ -1089,7 +1084,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             #vPrint( 'Quiet', debuggingThisModule, _("openHebrewBibleResourceBox()…") )
-            #self.parentApp.setDebugText( "openHebrewBibleResourceBox" )
+            #theApp.setDebugText( "openHebrewBibleResourceBox" )
 
         ##tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         #iBRB = HebrewBibleResourceBox( self, modulePath )
@@ -1098,14 +1093,14 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             #logging.critical( _("Application.openHebrewBibleResourceBox: Unable to open resource {}").format( repr(modulePath) ) )
             #iBRB.destroy()
             #showError( self, APP_NAME, _("Sorry, unable to open internal Bible resource") )
-            #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed openHebrewBibleResourceBox" )
-            #self.parentApp.setReadyStatus()
+            #if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed openHebrewBibleResourceBox" )
+            #theApp.setReadyStatus()
             #return None
         #else:
-            #iBRB.updateShownBCV( self.parentApp.getVerseKey( self._groupCode ) )
+            #iBRB.updateShownBCV( BiblelatorGlobals.theApp.getVerseKey( self._groupCode ) )
             #self.resourceBoxesList.append( iBRB )
-            #if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished openHebrewBibleResourceBox" )
-            #self.parentApp.setReadyStatus()
+            #if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished openHebrewBibleResourceBox" )
+            #theApp.setReadyStatus()
             #return iBRB
     ## end of BibleResourceCollectionWindow.openHebrewBibleResourceBox
 

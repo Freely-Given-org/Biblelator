@@ -42,6 +42,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # BibleOrgSys imports
+sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystems, BibleOrganisationalSystem
@@ -112,8 +113,7 @@ class BOSManager( Frame ):
         """
         vPrint( 'Never', debuggingThisModule, _("BOSManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
-        self.parentApp = self # Yes, that's me, myself!
-        self.starting = True
+        self.isStarting = True
 
         self.themeName = 'default'
         self.style = Style()
@@ -173,7 +173,7 @@ class BOSManager( Frame ):
         # Read and apply the saved settings
         if BibleOrgSysGlobals.commandLineArguments.override is None:
             self.INIname = MAIN_APP_NAME # We use the Biblelator settings
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
+            vPrint( 'Never', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
@@ -204,7 +204,7 @@ class BOSManager( Frame ):
         self.minimumSize = MINIMUM_MAIN_SIZE
         self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "BOSManager.__init__ finished." )
-        self.starting = False
+        self.isStarting = False
         self.setReadyStatus()
     # end of BOSManager.__init__
 
@@ -1057,7 +1057,7 @@ class BOSManager( Frame ):
         unless we're still starting
             (this covers any slow start-up functions that don't yet set helpful statuses)
         """
-        if self.starting: self.setWaitStatus( _("Starting up…") )
+        if self.isStarting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
             #self.statusTextLabel.configure( style='StatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
@@ -1669,7 +1669,7 @@ class BOSManager( Frame ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()…") )
+        vPrint( 'Never', debuggingThisModule, _("doHelp()…") )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1694,7 +1694,7 @@ class BOSManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()…") )
+        vPrint( 'Never', debuggingThisModule, _("doSubmitBug()…") )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1726,7 +1726,7 @@ class BOSManager( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()…") )
+        #vPrint( 'Never', debuggingThisModule, _("doProjectClose()…") )
         #self.notWrittenYet()
     ## end of BOSManager.doProjectClose
 

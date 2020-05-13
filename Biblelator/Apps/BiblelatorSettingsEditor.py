@@ -38,6 +38,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # BibleOrgSys imports
+sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
@@ -98,8 +99,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         vPrint( 'Never', debuggingThisModule, "BiblelatorSettingsEditor.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage = rootWindow, homeFolderpath, loggingFolderpath, iconImage
-        self.parentApp = self # Yes, that's me, myself!
-        self.starting = True
+        self.isStarting = True
 
         self.themeName = 'default'
         self.style = Style()
@@ -153,7 +153,7 @@ class BiblelatorSettingsEditor( Frame ):
         # Read and apply the saved settings
         if BibleOrgSysGlobals.commandLineArguments.override is None:
             self.INIname = MAIN_APP_NAME # We use the Biblelator settings
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
+            vPrint( 'Never', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
@@ -184,7 +184,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.minimumSize = MINIMUM_MAIN_SIZE
         self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "BiblelatorSettingsEditor.__init__ finished." )
-        self.starting = False
+        self.isStarting = False
         self.setReadyStatus()
     # end of BiblelatorSettingsEditor.__init__
 
@@ -675,7 +675,7 @@ class BiblelatorSettingsEditor( Frame ):
         vPrint( 'Never', debuggingThisModule, "loadSettingsIntoTabs() for {!r}".format( self.INIname ) )
 
         self.settings = ApplicationSettings( self.homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
-        self.settings.load()
+        self.settings.loadINI()
         self.settingsChangedFlag = False
 
         self.fdrVar.set( self.settings.settingsFolder )
@@ -946,7 +946,7 @@ class BiblelatorSettingsEditor( Frame ):
         unless we're still starting
             (this covers any slow start-up functions that don't yet set helpful statuses)
         """
-        if self.starting: self.setWaitStatus( _("Starting up…") )
+        if self.isStarting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
             #self.statusTextLabel.configure( style='StatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
@@ -1193,7 +1193,7 @@ class BiblelatorSettingsEditor( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "doProjectClose()" )
+        #vPrint( 'Never', debuggingThisModule, "doProjectClose()" )
         #self.notWrittenYet()
     ## end of BiblelatorSettingsEditor.doProjectClose
 

@@ -53,10 +53,10 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
-from Biblelator.BiblelatorGlobals import APP_NAME_VERSION, BIBLE_GROUP_CODES
+from Biblelator import BiblelatorGlobals
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2020-05-10' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorHelpers"
 PROGRAM_NAME = "Biblelator helpers"
 PROGRAM_VERSION = '0.46'
@@ -76,7 +76,7 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
 
     USFMAbbreviation = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation( BBB )
     USFMNumber = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber( BBB )
-    bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME_VERSION )
+    bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), BiblelatorGlobals.APP_NAME_VERSION )
     bookText += '\\ide UTF-8\n'
     bookText += '\\h Bookname\n'
     bookText += '\\mt Book Title\n'
@@ -151,7 +151,7 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
 
         if requestDict['Fill'] == 'None': bookText = ''
         elif requestDict['Fill'] == 'Basic':
-            bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), APP_NAME_VERSION )
+            bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), BiblelatorGlobals.APP_NAME_VERSION )
             bookText += '\\ide UTF-8\n'
             bookText += '\\h Bookname\n'
             bookText += '\\mt Book Title\n'
@@ -248,7 +248,7 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
         vPrint( 'Quiet', debuggingThisModule, "mapParallelVerseKey( {}, {} )".format( forGroupCode, mainVerseKey.getShortText() ) )
-    groupIndex = BIBLE_GROUP_CODES.index( forGroupCode ) - 1
+    groupIndex = BiblelatorGlobals.BIBLE_GROUP_CODES.index( forGroupCode ) - 1
     parallelVerseKeyDict = {
         SimpleVerseKey('MAT','3','13'): (SimpleVerseKey('MRK','1','9'), SimpleVerseKey('LUK','3','21'), SimpleVerseKey('JHN','1','31') )
         }
@@ -408,7 +408,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
 
 
-def handleInternalBibles( self, internalBible, controllingWindow ):
+def handleInternalBibles( internalBible:Bible, controllingWindow ) -> Bible:
     """
     Try to only have one copy of internal Bibles
         even if it's open in multiple windows.
@@ -416,16 +416,14 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
     Note that Biblelator never directly changes InternalBible objects --
         they are effectively 'read-only'.
 
-    "self" here is the main Application object.
-
     Returns an internal Bible object.
     """
     debuggingThisFunction = False
     if debuggingThisFunction or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
         vPrint( 'Quiet', debuggingThisModule, "handleInternalBibles( {}, {} )".format( internalBible, controllingWindow ) )
         assert isinstance( internalBible, Bible )
-        #self.setDebugText( "handleInternalBibles" )
-        #vPrint( 'Quiet', debuggingThisModule, "hereHIB0", repr(internalBible), len(self.internalBibles) )
+        #BiblelatorGlobals.theApp.setDebugText( "handleInternalBibles" )
+        #vPrint( 'Quiet', debuggingThisModule, "hereHIB0", repr(internalBible), len(BiblelatorGlobals.theApp.internalBibles) )
 
     result = internalBible # Default to returning what we were given
     if debuggingThisFunction and internalBible is None:
@@ -433,7 +431,7 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
     if internalBible is not None:
         if debuggingThisFunction: vPrint( 'Quiet', debuggingThisModule, "  hIB: Not None" )
         foundControllingWindowList = None
-        for iB,cWs in self.internalBibles:
+        for iB,cWs in BiblelatorGlobals.theApp.internalBibles:
             # Some of these variables will be None but they'll still match
             #and internalBible.sourceFilepath == iB.sourceFilepath \ # PTX Bible sets sourceFilepath but others don't!
             if type(internalBible) is type(iB) \
@@ -452,15 +450,15 @@ def handleInternalBibles( self, internalBible, controllingWindow ):
                     result, foundControllingWindowList = iB, cWs
                     break
 
-        if foundControllingWindowList is None: self.internalBibles.append( (internalBible,[controllingWindow]) )
+        if foundControllingWindowList is None: BiblelatorGlobals.theApp.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
 
     if debuggingThisFunction or debuggingThisModule or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
-        vPrint( 'Quiet', debuggingThisModule, "Internal Bibles ({}) now:".format( len(self.internalBibles) ) )
-        for something in self.internalBibles:
+        vPrint( 'Quiet', debuggingThisModule, "Internal Bibles ({}) now:".format( len(BiblelatorGlobals.theApp.internalBibles) ) )
+        for something in BiblelatorGlobals.theApp.internalBibles:
             vPrint( 'Quiet', debuggingThisModule, "  ", something )
-        vPrint( 'Quiet', debuggingThisModule, self.internalBibles )
-        for j,(iB,cWs) in enumerate( self.internalBibles ):
+        vPrint( 'Quiet', debuggingThisModule, BiblelatorGlobals.theApp.internalBibles )
+        for j,(iB,cWs) in enumerate( BiblelatorGlobals.theApp.internalBibles ):
             vPrint( 'Quiet', debuggingThisModule, "  {}/ {} in {}".format( j+1, iB.getAName(), cWs ) )
             vPrint( 'Quiet', debuggingThisModule, "      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation ) )
             vPrint( 'Quiet', debuggingThisModule, "      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension ) )

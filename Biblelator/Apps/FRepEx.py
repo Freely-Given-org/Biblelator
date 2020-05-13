@@ -42,6 +42,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # BibleOrgSys imports
+sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
@@ -114,8 +115,7 @@ class FRepEx( Frame ):
         """
         vPrint( 'Never', debuggingThisModule, _("FRepEx.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
-        self.parentApp = self # Yes, that's me, myself!
-        self.starting = True
+        self.isStarting = True
 
         self.themeName = 'default'
         self.style = Style()
@@ -175,7 +175,7 @@ class FRepEx( Frame ):
         # Read and apply the saved settings
         if BibleOrgSysGlobals.commandLineArguments.override is None:
             self.INIname = MAIN_APP_NAME # We use the Biblelator settings
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
+            vPrint( 'Never', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
             vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
@@ -206,7 +206,7 @@ class FRepEx( Frame ):
         self.minimumSize = MINIMUM_MAIN_SIZE
         self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "FRepEx.__init__ finished." )
-        self.starting = False
+        self.isStarting = False
         self.setReadyStatus()
     # end of FRepEx.__init__
 
@@ -340,7 +340,7 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("createTouchMenuBar()…") )
-            assert self.touchMode
+        assert self.touchMode
 
         self.createNormalMenuBar()
     # end of FRepEx.createTouchMenuBar
@@ -459,7 +459,7 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("createTouchNavigationBar()…") )
-            assert self.touchMode
+        assert self.touchMode
 
         return
 
@@ -1057,7 +1057,7 @@ class FRepEx( Frame ):
         unless we're still starting
             (this covers any slow start-up functions that don't yet set helpful statuses)
         """
-        if self.starting: self.setWaitStatus( _("Starting up…") )
+        if self.isStarting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
             #self.statusTextLabel.configure( style='StatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
@@ -1126,7 +1126,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.codesSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchBBBCode…" )
+        if debuggingThisModule: self.setDebugText( "searchBBBCode…" )
 
         if not enteredText: return
 
@@ -1158,7 +1158,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.codesSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchCode( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchCode…" )
+        if debuggingThisModule: self.setDebugText( "searchCode…" )
 
         if not enteredText: return
 
@@ -1188,8 +1188,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewCode…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewCode…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
         vPrint( 'Quiet', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
@@ -1212,7 +1212,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.punctuationsSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchPunctuation…" )
+        if debuggingThisModule: self.setDebugText( "searchPunctuation…" )
 
         if not enteredText: return
 
@@ -1237,8 +1237,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewPunctuation( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewPunctuation…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewPunctuation…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
 
         vPrint( 'Quiet', debuggingThisModule, "punct cursel", repr(self.punctuationsListbox.curselection()) )
         index = int( self.punctuationsListbox.curselection()[0] ) # Top one selected
@@ -1261,7 +1261,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.versificationsSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchVersification( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchVersification…" )
+        if debuggingThisModule: self.setDebugText( "searchVersification…" )
 
         if not enteredText: return
 
@@ -1286,8 +1286,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewVersification( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewVersification…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewVersification…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
 
         vPrint( 'Quiet', debuggingThisModule, "vers cursel", repr(self.versificationsListbox.curselection()) )
         index = int( self.versificationsListbox.curselection()[0] ) # Top one selected
@@ -1310,7 +1310,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.mappingsSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchMapping( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchMapping…" )
+        if debuggingThisModule: self.setDebugText( "searchMapping…" )
 
         if not enteredText: return
 
@@ -1335,8 +1335,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewMapping( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewMapping…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewMapping…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
 
         index = int( self.mappingsListbox.curselection()[0] ) # Top one selected
         self.mappingSystemName = self.mappingsListbox.get( index )
@@ -1358,7 +1358,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.ordersSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchOrder( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchOrder…" )
+        if debuggingThisModule: self.setDebugText( "searchOrder…" )
 
         if not enteredText: return
 
@@ -1383,8 +1383,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewOrder( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewOrder…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewOrder…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
 
         vPrint( 'Quiet', debuggingThisModule, "order cursel", repr(self.ordersListbox.curselection()) )
         index = int( self.ordersListbox.curselection()[0] ) # Top one selected
@@ -1407,7 +1407,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.namesSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchName( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchName…" )
+        if debuggingThisModule: self.setDebugText( "searchName…" )
 
         if not enteredText: return
 
@@ -1432,8 +1432,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewName( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewName…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewName…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
 
         vPrint( 'Quiet', debuggingThisModule, "name cursel", repr(self.namesListbox.curselection()) )
         index = int( self.namesListbox.curselection()[0] ) # Top one selected
@@ -1456,7 +1456,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.organisationsSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchOrganisation…" )
+        if debuggingThisModule: self.setDebugText( "searchOrganisation…" )
 
         if not enteredText: return
 
@@ -1481,8 +1481,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewOrganisation( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewOrganisation…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewOrganisation…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
 
         index = int( self.organisationsListbox.curselection()[0] ) # Top one selected
         self.organisationSystemName = self.organisationsListbox.get( index )
@@ -1504,7 +1504,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.referenceSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchReference( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchReference…" )
+        if debuggingThisModule: self.setDebugText( "searchReference…" )
 
         if not enteredText: return
 
@@ -1529,8 +1529,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewReference( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewReference…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewReference…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
 
         index = int( self.referencesListbox.curselection()[0] ) # Top one selected
         self.referenceSystemName = self.referencesListbox.get( index )
@@ -1552,7 +1552,7 @@ class FRepEx( Frame ):
         """
         enteredText = self.stylesheetsSearch.get()
         vPrint( 'Never', debuggingThisModule, _("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
-            if debuggingThisModule: self.setDebugText( "searchStylesheet…" )
+        if debuggingThisModule: self.setDebugText( "searchStylesheet…" )
 
         if not enteredText: return
 
@@ -1577,8 +1577,8 @@ class FRepEx( Frame ):
         """
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewStylesheet( {} )").format( event ) )
-            if debuggingThisModule: self.setDebugText( "gotoNewStylesheet…" )
-            #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
+        if debuggingThisModule: self.setDebugText( "gotoNewStylesheet…" )
+        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
 
         index = int( self.stylesheetsListbox.curselection()[0] ) # Top one selected
         self.stylesheetSystemName = self.stylesheetsListbox.get( index )
@@ -1622,7 +1622,7 @@ class FRepEx( Frame ):
         Open a pop-up text window with the current log displayed.
         """
         vPrint( 'Never', debuggingThisModule, _("doViewLog()…") )
-            if debuggingThisModule: self.setDebugText( "doViewLog…" )
+        if debuggingThisModule: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
@@ -1669,7 +1669,7 @@ class FRepEx( Frame ):
         """
         Display a help box.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doHelp()…") )
+        vPrint( 'Never', debuggingThisModule, _("doHelp()…") )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1694,7 +1694,7 @@ class FRepEx( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doSubmitBug()…") )
+        vPrint( 'Never', debuggingThisModule, _("doSubmitBug()…") )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1726,7 +1726,7 @@ class FRepEx( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: vPrint( 'Quiet', debuggingThisModule, _("doProjectClose()…") )
+        #vPrint( 'Never', debuggingThisModule, _("doProjectClose()…") )
         #self.notWrittenYet()
     ## end of FRepEx.doProjectClose
 
@@ -1775,8 +1775,7 @@ class FRepEx( Frame ):
         Save files first, and then end the application.
         """
         vPrint( 'Never', debuggingThisModule, _("FRepEx.doCloseMe()…") )
-        elif BibleOrgSysGlobals.verbosityLevel > 0:
-            vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
+        vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():

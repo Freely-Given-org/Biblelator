@@ -132,7 +132,7 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
-from Biblelator.BiblelatorGlobals import APP_NAME #, errorBeep
+from Biblelator import BiblelatorGlobals
 from Biblelator.Dialogs.ModalDialog import ModalDialog
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showWarning
 from Biblelator.Windows.TextBoxes import BEntry, BCombobox, BText
@@ -386,13 +386,13 @@ class NumberButtonDialog( ModalDialog ):
 class SaveWindowsLayoutNameDialog( ModalDialog ):
     """
     """
-    def __init__( self, parentWindow, existingSettings, title ):
+    def __init__( self, parentWindow, existingSettings, title:str ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SaveWindowsLayoutNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "SaveWindowsLayoutNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
-        ModalDialog.__init__( self, parentWindow, title )
+        super().__init__( parentWindow, title )
     # end of SaveWindowsLayoutNameDialog.__init__
 
 
@@ -453,7 +453,7 @@ class DeleteWindowsLayoutNameDialog( ModalDialog ):
     def __init__( self, parentWindow, existingSettings, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "DeleteWindowsLayoutNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "DeleteWindowsLayoutNameDialog…" )
         self.existingSettings = existingSettings
         self.haveExisting = len(self.existingSettings)>1 or (len(self.existingSettings) and 'Current' not in self.existingSettings)
         ModalDialog.__init__( self, parentWindow, title, _("Delete") )
@@ -514,7 +514,7 @@ class SelectResourceBoxDialog( ModalDialog ):
     def __init__( self, parentWindow, availableSettingsList:List[str], title:str ) -> None:
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SelectResourceBoxDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "SelectResourceBoxDialog…" )
         if BibleOrgSysGlobals.debugFlag:
             if debuggingThisModule:
                 vPrint( 'Quiet', debuggingThisModule, "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
@@ -585,7 +585,7 @@ class GetNewProjectNameDialog( ModalDialog ):
     def __init__( self, parentWindow, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetNewProjectNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetNewProjectNameDialog…" )
         ModalDialog.__init__( self, parentWindow, title )
     # end of GetNewProjectNameDialog.__init__
 
@@ -618,15 +618,15 @@ class GetNewProjectNameDialog( ModalDialog ):
         lenF = len( fullname )
         abbreviation = self.e2.get()
         lenA = len( abbreviation )
-        if lenF < 3: showWarning( self.parentWindow, APP_NAME, _("Full name is too short!") ); return False
-        if lenF > 30: showWarning( self.parentWindow, APP_NAME, _("Full name is too long!") ); return False
-        if lenA < 3: showWarning( self.parentWindow, APP_NAME, _("Abbreviation is too short!") ); return False
-        if lenA > 8: showWarning( self.parentWindow, APP_NAME, _("Abbreviation is too long!") ); return False
-        if ' ' in abbreviation: showWarning( self.parentWindow, APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
-        if '.' in abbreviation: showWarning( self.parentWindow, APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
+        if lenF < 3: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Full name is too short!") ); return False
+        if lenF > 30: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Full name is too long!") ); return False
+        if lenA < 3: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Abbreviation is too short!") ); return False
+        if lenA > 8: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Abbreviation is too long!") ); return False
+        if ' ' in abbreviation: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Abbreviation cannot contain spaces!") ); return False
+        if '.' in abbreviation: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Abbreviation cannot contain a dot!") ); return False
         for illegalChar in ':;"@#=/\\{}':
             if illegalChar in fullname or illegalChar in abbreviation:
-                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         return True
     # end of GetNewProjectNameDialog.validate
 
@@ -653,7 +653,7 @@ class CreateNewProjectFilesDialog( ModalDialog ):
     def __init__( self, parentWindow, title, currentBBB, availableVersifications ): #, availableVersions ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "CreateNewProjectFilesDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "CreateNewProjectFilesDialog…" )
         #self.currentBBB, self.availableVersifications, self.availableVersions = currentBBB, availableVersifications, availableVersions
         self.currentBBB, self.availableVersifications = currentBBB, availableVersifications
         ModalDialog.__init__( self, parentWindow, title )
@@ -721,9 +721,9 @@ class CreateNewProjectFilesDialog( ModalDialog ):
         if result1Number<1 or result1Number>5 or result2Number<1 or result2Number>5: return False
 
         if result2Number==1 and not cb1result:
-            showWarning( self.parentWindow, APP_NAME, _("Need a versification scheme name!") ); return False
+            showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Need a versification scheme name!") ); return False
         #if result2Number==2 and not cb2result:
-            #showWarning( self.parentWindow, APP_NAME, _("Need a version name!") ); return False
+            #showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Need a version name!") ); return False
         return True
     # end of CreateNewProjectFilesDialog.validate
 
@@ -754,7 +754,7 @@ class GetNewCollectionNameDialog( ModalDialog ):
     def __init__( self, parentWindow, existingNames, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetNewCollectionNameDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
         #vPrint( 'Quiet', debuggingThisModule, "GetNewCollectionNameDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parentWindow, title )
@@ -782,13 +782,13 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         name = self.e1.get()
         lenN = len( name )
-        if lenN < 3: showWarning( self.parentWindow, APP_NAME, _("Name is too short!") ); return False
-        if lenN > 30: showWarning( self.parentWindow, APP_NAME, _("Name is too long!") ); return False
+        if lenN < 3: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Name is too short!") ); return False
+        if lenN > 30: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in name:
-                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if name.upper() in self.existingNames:
-            showWarning( self.parentWindow, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of GetNewCollectionNameDialog.validate
 
@@ -813,7 +813,7 @@ class RenameResourceCollectionDialog( ModalDialog ):
     def __init__( self, parentWindow, existingName, existingNames, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "RenameResourceCollectionDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "RenameResourceCollectionDialog…" )
         self.existingName, self.existingNames = existingName, existingNames
         vPrint( 'Quiet', debuggingThisModule, "RenameResourceCollectionDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parentWindow, title )
@@ -843,13 +843,13 @@ class RenameResourceCollectionDialog( ModalDialog ):
         """
         newName = self.e1.get()
         lenName = len( newName )
-        if lenName < 3: showWarning( self.parentWindow, APP_NAME, _("New name is too short!") ); return False
-        if lenName > 30: showWarning( self.parentWindow, APP_NAME, _("New name is too long!") ); return False
+        if lenName < 3: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("New name is too short!") ); return False
+        if lenName > 30: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("New name is too long!") ); return False
         for illegalChar in ' .:;"@#=/\\{}':
             if illegalChar in newName:
-                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
+                showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Not allowed {} characters").format( _('space') if illegalChar==' ' else illegalChar ) ); return False
         if newName.upper() in self.existingNames:
-            showWarning( self.parentWindow, APP_NAME, _("Name already in use").format( illegalChar ) ); return False
+            showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Name already in use").format( illegalChar ) ); return False
         return True
     # end of RenameResourceCollectionDialog.validate
 
@@ -873,7 +873,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
     def __init__( self, parentWindow, givenBible, currentBBB, currentList, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetBibleBookRangeDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetBibleBookRangeDialog…" )
         #assert currentBBB in givenBible -- no, it might not be loaded yet!
         self.givenBible, self.currentBBB, self.currentList = givenBible, currentBBB, currentList
         ModalDialog.__init__( self, parentWindow, title )
@@ -927,7 +927,6 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         Allow the user to select individual books(s).
         """
-        self.parentApp = self.parentWindow.parentApp # Need to set this up before calling dialog from a dialog
         self.availableList = self.givenBible.getBookList()
         sIBBD = SelectIndividualBibleBooksDialog( self, self.availableList, self.currentList, title=_('Books to be searched') )
         if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "individualBooks sIBBDResult", repr(sIBBD.result) )
@@ -976,7 +975,7 @@ class SelectIndividualBibleBooksDialog( ModalDialog ):
     def __init__( self, parentWindow, availableList, currentList, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SelectIndividualBibleBooksDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "SelectIndividualBibleBooksDialog…" )
         self.availableList, self.currentList = availableList, currentList
         ModalDialog.__init__( self, parentWindow, title )
     # end of SelectIndividualBibleBooksDialog.__init__
@@ -1132,14 +1131,13 @@ class GetBibleFindTextDialog( ModalDialog ):
         optionsDict must already contain 'currentBCV'
         """
         if BibleOrgSysGlobals.debugFlag:
-            parentWindow.parentApp.setDebugText( "GetBibleFindTextDialog…" )
+            BiblelatorGlobals.theApp.setDebugText( "GetBibleFindTextDialog…" )
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
         self.givenBible, self.optionsDict = givenBible, optionsDict
         self.optionsDict['parentWindow'] = parentWindow
         self.optionsDict['parentBox'] = parentWindow.textBox
-        self.optionsDict['parentApp'] = parentWindow.parentApp
         self.optionsDict['givenBible'] = givenBible
 
         # Set-up default search options
@@ -1178,7 +1176,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
-        for appWin in self.parentWindow.parentApp.childWindows:
+        for appWin in BiblelatorGlobals.theApp.childWindows:
             #vPrint( 'Quiet', debuggingThisModule, "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType:
                 #vPrint( 'Quiet', debuggingThisModule, "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
@@ -1263,7 +1261,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         self.booksSelectVariable = tk.IntVar()
         if self.optionsDict['bookList'] == 'ALL': self.booksSelectVariable.set( 1 )
         elif self.optionsDict['bookList'] == self.optionsDict['currentBCV'][0]:
-            if self.optionsDict['chapterList'] == None: self.booksSelectVariable.set( 2 )
+            if self.optionsDict['chapterList'] is None: self.booksSelectVariable.set( 2 )
             else: self.booksSelectVariable.set( 3 )
         elif isinstance( self.optionsDict['bookList'], str ): # Some other bookcode (but not the current one)
             self.booksSelectVariable.set( 4 )
@@ -1339,7 +1337,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         """
         self.parentWindow._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
-        gBBRD = GetBibleBookRangeDialog( self, self.parentWindow.parentApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
+        gBBRD = GetBibleBookRangeDialog( self, BiblelatorGlobals.theApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
         if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
@@ -1397,20 +1395,20 @@ class GetBibleFindTextDialog( ModalDialog ):
                 if marker in BibleOrgSysGlobals.loadedUSFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     markerList.append( marker )
                 else: # not a valid newline marker
-                    showWarning( self.parentWindow, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
+                    showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
         else: # Nothing in the entry
             self.theseMarkersOnlyVar.set( 0 )
 
         # Now check for bad combinations
         findText = self.searchStringVar.get()
-        if not findText: showWarning( self.parentWindow, APP_NAME, _("Nothing to search for!") ); return False
-        if findText.lower() == 'regex:': showWarning( self.parentWindow, APP_NAME, _("No regular expression to search for!") ); return False
+        if not findText: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Nothing to search for!") ); return False
+        if findText.lower() == 'regex:': showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("No regular expression to search for!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and not self.optionsDict['bookList']:
-            showWarning( self.parentWindow, APP_NAME, _("No books selected to search in!") ); return False
+            showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("No books selected to search in!") ); return False
         if self.theseMarkersOnlyVar.get():
             if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
-                showWarning( self.parentWindow, APP_NAME, _("Bad combination of fields selected!") ); return False
+                showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Bad combination of fields selected!") ); return False
         return True # Must be ok
     # end of GetBibleFindTextDialog.validate
 
@@ -1431,7 +1429,6 @@ class GetBibleFindTextDialog( ModalDialog ):
             assert descr in ( 'Window', 'Box' )
             self.optionsDict['parentWindow'] = window
             self.optionsDict['parentBox'] = box
-            self.optionsDict['parentApp'] = window.parentApp
             self.optionsDict['givenBible'] = iB
 
         self.optionsDict['findText'] = self.searchStringVar.get()
@@ -1497,14 +1494,13 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         optionsDict must already contain 'currentBCV'
         """
         if BibleOrgSysGlobals.debugFlag:
-            parentWindow.parentApp.setDebugText( "GetBibleReplaceTextDialog…" )
+            BiblelatorGlobals.theApp.setDebugText( "GetBibleReplaceTextDialog…" )
             #assert currentBBB in givenBible -- no, it might not be loaded yet!
             assert isinstance( optionsDict, dict )
             assert 'currentBCV' in optionsDict
         self.givenBible, self.optionsDict = givenBible, optionsDict
         self.optionsDict['parentWindow'] = parentWindow
         self.optionsDict['parentBox'] = parentWindow.textBox
-        self.optionsDict['parentApp'] = parentWindow.parentApp
         self.optionsDict['givenBible'] = givenBible
 
         # Set-up default Replace options
@@ -1544,7 +1540,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
-        for appWin in self.parentWindow.parentApp.childWindows:
+        for appWin in BiblelatorGlobals.theApp.childWindows:
             #vPrint( 'Quiet', debuggingThisModule, "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType and 'Edit' in appWin.windowType:
                 #vPrint( 'Quiet', debuggingThisModule, "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
@@ -1640,7 +1636,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.booksSelectVariable = tk.IntVar()
         if self.optionsDict['bookList'] == 'ALL': self.booksSelectVariable.set( 1 )
         elif self.optionsDict['bookList'] == self.optionsDict['currentBCV'][0]:
-            #if self.optionsDict['chapterList'] == None: self.booksSelectVariable.set( 2 )
+            #if self.optionsDict['chapterList'] is None: self.booksSelectVariable.set( 2 )
             #else:
             self.booksSelectVariable.set( 3 )
         elif isinstance( self.optionsDict['bookList'], list ): self.booksSelectVariable.set( 4 )
@@ -1771,22 +1767,22 @@ class GetBibleReplaceTextDialog( ModalDialog ):
                 #if marker in BibleOrgSysGlobals.loadedUSFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     #markerList.append( marker )
                 #else: # not a valid newline marker
-                    #showWarning( self.parentWindow, APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
+                    #showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("{!r} is not a valid newline marker!").format( marker ) ); return False
         #else: # Nothing in the entry
             #self.theseMarkersOnlyVar.set( 0 )
 
         # Now check for bad combinations
         findText = self.searchStringVar.get()
-        if not findText: showWarning( self.parentWindow, APP_NAME, _("Nothing to search for!") ); return False
-        if findText.lower() == 'regex:': showWarning( self.parentWindow, APP_NAME, _("No regular expression to search for!") ); return False
+        if not findText: showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Nothing to search for!") ); return False
+        if findText.lower() == 'regex:': showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("No regular expression to search for!") ); return False
         replaceText = self.replaceStringVar.get()
-        if replaceText.lower().startswith( 'regex:' ): showWarning( self.parentWindow, APP_NAME, _("Don't start replace field with 'regex:'!") ); return False
+        if replaceText.lower().startswith( 'regex:' ): showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Don't start replace field with 'regex:'!") ); return False
         bookResultNumber = self.booksSelectVariable.get()
         if bookResultNumber==4 and ( not self.optionsDict['bookList'] or not isinstance(self.optionsDict['bookList'], list) ):
-            showWarning( self.parentWindow, APP_NAME, _("No books selected to search in!") ); return False
+            showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("No books selected to search in!") ); return False
         #if self.theseMarkersOnlyVar.get():
             #if self.introVar.get() or  self.mainTextVar.get() or self.markersTextVar.get() or self.extrasVar.get():
-                #showWarning( self.parentWindow, APP_NAME, _("Bad combination of fields selected!") ); return False
+                #showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Bad combination of fields selected!") ); return False
         return True # Must be ok
     # end of GetBibleReplaceTextDialog.validate
 
@@ -1807,7 +1803,6 @@ class GetBibleReplaceTextDialog( ModalDialog ):
             assert descr in ( 'Window', 'Box' )
             self.optionsDict['parentWindow'] = window
             self.optionsDict['parentBox'] = box
-            self.optionsDict['parentApp'] = window.parentApp
             self.optionsDict['givenBible'] = iB
 
         self.optionsDict['findText'] = self.searchStringVar.get()
@@ -1873,7 +1868,7 @@ class ReplaceConfirmDialog( ModalDialog ):
         optionsDict must already contain 'currentBCV'
         """
         if BibleOrgSysGlobals.debugFlag:
-            parentWindow.parentApp.setDebugText( "ReplaceConfirmDialog…" )
+            BiblelatorGlobals.theApp.setDebugText( "ReplaceConfirmDialog…" )
             assert isinstance( contextBefore, str )
             assert isinstance( contextAfter, str )
         self.referenceString, self.contextBefore, self.findText, self.contextAfter, self.finalText, self.haveUndos = referenceString, contextBefore, findText, contextAfter, finalText, haveUndos
@@ -1974,7 +1969,7 @@ class SelectInternalBibleDialog( ModalDialog ):
     def __init__( self, parentWindow, title, internalBibles ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "SelectInternalBibleDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "SelectInternalBibleDialog…" )
         self.internalBibles = internalBibles
         ModalDialog.__init__( self, parentWindow, title )
     # end of SelectInternalBibleDialog.__init__
@@ -2055,7 +2050,7 @@ class SelectInternalBibleDialog( ModalDialog ):
     #def __init__( self, parentWindow, title ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetSwordPathDialog…" )
+        #if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetSwordPathDialog…" )
         #self.alreadyTriedList = []
         #ModalDialog.__init__( self, parentWindow, title )
     ## end of GetSwordPathDialog.__init__
@@ -2092,13 +2087,13 @@ class SelectInternalBibleDialog( ModalDialog ):
         #"""
         #enteredPath = self.e1.get()
         #if not os.path.isdir( enteredPath):
-            #showWarning( self.parentWindow, APP_NAME, _("Pathname seems invalid") ); return False
+            #showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Pathname seems invalid") ); return False
         #epAdjusted = enteredPath.lower().replace( '\\', '/' )
         #if epAdjusted[-1] != '/': epAdjusted += '/'
         #if epAdjusted.endswith( 'mods.d/'):
-            #showWarning( self.parentWindow, APP_NAME, _("Pathname shouldn't include mods.d") ); return False
+            #showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Pathname shouldn't include mods.d") ); return False
         #if not os.path.isdir( os.path.join( enteredPath, 'mods.d/' ) ):
-            #showWarning( self.parentWindow, APP_NAME, _("Pathname seems to have no 'mods.d' subfolder") ); return False
+            #showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Pathname seems to have no 'mods.d' subfolder") ); return False
         #return True
     ## end of GetSwordPathDialog.validate
 
@@ -2135,7 +2130,7 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         """
         """
         #vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordDialog( …, …, {}, {!r}, {} )".format( contextLines, word, geometry ) )
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetHebrewGlossWordDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetHebrewGlossWordDialog…" )
         self.parentWindow, self.contextLines, self.word = parentWindow, contextLines, word
 
         self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
@@ -2173,7 +2168,7 @@ class GetHebrewGlossWordDialog( ModalDialog ):
                         if smallestString.isdigit(): strongsNumber = smallestString; break
                 if strongsNumber: break
         if strongsNumber:
-            self.parentWindow.parentApp.childWindows.updateLexicons( 'H' + strongsNumber )
+            BiblelatorGlobals.theApp.childWindows.updateLexicons( 'H' + strongsNumber )
     # end of GetHebrewGlossWordDialog.handleStrongs
 
 
@@ -2293,11 +2288,11 @@ class GetHebrewGlossWordDialog( ModalDialog ):
         resultWord = self.entry.get()
         for illegalChar in ' :;"@#\\{}':
             if illegalChar in resultWord:
-                showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters") \
+                showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Not allowed {} characters") \
                                     .format( _('space') if illegalChar==' ' else illegalChar ) )
                 return False
         if resultWord.count('=') != self.contextLines[1].count('='):
-            showWarning( self.parentWindow, APP_NAME, _("Number of morpheme breaks (=) must match") )
+            showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Number of morpheme breaks (=) must match") )
             return False
         return True
     # end of GetHebrewGlossWordDialog.validate
@@ -2339,7 +2334,7 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
         """
         """
         #vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordsDialog( …, …, {}, {!r}, {!r}, {} )".format( contextLines, word1, word2, geometry ) )
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "GetHebrewGlossWordsDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetHebrewGlossWordsDialog…" )
         self.parentWindow, self.contextLines, self.word, self.word2 = parentWindow, contextLines, word1, word2
 
         self.customHebrewFont = tkFont.Font( family='Ezra', size=20 )
@@ -2401,11 +2396,11 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
         for resultWord in ( resultWord1, resultWord2 ):
             for illegalChar in ' :;"@#\\{}':
                 if illegalChar in resultWord:
-                    showWarning( self.parentWindow, APP_NAME, _("Not allowed {} characters") \
+                    showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Not allowed {} characters") \
                                         .format( _('space') if illegalChar==' ' else illegalChar ) )
                     return False
             if resultWord and resultWord.count('=') != self.contextLines[1].count('='):
-                showWarning( self.parentWindow, APP_NAME, _("Number of morpheme breaks (=) must match") )
+                showWarning( self.parentWindow, BiblelatorGlobals.APP_NAME, _("Number of morpheme breaks (=) must match") )
                 return False
         return True
     # end of GetHebrewGlossWordsDialog.validate
@@ -2437,7 +2432,7 @@ class ChooseResourcesDialog( ModalDialog ):
         NOTE: from the dictionaries in the list, we just use 'abbreviation' and 'givenName'
                 to build up the list of available resources.
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "ChooseResourcesDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "ChooseResourcesDialog…" )
         if BibleOrgSysGlobals.debugFlag:
             #if debuggingThisModule:
                 #vPrint( 'Quiet', debuggingThisModule, "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
@@ -2475,7 +2470,7 @@ class ChooseResourcesDialog( ModalDialog ):
                 self.lb.insert( tk.END, item )
             self.lb.pack( fill=tk.BOTH, expand=tk.YES )
 
-        if not self.parentWindow.parentApp.internetAccessEnabled:
+        if not BiblelatorGlobals.theApp.internetAccessEnabled:
             Label( master, text=_("NOTE: Internet access is disabled in your settings.") ).pack( side=tk.TOP, fill=tk.X )
 
         return self.lb # initial focus
@@ -2488,7 +2483,7 @@ class ChooseResourcesDialog( ModalDialog ):
         """
         box = Frame( self )
 
-        downloadButton = Button( box, text=_('Download more…'), command=self.doDownloadMore, state=tk.NORMAL if self.parentWindow.parentApp.internetAccessEnabled else tk.DISABLED )
+        downloadButton = Button( box, text=_('Download more…'), command=self.doDownloadMore, state=tk.NORMAL if BiblelatorGlobals.theApp.internetAccessEnabled else tk.DISABLED )
         downloadButton.pack( side=tk.LEFT, padx=5, pady=5 )
         okButton = Button( box, text=self.okText, width=10, command=self.ok, default=tk.ACTIVE )
         okButton.pack( side=tk.LEFT, padx=5, pady=5 )
@@ -2506,7 +2501,6 @@ class ChooseResourcesDialog( ModalDialog ):
         """
         Allow the user to select resources to download from our support site.
         """
-        self.parentApp = self.parentWindow.parentApp # Need to set this up before calling dialog from a dialog
         dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
         if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "doDownloadMore dRD result", repr(dRD.result) )
         if dRD.result:
@@ -2557,7 +2551,7 @@ class DownloadResourcesDialog( ModalDialog ):
     def __init__( self, parentWindow, title ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: parentWindow.parentApp.setDebugText( "DownloadResourcesDialog…" )
+        if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "DownloadResourcesDialog…" )
         if BibleOrgSysGlobals.debugFlag:
             #if debuggingThisModule:
                 #vPrint( 'Quiet', debuggingThisModule, "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
@@ -2661,7 +2655,7 @@ class DownloadResourcesDialog( ModalDialog ):
     def doDownloadFile( self, abbrev ):
         """
         """
-        if self.parentWindow.parentApp.doDownloadResource( abbrev ):
+        if BiblelatorGlobals.theApp.doDownloadResource( abbrev ):
             self.downloadCount += 1
     # end of DownloadResourcesDialog.doDownloadFile
 

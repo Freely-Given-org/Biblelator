@@ -44,7 +44,7 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
-from Biblelator.BiblelatorGlobals import tkBREAK
+from Biblelator import BiblelatorGlobals
 from Biblelator.Windows.TextBoxes import HTMLTextBox, ChildBoxAddon
 from Biblelator.Windows.ChildWindows import ChildWindow
 
@@ -63,14 +63,14 @@ debuggingThisModule = False
 class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     """
     """
-    def __init__( self, parentApp ) -> None:
+    def __init__( self, parentWindow ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"BibleLexiconResourceWindow.__init__( {parentApp} )…" )
+        vPrint( 'Quiet', debuggingThisModule, f"BibleLexiconResourceWindow.__init__( {parentWindow} )…" )
         self.lexiconWord = None
 
-        ChildWindow.__init__( self, parentApp, 'LexiconResource' )
-        ChildBoxAddon.__init__( self, parentApp )
+        ChildWindow.__init__( self, parentWindow, 'LexiconResource' )
+        ChildBoxAddon.__init__( self, self )
         self.moduleID = 'BibleLexicon'
         self.windowType = 'BibleLexiconResourceWindow'
 
@@ -123,22 +123,22 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         #subfileMenuExport.add_command( label=_('HTML'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label=_('Export'), underline=0, menu=subfileMenuExport )
         #fileMenu.add_separator()
-        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
+        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Info')][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] ) # close this window
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Close')][0] ) # close this window
 
         editMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
-        editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
+        editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
         editMenu.add_separator()
-        editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('SelectAll')][0] )
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Refind')][0] )
 
         gotoMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=gotoMenu, label=_('Goto'), underline=0 )
@@ -153,13 +153,13 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
         windowMenu.add_separator()
-        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('ShowMain')][0] )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict[_('About')][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
     # end of BibleLexiconResourceWindow.createMenuBar
 
 
@@ -169,7 +169,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         vPrint( 'Never', debuggingThisModule, "createToolBar()" )
 
-        xPad, yPad = (6, 8) if self.parentApp.touchMode else (4, 4)
+        xPad, yPad = (6, 8) if BiblelatorGlobals.theApp.touchMode else (4, 4)
 
         Style().configure( 'LexToolBar.TFrame', background='wheat1' )
         toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='LexToolBar.TFrame' )
@@ -253,7 +253,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         for name,shortcut in self.myKeyboardBindingsList:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
-        return tkBREAK # so we don't do the main window help also
+        return BiblelatorGlobals.tkBREAK # so we don't do the main window help also
     # end of BibleLexiconResourceWindow.doHelp
 
 
@@ -267,7 +267,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
-        return tkBREAK # so we don't do the main window about also
+        return BiblelatorGlobals.tkBREAK # so we don't do the main window about also
     # end of BibleLexiconResourceWindow.doAbout
 # end of BibleLexiconResourceWindow class
 

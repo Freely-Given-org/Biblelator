@@ -44,6 +44,7 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
+from Biblelator import BiblelatorGlobals
 
 
 LAST_MODIFIED_DATE = '2020-05-03' # by RJH
@@ -90,7 +91,7 @@ class ModalDialog( tk.Toplevel ):
 
         self.geometry( geometry if geometry else "+{}+{}".format(parentWindow.winfo_rootx()+50, parentWindow.winfo_rooty()+50) )
 
-        self.parentWindow.parentApp.setStatus( _("Waiting for user input…") )
+        BiblelatorGlobals.theApp.setStatus( _("Waiting for user input…") )
         self.initial_focus.focus_set()
         self.wait_window( self )
     # end of ModalDialog.__init__
@@ -146,7 +147,7 @@ class ModalDialog( tk.Toplevel ):
     def cancel( self, event=None ) -> None:
 
         # put focus back to the parent window
-        self.parentWindow.parentApp.setReadyStatus()
+        BiblelatorGlobals.theApp.setReadyStatus()
         self.parentWindow.focus_set()
         self.destroy()
     # end of ModalDialog.cancel

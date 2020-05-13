@@ -49,6 +49,7 @@ if __name__ == '__main__':
     aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
+from Biblelator import BiblelatorGlobals
 from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, tkBREAK, DEFAULT, DATA_SUBFOLDER_NAME
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 from Biblelator.Dialogs.BiblelatorDialogs import YesNoDialog, OkCancelDialog
@@ -67,7 +68,7 @@ PROGRAM_NAME = "Biblelator Text Edit Window"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+debuggingThisModule = 99
 
 
 REFRESH_TITLE_TIME = 500 # msecs
@@ -85,7 +86,7 @@ class TextEditWindowAddon:
         """
         vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.__init__( {}, {}, {} )".format( windowType, folderpath, filename ) )
         self.windowType, self.folderpath, self.filename = windowType, folderpath, filename
-        self.parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'TextEditWindowAddon __init__ {} {} {}'.format( windowType, folderpath, filename ) )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'TextEditWindowAddon __init__ {} {} {}'.format( windowType, folderpath, filename ) )
 
         self.filepath = os.path.join( folderpath, filename ) if folderpath and filename else None
         self.moduleID = None
@@ -176,16 +177,16 @@ class TextEditWindowAddon:
                              ('Save',self.doSave),
                              ('ShowMain',self.doShowMainWindow),
                              ):
-            #vPrint( 'Quiet', debuggingThisModule, "TEW CheckLoop", (name,self.parentApp.keyBindingDict[name][0],self.parentApp.keyBindingDict[name][1],) )
-            assert (name,self.parentApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
-            if name in self.parentApp.keyBindingDict:
-                for keyCode in self.parentApp.keyBindingDict[name][1:]:
+            #vPrint( 'Quiet', debuggingThisModule, "TEW CheckLoop", (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],BiblelatorGlobals.theApp.keyBindingDict[name][1],) )
+            assert (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
+            if name in BiblelatorGlobals.theApp.keyBindingDict:
+                for keyCode in BiblelatorGlobals.theApp.keyBindingDict[name][1:]:
                     #vPrint( 'Quiet', debuggingThisModule, "  TEW Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.textBox.bind( keyCode, commandFunction )
                     if BibleOrgSysGlobals.debugFlag:
                         assert keyCode not in self.myKeyboardShortcutsList
                         self.myKeyboardShortcutsList.append( keyCode )
-                self.myKeyboardBindingsList.append( (name,self.parentApp.keyBindingDict[name][0],) )
+                self.myKeyboardBindingsList.append( (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
     # end of TextEditWindowAddon.createEditorKeyboardBindings()
 
@@ -201,7 +202,7 @@ class TextEditWindowAddon:
 
         fileMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=fileMenu, label=_('File'), underline=0 )
-        fileMenu.add_command( label=_('Save'), underline=0, command=self.doSave, accelerator=self.parentApp.keyBindingDict[_('Save')][0] )
+        fileMenu.add_command( label=_('Save'), underline=0, command=self.doSave, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Save')][0] )
         fileMenu.add_command( label=_('Save as…'), underline=5, command=self.doSaveAs )
         #fileMenu.add_separator()
         #subfileMenuImport = tk.Menu( fileMenu, tearoff=False )
@@ -212,28 +213,28 @@ class TextEditWindowAddon:
         #subfileMenuExport.add_command( label=_('HTML'), underline=0, command=self.notWrittenYet )
         #fileMenu.add_cascade( label=_('Export'), underline=0, menu=subfileMenuExport )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=self.parentApp.keyBindingDict[_('Info')][0] )
+        fileMenu.add_command( label=_('Info…'), underline=0, command=self.doShowInfo, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Info')][0] )
         fileMenu.add_separator()
-        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        fileMenu.add_command( label=_('Close'), underline=0, command=self.doClose, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Close')][0] )
 
         editMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=editMenu, label=_('Edit'), underline=0 )
-        editMenu.add_command( label=_('Undo'), underline=0, command=self.doUndo, accelerator=self.parentApp.keyBindingDict[_('Undo')][0] )
-        editMenu.add_command( label=_('Redo'), underline=0, command=self.doRedo, accelerator=self.parentApp.keyBindingDict[_('Redo')][0] )
+        editMenu.add_command( label=_('Undo'), underline=0, command=self.doUndo, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Undo')][0] )
+        editMenu.add_command( label=_('Redo'), underline=0, command=self.doRedo, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Redo')][0] )
         editMenu.add_separator()
-        editMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict[_('Cut')][0] )
-        editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
-        editMenu.add_command( label=_('Paste'), underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict[_('Paste')][0] )
+        editMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Cut')][0] )
+        editMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
+        editMenu.add_command( label=_('Paste'), underline=0, command=self.doPaste, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Paste')][0] )
         editMenu.add_separator()
         editMenu.add_command( label=_('Delete'), underline=0, command=self.doDelete )
-        editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        editMenu.add_command( label=_('Select all'), underline=0, command=self.doSelectAll, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('SelectAll')][0] )
 
         searchMenu = tk.Menu( self.menubar )
         self.menubar.add_cascade( menu=searchMenu, label=_('Search'), underline=0 )
-        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=self.parentApp.keyBindingDict[_('Line')][0] )
+        searchMenu.add_command( label=_('Goto line…'), underline=0, command=self.doGotoWindowLine, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Line')][0] )
         searchMenu.add_separator()
-        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=self.parentApp.keyBindingDict[_('Find')][0] )
-        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=self.parentApp.keyBindingDict[_('Refind')][0] )
+        searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
+        searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Refind')][0] )
         searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doBoxFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label=_('Grep…'), underline=0, command=self.onGrep )
@@ -270,7 +271,7 @@ class TextEditWindowAddon:
         self.menubar.add_cascade( menu=windowMenu, label=_('Window'), underline=0 )
         windowMenu.add_command( label=_('Bring in'), underline=0, command=self.notWrittenYet )
         windowMenu.add_separator()
-        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=self.parentApp.keyBindingDict[_('ShowMain')][0] )
+        windowMenu.add_command( label=_('Show main window'), underline=0, command=self.doShowMainWindow, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('ShowMain')][0] )
 
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
@@ -281,9 +282,9 @@ class TextEditWindowAddon:
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label=_('Help'), underline=0 )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.parentApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.parentApp.keyBindingDict[_('About')][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
     # end of TextEditWindowAddon.createMenuBar
 
 
@@ -293,13 +294,13 @@ class TextEditWindowAddon:
         vPrint( 'Never', debuggingThisModule, "TextEditWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=False )
-        self.contextMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=self.parentApp.keyBindingDict[_('Cut')][0] )
-        self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=self.parentApp.keyBindingDict[_('Copy')][0] )
-        self.contextMenu.add_command( label=_('Paste'), underline=0, command=self.doPaste, accelerator=self.parentApp.keyBindingDict[_('Paste')][0] )
+        self.contextMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Cut')][0] )
+        self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
+        self.contextMenu.add_command( label=_('Paste'), underline=0, command=self.doPaste, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Paste')][0] )
         self.contextMenu.add_separator()
-        self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=self.parentApp.keyBindingDict[_('SelectAll')][0] )
+        self.contextMenu.add_command( label=_('Select all'), underline=7, command=self.doSelectAll, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('SelectAll')][0] )
         #self.contextMenu.add_separator()
-        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=self.parentApp.keyBindingDict[_('Close')][0] )
+        #self.contextMenu.add_command( label=_('Close'), underline=1, command=self.doClose, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Close')][0] )
 
         self.bind( '<Button-3>', self.showContextMenu ) # right-click
     # end of TextEditWindowAddon.createContextMenu
@@ -1042,7 +1043,7 @@ class TextEditWindowAddon:
 
         self.loading = True
         text = open( self.filepath, 'rt', encoding='utf-8' ).read()
-        if text == None:
+        if text is None:
             showError( self, APP_NAME, 'Could not decode and open file ' + self.filepath )
             return False
         else:
@@ -1143,7 +1144,7 @@ class TextEditWindowAddon:
             #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAutosave()" )
 
         if self.modified():
-            partialAutosaveFolderpath = self.folderpath if self.folderpath else self.parentApp.homeFolderpath
+            partialAutosaveFolderpath = self.folderpath if self.folderpath else BiblelatorGlobals.theApp.homeFolderpath
             # NOTE: Don't use a hidden folder coz user might not be able to find it
             autosaveFolderpath = os.path.join( partialAutosaveFolderpath, 'AutoSave/' ) \
                                     if APP_NAME in partialAutosaveFolderpath \
@@ -1181,18 +1182,18 @@ class TextEditWindowAddon:
         """
         if BibleOrgSysGlobals.debugFlag:
             vPrint( 'Quiet', debuggingThisModule, "doViewSettings()" )
-            self.parentApp.setDebugText( "doViewSettings…" )
-        tEW = TextEditWindow( self.parentApp )
+            BiblelatorGlobals.theApp.setDebugText( "doViewSettings…" )
+        tEW = TextEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open settings file") )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewSettings" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewSettings" )
         else:
-            self.parentApp.childWindows.append( tEW )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Finished doViewSettings" )
-        self.parentApp.setReadyStatus()
+            BiblelatorGlobals.theApp.childWindows.append( tEW )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished doViewSettings" )
+        BiblelatorGlobals.theApp.setReadyStatus()
     # end of TextEditWindowAddon.doViewSettings
 
 
@@ -1201,20 +1202,20 @@ class TextEditWindowAddon:
         Open a pop-up text window with the current log displayed.
         """
         vPrint( 'Never', debuggingThisModule, "doViewLog()" )
-        if debuggingThisModule: self.parentApp.setDebugText( "doViewLog…" )
+        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "doViewLog…" )
 
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
-        tEW = TextEditWindow( self.parentApp )
+        tEW = TextEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
-        if not tEW.setPathAndFile( self.parentApp.loggingFolderpath, filename ) \
+        if not tEW.setPathAndFile( BiblelatorGlobals.theApp.loggingFolderpath, filename ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
-            if BibleOrgSysGlobals.debugFlag: self.parentApp.setDebugText( "Failed doViewLog" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewLog" )
         else:
-            self.parentApp.childWindows.append( tEW )
+            BiblelatorGlobals.theApp.childWindows.append( tEW )
             #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
-        self.parentApp.setReadyStatus()
+        BiblelatorGlobals.theApp.setReadyStatus()
     # end of TextEditWindowAddon.doViewLog
 
 
@@ -1298,14 +1299,14 @@ class TextEditWindowAddon:
 class TextEditWindow( TextEditWindowAddon, ChildWindow ):
     """
     """
-    def __init__( self, parentApp, folderpath=None, filename=None ):
+    def __init__( self, parentWindow, folderpath=None, filename=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "TextEditWindow.__init__( {}, {}, {} )".format( parentApp, folderpath, filename ) )
+        vPrint( 'Never', debuggingThisModule, f"TextEditWindow.__init__( pW={parentWindow}, fp={folderpath}, fn={filename} )…" )
         self.folderpath, self.filename = folderpath, filename
-        parentApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderpath, filename ) )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'TextEditWindow __init__ {} {}'.format( folderpath, filename ) )
 
-        ChildWindow.__init__( self, parentApp, 'TextEditor' )
+        ChildWindow.__init__( self, parentWindow, 'TextEditor' )
         TextEditWindowAddon.__init__( self, 'PlainTextEditWindow', folderpath, filename )
 
         #self.filepath = os.path.join( folderpath, filename ) if folderpath and filename else None

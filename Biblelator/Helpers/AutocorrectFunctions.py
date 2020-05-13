@@ -40,6 +40,13 @@ debuggingThisModule = False
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
+# Biblelator imports
+if __name__ == '__main__':
+    import sys
+    aboveAboveFolderpath = os.path.dirname( os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) ) )
+    if aboveAboveFolderpath not in sys.path:
+        sys.path.insert( 0, aboveAboveFolderpath )
+from Biblelator import BiblelatorGlobals
 
 
 
@@ -101,7 +108,7 @@ def setDefaultAutocorrectEntries( self ):
 
     from datetime import datetime # Sorry -- this is a hack for our project
     ourAutocorrectEntries.append( ('QQQ',' [{} {}] XXX' \
-                .format( self.parentApp.currentUserInitials, datetime.now().strftime( '%d%b%y' ) ) ) )
+                .format( BiblelatorGlobals.theApp.currentUserInitials, datetime.now().strftime( '%d%b%y' ) ) ) )
 
     # Add trailing spaces on these ones so that autocomplete doesn't kick in as well
     #ourAutocorrectEntries.append( ('(in','(incl) ') )

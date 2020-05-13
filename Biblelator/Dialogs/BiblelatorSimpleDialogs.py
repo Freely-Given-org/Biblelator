@@ -39,28 +39,30 @@ import tkinter.messagebox as tkMsgBox
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import vPrint
 
+# Biblelator imports
+from Biblelator import BiblelatorGlobals
 
-LAST_MODIFIED_DATE = '2020-04-29'
+
+LAST_MODIFIED_DATE = '2020-05-10'
 SHORT_PROGRAM_NAME = "BiblelatorSimpleDialogs"
 PROGRAM_NAME = "Biblelator simple dialogs"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+debuggingThisModule = 99
 
 
 
 
-def showError( parentWindow, title, errorText ):
+def showError( parentWindow, title:str, errorText:str ) -> None:
     """
     """
-    if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "showError( {}, {!r}, {!r} )".format( parentWindow, title, errorText ) )
+    vPrint( 'Quiet', debuggingThisModule, f"showError( {parentWindow}, '{title}', '{errorText}' )…" )
 
-    logging.error( '{}: {}'.format( title, errorText ) )
-    parentWindow.parentApp.setStatus( _("Waiting for user input after error…") )
+    logging.error( f'{title}: {errorText}' )
+    BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after error…") )
     tkMsgBox.showerror( title, errorText, parent=parentWindow )
-    parentWindow.parentApp.setReadyStatus()
+    BiblelatorGlobals.theApp.setReadyStatus()
 # end of BiblelatorSimpleDialogs.showError
 
 
@@ -71,9 +73,9 @@ def showWarning( parentWindow, title, warningText ):
         vPrint( 'Quiet', debuggingThisModule, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
-    parentWindow.parentApp.setStatus( _("Waiting for user input after warning…") )
+    BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after warning…") )
     tkMsgBox.showwarning( title, warningText, parent=parentWindow )
-    parentWindow.parentApp.setReadyStatus()
+    BiblelatorGlobals.theApp.setReadyStatus()
 # end of BiblelatorSimpleDialogs.showWarning
 
 
@@ -95,9 +97,9 @@ def showInfo( parentWindow, title, infoText ):
                 infoText += '  {}={!r}\n'.format( configTuple[0], configTuple[1] )
 
     logging.info( '{}: {}'.format( title, infoText ) )
-    parentWindow.parentApp.setStatus( _("Waiting for user input after info…") )
+    BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after info…") )
     tkMsgBox.showinfo( title, infoText, parent=parentWindow )
-    parentWindow.parentApp.setReadyStatus()
+    BiblelatorGlobals.theApp.setReadyStatus()
 # end of BiblelatorSimpleDialogs.showInfo
 
 
