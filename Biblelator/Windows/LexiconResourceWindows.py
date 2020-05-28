@@ -35,7 +35,7 @@ from tkinter.ttk import Style, Frame, Button
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.OriginalLanguages.BibleLexicon import BibleLexicon
 
 # Biblelator imports
@@ -225,7 +225,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Leaves text box in disabled state. (Not user editable.)
         """
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "updateLexiconWord( {} )".format( newLexiconWord ) )
+        dPrint( 'Quiet', debuggingThisModule, "updateLexiconWord( {} )".format( newLexiconWord ) )
 
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
@@ -278,7 +278,7 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
@@ -302,7 +302,7 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

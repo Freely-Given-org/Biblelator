@@ -41,7 +41,7 @@ import re
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Bible import Bible
 from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey, BBB_RE #, FlexibleVersesKey
 from BibleOrgSys.Reference.BibleReferencesLinks import BibleReferencesLinks
@@ -123,7 +123,7 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
         uB.preload()
         vPrint( 'Quiet', debuggingThisModule, "Fill Bible2", uB )
         #uB.loadBooks()
-        #vPrint( 'Quiet', debuggingThisModule, "Fill Bible3", uB )
+        #dPrint( 'Quiet', debuggingThisModule, "Fill Bible3", uB )
 
     if requestDict['Books'] == 'None': booklist = []
     elif requestDict['Books'] == 'Current': booklist = [ currentBBB ]
@@ -167,13 +167,13 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
             bookText = ''
             for verseDataEntry in uBB._processedLines:
                 pseudoMarker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
-                #vPrint( 'Quiet', debuggingThisModule, BBB, pseudoMarker, repr(cleanText) )
+                #dPrint( 'Quiet', debuggingThisModule, BBB, pseudoMarker, repr(cleanText) )
                 if '¬' in pseudoMarker or pseudoMarker in BOS_ALL_ADDED_MARKERS or pseudoMarker in ('c#','vp#',):
                     continue # Just ignore added markers -- not needed here
                 #if pseudoMarker in ('v','f','fr','x','xo',): # These fields should always end with a space but the processing will have removed them
                     #pseudoMarker += ' ' # Append a space since it didn't have one
                 #if pseudoMarker in ALL_CHAR_MARKERS: # Character markers to be closed
-                    #vPrint( 'Quiet', debuggingThisModule, "CHAR MARKER" )
+                    #dPrint( 'Quiet', debuggingThisModule, "CHAR MARKER" )
                     #pass
                     ##if (USFM[-2]=='\\' or USFM[-3]=='\\') and USFM[-1]!=' ':
                     #if bookText[-1] != ' ':
@@ -187,7 +187,7 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
                 elif pseudoMarker == 'c': bookText += '\\c {}'.format( cleanText )
                 elif pseudoMarker == 'v': bookText += '\\v {} '.format( cleanText )
                 else: bookText += '\\{} '.format( pseudoMarker )
-                #vPrint( 'Quiet', debuggingThisModule, pseudoMarker, USFM[-200:] )
+                #dPrint( 'Quiet', debuggingThisModule, pseudoMarker, USFM[-200:] )
         else: halt # programming error
 
         # Write the actual file
@@ -290,7 +290,7 @@ def mapReferencesVerseKey( mainVerseKey ):
             #}
         #if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
             #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                #vPrint( 'Quiet', debuggingThisModule, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+                #dPrint( 'Quiet', debuggingThisModule, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
             #return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferencesVerseKey
 
@@ -321,17 +321,17 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         if verseData is None: return False
 
         elif isinstance( verseData, str ):
-            #vPrint( 'Quiet', debuggingThisModule, "  It's a string!" )
+            #dPrint( 'Quiet', debuggingThisModule, "  It's a string!" )
             if '\\s ' in thisVerseData or '\\s1' in thisVerseData \
             or '\\s2' in thisVerseData or '\\s3' in thisVerseData:
                 return True
 
         elif isinstance( verseData, tuple ):
-            #vPrint( 'Quiet', debuggingThisModule, "  It's an InternalBibleEntryList!" )
+            #dPrint( 'Quiet', debuggingThisModule, "  It's an InternalBibleEntryList!" )
             assert len(verseData) == 2
             verseDataList, context = verseData
-            #vPrint( 'Quiet', debuggingThisModule, '   dataList', repr(verseDataList) )
-            #vPrint( 'Quiet', debuggingThisModule, '    context', repr(context) )
+            #dPrint( 'Quiet', debuggingThisModule, '   dataList', repr(verseDataList) )
+            #dPrint( 'Quiet', debuggingThisModule, '    context', repr(context) )
             for verseDataEntry in verseDataList:
                 if isinstance( verseDataEntry, InternalBibleEntry ):
                     marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
@@ -362,12 +362,12 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
     # Start of main section of findCurrentSection
     BBB, C, V = currentVerseKey.getBCV()
     intC, intV = currentVerseKey.getChapterNumberInt(), currentVerseKey.getVerseNumberInt()
-    #vPrint( 'Quiet', debuggingThisModule, 'fCS at', BBB, C, intC, V, intV )
+    #dPrint( 'Quiet', debuggingThisModule, 'fCS at', BBB, C, intC, V, intV )
 
     # First let's find the beginning of the section
     #  which could be in the current verse/chapter,
     #   or in the previous chapter (at most we assume)
-    #vPrint( 'Quiet', debuggingThisModule, 'fCS finding start…' )
+    #dPrint( 'Quiet', debuggingThisModule, 'fCS finding start…' )
     firstC = max( intC-1, 0 )
     found = False
     for thisC in reversed( range( firstC, intC+1 ) ): # Look backwards
@@ -386,7 +386,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
     # Now let's find the end of the section
     #  which could be in the current chapter, or in the next chapter (at most we assume)
-    #vPrint( 'Quiet', debuggingThisModule, 'fCS finding end…' )
+    #dPrint( 'Quiet', debuggingThisModule, 'fCS finding end…' )
     lastC = min( intC+1, getNumChapters( BBB ) )
     found = False
     for thisC in range( intC, lastC+1 ):
@@ -402,7 +402,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         if found: break
     if not found: found = lastC, numVerses
     endKey = SimpleVerseKey( BBB, found[0], found[1] )
-    #vPrint( 'Quiet', debuggingThisModule, "fCS returning", startKey.getShortText(), endKey.getShortText() )
+    #dPrint( 'Quiet', debuggingThisModule, "fCS returning", startKey.getShortText(), endKey.getShortText() )
     return startKey, endKey
 # end of BiblelatorHelpers.findCurrentSection
 
@@ -423,7 +423,7 @@ def handleInternalBibles( internalBible:Bible, controllingWindow ) -> Bible:
         vPrint( 'Quiet', debuggingThisModule, "handleInternalBibles( {}, {} )".format( internalBible, controllingWindow ) )
         assert isinstance( internalBible, Bible )
         #BiblelatorGlobals.theApp.setDebugText( "handleInternalBibles" )
-        #vPrint( 'Quiet', debuggingThisModule, "hereHIB0", repr(internalBible), len(BiblelatorGlobals.theApp.internalBibles) )
+        #dPrint( 'Quiet', debuggingThisModule, "hereHIB0", repr(internalBible), len(BiblelatorGlobals.theApp.internalBibles) )
 
     result = internalBible # Default to returning what we were given
     if debuggingThisFunction and internalBible is None:
@@ -483,7 +483,7 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText ):
     Just logs some info about the recently changed book to a log file for the project.
     """
     #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #vPrint( 'Quiet', debuggingThisModule, "logChangedFile( {}, {!r}, {}, {} )".format( loggingFolder, projectName, savedBBB, len(bookText) ) )
+        #dPrint( 'Quiet', debuggingThisModule, "logChangedFile( {}, {!r}, {}, {} )".format( loggingFolder, projectName, savedBBB, len(bookText) ) )
 
     filepath = getChangeLogFilepath( loggingFolder, projectName )
 
@@ -518,7 +518,7 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
 
     # Do a bit of preliminary cleaning-up
     bookNameEntry = bookNameEntry.strip().replace( '  ', ' ' )
-    #vPrint( 'Quiet', debuggingThisModule, "parseEnteredBooknameField: pulling apart {!r}".format( bookNameEntry ) )
+    #dPrint( 'Quiet', debuggingThisModule, "parseEnteredBooknameField: pulling apart {!r}".format( bookNameEntry ) )
 
     # Without the bookname (i.e., stay in current book)
     # Do these first because they are more strict (only digits and use re.fullmatch not re.search or re.match)
@@ -603,17 +603,17 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( programNameVersion )
 
     #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
-    #vPrint( 'Quiet', debuggingThisModule, "swndResult", swnd.result )
+    #dPrint( 'Quiet', debuggingThisModule, "swndResult", swnd.result )
     #dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
-    #vPrint( 'Quiet', debuggingThisModule, "dwndResult", dwnd.result )
+    #dPrint( 'Quiet', debuggingThisModule, "dwndResult", dwnd.result )
     #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
-    #vPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
+    #dPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
 
     # Program a shutdown
     tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
@@ -629,17 +629,17 @@ def fullDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( programNameVersion )
 
     #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
-    #vPrint( 'Quiet', debuggingThisModule, "swndResult", swnd.result )
+    #dPrint( 'Quiet', debuggingThisModule, "swndResult", swnd.result )
     #dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
-    #vPrint( 'Quiet', debuggingThisModule, "dwndResult", dwnd.result )
+    #dPrint( 'Quiet', debuggingThisModule, "dwndResult", dwnd.result )
     #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
-    #vPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
+    #dPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
 
     # Program a shutdown
     tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds

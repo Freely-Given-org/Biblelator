@@ -38,7 +38,7 @@ debuggingThisModule = False
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -59,7 +59,7 @@ def setAutocorrectEntries( self, autocorrectEntryList, append=False ):
         so that more common/likely words can appear at the top of the list if desired.
     """
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #vPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setAutocorrectEntries( {} )".format( autocorrectEntryList, append ) )
+        #dPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setAutocorrectEntries( {} )".format( autocorrectEntryList, append ) )
         vPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setAutocorrectEntries( {}.., {} )".format( len(autocorrectEntryList), append ) )
 
     if append: self.autocorrectEntries.extend( autocorrectEntryList )
@@ -127,7 +127,7 @@ def briefDemo() -> None:
     import tkinter as tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

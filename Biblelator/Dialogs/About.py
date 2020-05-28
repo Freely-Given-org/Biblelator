@@ -40,7 +40,7 @@ from Biblelator.BiblelatorGlobals import MINIMUM_ABOUT_SIZE, MAXIMUM_ABOUT_SIZE,
                                 parseWindowSize, centreWindowOnWindow
 
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 LAST_MODIFIED_DATE = '2020-04-25' # by RJH
@@ -140,7 +140,7 @@ def briefDemo() -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        #vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        #dPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
             vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
     tkRootWindow.title( programNameVersion )
@@ -165,7 +165,7 @@ def fullDemo() -> None:
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        #vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        #dPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
             vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
     tkRootWindow.title( programNameVersion )

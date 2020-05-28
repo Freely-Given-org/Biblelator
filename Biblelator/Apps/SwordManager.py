@@ -43,7 +43,7 @@ from tkinter.scrolledtext import ScrolledText
 # BibleOrgSys imports
 sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
 #from BibleOrgSys.Reference.BibleVersificationSystems import BibleVersificationSystems
 #from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
@@ -126,8 +126,8 @@ class SwordManager( Frame ):
         self.lexiconWord = None
         self.currentProject = None
 
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
+        dPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
+        dPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
@@ -222,17 +222,17 @@ class SwordManager( Frame ):
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
-        #vPrint( 'Quiet', debuggingThisModule, self.genericBookList )
+        #dPrint( 'Quiet', debuggingThisModule, self.genericBookList )
         self.offsetGenesis = self.genericBookList.index( 'GEN' )
-        #vPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
+        #dPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
             nBBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getReferenceNumber( BBB )
-            #vPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
+            #dPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
-        #vPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
+        #dPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
     # end of SwordManager.setGenericBibleOrganisationalSystem
 
 
@@ -330,7 +330,7 @@ class SwordManager( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         #self.bookNumberSpinbox['width'] = 3
         self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -352,7 +352,7 @@ class SwordManager( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         #self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -369,7 +369,7 @@ class SwordManager( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
+        #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -447,7 +447,7 @@ class SwordManager( Frame ):
         self.bookNumberVar = tk.StringVar()
         self.bookNumberVar.set( '1' )
         self.maxBooks = len( self.genericBookList )
-        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         #self.bookNumberSpinbox['width'] = 3
         self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -473,7 +473,7 @@ class SwordManager( Frame ):
         self.chapterNumberVar = tk.StringVar()
         self.chapterNumberVar.set( '1' )
         self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #vPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
         self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         #self.chapterSpinbox['width'] = 3
         self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -494,7 +494,7 @@ class SwordManager( Frame ):
         self.verseNumberVar.set( '1' )
         #self.maxVersesThisChapterVar = tk.StringVar()
         self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #vPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
+        #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
         #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # Add 1 to maxVerses to enable them to go to the next chapter
         self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -739,7 +739,7 @@ class SwordManager( Frame ):
                               ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
-                    #vPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #dPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {!r}'.format( name ) )
@@ -759,7 +759,7 @@ class SwordManager( Frame ):
         #Puts most recent first
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, _("addRecentFile( {} )").format( threeTuple ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("addRecentFile( {} )").format( threeTuple ) )
             #assert len(threeTuple) == 3
 
         #try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
@@ -782,7 +782,7 @@ class SwordManager( Frame ):
         """
         vPrint( 'Never', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
 
-        #vPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
+        #dPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( tkSTART, tk.END )
@@ -841,7 +841,7 @@ class SwordManager( Frame ):
         """
         """
         if debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, _("setDebugText( {!r} )").format( newMessage ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("setDebugText( {!r} )").format( newMessage ) )
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
@@ -924,7 +924,7 @@ class SwordManager( Frame ):
         """
         vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewCode…" )
-        #vPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
         vPrint( 'Quiet', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
@@ -948,7 +948,7 @@ class SwordManager( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #vPrint( 'Never', debuggingThisModule, _("doViewSettings()…") )
+            #dPrint( 'Never', debuggingThisModule, _("doViewSettings()…") )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1075,7 +1075,7 @@ class SwordManager( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #vPrint( 'Never', debuggingThisModule, _("doProjectClose()…") )
+        #dPrint( 'Never', debuggingThisModule, _("doProjectClose()…") )
         #self.notWrittenYet()
     ## end of SwordManager.doProjectClose
 
@@ -1225,33 +1225,33 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
 
-    #vPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderpath), repr(loggingFolderpath) )
+    #dPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderpath), repr(loggingFolderpath) )
 
     numInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
+        #dPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
+        #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
+                dPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
         myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
+        #dPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
+        #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
+                dPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
@@ -1293,7 +1293,7 @@ def run() -> None:
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-    #vPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
+    #dPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
 
     if BibleOrgSysGlobals.debugFlag:
         vPrint( 'Quiet', debuggingThisModule, _("Platform is"), sys.platform ) # e.g., 'linux,'win32'

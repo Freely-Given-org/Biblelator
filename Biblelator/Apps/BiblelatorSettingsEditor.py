@@ -40,7 +40,7 @@ from tkinter.scrolledtext import ScrolledText
 # BibleOrgSys imports
 sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
 from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
 
@@ -117,8 +117,8 @@ class BiblelatorSettingsEditor( Frame ):
 
         self.fixedSettingsFlag = False # Can the user change the settings file that we're looking at?
 
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
+        dPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
+        dPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
 
         self.stylesheet = BibleStylesheet().loadDefault()
         super().__init__( self.rootWindow )
@@ -212,17 +212,17 @@ class BiblelatorSettingsEditor( Frame ):
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
-        #vPrint( 'Quiet', debuggingThisModule, self.genericBookList )
+        #dPrint( 'Quiet', debuggingThisModule, self.genericBookList )
         self.offsetGenesis = self.genericBookList.index( 'GEN' )
-        #vPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
+        #dPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
             nBBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getReferenceNumber( BBB )
-            #vPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
+            #dPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
-        #vPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
+        #dPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
     # end of BiblelatorSettingsEditor.setGenericBibleOrganisationalSystem
 
 
@@ -857,7 +857,7 @@ class BiblelatorSettingsEditor( Frame ):
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
-                    #vPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #dPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {!r}'.format( name ) )
@@ -877,7 +877,7 @@ class BiblelatorSettingsEditor( Frame ):
         #Puts most recent first
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "addRecentFile( {} )".format( threeTuple ) )
+            #dPrint( 'Quiet', debuggingThisModule, "addRecentFile( {} )".format( threeTuple ) )
             #assert len(threeTuple) == 3
 
         #try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
@@ -900,7 +900,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         vPrint( 'Never', debuggingThisModule, "setStatus( {!r} )".format( newStatusText ) )
 
-        #vPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
+        #dPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( tkSTART, tk.END )
@@ -959,7 +959,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         """
         if debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "setDebugText( {!r} )".format( newMessage ) )
+            #dPrint( 'Quiet', debuggingThisModule, "setDebugText( {!r} )".format( newMessage ) )
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
@@ -1018,7 +1018,7 @@ class BiblelatorSettingsEditor( Frame ):
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'selectedNewSettingsFile' )
         if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             vPrint( 'Quiet', debuggingThisModule, "selectedNewSettingsFile( {} ) for {!r}".format( event, enteredFilename ) )
-            #vPrint( 'Quiet', debuggingThisModule, dir(event) )
+            #dPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         self.doApply() # Save any changes to current settings file
         self.INIname = enteredFilename
@@ -1065,7 +1065,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #vPrint( 'Never', debuggingThisModule, "doViewSettings()" )
+            #dPrint( 'Never', debuggingThisModule, "doViewSettings()" )
             #self.setDebugText( "doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1193,7 +1193,7 @@ class BiblelatorSettingsEditor( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #vPrint( 'Never', debuggingThisModule, "doProjectClose()" )
+        #dPrint( 'Never', debuggingThisModule, "doProjectClose()" )
         #self.notWrittenYet()
     ## end of BiblelatorSettingsEditor.doProjectClose
 
@@ -1342,33 +1342,33 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
 
-    #vPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderpath), repr(loggingFolderpath) )
+    #dPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderpath), repr(loggingFolderpath) )
 
     numInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
+        #dPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
+        #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
+                dPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
         myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #vPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
+        #dPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #vPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
+        #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
+                dPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
@@ -1410,7 +1410,7 @@ def run() -> None:
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-    #vPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
+    #dPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
 
     if BibleOrgSysGlobals.debugFlag:
         vPrint( 'Quiet', debuggingThisModule, "Platform is", sys.platform ) # e.g., 'linux,'win32'

@@ -43,7 +43,7 @@ import re
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 LAST_MODIFIED_DATE = '2020-05-10' # by RJH
@@ -83,18 +83,18 @@ def setApp( mainApp ):
 #
 # Readable folder paths
 SOURCE_BASE_FOLDERPATH = Path( __file__ ).parent.resolve() # Folder containing this file
-#vPrint( 'Quiet', debuggingThisModule, f"SOURCE_BASE_FOLDERPATH = {SOURCE_BASE_FOLDERPATH}" )
+#dPrint( 'Quiet', debuggingThisModule, f"SOURCE_BASE_FOLDERPATH = {SOURCE_BASE_FOLDERPATH}" )
 DATAFILES_FOLDERPATH = SOURCE_BASE_FOLDERPATH.joinpath( 'DataFiles/' )
 # DERIVED_DATAFILES_FOLDERPATH = DATAFILES_FOLDERPATH.joinpath( 'DerivedFiles/' )
 
 # LIBRARY_BASE_FOLDERPATH = SOURCE_BASE_FOLDERPATH.parent # Folder above the one containing this file
-# #vPrint( 'Quiet', debuggingThisModule, f"LIBRARY_BASE_FOLDERPATH = {LIBRARY_BASE_FOLDERPATH}" )
+# #dPrint( 'Quiet', debuggingThisModule, f"LIBRARY_BASE_FOLDERPATH = {LIBRARY_BASE_FOLDERPATH}" )
 # TESTS_FOLDERPATH = LIBRARY_BASE_FOLDERPATH.joinpath( 'Tests/' )
 # TEST_DATA_FOLDERPATH = TESTS_FOLDERPATH.joinpath( 'DataFilesForTests/' )
 
 # # Resources like original language lexicons should be based from this folder
 # BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH = LIBRARY_BASE_FOLDERPATH.parent # Two folders above the one containing this file
-# vPrint( 'Quiet', debuggingThisModule, f"BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH = {BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH}" )
+# dPrint( 'Quiet', debuggingThisModule, f"BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH = {BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH}" )
 
 
 # Constants for tkinter
@@ -155,7 +155,7 @@ DEFAULT_KEY_BINDING_DICT = {
     _('About'):('F12','<F12>'),
     _('Close'):('Ctrl+F4','<Control-F4>'),
     _('Quit'):('Alt+F4','<Alt-F4>'), }
-#vPrint( 'Quiet', debuggingThisModule, DEFAULT_KEY_BINDING_DICT ); halt
+#dPrint( 'Quiet', debuggingThisModule, DEFAULT_KEY_BINDING_DICT ); halt
 
 
 
@@ -218,7 +218,7 @@ def centreWindow( self, width=400, height=250 ):
 
     x = (screenWidth - width) // 2
     y = (screenHeight - height) // 2
-    #vPrint( 'Quiet', debuggingThisModule, "centreWindow", width, height, screenWidth, screenHeight, x, y )
+    #dPrint( 'Quiet', debuggingThisModule, "centreWindow", width, height, screenWidth, screenHeight, x, y )
 
     self.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
 # end of BiblelatorGlobals.centreWindow
@@ -228,11 +228,11 @@ def centreWindowOnWindow( self, parentWindow, width=400, height=250 ):
     """
     """
     parentWidth, parentHeight, parentXOffset, parentYOffset = parseWindowGeometry( parentWindow.winfo_geometry() )
-    #vPrint( 'Quiet', debuggingThisModule, "centreWindowOnWindow parent is", "w =",parentWidth, "h =",parentHeight, "x =",parentXOffset, "y =",parentYOffset )
+    #dPrint( 'Quiet', debuggingThisModule, "centreWindowOnWindow parent is", "w =",parentWidth, "h =",parentHeight, "x =",parentXOffset, "y =",parentYOffset )
 
     x = parentXOffset + (parentWidth - width) // 2
     y = parentYOffset + (parentHeight - height) // 2
-    #vPrint( 'Quiet', debuggingThisModule, "centreWindowOnWindow", "w =",width, "h =",height, "x =",x, "y =",y )
+    #dPrint( 'Quiet', debuggingThisModule, "centreWindowOnWindow", "w =",width, "h =",height, "x =",x, "y =",y )
 
     self.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
 # end of BiblelatorGlobals.centreWindowOnWindow
@@ -261,7 +261,7 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
@@ -292,7 +292,7 @@ def fullDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"

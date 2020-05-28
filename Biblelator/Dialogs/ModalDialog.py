@@ -35,7 +35,7 @@ from tkinter.ttk import Frame, Button
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -160,7 +160,7 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "This 'validate' method can be overridden!" )
+        dPrint( 'Quiet', debuggingThisModule, "This 'validate' method can be overridden!" )
         return True # override
     # end of ModalDialog.validate
 
@@ -172,7 +172,7 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "This 'apply' method should be overridden!" )
+        dPrint( 'Quiet', debuggingThisModule, "This 'apply' method should be overridden!" )
         self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog

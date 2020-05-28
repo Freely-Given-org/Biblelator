@@ -39,7 +39,7 @@ from tkinter.ttk import Frame, Button, Scrollbar
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey, SimpleVersesKey, VerseRangeKey, FlexibleVersesKey
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
 
@@ -79,7 +79,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
     def __init__( self, parentWindow, parentFrame, internalBible, referenceObject ):
         """
         """
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "BibleReferenceBox.__init__( {}, {}. {}, {}, {} )".format( parentWindow, parentFrame, internalBible.getAName(), referenceObject ) )
+        dPrint( 'Quiet', debuggingThisModule, "BibleReferenceBox.__init__( {}, {}. {}, {}, {} )".format( parentWindow, parentFrame, internalBible.getAName(), referenceObject ) )
         self.parentWindow, self.parentFrame, self.referenceObject = parentWindow, parentFrame, referenceObject
         self.internalBible = handleInternalBibles( internalBible, self )
 
@@ -107,10 +107,10 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         #self.update() # so we can get the geometry
         #width = parseWindowSize( self.parentWindow.winfo_geometry() )[0] - 60 # Allow for above button
         #if len(adjModuleID)*10 > width: # Note: this doesn't adjust if the window size is changed
-            #vPrint( 'Quiet', debuggingThisModule, "BRB here1", len(adjModuleID), width, repr(adjModuleID) )
+            #dPrint( 'Quiet', debuggingThisModule, "BRB here1", len(adjModuleID), width, repr(adjModuleID) )
             #x = len(adjModuleID)*100/width # not perfect (too small) for narrow windows
             #adjModuleID = '…' + adjModuleID[int(x):]
-            #vPrint( 'Quiet', debuggingThisModule, "BRB here2", len(adjModuleID), x, repr(adjModuleID) )
+            #dPrint( 'Quiet', debuggingThisModule, "BRB here2", len(adjModuleID), x, repr(adjModuleID) )
         #titleText = '{} ({})'.format( adjModuleID, boxType.replace( 'BibleReferenceBox', '' ) )
         titleText = self.referenceObject.getShortText()
         self.titleLabel = tk.Label( titleBar, text=titleText )
@@ -178,7 +178,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         """
 
         """
-        if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "BibleReferenceBox.gotoBCV( {} {}:{} from {} )".format( BBB, C, V, self.currentVerseKey ) )
+        dPrint( 'Quiet', debuggingThisModule, "BibleReferenceBox.gotoBCV( {} {}:{} from {} )".format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentWindow.gotoGroupBCV( self._groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -201,7 +201,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
 
 
     #def XXXgetSwordVerseKey( self, verseKey ):
-        ##vPrint( 'Never', debuggingThisModule, "getSwordVerseKey( {} )".format( verseKey ) )
+        ##dPrint( 'Never', debuggingThisModule, "getSwordVerseKey( {} )".format( verseKey ) )
         #BBB, C, V = verseKey.getBCV()
         #return BiblelatorGlobals.theApp.SwordInterface.makeKey( BBB, C, V )
     ## end of BibleReferenceBox.getSwordVerseKey
@@ -215,17 +215,17 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         The cache keeps the newest or most recently used entries at the end.
         When it gets too large, it drops the first entry.
         """
-        #vPrint( 'Never', debuggingThisModule, "getCachedVerseData( {} )".format( verseKey ) )
+        #dPrint( 'Never', debuggingThisModule, "getCachedVerseData( {} )".format( verseKey ) )
         verseKeyHash = verseKey.makeHash()
         if verseKeyHash in self.verseCache:
-            #vPrint( 'Never', debuggingThisModule, "  " + "Retrieved from BibleReferenceBox cache" )
+            #dPrint( 'Never', debuggingThisModule, "  " + "Retrieved from BibleReferenceBox cache" )
             self.verseCache.move_to_end( verseKeyHash )
-            #vPrint( 'Quiet', debuggingThisModule, "   returning", self.verseCache[verseKeyHash][0] )
+            #dPrint( 'Quiet', debuggingThisModule, "   returning", self.verseCache[verseKeyHash][0] )
             return self.verseCache[verseKeyHash]
         verseContextData = self.getContextVerseData( verseKey )
         self.verseCache[verseKeyHash] = verseContextData
         if len(self.verseCache) > MAX_CACHED_VERSES:
-            #vPrint( 'Quiet', debuggingThisModule, "Removing oldest cached entry", len(self.verseCache) )
+            #dPrint( 'Quiet', debuggingThisModule, "Removing oldest cached entry", len(self.verseCache) )
             self.verseCache.popitem( last=False )
         return verseContextData
     # end of BibleReferenceBox.getCachedVerseData
@@ -247,13 +247,13 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
             assert isinstance( newReferenceObject, SimpleVerseKey ) or isinstance( newReferenceObject, SimpleVersesKey ) or isinstance( newReferenceObject, VerseRangeKey )
 
         for j, referenceVerse in enumerate( newReferenceObject ):
-            #vPrint( 'Quiet', debuggingThisModule, "  refVerse", j, referenceVerse )
+            #dPrint( 'Quiet', debuggingThisModule, "  refVerse", j, referenceVerse )
             assert isinstance( referenceVerse, SimpleVerseKey )
 
             refBBB, refC, refV, refS = referenceVerse.getBCVS()
             BBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
             newVerseKey = SimpleVerseKey( BBB, C, V, S )
-            #vPrint( 'Quiet', debuggingThisModule, "       newVK", newVerseKey )
+            #dPrint( 'Quiet', debuggingThisModule, "       newVK", newVerseKey )
 
             # Set firstFlag as False (rather than j==0) so don't get context displayed
             self.displayAppendVerse( False, newVerseKey, self.getCachedVerseData( newVerseKey ), lastFlag=False )
@@ -351,7 +351,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.onCanvasConfigure( {} )".format( event ) )
 
         canvas_width = event.width
-        #vPrint( 'Quiet', debuggingThisModule, "  Set canvas width to {}".format( canvas_width ) )
+        #dPrint( 'Quiet', debuggingThisModule, "  Set canvas width to {}".format( canvas_width ) )
 
         self.canvas.itemconfigure( self.window, width=event.width)
         self.canvas.configure( scrollregion=self.canvas.bbox( 'all' ) )
@@ -363,7 +363,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         #Reset the scroll region to encompass the inner frame.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.OnFrameConfigure( {} )".format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.OnFrameConfigure( {} )".format( event ) )
 
         #self.canvas.configure( scrollregion=self.canvas.bbox( 'all' ) )
     ## end of BibleReferenceCollectionWindow.OnFrameConfigure
@@ -493,7 +493,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         #Returns the new DBPBibleReferenceBox object.
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #vPrint( 'Quiet', debuggingThisModule, "openDBPBibleReferenceBox()" )
+            #dPrint( 'Quiet', debuggingThisModule, "openDBPBibleReferenceBox()" )
             #theApp.setDebugText( "openDBPBibleReferenceBox…" )
             #assert moduleAbbreviation and isinstance( moduleAbbreviation, str ) and len(moduleAbbreviation)==6
         ##tk.Label( self, text=moduleAbbreviation ).pack( side=tk.TOP, fill=tk.X )
@@ -522,7 +522,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         #Returns the new InternalBibleReferenceBox object.
         #"""
         #if BibleOrgSysGlobals.debugFlag:
-            #vPrint( 'Quiet', debuggingThisModule, "openInternalBibleReferenceBox()" )
+            #dPrint( 'Quiet', debuggingThisModule, "openInternalBibleReferenceBox()" )
             #theApp.setDebugText( "openInternalBibleReferenceBox…" )
         ##tk.Label( self, text=modulePath ).pack( side=tk.TOP, fill=tk.X )
         #iBRB = InternalBibleReferenceBox( self, modulePath )
@@ -578,7 +578,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         Leaves the textbox in the disabled state.
         """
         vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.updateShownReferences( {} ) for".format( newReferencesVerseKeys ), self.moduleID )
-            #vPrint( 'Quiet', debuggingThisModule, "contextViewMode", self._contextViewMode )
+            #dPrint( 'Quiet', debuggingThisModule, "contextViewMode", self._contextViewMode )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None
 
@@ -590,13 +590,13 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         if newReferencesVerseKeys is not None: # open new resource boxes
             assert isinstance( newReferencesVerseKeys, list )
             for newReferencesVerseKey in newReferencesVerseKeys:
-                #vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.updateShownReferences.newReferencesVerseKey", newReferencesVerseKey )
+                #dPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.updateShownReferences.newReferencesVerseKey", newReferencesVerseKey )
                 if newReferencesVerseKey is None:
                     vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.updateShownReferences.newReferencesVerseKey: Why do we have NONE here?" ) #, newReferencesVerseKeys )
                 else:
                     assert isinstance( newReferencesVerseKey, FlexibleVersesKey )
                     for verseKeyObject in newReferencesVerseKey:
-                        #vPrint( 'Quiet', debuggingThisModule, "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
+                        #dPrint( 'Quiet', debuggingThisModule, "  BRCWupdateShownReferences: {}".format( verseKeyObject ) )
                         referenceBox = BibleReferenceBox( self, self.canvasFrame, self.internalBible, verseKeyObject )
                         self.referenceBoxes.append( referenceBox )
 
@@ -646,7 +646,7 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( programNameVersion )
@@ -673,7 +673,7 @@ def fullDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( programNameVersion )

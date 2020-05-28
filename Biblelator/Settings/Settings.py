@@ -57,7 +57,7 @@ from datetime import datetime
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -172,7 +172,7 @@ class Settings:
         if yamlFilepath is None: yamlFilepath = self.settingsFilepath
 
         self.data = loadYAML( yamlFilepath )
-        # print( "\nSettings", len(self.data), self.data.keys() )
+        # dPrint( 'Info', debuggingThisModule, "\nSettings", len(self.data), self.data.keys() )
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
             for j, (section,value) in enumerate( self.data.items(), start=1 ):
                 vPrint( 'Normal', debuggingThisModule, f"  Settings.loadYAML.load {j}: {section} = {value!r}" )
@@ -203,8 +203,7 @@ class ApplicationSettings( Settings ):
         ourFolderpath1 = os.path.join( homeFolderName, dataFolderName )
         if os.path.isdir( ourFolderpath1 ) and os.access( ourFolderpath1, os.W_OK ):
             self.dataFolderpath = ourFolderpath1
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__: Found dataFolderpath = ", self.dataFolderpath )
+            vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__: Found dataFolderpath = ", self.dataFolderpath )
             ourFolderpath2 = os.path.join( self.dataFolderpath, settingsFolderName )
             if os.path.isdir( ourFolderpath2 ) and os.access( ourFolderpath2, os.W_OK ):
                 self.settingsFolder = ourFolderpath2
@@ -375,7 +374,7 @@ class uWProjectSettings( Settings ):
         vPrint( 'Quiet', debuggingThisModule, f"uWProjectSettings.loadUWMetadataInto( {theUSFMBible} )…" )
 
         self.loadYAML() # Load the project settings into self.data
-        # print( "Got", self.data.keys() )
+        # dPrint( 'Info', debuggingThisModule, "Got", self.data.keys() )
 
         if self.data:
             # main = self.data['dublin_core']

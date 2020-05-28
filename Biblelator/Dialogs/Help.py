@@ -33,7 +33,7 @@ from tkinter.ttk import Frame, Button
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 # Biblelator imports
 if __name__ == '__main__':

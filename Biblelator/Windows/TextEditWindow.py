@@ -41,7 +41,7 @@ from tkinter.ttk import Button, Label, Entry
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import vPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -177,11 +177,11 @@ class TextEditWindowAddon:
                              ('Save',self.doSave),
                              ('ShowMain',self.doShowMainWindow),
                              ):
-            #vPrint( 'Quiet', debuggingThisModule, "TEW CheckLoop", (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],BiblelatorGlobals.theApp.keyBindingDict[name][1],) )
+            #dPrint( 'Quiet', debuggingThisModule, "TEW CheckLoop", (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],BiblelatorGlobals.theApp.keyBindingDict[name][1],) )
             assert (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],) not in self.myKeyboardBindingsList
             if name in BiblelatorGlobals.theApp.keyBindingDict:
                 for keyCode in BiblelatorGlobals.theApp.keyBindingDict[name][1:]:
-                    #vPrint( 'Quiet', debuggingThisModule, "  TEW Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #dPrint( 'Quiet', debuggingThisModule, "  TEW Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.textBox.bind( keyCode, commandFunction )
                     if BibleOrgSysGlobals.debugFlag:
                         assert keyCode not in self.myKeyboardShortcutsList
@@ -328,7 +328,7 @@ class TextEditWindowAddon:
             put an asterisk if it's modified.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.refreshTitle()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.refreshTitle()" )
 
         self.title( "{}[{}] {} ({}) {}".format( '*' if self.modified() else '',
                                             _("Text"), self.filename, self.folderpath, self.editStatus ) )
@@ -341,7 +341,7 @@ class TextEditWindowAddon:
             and schedule the next refresh.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.refreshTitleContinue()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.refreshTitleContinue()" )
 
         self.after( REFRESH_TITLE_TIME, self.refreshTitle ) # Redo it so we can put up the asterisk if the text is changed
         try:
@@ -349,8 +349,7 @@ class TextEditWindowAddon:
                 self.after( self.autosaveTime, self.doAutosave ) # Redo it so we can put up the asterisk if the text is changed
                 self.autosaveScheduled = True
         except AttributeError:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                vPrint( 'Quiet', debuggingThisModule, "Autosave not set-up properly yet" )
+            vPrint( 'Quiet', debuggingThisModule, "Autosave not set-up properly yet" )
     # end if TextEditWindowAddon.refreshTitleContinue
 
 
@@ -427,7 +426,7 @@ class TextEditWindowAddon:
         Handles key presses entered into the pop-up word selection (list) box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.OnAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.OnAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
             assert self.autocompleteBox is not None
 
         #if event.keysym == 'ESC':
@@ -465,7 +464,7 @@ class TextEditWindowAddon:
         Gets the chosen word and inserts the end of it into the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAcceptAutocompleteSelection({} )".format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAcceptAutocompleteSelection({} )".format( event ) )
             assert self.autocompleteBox is not None
 
         acceptAutocompleteSelection( self, includeTrailingSpace=False )
@@ -479,7 +478,7 @@ class TextEditWindowAddon:
         Used by autocomplete routines in onTextChange.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.removeAutocompleteBox( {} )".format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.removeAutocompleteBox( {} )".format( event ) )
             assert self.autocompleteBox is not None
 
         self.textBox.focus()
@@ -504,9 +503,9 @@ class TextEditWindowAddon:
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
-            #vPrint( 'Quiet', debuggingThisModule, "lc", repr(lineColumn) )
+            #dPrint( 'Quiet', debuggingThisModule, "lc", repr(lineColumn) )
             #line, column = lineColumn.split( '.', 1 )
-            #vPrint( 'Quiet', debuggingThisModule, "l,c", repr(line), repr(column) )
+            #dPrint( 'Quiet', debuggingThisModule, "l,c", repr(line), repr(column) )
 
         #if 0: # get formatting tag info
             #tagNames = self.textBox.tag_names( tk.INSERT )
@@ -515,13 +514,13 @@ class TextEditWindowAddon:
             #tagNames4 = self.textBox.tag_names( lineColumn + ' linestart' )
             #tagNames5 = self.textBox.tag_names( tk.INSERT + ' linestart+1c' )
             #tagNames6 = self.textBox.tag_names( lineColumn + ' linestart+1c' )
-            #vPrint( 'Quiet', debuggingThisModule, "tN", tagNames )
+            #dPrint( 'Quiet', debuggingThisModule, "tN", tagNames )
             #if tagNames2!=tagNames or tagNames3!=tagNames or tagNames4!=tagNames or tagNames5!=tagNames or tagNames6!=tagNames:
-                #vPrint( 'Quiet', debuggingThisModule, "tN2", tagNames2 )
-                #vPrint( 'Quiet', debuggingThisModule, "tN3", tagNames3 )
-                #vPrint( 'Quiet', debuggingThisModule, "tN4", tagNames4 )
-                #vPrint( 'Quiet', debuggingThisModule, "tN5", tagNames5 )
-                #vPrint( 'Quiet', debuggingThisModule, "tN6", tagNames6 )
+                #dPrint( 'Quiet', debuggingThisModule, "tN2", tagNames2 )
+                #dPrint( 'Quiet', debuggingThisModule, "tN3", tagNames3 )
+                #dPrint( 'Quiet', debuggingThisModule, "tN4", tagNames4 )
+                #dPrint( 'Quiet', debuggingThisModule, "tN5", tagNames5 )
+                #dPrint( 'Quiet', debuggingThisModule, "tN6", tagNames6 )
                 #halt
 
         #if 0: # show various mark strategies
@@ -531,22 +530,22 @@ class TextEditWindowAddon:
             #mark4 = self.textBox.mark_previous( lineColumn + ' linestart' )
             #mark5 = self.textBox.mark_previous( tk.INSERT + ' linestart+1c' )
             #mark6 = self.textBox.mark_previous( lineColumn + ' linestart+1c' )
-            #vPrint( 'Quiet', debuggingThisModule, "mark1", mark1 )
+            #dPrint( 'Quiet', debuggingThisModule, "mark1", mark1 )
             #if mark2!=mark1:
-                #vPrint( 'Quiet', debuggingThisModule, "mark2", mark1 )
+                #dPrint( 'Quiet', debuggingThisModule, "mark2", mark1 )
             #if mark3!=mark1 or mark4!=mark1 or mark5!=mark1 or mark6!=mark1:
-                #vPrint( 'Quiet', debuggingThisModule, "mark3", mark3 )
+                #dPrint( 'Quiet', debuggingThisModule, "mark3", mark3 )
                 #if mark4!=mark3:
-                    #vPrint( 'Quiet', debuggingThisModule, "mark4", mark4 )
-                #vPrint( 'Quiet', debuggingThisModule, "mark5", mark5 )
+                    #dPrint( 'Quiet', debuggingThisModule, "mark4", mark4 )
+                #dPrint( 'Quiet', debuggingThisModule, "mark5", mark5 )
                 #if mark6!=mark5:
-                    #vPrint( 'Quiet', debuggingThisModule, "mark6", mark6 )
+                    #dPrint( 'Quiet', debuggingThisModule, "mark6", mark6 )
 
 
         if self.textBox.edit_modified():
             #if 1:
-                #vPrint( 'Quiet', debuggingThisModule, 'args[0]', repr(args[0]) )
-                #vPrint( 'Quiet', debuggingThisModule, 'args[1]', repr(args[1]) )
+                #dPrint( 'Quiet', debuggingThisModule, 'args[0]', repr(args[0]) )
+                #dPrint( 'Quiet', debuggingThisModule, 'args[1]', repr(args[1]) )
                 #try: vPrint( 'Quiet', debuggingThisModule, 'args[2]', repr(args[2]) ) # Can be multiple characters (after autocomplete)
                 #except IndexError: vPrint( 'Quiet', debuggingThisModule, "No args[2]" ) # when deleting
 
@@ -556,7 +555,7 @@ class TextEditWindowAddon:
                 before1After1 = self.textBox.get( tk.INSERT+'-2c', tk.INSERT+'+1c' ) # Get the characters before and after
                 if len(before1After1) == 3: before1, newChar, after1 = before1After1
                 else: before1 = newChar = after1 = '' # this can happen sometimes
-                #vPrint( 'Quiet', debuggingThisModule, '3', repr(before1), repr(newChar), repr(after1) )
+                #dPrint( 'Quiet', debuggingThisModule, '3', repr(before1), repr(newChar), repr(after1) )
                 # FALSE AFTER AUTOCOMPLETE assert newChar == args[2] # Char before cursor should be char just typed
                 if self.markMultipleSpacesFlag and newChar == ' ': # Check if we've typed multiple spaces
                     # NOTE: We DON'T make this into a TRAILING_SPACE_SUBSTITUTE -- too disruptive during regular typing
@@ -587,9 +586,9 @@ class TextEditWindowAddon:
                 #previousText = self.getSubstitutedChararactersBeforeCursor()
             elif args[0] == 'delete':
                 #if args[1] == 'insert': # we used the delete key
-                    #vPrint( 'Quiet', debuggingThisModule, "Deleted" )
+                    #dPrint( 'Quiet', debuggingThisModule, "Deleted" )
                 #elif args[1] == 'insert-1c': # we used the backspace key
-                    #vPrint( 'Quiet', debuggingThisModule, "Backspaced" )
+                    #dPrint( 'Quiet', debuggingThisModule, "Backspaced" )
                 #else: vPrint( 'Quiet', debuggingThisModule, "What's this!", repr(args[1]) )
                 chars4 = self.textBox.get( tk.INSERT+'-2c', tk.INSERT+'+2c' ) # Get the characters (now forced together) around the cursor
                 if len(chars4) == 4: before2, before1, after1, after2 = chars4
@@ -613,12 +612,12 @@ class TextEditWindowAddon:
 
             # Handle auto-correct
             if self.autocorrectEntries and args[0]=='insert' and args[1]=='insert':
-                #vPrint( 'Quiet', debuggingThisModule, "Handle autocorrect" )
+                #dPrint( 'Quiet', debuggingThisModule, "Handle autocorrect" )
                 previousText = getCharactersBeforeCursor( self, self.maxAutocorrectLength )
-                #vPrint( 'Quiet', debuggingThisModule, "previousText", repr(previousText) )
+                #dPrint( 'Quiet', debuggingThisModule, "previousText", repr(previousText) )
                 for inChars,outChars in self.autocorrectEntries:
                     if previousText.endswith( inChars ):
-                        #vPrint( 'Quiet', debuggingThisModule, "Going to replace {!r} with {!r}".format( inChars, outChars ) )
+                        #dPrint( 'Quiet', debuggingThisModule, "Going to replace {!r} with {!r}".format( inChars, outChars ) )
                         # Delete the typed character(s) and replace with the new one(s)
                         self.textBox.delete( tk.INSERT+'-{}c'.format( len(inChars) ), tk.INSERT )
                         self.textBox.insert( tk.INSERT, outChars )
@@ -628,48 +627,48 @@ class TextEditWindowAddon:
 
             # Handle auto-complete
             if self.autocompleteMode is not None and self.autocompleteWords and args[0] in ('insert','delete',):
-                #vPrint( 'Quiet', debuggingThisModule, "Handle autocomplete1" )
+                #dPrint( 'Quiet', debuggingThisModule, "Handle autocomplete1" )
                 lastAutocompleteWordText = self.existingAutocompleteWordText
                 self.existingAutocompleteWordText = getWordCharactersBeforeCursor( self, self.autocompleteMaxLength )
-                #vPrint( 'Quiet', debuggingThisModule, "existingAutocompleteWordText: {!r}".format( self.existingAutocompleteWordText ) )
+                #dPrint( 'Quiet', debuggingThisModule, "existingAutocompleteWordText: {!r}".format( self.existingAutocompleteWordText ) )
                 if self.existingAutocompleteWordText != lastAutocompleteWordText:
                     # We've had an actual change in the entered text
                     possibleWords = None
 
                     if len(self.existingAutocompleteWordText) >= self.autocompleteMinLength:
                         # See if we have any words that start with the already typed letters
-                        #vPrint( 'Quiet', debuggingThisModule, "Handle autocomplete1A with {!r}".format( self.existingAutocompleteWordText ) )
+                        #dPrint( 'Quiet', debuggingThisModule, "Handle autocomplete1A with {!r}".format( self.existingAutocompleteWordText ) )
                         firstLetter, remainder = self.existingAutocompleteWordText[0], self.existingAutocompleteWordText[1:]
-                        #vPrint( 'Quiet', debuggingThisModule, "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
+                        #dPrint( 'Quiet', debuggingThisModule, "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
                         try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
                                                             if thisBit.startswith(remainder) and thisBit != remainder]
                         except KeyError: pass
                         self.autocompleteOverlap = self.existingAutocompleteWordText
-                        #vPrint( 'Quiet', debuggingThisModule, 'possibleWordsA', possibleWords )
+                        #dPrint( 'Quiet', debuggingThisModule, 'possibleWordsA', possibleWords )
 
                     # Maybe we haven't typed enough yet to pop-up the standard box so we look ahead using the previous word
                     if not possibleWords:
                         previousStuff = getCharactersAndWordBeforeCursor( self, self.autocompleteMaxLength )
-                        #vPrint( 'Quiet', debuggingThisModule, "Handle autocomplete1B with {!r}".format( previousStuff ) )
+                        #dPrint( 'Quiet', debuggingThisModule, "Handle autocomplete1B with {!r}".format( previousStuff ) )
                         firstLetter, remainder = previousStuff[0], previousStuff[1:]
-                        #vPrint( 'Quiet', debuggingThisModule, "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
+                        #dPrint( 'Quiet', debuggingThisModule, "firstletter={!r} remainder={!r}".format( firstLetter, remainder ) )
                         self.autocompleteOverlap = previousStuff
                         #try: possibleWords = [thisBit[remainderLength:] for thisBit in self.autocompleteWords[firstLetter] \
                         try: possibleWords = [firstLetter+thisBit for thisBit in self.autocompleteWords[firstLetter] \
                                                             if thisBit.startswith(remainder) and thisBit != remainder]
                         except KeyError: pass
                         self.autocompleteOverlap = previousStuff
-                        #vPrint( 'Quiet', debuggingThisModule, 'possibleWordsB', possibleWords )
+                        #dPrint( 'Quiet', debuggingThisModule, 'possibleWordsB', possibleWords )
 
                     if possibleWords: # we have some word(s) to pop-up for possible selection
-                        #vPrint( 'Quiet', debuggingThisModule, "Handle autocomplete2" )
+                        #dPrint( 'Quiet', debuggingThisModule, "Handle autocomplete2" )
                         if self.autocompleteBox is None:
                             self.makeAutocompleteBox()
                         else: # the Listbox is already made -- just empty it
-                            #vPrint( 'Quiet', debuggingThisModule, 'empty listbox' )
+                            #dPrint( 'Quiet', debuggingThisModule, 'empty listbox' )
                             self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
                         # Now fill the Listbox
-                        #vPrint( 'Quiet', debuggingThisModule, 'fill listbox' )
+                        #dPrint( 'Quiet', debuggingThisModule, 'fill listbox' )
                         for word in possibleWords:
                             if BibleOrgSysGlobals.debugFlag: assert possibleWords.count( word ) == 1
                             self.autocompleteBox.insert( tk.END, word )
@@ -678,7 +677,7 @@ class TextEditWindowAddon:
                         self.autocompleteBox.select_set( '0' )
                         self.autocompleteBox.focus()
                     elif self.autocompleteBox is not None:
-                        #vPrint( 'Quiet', debuggingThisModule, 'destroy1 autocomplete listbox -- no possible words' )
+                        #dPrint( 'Quiet', debuggingThisModule, 'destroy1 autocomplete listbox -- no possible words' )
                         self.removeAutocompleteBox()
                     if self.addAllNewWords \
                     and args[0]=='insert' and args[1]=='insert' \
@@ -686,11 +685,11 @@ class TextEditWindowAddon:
                         # Just finished typing a word (by typing a space or something)
                         word = getWordBeforeSpace( self )
                         if word: # in the Bible modes, we also add new words as they're typed
-                            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon: Adding/Updating autocomplete word", repr(word) )
+                            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon: Adding/Updating autocomplete word", repr(word) )
                             addNewAutocompleteWord( self, word )
                             # NOTE: edited/deleted words aren't removed until the program restarts
             elif self.autocompleteBox is not None:
-                #vPrint( 'Quiet', debuggingThisModule, 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
+                #dPrint( 'Quiet', debuggingThisModule, 'destroy3 autocomplete listbox -- autocomplete is not enabled/appropriate' )
                 self.removeAutocompleteBox()
             # end of auto-complete section
 
@@ -711,7 +710,7 @@ class TextEditWindowAddon:
 
         Checks for some types of formatting errors.
         """
-        #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.onTextNoChange" )
+        #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.onTextNoChange" )
         try: pass
         except KeyboardInterrupt:
             vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon: Got keyboard interrupt in onTextNoChange (B) -- saving my file" )
@@ -1071,7 +1070,7 @@ class TextEditWindowAddon:
         If it has, and the user hasn't yet made any changes, offer to reload.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.checkForDiskChanges()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.checkForDiskChanges()" )
 
         if self.filepath and os.path.isfile( self.filepath ) \
         and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
@@ -1083,7 +1082,7 @@ class TextEditWindowAddon:
                 if autoloadText: yndResult = True
                 else: # ask the user
                     ynd = YesNoDialog( self, _("File {} has changed on disk. Reload?").format( repr(self.filename) ), title=_('Reload?') )
-                    #vPrint( 'Quiet', debuggingThisModule, "yndResult", repr(ynd.result) )
+                    #dPrint( 'Quiet', debuggingThisModule, "yndResult", repr(ynd.result) )
                     if ynd.result == True: yndResult = True # Yes was chosen
                 if yndResult:
                     self.loadText() # reload
@@ -1100,7 +1099,7 @@ class TextEditWindowAddon:
 
         if self.modified():
             saveAsFilepath = asksaveasfilename( parent=self )
-            #vPrint( 'Quiet', debuggingThisModule, "saveAsFilepath", repr(saveAsFilepath) )
+            #dPrint( 'Quiet', debuggingThisModule, "saveAsFilepath", repr(saveAsFilepath) )
             if saveAsFilepath:
                 if self.setFilepath( saveAsFilepath ):
                     self.doSave()
@@ -1141,7 +1140,7 @@ class TextEditWindowAddon:
                 (Yes, this can result in old AutoSave files in the home folder.)
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAutosave()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAutosave()" )
 
         if self.modified():
             partialAutosaveFolderpath = self.folderpath if self.folderpath else BiblelatorGlobals.theApp.homeFolderpath
@@ -1154,7 +1153,7 @@ class TextEditWindowAddon:
             if not os.path.exists( lastDayFolderpath ): os.mkdir( lastDayFolderpath )
 
             autosaveFilename = self.filename if self.filename else 'Autosave.txt'
-            #vPrint( 'Quiet', debuggingThisModule, 'autosaveFolderpath', repr(autosaveFolderpath), 'autosaveFilename', repr(autosaveFilename) )
+            #dPrint( 'Quiet', debuggingThisModule, 'autosaveFolderpath', repr(autosaveFolderpath), 'autosaveFilename', repr(autosaveFilename) )
             autosaveFilepath = os.path.join( autosaveFolderpath, autosaveFilename )
             lastDayFilepath = os.path.join( lastDayFolderpath, autosaveFilename )
 
@@ -1271,13 +1270,13 @@ class TextEditWindowAddon:
                 #else: # we need to ask where to save it
                 place = ' in {}'.format( self.filename) if self.folderpath and self.filename else ''
                 ocd = OkCancelDialog( self, _('Do you want to save your work{}?').format( place ), title=_('Save work?') )
-                #vPrint( 'Quiet', debuggingThisModule, "ocdResult", repr(ocd.result) )
+                #dPrint( 'Quiet', debuggingThisModule, "ocdResult", repr(ocd.result) )
                 if ocd.result == True: # Yes was chosen
                     saveWork = True
                 else:
                     # place = 'to {}'.format( self.filename) if self.folderpath and self.filename else ''
                     ynd = YesNoDialog( self, _('Are you sure you want to lose your changes?'), title=_('Lose changes?') )
-                    #vPrint( 'Quiet', debuggingThisModule, "yndResult", repr(ynd.result) )
+                    #dPrint( 'Quiet', debuggingThisModule, "yndResult", repr(ynd.result) )
                     if ynd.result == True: # Yes was chosen
                         self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
                         self.bookTextModified = False
@@ -1289,7 +1288,7 @@ class TextEditWindowAddon:
                     return
 
         if not self.modified():
-            #vPrint( 'Quiet', debuggingThisModule, "HEREEEEEEEEE" )
+            #dPrint( 'Quiet', debuggingThisModule, "HEREEEEEEEEE" )
             ChildWindow.doClose( self )
     # end of TextEditWindowAddon.doClose
 # end of TextEditWindowAddon class
@@ -1395,7 +1394,7 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
@@ -1415,7 +1414,7 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )
