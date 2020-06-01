@@ -127,7 +127,7 @@ def briefDemo() -> None:
     import tkinter as tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( programNameVersion )

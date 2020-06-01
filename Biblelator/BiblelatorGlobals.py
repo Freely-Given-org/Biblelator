@@ -261,7 +261,7 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
@@ -292,7 +292,7 @@ def fullDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-        dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
 
     vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
