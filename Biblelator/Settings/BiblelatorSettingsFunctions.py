@@ -612,12 +612,12 @@ def saveNewWindowSetup():
     """
     Gets the name for the new window setup and saves the information.
     """
+    fnPrint( debuggingThisModule, "saveNewWindowSetup()" )
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "saveNewWindowSetup()" )
         if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "saveNewWindowSetup…" )
 
     swnd = SaveWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Save window setup') )
-        dPrint( 'Quiet', debuggingThisModule, "swndResult", repr(swnd.result) )
+    dPrint( 'Never', debuggingThisModule, "swndResult", repr(swnd.result) )
     if swnd.result:
         getCurrentChildWindowSettings()
         BiblelatorGlobals.theApp.windowsSettingsDict[swnd.result] = BiblelatorGlobals.theApp.windowsSettingsDict['Current'] # swnd.result is the new window name
@@ -632,13 +632,13 @@ def deleteExistingWindowSetup():
     """
     Gets the name of an existing window setting and deletes the setting.
     """
+    fnPrint( debuggingThisModule, "deleteExistingWindowSetup()" )
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "deleteExistingWindowSetup()" )
         if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "deleteExistingWindowSetup" )
         assert BiblelatorGlobals.theApp.windowsSettingsDict and (len(BiblelatorGlobals.theApp.windowsSettingsDict)>1 or 'Current' not in BiblelatorGlobals.theApp.windowsSettingsDict)
 
     dwnd = DeleteWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Delete saved window setup') )
-        dPrint( 'Quiet', debuggingThisModule, "dwndResult", repr(dwnd.result) )
+    dPrint( 'Never', debuggingThisModule, "dwndResult", repr(dwnd.result) )
     if dwnd.result:
         if BibleOrgSysGlobals.debugFlag:
             assert dwnd.result in BiblelatorGlobals.theApp.windowsSettingsDict
@@ -676,9 +676,8 @@ def writeSettingsFile():
     Update our program settings and save them.
     """
     logging.info( "writeSettingsFile()" )
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "writeSettingsFile()" )
-    elif BibleOrgSysGlobals.verbosityLevel > 0:
+    fnPrint( debuggingThisModule, "writeSettingsFile()" )
+    if BibleOrgSysGlobals.verbosityLevel > 0:
         vPrint( 'Quiet', debuggingThisModule, _("  Saving program settings…") )
 
     def convertToString( thisSetting ):
