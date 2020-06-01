@@ -66,7 +66,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     def __init__( self, parentWindow ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"BibleLexiconResourceWindow.__init__( {parentWindow} )…" )
+        fnPrint( debuggingThisModule, f"BibleLexiconResourceWindow.__init__( {parentWindow} )" )
         self.lexiconWord = None
 
         ChildWindow.__init__( self, parentWindow, 'LexiconResource' )
@@ -104,7 +104,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     def createMenuBar( self ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, "BibleLexiconResourceWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -167,7 +167,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Create a tool bar containing some helpful buttons at the top of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, "createToolBar()" )
+        fnPrint( debuggingThisModule, "createToolBar()" )
 
         xPad, yPad = (6, 8) if BiblelatorGlobals.theApp.touchMode else (4, 4)
 
@@ -244,7 +244,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -261,7 +261,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion

@@ -233,7 +233,7 @@ class HTMLTextBox( BText ):
     def __init__( self, *args, **kwargs ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox.__init__( {args}, {kwargs} )…" )
+        fnPrint( debuggingThisModule, f"HTMLTextBox.__init__( {args}, {kwargs} )" )
         super().__init__( *args, **kwargs ) # initialise the base class
 
         standardFont = DEFAULT_FONTNAME + ' 12'
@@ -314,7 +314,7 @@ class HTMLTextBox( BText ):
     def insert( self, point, iText ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox.insert( {point}, {len(iText)} chars )…" )
+        fnPrint( debuggingThisModule, f"HTMLTextBox.insert( {point}, {len(iText)} chars )" )
 
         if point != tk.END:
             logging.critical( "HTMLTextBox.insert " + _("doesn't know how to insert at {}").format( repr(point) ) )
@@ -475,7 +475,7 @@ class HTMLTextBox( BText ):
         """
         Give a mouse event, get the URL underneath it.
         """
-        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox._getURL( {event} )…" )
+        fnPrint( debuggingThisModule, f"HTMLTextBox._getURL( {event} )" )
 
         # get the index of the mouse cursor from the event.x and y attributes
         xy = '@{0},{1}'.format( event.x, event.y )
@@ -497,7 +497,7 @@ class HTMLTextBox( BText ):
         """
         Handle a click on a hyperlink.
         """
-        vPrint( 'Never', debuggingThisModule, f"HTMLTextBox.openHyperlink( {event} )…" )
+        fnPrint( debuggingThisModule, f"HTMLTextBox.openHyperlink( {event} )" )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -644,7 +644,7 @@ class CallbackAddon():
         Called (set-up as a call-back function) whenever the entry cursor changes
             either with a mouse click or arrow keys.
         """
-        vPrint( 'Never', debuggingThisModule, "CallbackAddon.onTextChange( {}, {} )".format( repr(result), args ) )
+        fnPrint( debuggingThisModule, "CallbackAddon.onTextChange( {}, {} )".format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.index( tk.INSERT )
@@ -767,7 +767,7 @@ class CustomText( CallbackAddon, BText ):
 
         # Adapted from http://stackoverflow.com/questions/4028446/python-tkinter-help-menu
         """
-        vPrint( 'Never', debuggingThisModule, "CustomText.highlightPattern( {}, {}, start={}, end={}, regexp={} )".format( pattern, styleTag, startAt, endAt, regexpFlag ) )
+        fnPrint( debuggingThisModule, "CustomText.highlightPattern( {}, {}, start={}, end={}, regexp={} )".format( pattern, styleTag, startAt, endAt, regexpFlag ) )
 
         countVar = tk.IntVar()
         matchEnd = startAt
@@ -792,7 +792,7 @@ class CustomText( CallbackAddon, BText ):
             tagName
             tagDict, e.g, {"background":"red"}
         """
-        vPrint( 'Never', debuggingThisModule, "CustomText.highlightAllPatterns( {} )".format( patternCollection ) )
+        fnPrint( debuggingThisModule, "CustomText.highlightAllPatterns( {} )".format( patternCollection ) )
 
         for regexpFlag, pattern, tagName, tagDict in patternCollection:
             self.tag_configure( tagName, **tagDict )
@@ -809,7 +809,7 @@ class ChildBoxAddon():
     def __init__( self, parentWindow ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.__init__( {} )".format( parentWindow ) )
+        fnPrint( debuggingThisModule, "ChildBoxAddon.__init__( {} )".format( parentWindow ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert parentWindow
         self.parentWindow = parentWindow
@@ -848,7 +848,7 @@ class ChildBoxAddon():
         """
         Create keyboard bindings for this widget.
         """
-        vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
+        fnPrint( debuggingThisModule, "ChildBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
@@ -875,7 +875,7 @@ class ChildBoxAddon():
         """
         Copy the selected text onto the clipboard.
         """
-        vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.doCopy( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "ChildBoxAddon.doCopy( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
@@ -892,7 +892,7 @@ class ChildBoxAddon():
         """
         Select all the text in the text box.
         """
-        vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.doSelectAll( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "ChildBoxAddon.doSelectAll( {} )".format( event ) )
 
         self.textBox.tag_add( tk.SEL, tkSTART, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, tkSTART )          # move insert point to top
@@ -1025,7 +1025,7 @@ class ChildBoxAddon():
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        vPrint( 'Never', debuggingThisModule, f"ChildBoxAddon.setAllText( {len(newText)} chars, {textType} )" )
+        fnPrint( debuggingThisModule, f"ChildBoxAddon.setAllText( {len(newText)} chars, {textType} )" )
         assert textType in ( None, 'Markdown', 'YAML' )
         self.textType = textType
         if textType == 'Markdown':
@@ -1065,7 +1065,7 @@ class ChildBoxAddon():
 
         Can be overridden if an edit box needs to save files first.
         """
-        vPrint( 'Never', debuggingThisModule, "ChildBoxAddon.doClose( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "ChildBoxAddon.doClose( {} )".format( event ) )
 
         self.destroy()
     # end of ChildBoxAddon.doClose
@@ -1082,7 +1082,7 @@ class BibleBoxAddon():
         """
         This function does absolutely nothing.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleBoxAddon.__init__( {}, {} )".format( parentWindow, BibleBoxType ) )
+        fnPrint( debuggingThisModule, "BibleBoxAddon.__init__( {}, {} )".format( parentWindow, BibleBoxType ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert parentWindow
         self.parentWindow, self.BibleBoxType = parentWindow, BibleBoxType
@@ -1115,7 +1115,7 @@ class BibleBoxAddon():
         """
         Create keyboard bindings for this widget.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
+        fnPrint( debuggingThisModule, "BibleBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
@@ -1133,7 +1133,7 @@ class BibleBoxAddon():
         """
         Can be overriden if necessary.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleBoxAddon.createContextMenu()" )
+        fnPrint( debuggingThisModule, "BibleBoxAddon.createContextMenu()" )
 
         self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
         self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
@@ -2174,7 +2174,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         """
         This function is not needed at all, except for debug tracing of __init__ functions (when used).
         """
-        vPrint( 'Never', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.__init__( {}, nIL={} )".format( parentWindow, numInterlinearLines ) )
+        fnPrint( debuggingThisModule, "HebrewInterlinearBibleBoxAddon.__init__( {}, nIL={} )".format( parentWindow, numInterlinearLines ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert parentWindow
             assert 0 < numInterlinearLines <= 5
@@ -2860,7 +2860,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             word number (e.g., first word is word 1) and
             line number (e.g., first line in bundle is line 0).
         """
-        vPrint( 'Never', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.selectBundle()" )
+        fnPrint( debuggingThisModule, "HebrewInterlinearBibleBoxAddon.selectBundle()" )
 
         bundleNumber = self._getBundleNumber( event )
 
@@ -2890,7 +2890,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             word number (e.g., first word is word 1) and
             line number (e.g., first line in bundle is line 0).
         """
-        vPrint( 'Never', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.editBundle()" )
+        fnPrint( debuggingThisModule, "HebrewInterlinearBibleBoxAddon.editBundle()" )
 
         bundleNumber = self._getBundleNumber( event )
 
@@ -2919,7 +2919,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         Can be overridden if an edit box needs to save files first.
         """
-        vPrint( 'Never', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.doClose( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "HebrewInterlinearBibleBoxAddon.doClose( {} )".format( event ) )
 
         try: self.internalBible.saveAnyChangedGlosses()
         except AttributeError: # if self.internalBible is None

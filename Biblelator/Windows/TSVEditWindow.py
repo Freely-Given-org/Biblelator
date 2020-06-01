@@ -93,7 +93,7 @@ class RowFrame( Frame ):
         """
         Create the widgets.
         """
-        vPrint( 'Never', debuggingThisModule, "RowFrame.__init__()…" )
+        fnPrint( debuggingThisModule, "RowFrame.__init__()" )
         self.parent = parent
         super().__init__( parent )
 
@@ -118,7 +118,7 @@ class RowFrame( Frame ):
     def fill( self, rowNumber:int, rowData:Optional[List[str]] ) -> None:
         """
         """
-        vPrint( 'Verbose', debuggingThisModule, f"RowFrame.fill( {rowNumber}, {rowData} )…" )
+        fnPrint( debuggingThisModule, f"RowFrame.fill( {rowNumber}, {rowData} )" )
 
         if rowData is None:
             self.rowNumberLabel['text'] = ''
@@ -146,7 +146,7 @@ class TSVEditWindowAddon:
     def __init__( self, windowType:str, folderpath:str ):
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.__init__( {windowType}, {folderpath} )…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.__init__( {windowType}, {folderpath} )" )
         self.windowType, self.folderpath = windowType, folderpath
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, f"TSVEditWindowAddon __init__ {windowType} {folderpath}" )
 
@@ -263,7 +263,7 @@ class TSVEditWindowAddon:
                 load the new book text
             3/ Load the appropriate verses into the editor according to the contextViewMode.
         """
-        vPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.updateShownBCV( {newReferenceVerseKey.getShortText()}, originator={originator} ) from {self.currentVerseKey.getShortText()} for {self.moduleID}" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.updateShownBCV( {newReferenceVerseKey.getShortText()}, originator={originator} ) from {self.currentVerseKey.getShortText()} for {self.moduleID}" )
         # dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey.getShortText(), originator, self.currentVerseKey.getShortText() ), self.moduleID )
             #dPrint( 'Quiet', debuggingThisModule, "contextViewMode", self._contextViewMode )
             #assert self._formatViewMode == 'Unformatted' # Only option done so far
@@ -512,7 +512,7 @@ class TSVEditWindowAddon:
     def buildWidgets( self ):
         """
         """
-        vPrint( 'Normal', debuggingThisModule, f"TSVEditWindowAddon.buildWidgets() for {self.BBB}…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.buildWidgets() for {self.BBB}" )
 
         # Delete old widgets so we can rebuild without problems (for each new book)
         for widget in self.pack_slaves():
@@ -720,7 +720,7 @@ class TSVEditWindowAddon:
         """
         Handle a new row number from the row spinbox.
         """
-        vPrint( 'Normal', debuggingThisModule, f"_spinToNewRow( {event} ) from {self.current_row}…" )
+        fnPrint( debuggingThisModule, f"_spinToNewRow( {event} ) from {self.current_row}" )
         if self.current_row: # The last row might have changed
             self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self._gotoRow()
@@ -730,7 +730,7 @@ class TSVEditWindowAddon:
         """
         Handle a new row number.
         """
-        vPrint( 'Normal', debuggingThisModule, f"_gotoRow( {event}, f={force}, nM={notifyMain} ) from {self.current_row}…" )
+        fnPrint( debuggingThisModule, f"_gotoRow( {event}, f={force}, nM={notifyMain} ) from {self.current_row}" )
         #dPrint( 'Never', debuggingThisModule, dir(event) )
 
         row = self.rowNumberVar.get()
@@ -794,7 +794,7 @@ class TSVEditWindowAddon:
 
         Note that newVerseKey can be None.
         """
-        vPrint( 'Never', debuggingThisModule, f"setCurrentVerseKey( {newVerseKey.getShortText()} )…" )
+        fnPrint( debuggingThisModule, f"setCurrentVerseKey( {newVerseKey.getShortText()} )" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag:
             BiblelatorGlobals.theApp.setDebugText( "BRW setCurrentVerseKey…" )
 
@@ -816,7 +816,7 @@ class TSVEditWindowAddon:
     def gotoTop( self, event=None ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"gotoTop( {event} )…" )
+        fnPrint( debuggingThisModule, f"gotoTop( {event} )" )
         assert self.current_row > 1
         self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self.rowNumberVar.set( 1 )
@@ -826,7 +826,7 @@ class TSVEditWindowAddon:
     def gotoBottom( self, event=None ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"gotoBottom( {event} )…" )
+        fnPrint( debuggingThisModule, f"gotoBottom( {event} )" )
         assert self.current_row < self.numDataRows
         self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self.rowNumberVar.set( self.numDataRows )
@@ -859,7 +859,7 @@ class TSVEditWindowAddon:
     def doAddBefore( self, event=None ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"doAddBefore( {event} )…" )
+        fnPrint( debuggingThisModule, f"doAddBefore( {event} )" )
         currentRowData = self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         newRowData = currentRowData.copy()
         newRowData[self.idColumn] = self.generateID()
@@ -875,7 +875,7 @@ class TSVEditWindowAddon:
     def doAddAfter( self, event=None ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"doAddAfter( {event} )…" )
+        fnPrint( debuggingThisModule, f"doAddAfter( {event} )" )
         currentRowData = self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         newRowData = currentRowData.copy()
         newRowData[self.idColumn] = self.generateID()
@@ -892,7 +892,7 @@ class TSVEditWindowAddon:
     def doDeleteRow( self, event=None ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"doDeleteRow( {event} )…" )
+        fnPrint( debuggingThisModule, f"doDeleteRow( {event} )" )
         assert self.numDataRows
         self.deletedRow = self.tsvTable.pop( self.current_row )
         self.numDataRows -= 1
@@ -907,7 +907,7 @@ class TSVEditWindowAddon:
 
         If updateTable is True, also put any changed data back into the table.
         """
-        vPrint( 'Quiet', debuggingThisModule, f"retrieveCurrentRowData( uT={updateTable}) for {self.current_row}…" )
+        fnPrint( debuggingThisModule, f"retrieveCurrentRowData( uT={updateTable}) for {self.current_row}" )
 
         if not self.current_row: return # Still setting up -- nothing to do here yet
 
@@ -962,7 +962,7 @@ class TSVEditWindowAddon:
 
         Updates widget colours and the status bar to signal to the user.
         """
-        vPrint( 'Verbose', debuggingThisModule, "checkCurrentDisplayedRowData()…" )
+        fnPrint( debuggingThisModule, "checkCurrentDisplayedRowData()" )
         # if self.loading: return
 
         currentRowData = self.retrieveCurrentRowData( updateTable=False )
@@ -1139,7 +1139,7 @@ class TSVEditWindowAddon:
 
         Returns the number of errors
         """
-        vPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.validateTSVTable() for {self.BBB}…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.validateTSVTable() for {self.BBB}" )
         if 'tsvTable' not in self.__dict__ or not self.tsvTable:
             return 0
 
@@ -1378,7 +1378,7 @@ class TSVEditWindowAddon:
         """
         Make the font one point bigger
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.OnFontBigger()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.OnFontBigger()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size+1 )
@@ -1388,7 +1388,7 @@ class TSVEditWindowAddon:
         """
         Make the font one point smaller
         """
-        vPrint( 'Verbose', debuggingThisModule, "TSVEditWindowAddon.OnFontSmaller()…" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.OnFontSmaller()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size-1 )
@@ -1399,7 +1399,7 @@ class TSVEditWindowAddon:
         """
         Returns all the TextBox text as a string.
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.getAllText()…" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.getAllText()" )
 
         allText = self.textBox.get( tkSTART, tk.END+'-1c' )
         #if self.markMultipleSpacesFlag:
@@ -1416,7 +1416,7 @@ class TSVEditWindowAddon:
         """
         Create a pop-up listbox in order to be able to display possible autocomplete words.
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.makeAutocompleteBox()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.makeAutocompleteBox()" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.autocompleteBox is None
 
@@ -1753,7 +1753,7 @@ class TSVEditWindowAddon:
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.doShowInfo( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doShowInfo( {} )".format( event ) )
 
         text  = self.getEntireText()
         numChars = len( text )

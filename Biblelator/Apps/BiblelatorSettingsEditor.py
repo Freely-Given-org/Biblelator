@@ -1108,7 +1108,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         Pop-up dialog giving goto/reference info.
         """
-        vPrint( 'Never', debuggingThisModule, "BiblelatorSettingsEditor.doGotoInfo( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BiblelatorSettingsEditor.doGotoInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1134,7 +1134,7 @@ class BiblelatorSettingsEditor( Frame ):
         Display a help box.
         """
         from Biblelator.Dialogs.Help import HelpBox
-        vPrint( 'Never', debuggingThisModule, "doHelp()" )
+        fnPrint( debuggingThisModule, "doHelp()" )
 
         helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -1160,7 +1160,7 @@ class BiblelatorSettingsEditor( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        vPrint( 'Never', debuggingThisModule, "doSubmitBug()" )
+        fnPrint( debuggingThisModule, "doSubmitBug()" )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1179,7 +1179,7 @@ class BiblelatorSettingsEditor( Frame ):
         Display an about box.
         """
         from Biblelator.Dialogs.About import AboutBox
-        vPrint( 'Never', debuggingThisModule, "doAbout()" )
+        fnPrint( debuggingThisModule, "doAbout()" )
 
         aboutInfo = programNameVersion
         aboutInfo += "\nAn editor for the Biblelator (Bible translation editor) settings." \
@@ -1193,7 +1193,7 @@ class BiblelatorSettingsEditor( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #dPrint( 'Never', debuggingThisModule, "doProjectClose()" )
+        #fnPrint( debuggingThisModule, "doProjectClose()" )
         #self.notWrittenYet()
     ## end of BiblelatorSettingsEditor.doProjectClose
 
@@ -1210,7 +1210,7 @@ class BiblelatorSettingsEditor( Frame ):
         """
         Save files first, and then close child windows.
         """
-        vPrint( 'Never', debuggingThisModule, "BiblelatorSettingsEditor.doCloseMyChildWindows()" )
+        fnPrint( debuggingThisModule, "BiblelatorSettingsEditor.doCloseMyChildWindows()" )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():

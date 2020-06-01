@@ -2065,7 +2065,7 @@ class FindResultWindow( tk.Toplevel ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, _("FindResultWindow.doHelp( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "FindResultWindow.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -2082,7 +2082,7 @@ class FindResultWindow( tk.Toplevel ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, _("FindResultWindow.doAbout( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "FindResultWindow.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -2119,7 +2119,7 @@ class FindResultWindow( tk.Toplevel ):
         Refresh the find (without user input)
             by closing this window and then calling the find function again.
         """
-        vPrint( 'Never', debuggingThisModule, _("FindResultWindow.doRefresh()…") )
+        fnPrint( debuggingThisModule, "FindResultWindow.doRefresh()" )
 
         self.doClose()
         self.refindFunction( extendTo=self.extendedTo ) # Run the find again (without user input)
@@ -2131,7 +2131,7 @@ class FindResultWindow( tk.Toplevel ):
         Refresh the find
             by closing this window and then calling the find function again.
         """
-        vPrint( 'Never', debuggingThisModule, _("FindResultWindow.doRefind()…") )
+        fnPrint( debuggingThisModule, "FindResultWindow.doRefind()" )
 
         self.doClose()
         self.findFunction() # Run the find again
@@ -2143,7 +2143,7 @@ class FindResultWindow( tk.Toplevel ):
         Take the find into a find/replace
             by closing this window and then calling the supplied replace function.
         """
-        vPrint( 'Never', debuggingThisModule, _("FindResultWindow.doReplace()…") )
+        fnPrint( debuggingThisModule, "FindResultWindow.doReplace()" )
 
         self.doClose()
         self.replaceFunction() # Run the supplied find/replace function
@@ -2169,7 +2169,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         findFunction is the function that was called to create this window
             (which is used to refresh the window)
         """
-        vPrint( 'Never', debuggingThisModule, f"CollateProjectsWindow.__init__( pW={parentWindow} )…" )
+        fnPrint( debuggingThisModule, f"CollateProjectsWindow.__init__( pW={parentWindow} )" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert parentWindow
             assert optionDict and isinstance( optionDict, dict )
@@ -2469,7 +2469,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Create keyboard bindings for this widget.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.createStandardWindowKeyboardBindings( {} )").format( reset ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.createStandardWindowKeyboardBindings( {} )".format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
@@ -2565,7 +2565,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Can be overriden if necessary.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.createContextMenu()…") )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.createContextMenu()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -2602,7 +2602,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.createStatusBar()…") )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.createStatusBar()" )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
         Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
@@ -2629,7 +2629,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Display or hide the status bar.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.doToggleStatusBar()…") )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.doToggleStatusBar()" )
 
         if setOn is not None:
             self._showStatusBarVar.set( setOn )
@@ -2645,7 +2645,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Set (or clear) the status bar text.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.setStatus( {} )").format( repr(newStatusText) ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.setStatus( {} )".format( repr(newStatusText) ) )
 
         #dPrint( 'Quiet', debuggingThisModule, "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
@@ -2701,7 +2701,7 @@ class CollateProjectsWindow( tk.Toplevel ):
 
         NOTE: We don't check here yet if the two selected Bibles are the same.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.selectBible2( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.selectBible2( {} )".format( event ) )
 
         BibleName2 = self.version2Var.get()
         self.internalBible2 = self.BibleNameObjectDict[BibleName2]
@@ -2713,7 +2713,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Process Next button.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.doNext( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.doNext( {} )".format( event ) )
 
     # end of CollateProjectsWindow.doNext
 
@@ -2721,7 +2721,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Process Next button.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.doPrevious( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.doPrevious( {} )".format( event ) )
 
     # end of CollateProjectsWindow.doPrevious
 
@@ -2730,7 +2730,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Disable all buttons.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.disableButtons()…") )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.disableButtons()" )
 
         self.goButton.configure( state=tk.DISABLED )
         self.previousButton.configure( state=tk.DISABLED )
@@ -2871,7 +2871,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.doHelp( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -2888,7 +2888,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.doAbout( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -2925,7 +2925,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         Refresh the find (without user input)
             by closing this window and then calling the find function again.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.doRefresh()…") )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow.doRefresh()" )
 
         self.doClose()
         self.refindFunction( extendTo=self.extendedTo ) # Run the find again (without user input)
@@ -2937,7 +2937,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         Refresh the find
             by closing this window and then calling the find function again.
         """
-        vPrint( 'Never', debuggingThisModule, _("CollateProjectsWindow.doRefind()…") )
+        fnPrint( debuggingThisModule, _("CollateProjectsWindow.doRefind()") )
 
         self.doClose()
         self.findFunction() # Run the find again

@@ -311,7 +311,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     def createEditorKeyboardBindings( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "USFMEditWindow.createEditorKeyboardBindings()" )
+        fnPrint( debuggingThisModule, "USFMEditWindow.createEditorKeyboardBindings()" )
 
         for name,command in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -336,7 +336,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "USFMEditWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "USFMEditWindow.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
