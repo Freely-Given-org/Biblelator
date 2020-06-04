@@ -837,7 +837,7 @@ class TSVEditWindowAddon:
     def doMoveUp( self, event=None ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"doMoveUp( {event} )…" )
+        fnPrint( debuggingThisModule, f"doMoveUp( {event} )" )
         assert self.current_row > 1
         currentRowData = self.retrieveCurrentRowData( updateTable=False ) # in case current row was edited
         self.tsvTable[self.current_row-1], self.tsvTable[self.current_row] = currentRowData, self.tsvTable[self.current_row-1]
@@ -848,7 +848,7 @@ class TSVEditWindowAddon:
     def doMoveDown( self, event=None ) -> None:
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, f"doMoveDown( {event} )…" )
+        fnPrint( debuggingThisModule, f"doMoveDown( {event} )" )
         assert self.current_row < self.numDataRows
         currentRowData = self.retrieveCurrentRowData( updateTable=False ) # in case current row was edited
         self.tsvTable[self.current_row], self.tsvTable[self.current_row+1] = self.tsvTable[self.current_row+1], currentRowData
@@ -941,7 +941,7 @@ class TSVEditWindowAddon:
         Theoretically they only have to be unique within a verse,
             but we make them unique within the whole table/file.
         """
-        vPrint( 'Quiet', debuggingThisModule, "generateID()…" )
+        fnPrint( debuggingThisModule, "generateID()" )
         while True:
             newID = random.choice( 'abcdefghijklmnopqrstuvwxyz') \
                     + random.choice( 'abcdefghijklmnopqrstuvwxyz0123456789' ) \
@@ -1175,7 +1175,7 @@ class TSVEditWindowAddon:
     def createEditorKeyboardBindings( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.createEditorKeyboardBindings()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.createEditorKeyboardBindings()" )
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -1200,7 +1200,7 @@ class TSVEditWindowAddon:
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.createMenuBar()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -1300,7 +1300,7 @@ class TSVEditWindowAddon:
 
         Ideally we wouldn't need this info to be stored in both of these class variables.
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleWindowAddon.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
+        fnPrint( debuggingThisModule, _("BibleWindowAddon.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert newGroup==DEFAULT or newGroup in BIBLE_GROUP_CODES
 
@@ -1312,7 +1312,7 @@ class TSVEditWindowAddon:
     def createContextMenu( self ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.createContextMenu()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=False )
         self.contextMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Cut')][0] )
@@ -1819,7 +1819,7 @@ class TSVEditWindowAddon:
     def doCut( self, event=None ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.doCut( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doCut( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showError( self, APP_NAME, _("No text selected") )
@@ -1832,8 +1832,8 @@ class TSVEditWindowAddon:
     def doPaste( self, event=None ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.doPaste( {} )".format( event ) )
-        vPrint( 'Never', debuggingThisModule, "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doPaste( {} )".format( event ) )
+        dPrint( 'Never', debuggingThisModule, "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 
         try:
             text = self.selection_get( selection='CLIPBOARD')
@@ -2012,7 +2012,7 @@ class TSVEditWindowAddon:
 
         Returns True/False success flag.
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon._checkFilepath()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._checkFilepath()" )
 
         if not os.path.isfile( self.filepath ):
             showError( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
@@ -2050,7 +2050,7 @@ class TSVEditWindowAddon:
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        vPrint( 'Never', debuggingThisModule, f"TextEditWindowAddon.setAllText( ({len(newText)}) {newText!r} )…" )
+        fnPrint( debuggingThisModule, f"TextEditWindowAddon.setAllText( ({len(newText)}) {newText!r} )" )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
@@ -2093,7 +2093,7 @@ class TSVEditWindowAddon:
         This function can be overloaded in super classes
             (where the edit window might not display the entire text).
         """
-        vPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.getEntireText()…" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.getEntireText()" )
 
         self.doReassembleFile()
         return self.newText
@@ -2137,7 +2137,7 @@ class TSVEditWindowAddon:
                 fileLines = fileLines[:-1]
                 self.hadTrailingNL = True
         """
-        vPrint( 'Verbose', debuggingThisModule, "TSVEditWindowAddon.doReassembleFile()…" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doReassembleFile()" )
         if 'tsvTable' not in self.__dict__ or not self.tsvTable:
             return
 
@@ -2164,7 +2164,7 @@ class TSVEditWindowAddon:
         """
         Called if the user requests a saveAs from the GUI.
         """
-        vPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.doSaveAs( {event} ) with {self.modified()}…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.doSaveAs( {event} ) with {self.modified()}" )
 
         if self.modified():
             saveAsFilepath = asksaveasfilename( parent=self )
@@ -2178,7 +2178,7 @@ class TSVEditWindowAddon:
         """
         Called if the user requests a save from the GUI.
         """
-        vPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.doSave( {event} ) with {self.modified()}…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.doSave( {event} ) with {self.modified()}" )
 
         if self.modified():
             if self.folderpath and self.filename:
@@ -2210,7 +2210,7 @@ class TSVEditWindowAddon:
             if not, the AutoSave folder is created in the home folder.
                 (Yes, this can result in old AutoSave files in the home folder.)
         """
-        vPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.doAutosave()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doAutosave()" )
 
         if self.modified():
             partialAutosaveFolderpath = self.folderpath if self.folderpath else BiblelatorGlobals.theApp.homeFolderpath
@@ -2270,7 +2270,7 @@ class TSVEditWindowAddon:
         """
         Open a pop-up text window with the current log displayed.
         """
-        vPrint( 'Never', debuggingThisModule, "doViewLog()" )
+        fnPrint( debuggingThisModule, "doViewLog()" )
         if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "doViewLog…" )
 
         filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
@@ -2292,7 +2292,7 @@ class TSVEditWindowAddon:
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -2309,7 +2309,7 @@ class TSVEditWindowAddon:
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, "TSVEditWindowAddon.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -2325,7 +2325,7 @@ class TSVEditWindowAddon:
 
         Determines if we want/need to save any changes.
         """
-        vPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.doClose( {event} )…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.doClose( {event} )" )
 
         if self.modified():
             saveWork = False

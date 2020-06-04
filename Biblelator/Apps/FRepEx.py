@@ -42,7 +42,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # BibleOrgSys imports
-sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
+sys.path.append( '../BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
@@ -70,7 +70,7 @@ from Biblelator.Dialogs.BiblelatorDialogs import SelectResourceBoxDialog, GetNew
                                 CreateNewProjectFilesDialog, GetNewCollectionNameDialog, \
                                 BookNameDialog, NumberButtonDialog
 from Biblelator.Helpers.BiblelatorHelpers import mapReferencesVerseKey, createEmptyUSFMBooks
-from Biblelator.Settings.Settings import ApplicationSettings, ProjectSettings
+from Biblelator.Settings.Settings import ApplicationSettings #, BiblelatorProjectSettings
 from Biblelator.Settings.BiblelatorSettingsFunctions import parseAndApplySettings, writeSettingsFile, \
         saveNewWindowSetup, deleteExistingWindowSetup, applyGivenWindowsSettings, viewSettings
 from Biblelator.Windows.TextBoxes import BEntry, BCombobox
@@ -84,7 +84,7 @@ from Biblelator.Windows.TextEditWindow import TextEditWindow
 #from ESFMEditWindow import ESFMEditWindow
 
 
-LAST_MODIFIED_DATE = '2020-04-19' # by RJH
+LAST_MODIFIED_DATE = '2020-06-01' # by RJH
 SHORT_PROGRAM_NAME = "FRepEx"
 PROGRAM_NAME = "Bible Find/REPlace/EXtract"
 PROGRAM_VERSION = '0.00' # Separate versioning from Biblelator

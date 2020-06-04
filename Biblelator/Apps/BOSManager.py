@@ -42,7 +42,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # BibleOrgSys imports
-sys.path.append( '/home/robert/Programming/WebDevelopment/OpenScriptures/BibleOrgSys/' )
+sys.path.append( '../BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystems, BibleOrganisationalSystem

@@ -853,7 +853,7 @@ class TextWindow( ChildWindow ):
     def __init__( self, parentWindow, windowTitle=None, displayText=None, textSource=None ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.__init__( {}, {}, {} )").format( parentWindow, windowTitle, len(displayText) if displayText and len(displayText)>100 else displayText ) )
+        fnPrint( debuggingThisModule, "TextWindow.__init__( {}, {}, {} )".format( parentWindow, windowTitle, len(displayText) if displayText and len(displayText)>100 else displayText ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert parentWindow
 
@@ -901,7 +901,7 @@ class TextWindow( ChildWindow ):
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.createMenuBar()…") )
+        fnPrint( debuggingThisModule, "TextWindow.createMenuBar()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -971,7 +971,7 @@ class TextWindow( ChildWindow ):
         """
         Can be overriden if necessary.
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.createContextMenu()…") )
+        fnPrint( debuggingThisModule, "TextWindow.createContextMenu()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -1008,7 +1008,7 @@ class TextWindow( ChildWindow ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.createStatusBar()…") )
+        fnPrint( debuggingThisModule, "TextWindow.createStatusBar()" )
 
         Style().configure('HTMLStatusBar.TFrame', background='yellow')
         Style().configure( '{}.ChildStatusBar.TLabel'.format( self ), background='white' )
@@ -1038,7 +1038,7 @@ class TextWindow( ChildWindow ):
         """
         Set (or clear) the status bar text.
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.setStatus( {} )").format( repr(newStatusText) ) )
+        fnPrint( debuggingThisModule, "TextWindow.setStatus( {} )".format( repr(newStatusText) ) )
 
         #dPrint( 'Quiet', debuggingThisModule, "SB is", repr( self._statusTextVar.get() ) )
         if newStatusText != self._statusTextVar.get(): # it's changed
@@ -1103,7 +1103,7 @@ class TextWindow( ChildWindow ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.doHelp( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "TextWindow.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1120,7 +1120,7 @@ class TextWindow( ChildWindow ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.doAbout( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "TextWindow.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -1136,7 +1136,7 @@ class TextWindow( ChildWindow ):
 
         Can be overridden.
         """
-        vPrint( 'Never', debuggingThisModule, _("TextWindow.doClose( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "TextWindow.doClose( {} )".format( event ) )
 
         try: cWs = BiblelatorGlobals.theApp.childWindows
         except AttributeError: cWs = BiblelatorGlobals.theApp.childWindows
@@ -1299,7 +1299,7 @@ class HTMLWindow( ChildWindow ):
         """
         Can be overriden if necessary.
         """
-        vPrint( 'Never', debuggingThisModule, _("HTMLWindow.createContextMenu()…") )
+        fnPrint( debuggingThisModule, "HTMLWindow.createContextMenu()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -1428,7 +1428,7 @@ class HTMLWindow( ChildWindow ):
         """
         Reads the given HTML file and returns the contents.
         """
-        vPrint( 'Never', debuggingThisModule, f"HTMLWindow.read() {self.filepath} …" )
+        fnPrint( debuggingThisModule, f"HTMLWindow.read() {self.filepath}" )
 
         with open( self.filepath, 'rt', encoding='utf-8' ) as HTMLFile:
             return HTMLFile.read()
@@ -1440,7 +1440,7 @@ class HTMLWindow( ChildWindow ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        vPrint( 'Never', debuggingThisModule, f"HTMLWindow.load( {filepath} )…" )
+        fnPrint( debuggingThisModule, f"HTMLWindow.load( {filepath} )" )
 
         self.filepath = filepath
         self.folderpath, self.filename = os.path.split( self.filepath )
@@ -1466,7 +1466,7 @@ class HTMLWindow( ChildWindow ):
         Loads the given HTML file into the window
             and also finds and sets the window title
         """
-        vPrint( 'Never', debuggingThisModule, f"HTMLWindow.gotoLink( {link} )…" )
+        fnPrint( debuggingThisModule, f"HTMLWindow.gotoLink( {link} )" )
 
         currentFolderpath = os.path.split( self.filepath)[0]
         if not os.path.isabs( link ): # relative filepath
@@ -1483,7 +1483,7 @@ class HTMLWindow( ChildWindow ):
 
         Display the link address in the status bar.
         """
-        vPrint( 'Never', debuggingThisModule, _("HTMLWindow.overLink( {} )").format( link ) )
+        fnPrint( debuggingThisModule, "HTMLWindow.overLink( {} )".format( link ) )
 
         self.setStatus( link ) # Display it
     # end of HTMLWindow.overLink
