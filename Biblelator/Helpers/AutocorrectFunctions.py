@@ -27,15 +27,6 @@
 
 from gettext import gettext as _
 
-LAST_MODIFIED_DATE = '2018-03-15' # by RJH
-SHORT_PROGRAM_NAME = "AutocorrectFunctions"
-PROGRAM_NAME = "Biblelator Autocorrect Functions"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
@@ -47,6 +38,15 @@ if __name__ == '__main__':
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator import BiblelatorGlobals
+
+
+LAST_MODIFIED_DATE = '2018-03-15' # by RJH
+SHORT_PROGRAM_NAME = "AutocorrectFunctions"
+PROGRAM_NAME = "Biblelator Autocorrect Functions"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 

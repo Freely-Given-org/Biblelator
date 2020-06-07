@@ -112,7 +112,7 @@ PROGRAM_NAME = "Biblelator Bible Notes Resource Window"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = 99
+debuggingThisModule = False
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -128,7 +128,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        vPrint( 'Never', debuggingThisModule, f"BibleNotesWindowAddon.__init__( fp={folderpath} )…" )
+        fnPrint( debuggingThisModule, f"BibleNotesWindowAddon.__init__( fp={folderpath} )" )
         self.folderpath = folderpath
 
         #self.internalBible = None # (for refreshTitle called from the base class)
@@ -141,7 +141,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.createMenuBar()…") )
+        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -238,7 +238,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
     def refreshTitle( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.refreshTitle()…") )
+        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.refreshTitle()" )
 
         self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self._groupCode,
                         self.modulePath if self.internalBible is None else self.internalBible.getAName(),
@@ -252,7 +252,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         """
         Can be overriden if necessary.
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.createContextMenu()…") )
+        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=0 )
         self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
@@ -276,12 +276,12 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.getContextVerseData( {} )").format( verseKey ) )
+        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.getContextVerseData( {} )".format( verseKey ) )
 
         if self.internalBible is not None:
             try:
                 result = self.internalBible.getContextVerseData( verseKey )
-                print( "result", result )
+                dPrint( 'Verbose', debuggingThisModule, f"getContextVerseData result {result}" )
                 return result
             except KeyError: # Could be after a verse-bridge ???
                 if verseKey.getChapterNumber() != '0':
@@ -300,7 +300,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
         """
-        vPrint( 'Quiet', debuggingThisModule, "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
+        fnPrint( debuggingThisModule, "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
@@ -397,7 +397,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
             endMarkers = []
 
             # Pre-process the note(s) to extract them out of the pseudo-USFM
-            vPrint( 'Quiet', debuggingThisModule, f"Preprocessing notes from {len(verseDataList)} entries" )
+            dPrint( 'Verbose', debuggingThisModule, f"Preprocessing notes from {len(verseDataList)} entries" )
             notes = []
             thisNote = {}
             markerName = None
@@ -427,7 +427,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
             if thisNote: notes.append( thisNote )
             # dPrint( 'Info', debuggingThisModule, f"notes ({len(notes)}) {notes}")
 
-            vPrint( 'Quiet', debuggingThisModule, f"Displaying {len(notes)} notes from {len(verseDataList)} entries" )
+            vPrint( 'Info', debuggingThisModule, f"Displaying {len(notes)} notes from {len(verseDataList)} entries" )
             for n, note in enumerate( notes, start=1 ):
                 if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
                 if len(notes) > 1:
@@ -475,7 +475,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         """
         Pop-up dialog
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.doShowInfo( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.doShowInfo( {} )".format( event ) )
 
         infoString = 'BibleNotesWindowAddon:\n' \
                  + '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.getAName() ) \
@@ -683,7 +683,7 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        vPrint( 'Never', debuggingThisModule, f"BibleNotesWindow.__init__( pW={parentWindow}, mP={folderpath} )…" )
+        fnPrint( debuggingThisModule, f"BibleNotesWindow.__init__( pW={parentWindow}, mP={folderpath} )" )
         self.folderpath = folderpath
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleNotesWindowAddon.__init__( self, folderpath )

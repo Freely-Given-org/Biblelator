@@ -27,15 +27,6 @@ xxx to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2018-03-15' # by RJH
-SHORT_PROGRAM_NAME = "ESFMEditWindow"
-PROGRAM_NAME = "Biblelator ESFM Edit Window"
-PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
 #import sys #, os.path, logging #, re
 #from collections import OrderedDict
 #import multiprocessing
@@ -67,6 +58,14 @@ from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 #from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
 #from BibleOrgSys.BibleWriter import setDefaultControlFolderpath
 
+
+LAST_MODIFIED_DATE = '2018-03-15' # by RJH
+SHORT_PROGRAM_NAME = "ESFMEditWindow"
+PROGRAM_NAME = "Biblelator ESFM Edit Window"
+PROGRAM_VERSION = '0.46'
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 class ESFMEditWindow( USFMEditWindow ):

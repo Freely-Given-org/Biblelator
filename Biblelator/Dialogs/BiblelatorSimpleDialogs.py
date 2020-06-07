@@ -49,7 +49,7 @@ PROGRAM_NAME = "Biblelator simple dialogs"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = 99
+debuggingThisModule = False
 
 
 

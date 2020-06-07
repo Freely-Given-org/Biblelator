@@ -82,7 +82,7 @@ PROGRAM_NAME = "Sword Manager"
 PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = 99
+debuggingThisModule = False
 
 
 MAIN_APP_NAME = 'Biblelator'
@@ -105,7 +105,7 @@ class SwordManager( Frame ):
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
-        vPrint( 'Never', debuggingThisModule, _("SwordManager.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
+        fnPrint( debuggingThisModule, "SwordManager.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
         self.isStarting = True
 
@@ -204,7 +204,7 @@ class SwordManager( Frame ):
         We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
-        vPrint( 'Never', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
+        fnPrint( debuggingThisModule, "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -239,7 +239,7 @@ class SwordManager( Frame ):
     def createNormalMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createNormalMenuBar()…") )
+        fnPrint( debuggingThisModule, "createNormalMenuBar()" )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -290,7 +290,7 @@ class SwordManager( Frame ):
     def createTouchMenuBar( self ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createTouchMenuBar()…") )
+        fnPrint( debuggingThisModule, "createTouchMenuBar()" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.touchMode
 
@@ -301,116 +301,116 @@ class SwordManager( Frame ):
     def createNormalNavigationBar( self ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createNormalNavigationBar()…") )
+        fnPrint( debuggingThisModule, "createNormalNavigationBar()" )
 
         return
 
-        Style().configure('NavigationBar.TFrame', background='yellow')
+        # Style().configure('NavigationBar.TFrame', background='yellow')
 
-        navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
+        # navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
 
-        self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
-        self.previousBCVButton.pack( side=tk.LEFT )
-        self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
-        self.nextBCVButton.pack( side=tk.LEFT )
+        # self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
+        # self.previousBCVButton.pack( side=tk.LEFT )
+        # self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
+        # self.nextBCVButton.pack( side=tk.LEFT )
 
-        Style().configure( 'A.TButton', background='lightgreen' )
-        Style().configure( 'B.TButton', background='pink' )
-        Style().configure( 'C.TButton', background='orange' )
-        Style().configure( 'D.TButton', background='brown' )
-        self.GroupAButton = Button( navigationBar, width=2, text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
-        self.GroupBButton = Button( navigationBar, width=2, text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
-        self.GroupCButton = Button( navigationBar, width=2, text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
-        self.GroupDButton = Button( navigationBar, width=2, text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
-        self.GroupAButton.pack( side=tk.LEFT )
-        self.GroupBButton.pack( side=tk.LEFT )
-        self.GroupCButton.pack( side=tk.LEFT )
-        self.GroupDButton.pack( side=tk.LEFT )
+        # Style().configure( 'A.TButton', background='lightgreen' )
+        # Style().configure( 'B.TButton', background='pink' )
+        # Style().configure( 'C.TButton', background='orange' )
+        # Style().configure( 'D.TButton', background='brown' )
+        # self.GroupAButton = Button( navigationBar, width=2, text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
+        # self.GroupBButton = Button( navigationBar, width=2, text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
+        # self.GroupCButton = Button( navigationBar, width=2, text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
+        # self.GroupDButton = Button( navigationBar, width=2, text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
+        # self.GroupAButton.pack( side=tk.LEFT )
+        # self.GroupBButton.pack( side=tk.LEFT )
+        # self.GroupCButton.pack( side=tk.LEFT )
+        # self.GroupDButton.pack( side=tk.LEFT )
 
-        self.bookNumberVar = tk.StringVar()
-        self.bookNumberVar.set( '1' )
-        self.maxBooks = len( self.genericBookList )
-        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
-        self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
-        self.bookNumberSpinbox.pack( side=tk.LEFT )
+        # self.bookNumberVar = tk.StringVar()
+        # self.bookNumberVar.set( '1' )
+        # self.maxBooks = len( self.genericBookList )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
+        # #self.bookNumberSpinbox['width'] = 3
+        # self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        # self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
+        # self.bookNumberSpinbox.pack( side=tk.LEFT )
 
-        self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
-        bookName = self.bookNames[1] # Default to Genesis usually
-        self.bookNameVar = tk.StringVar()
-        self.bookNameVar.set( bookName )
-        BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
-        self.bookNameBox.bind( '<Return>', self.spinToNewBook )
-        self.bookNameBox.pack( side=tk.LEFT )
+        # self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
+        # bookName = self.bookNames[1] # Default to Genesis usually
+        # self.bookNameVar = tk.StringVar()
+        # self.bookNameVar.set( bookName )
+        # BBB = self.getBBBFromText( bookName )
+        # self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
+        # self.bookNameBox['values'] = self.bookNames
+        # #self.bookNameBox['width'] = len( 'Deuteronomy' )
+        # self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
+        # self.bookNameBox.bind( '<Return>', self.spinToNewBook )
+        # self.bookNameBox.pack( side=tk.LEFT )
 
-        self.chapterNumberVar = tk.StringVar()
-        self.chapterNumberVar.set( '1' )
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
-        self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        self.chapterSpinbox.pack( side=tk.LEFT )
+        # self.chapterNumberVar = tk.StringVar()
+        # self.chapterNumberVar.set( '1' )
+        # self.maxChaptersThisBook = self.getNumChapters( BBB )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
+        # #self.chapterSpinbox['width'] = 3
+        # self.chapterSpinbox['command'] = self.spinToNewChapter
+        # self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
+        # self.chapterSpinbox.pack( side=tk.LEFT )
 
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
+        # #self.chapterNumberVar = tk.StringVar()
+        # #self.chapterNumberVar.set( '1' )
+        # #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
+        # #self.chapterNumberBox['width'] = 3
+        # #self.chapterNumberBox.pack()
 
-        self.verseNumberVar = tk.StringVar()
-        self.verseNumberVar.set( '1' )
-        #self.maxVersesThisChapterVar = tk.StringVar()
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
-        #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
-        # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
-        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
-        self.verseSpinbox.pack( side=tk.LEFT )
+        # self.verseNumberVar = tk.StringVar()
+        # self.verseNumberVar.set( '1' )
+        # #self.maxVersesThisChapterVar = tk.StringVar()
+        # self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
+        # #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
+        # # Add 1 to maxVerses to enable them to go to the next chapter
+        # self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
+        # #self.verseSpinbox['width'] = 3
+        # self.verseSpinbox['command'] = self.acceptNewBnCV
+        # self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
+        # self.verseSpinbox.pack( side=tk.LEFT )
 
-        #self.verseNumberVar = tk.StringVar()
-        #self.verseNumberVar.set( '1' )
-        #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
-        #self.verseNumberBox['width'] = 3
-        #self.verseNumberBox.pack()
+        # #self.verseNumberVar = tk.StringVar()
+        # #self.verseNumberVar.set( '1' )
+        # #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
+        # #self.verseNumberBox['width'] = 3
+        # #self.verseNumberBox.pack()
 
-        self.wordVar = tk.StringVar()
-        if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
-        self.wordBox.bind( '<Return>', self.acceptNewWord )
-        self.wordBox.pack( side=tk.LEFT )
+        # self.wordVar = tk.StringVar()
+        # if self.lexiconWord: self.wordVar.set( self.lexiconWord )
+        # self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
+        # #self.wordBox['width'] = 12
+        # self.wordBox.bind( '<Return>', self.acceptNewWord )
+        # self.wordBox.pack( side=tk.LEFT )
 
-        # if 0: # I don't think we should need this button if everything else works right
-        #     self.updateButton = Button( navigationBar )
-        #     self.updateButton['text'] = 'Update'
-        #     self.updateButton['command'] = self.acceptNewBnCV
-        #     #self.updateButton.grid( row=0, column=7 )
-        #     self.updateButton.pack( side=tk.LEFT )
+        # # if 0: # I don't think we should need this button if everything else works right
+        # #     self.updateButton = Button( navigationBar )
+        # #     self.updateButton['text'] = 'Update'
+        # #     self.updateButton['command'] = self.acceptNewBnCV
+        # #     #self.updateButton.grid( row=0, column=7 )
+        # #     self.updateButton.pack( side=tk.LEFT )
 
-        Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
-                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
-        self.quitButton = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.doCloseMe )
-        self.quitButton.pack( side=tk.RIGHT )
+        # Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
+        #                                     background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+        # self.quitButton = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.doCloseMe )
+        # self.quitButton.pack( side=tk.RIGHT )
 
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-        navigationBar.pack( side=tk.TOP, fill=tk.X )
+        # #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
+        # navigationBar.pack( side=tk.TOP, fill=tk.X )
     # end of SwordManager.createNormalNavigationBar
 
     def createTouchNavigationBar( self ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createTouchNavigationBar()…") )
+        fnPrint( debuggingThisModule, "createTouchNavigationBar()" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.touchMode
 
@@ -539,35 +539,35 @@ class SwordManager( Frame ):
         """
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
+        fnPrint( debuggingThisModule, "createToolBar()" )
 
         return
 
-        xPad, yPad = 6, 8
+        # xPad, yPad = 6, 8
 
-        Style().configure( 'ToolBar.TFrame', background='green' )
-        toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
+        # Style().configure( 'ToolBar.TFrame', background='green' )
+        # toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
 
-        Style().configure( 'ShowAll.TButton', background='lightgreen' )
-        Style().configure( 'HideResources.TButton', background='pink' )
-        Style().configure( 'HideAll.TButton', background='orange' )
+        # Style().configure( 'ShowAll.TButton', background='lightgreen' )
+        # Style().configure( 'HideResources.TButton', background='pink' )
+        # Style().configure( 'HideAll.TButton', background='orange' )
 
-        Button( toolbar, text=_("Show All"), style='ShowAll.TButton', command=self.doShowAll ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text=_("Hide Resources"), style='HideResources.TButton', command=self.doHideAllResources ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text=_("Hide All"), style='HideAll.TButton', command=self.doHideAll ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        # Button( toolbar, text=_("Show All"), style='ShowAll.TButton', command=self.doShowAll ) \
+        #             .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Button( toolbar, text=_("Hide Resources"), style='HideResources.TButton', command=self.doHideAllResources ) \
+        #             .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Button( toolbar, text=_("Hide All"), style='HideAll.TButton', command=self.doHideAll ) \
+        #             .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
 
-        toolbar.pack( side=tk.TOP, fill=tk.X )
+        # toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of SwordManager.createToolBar
 
 
     def createNotebook( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
+        fnPrint( debuggingThisModule, "createToolBar()" )
 
         self.notebook = Notebook( self )
 
@@ -690,7 +690,7 @@ class SwordManager( Frame ):
         """
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("createDebugToolBar()…") )
+        fnPrint( debuggingThisModule, "createDebugToolBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -711,7 +711,7 @@ class SwordManager( Frame ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("createStatusBar()…") )
+        fnPrint( debuggingThisModule, "createStatusBar()" )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -730,7 +730,7 @@ class SwordManager( Frame ):
     def createMainKeyboardBindings( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createMainKeyboardBindings()…") )
+        fnPrint( debuggingThisModule, "createMainKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp),
@@ -780,7 +780,7 @@ class SwordManager( Frame ):
         """
         Set (or clear) the status bar text.
         """
-        vPrint( 'Never', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
+        fnPrint( debuggingThisModule, "setStatus( {!r} )".format( newStatusText ) )
 
         #dPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
@@ -799,7 +799,7 @@ class SwordManager( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        vPrint( 'Never', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
+        fnPrint( debuggingThisModule, "setErrorStatus( {!r} )".format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -812,7 +812,7 @@ class SwordManager( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        vPrint( 'Never', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
+        fnPrint( debuggingThisModule, "setWaitStatus( {!r} )".format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -922,7 +922,7 @@ class SwordManager( Frame ):
     def gotoNewCode( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewCode( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewCode…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
@@ -968,7 +968,7 @@ class SwordManager( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        vPrint( 'Never', debuggingThisModule, _("doViewLog()…") )
+        fnPrint( debuggingThisModule, "doViewLog()" )
         if debuggingThisModule: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -991,7 +991,7 @@ class SwordManager( Frame ):
         """
         Pop-up dialog giving goto/reference info.
         """
-        vPrint( 'Never', debuggingThisModule, _("SwordManager.doGotoInfo( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "SwordManager.doGotoInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1016,8 +1016,8 @@ class SwordManager( Frame ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, _("doHelp()…") )
         from Biblelator.Dialogs.Help import HelpBox
+        fnPrint( debuggingThisModule, "doHelp()" )
 
         helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -1041,7 +1041,7 @@ class SwordManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        vPrint( 'Never', debuggingThisModule, _("doSubmitBug()…") )
+        fnPrint( debuggingThisModule, "doSubmitBug()" )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1059,8 +1059,8 @@ class SwordManager( Frame ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, _("doAbout()…") )
         from Biblelator.Dialogs.About import AboutBox
+        fnPrint( debuggingThisModule, "doAbout()" )
 
         aboutInfo = programNameVersion
         aboutInfo += "\nA display manager for Sword (from CrossWire) Bible modules." \
@@ -1092,7 +1092,7 @@ class SwordManager( Frame ):
         """
         Save files first, and then close child windows.
         """
-        vPrint( 'Never', debuggingThisModule, _("SwordManager.doCloseMyChildWindows()…") )
+        fnPrint( debuggingThisModule, "SwordManager.doCloseMyChildWindows()" )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():
@@ -1123,8 +1123,8 @@ class SwordManager( Frame ):
         """
         Save files first, and then end the application.
         """
-        vPrint( 'Never', debuggingThisModule, _("SwordManager.doCloseMe()…") )
-        vPrint( 'Never', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
+        fnPrint( debuggingThisModule, "SwordManager.doCloseMe()" )
+        vPrint( 'Verbose', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -1238,7 +1238,7 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
@@ -1251,7 +1251,7 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )

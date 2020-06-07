@@ -163,7 +163,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         """
         Create keyboard bindings for this widget.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceBox.createStandardBoxKeyboardBindings()" )
+        fnPrint( debuggingThisModule, "BibleReferenceBox.createStandardBoxKeyboardBindings()" )
         for name,command in ( ('SelectAll',self.doSelectAll), ('Copy',self.doCopy),
                              ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
                              #('Info',self.doShowInfo),
@@ -189,7 +189,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceBox.getContextVerseData( {} )".format( verseKey ) )
+        fnPrint( debuggingThisModule, "BibleReferenceBox.getContextVerseData( {} )".format( verseKey ) )
 
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
@@ -242,7 +242,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
 
         Leaves the textbox in the disabled state.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceBox.updateShownReferences( {} ) for {}".format( newReferenceObject, self.internalBible.getAName() ) )
+        fnPrint( debuggingThisModule, "BibleReferenceBox.updateShownReferences( {} ) for {}".format( newReferenceObject, self.internalBible.getAName() ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert isinstance( newReferenceObject, SimpleVerseKey ) or isinstance( newReferenceObject, SimpleVersesKey ) or isinstance( newReferenceObject, VerseRangeKey )
 
@@ -275,7 +275,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         """
         Called to finally and irreversibly remove this box from our list and close it.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceBox.closeReferenceBox()" )
+        fnPrint( debuggingThisModule, "BibleReferenceBox.closeReferenceBox()" )
         if self in self.parentWindow.referenceBoxes:
             self.parentWindow.referenceBoxes.remove( self )
             self.destroy()
@@ -309,7 +309,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         Given a collection name, try to open an empty Bible resource collection window.
         """
-        vPrint( 'Quiet', debuggingThisModule, "BibleReferenceCollectionWindow.__init__( {} )".format( internalBible.getAName() ) )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.__init__( {} )".format( internalBible.getAName() ) )
         self.internalBible = internalBible
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleResourceWindowAddon.__init__( self, 'BibleReferenceCollectionWindow', internalBible.getAName(), defaultContextViewMode, defaultFormatViewMode )
@@ -348,7 +348,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     def onCanvasConfigure( self, event ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.onCanvasConfigure( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.onCanvasConfigure( {} )".format( event ) )
 
         canvas_width = event.width
         #dPrint( 'Quiet', debuggingThisModule, "  Set canvas width to {}".format( canvas_width ) )
@@ -375,7 +375,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         We're still waiting for the filename.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.setFolderpath( {!r} )".format( newFolderpath ) )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.setFolderpath( {!r} )".format( newFolderpath ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.filename is None
             assert self.filepath is None
@@ -387,7 +387,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -557,7 +557,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     def updateShownBCV( self, newReferenceVerseKey, originator=None ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
 
@@ -577,8 +577,8 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         Leaves the textbox in the disabled state.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.updateShownReferences( {} ) for".format( newReferencesVerseKeys ), self.moduleID )
-            #dPrint( 'Quiet', debuggingThisModule, "contextViewMode", self._contextViewMode )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.updateShownReferences( {} ) for".format( newReferencesVerseKeys ), self.moduleID )
+        #dPrint( 'Quiet', debuggingThisModule, "contextViewMode", self._contextViewMode )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert isinstance( newReferencesVerseKeys, list ) or newReferencesVerseKeys is None
 
@@ -609,7 +609,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.doHelp()" )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.doHelp()" )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -626,7 +626,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleReferenceCollectionWindow.doAbout()" )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.doAbout()" )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion + '\n'

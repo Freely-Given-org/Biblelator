@@ -47,7 +47,7 @@ if __name__ == '__main__':
 from Biblelator import BiblelatorGlobals
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2020-06-05' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorModalDialog"
 PROGRAM_NAME = "Biblelator Modal Dialog"
 PROGRAM_VERSION = '0.46'
@@ -63,7 +63,7 @@ class ModalDialog( tk.Toplevel ):
         and intended to be subclassed.
     """
     def __init__(self, parentWindow, title:Optional[str]=None, okText:Optional[str]=None, cancelText:Optional[str]=None, geometry=None) -> None:
-
+        fnPrint( debuggingThisModule, f"ModalDialog.__init__( {parentWindow}, {title}, {okText}, {cancelText}, {geometry} )" )
         tk.Toplevel.__init__( self, parentWindow )
         self.transient( parentWindow )
 
@@ -104,7 +104,7 @@ class ModalDialog( tk.Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        vPrint( 'Normal', debuggingThisModule, "This 'body' method must be overridden!" ); halt
+        dPrint( 'Normal', debuggingThisModule, "This 'body' method must be overridden!" ); halt
     # end of ModalDialog.makeBody
 
 
@@ -249,7 +249,7 @@ def briefDemo() -> None:
     def ss( a ): pass
     tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
-    vPrint( 'Quiet', debuggingThisModule, "Result is:", repr(md.result) )
+    dPrint( 'Quiet', debuggingThisModule, "Result is:", repr(md.result) )
 
     # Start the program running
     tkRootWindow.mainloop()

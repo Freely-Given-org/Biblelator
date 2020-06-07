@@ -113,7 +113,7 @@ class FRepEx( Frame ):
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
-        vPrint( 'Never', debuggingThisModule, _("FRepEx.__init__( {}, {}, {}, … )").format( rootWindow, homeFolderpath, loggingFolderpath ) )
+        fnPrint( debuggingThisModule, "FRepEx.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
         self.isStarting = True
 
@@ -216,7 +216,7 @@ class FRepEx( Frame ):
         We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
-        vPrint( 'Never', debuggingThisModule, _("setGenericBibleOrganisationalSystem( {} )").format( BOSname ) )
+        fnPrint( debuggingThisModule, "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -251,7 +251,7 @@ class FRepEx( Frame ):
     def createNormalMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createNormalMenuBar()…") )
+        fnPrint( debuggingThisModule, "createNormalMenuBar()" )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -339,7 +339,7 @@ class FRepEx( Frame ):
     def createTouchMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createTouchMenuBar()…") )
+        fnPrint( debuggingThisModule, "createTouchMenuBar()" )
         assert self.touchMode
 
         self.createNormalMenuBar()
@@ -349,236 +349,236 @@ class FRepEx( Frame ):
     def createNormalNavigationBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createNormalNavigationBar()…") )
+        fnPrint( debuggingThisModule, "createNormalNavigationBar()" )
 
         return
 
-        Style().configure('NavigationBar.TFrame', background='yellow')
+        # Style().configure('NavigationBar.TFrame', background='yellow')
 
-        navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
+        # navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
 
-        self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
-        self.previousBCVButton.pack( side=tk.LEFT )
-        self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
-        self.nextBCVButton.pack( side=tk.LEFT )
+        # self.previousBCVButton = Button( navigationBar, width=4, text='<-', command=self.doGoBackward, state=tk.DISABLED )
+        # self.previousBCVButton.pack( side=tk.LEFT )
+        # self.nextBCVButton = Button( navigationBar, width=4, text='->', command=self.doGoForward, state=tk.DISABLED )
+        # self.nextBCVButton.pack( side=tk.LEFT )
 
-        Style().configure( 'A.TButton', background='lightgreen' )
-        Style().configure( 'B.TButton', background='pink' )
-        Style().configure( 'C.TButton', background='orange' )
-        Style().configure( 'D.TButton', background='brown' )
-        self.GroupAButton = Button( navigationBar, width=2, text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
-        self.GroupBButton = Button( navigationBar, width=2, text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
-        self.GroupCButton = Button( navigationBar, width=2, text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
-        self.GroupDButton = Button( navigationBar, width=2, text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
-        self.GroupAButton.pack( side=tk.LEFT )
-        self.GroupBButton.pack( side=tk.LEFT )
-        self.GroupCButton.pack( side=tk.LEFT )
-        self.GroupDButton.pack( side=tk.LEFT )
+        # Style().configure( 'A.TButton', background='lightgreen' )
+        # Style().configure( 'B.TButton', background='pink' )
+        # Style().configure( 'C.TButton', background='orange' )
+        # Style().configure( 'D.TButton', background='brown' )
+        # self.GroupAButton = Button( navigationBar, width=2, text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
+        # self.GroupBButton = Button( navigationBar, width=2, text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
+        # self.GroupCButton = Button( navigationBar, width=2, text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
+        # self.GroupDButton = Button( navigationBar, width=2, text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
+        # self.GroupAButton.pack( side=tk.LEFT )
+        # self.GroupBButton.pack( side=tk.LEFT )
+        # self.GroupCButton.pack( side=tk.LEFT )
+        # self.GroupDButton.pack( side=tk.LEFT )
 
-        self.bookNumberVar = tk.StringVar()
-        self.bookNumberVar.set( '1' )
-        self.maxBooks = len( self.genericBookList )
-        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
-        self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
-        self.bookNumberSpinbox.pack( side=tk.LEFT )
+        # self.bookNumberVar = tk.StringVar()
+        # self.bookNumberVar.set( '1' )
+        # self.maxBooks = len( self.genericBookList )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
+        # #self.bookNumberSpinbox['width'] = 3
+        # self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        # self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
+        # self.bookNumberSpinbox.pack( side=tk.LEFT )
 
-        self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
-        bookName = self.bookNames[1] # Default to Genesis usually
-        self.bookNameVar = tk.StringVar()
-        self.bookNameVar.set( bookName )
-        BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
-        self.bookNameBox.bind( '<Return>', self.spinToNewBook )
-        self.bookNameBox.pack( side=tk.LEFT )
+        # self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
+        # bookName = self.bookNames[1] # Default to Genesis usually
+        # self.bookNameVar = tk.StringVar()
+        # self.bookNameVar.set( bookName )
+        # BBB = self.getBBBFromText( bookName )
+        # self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
+        # self.bookNameBox['values'] = self.bookNames
+        # #self.bookNameBox['width'] = len( 'Deuteronomy' )
+        # self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
+        # self.bookNameBox.bind( '<Return>', self.spinToNewBook )
+        # self.bookNameBox.pack( side=tk.LEFT )
 
-        self.chapterNumberVar = tk.StringVar()
-        self.chapterNumberVar.set( '1' )
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
-        self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        self.chapterSpinbox.pack( side=tk.LEFT )
+        # self.chapterNumberVar = tk.StringVar()
+        # self.chapterNumberVar.set( '1' )
+        # self.maxChaptersThisBook = self.getNumChapters( BBB )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
+        # #self.chapterSpinbox['width'] = 3
+        # self.chapterSpinbox['command'] = self.spinToNewChapter
+        # self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
+        # self.chapterSpinbox.pack( side=tk.LEFT )
 
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
+        # #self.chapterNumberVar = tk.StringVar()
+        # #self.chapterNumberVar.set( '1' )
+        # #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
+        # #self.chapterNumberBox['width'] = 3
+        # #self.chapterNumberBox.pack()
 
-        self.verseNumberVar = tk.StringVar()
-        self.verseNumberVar.set( '1' )
-        #self.maxVersesThisChapterVar = tk.StringVar()
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
-        #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
-        # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
-        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
-        self.verseSpinbox.pack( side=tk.LEFT )
+        # self.verseNumberVar = tk.StringVar()
+        # self.verseNumberVar.set( '1' )
+        # #self.maxVersesThisChapterVar = tk.StringVar()
+        # self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
+        # #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
+        # # Add 1 to maxVerses to enable them to go to the next chapter
+        # self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
+        # #self.verseSpinbox['width'] = 3
+        # self.verseSpinbox['command'] = self.acceptNewBnCV
+        # self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
+        # self.verseSpinbox.pack( side=tk.LEFT )
 
-        #self.verseNumberVar = tk.StringVar()
-        #self.verseNumberVar.set( '1' )
-        #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
-        #self.verseNumberBox['width'] = 3
-        #self.verseNumberBox.pack()
+        # #self.verseNumberVar = tk.StringVar()
+        # #self.verseNumberVar.set( '1' )
+        # #self.verseNumberBox = BEntry( self, textvariable=self.verseNumberVar )
+        # #self.verseNumberBox['width'] = 3
+        # #self.verseNumberBox.pack()
 
-        self.wordVar = tk.StringVar()
-        if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
-        self.wordBox.bind( '<Return>', self.acceptNewWord )
-        self.wordBox.pack( side=tk.LEFT )
+        # self.wordVar = tk.StringVar()
+        # if self.lexiconWord: self.wordVar.set( self.lexiconWord )
+        # self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
+        # #self.wordBox['width'] = 12
+        # self.wordBox.bind( '<Return>', self.acceptNewWord )
+        # self.wordBox.pack( side=tk.LEFT )
 
-        # if 0: # I don't think we should need this button if everything else works right
-        #     self.updateButton = Button( navigationBar )
-        #     self.updateButton['text'] = 'Update'
-        #     self.updateButton['command'] = self.acceptNewBnCV
-        #     #self.updateButton.grid( row=0, column=7 )
-        #     self.updateButton.pack( side=tk.LEFT )
+        # # if 0: # I don't think we should need this button if everything else works right
+        # #     self.updateButton = Button( navigationBar )
+        # #     self.updateButton['text'] = 'Update'
+        # #     self.updateButton['command'] = self.acceptNewBnCV
+        # #     #self.updateButton.grid( row=0, column=7 )
+        # #     self.updateButton.pack( side=tk.LEFT )
 
-        Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
-                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
-        self.quitButton = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.doCloseMe )
-        self.quitButton.pack( side=tk.RIGHT )
+        # Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
+        #                                     background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+        # self.quitButton = Button( navigationBar, text="QUIT", style="Quit.TButton", command=self.doCloseMe )
+        # self.quitButton.pack( side=tk.RIGHT )
 
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-        navigationBar.pack( side=tk.TOP, fill=tk.X )
+        # #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
+        # navigationBar.pack( side=tk.TOP, fill=tk.X )
     # end of FRepEx.createNormalNavigationBar
 
     def createTouchNavigationBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createTouchNavigationBar()…") )
+        fnPrint( debuggingThisModule, "createTouchNavigationBar()" )
         assert self.touchMode
 
         return
 
-        xPad, yPad = 6, 8
-        minButtonCharWidth = 4
+        # xPad, yPad = 6, 8
+        # minButtonCharWidth = 4
 
-        Style().configure('NavigationBar.TFrame', background='yellow')
-        navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
+        # Style().configure('NavigationBar.TFrame', background='yellow')
+        # navigationBar = Frame( self, cursor='hand2', relief=tk.RAISED, style='NavigationBar.TFrame' )
 
-        self.previousBCVButton = Button( navigationBar, width=minButtonCharWidth, text='<-', command=self.doGoBackward, state=tk.DISABLED )
-        self.previousBCVButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.nextBCVButton = Button( navigationBar, width=minButtonCharWidth, text='->', command=self.doGoForward, state=tk.DISABLED )
-        self.nextBCVButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # self.previousBCVButton = Button( navigationBar, width=minButtonCharWidth, text='<-', command=self.doGoBackward, state=tk.DISABLED )
+        # self.previousBCVButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # self.nextBCVButton = Button( navigationBar, width=minButtonCharWidth, text='->', command=self.doGoForward, state=tk.DISABLED )
+        # self.nextBCVButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
 
-        Style().configure( 'A.TButton', background='lightgreen' )
-        Style().configure( 'B.TButton', background='pink' )
-        Style().configure( 'C.TButton', background='orange' )
-        Style().configure( 'D.TButton', background='brown' )
-        self.GroupAButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
-        self.GroupBButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
-        self.GroupCButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
-        self.GroupDButton = Button( navigationBar, width=minButtonCharWidth,
-                                   text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
-        self.GroupAButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.GroupBButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.GroupCButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        self.GroupDButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Style().configure( 'A.TButton', background='lightgreen' )
+        # Style().configure( 'B.TButton', background='pink' )
+        # Style().configure( 'C.TButton', background='orange' )
+        # Style().configure( 'D.TButton', background='brown' )
+        # self.GroupAButton = Button( navigationBar, width=minButtonCharWidth,
+        #                            text='A', style='A.TButton', command=self.selectGroupA, state=tk.DISABLED )
+        # self.GroupBButton = Button( navigationBar, width=minButtonCharWidth,
+        #                            text='B', style='B.TButton', command=self.selectGroupB, state=tk.DISABLED )
+        # self.GroupCButton = Button( navigationBar, width=minButtonCharWidth,
+        #                            text='C', style='C.TButton', command=self.selectGroupC, state=tk.DISABLED )
+        # self.GroupDButton = Button( navigationBar, width=minButtonCharWidth,
+        #                            text='D', style='D.TButton', command=self.selectGroupD, state=tk.DISABLED )
+        # self.GroupAButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # self.GroupBButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # self.GroupCButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # self.GroupDButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
 
-        self.bookNumberVar = tk.StringVar()
-        self.bookNumberVar.set( '1' )
-        self.maxBooks = len( self.genericBookList )
-        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
-        self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
-        #self.bookNumberSpinbox['width'] = 3
-        self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
-        self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
-        #self.bookNumberSpinbox.pack( side=tk.LEFT )
+        # self.bookNumberVar = tk.StringVar()
+        # self.bookNumberVar.set( '1' )
+        # self.maxBooks = len( self.genericBookList )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
+        # #self.bookNumberSpinbox['width'] = 3
+        # self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
+        # self.bookNumberSpinbox.bind( '<Return>', self.spinToNewBookNumber )
+        # #self.bookNumberSpinbox.pack( side=tk.LEFT )
 
-        self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
-        bookName = self.bookNames[1] # Default to Genesis usually
-        self.bookNameVar = tk.StringVar()
-        self.bookNameVar.set( bookName )
-        BBB = self.getBBBFromText( bookName )
-        self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
-        self.bookNameBox['values'] = self.bookNames
-        #self.bookNameBox['width'] = len( 'Deuteronomy' )
-        self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
-        self.bookNameBox.bind( '<Return>', self.spinToNewBook )
-        #self.bookNameBox.pack( side=tk.LEFT )
+        # self.bookNames = [self.getGenericBookName(BBB) for BBB in self.genericBookList] # self.getBookList()]
+        # bookName = self.bookNames[1] # Default to Genesis usually
+        # self.bookNameVar = tk.StringVar()
+        # self.bookNameVar.set( bookName )
+        # BBB = self.getBBBFromText( bookName )
+        # self.bookNameBox = BCombobox( navigationBar, width=len('Deuteronomy'), textvariable=self.bookNameVar )
+        # self.bookNameBox['values'] = self.bookNames
+        # #self.bookNameBox['width'] = len( 'Deuteronomy' )
+        # self.bookNameBox.bind('<<ComboboxSelected>>', self.spinToNewBook )
+        # self.bookNameBox.bind( '<Return>', self.spinToNewBook )
+        # #self.bookNameBox.pack( side=tk.LEFT )
 
-        Style().configure( 'bookName.TButton', background='brown' )
-        self.bookNameButton = Button( navigationBar, width=8, text=bookName, style='bookName.TButton', command=self.doBookNameButton )
-        self.bookNameButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Style().configure( 'bookName.TButton', background='brown' )
+        # self.bookNameButton = Button( navigationBar, width=8, text=bookName, style='bookName.TButton', command=self.doBookNameButton )
+        # self.bookNameButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
 
-        self.chapterNumberVar = tk.StringVar()
-        self.chapterNumberVar.set( '1' )
-        self.maxChaptersThisBook = self.getNumChapters( BBB )
-        #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
-        self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
-        #self.chapterSpinbox['width'] = 3
-        self.chapterSpinbox['command'] = self.spinToNewChapter
-        self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
-        #self.chapterSpinbox.pack( side=tk.LEFT )
+        # self.chapterNumberVar = tk.StringVar()
+        # self.chapterNumberVar.set( '1' )
+        # self.maxChaptersThisBook = self.getNumChapters( BBB )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
+        # #self.chapterSpinbox['width'] = 3
+        # self.chapterSpinbox['command'] = self.spinToNewChapter
+        # self.chapterSpinbox.bind( '<Return>', self.spinToNewChapter )
+        # #self.chapterSpinbox.pack( side=tk.LEFT )
 
-        Style().configure( 'chapterNumber.TButton', background='brown' )
-        self.chapterNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='chapterNumber.TButton', command=self.doChapterNumberButton )
-        self.chapterNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Style().configure( 'chapterNumber.TButton', background='brown' )
+        # self.chapterNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='chapterNumber.TButton', command=self.doChapterNumberButton )
+        # self.chapterNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
 
-        #self.chapterNumberVar = tk.StringVar()
-        #self.chapterNumberVar.set( '1' )
-        #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
-        #self.chapterNumberBox['width'] = 3
-        #self.chapterNumberBox.pack()
+        # #self.chapterNumberVar = tk.StringVar()
+        # #self.chapterNumberVar.set( '1' )
+        # #self.chapterNumberBox = BEntry( self, textvariable=self.chapterNumberVar )
+        # #self.chapterNumberBox['width'] = 3
+        # #self.chapterNumberBox.pack()
 
-        self.verseNumberVar = tk.StringVar()
-        self.verseNumberVar.set( '1' )
-        #self.maxVersesThisChapterVar = tk.StringVar()
-        self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
-        #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
-        # Add 1 to maxVerses to enable them to go to the next chapter
-        self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
-        #self.verseSpinbox['width'] = 3
-        self.verseSpinbox['command'] = self.acceptNewBnCV
-        self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
-        #self.verseSpinbox.pack( side=tk.LEFT )
+        # self.verseNumberVar = tk.StringVar()
+        # self.verseNumberVar.set( '1' )
+        # #self.maxVersesThisChapterVar = tk.StringVar()
+        # self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
+        # #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
+        # #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
+        # # Add 1 to maxVerses to enable them to go to the next chapter
+        # self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
+        # #self.verseSpinbox['width'] = 3
+        # self.verseSpinbox['command'] = self.acceptNewBnCV
+        # self.verseSpinbox.bind( '<Return>', self.acceptNewBnCV )
+        # #self.verseSpinbox.pack( side=tk.LEFT )
 
-        Style().configure( 'verseNumber.TButton', background='brown' )
-        self.verseNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='verseNumber.TButton', command=self.doVerseNumberButton )
-        self.verseNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Style().configure( 'verseNumber.TButton', background='brown' )
+        # self.verseNumberButton = Button( navigationBar, width=minButtonCharWidth, text='1', style='verseNumber.TButton', command=self.doVerseNumberButton )
+        # self.verseNumberButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
 
-        self.wordVar = tk.StringVar()
-        if self.lexiconWord: self.wordVar.set( self.lexiconWord )
-        self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
-        #self.wordBox['width'] = 12
-        self.wordBox.bind( '<Return>', self.acceptNewWord )
-        #self.wordBox.pack( side=tk.LEFT )
+        # self.wordVar = tk.StringVar()
+        # if self.lexiconWord: self.wordVar.set( self.lexiconWord )
+        # self.wordBox = BEntry( navigationBar, width=12, textvariable=self.wordVar )
+        # #self.wordBox['width'] = 12
+        # self.wordBox.bind( '<Return>', self.acceptNewWord )
+        # #self.wordBox.pack( side=tk.LEFT )
 
-        Style().configure( 'word.TButton', background='brown' )
-        self.wordButton = Button( navigationBar, width=8, text=self.lexiconWord, style='word.TButton', command=self.doWordButton )
-        self.wordButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Style().configure( 'word.TButton', background='brown' )
+        # self.wordButton = Button( navigationBar, width=8, text=self.lexiconWord, style='word.TButton', command=self.doWordButton )
+        # self.wordButton.pack( side=tk.LEFT, padx=xPad, pady=yPad )
 
-        # if 0: # I don't think we should need this button if everything else works right
-        #     self.updateButton = Button( navigationBar )
-        #     self.updateButton['text'] = 'Update'
-        #     self.updateButton['command'] = self.acceptNewBnCV
-        #     #self.updateButton.grid( row=0, column=7 )
-        #     self.updateButton.pack( side=tk.LEFT )
+        # # if 0: # I don't think we should need this button if everything else works right
+        # #     self.updateButton = Button( navigationBar )
+        # #     self.updateButton['text'] = 'Update'
+        # #     self.updateButton['command'] = self.acceptNewBnCV
+        # #     #self.updateButton.grid( row=0, column=7 )
+        # #     self.updateButton.pack( side=tk.LEFT )
 
-        Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
-                                            background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
-        self.quitButton = Button( navigationBar, text=_("QUIT"), style="Quit.TButton", command=self.doCloseMe )
-        self.quitButton.pack( side=tk.RIGHT, padx=xPad, pady=yPad )
+        # Style( self ).map("Quit.TButton", foreground=[('pressed', 'red'), ('active', 'blue')],
+        #                                     background=[('pressed', '!disabled', 'black'), ('active', 'pink')] )
+        # self.quitButton = Button( navigationBar, text=_("QUIT"), style="Quit.TButton", command=self.doCloseMe )
+        # self.quitButton.pack( side=tk.RIGHT, padx=xPad, pady=yPad )
 
-        #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
-        navigationBar.pack( side=tk.TOP, fill=tk.X )
+        # #Sizegrip( self ).grid( column=999, row=999, sticky=(S,E) )
+        # navigationBar.pack( side=tk.TOP, fill=tk.X )
     # end of FRepEx.createTouchNavigationBar
 
 
@@ -586,35 +586,35 @@ class FRepEx( Frame ):
         """
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
+        fnPrint( debuggingThisModule, "createToolBar()" )
 
         return
 
-        xPad, yPad = 6, 8
+        # xPad, yPad = 6, 8
 
-        Style().configure( 'ToolBar.TFrame', background='green' )
-        toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
+        # Style().configure( 'ToolBar.TFrame', background='green' )
+        # toolbar = Frame( self, cursor='hand2', relief=tk.RAISED, style='ToolBar.TFrame' )
 
-        Style().configure( 'ShowAll.TButton', background='lightgreen' )
-        Style().configure( 'HideResources.TButton', background='pink' )
-        Style().configure( 'HideAll.TButton', background='orange' )
+        # Style().configure( 'ShowAll.TButton', background='lightgreen' )
+        # Style().configure( 'HideResources.TButton', background='pink' )
+        # Style().configure( 'HideAll.TButton', background='orange' )
 
-        Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
-                    .pack( side=tk.LEFT, padx=xPad, pady=yPad )
-        #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
+        # Button( toolbar, text='Show All', style='ShowAll.TButton', command=self.doShowAll ) \
+        #             .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Button( toolbar, text='Hide Resources', style='HideResources.TButton', command=self.doHideAllResources ) \
+        #             .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # Button( toolbar, text='Hide All', style='HideAll.TButton', command=self.doHideAll ) \
+        #             .pack( side=tk.LEFT, padx=xPad, pady=yPad )
+        # #Button( toolbar, text='Bring All', command=self.doBringAll ).pack( side=tk.LEFT, padx=2, pady=2 )
 
-        toolbar.pack( side=tk.TOP, fill=tk.X )
+        # toolbar.pack( side=tk.TOP, fill=tk.X )
     # end of FRepEx.createToolBar
 
 
     def createNotebook( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createToolBar()…") )
+        fnPrint( debuggingThisModule, "createToolBar()" )
 
         self.notebook = Notebook( self )
 
@@ -922,7 +922,7 @@ class FRepEx( Frame ):
         """
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("createDebugToolBar()…") )
+        fnPrint( debuggingThisModule, "createDebugToolBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -943,7 +943,7 @@ class FRepEx( Frame ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        vPrint( 'Never', debuggingThisModule, _("createStatusBar()…") )
+        fnPrint( debuggingThisModule, "createStatusBar()" )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -962,7 +962,7 @@ class FRepEx( Frame ):
     def createMainKeyboardBindings( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("createMainKeyboardBindings()…") )
+        fnPrint( debuggingThisModule, "createMainKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
@@ -1009,7 +1009,7 @@ class FRepEx( Frame ):
         """
         Set (or clear) the status bar text.
         """
-        vPrint( 'Never', debuggingThisModule, _("setStatus( {!r} )").format( newStatusText ) )
+        fnPrint( debuggingThisModule, "setStatus( {!r} )".format( newStatusText ) )
 
         #dPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
@@ -1028,7 +1028,7 @@ class FRepEx( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        vPrint( 'Never', debuggingThisModule, _("setErrorStatus( {!r} )").format( newStatusText ) )
+        fnPrint( debuggingThisModule, "setErrorStatus( {!r} )".format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1041,7 +1041,7 @@ class FRepEx( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        vPrint( 'Never', debuggingThisModule, _("setWaitStatus( {!r} )").format( newStatusText ) )
+        fnPrint( debuggingThisModule, "setWaitStatus( {!r} )".format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1187,11 +1187,11 @@ class FRepEx( Frame ):
     def gotoNewCode( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewCode( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewCode( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewCode…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
-        vPrint( 'Quiet', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
+        dPrint( 'Never', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
         self.BBB = self.codesListbox.get( index )
         codeDict =  BibleOrgSysGlobals.loadedBibleBooksCodes._getFullEntry( self.BBB )
@@ -1236,7 +1236,7 @@ class FRepEx( Frame ):
     def gotoNewPunctuation( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewPunctuation( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewPunctuation( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewPunctuation…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
 
@@ -1285,7 +1285,7 @@ class FRepEx( Frame ):
     def gotoNewVersification( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewVersification( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewVersification( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewVersification…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
 
@@ -1334,7 +1334,7 @@ class FRepEx( Frame ):
     def gotoNewMapping( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewMapping( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewMapping( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewMapping…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
 
@@ -1382,7 +1382,7 @@ class FRepEx( Frame ):
     def gotoNewOrder( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewOrder( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewOrder( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewOrder…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
 
@@ -1431,7 +1431,7 @@ class FRepEx( Frame ):
     def gotoNewName( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewName( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewName( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewName…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
 
@@ -1480,7 +1480,7 @@ class FRepEx( Frame ):
     def gotoNewOrganisation( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewOrganisation( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewOrganisation( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewOrganisation…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
 
@@ -1528,7 +1528,7 @@ class FRepEx( Frame ):
     def gotoNewReference( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewReference( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewReference( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewReference…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
 
@@ -1576,7 +1576,7 @@ class FRepEx( Frame ):
     def gotoNewStylesheet( self, event=None ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("gotoNewStylesheet( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "gotoNewStylesheet( {} )".format( event ) )
         if debuggingThisModule: self.setDebugText( "gotoNewStylesheet…" )
         #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
 
@@ -1621,7 +1621,7 @@ class FRepEx( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        vPrint( 'Never', debuggingThisModule, _("doViewLog()…") )
+        fnPrint( debuggingThisModule, "doViewLog()" )
         if debuggingThisModule: self.setDebugText( "doViewLog…" )
 
         self.setWaitStatus( _("doViewLog…") )
@@ -1644,7 +1644,7 @@ class FRepEx( Frame ):
         """
         Pop-up dialog giving goto/reference info.
         """
-        vPrint( 'Never', debuggingThisModule, _("FRepEx.doGotoInfo( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "FRepEx.doGotoInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1669,8 +1669,8 @@ class FRepEx( Frame ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, _("doHelp()…") )
         from Biblelator.Dialogs.Help import HelpBox
+        fnPrint( debuggingThisModule, "doHelp()" )
 
         helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -1694,7 +1694,7 @@ class FRepEx( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        vPrint( 'Never', debuggingThisModule, _("doSubmitBug()…") )
+        fnPrint( debuggingThisModule, "doSubmitBug()" )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1712,8 +1712,8 @@ class FRepEx( Frame ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, _("doAbout()…") )
         from Biblelator.Dialogs.About import AboutBox
+        fnPrint( debuggingThisModule, "doAbout()" )
 
         aboutInfo = programNameVersion
         aboutInfo += "\nA display manager for the Bible Organisational System (BOS)." \
@@ -1743,7 +1743,7 @@ class FRepEx( Frame ):
         """
         Save files first, and then close child windows.
         """
-        vPrint( 'Never', debuggingThisModule, _("FRepEx.doCloseMyChildWindows()…") )
+        fnPrint( debuggingThisModule, "FRepEx.doCloseMyChildWindows()" )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():
@@ -1774,7 +1774,7 @@ class FRepEx( Frame ):
         """
         Save files first, and then end the application.
         """
-        vPrint( 'Never', debuggingThisModule, _("FRepEx.doCloseMe()…") )
+        fnPrint( debuggingThisModule, "FRepEx.doCloseMe()" )
         vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
@@ -1890,7 +1890,7 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
@@ -1903,7 +1903,7 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )

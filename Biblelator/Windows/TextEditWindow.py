@@ -68,7 +68,7 @@ PROGRAM_NAME = "Biblelator Text Edit Window"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = 99
+debuggingThisModule = False
 
 
 REFRESH_TITLE_TIME = 500 # msecs

@@ -316,7 +316,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         Given some verse data (a string or an InternalBibleEntryList
             returns True or False whether a section heading is found in it
         """
-        vPrint( 'Never', debuggingThisModule, "sectionFoundIn( {!r} )".format( verseData ) )
+        fnPrint( debuggingThisModule, f"sectionFoundIn( {verseData} )" )
 
         if verseData is None: return False
 

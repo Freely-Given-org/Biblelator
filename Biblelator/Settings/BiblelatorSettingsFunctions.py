@@ -302,7 +302,7 @@ def parseAndApplySettings() -> None:
     windowsSettingsNamesList = []
     for name in BiblelatorGlobals.theApp.settings.data:
         if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
-        dPrint( 'Quiet', debuggingThisModule, "Available windows settings are: {}".format( windowsSettingsNamesList ) )
+        dPrint( 'Verbose', debuggingThisModule, "Available windows settings are: {}".format( windowsSettingsNamesList ) )
     if windowsSettingsNamesList: assert 'Current' in windowsSettingsNamesList
     BiblelatorGlobals.theApp.windowsSettingsDict = {}
     for windowsSettingsName in windowsSettingsNamesList:
@@ -319,9 +319,8 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
         find the settings in our dictionary
         and then apply it by creating the windows.
     """
-    logging.debug( "applyGivenWindowsSettings( {} )".format( repr(givenWindowsSettingsName) ) )
+    fnPrint( debuggingThisModule, "applyGivenWindowsSettings( {} )".format( givenWindowsSettingsName ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "applyGivenWindowsSettings( {} )".format( repr(givenWindowsSettingsName) ) )
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "applyGivenWindowsSettings…" )
 
     BiblelatorGlobals.theApp.doCloseMyChildWindows()

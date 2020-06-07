@@ -202,7 +202,7 @@ PROGRAM_NAME = "Biblelator Bible Resource Windows"
 PROGRAM_VERSION = '0.46'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = 99
+debuggingThisModule = False
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -273,14 +273,14 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         self.BibleFindOptionsDict, self.BibleReplaceOptionsDict = {}, {}
         self.verseCache = OrderedDict()
 
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.__init__ finished.") )
+        dPrint( 'Never', debuggingThisModule, "BibleResourceWindowAddon.__init__ finished." )
     # end of BibleResourceWindowAddon.__init__
 
 
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.createMenuBar()…") )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -444,9 +444,9 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         """
         previousGroupCode = self._groupCode
         newGroupCode = self._groupRadioVar.get()
+        dPrint( 'Never', debuggingThisModule, "changeBibleGroupCode( {!r} ) from {!r}".format( newGroupCode, previousGroupCode ) )
 
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("changeBibleGroupCode( {!r} ) from {!r}").format( newGroupCode, previousGroupCode ) )
             assert newGroupCode in BIBLE_GROUP_CODES
             assert 'Bible' in self.genericWindowType
 
@@ -465,11 +465,11 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     def doGotoPreviousBook( self, gotoEnd=False ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doGotoPreviousBook()").format( gotoEnd ) )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doGotoPreviousBook()".format( gotoEnd ) )
 
         BBB, C, V = self.currentVerseKey.getBCV()
+        vPrint( 'Never', debuggingThisModule, "doGotoPreviousBook( {} ) from {} {}:{}".format( gotoEnd, BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doGotoPreviousBook( {} ) from {} {}:{}").format( gotoEnd, BBB, C, V ) )
             BiblelatorGlobals.theApp.setDebugText( "BRW doGotoPreviousBook…" )
         newBBB = self.getPreviousBookCode( BBB )
         if newBBB is None: self.gotoBCV( BBB, '0','0', 'BibleResourceWindowAddon.doGotoPreviousBook' )
@@ -484,11 +484,11 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     def doGotoNextBook( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doGotoNextBook()…") )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doGotoNextBook()" )
 
         BBB, C, V = self.currentVerseKey.getBCV()
+        dPrint( 'Never', debuggingThisModule, "doGotoNextBook() from {} {}:{}".format( BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doGotoNextBook() from {} {}:{}").format( BBB, C, V ) )
             BiblelatorGlobals.theApp.setDebugText( "BRW doGotoNextBook…" )
         newBBB = self.getNextBookCode( BBB )
         if newBBB is None: pass # stay just where we are
@@ -502,11 +502,11 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     def doGotoPreviousChapter( self, gotoEnd=False ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doGotoPreviousChapter()…") )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doGotoPreviousChapter()" )
 
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doGotoPreviousChapter() from {} {}:{}").format( BBB, C, V ) )
+            vPrint( 'Quiet', debuggingThisModule, "doGotoPreviousChapter() from {} {}:{}".format( BBB, C, V ) )
             BiblelatorGlobals.theApp.setDebugText( "BRW doGotoPreviousChapter…" )
         intC, intV = int( C ), int( V )
         if intC > 0: self.gotoBCV( BBB, intC-1,self.getNumVerses( BBB, intC-1 ) if gotoEnd else '0', 'BibleResourceWindowAddon.doGotoPreviousChapter' )
@@ -517,11 +517,11 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     def doGotoNextChapter( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doGotoNextChapter()…") )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doGotoNextChapter()" )
 
         BBB, C, V = self.currentVerseKey.getBCV()
+        dPrint( 'Never', debuggingThisModule, "doGotoNextChapter() from {} {}:{}".format( BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doGotoNextChapter() from {} {}:{}").format( BBB, C, V ) )
             BiblelatorGlobals.theApp.setDebugText( "BRW doGotoNextChapter…" )
         intC = int( C )
         if intC < self.maxChaptersThisBook: self.gotoBCV( BBB, intC+1,'0', 'BibleResourceWindowAddon.doGotoNextChapter' )
@@ -532,15 +532,15 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     def doGotoPreviousSection( self, gotoEnd=False ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doGotoPreviousSection()…") )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doGotoPreviousSection()" )
 
         BBB, C, V = self.currentVerseKey.getBCV()
+        dPrint( 'Verbose', debuggingThisModule, "doGotoPreviousSection() from {} {}:{}".format( BBB, C, V ) )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doGotoPreviousSection() from {} {}:{}").format( BBB, C, V ) )
             BiblelatorGlobals.theApp.setDebugText( "BRW doGotoPreviousSection…" )
         # First the start of the current section
         sectionStart1, sectionEnd1 = findCurrentSection( self.currentVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
-        vPrint( 'Quiet', debuggingThisModule, "section1 Start/End", sectionStart1, sectionEnd1 )
+        dPrint( 'Nenver', debuggingThisModule, "section1 Start/End", sectionStart1, sectionEnd1 )
         intC1, intV1 = sectionStart1.getChapterNumberInt(), sectionStart1.getVerseNumberInt()
         # Go back one verse from the start of the current section
         if intV1 == 0:
@@ -553,7 +553,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         else: intV1 -= 1
         # Now find the start of this previous section
         sectionStart2, sectionEnd2 = findCurrentSection( SimpleVerseKey( BBB, intC1, intV1), self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
-        vPrint( 'Quiet', debuggingThisModule, "section2 Start/End", sectionStart2, sectionEnd2 )
+        dPrint( 'Never', debuggingThisModule, "section2 Start/End", sectionStart2, sectionEnd2 )
         BBB2, C2, V2 = sectionStart2.getBCV()
         self.gotoBCV( BBB2, C2,V2,'BibleResourceWindowAddon.doGotoPreviousSection' )
     # end of BibleResourceWindowAddon.doGotoPreviousSection
@@ -562,7 +562,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     def doGotoNextSection( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doGotoNextSection()…") )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doGotoNextSection()" )
 
         BBB, C, V = self.currentVerseKey.getBCV()
         if BibleOrgSysGlobals.debugFlag:
@@ -667,7 +667,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         """
 
         """
-        vPrint( 'Verbose', debuggingThisModule, _("gotoBCV( {} {}:{}, '{originator}' ) from {}").format( BBB, C, V, self.currentVerseKey ) )
+        fnPrint( debuggingThisModule, "gotoBCV( {} {}:{}, '{originator}' ) from {}".format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         BiblelatorGlobals.theApp.gotoGroupBCV( self._groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV
@@ -716,7 +716,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
 
         Note that newVerseKey can be None.
         """
-        vPrint( 'Never', debuggingThisModule, _("setCurrentVerseKey( {} )").format( newVerseKey ) )
+        fnPrint( debuggingThisModule, "setCurrentVerseKey( {} )".format( newVerseKey ) )
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "BRW setCurrentVerseKey…" )
 
         if newVerseKey is None:
@@ -742,7 +742,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
 
         Leaves the textbox in the disabled state.
         """
-        vPrint( 'Never', debuggingThisModule, "BibleResourceWindowAddon.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.updateShownBCV( {}, {} ) for".format( newReferenceVerseKey, originator ), self.moduleID )
             #dPrint( 'Quiet', debuggingThisModule, "contextViewMode", self._contextViewMode )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert isinstance( newReferenceVerseKey, SimpleVerseKey )
@@ -849,7 +849,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         """
         Display a help box.
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doHelp( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -866,7 +866,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         """
         Display an about box.
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doAbout( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -882,7 +882,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         """
         Called to finally and irreversibly remove this window from our list and close it.
         """
-        vPrint( 'Never', debuggingThisModule, _("BibleResourceWindowAddon.doClose( {} ) for {}").format( event, self.genericWindowType ) )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doClose( {} ) for {}".format( event, self.genericWindowType ) )
 
         # Remove ourself from the list of internal Bibles (and their controlling windows)
         #dPrint( 'Quiet', debuggingThisModule, 'internalBibles initially', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
@@ -1557,7 +1557,7 @@ class SwordBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
     def __init__( self, parentWindow, moduleAbbreviation, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] ):
         """
         """
-        vPrint( 'Quiet', debuggingThisModule, "SwordBibleResourceWindow.__init__( {} )".format( moduleAbbreviation ) )
+        fnPrint( debuggingThisModule, "SwordBibleResourceWindow.__init__( {} )".format( moduleAbbreviation ) )
         self.moduleAbbreviation = moduleAbbreviation
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleResourceWindowAddon.__init__( self, 'SwordBibleResourceWindow', self.moduleAbbreviation, defaultContextViewMode, defaultFormatViewMode )
@@ -1586,7 +1586,7 @@ class SwordBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
     def refreshTitle( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("SwordBibleResourceWindow.refreshTitle()…") )
+        fnPrint( debuggingThisModule, "SwordBibleResourceWindow.refreshTitle()" )
 
         myType = 'Sw' if SwordType=='CrosswireLibrary' else 'SwM'
         try: myType += 'Com' if self.SwordModule and self.SwordModule.modCategory=='Commentary' else 'Bib'
@@ -1602,8 +1602,7 @@ class SwordBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("SwordBibleResourceWindow.getContextVerseData( {} )").format( verseKey ) )
+        fnPrint( debuggingThisModule, "SwordBibleResourceWindow.getContextVerseData( {} )".format( verseKey ) )
         if self.SwordModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
                 SwordKey = self.getSwordVerseKey( verseKey )
@@ -1630,7 +1629,7 @@ class SwordBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         Pop-up dialog
         """
-        vPrint( 'Never', debuggingThisModule, _("SwordBibleResourceWindow.doShowInfo( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "SwordBibleResourceWindow.doShowInfo( {} )".format( event ) )
 
         infoString = 'SwordBibleResourceWindow:\n' \
                  + '  Module:\t\t{}\n'.format( self.moduleAbbreviation ) \
@@ -1683,7 +1682,7 @@ class DBPBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
     def refreshTitle( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("DBPBibleResourceWindow.refreshTitle()…") )
+        fnPrint( debuggingThisModule, "DBPBibleResourceWindow.refreshTitle()" )
 
         self.title( "[{}] {}.{}{} {} {}:{} [{}]".format( self._groupCode,
                                         self.moduleAbbreviation[:3], self.moduleAbbreviation[3:],
@@ -1697,7 +1696,7 @@ class DBPBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        vPrint( 'Never', debuggingThisModule, _("DBPBibleResourceWindow.getContextVerseData( {} )").format( verseKey ) )
+        fnPrint( debuggingThisModule, "DBPBibleResourceWindow.getContextVerseData( {} )".format( verseKey ) )
 
         if self.DBPModule is not None:
             if verseKey.getChapterNumber()!='0' and verseKey.getVerseNumber()!='0': # not sure how to get introductions, etc.
@@ -1709,7 +1708,7 @@ class DBPBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
         """
         Pop-up dialog
         """
-        vPrint( 'Never', debuggingThisModule, _("DBPBibleResourceWindow.doShowInfo( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "DBPBibleResourceWindow.doShowInfo( {} )".format( event ) )
 
         infoString = 'DBPBibleResourceWindow:\n' \
                  + '  Name:\t{}'.format( self.moduleAbbreviation )
@@ -1728,7 +1727,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        vPrint( 'Never', debuggingThisModule, "InternalBibleResourceWindowAddon.__init__( mP={} )".format( modulePath ) )
+        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon.__init__( mP={} )".format( modulePath ) )
         self.modulePath = modulePath
 
         #self.internalBible = None # (for refreshTitle called from the base class)
@@ -1754,14 +1753,14 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             #self.getNumVerses = self.internalBible.getNumVerses
             #self.getNumChapters = self.internalBible.getNumChapters
 
-        vPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindowAddon.__init__ finished.") )
+        dPrint( 'Never', debuggingThisModule, "InternalBibleResourceWindowAddon.__init__ finished." )
     # end of InternalBibleResourceWindowAddon.__init__
 
 
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindowAddon.createMenuBar()…") )
+        fnPrint( 'Never', debuggingThisModule, "InternalBibleResourceWindowAddon.createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -1858,7 +1857,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
     def refreshTitle( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindowAddon.refreshTitle()…") )
+        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon.refreshTitle()" )
 
         self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self._groupCode,
                         self.modulePath if self.internalBible is None else self.internalBible.getAName(),
@@ -1872,7 +1871,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         """
         Can be overriden if necessary.
         """
-        vPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindowAddon.createContextMenu()…") )
+        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=0 )
         self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
@@ -1896,7 +1895,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        vPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindowAddon.getContextVerseData( {} )").format( verseKey ) )
+        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon.getContextVerseData( {} )".format( verseKey ) )
 
         if self.internalBible is not None:
             try: return self.internalBible.getContextVerseData( verseKey )
@@ -1911,7 +1910,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
         """
         Pop-up dialog
         """
-        vPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindowAddon.doShowInfo( {} )").format( event ) )
+        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon.doShowInfo( {} )".format( event ) )
 
         infoString = 'InternalBibleResourceWindowAddon:\n' \
                  + '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.getAName() ) \
@@ -2119,7 +2118,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        vPrint( 'Never', debuggingThisModule, f"InternalBibleResourceWindow.__init__( pW={parentWindow}, mP={modulePath}, dCVM={defaultContextViewMode}, dFVM={defaultFormatViewMode} )…" )
+        fnPrint( debuggingThisModule, f"InternalBibleResourceWindow.__init__( pW={parentWindow}, mP={modulePath}, dCVM={defaultContextViewMode}, dFVM={defaultFormatViewMode} )" )
         self.modulePath = modulePath
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         InternalBibleResourceWindowAddon.__init__( self, modulePath, defaultContextViewMode, defaultFormatViewMode )
@@ -2547,7 +2546,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         Given a folder, try to open an HebrewWLCBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        vPrint( 'Never', debuggingThisModule, f"HebrewBibleResourceWindow.__init__( pW={parentWindow}, mP={modulePath}, dCVM={defaultContextViewMode}, dFVM={defaultFormatViewMode} )…" )
+        fnPrint( debuggingThisModule, f"HebrewBibleResourceWindow.__init__( pW={parentWindow}, mP={modulePath}, dCVM={defaultContextViewMode}, dFVM={defaultFormatViewMode} )" )
         # if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
         #     assert modulePath in (
         #                 BibleOrgSysGlobals.BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH.joinpath( 'morphhb/wlc/' ),
@@ -2595,7 +2594,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
     def createMenuBar( self ):
         """
         """
-        vPrint( 'Never', debuggingThisModule, _("HebrewBibleResourceWindow.createMenuBar()…") )
+        fnPrint( debuggingThisModule, "HebrewBibleResourceWindow.createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -2997,7 +2996,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
         """
         Called to finally and irreversibly remove this window from our list and close it.
         """
-        vPrint( 'Never', debuggingThisModule, _("HebrewBibleResourceWindow.doClose( {} ) for {}").format( event, self.genericWindowType ) )
+        fnPrint( debuggingThisModule, "HebrewBibleResourceWindow.doClose( {} ) for {}".format( event, self.genericWindowType ) )
 
         HebrewInterlinearBibleBoxAddon.doClose( self )
 

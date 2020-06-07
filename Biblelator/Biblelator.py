@@ -105,7 +105,7 @@ PROGRAM_NAME = "Biblelator"
 PROGRAM_VERSION = '0.46' # This is the version number displayed on the start-up screen
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = 99
+debuggingThisModule = False
 
 
 LOCK_FILENAME = f'{APP_NAME}.lock'
@@ -185,8 +185,8 @@ class Application( Frame ):
         self.usageLogPath = loggingFolderpath.joinpath( self.usageFilename )
         self.lastLoggedUsageDate = self.lastLoggedUsageTime = None
 
-        dPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
-        dPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
+        dPrint( 'Verbose', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
+        dPrint( 'Verbose', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
@@ -301,7 +301,8 @@ class Application( Frame ):
         self.isStarting = False
         self.setReadyStatus()
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'Finished init Application {!r}, {!r}, …'.format( homeFolderpath, loggingFolderpath ) )
-        vPrint( 'Verbose', debuggingThisModule, "Finished start-up at {} after {} seconds" \
+        if debuggingThisModule:
+            dPrint( 'Verbose', debuggingThisModule, "Finished start-up at {} after {} seconds" \
                     .format( datetime.now().strftime( '%H:%M:%S'), (datetime.now()-self.startTime).seconds ) )
     # end of Application.start
 
@@ -4034,7 +4035,7 @@ class Application( Frame ):
         self.setWaitStatus( _("openTranslationManualWindow…") )
         taSettings = uWProjectSettings( folderpath )
         taSettings.loadYAML()
-        print( "taSettings.data", taSettings.data )
+        dPrint( 'Verbose', debuggingThisModule, f"taSettings.data {taSettings.data}" )
         assert len( taSettings.data['projects'] ) == 4 # Intro, Process, Translate, Checking
         for j, project in enumerate( taSettings.data['projects'] ):
             # dPrint( 'Info', debuggingThisModule, j, project )
@@ -4405,11 +4406,11 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         for line in programOutputString.split( '\n' ):
             # NOTE: Following line assumes that all Python interpreters contain the string 'python'
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 if 'pylint' not in line:
                     numMyInstancesFound += 1
             if 'paratext' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in ps xa:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in ps xa:', repr(line) )
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
@@ -4423,13 +4424,13 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         for line in programOutputString.split( '\n' ):
             #dPrint( 'Quiet', debuggingThisModule, "tasklist line", repr(line) )
             if PROGRAM_NAME+'.py' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 # Could possibly check that the line startswith 'cmd.exe' but would need to test that on all Windows versions
                 # NOTE: If .py files have an association, 'python.exe' doesn't necessarily appear in the line
                 if 'python.exe' in line or not line.startswith( 'notepad' ): # includes Notepad++
                     numMyInstancesFound += 1
             if 'Paratext.exe' in line:
-                dPrint( 'Quiet', debuggingThisModule, 'Found in tasklist:', repr(line) )
+                dPrint( 'Verbose', debuggingThisModule, 'Found in tasklist:', repr(line) )
                 numParatextInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( _("Don't know how to check for already running instances in {}/{}.").format( sys.platform, os.name ) )

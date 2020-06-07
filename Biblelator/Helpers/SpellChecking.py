@@ -27,16 +27,6 @@ Program to allow editing of USFM Bibles using Python3 and Tkinter.
 """
 
 from gettext import gettext as _
-
-LAST_MODIFIED_DATE = '2016-11-03' # by RJH
-SHORT_PROGRAM_NAME = "SpellChecking"
-PROGRAM_NAME = "Spell Checking routines"
-PROGRAM_VERSION = '0.39' # Still just a copy of "About.py"
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
-
-debuggingThisModule = False
-
-
 #import sys
 
 import tkinter as tk
@@ -53,6 +43,14 @@ from Biblelator.BiblelatorGlobals import parseWindowSize, centreWindowOnWindow
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
+
+LAST_MODIFIED_DATE = '2016-11-03' # by RJH
+SHORT_PROGRAM_NAME = "SpellChecking"
+PROGRAM_NAME = "Spell Checking routines"
+PROGRAM_VERSION = '0.39' # Still just a copy of "About.py"
+programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+
+debuggingThisModule = False
 
 
 

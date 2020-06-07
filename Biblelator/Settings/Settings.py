@@ -125,7 +125,7 @@ class Settings:
         """
         Load the settings file (if we found it).
         """
-        vPrint( 'Never', debuggingThisModule, "Settings.loadINI() from {!r}".format( self.settingsFilepath ) )
+        fnPrint( debuggingThisModule, "Settings.loadINI() from {!r}".format( self.settingsFilepath ) )
 
         self.reset() # Creates self.data
         assert self.data
@@ -142,7 +142,7 @@ class Settings:
         Save all of the program settings to disk.
             They must have already been saved into self.data.
         """
-        vPrint( 'Never', debuggingThisModule, "Settings.saveINI() in {!r}".format( self.settingsFilepath ) )
+        fnPrint( debuggingThisModule, "Settings.saveINI() in {!r}".format( self.settingsFilepath ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.data
             assert self.settingsFilepath
@@ -168,7 +168,7 @@ class Settings:
         """
         from BibleOrgSys.Formats.uWNotesBible import loadYAML
 
-        vPrint( 'Quiet', debuggingThisModule, f"Settings.loadYAML( {yamlFilepath} )…" )
+        fnPrint( debuggingThisModule, f"Settings.loadYAML( {yamlFilepath} )" )
         if yamlFilepath is None: yamlFilepath = self.settingsFilepath
 
         self.data = loadYAML( yamlFilepath )
@@ -190,7 +190,7 @@ class ApplicationSettings( Settings ):
 
         Try to find where the main settings file might be (if anywhere).
         """
-        vPrint( 'Never', debuggingThisModule, "ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )".format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
+        fnPrint( debuggingThisModule, "ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )".format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
         # NOTE: Settings.__init__ is NOT called -- not needed
         self.objectNameString = 'Application Settings object'
@@ -203,12 +203,11 @@ class ApplicationSettings( Settings ):
         ourFolderpath1 = os.path.join( homeFolderName, dataFolderName )
         if os.path.isdir( ourFolderpath1 ) and os.access( ourFolderpath1, os.W_OK ):
             self.dataFolderpath = ourFolderpath1
-            vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__: Found dataFolderpath = ", self.dataFolderpath )
+            dPrint( 'Info', debuggingThisModule, "ApplicationSettings.__init__: Found dataFolderpath = ", self.dataFolderpath )
             ourFolderpath2 = os.path.join( self.dataFolderpath, settingsFolderName )
             if os.path.isdir( ourFolderpath2 ) and os.access( ourFolderpath2, os.W_OK ):
                 self.settingsFolder = ourFolderpath2
-                if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                    vPrint( 'Quiet', debuggingThisModule, "ApplicationSettings.__init__: Found settingsFolder = ", self.settingsFolder )
+                dPrint( 'Info', debuggingThisModule, "ApplicationSettings.__init__: Found settingsFolder = ", self.settingsFolder )
                 ourFilepath = os.path.join( ourFolderpath2, self.settingsFilename )
                 if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
                     self.settingsFilepath = ourFilepath
@@ -244,7 +243,7 @@ class BiblelatorProjectSettings( Settings ):
         """
         Try to find where the settings file might be (if anywhere).
         """
-        vPrint( 'Never', debuggingThisModule, "BiblelatorProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
+        fnPrint( debuggingThisModule, "BiblelatorProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
         self.projectFolderpath = projectFolderpath
         self.objectNameString = 'Biblelator Project Settings object'
         self.objectTypeString = 'BiblelatorProjectSettings'
@@ -265,7 +264,7 @@ class BiblelatorProjectSettings( Settings ):
 
         Used when starting a new project.
         """
-        vPrint( 'Never', debuggingThisModule, "BiblelatorProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )".format( projectName, projectAbbreviation ) )
+        fnPrint( debuggingThisModule, "BiblelatorProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )".format( projectName, projectAbbreviation ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.data is None
 
@@ -281,7 +280,7 @@ class BiblelatorProjectSettings( Settings ):
     def saveNewBookSettings( self, detailsDict:Dict[str,Any] ) -> None:
         """
         """
-        vPrint( 'Never', debuggingThisModule, "BiblelatorProjectSettings.saveNewBookSettings( {} )".format( detailsDict ) )
+        fnPrint( debuggingThisModule, "BiblelatorProjectSettings.saveNewBookSettings( {} )".format( detailsDict ) )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.data is not None
 
@@ -298,7 +297,7 @@ class BiblelatorProjectSettings( Settings ):
         Using metadata from the project settings file,
             load the information into the given USFMBible object.
         """
-        vPrint( 'Info', debuggingThisModule, "BiblelatorProjectSettings.loadUSFMMetadataInto( {} )".format( theUSFMBible ) )
+        fnPrint( debuggingThisModule, "BiblelatorProjectSettings.loadUSFMMetadataInto( {} )".format( theUSFMBible ) )
 
         self.loadINI() # Load the project settings into self.data
 
@@ -320,7 +319,7 @@ class uWProjectSettings( Settings ):
         """
         Try to find where the settings file might be (if anywhere).
         """
-        vPrint( 'Never', debuggingThisModule, "uWProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
+        fnPrint( debuggingThisModule, "uWProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
         self.projectFolderpath = projectFolderpath
         self.objectNameString = 'uW Project Settings object'
         self.objectTypeString = 'uWProjectSettings'
@@ -371,7 +370,7 @@ class uWProjectSettings( Settings ):
         Using metadata from the manifest.yaml project settings file,
             load the information into the given USFMBible object.
         """
-        vPrint( 'Quiet', debuggingThisModule, f"uWProjectSettings.loadUWMetadataInto( {theUSFMBible} )…" )
+        fnPrint( debuggingThisModule, f"uWProjectSettings.loadUWMetadataInto( {theUSFMBible} )" )
 
         self.loadYAML() # Load the project settings into self.data
         # dPrint( 'Info', debuggingThisModule, "Got", self.data.keys() )

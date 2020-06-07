@@ -8,7 +8,7 @@ https://github.com/pypa/sampleproject
 from setuptools import setup # Always prefer setuptools over distutils
 # from os import path
 
-VERSION = '0.0.8'
+VERSION = '0.0.9'
 LAST_MODIFIED_DATE = '2020-04-30' # by RJH — when setup.py was modified below
 
 
@@ -235,7 +235,7 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['BibleOrgSys>=0.0.20'],
+    install_requires=['BibleOrgSys>=0.0.21'],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
