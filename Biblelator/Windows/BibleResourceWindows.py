@@ -5,7 +5,7 @@
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -170,7 +170,7 @@ from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Bible import Bible
 from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
 from BibleOrgSys.Formats.SwordResources import SwordType
-from BibleOrgSys.Online.DBPOnline import DBPBible
+from BibleOrgSys.Online.BibleBrainOnline import BibleBrainBible
 from BibleOrgSys.UnknownBible import UnknownBible
 from BibleOrgSys.OriginalLanguages.HebrewWLCBible import OSISHebrewWLCBible, PickledHebrewWLCBible
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
@@ -196,7 +196,7 @@ from Biblelator.Dialogs.BiblelatorSimpleDialogs import showInfo, showError
 from Biblelator.Dialogs.BiblelatorDialogs import GetBibleBookRangeDialog
 
 
-LAST_MODIFIED_DATE = '2020-05-10' # by RJH
+LAST_MODIFIED_DATE = '2022-07-08' # by RJH
 SHORT_PROGRAM_NAME = "BibleResourceWindows"
 PROGRAM_NAME = "Biblelator Bible Resource Windows"
 PROGRAM_VERSION = '0.46'
@@ -1661,7 +1661,7 @@ class DBPBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
         self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
         self.createContextMenu() # Enable right-click menu
 
-        try: self.DBPModule = DBPBible( self.moduleAbbreviation )
+        try: self.DBPModule = BibleBrainBible( self.moduleAbbreviation )
         except FileNotFoundError:
             logging.error( _("DBPBibleResourceWindow.__init__ Unable to find a key to connect to Digital Bible Platform") )
             self.DBPModule = None
@@ -1760,7 +1760,7 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
     def createMenuBar( self ):
         """
         """
-        fnPrint( 'Never', debuggingThisModule, "InternalBibleResourceWindowAddon.createMenuBar()" )
+        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon.createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative

@@ -5,7 +5,7 @@
 #
 # Base of various textboxes for use as widgets and base classes in various windows.
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -136,7 +136,7 @@ from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, 
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 
 
-LAST_MODIFIED_DATE = '2020-05-09' # by RJH
+LAST_MODIFIED_DATE = '2022-07-08' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTextBoxes"
 PROGRAM_NAME = "Biblelator specialised text widgets"
 PROGRAM_VERSION = '0.46'
@@ -1083,8 +1083,8 @@ class BibleBoxAddon():
         This function does absolutely nothing.
         """
         fnPrint( debuggingThisModule, "BibleBoxAddon.__init__( {}, {} )".format( parentWindow, BibleBoxType ) )
-        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
-            assert parentWindow
+        self.doExtraChecking = debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag
+        if self.doExtraChecking: assert parentWindow
         self.parentWindow, self.BibleBoxType = parentWindow, BibleBoxType
 
         # Set-up our standard Bible styles
@@ -1167,9 +1167,8 @@ class BibleBoxAddon():
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
         """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule:
-                vPrint( 'Quiet', debuggingThisModule, "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
+        if self.doExtraChecking:
+            vPrint( 'Quiet', debuggingThisModule, "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
             if verseContextData:
@@ -1183,9 +1182,8 @@ class BibleBoxAddon():
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
-            if BibleOrgSysGlobals.debugFlag:
-                if debuggingThisModule:
-                    vPrint( 'Quiet', debuggingThisModule, "insertAtEnd( {!r}, {} )".format( ieText, ieTags ) )
+            if self.doExtraChecking:
+                vPrint( 'Quiet', debuggingThisModule, "insertAtEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
                 assert isinstance( ieTags, (str,tuple) )
                 assert TRAILING_SPACE_SUBSTITUTE not in ieText
@@ -1322,7 +1320,7 @@ class BibleBoxAddon():
 
                 if fVM == 'Unformatted':
                     if marker and marker[0]=='¬': pass # Ignore end markers for now
-                    elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
+                    elif marker in ('headers','intro','chapters','list',): pass # Ignore added markers for now
                     else:
                         if isinstance( verseDataEntry, str ): # from a Bible text editor window
                             #dPrint( 'Quiet', debuggingThisModule, "marker={!r}, verseDataEntry={!r}".format( marker, verseDataEntry ) )
@@ -1365,7 +1363,7 @@ class BibleBoxAddon():
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertAtEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('intro','chapters','list',):
+                    elif marker in ('headers','intro','chapters','list',):
                         assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertAtEnd( cleanText, marker )
@@ -1473,7 +1471,7 @@ class BibleBoxAddon():
         previousVersesData = []
         for n in range( -BiblelatorGlobals.theApp.viewVersesBefore, 0 ):
             failed = False
-            vPrint( 'Quiet', debuggingThisModule, "  getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
+            vPrint( 'Info', debuggingThisModule, "  getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
             if prevIntV is not None and prevIntV > 0: prevIntV -= 1
             elif prevIntC > 0:
                 prevIntC -= 1
@@ -1859,7 +1857,7 @@ class BibleBoxAddon():
 
                 ##if fVM == 'Unformatted':
                     ##if marker and marker[0]=='¬': pass # Ignore end markers for now
-                    ##elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
+                    ##elif marker in ('headers','intro','chapters','list',): pass # Ignore added markers for now
                     ##else:
                         ##if isinstance( verseDataEntry, str ): # from a Bible text editor window
                             ###dPrint( 'Quiet', debuggingThisModule, "marker={!r}, verseDataEntry={!r}".format( marker, verseDataEntry ) )
@@ -1902,7 +1900,7 @@ class BibleBoxAddon():
                         ##if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         ##insertAtEnd( cleanText, marker )
                         ##haveTextFlag = True
-                    ##elif marker in ('intro','chapters','list',):
+                    ##elif marker in ('headers','intro','chapters','list',):
                         ##assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         ##if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         ##insertAtEnd( cleanText, marker )
@@ -2220,11 +2218,10 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         command can be 'E' for edit, i.e., if a bundle has been double-clicked
         """
-        if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule:
-                vPrint( 'Quiet', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
+        if self.doExtraChecking:
+            vPrint( 'Quiet', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
                     .format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, command, substituteTrailingSpaces, substituteMultipleSpaces ) )
-                vPrint( 'Quiet', debuggingThisModule, "  {}".format( verseContextData[0] ) )
+            vPrint( 'Quiet', debuggingThisModule, "  {}".format( verseContextData[0] ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
             if verseContextData:
@@ -2698,7 +2695,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
                     if fVM == 'Unformatted':
                         if marker and marker[0]=='¬': pass # Ignore end markers for now
-                        elif marker in ('intro','chapters','list',): pass # Ignore added markers for now
+                        elif marker in ('headers','intro','chapters','list',): pass # Ignore added markers for now
                         else:
                             if isinstance( verseDataEntry, str ): # from a Bible text editor window
                                 #dPrint( 'Quiet', debuggingThisModule, "marker={!r}, verseDataEntry={!r}".format( marker, verseDataEntry ) )
@@ -2741,7 +2738,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                             insertAtEnd( cleanText, marker )
                             haveTextFlag = True
-                        elif marker in ('intro','chapters','list',):
+                        elif marker in ('headers','intro','chapters','list',):
                             assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                             if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                             insertAtEnd( cleanText, marker )

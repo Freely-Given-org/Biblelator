@@ -170,7 +170,7 @@ See https://ubsicap.github.io/usfm/ for more information about USFM.
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url="http://Freely-Given.org/Software/Biblelator/",
+    url="https://Freely-Given.org/Software/Biblelator/",
 
     # List additional URLs that are relevant to your project as a dict.
     #

@@ -516,8 +516,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "SelectResourceBoxDialog…" )
         if BibleOrgSysGlobals.debugFlag:
-            if debuggingThisModule:
-                vPrint( 'Quiet', debuggingThisModule, "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
+            vPrint( 'Quiet', debuggingThisModule, "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
             assert isinstance( availableSettingsList, list )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parentWindow, title )

@@ -87,7 +87,7 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Bible import Bible
 from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
-from BibleOrgSys.Online.DBPOnline import DBPBibles, DBPBible
+from BibleOrgSys.Online.BibleBrainOnline import BibleBrainBibles, BibleBrainBible
 from BibleOrgSys.Formats.SwordResources import SwordType, SwordInterface
 from BibleOrgSys.UnknownBible import UnknownBible
 from BibleOrgSys.Formats.PickledBible import ZIPPED_PICKLE_FILENAME_END, getZippedPickledBiblesDetails
@@ -568,7 +568,7 @@ class DBPBibleResourceBox( BibleResourceBox ):
     """
     This is a box displaying a versified Bible that was downloaded from the online Digital Bible Platform.
 
-    NOTE: The DBPBible class is NOT based on the Bible class
+    NOTE: The BibleBrainBible class is NOT based on the Bible class
             because it's so unlike most Bibles which are local.
     """
     def __init__( self, parentWindow, moduleAbbreviation ):
@@ -584,7 +584,7 @@ class DBPBibleResourceBox( BibleResourceBox ):
         BibleResourceBox.__init__( self, self.parentWindow, 'DBPBibleResourceBox', self.moduleAbbreviation )
         #self.boxType = 'DBPBibleResourceBox'
 
-        try: self.DBPModule = DBPBible( self.moduleAbbreviation )
+        try: self.DBPModule = BibleBrainBible( self.moduleAbbreviation )
         except FileNotFoundError:
             logging.error( _("DBPBibleResourceBox.__init__ Unable to find a key to connect to Digital Bible Platform") )
             self.DBPModule = None
@@ -884,7 +884,7 @@ class BibleResourceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         if BiblelatorGlobals.theApp.internetAccessEnabled:
             BiblelatorGlobals.theApp.setWaitStatus( _("doOpenNewDBPBibleResourceBox…") )
             if BiblelatorGlobals.theApp.DBPInterface is None:
-                try: BiblelatorGlobals.theApp.DBPInterface = DBPBibles()
+                try: BiblelatorGlobals.theApp.DBPInterface = BibleBrainBibles()
                 except FileNotFoundError: # probably the key file wasn't found
                     showError( self, APP_NAME, _("Sorry, the Digital Bible Platform requires a special key file") )
                     return

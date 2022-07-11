@@ -5,7 +5,7 @@ This file last updated: 2016-03-30 RJH
 
 A (hackable) multi-window Bible editor written in Python3.
 
-See http://Freely-Given.org/Software/Biblelator
+See https://Freely-Given.org/Software/Biblelator
 
 This has been used daily by the developer as a production Bible editor since February 2016
 as an alternative to Paratext for editing Paratext USFM Bible files (on Ubuntu Linux).

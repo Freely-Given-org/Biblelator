@@ -86,8 +86,7 @@ def showInfo( parentWindow, title, infoText ):
         vPrint( 'Quiet', debuggingThisModule, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parentWindow.configure().items()): # Append the parentWindow window config info
-            if debuggingThisModule:
-                vPrint( 'Quiet', debuggingThisModule, "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
+            vPrint( 'Quiet', debuggingThisModule, "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
             if len(configTuple)>2: # don't append alternative names like, bg for background
                 # Don't display the last field if it just duplicates the previous one
                 infoText += '  {}: {!r}{}\n'.format( configTuple[2], configTuple[3],

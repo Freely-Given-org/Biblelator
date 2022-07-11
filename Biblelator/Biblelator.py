@@ -5,7 +5,7 @@
 #
 # Main program for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -48,7 +48,7 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
 from BibleOrgSys.Reference.BibleVersificationSystems import BibleVersificationSystems
-from BibleOrgSys.Online.DBPOnline import DBPBibles
+from BibleOrgSys.Online.BibleBrainOnline import BibleBrainBibles
 from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
 from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
 from BibleOrgSys.Formats.SwordResources import SwordType, SwordInterface
@@ -99,7 +99,7 @@ from Biblelator.Apps.BOSManager import openBOSManager
 from Biblelator.Apps.SwordManager import openSwordManager
 
 
-LAST_MODIFIED_DATE = '2020-06-04' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LAST_MODIFIED_DATE = '2022-07-08' # by RJH -- note that this isn't necessarily the displayed date at start-up
 SHORT_PROGRAM_NAME = "Biblelator"
 PROGRAM_NAME = "Biblelator"
 PROGRAM_VERSION = '0.46' # This is the version number displayed on the start-up screen
@@ -1479,7 +1479,7 @@ class Application( Frame ):
         if self.internetAccessEnabled:
             self.setWaitStatus( _("doOpenNewDBPBibleResourceWindow…") )
             if self.DBPInterface is None:
-                self.DBPInterface = DBPBibles()
+                self.DBPInterface = BibleBrainBibles()
                 availableVolumes = self.DBPInterface.fetchAllEnglishTextVolumes()
                 #dPrint( 'Quiet', debuggingThisModule, "aV1", repr(availableVolumes) )
                 if availableVolumes:
@@ -4307,7 +4307,7 @@ def handlePossibleCrash( homeFolderpath:str, dataFolderName:str, settingsFolderN
         vPrint( 'Quiet', debuggingThisModule, '    ' + _("(Remove {!r} from {!r} after backing-up / recovering any files first)").format( LOCK_FILENAME, os.getcwd() ) )
         sys.exit()
     else:
-        if currentWindowDict: vPrint( 'Quiet', debuggingThisModule, '  ' + _("Seems that your files are ok / up-to-date (as far as we can tell)") )
+        if currentWindowDict: vPrint( 'Quiet', debuggingThisModule, '  ' + _("Seems that your files are ok / up-to-date (as far as we can tell).") )
         vPrint( 'Quiet', debuggingThisModule, '\n' + _("Do you want to delete the lock file and proceed?") )
         vPrint( 'Quiet', debuggingThisModule, '    ' + _("(Only do this if you're sure that no data was lost and that another copy of {} is not running)").format( APP_NAME ) )
         result = input( '  ' + _("Delete lock file and proceed? [YES or no] (default is no)?") )

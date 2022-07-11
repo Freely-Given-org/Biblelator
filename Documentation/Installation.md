@@ -143,7 +143,7 @@ follow my own instructions on a different computer.
     If you see the error "ImportError: No module named tkinter", check in case you are
 	accidentally using Python 2 rather than Python 3.
     If the program does not run, please copy the contents of the command prompt window,
-        and paste them into the comment box at http://Freely-Given.org/Contact.html.
+        and paste them into the comment box at https://Freely-Given.org/Contact.html.
 
 
 11. A note about the lock file:
@@ -182,7 +182,7 @@ follow my own instructions on a different computer.
         next time you run Biblelator you might not need to run it in debug mode,
     i.e., simply omit the "--version" or "--help" parameters in order to run in normal mode.
     If the program does not run, please copy the contents of the command prompt window,
-        and paste them into the comment box at http://Freely-Given.org/Contact.html.
+        and paste them into the comment box at https://Freely-Given.org/Contact.html.
     It may also be helpful to include the contents of the Biblelator.ini file
         which should be in yourNormalHomeFolder/BiblelatorData/BiblelatorSettings/ folder.
 
@@ -202,7 +202,7 @@ follow my own instructions on a different computer.
         exits immediately WITHOUT SAVING any files or settings, so use it with great caution.
 
     If the program does not run, please copy the contents of the command prompt window,
-        and paste them into the comment box at http://Freely-Given.org/Contact.html.
+        and paste them into the comment box at https://Freely-Given.org/Contact.html.
     Note that a BiblelatorData folder should be created in your home folder when you exit the program,
         and inside that, a BiblelatorSettings folder should contain your settings information
         and a BiblelatorLogs folder should contain a log file.
@@ -227,14 +227,14 @@ follow my own instructions on a different computer.
 
 17. If you wish to access online Scripture resources from the Digital Bible Platform
     (Faith Comes By Hearing FCBH), request further information from the Biblelator programmer(s)
-    via http://Freely-Given.org/Contact.html.
+    via https://Freely-Given.org/Contact.html.
 
 
 18. If you wish to access offline Scripture resources from the Crosswire Sword project,
     you should download and install/unzip the resources from the Crosswire or other repositories.
     You might already have these installed if you use a Sword-based Bible program such as
         Xiphos, Bibletime, BPBible, etc.
-    Then you should use http://Freely-Given.org/Contact.html to contact the Biblelator programmers
+    Then you should use https://Freely-Given.org/Contact.html to contact the Biblelator programmers
         and let us know how you installed the Sword modules,
         and which folder they were installed to.
     Then hopefully we can get you started with basic access to these modules.

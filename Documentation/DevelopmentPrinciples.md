@@ -189,5 +189,5 @@ The following are some of the reasons behind some of the major development decis
     information to be included in source Bibles (especially those intended for online display.)
 
     NOTE: ESFM development is currently on hold, awaiting the release of the USFM v3
-    specifications. See http://Freely-Given.org/Software/BibleDropBox/ESFMBibles.html
+    specifications. See https://Freely-Given.org/Software/BibleDropBox/ESFMBibles.html
     for more info.

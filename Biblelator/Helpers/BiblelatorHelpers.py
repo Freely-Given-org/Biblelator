@@ -117,7 +117,6 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
         getNumChapters, getNumVerses = versificationObject.getNumChapters, versificationObject.getNumVerses
 
     if requestDict['Fill'] == 'Version':
-        #ALL_CHAR_MARKERS = BibleOrgSysGlobals.loadedUSFMMarkers.getCharacterMarkersList( expandNumberableMarkers=True )
         uB = USFMBible( requestDict['Version'] ) # Get the Bible object
         vPrint( 'Quiet', debuggingThisModule, "Fill Bible1", uB )
         uB.preload()
@@ -172,7 +171,7 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
                     continue # Just ignore added markers -- not needed here
                 #if pseudoMarker in ('v','f','fr','x','xo',): # These fields should always end with a space but the processing will have removed them
                     #pseudoMarker += ' ' # Append a space since it didn't have one
-                #if pseudoMarker in ALL_CHAR_MARKERS: # Character markers to be closed
+                #if pseudoMarker in USFMAllExpandedCharacterMarkers: # Character markers to be closed
                     #dPrint( 'Quiet', debuggingThisModule, "CHAR MARKER" )
                     #pass
                     ##if (USFM[-2]=='\\' or USFM[-3]=='\\') and USFM[-1]!=' ':

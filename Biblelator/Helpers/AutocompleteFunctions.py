@@ -5,7 +5,7 @@
 #
 # Functions to support the autocomplete function in text editors
 #
-# Copyright (C) 2016-2020 Robert Hunt
+# Copyright (C) 2016-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -49,12 +49,12 @@ from Biblelator.Windows.TextBoxes import TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPA
 
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
-from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
+from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint, LARGE_DUMMY_VALUE
 #from BibleOrgSys.Internals.InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
 from BibleOrgSys.Reference.USFM3Markers import USFM_PRINTABLE_MARKERS
 
 
-LAST_MODIFIED_DATE = '2020-04-30' # by RJH
+LAST_MODIFIED_DATE = '2022-07-03' # by RJH
 SHORT_PROGRAM_NAME = "AutocompleteFunctions"
 PROGRAM_NAME = "Biblelator Autocomplete Functions"
 PROGRAM_VERSION = '0.46'
@@ -132,8 +132,7 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
             total = len(editWindowObject.autocompleteWords[firstLetter])
             for wordRemainder in editWindowObject.autocompleteWords[firstLetter]:
                 wordNumTotals[wordRemainder.count(' ')] += 1
-            if debuggingThisModule:
-                vPrint( 'Quiet', debuggingThisModule, "    {!r} {:,}{}" \
+            vPrint( 'Quiet', debuggingThisModule, "    {!r} {:,}{}" \
                     .format( firstLetter, total, '' if total>19 else ' '+str(editWindowObject.autocompleteWords[firstLetter]) ) )
             grandtotal += total
         #if BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel > 1:
@@ -148,7 +147,6 @@ def setAutocompleteWords( editWindowObject, wordList, append=False ):
 
 
 internalMarkers = None
-DUMMY_VALUE = 999999 # Some number bigger than the number of characters in a line
 
 def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers ):
     """
@@ -264,12 +262,12 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
                 si1 = lineAfterBackslash.find( ' ' )
                 si2 = lineAfterBackslash.find( '*' )
                 si3 = lineAfterBackslash.find( '\\' )
-                if si1==-1: si1 = DUMMY_VALUE
-                if si2==-1: si2 = DUMMY_VALUE
-                if si3==-1: si3 = DUMMY_VALUE
+                if si1==-1: si1 = LARGE_DUMMY_VALUE
+                if si2==-1: si2 = LARGE_DUMMY_VALUE
+                if si3==-1: si3 = LARGE_DUMMY_VALUE
                 si = min( si1, si2, si3 )
 
-                if si != DUMMY_VALUE:
+                if si != LARGE_DUMMY_VALUE:
                     if si == si3: # Marker stops before a backslash
                         marker = lineAfterBackslash[:si3]
                         text = lineAfterBackslash[si3:]
