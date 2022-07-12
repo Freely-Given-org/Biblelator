@@ -5,7 +5,7 @@
 #
 # Bible resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2020 Robert Hunt
+# Copyright (C) 2020-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -106,7 +106,7 @@ from Biblelator.Dialogs.BiblelatorSimpleDialogs import showInfo, showError
 from Biblelator.Dialogs.BiblelatorDialogs import GetBibleBookRangeDialog
 
 
-LAST_MODIFIED_DATE = '2020-05-13' # by RJH
+LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "BibleNotesWindow"
 PROGRAM_NAME = "Biblelator Bible Notes Resource Window"
 PROGRAM_VERSION = '0.46'
@@ -300,7 +300,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
         """
-        fnPrint( debuggingThisModule, "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
+        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
         if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
@@ -315,9 +315,8 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
+            fnPrint( debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
             if BibleOrgSysGlobals.debugFlag:
-                if debuggingThisModule:
-                    vPrint( 'Quiet', debuggingThisModule, "insertAtEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
                 assert isinstance( ieTags, (str,tuple) )
                 # assert TRAILING_SPACE_SUBSTITUTE not in ieText
@@ -406,7 +405,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
                 # dPrint( 'Info', debuggingThisModule, f"Got {verseDataEntry}")
                 if isinstance( verseDataEntry, InternalBibleEntry ):
                     marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
-                    if marker[0] == '¬': continue # ignore it
+                    if marker[0] == '¬' or marker in ('intro',): continue # ignore it
                     if marker in ('c','c#'): continue # don't need these
                     if marker in ('m', 'q1'): # Might be a new note
                         if thisNote and 'OccurrenceNote' in thisNote:
@@ -422,7 +421,9 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
                         if markerName: thisNote[markerName] = cleanText.replace( '<br>', '\n' )
                         else: halt # Shouldn't happen
                         markerName = None
-                    else: halt # Unknown marker
+                    else: # Unknown marker
+                        dPrint( 'Quiet', debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse doesn't know {marker=}")
+                        markerName = marker
                 else: halt # Shouldn't happen
             if thisNote: notes.append( thisNote )
             # dPrint( 'Info', debuggingThisModule, f"notes ({len(notes)}) {notes}")

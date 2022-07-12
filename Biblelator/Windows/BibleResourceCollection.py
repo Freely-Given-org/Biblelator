@@ -5,7 +5,7 @@
 #
 # Bible resource collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2014-2020 Robert Hunt
+# Copyright (C) 2014-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -112,7 +112,7 @@ from Biblelator.Windows.TextBoxes import BText, ChildBoxAddon, BibleBoxAddon, He
 from Biblelator.Helpers.BiblelatorHelpers import handleInternalBibles
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "BibleResourceCollection"
 PROGRAM_NAME = "Biblelator Bible Resource Collection"
 PROGRAM_VERSION = '0.46'
@@ -515,7 +515,7 @@ class SwordBibleResourceBox( BibleResourceBox ):
     def __init__( self, parentWindow, moduleAbbreviation ):
         """
         """
-        dPrint( 'Quiet', debuggingThisModule, "SwordBibleResourceBox.__init__( {}, {} )".format( parentWindow, moduleAbbreviation ) )
+        fnPrint( debuggingThisModule, "SwordBibleResourceBox.__init__( {}, {} )".format( parentWindow, moduleAbbreviation ) )
         self.parentWindow, self.moduleAbbreviation = parentWindow, moduleAbbreviation
         BibleResourceBox.__init__( self, self.parentWindow, 'SwordBibleResourceBox', self.moduleAbbreviation )
         #self.boxType = 'SwordBibleResourceBox'
@@ -528,9 +528,9 @@ class SwordBibleResourceBox( BibleResourceBox ):
         if isinstance( self.SwordModule, Bible ):
             #dPrint( 'Quiet', debuggingThisModule, "Handle internalBible for SwordModule" )
             handleInternalBibles( self.SwordModule, self )
-        else: vPrint( 'Quiet', debuggingThisModule, "SwordModule using {} is {}".format( SwordType, self.SwordModule ) )
+        else: dPrint( 'Info', debuggingThisModule, f"SwordModule using {SwordType} is {self.SwordModule}" )
 
-        vPrint( 'Never', debuggingThisModule, _("SwordBibleResourceBox.__init__ finished.") )
+        # dPrint( 'Never', debuggingThisModule, _("SwordBibleResourceBox.__init__ finished.") )
     # end of SwordBibleResourceBox.__init__
 
 

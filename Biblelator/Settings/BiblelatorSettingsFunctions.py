@@ -5,7 +5,7 @@
 #
 # for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     if aboveAboveFolderpath not in sys.path:
         sys.path.insert( 0, aboveAboveFolderpath )
 from Biblelator import BiblelatorGlobals
-from Biblelator.BiblelatorGlobals import APP_NAME, DEFAULT, \
+from Biblelator.BiblelatorGlobals import APP_NAME, APP_NAME_VERSION, DEFAULT, \
     DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, \
     MINIMUM_MAIN_SIZE, MAXIMUM_MAIN_SIZE, MAX_WINDOWS, MAX_RECENT_FILES, \
     BIBLE_GROUP_CODES, BIBLE_CONTEXT_VIEW_MODES, BIBLE_FORMAT_VIEW_MODES, \
@@ -61,7 +61,7 @@ from Biblelator.Dialogs.BiblelatorDialogs import SaveWindowsLayoutNameDialog, De
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2020-05-10' # by RJH
+LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
 PROGRAM_VERSION = '0.46'
@@ -676,8 +676,7 @@ def writeSettingsFile():
     """
     logging.info( "writeSettingsFile()" )
     fnPrint( debuggingThisModule, "writeSettingsFile()" )
-    if BibleOrgSysGlobals.verbosityLevel > 0:
-        vPrint( 'Quiet', debuggingThisModule, _("  Saving program settings…") )
+    vPrint( 'Quiet', debuggingThisModule, f"  Saving {APP_NAME_VERSION} settings…" )
 
     def convertToString( thisSetting ):
         """

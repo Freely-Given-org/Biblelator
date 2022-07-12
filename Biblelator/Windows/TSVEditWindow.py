@@ -5,7 +5,7 @@
 #
 # The edit windows for Biblelator TSV table editing
 #
-# Copyright (C) 2020 Robert Hunt
+# Copyright (C) 2020-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -67,7 +67,7 @@ from Biblelator.Helpers.AutocompleteFunctions import getCharactersBeforeCursor, 
                                 getWordBeforeSpace, addNewAutocompleteWord, acceptAutocompleteSelection
 
 
-LAST_MODIFIED_DATE = '2020-05-01' # by RJH
+LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTSVEditWindow"
 PROGRAM_NAME = "Biblelator TSV Edit Window"
 PROGRAM_VERSION = '0.46'
@@ -118,7 +118,7 @@ class RowFrame( Frame ):
     def fill( self, rowNumber:int, rowData:Optional[List[str]] ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"RowFrame.fill( {rowNumber}, {rowData} )" )
+        fnPrint( debuggingThisModule, f"RowFrame.fill( {rowNumber}, {str(rowData)[:100]}… )" )
 
         if rowData is None:
             self.rowNumberLabel['text'] = ''
@@ -252,6 +252,7 @@ class TSVEditWindowAddon:
 
     def updateShownBCV( self, newReferenceVerseKey:SimpleVerseKey, originator:Optional[str]=None ) -> None:
         """
+        The main call from outside this class.
         Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
 
         If newReferenceVerseKey is None: clears the window
@@ -278,8 +279,9 @@ class TSVEditWindowAddon:
         oldBBB, oldC, oldV = (None,None,None) if oldVerseKey is None else oldVerseKey.getBCV()
 
         BBB, C, V = newReferenceVerseKey.getBCV()
+        # dPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.updateShownBCV got {BBB} {C}:{V}" )
         if BBB != oldBBB:
-            vPrint( 'Quiet', debuggingThisModule, f"  updateShownBCV switching from {oldBBB} to {BBB}" )
+            # dPrint( 'Verbose', debuggingThisModule, f"  updateShownBCV switching from {oldBBB} to {BBB}" )
             if oldBBB and oldBBB != 'UNK':
                 # self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
                 self.doSave() # Save existing file if necessary
@@ -293,7 +295,8 @@ class TSVEditWindowAddon:
         # NOTE: The present code doesn't change the row if there's no entry for that BCV ref
         #       What would the user want here?
         for j, row in enumerate( self.tsvTable ):
-            if row[self.chapterColumn] == newReferenceVerseKey.C \
+            if (row[self.chapterColumn] == newReferenceVerseKey.C
+              or (row[self.chapterColumn]=='front' and newReferenceVerseKey.C in ('-1','0',))) \
             and (row[self.verseColumn] == newReferenceVerseKey.V
               or (row[self.verseColumn]=='intro' and newReferenceVerseKey.V=='0')):
                 self.rowNumberVar.set( j )
@@ -502,9 +505,9 @@ class TSVEditWindowAddon:
                 logging.critical( f"Expected {self.num_columns} columns but found {len(columns)} in row {j} of {self.filepath}" )
             self.tsvTable.append( columns )
         self.tsvHeaders = self.tsvTable[0]
-        vPrint( 'Normal', debuggingThisModule, f"  Have table headers ({self.num_columns}): {self.tsvHeaders}" )
+        dPrint( 'Info', debuggingThisModule, f"  Have table headers ({self.num_columns}): {self.tsvHeaders}" )
         self.numDataRows = len(self.tsvTable) - 1
-        vPrint( 'Info', debuggingThisModule, f"  Have {self.numDataRows:,} rows" )
+        dPrint( 'Info', debuggingThisModule, f"  Have {self.numDataRows:,} rows" )
         return True
     # end of TSVEditWindowAddon.loadBookDataFromDisk
 
@@ -734,7 +737,7 @@ class TSVEditWindowAddon:
         #dPrint( 'Never', debuggingThisModule, dir(event) )
 
         row = self.rowNumberVar.get()
-        vPrint( 'Normal', debuggingThisModule, f"  _gotoRow got {row} (was {self.current_row})" )
+        dPrint( 'Info', debuggingThisModule, f"  _gotoRow got {row} (was {self.current_row})" )
         # Check for bad numbers (they must have manually entered them as spinner doesn't allow this)
         if row < 1:
             self.rowNumberVar.set( 1 ); return
@@ -744,7 +747,7 @@ class TSVEditWindowAddon:
         if row==self.current_row and not force: return # Nothing to do here
 
         currentRowData = self.tsvTable[row]
-        self.numLabel.configure( text=f'Have {self.numDataRows} rows (plus header)' )
+        self.numLabel.configure( text=f'Have {self.numDataRows:,} rows (plus header)' )
 
         if self.thisBookUSFMCode is None:
             self.thisBookUSFMCode = currentRowData[self.bookColumn]
@@ -767,8 +770,8 @@ class TSVEditWindowAddon:
             elif var: var.set( currentRowData[j] ) # For Entries
             else: dataWidget.configure( text=currentRowData[j] ) # For Labels
 
-        self.prevFrame1.fill( row-2, self.tsvTable[row-3] if row>3 else None )
-        self.prevFrame2.fill( row-1, self.tsvTable[row-2] if row>2 else None )
+        self.prevFrame1.fill( row-3, self.tsvTable[row-3] if row>3 else None )
+        self.prevFrame2.fill( row-2, self.tsvTable[row-2] if row>2 else None )
         self.prevFrame3.fill( row-1, self.tsvTable[row-1] if row>1 else None )
         self.nextFrame1.fill( row+1, self.tsvTable[row+1] if row<self.numDataRows else None )
         self.nextFrame2.fill( row+2, self.tsvTable[row+2] if row<self.numDataRows-1 else None )
@@ -1164,7 +1167,8 @@ class TSVEditWindowAddon:
                 num_errors += 1
             else:
                 self.allExistingIDs.add( thisID )
-        vPrint( 'Normal', debuggingThisModule, f"  validateTSV returning {num_errors} errors" )
+        if num_errors > 0:
+            dPrint( 'Normal', debuggingThisModule, f"  validateTSV returning {num_errors} errors" )
         return num_errors
     # end of TSVEditWindowAddon.validateTSVTable()
 
@@ -2144,7 +2148,7 @@ class TSVEditWindowAddon:
         self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
 
         fileLines = ['\t'.join( rowData ) for rowData in self.tsvTable]
-        vPrint( 'Info', debuggingThisModule, f"  Reassembled {len(fileLines)} table lines (incl. header) cf. {self.numOriginalLines} lines read" )
+        vPrint( 'Info', debuggingThisModule, f"  Reassembled {len(fileLines):,} table lines (incl. header) cf. {self.numOriginalLines:,} lines read" )
         self.newText = '\n'.join( fileLines )
         if self.hadTrailingNL: self.newText = f'{self.newText}\n'
         vPrint( 'Never', debuggingThisModule, f"  New text is {len(self.newText):,} characters cf. {len(self.originalText):,} characters read" )
@@ -2371,8 +2375,7 @@ class TSVEditWindow( TSVEditWindowAddon, ChildWindow ):
     def __init__( self, parentWindow, folderpath:str ):
         """
         """
-        if 1 or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, f"TSVEditWindow.__init__( pW={parentWindow}, fp={folderpath} )…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindow.__init__( pW={parentWindow}, fp={folderpath} )…" )
         self.folderpath = folderpath
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, f"TSVEditWindow __init__ {folderpath}" )
 

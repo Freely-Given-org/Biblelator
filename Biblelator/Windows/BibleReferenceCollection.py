@@ -5,7 +5,7 @@
 #
 # Bible reference collection for Biblelator Bible display/editing
 #
-# Copyright (C) 2015-2020 Robert Hunt
+# Copyright (C) 2015-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -60,7 +60,7 @@ from Biblelator.Windows.BibleResourceWindows import BibleResourceWindowAddon
 from Biblelator.Windows.TextBoxes import BibleBoxAddon
 
 
-LAST_MODIFIED_DATE = '2020-04-26' # by RJH
+LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "BibleReferenceCollection"
 PROGRAM_NAME = "Biblelator Bible Reference Collection"
 PROGRAM_VERSION = '0.46'
@@ -79,7 +79,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
     def __init__( self, parentWindow, parentFrame, internalBible, referenceObject ):
         """
         """
-        dPrint( 'Quiet', debuggingThisModule, "BibleReferenceBox.__init__( {}, {}. {}, {}, {} )".format( parentWindow, parentFrame, internalBible.getAName(), referenceObject ) )
+        fnPrint( debuggingThisModule, "BibleReferenceBox.__init__( {}, {}. {}, {}, {} )".format( parentWindow, parentFrame, internalBible.getAName(), referenceObject ) )
         self.parentWindow, self.parentFrame, self.referenceObject = parentWindow, parentFrame, referenceObject
         self.internalBible = handleInternalBibles( internalBible, self )
 
@@ -178,7 +178,7 @@ class BibleReferenceBox( Frame, BibleBoxAddon ):
         """
 
         """
-        dPrint( 'Quiet', debuggingThisModule, "BibleReferenceBox.gotoBCV( {} {}:{} from {} )".format( BBB, C, V, self.currentVerseKey ) )
+        fnPrint( debuggingThisModule, "BibleReferenceBox.gotoBCV( {} {}:{} from {} )".format( BBB, C, V, self.currentVerseKey ) )
         # We really need to convert versification systems here
         adjBBB, adjC, adjV, adjS = self.BibleOrganisationalSystem.convertToReferenceVersification( BBB, C, V )
         self.parentWindow.gotoGroupBCV( self._groupCode, adjBBB, adjC, adjV ) # then the App will update me by calling updateShownBCV

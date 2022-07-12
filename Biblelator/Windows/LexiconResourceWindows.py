@@ -5,7 +5,7 @@
 #
 # Bible and lexicon resource windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -50,7 +50,7 @@ from Biblelator.Windows.ChildWindows import ChildWindow
 
 
 
-LAST_MODIFIED_DATE = '2020-05-03' # by RJH
+LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "LexiconResourceWindows"
 PROGRAM_NAME = "Biblelator Lexicon Resource Windows"
 PROGRAM_VERSION = '0.46'
@@ -225,7 +225,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Leaves text box in disabled state. (Not user editable.)
         """
-        dPrint( 'Quiet', debuggingThisModule, "updateLexiconWord( {} )".format( newLexiconWord ) )
+        fnPrint( debuggingThisModule, f"updateLexiconWord( {newLexiconWord} )" )
 
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled

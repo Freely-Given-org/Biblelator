@@ -136,7 +136,7 @@ from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, 
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 
 
-LAST_MODIFIED_DATE = '2022-07-08' # by RJH
+LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTextBoxes"
 PROGRAM_NAME = "Biblelator specialised text widgets"
 PROGRAM_VERSION = '0.46'
@@ -266,6 +266,8 @@ class HTMLTextBox( BText ):
             'p_spanKJVUsage': { 'foreground':'red', 'background':'pink', 'font':standardFont },
             'p_spanStatus': { 'foreground':'red', 'background':'pink', 'font':standardFont },
 
+            'p_spanStrongsRef': { 'foreground':'blue', 'background':'pink', 'font':standardFont },
+
             'p_spanSource': { 'foreground':'red', 'background':'pink', 'font':standardFont },
             'p_spanSource_b': { 'foreground':'red', 'background':'pink', 'font':standardFont+' bold' },
             'p_spanSource_span': { 'foreground':'red', 'background':'pink', 'font':standardFont, 'spacing1':'1' },
@@ -357,10 +359,10 @@ class HTMLTextBox( BText ):
                                 if combinedFormats: combinedFormats += '_'
                                 combinedFormats += tag
                                 lastTag = tag
-                        #dPrint( 'Quiet', debuggingThisModule, "combinedFormats", repr(combinedFormats) )
+                        # dPrint( 'Quiet', debuggingThisModule, f"{combinedFormats=}" )
                         if combinedFormats and combinedFormats not in self.styleDict:
-                            vPrint( 'Quiet', debuggingThisModule, "  Missing format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags )
-                            #try: vPrint( 'Quiet', debuggingThisModule, "   on", repr(remainingText[:ix]) )
+                            dPrint( 'Quiet', debuggingThisModule, f"  Missing HTML format: {combinedFormats=} {currentFormatTags=} {currentHTMLTags=}" )
+                            #try: dPrint( 'Quiet', debuggingThisModule, "   on", repr(remainingText[:ix]) )
                             #except UnicodeEncodeError: pass
                         insertText = remainingText[:ix]
                         #dPrint( 'Quiet', debuggingThisModule, "  Got format:", repr(combinedFormats), "cFT", currentFormatTags, "cHT", currentHTMLTags, repr(insertText) )
@@ -1167,8 +1169,8 @@ class BibleBoxAddon():
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
         """
+        fnPrint( debuggingThisModule, "BibleBoxAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
         if self.doExtraChecking:
-            vPrint( 'Quiet', debuggingThisModule, "displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
             if verseContextData:
@@ -1182,8 +1184,8 @@ class BibleBoxAddon():
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
+            fnPrint( debuggingThisModule, f"BibleBoxAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
             if self.doExtraChecking:
-                vPrint( 'Quiet', debuggingThisModule, "insertAtEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
                 assert isinstance( ieTags, (str,tuple) )
                 assert TRAILING_SPACE_SUBSTITUTE not in ieText
@@ -1212,7 +1214,15 @@ class BibleBoxAddon():
             ##except UnicodeEncodeError: vPrint( 'Quiet', debuggingThisModule, "BibleBoxAddon.displayAppendVerse", firstFlag, verseKey, currentVerseFlag )
 
         BBB, C, V = verseKey.getBCV()
-        C, V = int(C), int(V)
+        try: C = int(C)
+        except ValueError:
+            dPrint( 'Quiet', debuggingThisModule, f"BibleBoxAddon.displayAppendVerse found invalid {C=}: changed to 1" )
+            C = 1
+        try: V = int(V)
+        except ValueError:
+            dPrint( 'Quiet', debuggingThisModule, f"BibleBoxAddon.displayAppendVerse found invalid {V=}: changed to 1" )
+            V = 1
+            
         #C1 = C2 = int(C); V1 = V2 = int(V)
         #if V1 > 0: V1 -= 1
         #elif C1 > 0:
@@ -1287,7 +1297,7 @@ class BibleBoxAddon():
 
         if verseDataList is None:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                vPrint( 'Quiet', debuggingThisModule, "  ", "BibleBoxAddon.displayAppendVerse has no data for", self.moduleID, verseKey )
+                vPrint( 'Quiet', debuggingThisModule, f"  BibleBoxAddon.displayAppendVerse has no data for {self.moduleID} {verseKey}" )
             #self.textBox.insert( tk.END, '--' )
         else:
             #hadVerseText = False
@@ -1353,7 +1363,7 @@ class BibleBoxAddon():
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
                         insertAtEnd( cleanText, marker )
                         haveTextFlag = True
-                    elif marker in ('ide','rem',):
+                    elif marker in ('usfm','ide','rem',):
                         assert marker not in BibleOrgSysGlobals.USFMParagraphMarkers
                         if haveTextFlag: self.textBox.insert ( tk.END, '\n' )
                         insertAtEnd( cleanText, marker )
@@ -1433,10 +1443,11 @@ class BibleBoxAddon():
                         insertAtEnd( cleanText, '*'+lastParagraphMarker if currentVerseFlag else lastParagraphMarker )
                         haveTextFlag = True
                     else:
+                        logger = logging.warning if marker in ('v=',) else logging.critical
                         if BibleOrgSysGlobals.debugFlag:
-                            logging.critical( _("BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r} from {}").format( marker, cleanText, verseDataList ) )
+                            logger( f"BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {self.moduleID} {marker}={cleanText} from {verseDataList}" )
                         else:
-                            logging.critical( _("BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
+                            logger( f"BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {self.moduleID} {marker}={cleanText}" )
                 else:
                     logging.critical( _("BibleBoxAddon.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
                     if BibleOrgSysGlobals.debugFlag: halt
@@ -1457,14 +1468,17 @@ class BibleBoxAddon():
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
+        fnPrint( debuggingThisModule, "BibleBoxAddon.getBeforeAndAfterBibleData( {} )".format( newVerseKey ) )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "BibleBoxAddon.getBeforeAndAfterBibleData( {} )".format( newVerseKey ) )
             assert isinstance( newVerseKey, SimpleVerseKey )
 
         BBB, C, V = newVerseKey.getBCV()
-        #dPrint( 'Quiet', debuggingThisModule, "here1", BBB, repr(C), repr(V) )
+        dPrint( 'Verbose', debuggingThisModule, f"getBeforeAndAfterBibleData1 {BBB=} {C=} {V=}" )
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-        #dPrint( 'Quiet', debuggingThisModule, "  here2", repr(intC), repr(intV) )
+        dPrint( 'Verbose', debuggingThisModule, f"  getBeforeAndAfterBibleData2 {BBB=} {intC=} {intV=}" )
+        if intV is None:
+            dPrint( 'Quiet', debuggingThisModule, f"getBeforeAndAfterBibleData: fixing intV from None ({V=})" )
+            V, intV = '1', 1
 
         # Determine the PREVIOUS valid verse numbers
         prevBBB, prevIntC, prevIntV = BBB, intC, intV
@@ -2218,9 +2232,9 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         command can be 'E' for edit, i.e., if a bundle has been double-clicked
         """
+        fnPrint( debuggingThisModule, "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
+                .format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, command, substituteTrailingSpaces, substituteMultipleSpaces ) )
         if self.doExtraChecking:
-            vPrint( 'Quiet', debuggingThisModule, "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
-                    .format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, command, substituteTrailingSpaces, substituteMultipleSpaces ) )
             vPrint( 'Quiet', debuggingThisModule, "  {}".format( verseContextData[0] ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
@@ -2243,9 +2257,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
+            fnPrint( debuggingThisModule, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
             if BibleOrgSysGlobals.debugFlag:
-                if debuggingThisModule:
-                    vPrint( 'Quiet', debuggingThisModule, "insertAtEnd( {!r}, {} )".format( ieText, ieTags ) )
                 assert isinstance( ieText, str )
                 assert ieTags is None or isinstance( ieTags, (str,tuple) )
                 assert TRAILING_SPACE_SUBSTITUTE not in ieText
@@ -2268,9 +2281,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
+            fnPrint( 'Quiet', debuggingThisModule, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine( {ieLineNumber}, {ieText=}, {ieTags=} )" )
             if BibleOrgSysGlobals.debugFlag:
-                if debuggingThisModule:
-                    vPrint( 'Quiet', debuggingThisModule, "insertAtEndLine( {}, {!r}, {} )".format( ieLineNumber, ieText, ieTags ) )
                 assert isinstance( ieLineNumber, int )
                 assert isinstance( ieText, str )
                 assert ieTags is None or isinstance( ieTags, (str,tuple) )

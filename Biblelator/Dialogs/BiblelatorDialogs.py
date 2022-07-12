@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -115,7 +115,7 @@ from gettext import gettext as _
 from typing import List
 import os
 import logging
-import urllib.request
+import requests
 
 import tkinter as tk
 import tkinter.font as tkFont
@@ -138,7 +138,7 @@ from Biblelator.Dialogs.BiblelatorSimpleDialogs import showWarning
 from Biblelator.Windows.TextBoxes import BEntry, BCombobox, BText
 
 
-LAST_MODIFIED_DATE = '2020-05-03'
+LAST_MODIFIED_DATE = '2022-07-12'
 SHORT_PROGRAM_NAME = "BiblelatorDialogs"
 PROGRAM_NAME = "Biblelator dialogs"
 PROGRAM_VERSION = '0.46'
@@ -1548,7 +1548,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
                     #dPrint( 'Quiet', debuggingThisModule, "    TextBox {}/{}".format( appWin.textBox, type(appWin.textBox) ) )
                     if appWin.textBox is not None:
                         iB = appWin.internalBible
-                        bibleWork = getAName()
+                        bibleWork = iB.getAName()
                         if bibleWork not in possibilityList: # Don't want duplicates
                             possibilityList.append( bibleWork )
                             self.projectDict[bibleWork] = ('Window',appWin,appWin.textBox,iB)
@@ -1558,10 +1558,10 @@ class GetBibleReplaceTextDialog( ModalDialog ):
                         #dPrint( 'Quiet', debuggingThisModule, "      ResourceBox {}/{}".format( resourceBox.textBox, type(resourceBox.textBox) ) )
                         if resourceBox.textBox is not None:
                             iB = resourceBox.internalBible
-                            bibleWork = getAName()
+                            bibleWork = iB.getAName()
                             if bibleWork not in possibilityList: # Don't want duplicates
                                 possibilityList.append( bibleWork )
-                                self.projectDict[bibleWork] = ('Box',appWin,resourceBox,IB)
+                                self.projectDict[bibleWork] = ('Box',appWin,resourceBox,iB)
                 except: pass
         self.projectNameBox['values'] = possibilityList
         self.projectNameBox.grid( row=0, column=1, columnspan=2, padx=2, pady=2, sticky=tk.W )
@@ -2571,13 +2571,13 @@ class DownloadResourcesDialog( ModalDialog ):
         import re
         from datetime import datetime
 
-        try: responseObject = urllib.request.urlopen( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL )
-        except urllib.error.URLError:
-            logging.critical( "DownloadResourcesDialog.makeBody: error fetching {}".format( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL ) )
+        responseObject = requests.get( BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL )
+        if responseObject.status_code != 200:
+            logging.critical( f"DownloadResourcesDialog.makeBody: {responseObject.status_code} error fetching {BibleOrgSysGlobals.DISTRIBUTABLE_RESOURCES_URL}" )
             Label( master, text=_("Unable to connect to server") ).pack( side=tk.TOP, fill=tk.X )
             self.okButton.config( state=tk.DISABLED )
             return None
-        responsePageSTR = responseObject.read().decode('utf-8')
+        responsePageSTR = responseObject.text
         #dPrint( 'Quiet', debuggingThisModule, "responsePageSTR", responsePageSTR )
         availableResourceList = []
         searchString = ZIPPED_PICKLE_FILENAME_END + '</a>'
