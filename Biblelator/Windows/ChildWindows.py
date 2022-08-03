@@ -41,7 +41,7 @@ Base windows to allow display and manipulation of
         _createStandardWindowKeyboardBinding( self, name, command )
         createStandardWindowKeyboardBindings( self, reset=False )
         notWrittenYet( self )
-        #createMenuBar( self )
+        #_createMenuBar( self )
         createContextMenu( self )
         showContextMenu( self, event )
         createToolBar( self )
@@ -52,8 +52,8 @@ Base windows to allow display and manipulation of
         setWaitStatus( self, newStatusText )
         setReadyStatus( self )
         doShowMainWindow( self, event=None )
-        #doHelp( self, event=None )
-        #doAbout( self, event=None )
+        #_doHelp( self, event=None )
+        #_doAbout( self, event=None )
         doClose( self, event=None )
 
     class BibleWindowAddon( BibleBoxAddon ) -- used in BibleResourceCollectionWindow, SwordBibleResourceWindow, DBPBibleResourceWindow, InternalBibleResourceWindow
@@ -65,7 +65,7 @@ Base windows to allow display and manipulation of
 
     class TextWindow( ChildWindow ) -- used in HTMLWindow.doShowSource
         __init__( self, parentWindow, windowTitle=None, displayText=None, textSource=None )
-        createMenuBar( self )
+        _createMenuBar( self )
         createContextMenu( self )
         showContextMenu( self, event )
         createToolBar( self )
@@ -74,13 +74,13 @@ Base windows to allow display and manipulation of
         #setWaitStatus( self, newStatusText )
         setReadyStatus( self )
         doShowInfo( self, event=None )
-        doHelp( self, event=None )
-        doAbout( self, event=None )
+        _doHelp( self, event=None )
+        _doAbout( self, event=None )
         doClose( self, event=None )
 
     class HTMLWindow( ChildWindow ) -- used in InternalBibleResourceWindowAddon.doCheckProject
         __init__( self, parentWindow, filepath=None )
-        createMenuBar( self )
+        _createMenuBar( self )
         createContextMenu( self )
         showContextMenu( self, event )
         createToolBar( self )
@@ -97,14 +97,14 @@ Base windows to allow display and manipulation of
         doGoForward( self )
         doGoBackward( self )
         doShowSource( self, event=None )
-        doHelp( self, event=None )
-        doAbout( self, event=None )
+        _doHelp( self, event=None )
+        _doAbout( self, event=None )
         doClose( self, event=None )
 
     class FindResultWindow( tk.Toplevel ) -- used in BibleBoxAddon.doActualBibleFind
         __init__( self, parentWindow, optionDict, resultSummaryDict, resultList, findFunction, refindFunction, replaceFunction, extendTo=None )
         notWrittenYet( self )
-        createMenuBar( self )
+        _createMenuBar( self )
         createContextMenu( self )
         showContextMenu( self, event )
         createToolBar( self )
@@ -117,8 +117,8 @@ Base windows to allow display and manipulation of
         doExtend( self, event=None )
         doActualExtend( self )
         doShowInfo( self, event=None )
-        doHelp( self, event=None )
-        doAbout( self, event=None )
+        _doHelp( self, event=None )
+        _doAbout( self, event=None )
         doClose( self, event=None )
         doRefresh( self )
         doRefind( self )
@@ -129,7 +129,7 @@ Base windows to allow display and manipulation of
         #notWrittenYet( self )
         _createStandardWindowKeyboardBinding( self, name, command )
         createStandardWindowKeyboardBindings( self, reset=False )
-        createMenuBar( self )
+        _createMenuBar( self )
         createContextMenu( self )
         showContextMenu( self, event )
         createToolBar( self )
@@ -146,8 +146,8 @@ Base windows to allow display and manipulation of
         checkEnables( self, finalFlag=False )
         doGoCollate( self, event=None )
         doShowInfo( self, event=None )
-        doHelp( self, event=None )
-        doAbout( self, event=None )
+        _doHelp( self, event=None )
+        _doAbout( self, event=None )
         doClose( self, event=None )
         doRefresh( self )
         doRefind( self )
@@ -318,7 +318,7 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
         self._statusTextVar.set( '' ) # first initial value
         # You have to create self.statusTextLabel in order to display the status somewhere
 
-        #self.createMenuBar() # requires self._groupRadioVar etc. for Bible windows
+        #self._createMenuBar() # requires self._groupRadioVar etc. for Bible windows
         self.createToolBar()
         #self.createContextMenu() # Don't do this by default (coz window may contain boxes which want context menus)
 
@@ -402,8 +402,8 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
             self.myKeyboardBindingsList = []
 
         for name,command in ( ('Info',self.doShowInfo),
-                              ('Help',self.doHelp),
-                              ('About',self.doAbout),
+                              ('Help',self._doHelp),
+                              ('About',self._doAbout),
                               ('ShowMain',self.doShowMainWindow),
                               ('Close',self.doClose),
                               ):
@@ -417,15 +417,15 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
     # end of ChildWindow.notWrittenYet
 
 
-    #def createMenuBar( self ) -> None:
+    #def _createMenuBar( self ) -> None:
         #"""
         #Should never be called.
         #"""
-        #logging.critical( _("PROGRAMMING ERROR: This 'createMenuBar' method MUST be overridden!") )
+        #logging.critical( _("PROGRAMMING ERROR: This '_createMenuBar' method MUST be overridden!") )
         #if BibleOrgSysGlobals.debugFlag:
-            #dPrint( 'Quiet', debuggingThisModule, _("This 'createMenuBar' method MUST be overridden!") )
+            #dPrint( 'Quiet', debuggingThisModule, _("This '_createMenuBar' method MUST be overridden!") )
             #halt
-    ## end of ChildWindow.createMenuBar
+    ## end of ChildWindow._createMenuBar
 
 
     def createContextMenu( self ) -> None:
@@ -592,12 +592,12 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
     # end of ChildWindow.doShowMainWindow
 
 
-    #def doHelp( self, event=None ) -> None:
+    #def _doHelp( self, event=None ) -> None:
         #"""
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("SHOULD NEVER BE USED ChildWindow.doHelp( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("SHOULD NEVER BE USED ChildWindow._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
@@ -607,22 +607,22 @@ class ChildWindow( tk.Toplevel, ChildBoxAddon ):
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
         #return tkBREAK
-    ## end of ChildWindow.doHelp
+    ## end of ChildWindow._doHelp
 
 
-    #def doAbout( self, event=None ) -> None:
+    #def _doAbout( self, event=None ) -> None:
         #"""
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("SHOULD NEVER BE USED ChildWindow.doAbout( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("SHOULD NEVER BE USED ChildWindow._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK
-    ## end of ChildWindow.doAbout
+    ## end of ChildWindow._doAbout
 
 
     def doClose( self, event=None ) -> None:
@@ -685,8 +685,8 @@ class BibleWindowAddon( BibleBoxAddon ):
             self.myKeyboardBindingsList = []
 
         for name,command in ( ('Info',self.doShowInfo),
-                              ('Help',self.doHelp),
-                              ('About',self.doAbout),
+                              ('Help',self._doHelp),
+                              ('About',self._doAbout),
                               ('ShowMain',self.doShowMainWindow),
                               ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                               ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
@@ -787,8 +787,8 @@ class BibleWindowAddon( BibleBoxAddon ):
             ##self.myKeyboardBindingsList = []
 
         ##for name,command in ( ('Info',self.doShowInfo),
-                              ##('Help',self.doHelp),
-                              ##('About',self.doAbout),
+                              ##('Help',self._doHelp),
+                              ##('About',self._doAbout),
                               ##('ShowMain',self.doShowMainWindow),
                               ##('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                               ##('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
@@ -875,7 +875,7 @@ class TextWindow( ChildWindow ):
         self._statusTextVar = tk.StringVar()
         self._statusTextVar.set( '' ) # first initial value
 
-        self.createMenuBar()
+        self._createMenuBar()
         #self.createToolBar()
         #self.createContextMenu()
         #if self._showStatusBarVar.get(): self.createStatusBar()
@@ -898,10 +898,10 @@ class TextWindow( ChildWindow ):
     # end of TextWindow.__init__
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "TextWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "TextWindow._createMenuBar()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -961,10 +961,10 @@ class TextWindow( ChildWindow ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=kBD[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=kBD[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=kBD[_('About')][0] )
-    # end of TextWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=kBD[_('About')][0] )
+    # end of TextWindow._createMenuBar
 
 
     def createContextMenu( self ):
@@ -1099,11 +1099,11 @@ class TextWindow( ChildWindow ):
     # end of TextWindow.doShowInfo
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "TextWindow.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TextWindow._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1113,21 +1113,21 @@ class TextWindow( ChildWindow ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of TextWindow.doHelp
+    # end of TextWindow._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "TextWindow.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TextWindow._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of TextWindow.doAbout
+    # end of TextWindow._doAbout
 
 
     def doClose( self, event=None ):
@@ -1186,7 +1186,7 @@ class HTMLWindow( ChildWindow ):
         self._statusTextVar = tk.StringVar()
         self._statusTextVar.set( '' ) # first initial value
 
-        self.createMenuBar()
+        self._createMenuBar()
         self.createToolBar()
         self.createContextMenu()
         if self._showStatusBarVar.get(): self.createStatusBar()
@@ -1224,10 +1224,10 @@ class HTMLWindow( ChildWindow ):
     # end of HTMLWindow.__init__
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "HTMLWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "HTMLWindow._createMenuBar()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -1289,10 +1289,10 @@ class HTMLWindow( ChildWindow ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=kBD[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=kBD[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=kBD[_('About')][0] )
-    # end of HTMLWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=kBD[_('About')][0] )
+    # end of HTMLWindow._createMenuBar
 
 
     def createContextMenu( self ):
@@ -1529,11 +1529,11 @@ class HTMLWindow( ChildWindow ):
     # end of HTMLWindow.doShowSource
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "HTMLWindow.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "HTMLWindow._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1543,21 +1543,21 @@ class HTMLWindow( ChildWindow ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of HTMLWindow.doHelp
+    # end of HTMLWindow._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "HTMLWindow.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "HTMLWindow._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of HTMLWindow.doAbout
+    # end of HTMLWindow._doAbout
 
 
     def doClose( self, event=None ):
@@ -1627,7 +1627,7 @@ class FindResultWindow( tk.Toplevel ):
         self._statusTextVar = tk.StringVar()
         self._statusTextVar.set( '' ) # first initial value
 
-        self.createMenuBar()
+        self._createMenuBar()
         #self.createToolBar()
         #self.createContextMenu()
         #if self._showStatusBarVar.get(): self.createStatusBar()
@@ -1699,10 +1699,10 @@ class FindResultWindow( tk.Toplevel ):
     # end of FindResultWindow.notWrittenYet
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "FindResultWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "FindResultWindow._createMenuBar()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -1762,10 +1762,10 @@ class FindResultWindow( tk.Toplevel ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=kBD[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=kBD[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=kBD[_('About')][0] )
-    # end of FindResultWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=kBD[_('About')][0] )
+    # end of FindResultWindow._createMenuBar
 
 
     def createContextMenu( self ):
@@ -2061,11 +2061,11 @@ class FindResultWindow( tk.Toplevel ):
     # end of FindResultWindow.doShowInfo
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "FindResultWindow.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "FindResultWindow._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -2075,21 +2075,21 @@ class FindResultWindow( tk.Toplevel ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of FindResultWindow.doHelp
+    # end of FindResultWindow._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "FindResultWindow.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "FindResultWindow._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of FindResultWindow.doAbout
+    # end of FindResultWindow._doAbout
 
 
     def doClose( self, event=None ):
@@ -2194,7 +2194,7 @@ class CollateProjectsWindow( tk.Toplevel ):
         self._statusTextVar.set( '' ) # first initial value
 
         self.myKeyboardBindingsList = []
-        self.createMenuBar()
+        self._createMenuBar()
         #self.createToolBar()
         #self.createContextMenu()
         if self._showStatusBarVar.get(): self.createStatusBar()
@@ -2475,8 +2475,8 @@ class CollateProjectsWindow( tk.Toplevel ):
             self.myKeyboardBindingsList = []
 
         for name,command in ( ('Info',self.doShowInfo),
-                              ('Help',self.doHelp),
-                              ('About',self.doAbout),
+                              ('Help',self._doHelp),
+                              ('About',self._doAbout),
                               #('ShowMain',self.doShowMainWindow),
                               ('Close',self.doClose),
                               ):
@@ -2490,10 +2490,10 @@ class CollateProjectsWindow( tk.Toplevel ):
     ## end of CollateProjectsWindow.notWrittenYet
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "CollateProjectsWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow._createMenuBar()" )
 
         try: kBD = BiblelatorGlobals.theApp.keyBindingDict
         except AttributeError: kBD = BiblelatorGlobals.theApp.keyBindingDict
@@ -2555,10 +2555,10 @@ class CollateProjectsWindow( tk.Toplevel ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=kBD[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=kBD[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=kBD[_('About')][0] )
-    # end of CollateProjectsWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=kBD[_('About')][0] )
+    # end of CollateProjectsWindow._createMenuBar
 
 
     def createContextMenu( self ):
@@ -2867,11 +2867,11 @@ class CollateProjectsWindow( tk.Toplevel ):
     # end of CollateProjectsWindow.doShowInfo
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "CollateProjectsWindow.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -2881,21 +2881,21 @@ class CollateProjectsWindow( tk.Toplevel ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of CollateProjectsWindow.doHelp
+    # end of CollateProjectsWindow._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "CollateProjectsWindow.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "CollateProjectsWindow._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of CollateProjectsWindow.doAbout
+    # end of CollateProjectsWindow._doAbout
 
 
     def doClose( self, event=None ):

@@ -81,7 +81,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         #self.createStandardWindowKeyboardBindings( reset=True )
 
-        self.createMenuBar()
+        self._createMenuBar()
         #self.createBibleLexiconResourceWindowWidgets()
         #for USFMKey, styleDict in self.myMaster.stylesheet.getTKStyles().items():
         #    self.textBox.tag_configure( USFMKey, **styleDict ) # Create the style
@@ -101,10 +101,10 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     # end if BibleLexiconResourceWindow.refreshTitle
 
 
-    def createMenuBar( self ) -> None:
+    def _createMenuBar( self ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -157,10 +157,10 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of BibleLexiconResourceWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of BibleLexiconResourceWindow._createMenuBar
 
 
     def createToolBar( self ) -> None:
@@ -240,11 +240,11 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     # end of BibleLexiconResourceWindow.updateLexiconWord
 
 
-    def doHelp( self, event=None ) -> None:
+    def _doHelp( self, event=None ) -> None:
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -254,21 +254,21 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return BiblelatorGlobals.tkBREAK # so we don't do the main window help also
-    # end of BibleLexiconResourceWindow.doHelp
+    # end of BibleLexiconResourceWindow._doHelp
 
 
-    def doAbout( self, event=None ) -> None:
+    def _doAbout( self, event=None ) -> None:
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return BiblelatorGlobals.tkBREAK # so we don't do the main window about also
-    # end of BibleLexiconResourceWindow.doAbout
+    # end of BibleLexiconResourceWindow._doAbout
 # end of BibleLexiconResourceWindow class
 
 

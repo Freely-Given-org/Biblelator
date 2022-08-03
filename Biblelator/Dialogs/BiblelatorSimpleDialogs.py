@@ -5,7 +5,7 @@
 #
 # Various dialog windows for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -43,10 +43,10 @@ from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from Biblelator import BiblelatorGlobals
 
 
-LAST_MODIFIED_DATE = '2020-05-10'
+LAST_MODIFIED_DATE = '2022-07-18'
 SHORT_PROGRAM_NAME = "BiblelatorSimpleDialogs"
 PROGRAM_NAME = "Biblelator simple dialogs"
-PROGRAM_VERSION = '0.46'
+PROGRAM_VERSION = '0.47'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -57,7 +57,7 @@ debuggingThisModule = False
 def showError( parentWindow, title:str, errorText:str ) -> None:
     """
     """
-    vPrint( 'Quiet', debuggingThisModule, f"showError( {parentWindow}, '{title}', '{errorText}' )…" )
+    fnPrint( debuggingThisModule, f"showError( {parentWindow}, '{title}', '{errorText}' )…" )
 
     logging.error( f'{title}: {errorText}' )
     BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after error…") )
@@ -69,8 +69,7 @@ def showError( parentWindow, title:str, errorText:str ) -> None:
 def showWarning( parentWindow, title, warningText ):
     """
     """
-    if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
+    fnPrint( debuggingThisModule, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after warning…") )
@@ -82,8 +81,8 @@ def showWarning( parentWindow, title, warningText ):
 def showInfo( parentWindow, title, infoText ):
     """
     """
+    fnPrint( debuggingThisModule, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parentWindow.configure().items()): # Append the parentWindow window config info
             vPrint( 'Quiet', debuggingThisModule, "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )

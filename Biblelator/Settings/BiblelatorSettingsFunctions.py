@@ -61,18 +61,18 @@ from Biblelator.Dialogs.BiblelatorDialogs import SaveWindowsLayoutNameDialog, De
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2022-07-12' # by RJH
+LAST_MODIFIED_DATE = '2022-07-18' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
-PROGRAM_VERSION = '0.46'
-SettingsVersion = '0.46' # Only need to change this if the settings format has changed
+PROGRAM_VERSION = '0.47'
+SettingsVersion = '0.47' # Only need to change this if the settings format has changed
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
 
 
 
-def convertToPython( text ):
+def convertTextToPython( text ):
     """
     Convert text to Python logic values.
     """
@@ -89,7 +89,7 @@ def convertToPython( text ):
         logging.warning( f"Settings: Found {text!r} instead of 'None'" )
         return None
     return text
-# end of convertToPython
+# end of convertTextToPython
 
 
 
@@ -162,13 +162,13 @@ def parseAndApplySettings() -> None:
     try: BiblelatorGlobals.theApp.interfaceComplexity = BiblelatorGlobals.theApp.settings.data['Interface']['interfaceComplexity']
     except KeyError: BiblelatorGlobals.theApp.interfaceComplexity = DEFAULT
     if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.interfaceComplexity in ( DEFAULT, 'Basic', 'Advanced', )
-    try: BiblelatorGlobals.theApp.touchMode = convertToPython( BiblelatorGlobals.theApp.settings.data['Interface']['touchMode'] )
+    try: BiblelatorGlobals.theApp.touchMode = convertTextToPython( BiblelatorGlobals.theApp.settings.data['Interface']['touchMode'] )
     except KeyError: BiblelatorGlobals.theApp.touchMode = False
     if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.touchMode in ( False, True )
-    try: BiblelatorGlobals.theApp.tabletMode = convertToPython( BiblelatorGlobals.theApp.settings.data['Interface']['tabletMode'] )
+    try: BiblelatorGlobals.theApp.tabletMode = convertTextToPython( BiblelatorGlobals.theApp.settings.data['Interface']['tabletMode'] )
     except KeyError: BiblelatorGlobals.theApp.tabletMode = False
     if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.tabletMode in ( False, True )
-    try: BiblelatorGlobals.theApp.showDebugMenu = convertToPython( BiblelatorGlobals.theApp.settings.data['Interface']['showDebugMenu'] )
+    try: BiblelatorGlobals.theApp.showDebugMenu = convertTextToPython( BiblelatorGlobals.theApp.settings.data['Interface']['showDebugMenu'] )
     except KeyError: BiblelatorGlobals.theApp.showDebugMenu = False
     if BibleOrgSysGlobals.debugFlag: assert BiblelatorGlobals.theApp.showDebugMenu in ( False, True )
 
@@ -264,9 +264,9 @@ def parseAndApplySettings() -> None:
             recentName = f'recent{j}'
             for keyName in recentFields:
                 if keyName.startswith( recentName ): # This index number (j) is present
-                    filename = convertToPython( BiblelatorGlobals.theApp.settings.data['RecentFiles']['recent{}Filename'.format( j )] )
+                    filename = convertTextToPython( BiblelatorGlobals.theApp.settings.data['RecentFiles']['recent{}Filename'.format( j )] )
                     #if filename == 'None': filename = None
-                    folder = convertToPython( BiblelatorGlobals.theApp.settings.data['RecentFiles']['recent{}Folder'.format( j )] )
+                    folder = convertTextToPython( BiblelatorGlobals.theApp.settings.data['RecentFiles']['recent{}Folder'.format( j )] )
                     #if folder == 'None': folder = None
                     if folder and str(folder)[-1] not in '/\\':
                         folder = f'{folder}/'
@@ -399,18 +399,22 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
                                 #if boxSource[-1] not in '/\\': boxSource += '/' # Are they all folders -- might be wrong
                             rw.openBox( boxType, boxSource )
 
+            elif windowType == 'CSVBibleEditWindow':
+                try: filepath = convertTextToPython( thisStuff['CSVFilepath'] )
+                except KeyError: folderpath = None
+                rw = BiblelatorGlobals.theApp.openCSVEditWindow( filepath, windowGeometry )
             elif windowType == 'TSVBibleEditWindow':
-                try: folderpath = convertToPython( thisStuff['TSVFolderpath'] )
+                try: folderpath = convertTextToPython( thisStuff['TSVFolderpath'] )
                 except KeyError: folderpath = None
                 rw = BiblelatorGlobals.theApp.openTSVEditWindow( folderpath, windowGeometry )
             elif windowType == 'BibleNotesWindow':
-                try: folderpath = convertToPython( thisStuff['NotesFolderpath'] )
+                try: folderpath = convertTextToPython( thisStuff['NotesFolderpath'] )
                 except KeyError: folderpath = None
                 rw = BiblelatorGlobals.theApp.openBibleNotesWindow( folderpath, windowGeometry )
 
             elif windowType == 'TranslationManualWindow':
                 try:
-                    try: folderpath = convertToPython( thisStuff['TMFolderpath'] )
+                    try: folderpath = convertTextToPython( thisStuff['TMFolderpath'] )
                     except KeyError: folderpath = None
                     rw = BiblelatorGlobals.theApp.openTranslationManualWindow( folderpath, windowGeometry )
                 except:
@@ -422,7 +426,7 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
                 #except: logging.critical( "Unable to read all BibleReferenceCollectionWindow {} settings".format( j ) )
 
             elif windowType == 'PlainTextEditWindow':
-                try: filepath = convertToPython( thisStuff['TextFilepath'] )
+                try: filepath = convertTextToPython( thisStuff['TextFilepath'] )
                 except KeyError: filepath = None
                 #if filepath == 'None': filepath = None
                 rw = BiblelatorGlobals.theApp.openFileTextEditWindow( filepath, windowGeometry )
@@ -465,7 +469,7 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
 
             if rw is None:
                 logging.critical( "applyGivenWindowsSettings: " + _("Failed to reopen '{}' window type!!! How did this happen?").format( windowType ) )
-                showError( APP_NAME, _("Failed to reopen '{}'! (Program error or bad settings file.)").format( windowType ) )
+                showError( BiblelatorGlobals.theApp, "Startup", _("Failed to reopen '{}'! (Program error or bad settings file.)").format( windowType ) )
             else: # we've opened our child window -- now customize it a bit more
                 minimumSize = thisStuff['MinimumSize'] if 'MinimumSize' in thisStuff else None
                 if minimumSize:
@@ -483,13 +487,13 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
                 if contextViewMode:
                     if BibleOrgSysGlobals.debugFlag: assert contextViewMode in BIBLE_CONTEXT_VIEW_MODES
                     rw.setContextViewMode( contextViewMode )
-                    #rw.createMenuBar() # in order to show the correct contextViewMode
+                    #rw._createMenuBar() # in order to show the correct contextViewMode
                 formatViewMode = thisStuff['FormatViewMode'] if 'FormatViewMode' in thisStuff else None
                 if formatViewMode:
                     if BibleOrgSysGlobals.debugFlag: assert formatViewMode in BIBLE_FORMAT_VIEW_MODES
                     rw.setFormatViewMode( formatViewMode )
-                    #rw.createMenuBar() # in order to show the correct contextViewMode
-                autocompleteMode = convertToPython( thisStuff['AutocompleteMode'] ) if 'AutocompleteMode' in thisStuff else None
+                    #rw._createMenuBar() # in order to show the correct contextViewMode
+                autocompleteMode = convertTextToPython( thisStuff['AutocompleteMode'] ) if 'AutocompleteMode' in thisStuff else None
                 #if autocompleteMode == 'None': autocompleteMode = None
                 if autocompleteMode:
                     if BibleOrgSysGlobals.debugFlag: assert windowType.endswith( 'EditWindow' )
@@ -546,6 +550,8 @@ def getCurrentChildWindowSettings():
         elif appWin.windowType == 'HebrewBibleResourceWindow':
             thisOne['BibleFolderpath'] = appWin.moduleID
 
+        elif appWin.windowType == 'CSVBibleEditWindow':
+            thisOne['CSVFilepath'] = appWin.filepath
         elif appWin.windowType == 'TSVBibleEditWindow':
             thisOne['TSVFolderpath'] = appWin.folderpath
         elif appWin.windowType == 'BibleNotesWindow':
@@ -594,11 +600,11 @@ def getCurrentChildWindowSettings():
             except AttributeError: logging.critical( "getCurrentChildWindowSettings: " + _("Why no groupCode in {}").format( appWin.windowType ) )
             try: thisOne['ContextViewMode'] = appWin._contextViewMode
             except AttributeError:
-                if 'TSV' not in appWin.windowType:
+                if 'CSV' not in appWin.windowType and 'TSV' not in appWin.windowType:
                     logging.critical( "getCurrentChildWindowSettings: " + _("Why no contextViewMode in {}").format( appWin.windowType ) )
             try: thisOne['FormatViewMode'] = appWin._formatViewMode
             except AttributeError:
-                if 'TSV' not in appWin.windowType:
+                if 'CSV' not in appWin.windowType and 'TSV' not in appWin.windowType:
                     logging.critical( "getCurrentChildWindowSettings: " + _("Why no formatViewMode in {}").format( appWin.windowType ) )
 
         if appWin.windowType.endswith( 'EditWindow' ):
@@ -622,7 +628,7 @@ def saveNewWindowSetup():
         BiblelatorGlobals.theApp.windowsSettingsDict[swnd.result] = BiblelatorGlobals.theApp.windowsSettingsDict['Current'] # swnd.result is the new window name
         #dPrint( 'Quiet', debuggingThisModule, "swS", BiblelatorGlobals.theApp.windowsSettingsDict )
         writeSettingsFile() # Save file now in case we crash
-        BiblelatorGlobals.theApp.createMenuBar() # refresh
+        BiblelatorGlobals.theApp._createMenuBar() # refresh
 # end of saveNewWindowSetup
 
 
@@ -643,7 +649,7 @@ def deleteExistingWindowSetup():
             assert dwnd.result in BiblelatorGlobals.theApp.windowsSettingsDict
         del BiblelatorGlobals.theApp.windowsSettingsDict[dwnd.result]
         BiblelatorGlobals.theApp.settings.saveINI() # Save file now in case we crash ###-- don't worry -- it's easy to delete one
-        BiblelatorGlobals.theApp.createMenuBar() # refresh
+        BiblelatorGlobals.theApp._createMenuBar() # refresh
 # end of deleteExistingWindowSetup
 
 
@@ -652,8 +658,8 @@ def viewSettings():
     """
     Open a pop-up text window with the current settings displayed.
     """
+    fnPrint( debuggingThisModule, "viewSettings()" )
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "viewSettings()" )
         if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "viewSettings" )
 
     tEW = TextEditWindow()
@@ -661,7 +667,7 @@ def viewSettings():
     if not tEW.setFilepath( BiblelatorGlobals.theApp.settings.settingsFilepath ) \
     or not tEW.loadText():
         tEW.doClose()
-        showError( APP_NAME, _("Sorry, unable to open settings file") )
+        showError( BiblelatorGlobals.theApp, "Settings", _("Sorry, unable to open settings file") )
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed viewSettings" )
     else:
         BiblelatorGlobals.theApp.childWindows.append( tEW )
@@ -838,12 +844,11 @@ def doSendUsageStatistics():
 
     Note that Biblelator is mostly closed down at this stage.
     """
+    fnPrint( debuggingThisModule, "doSendUsageStatistics()" )
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "doSendUsageStatistics()" )
         assert BiblelatorGlobals.theApp.internetAccessEnabled
         assert BiblelatorGlobals.theApp.sendUsageStatisticsEnabled
-    elif BibleOrgSysGlobals.verbosityLevel > 0:
-        vPrint( 'Quiet', debuggingThisModule, _("  Sending program usage info…") )
+    vPrint( 'Quiet', debuggingThisModule, _("  Sending program usage info…") )
 
     adjAppName = APP_NAME.replace('/','-').replace(':','_').replace('\\','_').replace(' ','_')
     adjUserName = BiblelatorGlobals.theApp.currentUserName.replace('/','-').replace(':','_').replace('\\','_')

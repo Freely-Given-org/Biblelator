@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
     class BibleResourceWindowAddon( BibleWindowAddon )
             -- used below by BibleResourceWindow
         __init__( self, moduleID, defaultContextViewMode, defaultFormatViewMode )
-        createMenuBar( self )
+        _createMenuBar( self )
         changeBibleContextView( self )
         changeBibleFormatView( self )
         changeBibleGroupCode( self )
@@ -51,15 +51,15 @@ Windows and frames to allow display and manipulation of
         getCachedVerseData( self, verseKey )
         setCurrentVerseKey( self, newVerseKey )
         updateShownBCV( self, newReferenceVerseKey, originator=None )
-        doHelp( self, event=None )
-        doAbout( self, event=None )
+        _doHelp( self, event=None )
+        _doAbout( self, event=None )
         doClose( self, event=None )
 
     #class BibleResourceWindow( ChildWindow, BibleResourceWindowAddon )
             #-- used below by SwordBibleResourceWindow, DBPBibleResourceWindow, InternalBibleResourceWindow, HebrewBibleResourceWindow
             #-- used by BibleResourceCollectionWindow, BibleReferenceCollectionWindow
         #__init__( self, windowType, moduleID, defaultContextViewMode, defaultFormatViewMode )
-        ##createMenuBar( self )
+        ##_createMenuBar( self )
         ##changeBibleContextView( self )
         ##changeBibleFormatView( self )
         ##changeBibleGroupCode( self )
@@ -99,7 +99,7 @@ Windows and frames to allow display and manipulation of
     class InternalBibleResourceWindowAddon( BibleResourceWindowAddon )
                                             --used by InternalBibleResourceWindow, HebrewBibleResourceWindow, USFMEditWindow
         __init__( self, modulePath, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] )
-        #createMenuBar( self )
+        #_createMenuBar( self )
         refreshTitle( self )
         createContextMenu( self )
         getContextVerseData( self, verseKey )
@@ -112,14 +112,14 @@ Windows and frames to allow display and manipulation of
         doAllExports( self )
         _doneExports( self )
         doCheckProject( self )
-        #doHelp( self, event=None )
-        #doAbout( self, event=None )
+        #_doHelp( self, event=None )
+        #_doAbout( self, event=None )
         #doClose( self, event=None )
 
     class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon )
                                             -- used by the main app
         __init__( self, modulePath, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] )
-        #createMenuBar( self )
+        #_createMenuBar( self )
         #refreshTitle( self )
         #createContextMenu( self )
         #getContextVerseData( self, verseKey )
@@ -132,14 +132,14 @@ Windows and frames to allow display and manipulation of
         #doAllExports( self )
         #_doneExports( self )
         #doCheckProject( self )
-        #doHelp( self, event=None )
-        #doAbout( self, event=None )
+        #_doHelp( self, event=None )
+        #_doAbout( self, event=None )
         #doClose( self, event=None )
 
     class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, HebrewInterlinearBibleBoxAddon )
                                             -- used by the main app
         __init__( self, modulePath, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] )
-        #createMenuBar( self )
+        #_createMenuBar( self )
         #refreshTitle( self )
         #createContextMenu( self )
         #getContextVerseData( self, verseKey )
@@ -152,8 +152,8 @@ Windows and frames to allow display and manipulation of
         #doAllExports( self )
         #_doneExports( self )
         #doCheckProject( self )
-        #doHelp( self, event=None )
-        #doAbout( self, event=None )
+        #_doHelp( self, event=None )
+        #_doAbout( self, event=None )
         doClose( self, event=None )
 
     fullDemo()
@@ -277,10 +277,10 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     # end of BibleResourceWindowAddon.__init__
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.createMenuBar()" )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon._createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -380,10 +380,10 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of BibleResourceWindowAddon.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of BibleResourceWindowAddon._createMenuBar
 
 
     def changeBibleContextView( self ):
@@ -845,11 +845,11 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     # end of BibleResourceWindowAddon.updateShownBCV
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -859,14 +859,14 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of BibleResourceWindowAddon.doHelp
+    # end of BibleResourceWindowAddon._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "BibleResourceWindowAddon.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "BibleResourceWindowAddon._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
@@ -875,7 +875,7 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
         except AttributeError: pass # no internalBible
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of BibleResourceWindowAddon.doAbout
+    # end of BibleResourceWindowAddon._doAbout
 
 
     def doClose( self, event=None ):
@@ -978,10 +978,10 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
     ## end of BibleResourceWindow.__init__
 
 
-    ##def createMenuBar( self ):
+    ##def _createMenuBar( self ):
         ##"""
         ##"""
-        ##dPrint( 'Never', debuggingThisModule, _("BibleResourceWindow.createMenuBar()…") )
+        ##dPrint( 'Never', debuggingThisModule, _("BibleResourceWindow._createMenuBar()…") )
         ##self.menubar = tk.Menu( self )
         ###self['menu'] = self.menubar
         ##self.configure( menu=self.menubar ) # alternative
@@ -1081,10 +1081,10 @@ class BibleResourceWindowAddon( BibleWindowAddon ):
 
         ##helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         ##self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        ##helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        ##helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         ##helpMenu.add_separator()
-        ##helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    ### end of BibleResourceWindow.createMenuBar
+        ##helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    ### end of BibleResourceWindow._createMenuBar
 
 
     ##def changeBibleContextView( self ):
@@ -1561,7 +1561,7 @@ class SwordBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
         self.moduleAbbreviation = moduleAbbreviation
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleResourceWindowAddon.__init__( self, 'SwordBibleResourceWindow', self.moduleAbbreviation, defaultContextViewMode, defaultFormatViewMode )
-        self.createMenuBar()
+        self._createMenuBar()
         self.createContextMenu() # Enable right-click menu
 
         #self.SwordModule = None # Loaded later in self.getBeforeAndAfterBibleData()
@@ -1655,7 +1655,7 @@ class DBPBibleResourceWindow( ChildWindow, BibleResourceWindowAddon ):
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleResourceWindowAddon.__init__( self, 'DBPBibleResourceWindow', self.moduleAbbreviation, defaultContextViewMode, defaultFormatViewMode )
 
-        self.createMenuBar()
+        self._createMenuBar()
         # Disable excessive online use
         self.viewMenu.entryconfigure( 'Whole book', state=tk.DISABLED )
         self.viewMenu.entryconfigure( 'Whole chapter', state=tk.DISABLED )
@@ -1757,10 +1757,10 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
     # end of InternalBibleResourceWindowAddon.__init__
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon.createMenuBar()" )
+        fnPrint( debuggingThisModule, "InternalBibleResourceWindowAddon._createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -1848,10 +1848,10 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of InternalBibleResourceWindowAddon.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of InternalBibleResourceWindowAddon._createMenuBar
 
 
     def refreshTitle( self ):
@@ -2047,12 +2047,12 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
     # end of InternalBibleResourceWindowAddon.doCheckProject
 
 
-    #def doHelp( self, event=None ):
+    #def _doHelp( self, event=None ):
         #"""
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doHelp( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
@@ -2062,22 +2062,22 @@ class InternalBibleResourceWindowAddon( BibleResourceWindowAddon ):
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
         #return tkBREAK # so we don't do the main window help also
-    ## end of InternalBibleResourceWindowAddon.doHelp
+    ## end of InternalBibleResourceWindowAddon._doHelp
 
 
-    #def doAbout( self, event=None ):
+    #def _doAbout( self, event=None ):
         #"""
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon.doAbout( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindowAddon._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
-    ## end of InternalBibleResourceWindowAddon.doAbout
+    ## end of InternalBibleResourceWindowAddon._doAbout
 
 
     #def doClose( self, event=None ):
@@ -2123,7 +2123,7 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         InternalBibleResourceWindowAddon.__init__( self, modulePath, defaultContextViewMode, defaultFormatViewMode )
 
-        self.createMenuBar()
+        self._createMenuBar()
         self.createContextMenu() # Enable right-click menu
 
         if self.modulePath is not None:
@@ -2174,10 +2174,10 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
     # end of InternalBibleResourceWindow.__init__
 
 
-    #def createMenuBar( self ):
+    #def _createMenuBar( self ):
         #"""
         #"""
-        #dPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindow.createMenuBar()…") )
+        #dPrint( 'Never', debuggingThisModule, _("InternalBibleResourceWindow._createMenuBar()…") )
         #self.menubar = tk.Menu( self )
         ##self['menu'] = self.menubar
         #self.configure( menu=self.menubar ) # alternative
@@ -2265,10 +2265,10 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
 
         #helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         #self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        #helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        #helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         #helpMenu.add_separator()
-        #helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    ## end of InternalBibleResourceWindow.createMenuBar
+        #helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    ## end of InternalBibleResourceWindow._createMenuBar
 
 
     #def refreshTitle( self ):
@@ -2475,12 +2475,12 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
     ## end of InternalBibleResourceWindow.doCheckProject
 
 
-    #def doHelp( self, event=None ):
+    #def _doHelp( self, event=None ):
         #"""
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doHelp( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
@@ -2490,22 +2490,22 @@ class InternalBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
         #return tkBREAK # so we don't do the main window help also
-    ## end of InternalBibleResourceWindow.doHelp
+    ## end of InternalBibleResourceWindow._doHelp
 
 
-    #def doAbout( self, event=None ):
+    #def _doAbout( self, event=None ):
         #"""
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow.doAbout( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("InternalBibleResourceWindow._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
-    ## end of InternalBibleResourceWindow.doAbout
+    ## end of InternalBibleResourceWindow._doAbout
 
 
     #def doClose( self, event=None ):
@@ -2560,7 +2560,7 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
                         # NOTE: modulePath must be NONE in the above line coz we need a special internal Bible
         self.windowType = 'HebrewBibleResourceWindow'
         self.doToggleStatusBar( setOn=True )
-        self.createMenuBar()
+        self._createMenuBar()
         self.createContextMenu() # Enable right-click menu
         self.setContextViewMode( 'ByVerse' ) # always/only
 
@@ -2591,10 +2591,10 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
     # end of HebrewBibleResourceWindow.__init__
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "HebrewBibleResourceWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "HebrewBibleResourceWindow._createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -2683,10 +2683,10 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of HebrewBibleResourceWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of HebrewBibleResourceWindow._createMenuBar
 
 
     def doGotoNextUnglossedVerse( self ):
@@ -2959,12 +2959,12 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
     ## end of HebrewBibleResourceWindow.doCheckProject
 
 
-    #def doHelp( self, event=None ):
+    #def _doHelp( self, event=None ):
         #"""
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doHelp( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
@@ -2974,22 +2974,22 @@ class HebrewBibleResourceWindow( ChildWindow, InternalBibleResourceWindowAddon, 
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
         #return tkBREAK # so we don't do the main window help also
-    ## end of HebrewBibleResourceWindow.doHelp
+    ## end of HebrewBibleResourceWindow._doHelp
 
 
-    #def doAbout( self, event=None ):
+    #def _doAbout( self, event=None ):
         #"""
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow.doAbout( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("HebrewBibleResourceWindow._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
-    ## end of HebrewBibleResourceWindow.doAbout
+    ## end of HebrewBibleResourceWindow._doAbout
 
 
     def doClose( self, event=None ):

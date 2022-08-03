@@ -5,7 +5,7 @@
 #
 # Global variables for Biblelator Bible display/editing
 #
-# Copyright (C) 2013-2020 Robert Hunt
+# Copyright (C) 2013-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -46,10 +46,10 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
-LAST_MODIFIED_DATE = '2020-05-10' # by RJH
+LAST_MODIFIED_DATE = '2022-07-18' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorGlobals"
 PROGRAM_NAME = "Biblelator Globals"
-PROGRAM_VERSION = '0.46' # This is the version number that will be displayed inside the app
+PROGRAM_VERSION = '0.47' # This is the version number that will be displayed inside the app
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -236,6 +236,14 @@ def centreWindowOnWindow( self, parentWindow, width=400, height=250 ):
 
     self.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
 # end of BiblelatorGlobals.centreWindowOnWindow
+
+
+def makeSafeProgramName( progName:str ) -> str:
+    """
+    If we want to use the program name as a filename.
+    """
+    return progName.replace('/','-').replace(':','_').replace('\\','_')
+# end of BiblelatorGlobals.makeSafeProgramName
 
 
 def errorBeep():

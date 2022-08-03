@@ -75,7 +75,7 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
         vPrint( 'Quiet', debuggingThisModule, "createEmptyUSFMBookText( {} )".format( BBB ) )
 
     USFMAbbreviation = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation( BBB )
-    USFMNumber = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber( BBB )
+    USFMNumber = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr( BBB )
     bookText = '\\id {} Empty book created by {}\n'.format( USFMAbbreviation.upper(), BiblelatorGlobals.APP_NAME_VERSION )
     bookText += '\\ide UTF-8\n'
     bookText += '\\h Bookname\n'
@@ -146,7 +146,7 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
             #continue
 
         USFMAbbreviation = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation( BBB )
-        USFMNumber = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber( BBB )
+        USFMNumber = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr( BBB )
 
         if requestDict['Fill'] == 'None': bookText = ''
         elif requestDict['Fill'] == 'Basic':

@@ -29,7 +29,7 @@ Windows and frames to allow display and manipulation of
     class BibleNotesWindowAddon( BibleResourceWindowAddon )
                                             --used by BibleNotesWindow, HebrewBibleResourceWindow, USFMEditWindow
         __init__( self, modulePath, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] )
-        #createMenuBar( self )
+        #_createMenuBar( self )
         refreshTitle( self )
         createContextMenu( self )
         getContextVerseData( self, verseKey )
@@ -42,14 +42,14 @@ Windows and frames to allow display and manipulation of
         doAllExports( self )
         _doneExports( self )
         doCheckProject( self )
-        #doHelp( self, event=None )
-        #doAbout( self, event=None )
+        #_doHelp( self, event=None )
+        #_doAbout( self, event=None )
         #doClose( self, event=None )
 
     class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon )
                                             -- used by the main app
         __init__( self, modulePath, defaultContextViewMode=BIBLE_CONTEXT_VIEW_MODES[0], defaultFormatViewMode=BIBLE_FORMAT_VIEW_MODES[0] )
-        #createMenuBar( self )
+        #_createMenuBar( self )
         #refreshTitle( self )
         #createContextMenu( self )
         #getContextVerseData( self, verseKey )
@@ -62,8 +62,8 @@ Windows and frames to allow display and manipulation of
         #doAllExports( self )
         #_doneExports( self )
         #doCheckProject( self )
-        #doHelp( self, event=None )
-        #doAbout( self, event=None )
+        #_doHelp( self, event=None )
+        #_doAbout( self, event=None )
         #doClose( self, event=None )
 
     briefDemo()
@@ -106,10 +106,10 @@ from Biblelator.Dialogs.BiblelatorSimpleDialogs import showInfo, showError
 from Biblelator.Dialogs.BiblelatorDialogs import GetBibleBookRangeDialog
 
 
-LAST_MODIFIED_DATE = '2022-07-12' # by RJH
+LAST_MODIFIED_DATE = '2022-07-17' # by RJH
 SHORT_PROGRAM_NAME = "BibleNotesWindow"
 PROGRAM_NAME = "Biblelator Bible Notes Resource Window"
-PROGRAM_VERSION = '0.46'
+PROGRAM_VERSION = '0.47'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -138,10 +138,10 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
     # end of BibleNotesWindowAddon.__init__
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.createMenuBar()" )
+        fnPrint( debuggingThisModule, "BibleNotesWindowAddon._createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -229,10 +229,10 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of BibleNotesWindowAddon.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of BibleNotesWindowAddon._createMenuBar
 
 
     def refreshTitle( self ):
@@ -364,7 +364,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
 
         if verseContextData is None:
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                vPrint( 'Quiet', debuggingThisModule, "  ", "BibleNotesWindowAddon.displayAppendVerse has no data for", verseKey )
+                vPrint( 'Quiet', debuggingThisModule, f"  BibleNotesWindowAddon.displayAppendVerse has no data for {verseKey}" )
             verseDataList = context = None
         elif isinstance( verseContextData, tuple ):
             assert len(verseContextData) == 2
@@ -385,7 +385,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
 
         if verseDataList is None:
             if C!=0 and V!=0:
-                vPrint( 'Quiet', debuggingThisModule, "  ", "BibleNotesWindowAddon.displayAppendVerse has no data for", self.moduleID, verseKey )
+                vPrint( 'Quiet', debuggingThisModule, f"  BibleNotesWindowAddon.displayAppendVerse has no data for {self.moduleID} {verseKey}" )
             #self.textBox.insert( tk.END, '--' )
         else:
             #hadVerseText = False
@@ -396,7 +396,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
             endMarkers = []
 
             # Pre-process the note(s) to extract them out of the pseudo-USFM
-            dPrint( 'Verbose', debuggingThisModule, f"Preprocessing notes from {len(verseDataList)} entries" )
+            dPrint( 'Verbose', debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse preprocessing notes from {len(verseDataList)} entries" )
             notes = []
             thisNote = {}
             markerName = None
@@ -428,7 +428,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
             if thisNote: notes.append( thisNote )
             # dPrint( 'Info', debuggingThisModule, f"notes ({len(notes)}) {notes}")
 
-            vPrint( 'Info', debuggingThisModule, f"Displaying {len(notes)} notes from {len(verseDataList)} entries" )
+            vPrint( 'Info', debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse displaying {len(notes)} notes from {len(verseDataList)} entries" )
             for n, note in enumerate( notes, start=1 ):
                 if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
                 if len(notes) > 1:
@@ -613,12 +613,12 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
     # end of BibleNotesWindowAddon.doCheckProject
 
 
-    #def doHelp( self, event=None ):
+    #def _doHelp( self, event=None ):
         #"""
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindowAddon.doHelp( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindowAddon._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
@@ -628,22 +628,22 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
         #return tkBREAK # so we don't do the main window help also
-    ## end of BibleNotesWindowAddon.doHelp
+    ## end of BibleNotesWindowAddon._doHelp
 
 
-    #def doAbout( self, event=None ):
+    #def _doAbout( self, event=None ):
         #"""
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindowAddon.doAbout( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindowAddon._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
-    ## end of BibleNotesWindowAddon.doAbout
+    ## end of BibleNotesWindowAddon._doAbout
 
 
     #def doClose( self, event=None ):
@@ -689,7 +689,7 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleNotesWindowAddon.__init__( self, folderpath )
 
-        self.createMenuBar()
+        self._createMenuBar()
         self.createContextMenu() # Enable right-click menu
 
         if self.folderpath is not None:
@@ -708,10 +708,10 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
     # end of BibleNotesWindow.__init__
 
 
-    #def createMenuBar( self ):
+    #def _createMenuBar( self ):
         #"""
         #"""
-        #dPrint( 'Never', debuggingThisModule, _("BibleNotesWindow.createMenuBar()…") )
+        #dPrint( 'Never', debuggingThisModule, _("BibleNotesWindow._createMenuBar()…") )
         #self.menubar = tk.Menu( self )
         ##self['menu'] = self.menubar
         #self.configure( menu=self.menubar ) # alternative
@@ -799,10 +799,10 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
 
         #helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         #self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        #helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        #helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         #helpMenu.add_separator()
-        #helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    ## end of BibleNotesWindow.createMenuBar
+        #helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    ## end of BibleNotesWindow._createMenuBar
 
 
     #def refreshTitle( self ):
@@ -1009,12 +1009,12 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
     ## end of BibleNotesWindow.doCheckProject
 
 
-    #def doHelp( self, event=None ):
+    #def _doHelp( self, event=None ):
         #"""
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doHelp( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
@@ -1024,22 +1024,22 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
         #return tkBREAK # so we don't do the main window help also
-    ## end of BibleNotesWindow.doHelp
+    ## end of BibleNotesWindow._doHelp
 
 
-    #def doAbout( self, event=None ):
+    #def _doAbout( self, event=None ):
         #"""
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doAbout( {} )").format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
-    ## end of BibleNotesWindow.doAbout
+    ## end of BibleNotesWindow._doAbout
 
 
     #def doClose( self, event=None ):

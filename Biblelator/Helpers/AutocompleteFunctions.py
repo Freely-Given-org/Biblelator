@@ -232,7 +232,7 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
         try:
             for line in bookFile:
                 lineCount += 1
-                if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF
+                if lineCount==1 and encoding.lower()=='utf-8' and line[0]==BibleOrgSysGlobals.BOM:
                     logging.info( "countBookWords: Detected Unicode Byte Order Marker (BOM) in {}".format( USFMFilepath ) )
                     line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
                 if line and line[-1]=='\n': line=line[:-1] # Removing trailing newline character
@@ -474,7 +474,7 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
     with open( dictionaryFilepath, 'rt', encoding=encoding ) as dictionaryFile:
         for line in dictionaryFile:
             lineCount += 1
-            if lineCount==1 and encoding.lower()=='utf-8' and line[0]==chr(65279): #U+FEFF or \ufeff
+            if lineCount==1 and encoding.lower()=='utf-8' and line[0]==BibleOrgSysGlobals.BOM:
                 logging.info( "loadHunspellAutocompleteWords: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                 line = line[1:] # Remove the Unicode Byte Order Marker (BOM)
             if line and line[-1]=='\n': line=line[:-1] # Remove trailing newline character
@@ -669,7 +669,7 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
         for line in dictionaryFile:
             lineCount += 1
             if lineCount==1:
-                if line[0]==chr(65279): #U+FEFF
+                if line[0]==BibleOrgSysGlobals.BOM:
                     logging.info( "loadILEXAutocompleteWords1: Detected Unicode Byte Order Marker (BOM) in {}".format( dictionaryFilepath ) )
                     line = line[1:] # Remove the UTF-16 Unicode Byte Order Marker (BOM)
                 elif line[:3] == 'ï»¿': # 0xEF,0xBB,0xBF

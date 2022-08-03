@@ -136,10 +136,10 @@ from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, 
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 
 
-LAST_MODIFIED_DATE = '2022-07-12' # by RJH
+LAST_MODIFIED_DATE = '2022-07-17' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTextBoxes"
 PROGRAM_NAME = "Biblelator specialised text widgets"
-PROGRAM_VERSION = '0.46'
+PROGRAM_VERSION = '0.47'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -857,7 +857,7 @@ class ChildBoxAddon():
 
         for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ('Find',self.doBoxFind), ('Refind',self.doBoxRefind),
-                             #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             #('Help',self._doHelp), ('Info',self.doShowInfo), ('About',self._doAbout),
                              #('ShowMain',self.parentWindow.doShowMainWindow),
                              ('Close',self.doClose),
                              ):
@@ -1124,7 +1124,7 @@ class BibleBoxAddon():
 
         for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
-                             #('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             #('Help',self._doHelp), ('Info',self.doShowInfo), ('About',self._doAbout),
                              #('ShowMain',self.doShowMainWindow),
                              ('Close',self.doClose), ):
             self._createStandardBoxKeyboardBinding( name, commandFunction )
@@ -1473,11 +1473,11 @@ class BibleBoxAddon():
             assert isinstance( newVerseKey, SimpleVerseKey )
 
         BBB, C, V = newVerseKey.getBCV()
-        dPrint( 'Verbose', debuggingThisModule, f"getBeforeAndAfterBibleData1 {BBB=} {C=} {V=}" )
+        dPrint( 'Verbose', debuggingThisModule, f"BibleBoxAddon.getBeforeAndAfterBibleData1 {BBB=} {C=} {V=}" )
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-        dPrint( 'Verbose', debuggingThisModule, f"  getBeforeAndAfterBibleData2 {BBB=} {intC=} {intV=}" )
+        dPrint( 'Verbose', debuggingThisModule, f"  BibleBoxAddon.getBeforeAndAfterBibleData2 {BBB=} {intC=} {intV=}" )
         if intV is None:
-            dPrint( 'Quiet', debuggingThisModule, f"getBeforeAndAfterBibleData: fixing intV from None ({V=})" )
+            dPrint( 'Quiet', debuggingThisModule, f"BibleBoxAddon.getBeforeAndAfterBibleData: fixing intV from None ({V=})" )
             V, intV = '1', 1
 
         # Determine the PREVIOUS valid verse numbers
@@ -1485,7 +1485,7 @@ class BibleBoxAddon():
         previousVersesData = []
         for n in range( -BiblelatorGlobals.theApp.viewVersesBefore, 0 ):
             failed = False
-            vPrint( 'Info', debuggingThisModule, "  getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
+            dPrint( 'Never', debuggingThisModule, "  BibleBoxAddon.getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
             if prevIntV is not None and prevIntV > 0: prevIntV -= 1
             elif prevIntC > 0:
                 prevIntC -= 1
@@ -1669,7 +1669,7 @@ class BibleBoxAddon():
 
         ##for name,commandFunction in ( ('SelectAll',self.doSelectAll), #('Copy',self.doCopy),
                              ##('Find',self.doBibleFind), #('Refind',self.doBibleRefind),
-                             ###('Help',self.doHelp), ('Info',self.doShowInfo), ('About',self.doAbout),
+                             ###('Help',self._doHelp), ('Info',self.doShowInfo), ('About',self._doAbout),
                              ###('ShowMain',self.doShowMainWindow),
                              ##('Close',self.doClose), ):
             ##self._createStandardBoxKeyboardBinding( name, commandFunction )
@@ -2281,7 +2281,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
-            fnPrint( 'Quiet', debuggingThisModule, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine( {ieLineNumber}, {ieText=}, {ieTags=} )" )
+            fnPrint( debuggingThisModule, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine( {ieLineNumber}, {ieText=}, {ieTags=} )" )
             if BibleOrgSysGlobals.debugFlag:
                 assert isinstance( ieLineNumber, int )
                 assert isinstance( ieText, str )

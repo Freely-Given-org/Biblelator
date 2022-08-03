@@ -67,10 +67,10 @@ from Biblelator.Helpers.AutocompleteFunctions import getCharactersBeforeCursor, 
                                 getWordBeforeSpace, addNewAutocompleteWord, acceptAutocompleteSelection
 
 
-LAST_MODIFIED_DATE = '2022-07-12' # by RJH
+LAST_MODIFIED_DATE = '2022-07-18' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTSVEditWindow"
 PROGRAM_NAME = "Biblelator TSV Edit Window"
-PROGRAM_VERSION = '0.46'
+PROGRAM_VERSION = '0.47'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -80,12 +80,12 @@ REFRESH_TITLE_TIME = 500 # msecs
 CHECK_DISK_CHANGES_TIME = 33333 # msecs
 NO_TYPE_TIME = 6000 # msecs
 NUM_AUTOCOMPLETE_POPUP_LINES = 6
-MAX_PSEUDOVERSES = 200 # What should this really be?
+MAX_PSEUDOVERSES = 200 # In non-books or non-chapters (like introductions) -- what should this really be?
 
 
-class RowFrame( Frame ):
+class TNRowFrame( Frame ):
     """
-    Class to display the TSV rows before or after the current row.
+    Class to display the TN (unfoldingWord Translators' Notes) TSV rows before or after the current row.
 
     It only displays a vital subset of the row data.
     """
@@ -93,11 +93,9 @@ class RowFrame( Frame ):
         """
         Create the widgets.
         """
-        fnPrint( debuggingThisModule, "RowFrame.__init__()" )
+        # fnPrint( debuggingThisModule, "TNRowFrame.__init__()" )
         self.parent = parent
         super().__init__( parent )
-
-        padX, padY = 2, 2
 
         self.rowNumberLabel = Label( self, relief=tk.SUNKEN )
         self.verseLabel = Label( self, relief=tk.SUNKEN )
@@ -106,19 +104,20 @@ class RowFrame( Frame ):
         self.GLQuoteLabel = Label( self, relief=tk.SUNKEN, width=10 )
         self.occurrenceNoteLabel = Label( self, relief=tk.SUNKEN, width=20 )
 
+        padX, padY = 2, 2
         self.rowNumberLabel.pack( side=tk.LEFT, padx=padX, pady=padY )
         self.verseLabel.pack( side=tk.LEFT, padx=padX, pady=padY )
         self.supportReferenceLabel.pack( side=tk.LEFT, fill=tk.X, padx=padX, pady=padY )
         self.origQuoteLabel.pack( side=tk.LEFT, fill=tk.X, padx=padX, pady=padY )
         self.GLQuoteLabel.pack( side=tk.LEFT, fill=tk.X, padx=padX, pady=padY )
         self.occurrenceNoteLabel.pack( side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=padX, pady=padY )
-    # end of RowFrame.__init__ function
+    # end of TNRowFrame.__init__ function
 
 
     def fill( self, rowNumber:int, rowData:Optional[List[str]] ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"RowFrame.fill( {rowNumber}, {str(rowData)[:100]}… )" )
+        # fnPrint( debuggingThisModule, f"TNRowFrame.fill( {rowNumber}, {str(rowData)[:100]}… )" )
 
         if rowData is None:
             self.rowNumberLabel['text'] = ''
@@ -130,13 +129,13 @@ class RowFrame( Frame ):
 
         else:
             self.rowNumberLabel['text'] = rowNumber
-            self.verseLabel['text'] = rowData[self.parent.verseColumn]
-            self.supportReferenceLabel['text'] = rowData[self.parent.supportReferenceColumn]
-            self.origQuoteLabel['text'] = rowData[self.parent.origQuoteColumn]
-            self.GLQuoteLabel['text'] = rowData[self.parent.GLQuoteColumn]
-            self.occurrenceNoteLabel['text'] = rowData[self.parent.occurrenceNoteColumn]
-    # end of RowFrame.fill function
-# end of RowFrame class
+            self.verseLabel['text'] = rowData[self.parent.verseColumnNumber]
+            self.supportReferenceLabel['text'] = rowData[self.parent.supportReferenceColumnNumber]
+            self.origQuoteLabel['text'] = rowData[self.parent.origQuoteColumnNumber]
+            self.GLQuoteLabel['text'] = rowData[self.parent.GLQuoteColumnNumber]
+            self.occurrenceNoteLabel['text'] = rowData[self.parent.occurrenceNoteColumnNumber]
+    # end of TNRowFrame.fill function
+# end of TNRowFrame class
 
 
 
@@ -160,9 +159,14 @@ class TSVEditWindowAddon:
         self.getNumVerses = lambda BBB,C: MAX_PSEUDOVERSES if BBB=='UNK' or C=='-1' or C==-1 \
                                         else self.BibleOrganisationalSystem.getNumVerses( BBB, C )
 
-        self.lastBBB = None
-        self.current_row = None
+        self.BBB = None
+        self.currentRowNumber = None
         self.numDataRows = 0
+        self.columnSeparator = None
+
+        self.hadBOM = False
+        self.tsvHeaders:List[str] = []
+        self.tsvTable:List[List] = []
 
         self.onTextNoChangeID = None
         self.editStatus = 'Editable'
@@ -186,8 +190,8 @@ class TSVEditWindowAddon:
         # # self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         # self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         # self.textBox.setTextChangeCallback( self.onTextChange )
-        # self.createEditorKeyboardBindings()
-        # #self.createMenuBar()
+        # self._createEditorKeyboardBindings()
+        # #self._createMenuBar()
         # self.createContextMenu() # Enable right-click menu
 
         self.lastFiletime = self.lastFilesize = None
@@ -235,13 +239,12 @@ class TSVEditWindowAddon:
         self.autosaveScheduled = False
 
         # self.thisBookUSFMCode = None
-        # self.loadBookDataFromDisk()
-        self.tsvHeaders = []
-        self.buildWidgets()
+        # self._loadBookDataFromDisk()
+        self._buildWidgets()
         # self._gotoRow()
-        # self.validateTSVTable() # _gotoRow() sets self.thisBookUSFMCode needed by validateTSVTable()
+        # self._validateTSVTable() # _gotoRow() sets self.thisBookUSFMCode needed by _validateTSVTable()
 
-        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
+        self.after( CHECK_DISK_CHANGES_TIME, self._checkForDiskChanges )
         #self.after( REFRESH_TITLE_TIME, self.refreshTitle )
         self.loading = self.hadTextWarning = False
         #self.lastTextChangeTime = time()
@@ -272,24 +275,24 @@ class TSVEditWindowAddon:
         # Check the book
         if not newReferenceVerseKey or newReferenceVerseKey==self.currentVerseKey: return
 
-        if self.current_row: # The last row might have changed
-            self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+        if self.currentRowNumber: # The last row might have changed
+            self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
 
         oldVerseKey = self.currentVerseKey
         oldBBB, oldC, oldV = (None,None,None) if oldVerseKey is None else oldVerseKey.getBCV()
 
         BBB, C, V = newReferenceVerseKey.getBCV()
-        # dPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.updateShownBCV got {BBB} {C}:{V}" )
+        # dPrint( 'Quiet', debuggingThisModule, f"TSVEditWindowAddon.updateShownBCV got {BBB} {C}:{V} was {oldBBB} {oldC}:{oldV}" )
         if BBB != oldBBB:
             # dPrint( 'Verbose', debuggingThisModule, f"  updateShownBCV switching from {oldBBB} to {BBB}" )
             if oldBBB and oldBBB != 'UNK':
-                # self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+                # self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
                 self.doSave() # Save existing file if necessary
             self.rowNumberVar.set( 1 ) # In case we're loading a shorter book
-            self.current_row = None
-            self.loadBookDataFromDisk( BBB )
-            self.buildWidgets() # again coz columns could be different now???
-            self.validateTSVTable() # _gotoRow() sets self.thisBookUSFMCode needed by validateTSVTable()
+            self.currentRowNumber = None
+            self._loadBookDataFromDisk( BBB )
+            self._buildWidgets() # again coz columns could be different now???
+            self._validateTSVTable() # _gotoRow() sets self.thisBookUSFMCode needed by _validateTSVTable()
 
         # Go through all our rows to find if this verse occurs in the table
         # NOTE: The present code doesn't change the row if there's no entry for that BCV ref
@@ -297,11 +300,12 @@ class TSVEditWindowAddon:
         for j, row in enumerate( self.tsvTable ):
             if (row[self.chapterColumn] == newReferenceVerseKey.C
               or (row[self.chapterColumn]=='front' and newReferenceVerseKey.C in ('-1','0',))) \
-            and (row[self.verseColumn] == newReferenceVerseKey.V
-              or (row[self.verseColumn]=='intro' and newReferenceVerseKey.V=='0')):
+            and (row[self.verseColumnNumber] == newReferenceVerseKey.V
+              or (row[self.verseColumnNumber]=='intro' and newReferenceVerseKey.V=='0')):
                 self.rowNumberVar.set( j )
                 self._gotoRow( notifyMain=False ) # Don't notify up or it gets recursive
                 break
+        else: dPrint( 'Quiet', debuggingThisModule, f"Unable to find row(s) for {BBB} {C}:{V}" )
     # end of TSVEditWindowAddon.updateShownBCV function
 
 
@@ -318,9 +322,9 @@ class TSVEditWindowAddon:
     #             load the new book text
     #         3/ Load the appropriate verses into the editor according to the contextViewMode.
     #     """
-    #     logging.debug( "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
+    #     logging.debug( "TSVEditWindowAddon.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
     #     if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-    #         vPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
+    #         vPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
     #         #dPrint( 'Quiet', debuggingThisModule, "contextViewMode", self._contextViewMode )
     #         #assert self._formatViewMode == 'Unformatted' # Only option done so far
 
@@ -328,7 +332,7 @@ class TSVEditWindowAddon:
     #     self.textBox.configure( background=self.defaultBackgroundColour ) # Go back to default background
     #     if self._formatViewMode != 'Unformatted': # Only option done so far
     #         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-    #             vPrint( 'Quiet', debuggingThisModule, "Ignoring {!r} mode for USFMEditWindow".format( self._formatViewMode ) )
+    #             vPrint( 'Quiet', debuggingThisModule, "Ignoring {!r} mode for TSVEditWindowAddon".format( self._formatViewMode ) )
     #         return
 
     #     oldVerseKey = self.currentVerseKey
@@ -355,7 +359,7 @@ class TSVEditWindowAddon:
 
     #     if self.textBox.edit_modified(): # we need to extract the changes into self.bookText
     #         assert self.bookTextModified
-    #         self.bookText = self.getEntireText()
+    #         self.bookText = self._getEntireText()
     #         if newBBB == oldBBB: # We haven't changed books -- update our book cache
     #             self.cacheBook( newBBB )
 
@@ -380,7 +384,7 @@ class TSVEditWindowAddon:
     #         self.editStatus = 'Editable'
     #         self.bookText = self.getBookDataFromDisk( newBBB )
     #         if self.bookText is None:
-    #             uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber(newBBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(newBBB)
+    #             uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr(newBBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(newBBB)
     #             if uNumber is None or uAbbrev is None: # no use asking about creating the book
     #                 # NOTE: I think we've already shown this error in getBookDataFromDisk()
     #                 #showError( self, APP_NAME, _("Couldn't determine USFM filename for {!r} book").format( newBBB ) )
@@ -405,12 +409,12 @@ class TSVEditWindowAddon:
     #     #   while at the same time, setting self.bookTextBefore and self.bookTextAfter
     #     #   (so that combining these three components, would reconstitute the entire file).
     #     if self.bookText is not None:
-    #         self.loading = True # Turns off USFMEditWindow onTextChange notifications for now
+    #         self.loading = True # Turns off TSVEditWindowAddon onTextChange notifications for now
     #         self.clearText() # Leaves the text box enabled
     #         startingFlag = True
 
     #         elif self._contextViewMode == 'ByBook':
-    #             vPrint( 'Never', debuggingThisModule, 'USFMEditWindow.updateShownBCV', 'ByBook2' )
+    #             vPrint( 'Never', debuggingThisModule, 'TSVEditWindowAddon.updateShownBCV', 'ByBook2' )
     #             self.bookTextBefore = self.bookTextAfter = ''
     #             BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
     #             for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
@@ -434,27 +438,27 @@ class TSVEditWindowAddon:
     #     # Make sure we can see what we're supposed to be looking at
     #     desiredMark = 'C{}V{}'.format( newVerseKey.getChapterNumber(), newVerseKey.getVerseNumber() )
     #     try: self.textBox.see( desiredMark )
-    #     except tk.TclError: vPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.updateShownBCV couldn't find {} mark {!r} for {}".format( newVerseKey.getBBB(), desiredMark, self.moduleID ) )
+    #     except tk.TclError: vPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.updateShownBCV couldn't find {} mark {!r} for {}".format( newVerseKey.getBBB(), desiredMark, self.moduleID ) )
     #     self.lastCVMark = desiredMark
 
     #     # Put the cursor back where it was (if necessary)
-    #     self.loading = True # Turns off USFMEditWindow onTextChange notifications for now
+    #     self.loading = True # Turns off TSVEditWindowAddon onTextChange notifications for now
     #     self.textBox.mark_set( tk.INSERT, savedCursorPosition )
     #     self.loading = False # Turns onTextChange notifications back on
 
     #     self.refreshTitle()
     #     if self._showStatusBarVar.get(): self.setReadyStatus()
-    # # end of USFMEditWindow.updateShownBCV
+    # # end of TSVEditWindowAddon.updateShownBCV
 
 
-    def loadBookDataFromDisk( self, BBB ) -> bool:
+    def _loadBookDataFromDisk( self, BBB:str ) -> bool:
         """
         Fetches and returns the table for the given book
             by reading the TSV source file completely
             and saving the row and columns.
         """
-        logging.debug( f"USFMEditWindow.loadBookDataFromDisk( {BBB} ) was {self.lastBBB}…" )
-        vPrint( 'Never', debuggingThisModule, "USFMEditWindow.loadBookDataFromDisk( {} ) was {}".format( BBB, self.lastBBB ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._loadBookDataFromDisk( {} ) was {}".format( BBB, self.BBB ) )
+        logging.debug( f"TSVEditWindowAddon._loadBookDataFromDisk( {BBB} ) was {self.BBB}…" )
 
         # if BBB != self.lastBBB:
         #     #self.bookText = None
@@ -464,7 +468,7 @@ class TSVEditWindowAddon:
 
         # Read the entire file contents at the beginning (assumes lots of RAM)
         self.thisBookUSFMCode = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation( BBB ).upper()
-        USFMnn = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber( BBB )
+        USFMnn = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr( BBB )
         foldername = os.path.split( self.folderpath )[1]
         # dPrint( 'Info', debuggingThisModule, f"Got foldername='{foldername}'" ) # Something like en_tn or en_tw perhaps
         self.filename = f'{foldername}_{USFMnn}-{self.thisBookUSFMCode}.tsv' # Temp hard-coding XXXXX
@@ -493,29 +497,32 @@ class TSVEditWindowAddon:
         # We keep self.originalText and self.numOriginalLines to determine later if we have any changes
 
         vPrint( 'Verbose', debuggingThisModule, "Checking loaded TSV table…" )
-        self.num_columns = None
-        self.tsvTable:List[List] = []
+        self.numColumns = None
+        self.tsvTable = []
         for j, line in enumerate( fileLines, start=1 ):
-            if line and line[-1]=='\n': line = line[:-1] # Remove trailing nl
-            columns = line.split( '\t' )
-            if self.num_columns is None:
-                self.num_columns = len( columns )
-                # dPrint( 'Info', debuggingThisModule, f"  Have {self.num_columns} columns")
-            elif len(columns) != self.num_columns:
-                logging.critical( f"Expected {self.num_columns} columns but found {len(columns)} in row {j} of {self.filepath}" )
+            line = line.rstrip( '\n\r' ) # Remove trailing nl
+            if not self.columnSeparator:
+                if line.count( '\t' ) >= 1: self.columnSeparator = '\t'
+                elif line.count( ',' ) >= 1: self.columnSeparator = ','
+            columns = line.split( self.columnSeparator )
+            if self.numColumns is None:
+                self.numColumns = len( columns )
+                # dPrint( 'Info', debuggingThisModule, f"  Have {self.numColumns} columns")
+            elif len(columns) != self.numColumns:
+                logging.critical( f"Expected {self.numColumns} columns but found {len(columns)} in row {j} of {self.filepath}" )
             self.tsvTable.append( columns )
         self.tsvHeaders = self.tsvTable[0]
-        dPrint( 'Info', debuggingThisModule, f"  Have table headers ({self.num_columns}): {self.tsvHeaders}" )
+        dPrint( 'Info', debuggingThisModule, f"  Have table headers ({self.numColumns}): {self.tsvHeaders}" )
         self.numDataRows = len(self.tsvTable) - 1
-        dPrint( 'Info', debuggingThisModule, f"  Have {self.numDataRows:,} rows" )
+        dPrint( 'Info', debuggingThisModule, f"  Have {self.numDataRows:,} {BBB} rows" )
         return True
-    # end of TSVEditWindowAddon.loadBookDataFromDisk
+    # end of TSVEditWindowAddon._loadBookDataFromDisk
 
 
-    def buildWidgets( self ):
+    def _buildWidgets( self ):
         """
         """
-        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.buildWidgets() for {self.BBB}" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon._buildWidgets() for {self.BBB}" )
 
         # Delete old widgets so we can rebuild without problems (for each new book)
         for widget in self.pack_slaves():
@@ -540,16 +547,16 @@ class TSVEditWindowAddon:
         # self.vScrollbar.pack( side=tk.RIGHT, fill=tk.Y )
         # self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
 
-        self.prevFrame1 = RowFrame( self )
-        self.prevFrame2 = RowFrame( self )
-        self.prevFrame3 = RowFrame( self )
+        self.prevFrame1 = TNRowFrame( self )
+        self.prevFrame2 = TNRowFrame( self )
+        self.prevFrame3 = TNRowFrame( self )
         self.prevFrame1.pack( side=tk.TOP, fill=tk.X, expand=tk.YES )
         self.prevFrame2.pack( side=tk.TOP, fill=tk.X, expand=tk.YES )
         self.prevFrame3.pack( side=tk.TOP, fill=tk.X, expand=tk.YES )
 
-        self.nextFrame1 = RowFrame( self )
-        self.nextFrame2 = RowFrame( self )
-        self.nextFrame3 = RowFrame( self )
+        self.nextFrame1 = TNRowFrame( self )
+        self.nextFrame2 = TNRowFrame( self )
+        self.nextFrame3 = TNRowFrame( self )
         self.nextFrame3.pack( side=tk.BOTTOM, fill=tk.X, expand=tk.YES )
         self.nextFrame2.pack( side=tk.BOTTOM, fill=tk.X, expand=tk.YES )
         self.nextFrame1.pack( side=tk.BOTTOM, fill=tk.X, expand=tk.YES )
@@ -557,25 +564,28 @@ class TSVEditWindowAddon:
         ButtonFrame = Frame( self )
         ButtonFrame.pack( side=tk.TOP, fill=tk.X, expand=True )
 
-        self.moveUpButton = Button( ButtonFrame, text=_('Move row up'), command=self.doMoveUp )
+        self.moveUpButton = Button( ButtonFrame, text=_('Move row up'), command=self._doMoveUp )
         self.moveUpButton.pack( side=tk.LEFT, padx=4, pady=2 )
-        self.moveDownButton = Button( ButtonFrame, text=_('Move row down'), command=self.doMoveDown )
+        self.moveDownButton = Button( ButtonFrame, text=_('Move row down'), command=self._doMoveDown )
         self.moveDownButton.pack( side=tk.LEFT, padx=4, pady=2 )
-        self.addBeforeButton = Button( ButtonFrame, text=_('Add row before'), command=self.doAddBefore )
+        self.addBeforeButton = Button( ButtonFrame, text=_('Add row before'), command=self._doAddBefore )
         self.addBeforeButton.pack( side=tk.LEFT, padx=4, pady=2 )
-        self.addAfterButton = Button( ButtonFrame, text=_('Add row after'), command=self.doAddAfter )
+        self.addAfterButton = Button( ButtonFrame, text=_('Add row after'), command=self._doAddAfter )
         self.addAfterButton.pack( side=tk.LEFT, padx=4, pady=2 )
-        self.deleteRowButton = Button( ButtonFrame, text=_('Delete row'), command=self.doDeleteRow )
+        self.deleteRowButton = Button( ButtonFrame, text=_('Delete row'), command=self._doDeleteRow )
         self.deleteRowButton.pack( side=tk.LEFT, padx=12, pady=2 )
 
         idFrame = Frame( self ) # Row number, Book, C, V, ID
-        secondFrame, thirdFrame = Frame( self ), Frame( self )
         idFrame.pack( side=tk.TOP, fill=tk.X )
+        extraFrame = Frame( self )
+        extraFrame.pack( side=tk.TOP, fill=tk.X, expand=True )
+        secondFrame = Frame( self )
         secondFrame.pack( side=tk.TOP, fill=tk.X, expand=True )
+        thirdFrame = Frame( self )
         thirdFrame.pack( side=tk.TOP, fill=tk.X, expand=True )
 
         Label( idFrame, text=_('Row') ).pack( side=tk.LEFT, padx=(4,1), pady=2 )
-        self.topButton = Button( idFrame, text='◄', width=1, command=self.gotoTop )
+        self.topButton = Button( idFrame, text='◄', width=1, command=self._gotoTop )
         self.topButton.pack( side=tk.LEFT, padx=(2,0), pady=2 )
         self.rowNumberVar = tk.IntVar()
         self.rowNumberVar.set( 1 )
@@ -583,7 +593,7 @@ class TSVEditWindowAddon:
                                 textvariable=self.rowNumberVar, width=4, command=self._spinToNewRow )
         self.rowSpinbox.bind( '<Return>', self._spinToNewRow )
         self.rowSpinbox.pack( side=tk.LEFT, padx=0, pady=2 )
-        self.bottomButton = Button( idFrame, text='►', width=1, command=self.gotoBottom )
+        self.bottomButton = Button( idFrame, text='►', width=1, command=self._gotoBottom )
         self.bottomButton.pack( side=tk.LEFT, padx=(0,4), pady=2 )
 
         self.widgets = []
@@ -608,7 +618,7 @@ class TSVEditWindowAddon:
                 dataWidget.pack()
                 widgetFrame.pack( side=tk.LEFT, padx=(4,1), pady=2 )
             elif headerText == 'Verse':
-                self.verseColumn = j-1
+                self.verseColumnNumber = j-1
                 widgetFrame = Frame( idFrame )
                 headerWidget = Label( widgetFrame, width=6, text=headerText )
                 var = tk.StringVar()
@@ -617,7 +627,7 @@ class TSVEditWindowAddon:
                 dataWidget.pack()
                 widgetFrame.pack( side=tk.LEFT, padx=(1,4), pady=2 )
             elif headerText == 'ID':
-                self.idColumn = j-1
+                self.idColumnNumber = j-1
                 widgetFrame = Frame( idFrame )
                 headerWidget = Label( widgetFrame, text=headerText )
                 dataWidget = Label( widgetFrame )
@@ -626,7 +636,7 @@ class TSVEditWindowAddon:
                 widgetFrame.pack( side=tk.LEFT, padx=6, pady=2 )
                 var = None
             elif headerText == 'SupportReference':
-                self.supportReferenceColumn = j-1
+                self.supportReferenceColumnNumber = j-1
                 widgetFrame = Frame( secondFrame )
                 headerWidget = Label( widgetFrame, width=30, text=headerText )
                 var = tk.StringVar()
@@ -635,7 +645,7 @@ class TSVEditWindowAddon:
                 dataWidget.pack( fill=tk.X, expand=tk.YES )
                 widgetFrame.pack( side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=4, pady=2 )
             elif headerText == 'OrigQuote':
-                self.origQuoteColumn = j-1
+                self.origQuoteColumnNumber = j-1
                 widgetFrame = Frame( secondFrame )
                 headerWidget = Label( widgetFrame, width=35, text=headerText )
                 var = tk.StringVar()
@@ -644,7 +654,7 @@ class TSVEditWindowAddon:
                 dataWidget.pack( fill=tk.X, expand=tk.YES )
                 widgetFrame.pack( side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=(4,2), pady=2 )
             elif headerText == 'Occurrence':
-                self.occurenceColumn = j-1
+                self.occurenceColumnNumber = j-1
                 widgetFrame = Frame( secondFrame )
                 headerWidget = Label( widgetFrame, width=2, text='#' )
                 var = tk.StringVar()
@@ -653,7 +663,7 @@ class TSVEditWindowAddon:
                 dataWidget.pack()
                 widgetFrame.pack( side=tk.LEFT, padx=(2,4), pady=2 )
             elif headerText == 'GLQuote':
-                self.GLQuoteColumn = j-1
+                self.GLQuoteColumnNumber = j-1
                 widgetFrame = Frame( thirdFrame )
                 headerWidget = Label( widgetFrame, width=50, text=headerText )
                 var = tk.StringVar()
@@ -662,7 +672,7 @@ class TSVEditWindowAddon:
                 dataWidget.pack( fill=tk.X, expand=tk.YES )
                 widgetFrame.pack( side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=4, pady=2 )
             elif headerText == 'OccurrenceNote':
-                self.occurrenceNoteColumn = j-1
+                self.occurrenceNoteColumnNumber = j-1
                 widgetFrame = Frame( self )
                 headerWidget = Label( widgetFrame, text=headerText )
 
@@ -688,8 +698,8 @@ class TSVEditWindowAddon:
                 # self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
                 self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
                 self.textBox.setTextChangeCallback( self.onTextChange )
-                self.createEditorKeyboardBindings()
-                #self.createMenuBar()
+                self._createEditorKeyboardBindings()
+                #self._createMenuBar()
                 self.createContextMenu() # Enable right-click menu
                 dataWidget = self.textBox
 
@@ -698,7 +708,7 @@ class TSVEditWindowAddon:
                 widgetFrame.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES, padx=4, pady=2 )
                 var = 'TB'
             else: # it's not one we recognise / usually expect
-                widgetFrame = Frame( self )
+                widgetFrame = Frame( extraFrame )
                 headerWidget = Label( widgetFrame, text=headerText )
                 dataWidget = Label( widgetFrame )
                 headerWidget.pack()
@@ -706,9 +716,9 @@ class TSVEditWindowAddon:
                 widgetFrame.pack( side=tk.LEFT, padx=4, pady=2 )
                 var = None
             # Doesn't work to bind KeyPress coz the text hasn't changed yet!
-            dataWidget.bind( '<KeyRelease>', self.checkCurrentDisplayedRowData )
-            dataWidget.bind( '<FocusIn>', self.checkCurrentDisplayedRowData )
-            dataWidget.bind( '<FocusOut>', self.checkCurrentDisplayedRowData )
+            dataWidget.bind( '<KeyRelease>', self._checkCurrentDisplayedRowData )
+            dataWidget.bind( '<FocusIn>', self._checkCurrentDisplayedRowData )
+            dataWidget.bind( '<FocusOut>', self._checkCurrentDisplayedRowData )
             self.widgets.append( (var,dataWidget) )
 
         self.numLabel = Label( idFrame )
@@ -716,45 +726,45 @@ class TSVEditWindowAddon:
 
         self.setStatus() # Clear it
         BiblelatorGlobals.theApp.setReadyStatus() # So it doesn't get left with an error message on it
-    # end of TSVEditWindowAddon.buildWidgets function
+    # end of TSVEditWindowAddon._buildWidgets function
 
 
     def _spinToNewRow( self, event=None ) -> None:
         """
         Handle a new row number from the row spinbox.
         """
-        fnPrint( debuggingThisModule, f"_spinToNewRow( {event} ) from {self.current_row}" )
-        if self.current_row: # The last row might have changed
-            self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+        fnPrint( debuggingThisModule, f"_spinToNewRow( {event} ) from {self.currentRowNumber}" )
+        if self.currentRowNumber: # The last row might have changed
+            self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self._gotoRow()
     # end of TSVEditWindowAddon._spinToNewRow function
 
     def _gotoRow( self, event=None, force:bool=False, notifyMain:bool=True ) -> None:
         """
-        Handle a new row number.
+        Handle a new row number already set in self.rowNumberVar
         """
-        fnPrint( debuggingThisModule, f"_gotoRow( {event}, f={force}, nM={notifyMain} ) from {self.current_row}" )
+        fnPrint( debuggingThisModule, f"_gotoRow( {event}, f={force}, nM={notifyMain} ) from {self.currentRowNumber}" )
         #dPrint( 'Never', debuggingThisModule, dir(event) )
 
-        row = self.rowNumberVar.get()
-        dPrint( 'Info', debuggingThisModule, f"  _gotoRow got {row} (was {self.current_row})" )
+        rowNumber = self.rowNumberVar.get()
+        dPrint( 'Info', debuggingThisModule, f"  _gotoRow got {rowNumber} (was {self.currentRowNumber})" )
         # Check for bad numbers (they must have manually entered them as spinner doesn't allow this)
-        if row < 1:
+        if rowNumber < 1:
             self.rowNumberVar.set( 1 ); return
-        if row > self.numDataRows:
+        if rowNumber > self.numDataRows:
             self.rowNumberVar.set( self.numDataRows ); return
-        assert 1 <= row <= self.numDataRows
-        if row==self.current_row and not force: return # Nothing to do here
+        assert 1 <= rowNumber <= self.numDataRows
+        if rowNumber==self.currentRowNumber and not force: return # Nothing to do here
 
-        currentRowData = self.tsvTable[row]
+        currentRowData = self.tsvTable[rowNumber]
         self.numLabel.configure( text=f'Have {self.numDataRows:,} rows (plus header)' )
 
         if self.thisBookUSFMCode is None:
             self.thisBookUSFMCode = currentRowData[self.bookColumn]
             self.BBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getBBBFromUSFMAbbreviation( self.thisBookUSFMCode )
         elif currentRowData[self.bookColumn] != self.thisBookUSFMCode:
-            logging.critical( f"Row {row} seems to have a different book code '{currentRowData[self.bookColumn]}' from expected '{self.thisBookUSFMCode}'" )
-        C, V, = currentRowData[self.chapterColumn], currentRowData[self.verseColumn]
+            logging.critical( f"Row {rowNumber} seems to have a different book code '{currentRowData[self.bookColumn]}' from expected '{self.thisBookUSFMCode}'" )
+        C, V = currentRowData[self.chapterColumn], currentRowData[self.verseColumnNumber]
         if C == 'front': C = '-1'
         if V == 'intro': V = '0'
         newVerseKey = SimpleVerseKey( self.BBB,C,V )
@@ -763,31 +773,31 @@ class TSVEditWindowAddon:
             if notifyMain and not self.loading:
                 BiblelatorGlobals.theApp.gotoBCV( self.BBB, C,V, 'TSVEditWindowAddon._gotoRow' ) # Update main window (and from there, other child windows)
 
-        assert len(currentRowData) == self.num_columns
+        assert len(currentRowData) == self.numColumns
         for j, (var,dataWidget) in enumerate( self.widgets ):
             # dPrint( 'Info', debuggingThisModule, f"{j}/ {dir(dataWidget) if j==0 else dataWidget.winfo_name}")
             if var=='TB': self.setAllText( currentRowData[j].replace( '<br>', '\n' ) ) # For TextBox
             elif var: var.set( currentRowData[j] ) # For Entries
             else: dataWidget.configure( text=currentRowData[j] ) # For Labels
 
-        self.prevFrame1.fill( row-3, self.tsvTable[row-3] if row>3 else None )
-        self.prevFrame2.fill( row-2, self.tsvTable[row-2] if row>2 else None )
-        self.prevFrame3.fill( row-1, self.tsvTable[row-1] if row>1 else None )
-        self.nextFrame1.fill( row+1, self.tsvTable[row+1] if row<self.numDataRows else None )
-        self.nextFrame2.fill( row+2, self.tsvTable[row+2] if row<self.numDataRows-1 else None )
-        self.nextFrame3.fill( row+3, self.tsvTable[row+3] if row<self.numDataRows-2 else None )
+        self.prevFrame1.fill( rowNumber-3, self.tsvTable[rowNumber-3] if rowNumber>3 else None )
+        self.prevFrame2.fill( rowNumber-2, self.tsvTable[rowNumber-2] if rowNumber>2 else None )
+        self.prevFrame3.fill( rowNumber-1, self.tsvTable[rowNumber-1] if rowNumber>1 else None )
+        self.nextFrame1.fill( rowNumber+1, self.tsvTable[rowNumber+1] if rowNumber<self.numDataRows else None )
+        self.nextFrame2.fill( rowNumber+2, self.tsvTable[rowNumber+2] if rowNumber<self.numDataRows-1 else None )
+        self.nextFrame3.fill( rowNumber+3, self.tsvTable[rowNumber+3] if rowNumber<self.numDataRows-2 else None )
 
 
-        self.current_row = row
+        self.currentRowNumber = rowNumber
 
         # Update button states
         self.setStatus() # Clear it
-        self.topButton.configure( state=tk.NORMAL if row>1 else tk.DISABLED )
-        self.bottomButton.configure( state=tk.NORMAL if row<self.numDataRows else tk.DISABLED )
-        self.moveUpButton.configure( state=tk.NORMAL if row>1 else tk.DISABLED )
-        self.moveDownButton.configure( state=tk.NORMAL if row<self.numDataRows else tk.DISABLED )
+        self.topButton.configure( state=tk.NORMAL if rowNumber>1 else tk.DISABLED )
+        self.bottomButton.configure( state=tk.NORMAL if rowNumber<self.numDataRows else tk.DISABLED )
+        self.moveUpButton.configure( state=tk.NORMAL if rowNumber>1 else tk.DISABLED )
+        self.moveDownButton.configure( state=tk.NORMAL if rowNumber<self.numDataRows else tk.DISABLED )
         self.deleteRowButton.configure( state=tk.NORMAL if self.numDataRows else tk.DISABLED )
-        self.checkCurrentDisplayedRowData() # Update field states
+        self._checkCurrentDisplayedRowData() # Update field states
     # end of TSVEditWindowAddon._gotoRow function
 
 
@@ -816,126 +826,126 @@ class TSVEditWindowAddon:
     # end of BibleResourceWindowAddon.setCurrentVerseKey
 
 
-    def gotoTop( self, event=None ) -> None:
+    def _gotoTop( self, event=None ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"gotoTop( {event} )" )
-        assert self.current_row > 1
-        self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+        fnPrint( debuggingThisModule, f"_gotoTop( {event} )" )
+        assert self.currentRowNumber > 1
+        self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self.rowNumberVar.set( 1 )
         self._gotoRow() # Refresh
-    # end of TSVEditWindowAddon.gotoTop function
+    # end of TSVEditWindowAddon._gotoTop function
 
-    def gotoBottom( self, event=None ) -> None:
+    def _gotoBottom( self, event=None ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"gotoBottom( {event} )" )
-        assert self.current_row < self.numDataRows
-        self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+        fnPrint( debuggingThisModule, f"_gotoBottom( {event} )" )
+        assert self.currentRowNumber < self.numDataRows
+        self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self.rowNumberVar.set( self.numDataRows )
         self._gotoRow() # Refresh
-    # end of TSVEditWindowAddon.gotoBottom function
+    # end of TSVEditWindowAddon._gotoBottom function
 
 
-    def doMoveUp( self, event=None ) -> None:
+    def _doMoveUp( self, event=None ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"doMoveUp( {event} )" )
-        assert self.current_row > 1
-        currentRowData = self.retrieveCurrentRowData( updateTable=False ) # in case current row was edited
-        self.tsvTable[self.current_row-1], self.tsvTable[self.current_row] = currentRowData, self.tsvTable[self.current_row-1]
-        self.rowNumberVar.set( self.current_row - 1 ) # Stay on the same (moved-up) row
+        fnPrint( debuggingThisModule, f"_doMoveUp( {event} )" )
+        assert self.currentRowNumber > 1
+        currentRowData = self._retrieveCurrentRowData( updateTable=False ) # in case current row was edited
+        self.tsvTable[self.currentRowNumber-1], self.tsvTable[self.currentRowNumber] = currentRowData, self.tsvTable[self.currentRowNumber-1]
+        self.rowNumberVar.set( self.currentRowNumber - 1 ) # Stay on the same (moved-up) row
         self._gotoRow() # Refresh
-    # end of TSVEditWindowAddon.doMoveUp function
+    # end of TSVEditWindowAddon._doMoveUp function
 
-    def doMoveDown( self, event=None ) -> None:
+    def _doMoveDown( self, event=None ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"doMoveDown( {event} )" )
-        assert self.current_row < self.numDataRows
-        currentRowData = self.retrieveCurrentRowData( updateTable=False ) # in case current row was edited
-        self.tsvTable[self.current_row], self.tsvTable[self.current_row+1] = self.tsvTable[self.current_row+1], currentRowData
-        self.rowNumberVar.set( self.current_row + 1 ) # Stay on the same (moved-up) row
+        fnPrint( debuggingThisModule, f"_doMoveDown( {event} )" )
+        assert self.currentRowNumber < self.numDataRows
+        currentRowData = self._retrieveCurrentRowData( updateTable=False ) # in case current row was edited
+        self.tsvTable[self.currentRowNumber], self.tsvTable[self.currentRowNumber+1] = self.tsvTable[self.currentRowNumber+1], currentRowData
+        self.rowNumberVar.set( self.currentRowNumber + 1 ) # Stay on the same (moved-up) row
         self._gotoRow() # Refresh
-    # end of TSVEditWindowAddon.doMoveDown function
+    # end of TSVEditWindowAddon._doMoveDown function
 
-    def doAddBefore( self, event=None ) -> None:
+    def _doAddBefore( self, event=None ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"doAddBefore( {event} )" )
-        currentRowData = self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+        fnPrint( debuggingThisModule, f"_doAddBefore( {event} )" )
+        currentRowData = self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         newRowData = currentRowData.copy()
-        newRowData[self.idColumn] = self.generateID()
-        newRowData[self.occurenceColumn] = '1'
-        newRowData[self.supportReferenceColumn] = newRowData[self.origQuoteColumn] = ''
-        newRowData[self.GLQuoteColumn] = newRowData[self.occurrenceNoteColumn] = ''
-        self.tsvTable.insert( self.current_row, newRowData )
+        newRowData[self.idColumnNumber] = self.generateID()
+        newRowData[self.occurenceColumnNumber] = '1'
+        newRowData[self.supportReferenceColumnNumber] = newRowData[self.origQuoteColumnNumber] = ''
+        newRowData[self.GLQuoteColumnNumber] = newRowData[self.occurrenceNoteColumnNumber] = ''
+        self.tsvTable.insert( self.currentRowNumber, newRowData )
         self.numDataRows += 1
         assert len(self.tsvTable) == self.numDataRows + 1
         self._gotoRow( force=True ) # Stay on the same row number (which is the new row), but cause refresh
-    # end of TSVEditWindowAddon.doAddBefore function
+    # end of TSVEditWindowAddon._doAddBefore function
 
-    def doAddAfter( self, event=None ) -> None:
+    def _doAddAfter( self, event=None ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"doAddAfter( {event} )" )
-        currentRowData = self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+        fnPrint( debuggingThisModule, f"_doAddAfter( {event} )" )
+        currentRowData = self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         newRowData = currentRowData.copy()
-        newRowData[self.idColumn] = self.generateID()
-        newRowData[self.occurenceColumn] = '1'
-        newRowData[self.supportReferenceColumn] = newRowData[self.origQuoteColumn] = ''
-        newRowData[self.GLQuoteColumn] = newRowData[self.occurrenceNoteColumn] = ''
-        self.tsvTable.insert( self.current_row+1, newRowData )
+        newRowData[self.idColumnNumber] = self.generateID()
+        newRowData[self.occurenceColumnNumber] = '1'
+        newRowData[self.supportReferenceColumnNumber] = newRowData[self.origQuoteColumnNumber] = ''
+        newRowData[self.GLQuoteColumnNumber] = newRowData[self.occurrenceNoteColumnNumber] = ''
+        self.tsvTable.insert( self.currentRowNumber+1, newRowData )
         self.numDataRows += 1
         assert len(self.tsvTable) == self.numDataRows + 1
-        self.rowNumberVar.set( self.current_row + 1 ) # Go to the new (=next) row
+        self.rowNumberVar.set( self.currentRowNumber + 1 ) # Go to the new (=next) row
         self._gotoRow() # Refresh
-    # end of TSVEditWindowAddon.doAddAfter function
+    # end of TSVEditWindowAddon._doAddAfter function
 
-    def doDeleteRow( self, event=None ) -> None:
+    def _doDeleteRow( self, event=None ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"doDeleteRow( {event} )" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon._doDeleteRow( {event} )" )
         assert self.numDataRows
-        self.deletedRow = self.tsvTable.pop( self.current_row )
+        self.deletedRow = self.tsvTable.pop( self.currentRowNumber )
         self.numDataRows -= 1
         assert len(self.tsvTable) == self.numDataRows + 1
         self._gotoRow( force=True ) # Stay on the same row, but cause refresh
-    # end of TSVEditWindowAddon.doDeleteRow function
+    # end of TSVEditWindowAddon._doDeleteRow function
 
 
-    def retrieveCurrentRowData( self, updateTable:bool ) -> List[str]:
+    def _retrieveCurrentRowData( self, updateTable:bool ) -> List[str]:
         """
         Get the data out of the displayed boxes and return it.
 
         If updateTable is True, also put any changed data back into the table.
         """
-        fnPrint( debuggingThisModule, f"retrieveCurrentRowData( uT={updateTable}) for {self.current_row}" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon._retrieveCurrentRowData( uT={updateTable}) for {self.currentRowNumber}" )
 
-        if not self.current_row: return # Still setting up -- nothing to do here yet
+        if not self.currentRowNumber: return # Still setting up -- nothing to do here yet
 
         # Extract the data out of the various Label, Entry, and TextBox widgets
-        retrievedRowData = [''] * self.num_columns # Create blank row first
+        retrievedRowData = [''] * self.numColumns # Create blank row first
         for j, (var,dataWidget) in enumerate( self.widgets ):
             # dPrint( 'Info', debuggingThisModule, f"{j}/ {dir(dataWidget) if j==0 else dataWidget.winfo_name}")
             if var=='TB': retrievedRowData[j] = self.getAllText().replace( '\n', '<br>' ) # For TextBox
             elif var: retrievedRowData[j] = var.get() # For Entries
             else: retrievedRowData[j] = dataWidget['text'] # For Labels
-        assert len(retrievedRowData) == self.num_columns
-        # dPrint( 'Quiet', debuggingThisModule, f" got retrieveCurrentRowData: {retrievedRowData}" )
+        assert len(retrievedRowData) == self.numColumns
+        # dPrint( 'Quiet', debuggingThisModule, f" got _retrieveCurrentRowData: {retrievedRowData}" )
 
-        if retrievedRowData == ['', '', '', '', '', '', '', '', '']:
-            logging.critical( f"WHAT WENT WRONG HERE: {self.current_row}" )
+        if retrievedRowData == [''] * self.numColumns:
+            logging.critical( f"WHAT WENT WRONG HERE: {self.currentRowNumber}" )
             return retrievedRowData
 
         # Now we can replace that row in the table (if requested)
-        vPrint( 'Never', debuggingThisModule, f"  Row {self.current_row} has changed: {retrievedRowData != self.tsvTable[self.current_row]}" )
-        if updateTable and retrievedRowData != self.tsvTable[self.current_row]:
-            vPrint( 'Quiet', debuggingThisModule, f"\nRow {self.current_row}: replace {self.tsvTable[self.current_row]}\n   with {retrievedRowData}" )
-            self.tsvTable[self.current_row] = retrievedRowData
+        vPrint( 'Never', debuggingThisModule, f"  Row {self.currentRowNumber} has changed: {retrievedRowData != self.tsvTable[self.currentRowNumber]}" )
+        if updateTable and retrievedRowData != self.tsvTable[self.currentRowNumber]:
+            vPrint( 'Quiet', debuggingThisModule, f"\nRow {self.currentRowNumber}: replace {self.tsvTable[self.currentRowNumber]}\n   with {retrievedRowData}" )
+            self.tsvTable[self.currentRowNumber] = retrievedRowData
 
         return retrievedRowData
-    # end of TSVEditWindowAddon.retrieveCurrentRowData
+    # end of TSVEditWindowAddon._retrieveCurrentRowData
 
 
     def generateID( self ) -> str:
@@ -956,7 +966,7 @@ class TSVEditWindowAddon:
     # end of TSVEditWindowAddon.generateID function
 
 
-    def checkCurrentDisplayedRowData( self, event=None ) -> bool:
+    def _checkCurrentDisplayedRowData( self, event=None ) -> bool:
         """
         Checks the data in the display window for basic errors and warnings,
             e.g., missing book code, verse numbers out of sequence, etc., etc.
@@ -965,10 +975,10 @@ class TSVEditWindowAddon:
 
         Updates widget colours and the status bar to signal to the user.
         """
-        fnPrint( debuggingThisModule, "checkCurrentDisplayedRowData()" )
+        fnPrint( debuggingThisModule, "_checkCurrentDisplayedRowData()" )
         # if self.loading: return
 
-        currentRowData = self.retrieveCurrentRowData( updateTable=False )
+        currentRowData = self._retrieveCurrentRowData( updateTable=False )
 
         self.maxChaptersThisBook = self.getNumChapters( self.BBB )
         currentC = self.currentVerseKey.getChapterNumber()
@@ -995,13 +1005,13 @@ class TSVEditWindowAddon:
                         errorList.append( f"Invalid chapter (number) field: '{fieldData}' in {self.BBB} with {self.maxChaptersThisBook} (max) chapters" ); haveError = True
                     else:
                         lastC = nextC = None
-                        if self.current_row > 1: lastC = self.tsvTable[self.current_row-1][self.chapterColumn]
-                        if self.current_row < self.numDataRows: nextC = self.tsvTable[self.current_row+1][self.chapterColumn]
+                        if self.currentRowNumber > 1: lastC = self.tsvTable[self.currentRowNumber-1][self.chapterColumn]
+                        if self.currentRowNumber < self.numDataRows: nextC = self.tsvTable[self.currentRowNumber+1][self.chapterColumn]
                         if lastC and lastC.isdigit() and intC not in (int(lastC), int(lastC)+1):
                             errorList.append( f"Unexpected chapter (number) field: '{fieldData}' after {lastC}" ); haveError = True
                         elif nextC and nextC.isdigit() and intC not in (int(nextC), int(nextC)-1):
                             errorList.append( f"Unexpected chapter (number) field: '{fieldData}' before {nextC}" ); haveError = True
-            elif j == self.verseColumn: # Entry
+            elif j == self.verseColumnNumber: # Entry
                 if not fieldData:
                     errorList.append( f"Missing verse (number) field" ); haveError = True
                 elif fieldData not in ('intro',) and not fieldData.isdigit():
@@ -1016,17 +1026,17 @@ class TSVEditWindowAddon:
                         errorList.append( f"Invalid verse (number) field: '{fieldData}' in {self.BBB} {currentC} with {self.maxVersesThisChapter} (max) verses" ); haveError = True
                     else:
                         lastV = nextV = None
-                        if self.current_row > 1: lastV = self.tsvTable[self.current_row-1][self.verseColumn]
-                        if self.current_row < self.numDataRows: nextV = self.tsvTable[self.current_row+1][self.verseColumn]
+                        if self.currentRowNumber > 1: lastV = self.tsvTable[self.currentRowNumber-1][self.verseColumnNumber]
+                        if self.currentRowNumber < self.numDataRows: nextV = self.tsvTable[self.currentRowNumber+1][self.verseColumnNumber]
                         if lastV and lastV.isdigit() and intV < int(lastV):
                             errorList.append( f"Unexpected verse (number) field: '{fieldData}' after {lastV}" ); haveError = True
                         elif nextV and nextV.isdigit() and intV > int(nextV):
                             errorList.append( f"Unexpected verse (number) field: '{fieldData}' before {nextV}" ); haveError = True
-            elif j == self.idColumn:
+            elif j == self.idColumnNumber:
                 if len(fieldData) < 4:
                     errorList.append( f"ID field '{fieldData}' is too short" )
                     anyErrors = True
-            elif j == self.supportReferenceColumn: # Label
+            elif j == self.supportReferenceColumnNumber: # Label
                 for badText in ('...',' … ','  '):
                     if badText in fieldData:
                         errorList.append( f"Unallowed '{badText}' in '{fieldData}'" ); haveError = True
@@ -1035,7 +1045,7 @@ class TSVEditWindowAddon:
                         errorList.append( f"Unexpected leading space(s) in '{fieldData}'" ); haveError = True
                     if fieldData[-1] == ' ':
                         errorList.append( f"Unexpected trailing space(s) in '{fieldData}'" ); haveError = True
-            elif j == self.origQuoteColumn: # Entry
+            elif j == self.origQuoteColumnNumber: # Entry
                 for badText in ('...',' … ',' …','… ', '  '):
                     if badText in fieldData:
                         errorList.append( f"Unallowed '{badText}' in '{fieldData}'" ); haveError = True
@@ -1062,14 +1072,14 @@ class TSVEditWindowAddon:
                             elif fieldData not in UGNTtext:
                                 errorList.append( f"Can't find OrigQuote in UGNT: '{fieldData}'" ); haveError = True
                             break
-            elif j == self.occurenceColumn: # Entry
+            elif j == self.occurenceColumnNumber: # Entry
                 if not fieldData:
                     errorList.append( f"Missing occurrence (number) field" ); haveError = True
-                elif currentRowData[self.origQuoteColumn] and fieldData not in '123456789':
+                elif currentRowData[self.origQuoteColumnNumber] and fieldData not in '123456789':
                     errorList.append( f"Unexpected occurrence (number) field: '{fieldData}'" ); haveError = True
-                elif not currentRowData[self.origQuoteColumn] and fieldData != '0':
+                elif not currentRowData[self.origQuoteColumnNumber] and fieldData != '0':
                     errorList.append( f"Unexpected occurrence (number) field: '{fieldData}'" ); haveError = True
-            elif j == self.GLQuoteColumn: # Entry
+            elif j == self.GLQuoteColumnNumber: # Entry
                 for badText in ('...',' … ',' …','… ', '  '):
                     if badText in fieldData:
                         errorList.append( f"Unallowed '{badText}' in '{fieldData}'" ); haveError = True
@@ -1093,7 +1103,7 @@ class TSVEditWindowAddon:
                                 elif fieldData not in ULTtext: # Show non-break space
                                     errorList.append( f"Can't find GLQuote '{fieldData.replace(' ','~')}' in ULT: {ULTtext}" ); haveError = True
                                 break
-            elif j == self.occurrenceNoteColumn: # TextBox
+            elif j == self.occurrenceNoteColumnNumber: # TextBox
                 for badText in ('...','  ',' … '):
                     if badText in fieldData:
                         if badText == '  ': # These can be hard to see
@@ -1124,7 +1134,7 @@ class TSVEditWindowAddon:
                     widget.configure( bg=self.defaultBackgroundColour )
                 else: # ttk Label or Entry
                     widget.configure( style='good.TLabel' )
-        currentRowData = self.retrieveCurrentRowData( updateTable=False )
+        currentRowData = self._retrieveCurrentRowData( updateTable=False )
 
         if errorList:
             if errorList:
@@ -1133,23 +1143,23 @@ class TSVEditWindowAddon:
             return True
         self.setStatus() # Clear it
         return False
-    # end of TSVEditWindowAddon.checkCurrentDisplayedRowData function
+    # end of TSVEditWindowAddon._checkCurrentDisplayedRowData function
 
 
-    def validateTSVTable( self ) -> int:
+    def _validateTSVTable( self ) -> int:
         """
         Checks the entire table (other than headers)
 
         Returns the number of errors
         """
-        fnPrint( debuggingThisModule, f"TSVEditWindowAddon.validateTSVTable() for {self.BBB}" )
+        fnPrint( debuggingThisModule, f"TSVEditWindowAddon._validateTSVTable() for {self.BBB}" )
         if 'tsvTable' not in self.__dict__ or not self.tsvTable:
             return 0
 
         num_errors = 0
         self.allExistingIDs = set()
         for j, row in enumerate( self.tsvTable[1:], start=2 ):
-            bkCode, C, V, thisID = row[self.bookColumn], row[self.chapterColumn], row[self.verseColumn], row[self.idColumn]
+            bkCode, C, V, thisID = row[self.bookColumn], row[self.chapterColumn], row[self.verseColumnNumber], row[self.idColumnNumber]
             if not bkCode:
                 print( f"  Missing USFM book id (expected '{self.thisBookUSFMCode}') in row {j}: {row}" )
                 num_errors += 1
@@ -1170,16 +1180,16 @@ class TSVEditWindowAddon:
         if num_errors > 0:
             dPrint( 'Normal', debuggingThisModule, f"  validateTSV returning {num_errors} errors" )
         return num_errors
-    # end of TSVEditWindowAddon.validateTSVTable()
+    # end of TSVEditWindowAddon._validateTSVTable()
 
 
 
 
 
-    def createEditorKeyboardBindings( self ):
+    def _createEditorKeyboardBindings( self ):
         """
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.createEditorKeyboardBindings()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._createEditorKeyboardBindings()" )
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -1198,13 +1208,13 @@ class TSVEditWindowAddon:
                         self.myKeyboardShortcutsList.append( keyCode )
                 self.myKeyboardBindingsList.append( (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-    # end of TSVEditWindowAddon.createEditorKeyboardBindings()
+    # end of TSVEditWindowAddon._createEditorKeyboardBindings()
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.createMenuBar()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -1245,7 +1255,7 @@ class TSVEditWindowAddon:
         searchMenu.add_separator()
         searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
         searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Refind')][0] )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doBoxFindReplace )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self._doBoxFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label=_('Grep…'), underline=0, command=self.onGrep )
 
@@ -1268,8 +1278,8 @@ class TSVEditWindowAddon:
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-        viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
-        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
+        viewMenu.add_command( label=_('Larger text'), underline=0, command=self._onFontBigger )
+        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self._onFontSmaller )
         viewMenu.add_separator()
         viewMenu.add_checkbutton( label=_('Status bar'), underline=9, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
@@ -1286,16 +1296,16 @@ class TSVEditWindowAddon:
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
-            #debugMenu.add_command( label=_('View settings…'), underline=5, command=self.doViewSettings )
+            #debugMenu.add_command( label=_('View settings…'), underline=5, command=self._doViewSettings )
             #debugMenu.add_separator()
-            debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
+            debugMenu.add_command( label=_('View log…'), underline=5, command=self._doViewLog )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label=_('Help'), underline=0 )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of TSVEditWindowAddon.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of TSVEditWindowAddon._createMenuBar
 
 
     def setWindowGroup( self, newGroup:str ) -> None:
@@ -1349,54 +1359,52 @@ class TSVEditWindowAddon:
 
     def refreshTitle( self ):
         """
-        Refresh the title of the text edit window,
+        Refresh the title of the window,
             put an asterisk if it's modified.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.refreshTitle()" )
+        # fnPrint( debuggingThisModule, "TSVEditWindowAddon.refreshTitle()" )
 
         self.title( "{}[{}] {} ({}) {}".format( '*' if self.modified() else '',
                                             _("Text"), self.filename, self.folderpath, self.editStatus ) )
-        self.refreshTitleContinue()
+        self._refreshTitleContinue()
     # end if TSVEditWindowAddon.refreshTitle
 
-    def refreshTitleContinue( self ):
+    def _refreshTitleContinue( self ):
         """
         Check if an autosave is needed,
             and schedule the next refresh.
         """
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.refreshTitleContinue()" )
+        # fnPrint( debuggingThisModule, "TSVEditWindowAddon._refreshTitleContinue()" )
 
         self.after( REFRESH_TITLE_TIME, self.refreshTitle ) # Redo it so we can put up the asterisk if the text is changed
         try:
             if self.autosaveTime and self.modified() and not self.autosaveScheduled:
-                self.after( self.autosaveTime, self.doAutosave ) # Redo it so we can put up the asterisk if the text is changed
+                self.after( self.autosaveTime, self._doAutosave ) # Redo it so we can put up the asterisk if the text is changed
                 self.autosaveScheduled = True
         except AttributeError:
             vPrint( 'Quiet', debuggingThisModule, "Autosave not set-up properly yet" )
-    # end if TSVEditWindowAddon.refreshTitleContinue
+    # end if TSVEditWindowAddon._refreshTitleContinue
 
 
-    def OnFontBigger( self ):
+    def _onFontBigger( self ):
         """
         Make the font one point bigger
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.OnFontBigger()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._onFontBigger()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size+1 )
-    # end if TSVEditWindowAddon.OnFontBigger
+    # end if TSVEditWindowAddon._onFontBigger
 
-    def OnFontSmaller( self ):
+    def _onFontSmaller( self ):
         """
         Make the font one point smaller
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.OnFontSmaller()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._onFontSmaller()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size-1 )
-    # end if TSVEditWindowAddon.OnFontSmaller
+    # end if TSVEditWindowAddon._onFontSmaller
 
 
     def getAllText( self ) -> str:
@@ -1416,11 +1424,11 @@ class TSVEditWindowAddon:
     # end of TSVEditWindowAddon.getAllText
 
 
-    def makeAutocompleteBox( self ) -> None:
+    def _makeAutocompleteBox( self ) -> None:
         """
         Create a pop-up listbox in order to be able to display possible autocomplete words.
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.makeAutocompleteBox()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._makeAutocompleteBox()" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.autocompleteBox is None
 
@@ -1442,20 +1450,20 @@ class TSVEditWindowAddon:
         self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
         #self.autocompleteBox.select_set( '0' )
         #self.autocompleteBox.focus()
-        self.autocompleteBox.bind( '<KeyPress>', self.OnAutocompleteChar )
-        self.autocompleteBox.bind( '<Double-Button-1>', self.doAcceptAutocompleteSelection )
+        self.autocompleteBox.bind( '<KeyPress>', self._onAutocompleteChar )
+        self.autocompleteBox.bind( '<Double-Button-1>', self._doAcceptAutocompleteSelection )
         self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
-    # end of TSVEditWindowAddon.makeAutocompleteBox
+    # end of TSVEditWindowAddon._makeAutocompleteBox
 
 
-    def OnAutocompleteChar( self, event ):
+    def _onAutocompleteChar( self, event ):
         """
         Used by autocomplete routines in onTextChange.
 
         Handles key presses entered into the pop-up word selection (list) box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.OnAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
+            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon._onAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
             assert self.autocompleteBox is not None
 
         #if event.keysym == 'ESC':
@@ -1483,21 +1491,21 @@ class TSVEditWindowAddon:
             #if event.char in '.,': acceptAutocompleteSelection( self, includeTrailingSpace=False )
             self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
                                     #+ (' ' if event.char in ',' else '') )
-    # end of TSVEditWindowAddon.OnAutocompleteChar
+    # end of TSVEditWindowAddon._onAutocompleteChar
 
 
-    def doAcceptAutocompleteSelection( self, event=None ):
+    def _doAcceptAutocompleteSelection( self, event=None ):
         """
         Used by autocomplete routines in onTextChange.
 
         Gets the chosen word and inserts the end of it into the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.doAcceptAutocompleteSelection({} )".format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon._doAcceptAutocompleteSelection({} )".format( event ) )
             assert self.autocompleteBox is not None
 
         acceptAutocompleteSelection( self, includeTrailingSpace=False )
-    # end of TSVEditWindowAddon.doAcceptAutocompleteSelection
+    # end of TSVEditWindowAddon._doAcceptAutocompleteSelection
 
 
     def removeAutocompleteBox( self, event=None ):
@@ -1694,7 +1702,7 @@ class TSVEditWindowAddon:
                     if possibleWords: # we have some word(s) to pop-up for possible selection
                         #dPrint( 'Quiet', debuggingThisModule, "Handle autocomplete2" )
                         if self.autocompleteBox is None:
-                            self.makeAutocompleteBox()
+                            self._makeAutocompleteBox()
                         else: # the Listbox is already made -- just empty it
                             #dPrint( 'Quiet', debuggingThisModule, 'empty listbox' )
                             self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
@@ -1725,7 +1733,7 @@ class TSVEditWindowAddon:
             # end of auto-complete section
 
         #self.lastTextChangeTime = time()
-        try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule no change function so we keep checking
+        try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self._onTextNoChange ) # Reschedule no change function so we keep checking
         except KeyboardInterrupt:
             vPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon: Got keyboard interrupt in onTextChange (A) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
@@ -1735,20 +1743,20 @@ class TSVEditWindowAddon:
     # end of TSVEditWindowAddon.onTextChange
 
 
-    def onTextNoChange( self ):
+    def _onTextNoChange( self ):
         """
         Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
 
         Checks for some types of formatting errors.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.onTextNoChange" )
+        #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon._onTextNoChange" )
         try: pass
         except KeyboardInterrupt:
-            vPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon: Got keyboard interrupt in onTextNoChange (B) -- saving my file" )
+            vPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon: Got keyboard interrupt in _onTextNoChange (B) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
             #self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
             #self.onTextNoChangeID = None
-    # end of TSVEditWindowAddon.onTextNoChange
+    # end of TSVEditWindowAddon._onTextNoChange
 
 
     def doShowInfo( self, event=None ):
@@ -1759,12 +1767,12 @@ class TSVEditWindowAddon:
         """
         fnPrint( debuggingThisModule, "TSVEditWindowAddon.doShowInfo( {} )".format( event ) )
 
-        text  = self.getEntireText()
-        numChars = len( text )
-        numLines = len( text.split( '\n' ) )
-        numWords = len( text.split() )
-        index = self.textBox.index( tk.INSERT )
-        atLine, atColumn = index.split('.')
+        # text  = self._getEntireText()
+        # numChars = len( text )
+        # numLines = len( text.split( '\n' ) )
+        # numWords = len( text.split() )
+        # index = self.textBox.index( tk.INSERT )
+        # atLine, atColumn = index.split('.')
 
         grandtotal = 0
         for firstLetter in self.autocompleteWords:
@@ -1772,9 +1780,9 @@ class TSVEditWindowAddon:
             grandtotal += len( self.autocompleteWords[firstLetter] )
 
         infoString = 'Current location:\n' \
-            + '  Row: {}\n'.format( self.current_row ) \
+            + '  Row: {}\n'.format( self.currentRowNumber ) \
             + '\nFile text statistics:\n' \
-            + '  Rows: {:,}\n  Columns: {:,}\n  Headers: {}\n'.format( self.numDataRows, self.num_columns, self.tsvHeaders ) \
+            + '  Rows: {:,}\n  Columns: {:,}\n  Headers: {}\n'.format( self.numDataRows, self.numColumns, self.tsvHeaders ) \
             + '\nFile info:\n' \
             + '  Name: {}\n'.format( self.filename ) \
             + '  Folder: {}\n'.format( self.folderpath ) \
@@ -1786,7 +1794,8 @@ class TSVEditWindowAddon:
             + '  Markdown: {}\n'.format( 'unknown' ) \
             + '\nSettings:\n' \
             + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
-                    .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, round(self.autosaveTime/1000), self.saveChangesAutomatically )
+                    .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, 
+                    round(self.autosaveTime/1000), self.saveChangesAutomatically )
 
         showInfo( self, _("Window Information"), infoString )
     # end of TSVEditWindowAddon.doShowInfo
@@ -1896,7 +1905,7 @@ class TSVEditWindowAddon:
     ## end of TSVEditWindowAddon.doBoxRefind
 
 
-    def doBoxFindReplace( self ):
+    def _doBoxFindReplace( self ):
         """
         Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
@@ -1914,15 +1923,15 @@ class TSVEditWindowAddon:
             self.doBoxFind( entry1.get() )         # runs normal find dialog callback
 
         def onApply():
-            self.onDoChange( entry1.get(), entry2.get() )
+            self._onDoChange( entry1.get(), entry2.get() )
 
         Button( newPopupWindow, text='Find',  command=doBoxFind ).grid(row=0, column=2, sticky=tk.EW )
         Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=tk.EW )
         newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
-    # end of TSVEditWindowAddon.doBoxFindReplace
+    # end of TSVEditWindowAddon._doBoxFindReplace
 
 
-    def onDoChange( self, findtext, changeto):
+    def _onDoChange( self, findtext, changeto):
         """
         on Apply in change dialog: change and refind
         """
@@ -1932,7 +1941,7 @@ class TSVEditWindowAddon:
             self.textBox.see( tk.INSERT )
             self.doBoxFind( findtext )                          # goto next appear
             self.textBox.update() # force refresh
-    # end of TSVEditWindowAddon.onDoChange
+    # end of TSVEditWindowAddon._onDoChange
 
 
     ############################################################################
@@ -2028,22 +2037,22 @@ class TSVEditWindowAddon:
             showError( self, APP_NAME, _("No permission to write {!r} in {!r}").format( self.filename, self.folderpath ) )
             return False
 
-        self.rememberFileTimeAndSize()
+        self._rememberFileTimeAndSize()
 
         self.refreshTitle()
         return True
     # end of TSVEditWindowAddon._checkFilepath
 
 
-    def rememberFileTimeAndSize( self ) -> None:
+    def _rememberFileTimeAndSize( self ) -> None:
         """
         Just record the file modification time and size in bytes
             so that we can check later if it's changed on-disk.
         """
         self.lastFiletime = os.stat( self.filepath ).st_mtime
         self.lastFilesize = os.stat( self.filepath ).st_size
-        vPrint( 'Never', debuggingThisModule, " rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
-    # end of TSVEditWindowAddon.rememberFileTimeAndSize
+        vPrint( 'Never', debuggingThisModule, " _rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
+    # end of TSVEditWindowAddon._rememberFileTimeAndSize
 
 
     def setAllText( self, newText ):
@@ -2092,26 +2101,26 @@ class TSVEditWindowAddon:
     # # end of TSVEditWindowAddon.loadText
 
 
-    def getEntireText( self ) -> str:
+    def _getEntireText( self ) -> str:
         """
         This function can be overloaded in super classes
             (where the edit window might not display the entire text).
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.getEntireText()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._getEntireText()" )
 
-        self.doReassembleFile()
+        self._doReassembleFile()
         return self.newText
-    # end of TSVEditWindowAddon.getEntireText
+    # end of TSVEditWindowAddon._getEntireText
 
 
-    def checkForDiskChanges( self, autoloadText:bool=False ) -> None:
+    def _checkForDiskChanges( self, autoloadText:bool=False ) -> None:
         """
         Check if the file has changed on disk.
 
         If it has, and the user hasn't yet made any changes, offer to reload.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon.checkForDiskChanges()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TSVEditWindowAddon._checkForDiskChanges()" )
 
         if self.filepath and os.path.isfile( self.filepath ) \
         and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
@@ -2127,12 +2136,12 @@ class TSVEditWindowAddon:
                     if ynd.result == True: yndResult = True # Yes was chosen
                 if yndResult:
                     self.loadText() # reload
-            self.rememberFileTimeAndSize()
-        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges ) # Redo it so we keep checking
-    # end if TSVEditWindowAddon.checkForDiskChanges
+            self._rememberFileTimeAndSize()
+        self.after( CHECK_DISK_CHANGES_TIME, self._checkForDiskChanges ) # Redo it so we keep checking
+    # end if TSVEditWindowAddon._checkForDiskChanges
 
 
-    def doReassembleFile( self ) -> None:
+    def _doReassembleFile( self ) -> None:
         """
         Undoes this:
             fileLines = self.originalText.split( '\n' )
@@ -2141,25 +2150,26 @@ class TSVEditWindowAddon:
                 fileLines = fileLines[:-1]
                 self.hadTrailingNL = True
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doReassembleFile()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._doReassembleFile()" )
         if 'tsvTable' not in self.__dict__ or not self.tsvTable:
             return
 
-        self.retrieveCurrentRowData( updateTable=True ) # in case current row was edited
+        self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
 
-        fileLines = ['\t'.join( rowData ) for rowData in self.tsvTable]
+        fileLines = [self.columnSeparator.join( rowData ) for rowData in self.tsvTable]
         vPrint( 'Info', debuggingThisModule, f"  Reassembled {len(fileLines):,} table lines (incl. header) cf. {self.numOriginalLines:,} lines read" )
         self.newText = '\n'.join( fileLines )
         if self.hadTrailingNL: self.newText = f'{self.newText}\n'
         vPrint( 'Never', debuggingThisModule, f"  New text is {len(self.newText):,} characters cf. {len(self.originalText):,} characters read" )
-    # end of TSVEditWindowAddon.doReassembleFile
+    # end of TSVEditWindowAddon._doReassembleFile
 
 
     def modified( self ) -> bool:
         """
         Overrides the ChildWindows one, which only works from the one TextBox
         """
-        self.doReassembleFile()
+        self._doReassembleFile()
+        if 'newText' not in self.__dict__: return False
         return self.newText != self.originalText
     # end of TSVEditWindowAddon.modified
 
@@ -2188,11 +2198,11 @@ class TSVEditWindowAddon:
             if self.folderpath and self.filename:
                 filepath = os.path.join( self.folderpath, self.filename )
                 BibleOrgSysGlobals.backupAnyExistingFile( filepath, numBackups=4 )
-                allText = self.getEntireText() # from the displayed edit window
+                allText = self._getEntireText() # from the displayed edit window
                 vPrint( 'Quiet', debuggingThisModule, f"Writing {len(allText):,} characters to {filepath}" )
                 with open( filepath, mode='wt', encoding='utf-8' ) as theFile:
                     theFile.write( allText )
-                self.rememberFileTimeAndSize()
+                self._rememberFileTimeAndSize()
                 # self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
                 #self.bookTextModified = False
                 self.refreshTitle()
@@ -2200,7 +2210,7 @@ class TSVEditWindowAddon:
     # end of TSVEditWindowAddon.doSave
 
 
-    def doAutosave( self ):
+    def _doAutosave( self ):
         """
         Called on a timer to save a copy of the file in a separate location
             if it's been modified.
@@ -2214,7 +2224,7 @@ class TSVEditWindowAddon:
             if not, the AutoSave folder is created in the home folder.
                 (Yes, this can result in old AutoSave files in the home folder.)
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doAutosave()" )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._doAutosave()" )
 
         if self.modified():
             partialAutosaveFolderpath = self.folderpath if self.folderpath else BiblelatorGlobals.theApp.homeFolderpath
@@ -2236,25 +2246,25 @@ class TSVEditWindowAddon:
             and ( not os.path.isfile( lastDayFilepath ) \
             or datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date() ):
             #or not self.filepath \
-                vPrint( 'Quiet', debuggingThisModule, "doAutosave: saving daily file", lastDayFilepath )
+                vPrint( 'Quiet', debuggingThisModule, "_doAutosave: saving daily file", lastDayFilepath )
                 shutil.copyfile( autosaveFilepath, lastDayFilepath ) # We save a copy of the PREVIOUS autosaved file
 
             # Now save this updated file
-            allText = self.getEntireText() # from the displayed edit window and/or elsewhere
+            allText = self._getEntireText() # from the displayed edit window and/or elsewhere
             with open( autosaveFilepath, mode='wt', encoding='utf-8' ) as theFile:
                 theFile.write( allText )
-            self.after( self.autosaveTime, self.doAutosave )
+            self.after( self.autosaveTime, self._doAutosave )
         else:
             self.autosaveScheduled = False # Will be set again by refreshTitle
-    # end of TSVEditWindowAddon.doAutosave
+    # end of TSVEditWindowAddon._doAutosave
 
 
-    def doViewSettings( self ):
+    def _doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "doViewSettings()" )
+            vPrint( 'Quiet', debuggingThisModule, "_doViewSettings()" )
             BiblelatorGlobals.theApp.setDebugText( "doViewSettings…" )
         tEW = TSVEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -2262,41 +2272,41 @@ class TSVEditWindowAddon:
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open settings file") )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewSettings" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed _doViewSettings" )
         else:
             BiblelatorGlobals.theApp.childWindows.append( tEW )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished doViewSettings" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished _doViewSettings" )
         BiblelatorGlobals.theApp.setReadyStatus()
-    # end of TSVEditWindowAddon.doViewSettings
+    # end of TSVEditWindowAddon._doViewSettings
 
 
-    def doViewLog( self ):
+    def _doViewLog( self ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        fnPrint( debuggingThisModule, "doViewLog()" )
+        fnPrint( debuggingThisModule, "_doViewLog()" )
         if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "doViewLog…" )
 
-        filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        filename = f"{makeSafeProgramName(PROGRAM_NAME)}_log.txt"
         tEW = TSVEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( BiblelatorGlobals.theApp.loggingFolderpath, filename ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewLog" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed _doViewLog" )
         else:
             BiblelatorGlobals.theApp.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished _doViewLog" ) # Don't do this -- adds to the log immediately
         BiblelatorGlobals.theApp.setReadyStatus()
-    # end of TSVEditWindowAddon.doViewLog
+    # end of TSVEditWindowAddon._doViewLog
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -2306,21 +2316,21 @@ class TSVEditWindowAddon:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of TSVEditWindowAddon.doHelp
+    # end of TSVEditWindowAddon._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "TSVEditWindowAddon.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TSVEditWindowAddon._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of TSVEditWindowAddon.doAbout
+    # end of TSVEditWindowAddon._doAbout
 
 
     def doClose( self, event=None ):
@@ -2352,7 +2362,7 @@ class TSVEditWindowAddon:
                     ynd = YesNoDialog( self, _('Are you sure you want to lose your changes?'), title=_('Lose changes?') )
                     #dPrint( 'Quiet', debuggingThisModule, "yndResult", repr(ynd.result) )
                     if ynd.result == True: # Yes was chosen
-                        self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
+                        # self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
                         self.bookTextModified = False
                     #else: saveWork = True
             if saveWork:
@@ -2375,7 +2385,7 @@ class TSVEditWindow( TSVEditWindowAddon, ChildWindow ):
     def __init__( self, parentWindow, folderpath:str ):
         """
         """
-        fnPrint( debuggingThisModule, f"TSVEditWindow.__init__( pW={parentWindow}, fp={folderpath} )…" )
+        fnPrint( debuggingThisModule, f"TSVEditWindow.__init__( pW={parentWindow}, fp={folderpath} )" )
         self.folderpath = folderpath
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, f"TSVEditWindow __init__ {folderpath}" )
 
@@ -2420,8 +2430,8 @@ class TSVEditWindow( TSVEditWindowAddon, ChildWindow ):
         #self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         #self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         #self.textBox.setTextChangeCallback( self.onTextChange )
-        #self.createEditorKeyboardBindings()
-        self.createMenuBar()
+        #self._createEditorKeyboardBindings()
+        self._createMenuBar()
         #self.createContextMenu() # Enable right-click menu
 
         #self.lastFiletime = self.lastFilesize = None
@@ -2462,7 +2472,7 @@ class TSVEditWindow( TSVEditWindowAddon, ChildWindow ):
         #self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
         #self.autosaveScheduled = False
 
-        #self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
+        #self.after( CHECK_DISK_CHANGES_TIME, self._checkForDiskChanges )
         ##self.after( REFRESH_TITLE_TIME, self.refreshTitle )
         #self.loading = self.hadTextWarning = False
         ##self.lastTextChangeTime = time()

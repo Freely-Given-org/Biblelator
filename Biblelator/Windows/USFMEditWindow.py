@@ -184,7 +184,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         self.verseCache = OrderedDict()
 
         self.defaultFormatViewMode = 'Unformatted' # Only option done so far
-        self.createMenuBar()
+        self._createMenuBar()
         #self.doToggleStatusBar( True ) # defaults to off in ChildWindow
 
         self.internalBible = handleInternalBibles( USFMBible, self )
@@ -204,7 +204,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         # Following is not needed coz done in TextEditWindow class
         #self.myKeyboardBindingsList = []
         #if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = []
-        #self.createEditorKeyboardBindings()
+        #self._createEditorKeyboardBindings()
 
         styleName = ( self.projectName if self.projectName else 'Unknown' ) + 'USFM.Vertical.TScrollbar'
         Style().configure( styleName, background='green' )
@@ -292,26 +292,26 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                                     self.editMode, self.editStatus, self._contextViewMode ) )
         styleName = ( self.projectName if self.projectName else 'Unknown' ) + 'USFM.Vertical.TScrollbar'
         Style().configure( styleName, background='yellow' if self.modified() else 'SeaGreen1' )
-        self.refreshTitleContinue() # handle Autosave
+        self._refreshTitleContinue() # handle Autosave
     # end if USFMEditWindow.refreshTitle
 
 
-    #def xxdoHelp( self ):
+    #def xx_doHelp( self ):
         #from Biblelator.Dialogs.Help import HelpBox
         #hb = HelpBox( theApp, PROGRAM_NAME, programNameVersion )
-    ## end of USFMEditWindow.doHelp
+    ## end of USFMEditWindow._doHelp
 
 
-    #def xxdoAbout( self ):
+    #def xx_doAbout( self ):
         #from Biblelator.Dialogs.About import AboutBox
         #ab = AboutBox( theApp, PROGRAM_NAME, programNameVersion )
-    ## end of USFMEditWindow.doAbout
+    ## end of USFMEditWindow._doAbout
 
 
-    def createEditorKeyboardBindings( self ):
+    def _createEditorKeyboardBindings( self ):
         """
         """
-        fnPrint( debuggingThisModule, "USFMEditWindow.createEditorKeyboardBindings()" )
+        fnPrint( debuggingThisModule, "USFMEditWindow._createEditorKeyboardBindings()" )
 
         for name,command in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -330,13 +330,13 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                         self.myKeyboardShortcutsList.append( keyCode )
                 self.myKeyboardBindingsList.append( (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-    # end of USFMEditWindow.createEditorKeyboardBindings()
+    # end of USFMEditWindow._createEditorKeyboardBindings()
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "USFMEditWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "USFMEditWindow._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -388,7 +388,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         subSearchMenuWindow.add_separator()
         subSearchMenuWindow.add_command( label=_('Find in window…'), underline=8, command=self.doBoxFind )
         subSearchMenuWindow.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind )
-        subSearchMenuWindow.add_command( label=_('Replace…'), underline=0, command=self.doBoxFindReplace )
+        subSearchMenuWindow.add_command( label=_('Replace…'), underline=0, command=self._doBoxFindReplace )
         searchMenu.add_cascade( label=_('Window'), underline=0, menu=subSearchMenuWindow )
 
         gotoMenu = tk.Menu( self.menubar )
@@ -442,8 +442,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #viewMenu.add_radiobutton( label=_('Unformatted'), underline=0, value=2, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
 
         viewMenu.add_separator()
-        viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
-        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
+        viewMenu.add_command( label=_('Larger text'), underline=0, command=self._onFontBigger )
+        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self._onFontSmaller )
         viewMenu.add_separator()
         viewMenu.add_checkbutton( label=_('Status bar'), underline=0, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
@@ -472,16 +472,16 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
-            #debugMenu.add_command( label=_('View settings…'), underline=5, command=self.doViewSettings )
+            #debugMenu.add_command( label=_('View settings…'), underline=5, command=self._doViewSettings )
             #debugMenu.add_separator()
-            debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
+            debugMenu.add_command( label=_('View log…'), underline=5, command=self._doViewLog )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label=_('Help'), underline=0 )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout )
-    # end of USFMEditWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout )
+    # end of USFMEditWindow._createMenuBar
 
 
     #def xxcreateContextMenu( self ):
@@ -648,20 +648,20 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     # end of USFMEditWindow.onTextChange
 
 
-    def onTextNoChange( self ):
+    def _onTextNoChange( self ):
         """
         Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
 
         Checks for some types of formatting errors.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.onTextNoChange" )
+        #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow._onTextNoChange" )
 
         # Check the text for formatting errors
         try: self.checkUSFMTextForProblems( includeFormatting=True )
         except KeyboardInterrupt:
             vPrint( 'Quiet', debuggingThisModule, "USFMEditWindow: Got keyboard interrupt (3) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
-    # end of USFMEditWindow.onTextNoChange
+    # end of USFMEditWindow._onTextNoChange
 
 
     def checkUSFMTextForProblems( self, includeFormatting=False ):
@@ -798,7 +798,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         logging.debug( "USFMEditWindow.doShowInfo( {} )".format( event ) )
         vPrint( 'Never', debuggingThisModule, "USFMEditWindow.doShowInfo( {} )".format( event ) )
 
-        text  = self.getEntireText()
+        text  = self._getEntireText()
         numChars = len( text )
         numLines = len( text.split( '\n' ) )
         numWords = len( text.split() )
@@ -853,7 +853,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             except (AttributeError,KeyError) as err: # we have no books, or at least, not this book!
                 vPrint( 'Quiet', debuggingThisModule, f"  getBookDataFromDisk error: {err}" )
                 #return None
-                uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber(BBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(BBB)
+                uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr(BBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(BBB)
                 if uNumber is None or uAbbrev is None: self.bookFilename = None
                 else: self.bookFilename = f'{uNumber}-{uAbbrev}.USFM'
             if self.bookFilename:
@@ -866,7 +866,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                     elif bookText == '':
                         showWarning( self, APP_NAME, _("Seems that file {} with encoding {} is EMPTY").format( self.bookFilepath, self.internalBible.encoding ) )
                     else:
-                        if bookText[0] == chr(65279): #U+FEFF
+                        if bookText[0] == BibleOrgSysGlobals.BOM:
                             logging.info( "getBookDataFromDisk: Detected Unicode (UTF-16) Byte Order Marker (BOM) in {}".format( self.bookFilepath ) )
                             bookText = bookText[1:] # Remove the UTF-16 Unicode Byte Order Marker (BOM)
                         elif bookText[:3] == 'ï»¿': # 0xEF,0xBB,0xBF
@@ -1212,7 +1212,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
         if self.textBox.edit_modified(): # we need to extract the changes into self.bookText
             assert self.bookTextModified
-            self.bookText = self.getEntireText()
+            self.bookText = self._getEntireText()
             if newBBB == oldBBB: # We haven't changed books -- update our book cache
                 self.cacheBook( newBBB )
 
@@ -1237,7 +1237,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             self.editStatus = 'Editable'
             self.bookText = self.getBookDataFromDisk( newBBB )
             if self.bookText is None:
-                uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumber(newBBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(newBBB)
+                uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr(newBBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(newBBB)
                 if uNumber is None or uAbbrev is None: # no use asking about creating the book
                     # NOTE: I think we've already shown this error in getBookDataFromDisk()
                     #showError( self, APP_NAME, _("Couldn't determine USFM filename for {!r} book").format( newBBB ) )
@@ -1421,12 +1421,12 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     # end of USFMEditWindow.updateShownBCV
 
 
-    def getEntireText( self ):
+    def _getEntireText( self ):
         """
         Gets the displayed text and adds it to the surrounding text.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.getEntireText()" )
+            #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow._getEntireText()" )
 
         # Get the text from the edit box and clean it up
         editBoxText = self.getAllText()
@@ -1439,10 +1439,10 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
                 assert self.bookTextBefore is None
                 assert self.bookTextAfter is None
-            #dPrint( 'Quiet', debuggingThisModule, "getEntireText", repr(self.bookTextBefore), repr(editBoxText), repr(self.bookTextAfter) )
+            #dPrint( 'Quiet', debuggingThisModule, "_getEntireText", repr(self.bookTextBefore), repr(editBoxText), repr(self.bookTextAfter) )
             entireText = editBoxText
         return entireText
-    # end of USFMEditWindow.getEntireText
+    # end of USFMEditWindow._getEntireText
 
 
     def doBibleReplace( self, event=None ):
@@ -1481,7 +1481,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 key = self.BibleReplaceOptionsDict['findText']
                 showError( self, APP_NAME, _("String {!r} not found").format( key if len(key)<20 else (key[:18]+'…') ) )
             else:
-                self.checkForDiskChanges( autoloadText=True )
+                self._checkForDiskChanges( autoloadText=True )
                 if len(resultSummaryDict['replacedBookList']) == 1:
                     showInfo( self, APP_NAME, _("Made {} replacements in {}").format( resultSummaryDict['numReplaces'], resultSummaryDict['replacedBookList'][0] ) )
                 elif resultSummaryDict['numReplaces'] == 0:
@@ -1521,12 +1521,12 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         if self.modified():
             if self.folderpath and self.filename:
                 filepath = os.path.join( self.folderpath, self.filename )
-                self.bookText = self.getEntireText()
+                self.bookText = self._getEntireText()
                 vPrint( 'Quiet', debuggingThisModule, "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
                 logging.debug( "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
                 with open( filepath, mode='wt', encoding=self.internalBible.encoding, newline='\r\n' ) as theFile:
                     theFile.write( self.bookText )
-                self.rememberFileTimeAndSize()
+                self._rememberFileTimeAndSize()
                 BBB = self.currentVerseKey.getBBB()
                 self.internalBible.bookNeedsReloading[BBB] = True
                 self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
@@ -1635,15 +1635,15 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
 
     # WHY IS THIS IN HERE ???
-    def doViewSettings( self ):
+    def _doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
         """
-        logging.debug( "doViewSettings()" )
-        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'USFMEditWindow.doViewSettings' )
+        logging.debug( "_doViewSettings()" )
+        BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, debuggingThisModule, 'USFMEditWindow._doViewSettings' )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "doViewSettings()" )
-            BiblelatorGlobals.theApp.setDebugText( "doViewSettings…" )
+            vPrint( 'Quiet', debuggingThisModule, "_doViewSettings()" )
+            BiblelatorGlobals.theApp.setDebugText( "_doViewSettings…" )
 
         tEW = TextEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1651,22 +1651,22 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open settings file") )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewSettings" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed _doViewSettings" )
         else:
             BiblelatorGlobals.theApp.childWindows.append( tEW )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished doViewSettings" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished _doViewSettings" )
         BiblelatorGlobals.theApp.setReadyStatus()
-    # end of USFMEditWindow.doViewSettings
+    # end of USFMEditWindow._doViewSettings
 
 
     # WHY IS THIS IN HERE ???
-    def doViewLog( self ):
+    def _doViewLog( self ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        logging.debug( "doViewLog()" )
-        vPrint( 'Never', debuggingThisModule, "doViewLog()" )
-        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "doViewLog…" )
+        logging.debug( "_doViewLog()" )
+        vPrint( 'Never', debuggingThisModule, "_doViewLog()" )
+        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "_doViewLog…" )
 
         tEW = TextEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -1674,20 +1674,20 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewLog" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed _doViewLog" )
         else:
             BiblelatorGlobals.theApp.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished _doViewLog" ) # Don't do this -- adds to the log immediately
         BiblelatorGlobals.theApp.setReadyStatus()
-    # end of USFMEditWindow.doViewLog
+    # end of USFMEditWindow._doViewLog
 
 
-    #def doHelp( self, event=None ):
+    #def _doHelp( self, event=None ):
         #"""
         #Display a help box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.doHelp( {} )".format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow._doHelp( {} )".format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
         #helpInfo = programNameVersion
@@ -1696,22 +1696,22 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         #for name,shortcut in self.myKeyboardBindingsList:
             #helpInfo += "\n    {}\t{}".format( name, shortcut )
         #hb = HelpBox( self, self.genericWindowType, helpInfo )
-    ## end of USFMEditWindow.doHelp
+    ## end of USFMEditWindow._doHelp
 
 
-    #def doAbout( self, event=None ):
+    #def _doAbout( self, event=None ):
         #"""
         #Display an about box.
         #"""
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow.doAbout( {} )".format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, "USFMEditWindow._doAbout( {} )".format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
         #aboutInfo = programNameVersion
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK
-    ## end of USFMEditWindow.doAbout
+    ## end of USFMEditWindow._doAbout
 
 
     #def doClose( self, event=None ):

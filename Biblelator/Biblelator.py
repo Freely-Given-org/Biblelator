@@ -92,6 +92,7 @@ from Biblelator.Windows.LexiconResourceWindows import BibleLexiconResourceWindow
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 from Biblelator.Windows.USFMEditWindow import USFMEditWindow
 #from Biblelator.Windows.ESFMEditWindow import ESFMEditWindow
+from Biblelator.Windows.CSVEditWindow import CSVEditWindow
 from Biblelator.Windows.TSVEditWindow import TSVEditWindow
 from Biblelator.Windows.BibleNotesWindow import BibleNotesWindow
 
@@ -101,10 +102,10 @@ from Biblelator.Apps.BOSManager import openBOSManager
 from Biblelator.Apps.SwordManager import openSwordManager
 
 
-LAST_MODIFIED_DATE = '2022-07-12' # by RJH -- note that this isn't necessarily the displayed date at start-up
+LAST_MODIFIED_DATE = '2022-07-18' # by RJH -- note that this isn't necessarily the displayed date at start-up
 SHORT_PROGRAM_NAME = "Biblelator"
 PROGRAM_NAME = "Biblelator"
-PROGRAM_VERSION = '0.46' # This is the version number displayed on the start-up screen
+PROGRAM_VERSION = '0.47' # This is the version number displayed on the start-up screen
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -135,8 +136,8 @@ class Application( Frame ):
         """
         Main app initialisation function.
         """
-        if debuggingThisModule: self.startTime = datetime.now()
         fnPrint( debuggingThisModule, f"Application.__init__( {rootWindow}, … )" )
+        if debuggingThisModule: self.startTime = datetime.now()
 
         self.rootWindow, self.iconImage = rootWindow, iconImage
         super().__init__( self.rootWindow )
@@ -352,16 +353,16 @@ class Application( Frame ):
     # end of Application.setGenericBibleOrganisationalSystem
 
 
-    def createMenuBar( self ) -> None:
+    def _createMenuBar( self ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, "Application.createMenuBar()" )
+        fnPrint( debuggingThisModule, "Application._createMenuBar()" )
 
         if self.touchMode:
             self.createTouchMenuBar()
         else: # assume it's regular desktop mode
             self.createNormalMenuBar()
-    # end of Application.createMenuBar
+    # end of Application._createMenuBar
 
     def createNormalMenuBar( self ) -> None:
         """
@@ -389,7 +390,7 @@ class Application( Frame ):
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
         # fileOpenSubmenu.add_command( label=_('Markdown file…'), underline=0, command=self.doOpenFileMarkdownTextEditWindow )
-        # fileOpenSubmenu.add_command( label=_('uW TSV file…'), underline=0, command=self.doOpenFileTSVEditWindow )
+        # fileOpenSubmenu.add_command( label=_('uw TN (TSV) file…'), underline=0, command=self.doOpenFileTSVEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Save all…'), underline=0, command=self.doSaveAll )
         fileMenu.add_separator()
@@ -438,7 +439,8 @@ class Application( Frame ):
         submenuProjectOpenType.add_command( label=_('USFM…'), underline=0, command=self.doOpenUSFMProject )
         submenuProjectOpenType.add_command( label=_('Paratext9/8…'), underline=0, command=self.doOpenParatext8Project )
         submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
-        submenuProjectOpenType.add_command( label=_('uW TSV…'), underline=3, command=self.doOpenTSVProject )
+        submenuProjectOpenType.add_command( label=_('uw TN (TSV)…'), underline=3, command=self.doOpenTnTsvProject )
+        submenuProjectOpenType.add_command( label=_('OET…'), underline=0, command=self.doOpenOetProject )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -511,9 +513,9 @@ class Application( Frame ):
             debugMenu.add_command( label=_('View open windows…'), underline=10, command=self.doViewWindowsList )
             debugMenu.add_command( label=_('View open Bibles…'), underline=10, command=self.doViewBiblesList )
             debugMenu.add_separator()
-            debugMenu.add_command( label=_('View settings…'), underline=0, command=self.doViewSettings )
+            debugMenu.add_command( label=_('View settings…'), underline=0, command=self._doViewSettings )
             debugMenu.add_separator()
-            debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
+            debugMenu.add_command( label=_('View log…'), underline=5, command=self._doViewLog )
             debugMenu.add_separator()
             debugMenu.add_command( label=_('Submit bug…'), underline=0, command=self.doSubmitBug )
             debugMenu.add_separator()
@@ -521,13 +523,13 @@ class Application( Frame ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label=_('Help'), underline=0 )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=self.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
         helpMenu.add_command( label=_('Translation manual…'), underline=0, command=self.doOpenTranslationManualWindow )
         helpMenu.add_separator()
         helpMenu.add_command( label=_('Submit bug…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doSubmitBug )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=self.keyBindingDict[_('About')][0] )
     # end of Application.createNormalMenuBar
 
     def createTouchMenuBar( self ) -> None:
@@ -556,7 +558,7 @@ class Application( Frame ):
             fileRecentOpenSubmenu.add_command( label=filename, underline=0, command=lambda which=j: self.doOpenRecent(which) )
         fileOpenSubmenu.add_separator()
         fileOpenSubmenu.add_command( label=_('Text file…'), underline=0, command=self.doOpenFileTextEditWindow )
-        # fileOpenSubmenu.add_command( label=_('uW TSV file…'), underline=0, command=self.doOpenFileTSVEditWindow )
+        # fileOpenSubmenu.add_command( label=_('uw TN (TSV) file…'), underline=0, command=self.doOpenFileTSVEditWindow )
         fileMenu.add_separator()
         fileMenu.add_command( label=_('Save all…'), underline=0, command=self.doSaveAll )
         fileMenu.add_separator()
@@ -605,7 +607,8 @@ class Application( Frame ):
         submenuProjectOpenType.add_command( label=_('USFM…'), underline=0, command=self.doOpenUSFMProject )
         submenuProjectOpenType.add_command( label=_('Paratext9/8…'), underline=0, command=self.doOpenParatext8Project )
         submenuProjectOpenType.add_command( label=_('Paratext7…'), underline=1, command=self.doOpenParatext7Project )
-        submenuProjectOpenType.add_command( label=_('uW TSV table…'), underline=3, command=self.doOpenTSVProject )
+        submenuProjectOpenType.add_command( label=_('uw TN (TSV) table…'), underline=3, command=self.doOpenTnTsvProject )
+        submenuProjectOpenType.add_command( label=_('OET…'), underline=0, command=self.doOpenOetProject )
         projectMenu.add_separator()
         projectMenu.add_command( label=_('Backup…'), underline=0, command=self.notWrittenYet )
         projectMenu.add_command( label=_('Restore…'), underline=0, command=self.notWrittenYet )
@@ -676,9 +679,9 @@ class Application( Frame ):
             debugMenu.add_command( label=_('View open windows…'), underline=10, command=self.doViewWindowsList )
             debugMenu.add_command( label=_('View open Bibles…'), underline=10, command=self.doViewBiblesList )
             debugMenu.add_separator()
-            debugMenu.add_command( label=_('View settings…'), underline=0, command=self.doViewSettings )
+            debugMenu.add_command( label=_('View settings…'), underline=0, command=self._doViewSettings )
             debugMenu.add_separator()
-            debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
+            debugMenu.add_command( label=_('View log…'), underline=5, command=self._doViewLog )
             debugMenu.add_separator()
             debugMenu.add_command( label=_('Submit bug…'), underline=0, command=self.doSubmitBug )
             debugMenu.add_separator()
@@ -686,11 +689,11 @@ class Application( Frame ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label=_('Help'), underline=0 )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=self.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
         helpMenu.add_command( label=_('Submit bug…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doSubmitBug )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=self.keyBindingDict[_('About')][0] )
     # end of Application.createTouchMenuBar
 
     def __OnPreviousBCVMouseDown( self, event ) -> None:
@@ -1129,7 +1132,7 @@ class Application( Frame ):
 
         # These bindings apply to/from all windows and widgets
         self.myKeyboardBindingsList = []
-        for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
+        for name,command in ( ('Help',self._doHelp), ('About',self._doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
                     #dPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
@@ -1175,7 +1178,7 @@ class Application( Frame ):
         fnPrint( debuggingThisModule, "Application.setupMainWindowKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
-        for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
+        for name,command in ( ('Help',self._doHelp), ('About',self._doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
                     #dPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
@@ -1250,13 +1253,14 @@ class Application( Frame ):
             Style().configure( 'MainStatusBar.TLabel', foreground='white', background='purple' )
             self.statusTextVariable.set( newStatusText )
             self.statusTextLabel.update()
+        dPrint( 'Never', debuggingThisModule, "  Done setStatus")
     # end of Application.setStatus
 
     def setErrorStatus( self, newStatusText ) -> None:
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        fnPrint( debuggingThisModule, "Application.setErrorStatus( {!r} )".format( newStatusText ) )
+        fnPrint( debuggingThisModule, f"Application.setErrorStatus( {newStatusText} )" )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='MainStatusBar.TLabelWait' )
@@ -1269,13 +1273,15 @@ class Application( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        fnPrint( debuggingThisModule, "Application.setWaitStatus( {!r} )".format( newStatusText ) )
+        fnPrint( debuggingThisModule, f"Application.setWaitStatus( {newStatusText} )" )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='MainStatusBar.TLabelWait' )
         self.setStatus( newStatusText )
         Style().configure( 'MainStatusBar.TLabel', foreground='black', background='DarkOrange1' )
+        dPrint( 'Never', debuggingThisModule, "  Almost done setWaitStatus")
         self.update()
+        dPrint( 'Never', debuggingThisModule, "  Done setWaitStatus")
     # end of Application.setWaitStatus
 
     def setReadyStatus( self ) -> None:
@@ -1285,12 +1291,14 @@ class Application( Frame ):
         unless we're still starting
             (this covers any slow start-up functions that don't yet set helpful statuses)
         """
+        fnPrint( debuggingThisModule, f"Application.setReadyStatus() with {self.isStarting=}" )
         if self.isStarting: self.setWaitStatus( _("Starting up…") )
         else: # we really are ready
             #self.statusTextLabel.configure( style='MainStatusBar.TLabelReady' )
             self.setStatus( _("Ready") )
             Style().configure( 'MainStatusBar.TLabel', foreground='yellow', background='forest green' )
             self.configure( cursor='' )
+        dPrint( 'Never', debuggingThisModule, "  Done setReadyStatus")
     # end of Application.setReadyStatus
 
 
@@ -1363,8 +1371,8 @@ class Application( Frame ):
         """
         Check if there's any new messages on the website from the developer.
         """
-        logging.info( "Application.doCheckForMessagesFromDeveloper()" )
         fnPrint( debuggingThisModule, f"Application.doCheckForMessagesFromDeveloper( {event} )" )
+        logging.info( "Application.doCheckForMessagesFromDeveloper()" )
 
         hadError = False
         # NOTE: needs to be https eventually!!!
@@ -1373,7 +1381,7 @@ class Application( Frame ):
         responseObject = requests.get( url )
         if responseObject.status_code == 200:
             indexString = responseObject.text
-            dPrint( 'Info', debuggingThisModule, f"{indexString=}" )
+            dPrint( 'Verbose', debuggingThisModule, f"doCheckForMessagesFromDeveloper {indexString=}" )
         else:
             logging.critical( f"doCheckForMessagesFromDeveloper got {responseObject.status_code} from {url}" )
             hadError = True
@@ -2052,8 +2060,7 @@ class Application( Frame ):
 
     #     Then open the file in a TSV edit window.
     #     """
-    #     if BibleOrgSysGlobals.debugFlag:
-    #         vPrint( 'Quiet', debuggingThisModule, "doOpenFileTSVEditWindow()" )
+    #     fnPrint( debuggingThisModule, "doOpenFileTSVEditWindow()" )
     #     if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenFileTSVEditWindow…" )
 
     #     self.setWaitStatus( _("doOpenFileTSVEditWindow…") )
@@ -2147,22 +2154,22 @@ class Application( Frame ):
     # end of Application.doViewBiblesList
 
 
-    def doViewSettings( self ) -> None:
+    def _doViewSettings( self ) -> None:
         """
         Open a pop-up text window with the current settings displayed.
         """
         viewSettings( self ) # In BiblelatorSettingsFunctions
-    # end of Application.doViewSettings
+    # end of Application._doViewSettings
 
 
-    def doViewLog( self ) -> None:
+    def _doViewLog( self ) -> None:
         """
         Open a pop-up text window with the current log displayed.
         """
-        fnPrint( debuggingThisModule, "Application.doViewLog()" )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doViewLog…" )
+        fnPrint( debuggingThisModule, "Application._doViewLog()" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "_doViewLog…" )
 
-        self.setWaitStatus( _("doViewLog…") )
+        self.setWaitStatus( _("_doViewLog…") )
         filename = APP_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
@@ -2170,12 +2177,12 @@ class Application( Frame ):
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
-            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed _doViewLog" )
         else:
             self.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished _doViewLog" ) # Don't do this -- adds to the log immediately
         self.setReadyStatus()
-    # end of Application.doViewLog
+    # end of Application._doViewLog
 
 
     def doStartNewProject( self ):
@@ -2417,7 +2424,7 @@ class Application( Frame ):
     #def doOpenBibleditProject( self ):
         #"""
         #"""
-        #dPrint( 'Never', debuggingThisModule, "doOpenBibleditProject()" )
+        #fnPrint( debuggingThisModule, "doOpenBibleditProject()" )
         #self.notWrittenYet()
     ## end of Application.doOpenBibleditProject
 
@@ -2646,23 +2653,25 @@ class Application( Frame ):
     # end of Application.openParatext7BibleEditWindow
 
 
-    def doOpenTSVProject( self ) -> None:
+    def doOpenTnTsvProject( self ) -> None:
         """
+        unfoldingWord Translation Notes project (TSV files)
+
         Open a pop-up window and request the user to select a folder.
 
         Then open the file in a TSV edit window.
         """
-        fnPrint( debuggingThisModule, "Application.doOpenTSVProject()" )
-        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenTSVProject…" )
+        fnPrint( debuggingThisModule, "Application.doOpenTnTsvProject()" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenTnTsvProject…" )
 
-        self.setWaitStatus( _("doOpenTSVProject…") )
+        self.setWaitStatus( _("doOpenTnTsvProject…") )
         openDialog = Directory( title=_("Select TSV folder"), initialdir=self.lastInternalBibleDir )
         requestedFolder = openDialog.show()
         if requestedFolder:
             self.lastInternalBibleDir = requestedFolder
             self.openTSVEditWindow( requestedFolder )
             self.addRecentFile( ('',requestedFolder,'TSVBibleEditWindow') )
-    # end of Application.doOpenTSVProject
+    # end of Application.doOpenTnTsvProject
 
     def openTSVEditWindow( self, folderpath, windowGeometry=None ):
         """
@@ -2678,13 +2687,12 @@ class Application( Frame ):
             return
         else: # check the TSV folder and fill the window
             self.setWaitStatus( _("openTSVEditWindow…") )
-            haveTSVfiles = False
             for something in os.listdir( folderpath ):
                 somepath = os.path.join( folderpath, something )
                 if something.lower().endswith( '.tsv' ) \
                 and os.path.isfile( somepath ):
-                    haveTSVfiles = True; break
-            if not haveTSVfiles:
+                    break
+            else: # no files found
                 showError( self, APP_NAME, f"Unable to discover any TSV files in folder '{folderpath}'\n" \
                                         "You must create the files first (with header lines)." )
                 self.setReadyStatus()
@@ -2698,6 +2706,69 @@ class Application( Frame ):
         self.setReadyStatus()
         return tsvEW
     # end of Application.openTSVEditWindow
+
+
+    def doOpenOetProject( self ) -> None:
+        """
+        Open English Translation (OET) project
+
+        Open a pop-up window and request the user to select a folder.
+
+        Then open the file in a TSV edit window.
+        """
+        fnPrint( debuggingThisModule, "Application.doOpenOetProject()" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenOetProject…" )
+
+        self.setWaitStatus( _("doOpenOetProject…") )
+        openDialog = Open( title=_("Select CSV file"), initialdir=self.lastInternalBibleDir )
+        fileResult = openDialog.show()
+        if not fileResult:
+            self.setReadyStatus()
+            return
+        if not os.path.isfile( fileResult ):
+            showError( self, APP_NAME, _("Could not open file '{}'.").format( fileResult) )
+            self.setReadyStatus()
+            return
+
+        folderpath = os.path.split( fileResult )[0]
+        self.lastInternalBibleDir = folderpath
+        self.openCSVEditWindow( fileResult )
+        self.addRecentFile( (fileResult,'','CSVBibleEditWindow') )
+    # end of Application.doOpenOetProject
+
+    def openCSVEditWindow( self, filepath, windowGeometry=None ):
+        """
+        Then open the file in a CSV edit window.
+        """
+        fnPrint( debuggingThisModule, f"openCSVEditWindow( fp={filepath}, wG={windowGeometry} )" )
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "openCSVEditWindow…" )
+
+        if filepath is None:
+            # csvEW = TSVEditWindow( self )
+            # if windowGeometry: csvEW.geometry( windowGeometry )
+            # self.childWindows.append( csvEW )
+            return
+        else: # check the CSV folder and fill the window
+            self.setWaitStatus( _("openCSVEditWindow…") )
+            # for something in os.listdir( folderpath ):
+            #     somepath = os.path.join( folderpath, something )
+            #     if something.lower().endswith( '.csv' ) \
+            #     and os.path.isfile( somepath ):
+            #         break
+            # else: # no files found
+            #     showError( self, APP_NAME, f"Unable to discover any CSV files in folder '{folderpath}'\n" \
+            #                             "You must create the files first (with header lines)." )
+            #     self.setReadyStatus()
+            #     return
+            csvEW = CSVEditWindow( self, filepath )
+            if windowGeometry: csvEW.geometry( windowGeometry )
+            self.childWindows.append( csvEW )
+            self.addRecentFile( (filepath,'','CSVBibleEditWindow') )
+
+        if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished openCSVEditWindow" )
+        self.setReadyStatus()
+        return csvEW
+    # end of Application.openCSVEditWindow
 
 
     def doOpenCollateProjects( self ) -> None:
@@ -3235,8 +3306,8 @@ class Application( Frame ):
         """
         Handle a new book setting (or even BCV) from the GUI bookName dropbox.
         """
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'acceptNewBookNameField' )
         fnPrint( debuggingThisModule, f"Application.acceptNewBookNameField( {event} )" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'acceptNewBookNameField' )
         #dPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         #self.chapterNumberVar.set( '1' )
@@ -3251,8 +3322,8 @@ class Application( Frame ):
 
         If we have no open Bibles containing that book, we go to the next one.
         """
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'spinToNewBookNumber' )
         fnPrint( debuggingThisModule, f"Application.spinToNewBookNumber( {event} )" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'spinToNewBookNumber' )
         #dPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         nBBB = self.bookNumberVar.get()
@@ -3390,7 +3461,7 @@ class Application( Frame ):
     def haveSwordResourcesOpen( self ) -> bool:
         """
         """
-        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "haveSwordResourcesOpen()" )
+        #fnPrint( debuggingThisModule, "haveSwordResourcesOpen()" )
         for appWin in self.childWindows:
             if 'Sword' in appWin.windowType:
                 if self.SwordInterface is None:
@@ -3590,8 +3661,8 @@ class Application( Frame ):
         """
         Handle a new lexicon word setting from the GUI.
         """
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'acceptNewLexiconWord' )
         fnPrint( debuggingThisModule, "Application.acceptNewLexiconWord()" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'acceptNewLexiconWord' )
         #dPrint( 'Quiet', debuggingThisModule, dir(event) )
 
         newWord = self.wordVar.get()
@@ -3930,8 +4001,8 @@ class Application( Frame ):
         """
         Display the settings editor window.
         """
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenSettingsEditor' )
         fnPrint( debuggingThisModule, f"Application.doOpenSettingsEditor( {event} )" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenSettingsEditor' )
 
         openBiblelatorSettingsEditor( self )
     # end of Application.doOpenSettingsEditor
@@ -3940,8 +4011,8 @@ class Application( Frame ):
         """
         Display the BOS manager window.
         """
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenBOSManager' )
         fnPrint( debuggingThisModule, f"Application.doOpenBOSManager( {event} )" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenBOSManager' )
 
         openBOSManager( self )
     # end of Application.doOpenBOSManager
@@ -3950,8 +4021,8 @@ class Application( Frame ):
         """
         Display the Sword module manager window.
         """
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenSwordManager' )
         fnPrint( debuggingThisModule, f"Application.doOpenSwordManager( {event} )" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenSwordManager' )
 
         openSwordManager( self )
     # end of Application.doOpenSwordManager
@@ -3983,13 +4054,13 @@ class Application( Frame ):
     # end of Application.logUsage
 
 
-    def doHelp( self, event=None ) -> None:
+    def _doHelp( self, event=None ) -> None:
         """
         Display a help box.
         """
         from Biblelator.Dialogs.Help import HelpBox
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doHelp' )
-        fnPrint( debuggingThisModule, f"Application.doHelp( {event} )" )
+        fnPrint( debuggingThisModule, f"Application._doHelp( {event} )" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, '_doHelp' )
 
         helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -4006,15 +4077,15 @@ class Application( Frame ):
         helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
         helpImage = DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' )
         hb = HelpBox( self.rootWindow, APP_NAME, helpInfo, helpImage )
-    # end of Application.doHelp
+    # end of Application._doHelp
 
 
     def doOpenTranslationManualWindow( self, event=None ) -> None:
         """
         Display the unfoldingWord Translation Academy manual.
         """
+        fnPrint( debuggingThisModule, f"Application.doOpenTranslationManualWindow( {event} )" )
         self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doOpenTranslationManualWindow' )
-        vPrint( 'Normal', debuggingThisModule, f"Application.doOpenTranslationManualWindow( {event} )" )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "doOpenTranslationManualWindow" )
 
         self.setWaitStatus( _("doOpenTranslationManualWindow…") )
@@ -4107,13 +4178,13 @@ class Application( Frame ):
     # end of Application.doSubmitBug
 
 
-    def doAbout( self, event=None ) -> None:
+    def _doAbout( self, event=None ) -> None:
         """
         Display an about box.
         """
         from Biblelator.Dialogs.About import AboutBox
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doAbout' )
-        fnPrint( debuggingThisModule, f"Application.doAbout( {event} )" )
+        fnPrint( debuggingThisModule, f"Application._doAbout( {event} )" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, '_doAbout' )
 
         aboutInfo = programNameVersion
         aboutInfo += "\nA free USFM Bible editor." \
@@ -4121,13 +4192,13 @@ class Application( Frame ):
             + "\n\n{} is written in Python. For more information see our web page at Freely-Given.org/Software/Biblelator".format( SHORT_PROGRAM_NAME )
         aboutImage = DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' )
         ab = AboutBox( self.rootWindow, APP_NAME, aboutInfo, aboutImage )
-    # end of Application.doAbout
+    # end of Application._doAbout
 
 
     #def doProjectClose( self ):
         #"""
         #"""
-        #dPrint( 'Never', debuggingThisModule, "doProjectClose()" )
+        #fnPrint( debuggingThisModule, "doProjectClose()" )
         #self.notWrittenYet()
     ## end of Application.doProjectClose
 
@@ -4144,8 +4215,8 @@ class Application( Frame ):
         """
         Save files first, and then close child windows.
         """
-        #self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doCloseMyChildWindows' )
         fnPrint( debuggingThisModule, "Application.doCloseMyChildWindows()" )
+        #self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doCloseMyChildWindows' )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():
@@ -4176,8 +4247,8 @@ class Application( Frame ):
         """
         Save files first, and then end the application.
         """
-        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doCloseMe' )
         fnPrint( debuggingThisModule, "Application.doCloseMe()" )
+        self.logUsage( PROGRAM_NAME, debuggingThisModule, 'doCloseMe' )
         # dPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( APP_NAME ) )
 
         writeSettingsFile()
@@ -4210,7 +4281,7 @@ def handlePossibleCrash( homeFolderpath:str, dataFolderName:str, settingsFolderN
     iniFilepath = os.path.join( homeFolderpath, dataFolderName, settingsFolderName, iniName )
     currentWindowDict = {}
     try:
-        with open( iniFilepath, 'rt' ) as iniFile:
+        with open( iniFilepath, 'rt', encoding='utf-8' ) as iniFile:
             inCurrent = False
             for line in iniFile:
                 line = line.strip()
@@ -4480,7 +4551,7 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         handlePossibleCrash( homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME )
 
     # Create the lock file on normal startup
-    with open( LOCK_FILENAME, 'wt' ) as lockFile:
+    with open( LOCK_FILENAME, 'wt', encoding='utf-8' ) as lockFile:
         lockFile.write( f"Lock file for {APP_NAME}\n" )
 
     tkRootWindow = tk.Tk()

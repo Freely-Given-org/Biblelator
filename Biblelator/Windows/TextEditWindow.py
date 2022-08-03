@@ -115,8 +115,8 @@ class TextEditWindowAddon:
         self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         self.textBox.setTextChangeCallback( self.onTextChange )
-        self.createEditorKeyboardBindings()
-        #self.createMenuBar()
+        self._createEditorKeyboardBindings()
+        #self._createMenuBar()
         self.createContextMenu() # Enable right-click menu
 
         self.lastFiletime = self.lastFilesize = None
@@ -157,7 +157,7 @@ class TextEditWindowAddon:
         self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
         self.autosaveScheduled = False
 
-        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
+        self.after( CHECK_DISK_CHANGES_TIME, self._checkForDiskChanges )
         #self.after( REFRESH_TITLE_TIME, self.refreshTitle )
         self.loading = self.hadTextWarning = False
         #self.lastTextChangeTime = time()
@@ -166,10 +166,10 @@ class TextEditWindowAddon:
     # end of TextEditWindowAddon.__init__
 
 
-    def createEditorKeyboardBindings( self ):
+    def _createEditorKeyboardBindings( self ):
         """
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.createEditorKeyboardBindings()" )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._createEditorKeyboardBindings()" )
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -188,13 +188,13 @@ class TextEditWindowAddon:
                         self.myKeyboardShortcutsList.append( keyCode )
                 self.myKeyboardBindingsList.append( (name,BiblelatorGlobals.theApp.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {}'.format( repr(name) ) )
-    # end of TextEditWindowAddon.createEditorKeyboardBindings()
+    # end of TextEditWindowAddon._createEditorKeyboardBindings()
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.createMenuBar()" )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -235,7 +235,7 @@ class TextEditWindowAddon:
         searchMenu.add_separator()
         searchMenu.add_command( label=_('Find…'), underline=0, command=self.doBoxFind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Find')][0] )
         searchMenu.add_command( label=_('Find again'), underline=5, command=self.doBoxRefind, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Refind')][0] )
-        searchMenu.add_command( label=_('Replace…'), underline=0, command=self.doBoxFindReplace )
+        searchMenu.add_command( label=_('Replace…'), underline=0, command=self._doBoxFindReplace )
         #searchMenu.add_separator()
         #searchMenu.add_command( label=_('Grep…'), underline=0, command=self.onGrep )
 
@@ -258,8 +258,8 @@ class TextEditWindowAddon:
 
         viewMenu = tk.Menu( self.menubar, tearoff=False )
         self.menubar.add_cascade( menu=viewMenu, label=_('View'), underline=0 )
-        viewMenu.add_command( label=_('Larger text'), underline=0, command=self.OnFontBigger )
-        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self.OnFontSmaller )
+        viewMenu.add_command( label=_('Larger text'), underline=0, command=self._onFontBigger )
+        viewMenu.add_command( label=_('Smaller text'), underline=1, command=self._onFontSmaller )
         viewMenu.add_separator()
         viewMenu.add_checkbutton( label=_('Status bar'), underline=9, variable=self._showStatusBarVar, command=self.doToggleStatusBar )
 
@@ -276,16 +276,16 @@ class TextEditWindowAddon:
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
-            #debugMenu.add_command( label=_('View settings…'), underline=5, command=self.doViewSettings )
+            #debugMenu.add_command( label=_('View settings…'), underline=5, command=self._doViewSettings )
             #debugMenu.add_separator()
-            debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
+            debugMenu.add_command( label=_('View log…'), underline=5, command=self._doViewLog )
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label=_('Help'), underline=0 )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of TextEditWindowAddon.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of TextEditWindowAddon._createMenuBar
 
 
     def createContextMenu( self ):
@@ -332,46 +332,46 @@ class TextEditWindowAddon:
 
         self.title( "{}[{}] {} ({}) {}".format( '*' if self.modified() else '',
                                             _("Text"), self.filename, self.folderpath, self.editStatus ) )
-        self.refreshTitleContinue()
+        self._refreshTitleContinue()
     # end if TextEditWindowAddon.refreshTitle
 
-    def refreshTitleContinue( self ):
+    def _refreshTitleContinue( self ):
         """
         Check if an autosave is needed,
             and schedule the next refresh.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.refreshTitleContinue()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon._refreshTitleContinue()" )
 
         self.after( REFRESH_TITLE_TIME, self.refreshTitle ) # Redo it so we can put up the asterisk if the text is changed
         try:
             if self.autosaveTime and self.modified() and not self.autosaveScheduled:
-                self.after( self.autosaveTime, self.doAutosave ) # Redo it so we can put up the asterisk if the text is changed
+                self.after( self.autosaveTime, self._doAutosave ) # Redo it so we can put up the asterisk if the text is changed
                 self.autosaveScheduled = True
         except AttributeError:
             vPrint( 'Quiet', debuggingThisModule, "Autosave not set-up properly yet" )
-    # end if TextEditWindowAddon.refreshTitleContinue
+    # end if TextEditWindowAddon._refreshTitleContinue
 
 
-    def OnFontBigger( self ):
+    def _onFontBigger( self ):
         """
         Make the font one point bigger
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.OnFontBigger()" )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._onFontBigger()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size+1 )
-    # end if TextEditWindowAddon.OnFontBigger
+    # end if TextEditWindowAddon._onFontBigger
 
-    def OnFontSmaller( self ):
+    def _onFontSmaller( self ):
         """
         Make the font one point smaller
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.OnFontSmaller()" )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._onFontSmaller()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size-1 )
-    # end if TextEditWindowAddon.OnFontSmaller
+    # end if TextEditWindowAddon._onFontSmaller
 
 
     def getAllText( self ) -> str:
@@ -387,11 +387,11 @@ class TextEditWindowAddon:
     # end of USFMEditWindow.getAllText
 
 
-    def makeAutocompleteBox( self ) -> None:
+    def _makeAutocompleteBox( self ) -> None:
         """
         Create a pop-up listbox in order to be able to display possible autocomplete words.
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.makeAutocompleteBox()" )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._makeAutocompleteBox()" )
         if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.autocompleteBox is None
 
@@ -413,20 +413,20 @@ class TextEditWindowAddon:
         self.autocompleteBox.pack( side=tk.LEFT, fill=tk.BOTH )
         #self.autocompleteBox.select_set( '0' )
         #self.autocompleteBox.focus()
-        self.autocompleteBox.bind( '<KeyPress>', self.OnAutocompleteChar )
-        self.autocompleteBox.bind( '<Double-Button-1>', self.doAcceptAutocompleteSelection )
+        self.autocompleteBox.bind( '<KeyPress>', self._onAutocompleteChar )
+        self.autocompleteBox.bind( '<Double-Button-1>', self._doAcceptAutocompleteSelection )
         self.autocompleteBox.bind( '<FocusOut>', self.removeAutocompleteBox )
-    # end of TextEditWindowAddon.makeAutocompleteBox
+    # end of TextEditWindowAddon._makeAutocompleteBox
 
 
-    def OnAutocompleteChar( self, event ):
+    def _onAutocompleteChar( self, event ):
         """
         Used by autocomplete routines in onTextChange.
 
         Handles key presses entered into the pop-up word selection (list) box.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.OnAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon._onAutocompleteChar( {!r}, {!r} )".format( event.char, event.keysym ) )
             assert self.autocompleteBox is not None
 
         #if event.keysym == 'ESC':
@@ -454,21 +454,21 @@ class TextEditWindowAddon:
             #if event.char in '.,': acceptAutocompleteSelection( self, includeTrailingSpace=False )
             self.textBox.insert( tk.INSERT, event.char ) # Causes onTextChange which reassesses
                                     #+ (' ' if event.char in ',' else '') )
-    # end of TextEditWindowAddon.OnAutocompleteChar
+    # end of TextEditWindowAddon._onAutocompleteChar
 
 
-    def doAcceptAutocompleteSelection( self, event=None ):
+    def _doAcceptAutocompleteSelection( self, event=None ):
         """
         Used by autocomplete routines in onTextChange.
 
         Gets the chosen word and inserts the end of it into the text.
         """
         if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAcceptAutocompleteSelection({} )".format( event ) )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon._doAcceptAutocompleteSelection({} )".format( event ) )
             assert self.autocompleteBox is not None
 
         acceptAutocompleteSelection( self, includeTrailingSpace=False )
-    # end of TextEditWindowAddon.doAcceptAutocompleteSelection
+    # end of TextEditWindowAddon._doAcceptAutocompleteSelection
 
 
     def removeAutocompleteBox( self, event=None ):
@@ -663,7 +663,7 @@ class TextEditWindowAddon:
                     if possibleWords: # we have some word(s) to pop-up for possible selection
                         #dPrint( 'Quiet', debuggingThisModule, "Handle autocomplete2" )
                         if self.autocompleteBox is None:
-                            self.makeAutocompleteBox()
+                            self._makeAutocompleteBox()
                         else: # the Listbox is already made -- just empty it
                             #dPrint( 'Quiet', debuggingThisModule, 'empty listbox' )
                             self.autocompleteBox.delete( 0, tk.END ) # clear the listbox completely
@@ -694,7 +694,7 @@ class TextEditWindowAddon:
             # end of auto-complete section
 
         #self.lastTextChangeTime = time()
-        try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self.onTextNoChange ) # Reschedule no change function so we keep checking
+        try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self._onTextNoChange ) # Reschedule no change function so we keep checking
         except KeyboardInterrupt:
             vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon: Got keyboard interrupt in onTextChange (A) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
@@ -704,20 +704,20 @@ class TextEditWindowAddon:
     # end of TextEditWindowAddon.onTextChange
 
 
-    def onTextNoChange( self ):
+    def _onTextNoChange( self ):
         """
         Called whenever the text box HASN'T CHANGED for NO_TYPE_TIME msecs.
 
         Checks for some types of formatting errors.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.onTextNoChange" )
+        #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon._onTextNoChange" )
         try: pass
         except KeyboardInterrupt:
-            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon: Got keyboard interrupt in onTextNoChange (B) -- saving my file" )
+            vPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon: Got keyboard interrupt in _onTextNoChange (B) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
             #self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
             #self.onTextNoChangeID = None
-    # end of TextEditWindowAddon.onTextNoChange
+    # end of TextEditWindowAddon._onTextNoChange
 
 
     def doShowInfo( self, event=None ):
@@ -728,7 +728,7 @@ class TextEditWindowAddon:
         """
         fnPrint( debuggingThisModule, "TextEditWindowAddon.doShowInfo( {} )".format( event ) )
 
-        text  = self.getEntireText()
+        text  = self._getEntireText()
         numChars = len( text )
         numLines = len( text.split( '\n' ) )
         numWords = len( text.split() )
@@ -859,7 +859,7 @@ class TextEditWindowAddon:
     ## end of TextEditWindowAddon.doBoxRefind
 
 
-    def doBoxFindReplace( self ):
+    def _doBoxFindReplace( self ):
         """
         Non-modal find/change dialog
         2.1: pass per-dialog inputs to callbacks, may be > 1 change dialog open
@@ -877,15 +877,15 @@ class TextEditWindowAddon:
             self.doBoxFind( entry1.get() )         # runs normal find dialog callback
 
         def onApply():
-            self.onDoChange( entry1.get(), entry2.get() )
+            self._onDoChange( entry1.get(), entry2.get() )
 
         Button( newPopupWindow, text='Find',  command=doBoxFind ).grid(row=0, column=2, sticky=tk.EW )
         Button( newPopupWindow, text='Apply', command=onApply).grid(row=1, column=2, sticky=tk.EW )
         newPopupWindow.columnconfigure( 1, weight=1 )      # expandable entries
-    # end of TextEditWindowAddon.doBoxFindReplace
+    # end of TextEditWindowAddon._doBoxFindReplace
 
 
-    def onDoChange( self, findtext, changeto):
+    def _onDoChange( self, findtext, changeto):
         """
         on Apply in change dialog: change and refind
         """
@@ -895,7 +895,7 @@ class TextEditWindowAddon:
             self.textBox.see( tk.INSERT )
             self.doBoxFind( findtext )                          # goto next appear
             self.textBox.update() # force refresh
-    # end of TextEditWindowAddon.onDoChange
+    # end of TextEditWindowAddon._onDoChange
 
 
     ############################################################################
@@ -989,22 +989,22 @@ class TextEditWindowAddon:
             showError( self, APP_NAME, _("No permission to write {!r} in {!r}").format( self.filename, self.folderpath ) )
             return False
 
-        self.rememberFileTimeAndSize()
+        self._rememberFileTimeAndSize()
 
         self.refreshTitle()
         return True
     # end of TextEditWindowAddon._checkFilepath
 
 
-    def rememberFileTimeAndSize( self ):
+    def _rememberFileTimeAndSize( self ):
         """
         Just record the file modification time and size in bytes
             so that we can check later if it's changed on-disk.
         """
         self.lastFiletime = os.stat( self.filepath ).st_mtime
         self.lastFilesize = os.stat( self.filepath ).st_size
-        vPrint( 'Never', debuggingThisModule, " rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
-    # end of TextEditWindowAddon.rememberFileTimeAndSize
+        vPrint( 'Never', debuggingThisModule, " _rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
+    # end of TextEditWindowAddon._rememberFileTimeAndSize
 
 
     def setAllText( self, newText ):
@@ -1052,25 +1052,25 @@ class TextEditWindowAddon:
     # end of TextEditWindowAddon.loadText
 
 
-    def getEntireText( self ):
+    def _getEntireText( self ):
         """
         This function can be overloaded in super classes
             (where the edit window might not display the entire text).
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.getEntireText()" )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._getEntireText()" )
 
         return self.getAllText()
-    # end of TextEditWindowAddon.getEntireText
+    # end of TextEditWindowAddon._getEntireText
 
 
-    def checkForDiskChanges( self, autoloadText=False ):
+    def _checkForDiskChanges( self, autoloadText=False ):
         """
         Check if the file has changed on disk.
 
         If it has, and the user hasn't yet made any changes, offer to reload.
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.checkForDiskChanges()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon._checkForDiskChanges()" )
 
         if self.filepath and os.path.isfile( self.filepath ) \
         and ( ( self.lastFiletime and os.stat( self.filepath ).st_mtime != self.lastFiletime ) \
@@ -1086,9 +1086,9 @@ class TextEditWindowAddon:
                     if ynd.result == True: yndResult = True # Yes was chosen
                 if yndResult:
                     self.loadText() # reload
-            self.rememberFileTimeAndSize()
-        self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges ) # Redo it so we keep checking
-    # end if TextEditWindowAddon.checkForDiskChanges
+            self._rememberFileTimeAndSize()
+        self.after( CHECK_DISK_CHANGES_TIME, self._checkForDiskChanges ) # Redo it so we keep checking
+    # end if TextEditWindowAddon._checkForDiskChanges
 
 
     def doSaveAs( self, event=None ):
@@ -1114,10 +1114,10 @@ class TextEditWindowAddon:
         if self.modified():
             if self.folderpath and self.filename:
                 filepath = os.path.join( self.folderpath, self.filename )
-                allText = self.getEntireText() # from the displayed edit window
+                allText = self._getEntireText() # from the displayed edit window
                 with open( filepath, mode='wt', encoding='utf-8' ) as theFile:
                     theFile.write( allText )
-                self.rememberFileTimeAndSize()
+                self._rememberFileTimeAndSize()
                 self.textBox.edit_modified( tk.FALSE ) # clear Tkinter modified flag
                 #self.bookTextModified = False
                 self.refreshTitle()
@@ -1125,7 +1125,7 @@ class TextEditWindowAddon:
     # end of TextEditWindowAddon.doSave
 
 
-    def doAutosave( self ):
+    def _doAutosave( self ):
         """
         Called on a timer to save a copy of the file in a separate location
             if it's been modified.
@@ -1140,7 +1140,7 @@ class TextEditWindowAddon:
                 (Yes, this can result in old AutoSave files in the home folder.)
         """
         #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon.doAutosave()" )
+            #dPrint( 'Quiet', debuggingThisModule, "TextEditWindowAddon._doAutosave()" )
 
         if self.modified():
             partialAutosaveFolderpath = self.folderpath if self.folderpath else BiblelatorGlobals.theApp.homeFolderpath
@@ -1162,67 +1162,67 @@ class TextEditWindowAddon:
             and ( not os.path.isfile( lastDayFilepath ) \
             or datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date() ):
             #or not self.filepath \
-                vPrint( 'Quiet', debuggingThisModule, "doAutosave: saving daily file", lastDayFilepath )
+                vPrint( 'Quiet', debuggingThisModule, "_doAutosave: saving daily file", lastDayFilepath )
                 shutil.copyfile( autosaveFilepath, lastDayFilepath ) # We save a copy of the PREVIOUS autosaved file
 
             # Now save this updated file
-            allText = self.getEntireText() # from the displayed edit window and/or elsewhere
+            allText = self._getEntireText() # from the displayed edit window and/or elsewhere
             with open( autosaveFilepath, mode='wt', encoding='utf-8' ) as theFile:
                 theFile.write( allText )
-            self.after( self.autosaveTime, self.doAutosave )
+            self.after( self.autosaveTime, self._doAutosave )
         else:
             self.autosaveScheduled = False # Will be set again by refreshTitle
-    # end of TextEditWindowAddon.doAutosave
+    # end of TextEditWindowAddon._doAutosave
 
 
-    def doViewSettings( self ):
+    def _doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
         """
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "doViewSettings()" )
-            BiblelatorGlobals.theApp.setDebugText( "doViewSettings…" )
+            vPrint( 'Quiet', debuggingThisModule, "_doViewSettings()" )
+            BiblelatorGlobals.theApp.setDebugText( "_doViewSettings…" )
         tEW = TextEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setFilepath( self.settings.settingsFilepath ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open settings file") )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewSettings" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed _doViewSettings" )
         else:
             BiblelatorGlobals.theApp.childWindows.append( tEW )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished doViewSettings" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Finished _doViewSettings" )
         BiblelatorGlobals.theApp.setReadyStatus()
-    # end of TextEditWindowAddon.doViewSettings
+    # end of TextEditWindowAddon._doViewSettings
 
 
-    def doViewLog( self ):
+    def _doViewLog( self ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        fnPrint( debuggingThisModule, "doViewLog()" )
-        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "doViewLog…" )
+        fnPrint( debuggingThisModule, "_doViewLog()" )
+        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "_doViewLog…" )
 
-        filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        filename = f"{makeSafeProgramName(PROGRAM_NAME)}_log.txt"
         tEW = TextEditWindow( theApp )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( BiblelatorGlobals.theApp.loggingFolderpath, filename ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, APP_NAME, _("Sorry, unable to open log file") )
-            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed doViewLog" )
+            if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Failed _doViewLog" )
         else:
             BiblelatorGlobals.theApp.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished _doViewLog" ) # Don't do this -- adds to the log immediately
         BiblelatorGlobals.theApp.setReadyStatus()
-    # end of TextEditWindowAddon.doViewLog
+    # end of TextEditWindowAddon._doViewLog
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.doHelp( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -1232,21 +1232,21 @@ class TextEditWindowAddon:
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of TextEditWindowAddon.doHelp
+    # end of TextEditWindowAddon._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "TextEditWindowAddon.doAbout( {} )".format( event ) )
+        fnPrint( debuggingThisModule, "TextEditWindowAddon._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of TextEditWindowAddon.doAbout
+    # end of TextEditWindowAddon._doAbout
 
 
     def doClose( self, event=None ):
@@ -1336,8 +1336,8 @@ class TextEditWindow( TextEditWindowAddon, ChildWindow ):
         #self.textBox.pack( side=tk.TOP, fill=tk.BOTH, expand=tk.YES )
         #self.vScrollbar.configure( command=self.textBox.yview ) # link the scrollbar to the text box
         #self.textBox.setTextChangeCallback( self.onTextChange )
-        #self.createEditorKeyboardBindings()
-        self.createMenuBar()
+        #self._createEditorKeyboardBindings()
+        self._createMenuBar()
         #self.createContextMenu() # Enable right-click menu
 
         #self.lastFiletime = self.lastFilesize = None
@@ -1378,7 +1378,7 @@ class TextEditWindow( TextEditWindowAddon, ChildWindow ):
         #self.autosaveTime = 2*60*1000 # msecs (zero is no autosaves)
         #self.autosaveScheduled = False
 
-        #self.after( CHECK_DISK_CHANGES_TIME, self.checkForDiskChanges )
+        #self.after( CHECK_DISK_CHANGES_TIME, self._checkForDiskChanges )
         ##self.after( REFRESH_TITLE_TIME, self.refreshTitle )
         #self.loading = self.hadTextWarning = False
         ##self.lastTextChangeTime = time()

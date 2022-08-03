@@ -384,10 +384,10 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     # end of BibleReferenceCollectionWindow.setFolderpath
 
 
-    def createMenuBar( self ):
+    def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.createMenuBar()" )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -474,10 +474,10 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, underline=0, label=_('Help') )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
-    # end of BibleReferenceCollectionWindow.createMenuBar
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('About')][0] )
+    # end of BibleReferenceCollectionWindow._createMenuBar
 
 
     def refreshTitle( self ):
@@ -605,11 +605,11 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
     # end of BibleReferenceCollectionWindow.updateShownReferences
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.doHelp()" )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow._doHelp()" )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = programNameVersion
@@ -619,14 +619,14 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
             helpInfo += "\n    {}\t{}".format( name, shortcut )
         hb = HelpBox( self, self.genericWindowType, helpInfo )
         return tkBREAK # so we don't do the main window help also
-    # end of BibleReferenceCollectionWindow.doHelp
+    # end of BibleReferenceCollectionWindow._doHelp
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow.doAbout()" )
+        fnPrint( debuggingThisModule, "BibleReferenceCollectionWindow._doAbout()" )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = programNameVersion + '\n'
@@ -634,7 +634,7 @@ class BibleReferenceCollectionWindow( ChildWindow, BibleResourceWindowAddon ):
         aboutInfo += '\n' + _("A Bible Reference Collection box can contain multiple different Scripture references all shown from the same resource translation or commentary.")
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return tkBREAK # so we don't do the main window about also
-    # end of BibleReferenceCollectionWindow.doAbout
+    # end of BibleReferenceCollectionWindow._doAbout
 # end of BibleReferenceCollectionWindow class
 
 

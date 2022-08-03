@@ -7,7 +7,7 @@
 #
 # Adapted from: http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 #
-# Copyright (C) 2014-2020 Robert Hunt
+# Copyright (C) 2014-2022 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+Biblelator@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -47,10 +47,10 @@ if __name__ == '__main__':
 from Biblelator import BiblelatorGlobals
 
 
-LAST_MODIFIED_DATE = '2020-06-05' # by RJH
+LAST_MODIFIED_DATE = '2022-07-13' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorModalDialog"
 PROGRAM_NAME = "Biblelator Modal Dialog"
-PROGRAM_VERSION = '0.46'
+PROGRAM_VERSION = '0.47'
 programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -160,7 +160,7 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        dPrint( 'Quiet', debuggingThisModule, "This 'validate' method can be overridden!" )
+        dPrint( 'Info', debuggingThisModule, "This ModalDialog.validate() method can be overridden!" )
         return True # override
     # end of ModalDialog.validate
 
@@ -172,7 +172,7 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        dPrint( 'Quiet', debuggingThisModule, "This 'apply' method should be overridden!" )
+        dPrint( 'Quiet', debuggingThisModule, "This ModalDialog.apply() method should have been overridden!" )
         self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog

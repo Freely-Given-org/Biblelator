@@ -317,9 +317,9 @@ class BOSManager( Frame ):
         if BibleOrgSysGlobals.debugFlag:
             debugMenu = tk.Menu( self.menubar, tearoff=False )
             self.menubar.add_cascade( menu=debugMenu, label=_('Debug'), underline=0 )
-            debugMenu.add_command( label=_('View settings…'), underline=0, command=self.doViewSettings )
+            debugMenu.add_command( label=_('View settings…'), underline=0, command=self._doViewSettings )
             debugMenu.add_separator()
-            debugMenu.add_command( label=_('View log…'), underline=5, command=self.doViewLog )
+            debugMenu.add_command( label=_('View log…'), underline=5, command=self._doViewLog )
             debugMenu.add_separator()
             debugMenu.add_command( label=_('Submit bug…'), underline=0, command=self.doSubmitBug )
             debugMenu.add_separator()
@@ -327,11 +327,11 @@ class BOSManager( Frame ):
 
         helpMenu = tk.Menu( self.menubar, name='help', tearoff=False )
         self.menubar.add_cascade( menu=helpMenu, label=_('Help'), underline=0 )
-        helpMenu.add_command( label=_('Help…'), underline=0, command=self.doHelp, accelerator=self.keyBindingDict[_('Help')][0] )
+        helpMenu.add_command( label=_('Help…'), underline=0, command=self._doHelp, accelerator=self.keyBindingDict[_('Help')][0] )
         helpMenu.add_separator()
         helpMenu.add_command( label=_('Submit bug…'), underline=0, state=tk.NORMAL if self.internetAccessEnabled else tk.DISABLED, command=self.doSubmitBug )
         helpMenu.add_separator()
-        helpMenu.add_command( label=_('About…'), underline=0, command=self.doAbout, accelerator=self.keyBindingDict[_('About')][0] )
+        helpMenu.add_command( label=_('About…'), underline=0, command=self._doAbout, accelerator=self.keyBindingDict[_('About')][0] )
     # end of BOSManager.createNormalMenuBar
 
     def createTouchMenuBar( self ) -> None:
@@ -965,7 +965,7 @@ class BOSManager( Frame ):
         fnPrint( debuggingThisModule, "createMainKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
-        for name,command in ( ('Help',self.doHelp), ('About',self.doAbout), ('Quit',self.doCloseMe) ):
+        for name,command in ( ('Help',self._doHelp), ('About',self._doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
                     #dPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
@@ -1595,49 +1595,49 @@ class BOSManager( Frame ):
     # end of BOSManager.gotoNewStylesheet
 
 
-    def doViewSettings( self ):
+    def _doViewSettings( self ):
         """
         Open a pop-up text window with the current settings displayed.
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #dPrint( 'Never', debuggingThisModule, _("doViewSettings()…") )
-            #self.setDebugText( "doViewSettings…" )
+            #dPrint( 'Never', debuggingThisModule, _("_doViewSettings()…") )
+            #self.setDebugText( "_doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
         #if not tEW.setFilepath( self.settings.settingsFilepath ) \
         #or not tEW.loadText():
             #tEW.doClose()
             #showError( self, SHORT_PROGRAM_NAME, _("Sorry, unable to open settings file") )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed doViewSettings" )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed _doViewSettings" )
         #else:
             #self.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Finished doViewSettings" )
+            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Finished _doViewSettings" )
         #self.setReadyStatus()
-    # end of BOSManager.doViewSettings
+    # end of BOSManager._doViewSettings
 
 
-    def doViewLog( self ):
+    def _doViewLog( self ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        fnPrint( debuggingThisModule, "doViewLog()" )
-        if debuggingThisModule: self.setDebugText( "doViewLog…" )
+        fnPrint( debuggingThisModule, "_doViewLog()" )
+        if debuggingThisModule: self.setDebugText( "_doViewLog…" )
 
-        self.setWaitStatus( _("doViewLog…") )
-        filename = PROGRAM_NAME.replace('/','-').replace(':','_').replace('\\','_') + '_log.txt'
+        self.setWaitStatus( _("_doViewLog…") )
+        filename = f"{makeSafeProgramName(PROGRAM_NAME)}_log.txt"
         tEW = TextEditWindow( self )
         #if windowGeometry: tEW.geometry( windowGeometry )
         if not tEW.setPathAndFile( self.loggingFolderpath, filename ) \
         or not tEW.loadText():
             tEW.doClose()
             showError( self, SHORT_PROGRAM_NAME, _("Sorry, unable to open log file") )
-            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed doViewLog" )
+            if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Failed _doViewLog" )
         else:
             self.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished doViewLog" ) # Don't do this -- adds to the log immediately
+            #if BibleOrgSysGlobals.debugFlag: self.setDebugText( "Finished _doViewLog" ) # Don't do this -- adds to the log immediately
         self.setReadyStatus()
-    # end of BOSManager.doViewLog
+    # end of BOSManager._doViewLog
 
 
     def doGotoInfo( self, event=None ):
@@ -1665,12 +1665,12 @@ class BOSManager( Frame ):
     # end of BOSManager.logUsage
 
 
-    def doHelp( self, event=None ):
+    def _doHelp( self, event=None ):
         """
         Display a help box.
         """
         from Biblelator.Dialogs.Help import HelpBox
-        fnPrint( debuggingThisModule, "doHelp()" )
+        fnPrint( debuggingThisModule, "_doHelp()" )
 
         helpInfo = programNameVersion
         helpInfo += "\n\nBasic instructions:"
@@ -1685,7 +1685,7 @@ class BOSManager( Frame ):
         #helpInfo += "\n  {}\t{}".format( 'Prev Book', 'Alt+[' )
         #helpInfo += "\n  {}\t{}".format( 'Next Book', 'Alt+]' )
         hb = HelpBox( self.rootWindow, SHORT_PROGRAM_NAME, helpInfo )
-    # end of BOSManager.doHelp
+    # end of BOSManager._doHelp
 
 
     def doSubmitBug( self, event=None ):
@@ -1708,19 +1708,19 @@ class BOSManager( Frame ):
     # end of BOSManager.doSubmitBug
 
 
-    def doAbout( self, event=None ):
+    def _doAbout( self, event=None ):
         """
         Display an about box.
         """
         from Biblelator.Dialogs.About import AboutBox
-        fnPrint( debuggingThisModule, "doAbout()" )
+        fnPrint( debuggingThisModule, "_doAbout()" )
 
         aboutInfo = programNameVersion
         aboutInfo += "\nA display manager for the Bible Organisational System (BOS)." \
             + "\n\nThis is still an unfinished alpha test version, but it should allow you to select and display various sets of information from the BOS." \
             + "\n\n{} is written in Python. For more information see our web pages at Freely-Given.org/Software/BibleOrgSys and Freely-Given.org/Software/Biblelator".format( SHORT_PROGRAM_NAME )
         ab = AboutBox( self.rootWindow, SHORT_PROGRAM_NAME, aboutInfo )
-    # end of BOSManager.doAbout
+    # end of BOSManager._doAbout
 
 
     #def doProjectClose( self ):
