@@ -142,9 +142,9 @@ LAST_MODIFIED_DATE = '2022-07-12'
 SHORT_PROGRAM_NAME = "BiblelatorDialogs"
 PROGRAM_NAME = "Biblelator dialogs"
 PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -154,8 +154,8 @@ debuggingThisModule = False
     #def __init__( self, parentWindow, text, title=None ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "HTMLDialog.__init__( {}, {!r}, {!r} )".format( parentWindow, text, title ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "HTMLDialog.__init__( {}, {!r}, {!r} )".format( parentWindow, text, title ) )
 
         #self.text = text
         #ModalDialog.__init__( self, parentWindow, title )
@@ -165,8 +165,8 @@ debuggingThisModule = False
     #def makeBody( self, master ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "HTMLDialog.makeBody( {} )".format( master ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "HTMLDialog.makeBody( {} )".format( master ) )
 
         #html = HTMLTextBox( master )
         #html.grid( row=0 )
@@ -227,7 +227,7 @@ class BookNameDialog( ModalDialog ):
     def __init__( self, parentWindow, bookNameList, currentIndex ): #, message, title=None ):
         """
         """
-        #dPrint( 'Quiet', debuggingThisModule, 'currentIndex', currentIndex )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'currentIndex', currentIndex )
         self.bookNameList, self.currentIndex = bookNameList, currentIndex
         ModalDialog.__init__( self, parentWindow ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of BookNameDialog.__init__
@@ -266,7 +266,7 @@ class BookNameDialog( ModalDialog ):
         Style().configure( 'selectedBN.TButton', background='orange' )
         for j,bookName in enumerate(self.bookNameList):
             row, col = j // buttonsAcross, j % buttonsAcross
-            #dPrint( 'Quiet', debuggingThisModule, j, row, col )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, j, row, col )
             Button( master, width=6, text=bookName,
                                 style='selectedBN.TButton' if j==self.currentIndex else 'bN.TButton', \
                                 command=lambda which=j: self.apply(which) ) \
@@ -311,7 +311,7 @@ class NumberButtonDialog( ModalDialog ):
     def __init__( self, parentWindow, startNumber, endNumber, currentNumber ): #, message, title=None ):
         """
         """
-        #dPrint( 'Quiet', debuggingThisModule, 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'NumberButtonDialog', repr(startNumber), repr(endNumber), repr(currentNumber) )
         self.startNumber, self.endNumber, self.currentNumber = startNumber, endNumber, currentNumber
         ModalDialog.__init__( self, parentWindow ) #, title, okText=_("Ok"), cancelText=_("Cancel") )
     # end of NumberButtonDialog.__init__
@@ -347,7 +347,7 @@ class NumberButtonDialog( ModalDialog ):
         Style().configure( 'selectedN.TButton', background='orange' )
         for j in range( self.startNumber, self.endNumber+1 ):
             row, col = j // buttonsAcross, j % buttonsAcross
-            #dPrint( 'Quiet', debuggingThisModule, j, row, col )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, j, row, col )
             Button( master, width=3, text=j,
                                 style='selectedN.TButton' if j==self.currentNumber else 'n.TButton', \
                                 command=lambda which=j: self.apply(which) ) \
@@ -441,7 +441,7 @@ class SaveWindowsLayoutNameDialog( ModalDialog ):
         Results are left in self.result
         """
         self.result = self.cb.get()
-        #dPrint( 'Quiet', debuggingThisModule, "New window set-up name is: {!r}".format( self.result ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "New window set-up name is: {!r}".format( self.result ) )
     # end of SaveWindowsLayoutNameDialog.apply
 # end of class SaveWindowsLayoutNameDialog
 
@@ -501,7 +501,7 @@ class DeleteWindowsLayoutNameDialog( ModalDialog ):
         Results are left in self.result
         """
         self.result = self.cb.get()
-        vPrint( 'Quiet', debuggingThisModule, "Requested window set-up name is: {!r}".format( self.result ) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Requested window set-up name is: {!r}".format( self.result ) )
     # end of DeleteWindowsLayoutNameDialog.apply
 # end of class DeleteWindowsLayoutNameDialog
 
@@ -516,7 +516,7 @@ class SelectResourceBoxDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "SelectResourceBoxDialog…" )
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "aS", len(availableSettingsList), repr(availableSettingsList) ) # Should be a list of tuples
             assert isinstance( availableSettingsList, list )
         self.availableSettingsList = availableSettingsList
         ModalDialog.__init__( self, parentWindow, title )
@@ -539,7 +539,7 @@ class SelectResourceBoxDialog( ModalDialog ):
             and tk.EXTENDED when the user would usually pick only one item,
                 but sometimes would like to select one or more ranges of items. """
         for item in self.availableSettingsList:
-            #dPrint( 'Quiet', debuggingThisModule, "it", repr(item) )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "it", repr(item) )
             if isinstance( item, tuple ): item = item[0]
             self.lb.insert( tk.END, item )
         self.lb.pack( padx=5, pady=5, fill=tk.BOTH, expand=tk.YES )
@@ -569,9 +569,9 @@ class SelectResourceBoxDialog( ModalDialog ):
         Results are left in self.result
         """
         items = self.lb.curselection()
-        vPrint( 'Quiet', debuggingThisModule, "items", repr(items) ) # a tuple of index integers
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "items", repr(items) ) # a tuple of index integers
         self.result = [self.availableSettingsList[int(item)] for item in items] # now a sublist
-        vPrint( 'Quiet', debuggingThisModule, "Requested resource(s) is/are: {!r}".format( self.result ) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Requested resource(s) is/are: {!r}".format( self.result ) )
     # end of SelectResourceBoxDialog.apply
 # end of class SelectResourceBoxDialog
 
@@ -755,7 +755,7 @@ class GetNewCollectionNameDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetNewCollectionNameDialog…" )
         self.existingNames = existingNames
-        #dPrint( 'Quiet', debuggingThisModule, "GetNewCollectionNameDialog: eNs", self.existingNames )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetNewCollectionNameDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parentWindow, title )
     # end of GetNewCollectionNameDialog.__init__
 
@@ -814,7 +814,7 @@ class RenameResourceCollectionDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "RenameResourceCollectionDialog…" )
         self.existingName, self.existingNames = existingName, existingNames
-        vPrint( 'Quiet', debuggingThisModule, "RenameResourceCollectionDialog: eNs", self.existingNames )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "RenameResourceCollectionDialog: eNs", self.existingNames )
         ModalDialog.__init__( self, parentWindow, title )
     # end of RenameResourceCollectionDialog.__init__
 
@@ -928,7 +928,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
         """
         self.availableList = self.givenBible.getBookList()
         sIBBD = SelectIndividualBibleBooksDialog( self, self.availableList, self.currentList, title=_('Books to be searched') )
-        dPrint( 'Quiet', debuggingThisModule, "individualBooks sIBBDResult", repr(sIBBD.result) )
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "individualBooks sIBBDResult", repr(sIBBD.result) )
         if sIBBD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( sIBBD.result, list )
             resultCount = len( sIBBD.result )
@@ -943,7 +943,7 @@ class GetBibleBookRangeDialog( ModalDialog ):
                 self.rb6['state'] = tk.NORMAL
                 self.rb6['text'] = ', '.join(self.currentList) if len(self.currentList)<10 else _('Selected books ({})').format( len(self.currentList) )
             #self.update()
-        else: vPrint( 'Quiet', debuggingThisModule, "selectIndividual: Nothing selected!" )
+        else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "selectIndividual: Nothing selected!" )
     # end of GetBibleBookRangeDialog.doIndividual
 
 
@@ -1020,7 +1020,7 @@ class SelectIndividualBibleBooksDialog( ModalDialog ):
         self.variables = []
         for j,BBB in enumerate(self.availableList):
             col, row = j // buttonsAcross + 1, j % buttonsAcross
-            #dPrint( 'Quiet', debuggingThisModule, j, row, col )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, j, row, col )
             thisVar =  tk.IntVar()
             if BBB in self.currentList: thisVar.set( 1 ) # Preset any formerly selected books
             self.variables.append( thisVar )
@@ -1164,39 +1164,39 @@ class GetBibleFindTextDialog( ModalDialog ):
         Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetBibleFindTextDialog.makeBody", self.optionsDict )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleFindTextDialog.makeBody", self.optionsDict )
 
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
         self.projectNameVar.set( self.optionsDict['workName'] )
         self.projectNameBox = BCombobox( master, width=30, textvariable=self.projectNameVar )
         # Find other Bible boxes which might be added as possible projects
-        #dPrint( 'Quiet', debuggingThisModule, "  parentWindow window {}".format( self.optionsDict['parentWindow'] ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  parentWindow window {}".format( self.optionsDict['parentWindow'] ) )
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
         for appWin in BiblelatorGlobals.theApp.childWindows:
-            #dPrint( 'Quiet', debuggingThisModule, "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType:
-                #dPrint( 'Quiet', debuggingThisModule, "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
                 # Some windows have a single text box, others have a collection of boxes
                 try: # See if we have a text box
-                    #dPrint( 'Quiet', debuggingThisModule, "    TextBox {}/{}".format( appWin.textBox, type(appWin.textBox) ) )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    TextBox {}/{}".format( appWin.textBox, type(appWin.textBox) ) )
                     if appWin.textBox is not None:
                         iB = appWin.internalBible
                         bibleWork = iB.getAName()
-                        #dPrint( 'Quiet', debuggingThisModule, "    BibleWork={!r}".format( bibleWork ) )
+                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    BibleWork={!r}".format( bibleWork ) )
                         if bibleWork not in possibilityList: # Don't want duplicates
                             possibilityList.append( bibleWork )
                             self.projectDict[bibleWork] = ('Window',appWin,appWin.textBox,iB)
                 except: pass
                 try: # See if we have a list of boxes
                     for resourceBox in appWin.resourceBoxesList:
-                        #dPrint( 'Quiet', debuggingThisModule, "      ResourceBox {}/{}".format( resourceBox.textBox, type(resourceBox.textBox) ) )
+                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "      ResourceBox {}/{}".format( resourceBox.textBox, type(resourceBox.textBox) ) )
                         if resourceBox.textBox is not None:
                             iB = resourceBox.internalBible
                             bibleWork = iB.getAName()
-                            #dPrint( 'Quiet', debuggingThisModule, "    BibleWork={!r}".format( bibleWork ) )
+                            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    BibleWork={!r}".format( bibleWork ) )
                             if bibleWork not in possibilityList: # Don't want duplicates
                                 possibilityList.append( bibleWork )
                                 self.projectDict[bibleWork] = ('Box',appWin,resourceBox,iB)
@@ -1266,8 +1266,8 @@ class GetBibleFindTextDialog( ModalDialog ):
             self.booksSelectVariable.set( 4 )
         elif isinstance( self.optionsDict['bookList'], list ): self.booksSelectVariable.set( 4 )
         else:
-            vPrint( 'Quiet', debuggingThisModule, "booklist options", self.optionsDict['bookList'] )
-            vPrint( 'Quiet', debuggingThisModule, "whole options dict", self.optionsDict )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "booklist options", self.optionsDict['bookList'] )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "whole options dict", self.optionsDict )
             halt # programming error
 
         allText = _("All {} books").format( len(self.givenBible) ) if len(self.givenBible)>2 else _("All books")
@@ -1337,7 +1337,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         self.parentWindow._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
         gBBRD = GetBibleBookRangeDialog( self, BiblelatorGlobals.theApp, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be searched') )
-        dPrint( 'Quiet', debuggingThisModule, "selectBooks gBBRDResult", repr(gBBRD.result) )
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
             if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
@@ -1351,14 +1351,14 @@ class GetBibleFindTextDialog( ModalDialog ):
                     else '({})'.format( len(self.optionsDict['bookList']) )
                 self.rbb4['text'] = _('Selected books {}').format( sbText )
             #self.update()
-        else: vPrint( 'Quiet', debuggingThisModule, "selectBooks: No books selected!" )
+        else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "selectBooks: No books selected!" )
     # end of GetBibleFindTextDialog.apply
 
 
     def doMarkerListentry( self, willBe ):
         """
         """
-        #dPrint( 'Quiet', debuggingThisModule, "doMarkerListentry( {!r} )".format( willBe ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doMarkerListentry( {!r} )".format( willBe ) )
         #thisText = self.theseMarkersListVar.get()
         if willBe: # There's something in the entry
             self.theseMarkersOnlyVar.set( 1 )
@@ -1377,7 +1377,7 @@ class GetBibleFindTextDialog( ModalDialog ):
 
         Returns True or False.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetBibleFindTextDialog.validate()" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleFindTextDialog.validate()" )
 
         # Do some normalization first
         theseMarkersOnlyText = self.theseMarkersListVar.get()
@@ -1389,7 +1389,7 @@ class GetBibleFindTextDialog( ModalDialog ):
         if theseMarkersOnlyText: # check that they're valid newline markers
             markerList = []
             for marker in theseMarkersOnlyText.split( ',' ):
-                #dPrint( 'Quiet', debuggingThisModule, "marker", marker )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "marker", marker )
                 marker = marker.strip()
                 if marker in BibleOrgSysGlobals.loadedUSFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     markerList.append( marker )
@@ -1419,7 +1419,7 @@ class GetBibleFindTextDialog( ModalDialog ):
 
         Results are left in self.result
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetBibleFindTextDialog.apply()" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleFindTextDialog.apply()" )
 
         workName = self.projectNameVar.get()
         if workName != self.optionsDict['workName']: # then they've changed it
@@ -1471,7 +1471,7 @@ class GetBibleFindTextDialog( ModalDialog ):
             if theseMarkersOnlyText: # check that they're valid newline markers
                 markerList = []
                 for marker in theseMarkersOnlyText.split( ',' ):
-                    #dPrint( 'Quiet', debuggingThisModule, "marker", marker )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "marker", marker )
                     marker = marker.strip()
                     if marker in BibleOrgSysGlobals.loadedUSFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                         markerList.append( marker )
@@ -1529,23 +1529,23 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         Override the empty ModalDialog.makeBody function
             to set up the dialog how we want it.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetBibleReplaceTextDialog.makeBody", self.optionsDict )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleReplaceTextDialog.makeBody", self.optionsDict )
         Label( master, text=_("Project:") ).grid( row=0, column=0, padx=2, pady=2, sticky=tk.E )
         self.projectNameVar = tk.StringVar()
         self.projectNameVar.set( self.optionsDict['workName'] )
         self.projectNameBox = BCombobox( master, width=30, textvariable=self.projectNameVar )
         # Find other Bible boxes which might be added as possible projects
-        #dPrint( 'Quiet', debuggingThisModule, "  parentWindow window {}".format( self.optionsDict['parentWindow'] ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  parentWindow window {}".format( self.optionsDict['parentWindow'] ) )
         #from TextBoxes import BibleBox
         possibilityList = []
         self.projectDict = {}
         for appWin in BiblelatorGlobals.theApp.childWindows:
-            #dPrint( 'Quiet', debuggingThisModule, "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Saw {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
             if 'Bible' in appWin.genericWindowType and 'Edit' in appWin.windowType:
-                #dPrint( 'Quiet', debuggingThisModule, "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  Found {}/{}/{}".format( appWin.genericWindowType, appWin.windowType, type(appWin) ) )
                 # Some windows have a single text box, others have a collection of boxes
                 try: # See if we have a text box
-                    #dPrint( 'Quiet', debuggingThisModule, "    TextBox {}/{}".format( appWin.textBox, type(appWin.textBox) ) )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    TextBox {}/{}".format( appWin.textBox, type(appWin.textBox) ) )
                     if appWin.textBox is not None:
                         iB = appWin.internalBible
                         bibleWork = iB.getAName()
@@ -1555,7 +1555,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
                 except: pass
                 try: # See if we have a list of boxes
                     for resourceBox in appWin.resourceBoxesList:
-                        #dPrint( 'Quiet', debuggingThisModule, "      ResourceBox {}/{}".format( resourceBox.textBox, type(resourceBox.textBox) ) )
+                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "      ResourceBox {}/{}".format( resourceBox.textBox, type(resourceBox.textBox) ) )
                         if resourceBox.textBox is not None:
                             iB = resourceBox.internalBible
                             bibleWork = iB.getAName()
@@ -1709,7 +1709,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         self.parentWindow._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.optionsDict['currentBCV'][0]
         gBBRD = GetBibleBookRangeDialog( self, self.givenBible, currentBBB, self.optionsDict['bookList'], title=_('Books to be Replaceed') )
-        dPrint( 'Quiet', debuggingThisModule, "selectBooks gBBRDResult", repr(gBBRD.result) )
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "selectBooks gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result: # Returns a list of books
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
             if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
@@ -1723,14 +1723,14 @@ class GetBibleReplaceTextDialog( ModalDialog ):
                     else '({})'.format( len(self.optionsDict['bookList']) )
                 self.rbb4['text'] = text=_('Selected books {}').format( sbText )
             #self.update()
-        else: vPrint( 'Quiet', debuggingThisModule, "selectBooks: No books selected!" )
+        else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "selectBooks: No books selected!" )
     # end of GetBibleReplaceTextDialog.apply
 
 
     #def doMarkerListentry( self, willBe ):
         #"""
         #"""
-        ##dPrint( 'Quiet', debuggingThisModule, "doMarkerListentry( {!r} )".format( willBe ) )
+        ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doMarkerListentry( {!r} )".format( willBe ) )
         ##thisText = self.theseMarkersListVar.get()
         #if willBe: # There's something in the entry
             #self.theseMarkersOnlyVar.set( 1 )
@@ -1749,7 +1749,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
 
         Returns True or False.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetBibleReplaceTextDialog.validate()" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleReplaceTextDialog.validate()" )
 
         ## Do some normalization first
         #theseMarkersOnlyText = self.theseMarkersListVar.get()
@@ -1761,7 +1761,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
         #if theseMarkersOnlyText: # check that they're valid newline markers
             #markerList = []
             #for marker in theseMarkersOnlyText.split( ',' ):
-                ##dPrint( 'Quiet', debuggingThisModule, "marker", marker )
+                ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "marker", marker )
                 #marker = marker.strip()
                 #if marker in BibleOrgSysGlobals.loadedUSFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                     #markerList.append( marker )
@@ -1793,7 +1793,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
 
         Results are left in self.result
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetBibleReplaceTextDialog.apply()" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleReplaceTextDialog.apply()" )
 
         workName = self.projectNameVar.get()
         if workName != self.optionsDict['workName']: # then they've changed it
@@ -1846,7 +1846,7 @@ class GetBibleReplaceTextDialog( ModalDialog ):
             #if theseMarkersOnlyText: # check that they're valid newline markers
                 #markerList = []
                 #for marker in theseMarkersOnlyText.split( ',' ):
-                    ##dPrint( 'Quiet', debuggingThisModule, "marker", marker )
+                    ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "marker", marker )
                     #marker = marker.strip()
                     #if marker in BibleOrgSysGlobals.loadedUSFMMarkers.getNewlineMarkersList( 'Combined' ): # we accept either q or q1, s or s1, etc.
                         #markerList.append( marker )
@@ -2007,7 +2007,7 @@ class SelectInternalBibleDialog( ModalDialog ):
         for j,iB in enumerate(self.internalBibles):
             row, col = j // buttonsAcross, j % buttonsAcross
             BibleName = iB.getAName()
-            #dPrint( 'Quiet', debuggingThisModule, j, row, col )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, j, row, col )
             Button( master, width=30, text=iB.getAName(), style='iB.TButton', \
                                 command=lambda which=j: self.apply(which) ) \
                         .grid( column=col, row=row, padx=xPad, pady=yPad, sticky=tk.N+tk.S+tk.E+tk.W )
@@ -2128,7 +2128,7 @@ class GetHebrewGlossWordDialog( ModalDialog ):
     def __init__( self, parentWindow, title, contextLines, word='', geometry=None ):
         """
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordDialog( …, …, {}, {!r}, {} )".format( contextLines, word, geometry ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetHebrewGlossWordDialog( …, …, {}, {!r}, {} )".format( contextLines, word, geometry ) )
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetHebrewGlossWordDialog…" )
         self.parentWindow, self.contextLines, self.word = parentWindow, contextLines, word
 
@@ -2151,8 +2151,8 @@ class GetHebrewGlossWordDialog( ModalDialog ):
 
         NOTE: doesn't change/update the lexicon word in the main app window.
         """
-        #dPrint( 'Quiet', debuggingThisModule, "handleStrongs( {!r} )".format( textString ) )
-        if debuggingThisModule or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "handleStrongs( {!r} )".format( textString ) )
+        if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert textString
 
         if textString[-1] == '+': textString = textString[:-1] # Is this general enough -- maybe we just to remove all + signs???
@@ -2332,7 +2332,7 @@ class GetHebrewGlossWordsDialog( GetHebrewGlossWordDialog ):
     def __init__( self, parentWindow, title, contextLines, word1='', word2='', geometry=None ):
         """
         """
-        #dPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordsDialog( …, …, {}, {!r}, {!r}, {} )".format( contextLines, word1, word2, geometry ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetHebrewGlossWordsDialog( …, …, {}, {!r}, {!r}, {} )".format( contextLines, word1, word2, geometry ) )
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "GetHebrewGlossWordsDialog…" )
         self.parentWindow, self.contextLines, self.word, self.word2 = parentWindow, contextLines, word1, word2
 
@@ -2433,8 +2433,8 @@ class ChooseResourcesDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "ChooseResourcesDialog…" )
         if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule:
-                #dPrint( 'Quiet', debuggingThisModule, "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
+            #if DEBUGGING_THIS_MODULE:
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
             assert isinstance( availableResourceDictsList, list )
         self.availableResourceDictsList = sorted( availableResourceDictsList, key=lambda aRD: aRD['abbreviation'] )
         ModalDialog.__init__( self, parentWindow, title )
@@ -2463,7 +2463,7 @@ class ChooseResourcesDialog( ModalDialog ):
         if self.availableResourceDictsList:
             maxAbbrevWidth = max( (len(aRD['abbreviation']) for aRD in self.availableResourceDictsList) )
             for availableResourceDict in self.availableResourceDictsList:
-                #dPrint( 'Quiet', debuggingThisModule, "aRD", repr(availableResourceDict) )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "aRD", repr(availableResourceDict) )
                 abbrev = availableResourceDict['abbreviation']
                 item = '{}{}{}'.format( abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), availableResourceDict['givenName'] )
                 self.lb.insert( tk.END, item )
@@ -2501,12 +2501,12 @@ class ChooseResourcesDialog( ModalDialog ):
         Allow the user to select resources to download from our support site.
         """
         dRD = DownloadResourcesDialog( self, title=_('Resources to download') )
-        dPrint( 'Quiet', debuggingThisModule, "doDownloadMore dRD result", repr(dRD.result) )
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doDownloadMore dRD result", repr(dRD.result) )
         if dRD.result:
             #if BibleOrgSysGlobals.debugFlag: assert isinstance( dRD.result, list )
             self.result = 'rerunDialog'
             self.cancel() # Hand control back (then hopefully rerun with new data
-        else: vPrint( 'Quiet', debuggingThisModule, "doDownloadMore: " + _("Nothing was selected!") )
+        else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doDownloadMore: " + _("Nothing was selected!") )
     # end of ChooseResourcesDialog.doDownloadMore
 
 
@@ -2532,9 +2532,9 @@ class ChooseResourcesDialog( ModalDialog ):
             in this case, a list of zippedPickle filenames.
         """
         #selectedItemIndexes = self.lb.curselection()
-        #dPrint( 'Quiet', debuggingThisModule, "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
         self.result = [self.availableResourceDictsList[int(itemIndex)]['zipFilename'] for itemIndex in self.lb.curselection()] # now a sublist
-        #dPrint( 'Quiet', debuggingThisModule, "SelectResourceBoxDialog: Requested resource(s) is/are: {!r}".format( self.result ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SelectResourceBoxDialog: Requested resource(s) is/are: {!r}".format( self.result ) )
     # end of SelectResourceBoxDialog.apply
 # end of class ChooseResourcesDialog
 
@@ -2552,8 +2552,8 @@ class DownloadResourcesDialog( ModalDialog ):
         """
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "DownloadResourcesDialog…" )
         if BibleOrgSysGlobals.debugFlag:
-            #if debuggingThisModule:
-                #dPrint( 'Quiet', debuggingThisModule, "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
+            #if DEBUGGING_THIS_MODULE:
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "aRDL", len(availableResourceDictsList), repr(availableResourceDictsList) ) # Should be a list of dicts
             assert isinstance( title, str )
         self.downloadCount = 0
         ModalDialog.__init__( self, parentWindow, title )
@@ -2578,54 +2578,54 @@ class DownloadResourcesDialog( ModalDialog ):
             self.okButton.config( state=tk.DISABLED )
             return None
         responsePageSTR = responseObject.text
-        #dPrint( 'Quiet', debuggingThisModule, "responsePageSTR", responsePageSTR )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "responsePageSTR", responsePageSTR )
         availableResourceList = []
         searchString = ZIPPED_PICKLE_FILENAME_END + '</a>'
         searchRegex1 = '<a href="(\\w{{2,10}}){}">'.format( ZIPPED_PICKLE_FILENAME_END.replace( '.', '\\.' ) )
         searchRegex2 = '>(20\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d) '
         for line in responsePageSTR.split( '\n' ):
-            #dPrint( 'Quiet', debuggingThisModule, "line", line )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "line", line )
             if searchString in line:
-                #dPrint( 'Quiet', debuggingThisModule, "usefulLine", line )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "usefulLine", line )
                 match = re.search( searchRegex1, line )
                 if match:
-                    #dPrint( 'Quiet', debuggingThisModule, "Matched", match.start(), match.end() )
-                    #dPrint( 'Quiet', debuggingThisModule, repr(match.group(0)), repr(match.group(1)) )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Matched", match.start(), match.end() )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, repr(match.group(0)), repr(match.group(1)) )
                     fileAbbreviation = match.group(1)
-                    #dPrint( 'Quiet', debuggingThisModule, "fileAbbreviation", fileAbbreviation )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "fileAbbreviation", fileAbbreviation )
                     match = re.search( searchRegex2, line )
                     if match:
-                        #dPrint( 'Quiet', debuggingThisModule, "Matched", match.start(), match.end() )
-                        #dPrint( 'Quiet', debuggingThisModule, repr(match.group(0)), repr(match.group(1)) )
+                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Matched", match.start(), match.end() )
+                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, repr(match.group(0)), repr(match.group(1)) )
                         dateTimeString = match.group(1)
-                        #dPrint( 'Quiet', debuggingThisModule, "dateString", repr(dateString), "timeString", repr(timeString) )
+                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "dateString", repr(dateString), "timeString", repr(timeString) )
                         availableResourceList.append( (fileAbbreviation,dateTimeString) )
-        vPrint( 'Never', debuggingThisModule, "availableResourceList", len(availableResourceList), availableResourceList )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, "availableResourceList", len(availableResourceList), availableResourceList )
 
         if availableResourceList:
             maxAbbrevWidth = max([len(aR[0]) for aR in availableResourceList])
             self.downloadableList = []
             for abbrev,dateTimeString in availableResourceList:
-                #dPrint( 'Quiet', debuggingThisModule, "aRD", repr(availableResourceDict) )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "aRD", repr(availableResourceDict) )
                 filename = abbrev + ZIPPED_PICKLE_FILENAME_END
                 resourceFilepath = BibleOrgSysGlobals.DEFAULT_WRITEABLE_DOWNLOADED_RESOURCES_FOLDERPATH.joinpath( filename )
                 itemString = None
                 if os.path.exists( resourceFilepath ):
-                    vPrint( 'Never', debuggingThisModule, "You already have", resourceFilepath )
-                    #dPrint( 'Quiet', debuggingThisModule, os.stat(resourceFilepath) )
-                    #dPrint( 'Quiet', debuggingThisModule, os.stat(resourceFilepath).st_mtime, datetime.fromtimestamp(os.stat(resourceFilepath).st_mtime) )
-                    #dPrint( 'Quiet', debuggingThisModule, os.stat(resourceFilepath).st_ctime, datetime.fromtimestamp(os.stat(resourceFilepath).st_ctime) )
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, "You already have", resourceFilepath )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, os.stat(resourceFilepath) )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, os.stat(resourceFilepath).st_mtime, datetime.fromtimestamp(os.stat(resourceFilepath).st_mtime) )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, os.stat(resourceFilepath).st_ctime, datetime.fromtimestamp(os.stat(resourceFilepath).st_ctime) )
                     fileDateTime1 = datetime.fromtimestamp( os.stat(resourceFilepath).st_mtime )
                     fileDateTime2 = datetime.fromtimestamp( os.stat(resourceFilepath).st_ctime )
-                    #dPrint( 'Quiet', debuggingThisModule, "  fileDateTime1", fileDateTime1 )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  fileDateTime1", fileDateTime1 )
                     serverDateTime = datetime.strptime( dateTimeString, '%Y-%m-%d %H:%M' )
-                    #dPrint( 'Quiet', debuggingThisModule, "  serverDateTime", serverDateTime )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  serverDateTime", serverDateTime )
                     if (serverDateTime - fileDateTime1 ).total_seconds() > 3600: # one hour later
-                        vPrint( 'Never', debuggingThisModule, "Updateable resource:", abbrev )
+                        vPrint( 'Never', DEBUGGING_THIS_MODULE, "Updateable resource:", abbrev )
                         itemString = '{} {}{}{}'.format( _("Update"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
-                    else: vPrint( 'Never', debuggingThisModule, "  Seems up-to-date:", abbrev )
+                    else: vPrint( 'Never', DEBUGGING_THIS_MODULE, "  Seems up-to-date:", abbrev )
                 else: # Seems we don't have this one
-                    vPrint( 'Never', debuggingThisModule, "New resource:", abbrev )
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, "New resource:", abbrev )
                     itemString = '{}    {}{}{}'.format( _("New"), abbrev, ' '*(1+maxAbbrevWidth-len(abbrev)), dateTimeString )
                 if itemString: self.downloadableList.append( (abbrev,itemString) )
             if self.downloadableList:
@@ -2668,7 +2668,7 @@ class DownloadResourcesDialog( ModalDialog ):
             in this case, a list of zippedPickle filenames.
         """
         selectedItemIndexes = self.lb.curselection()
-        #dPrint( 'Quiet', debuggingThisModule, "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "selectedItemIndexes", repr(selectedItemIndexes) ) # a tuple of index integers
         for selectedItemIndex in selectedItemIndexes:
             self.doDownloadFile( self.downloadableList[selectedItemIndex][0] )
         self.result = self.downloadCount
@@ -2681,11 +2681,11 @@ def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Program a shutdown
     tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
@@ -2700,32 +2700,32 @@ def briefDemo() -> None:
     tkRootWindow.parentApp = tempApp()
 
     ynD = YesNoDialog( tkRootWindow, message="Choose yes or no", title="Testing YesNoDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "YesNoResult", ynD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "YesNoResult", ynD.result )
     ocD = OkCancelDialog( tkRootWindow, message="Choose ok or cancel", title="Testing OkCancelDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "OkCancelResult", ocD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "OkCancelResult", ocD.result )
     bnD = BookNameDialog( tkRootWindow, bookNameList=["aaa","BBB","CcC"], currentIndex=1 )
-    vPrint( 'Quiet', debuggingThisModule, "BookNameResult", bnD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "BookNameResult", bnD.result )
     nbD = NumberButtonDialog( tkRootWindow, startNumber=1, endNumber=11, currentNumber=6 )
-    vPrint( 'Quiet', debuggingThisModule, "NumberButtonResult", nbD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "NumberButtonResult", nbD.result )
     swnd = SaveWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test SWND" )
-    vPrint( 'Quiet', debuggingThisModule, "SaveWindowNameResult", swnd.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SaveWindowNameResult", swnd.result )
     dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test DWND" )
-    vPrint( 'Quiet', debuggingThisModule, "DeleteWindowNameResult", dwnd.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "DeleteWindowNameResult", dwnd.result )
     srb = SelectResourceBoxDialog( tkRootWindow, availableSettingsList=[(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], title="Test SRB" )
-    vPrint( 'Quiet', debuggingThisModule, "SelectResourceBoxResult", srb.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SelectResourceBoxResult", srb.result )
     gnpnD = GetNewProjectNameDialog( tkRootWindow, title="Testing GetNewProjectNameDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetNewProjectNameResult", gnpnD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetNewProjectNameResult", gnpnD.result )
 
     from BibleVersificationSystems import BibleVersificationSystems
     bvss = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
     availableVersifications = bvss.getAvailableVersificationSystemNames()
     cnpfD = CreateNewProjectFilesDialog( tkRootWindow, title="Testing CreateNewProjectFilesDialog", currentBBB='PSA', availableVersifications=availableVersifications )
-    vPrint( 'Quiet', debuggingThisModule, "CreateNewProjectFilesResult", cnpfD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "CreateNewProjectFilesResult", cnpfD.result )
 
     gncnD = GetNewCollectionNameDialog( tkRootWindow, existingNames=["aaa","BBB","CcC"], title="Testing GetNewCollectionNameDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetNewCollectionNameResult", gncnD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetNewCollectionNameResult", gncnD.result )
     rrcD = RenameResourceCollectionDialog( tkRootWindow, existingName="xyz", existingNames=["aaa","BBB","CcC"], title="Testing RenameResourceCollectionDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "RenameResourceCollectionResult", rrcD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "RenameResourceCollectionResult", rrcD.result )
 
     class internalBible():
         def __init__( self ): self.BBB='GEN'
@@ -2735,33 +2735,33 @@ def briefDemo() -> None:
     testBible = internalBible()
 
     gbbrD = GetBibleBookRangeDialog( tkRootWindow, givenBible=testBible, currentBBB='SA1', currentList=["aaa","BBB","CcC"], title="Testing GetBibleBookRangeDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetBibleBookRangeResult", gbbrD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleBookRangeResult", gbbrD.result )
 
     sibbD = SelectIndividualBibleBooksDialog( tkRootWindow, availableList=["aaa","BBB"], currentList=["aaa","BBB","CcC"], title="Testing SelectIndividualBibleBooksDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "SelectIndividualBibleBooksResult", sibbD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SelectIndividualBibleBooksResult", sibbD.result )
 
     tkRootWindow.textBox = tk.Text( tkRootWindow, width=40, height=10 )
     testOptionsDict = {'currentBCV':('ACT','1','1')}
     gbftD = GetBibleFindTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleFindTextDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetBibleFindTextResult", gbftD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleFindTextResult", gbftD.result )
     gbrtD = GetBibleReplaceTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleReplaceTextDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetBibleReplaceTextResult", gbrtD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleReplaceTextResult", gbrtD.result )
     rcD = ReplaceConfirmDialog( tkRootWindow, referenceString="def", contextBefore="abc", findText="def", contextAfter="ghi", finalText="xyz", haveUndos=True, title="Testing ReplaceConfirmDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "ReplaceConfirmResult", rcD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "ReplaceConfirmResult", rcD.result )
 
     sibD = SelectInternalBibleDialog( tkRootWindow, title="Testing SelectInternalBibleDialog", internalBibles=[testBible] )
-    vPrint( 'Quiet', debuggingThisModule, "SelectInternalBibleResult", sibD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SelectInternalBibleResult", sibD.result )
 
     ghgwD = GetHebrewGlossWordDialog( tkRootWindow, title="Testing GetHebrewGlossWordDialog", contextLines=['abc','def','ghi'], word="word" )
-    vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordResult", ghgwD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetHebrewGlossWordResult", ghgwD.result )
     ghgwsD = GetHebrewGlossWordsDialog( tkRootWindow, title="Testing GetHebrewGlossWordsDialog", contextLines=['abc','def','ghi'], word1="generic", word2="specific" )
-    vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordsResult", ghgwsD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetHebrewGlossWordsResult", ghgwsD.result )
 
     availableResourceDictsList = [{'abbreviation':"aaa",'givenName':"AAA",'zipFilename':'a.zip'},{'abbreviation':"ddd",'givenName':"BBB",'zipFilename':'b.zip'},{'abbreviation':"ccc",'givenName':"CCC",'zipFilename':'c.zip'}]
     crD = ChooseResourcesDialog( tkRootWindow, availableResourceDictsList=availableResourceDictsList, title="Testing ChooseResourcesDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "ChooseResourcesResult", crD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "ChooseResourcesResult", crD.result )
     drD = DownloadResourcesDialog( tkRootWindow, title="Testing DownloadResourcesDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "DownloadResourcesResult", drD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "DownloadResourcesResult", drD.result )
 
     #tkRootWindow.quit()
 
@@ -2773,11 +2773,11 @@ def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Program a shutdown
     tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
@@ -2792,32 +2792,32 @@ def fullDemo() -> None:
     tkRootWindow.parentApp = tempApp()
 
     ynD = YesNoDialog( tkRootWindow, message="Choose yes or no", title="Testing YesNoDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "YesNoResult", ynD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "YesNoResult", ynD.result )
     ocD = OkCancelDialog( tkRootWindow, message="Choose ok or cancel", title="Testing OkCancelDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "OkCancelResult", ocD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "OkCancelResult", ocD.result )
     bnD = BookNameDialog( tkRootWindow, bookNameList=["aaa","BBB","CcC"], currentIndex=1 )
-    vPrint( 'Quiet', debuggingThisModule, "BookNameResult", bnD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "BookNameResult", bnD.result )
     nbD = NumberButtonDialog( tkRootWindow, startNumber=1, endNumber=11, currentNumber=6 )
-    vPrint( 'Quiet', debuggingThisModule, "NumberButtonResult", nbD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "NumberButtonResult", nbD.result )
     swnd = SaveWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test SWND" )
-    vPrint( 'Quiet', debuggingThisModule, "SaveWindowNameResult", swnd.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SaveWindowNameResult", swnd.result )
     dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, existingSettings=["aaa","BBB","CcC"], title="Test DWND" )
-    vPrint( 'Quiet', debuggingThisModule, "DeleteWindowNameResult", dwnd.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "DeleteWindowNameResult", dwnd.result )
     srb = SelectResourceBoxDialog( tkRootWindow, availableSettingsList=[(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], title="Test SRB" )
-    vPrint( 'Quiet', debuggingThisModule, "SelectResourceBoxResult", srb.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SelectResourceBoxResult", srb.result )
     gnpnD = GetNewProjectNameDialog( tkRootWindow, title="Testing GetNewProjectNameDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetNewProjectNameResult", gnpnD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetNewProjectNameResult", gnpnD.result )
 
     from BibleVersificationSystems import BibleVersificationSystems
     bvss = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
     availableVersifications = bvss.getAvailableVersificationSystemNames()
     cnpfD = CreateNewProjectFilesDialog( tkRootWindow, title="Testing CreateNewProjectFilesDialog", currentBBB='PSA', availableVersifications=availableVersifications )
-    vPrint( 'Quiet', debuggingThisModule, "CreateNewProjectFilesResult", cnpfD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "CreateNewProjectFilesResult", cnpfD.result )
 
     gncnD = GetNewCollectionNameDialog( tkRootWindow, existingNames=["aaa","BBB","CcC"], title="Testing GetNewCollectionNameDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetNewCollectionNameResult", gncnD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetNewCollectionNameResult", gncnD.result )
     rrcD = RenameResourceCollectionDialog( tkRootWindow, existingName="xyz", existingNames=["aaa","BBB","CcC"], title="Testing RenameResourceCollectionDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "RenameResourceCollectionResult", rrcD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "RenameResourceCollectionResult", rrcD.result )
 
     class internalBible():
         def __init__( self ): self.BBB='GEN'
@@ -2827,33 +2827,33 @@ def fullDemo() -> None:
     testBible = internalBible()
 
     gbbrD = GetBibleBookRangeDialog( tkRootWindow, givenBible=testBible, currentBBB='SA1', currentList=["aaa","BBB","CcC"], title="Testing GetBibleBookRangeDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetBibleBookRangeResult", gbbrD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleBookRangeResult", gbbrD.result )
 
     sibbD = SelectIndividualBibleBooksDialog( tkRootWindow, availableList=["aaa","BBB"], currentList=["aaa","BBB","CcC"], title="Testing SelectIndividualBibleBooksDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "SelectIndividualBibleBooksResult", sibbD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SelectIndividualBibleBooksResult", sibbD.result )
 
     tkRootWindow.textBox = tk.Text( tkRootWindow, width=40, height=10 )
     testOptionsDict = {'currentBCV':('ACT','1','1')}
     gbftD = GetBibleFindTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleFindTextDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetBibleFindTextResult", gbftD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleFindTextResult", gbftD.result )
     gbrtD = GetBibleReplaceTextDialog( tkRootWindow, givenBible=testBible, optionsDict=testOptionsDict, title="Testing GetBibleReplaceTextDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "GetBibleReplaceTextResult", gbrtD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetBibleReplaceTextResult", gbrtD.result )
     rcD = ReplaceConfirmDialog( tkRootWindow, referenceString="def", contextBefore="abc", findText="def", contextAfter="ghi", finalText="xyz", haveUndos=True, title="Testing ReplaceConfirmDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "ReplaceConfirmResult", rcD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "ReplaceConfirmResult", rcD.result )
 
     sibD = SelectInternalBibleDialog( tkRootWindow, title="Testing SelectInternalBibleDialog", internalBibles=[testBible] )
-    vPrint( 'Quiet', debuggingThisModule, "SelectInternalBibleResult", sibD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SelectInternalBibleResult", sibD.result )
 
     ghgwD = GetHebrewGlossWordDialog( tkRootWindow, title="Testing GetHebrewGlossWordDialog", contextLines=['abc','def','ghi'], word="word" )
-    vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordResult", ghgwD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetHebrewGlossWordResult", ghgwD.result )
     ghgwsD = GetHebrewGlossWordsDialog( tkRootWindow, title="Testing GetHebrewGlossWordsDialog", contextLines=['abc','def','ghi'], word1="generic", word2="specific" )
-    vPrint( 'Quiet', debuggingThisModule, "GetHebrewGlossWordsResult", ghgwsD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "GetHebrewGlossWordsResult", ghgwsD.result )
 
     availableResourceDictsList = [{'abbreviation':"aaa",'givenName':"AAA",'zipFilename':'a.zip'},{'abbreviation':"ddd",'givenName':"BBB",'zipFilename':'b.zip'},{'abbreviation':"ccc",'givenName':"CCC",'zipFilename':'c.zip'}]
     crD = ChooseResourcesDialog( tkRootWindow, availableResourceDictsList=availableResourceDictsList, title="Testing ChooseResourcesDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "ChooseResourcesResult", crD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "ChooseResourcesResult", crD.result )
     drD = DownloadResourcesDialog( tkRootWindow, title="Testing DownloadResourcesDialog" )
-    vPrint( 'Quiet', debuggingThisModule, "DownloadResourcesResult", drD.result )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "DownloadResourcesResult", drD.result )
 
     #tkRootWindow.quit()
 

@@ -110,9 +110,9 @@ LAST_MODIFIED_DATE = '2022-07-17' # by RJH
 SHORT_PROGRAM_NAME = "BibleNotesWindow"
 PROGRAM_NAME = "Biblelator Bible Notes Resource Window"
 PROGRAM_VERSION = '0.47'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 MAX_CACHED_VERSES = 300 # Per Bible resource window
@@ -128,20 +128,20 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        fnPrint( debuggingThisModule, f"BibleNotesWindowAddon.__init__( fp={folderpath} )" )
+        fnPrint( DEBUGGING_THIS_MODULE, f"BibleNotesWindowAddon.__init__( fp={folderpath} )" )
         self.folderpath = folderpath
 
         #self.internalBible = None # (for refreshTitle called from the base class)
         BibleResourceWindowAddon.__init__( self, 'BibleNotesWindow', self.folderpath, defaultContextViewMode='ByVerse' )
 
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.__init__ finished.") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.__init__ finished.") )
     # end of BibleNotesWindowAddon.__init__
 
 
     def _createMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "BibleNotesWindowAddon._createMenuBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon._createMenuBar()" )
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
         self.configure( menu=self.menubar ) # alternative
@@ -238,7 +238,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
     def refreshTitle( self ):
         """
         """
-        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.refreshTitle()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.refreshTitle()" )
 
         self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self._groupCode,
                         self.modulePath if self.internalBible is None else self.internalBible.getAName(),
@@ -252,7 +252,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         """
         Can be overriden if necessary.
         """
-        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.createContextMenu()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=0 )
         self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
@@ -276,12 +276,12 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         """
         Fetches and returns the internal Bible data for the given reference.
         """
-        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.getContextVerseData( {} )".format( verseKey ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.getContextVerseData( {} )".format( verseKey ) )
 
         if self.internalBible is not None:
             try:
                 result = self.internalBible.getContextVerseData( verseKey )
-                dPrint( 'Verbose', debuggingThisModule, f"getContextVerseData result {result}" )
+                dPrint( 'Verbose', DEBUGGING_THIS_MODULE, f"getContextVerseData result {result}" )
                 return result
             except KeyError: # Could be after a verse-bridge ???
                 if verseKey.getChapterNumber() != '0':
@@ -300,8 +300,8 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
         """
-        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
-        if BibleOrgSysGlobals.debugFlag or debuggingThisModule:
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
+        if BibleOrgSysGlobals.debugFlag or DEBUGGING_THIS_MODULE:
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
             if verseContextData:
@@ -315,7 +315,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
-            fnPrint( debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
+            fnPrint( DEBUGGING_THIS_MODULE, f"BibleNotesWindowAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
             if BibleOrgSysGlobals.debugFlag:
                 assert isinstance( ieText, str )
                 assert isinstance( ieTags, (str,tuple) )
@@ -337,12 +337,12 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         try: cVM, fVM = self._contextViewMode, self._formatViewMode
         except AttributeError: # Must be called from a box, not a window so get settings from parent
             cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
-        vPrint( 'Never', debuggingThisModule, "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
 
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, "BibleNotesWindowAddon.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
-            ##try: vPrint( 'Quiet', debuggingThisModule, "BibleNotesWindowAddon.displayAppendVerse( {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
-            ##except UnicodeEncodeError: vPrint( 'Quiet', debuggingThisModule, "BibleNotesWindowAddon.displayAppendVerse", firstFlag, verseKey, currentVerseFlag )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+            ##try: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.displayAppendVerse( {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, currentVerseFlag ) )
+            ##except UnicodeEncodeError: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.displayAppendVerse", firstFlag, verseKey, currentVerseFlag )
 
         BBB, C, V = verseKey.getBCV()
         C, V = int(C), int(V)
@@ -358,20 +358,20 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         #previousMarkName = 'C{}V{}'.format( C1, V1 )
         currentMarkName = 'C{}V{}'.format( C, V )
         #nextMarkName = 'C{}V{}'.format( C2, V2 )
-        #dPrint( 'Quiet', debuggingThisModule, "Marks", previousMarkName, currentMarkName, nextMarkName )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Marks", previousMarkName, currentMarkName, nextMarkName )
 
         lastCharWasSpace = haveTextFlag = not firstFlag
 
         if verseContextData is None:
-            if BibleOrgSysGlobals.debugFlag and debuggingThisModule and C!=0 and V!=0:
-                vPrint( 'Quiet', debuggingThisModule, f"  BibleNotesWindowAddon.displayAppendVerse has no data for {verseKey}" )
+            if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE and C!=0 and V!=0:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  BibleNotesWindowAddon.displayAppendVerse has no data for {verseKey}" )
             verseDataList = context = None
         elif isinstance( verseContextData, tuple ):
             assert len(verseContextData) == 2
             verseDataList, context = verseContextData
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                #dPrint( 'Quiet', debuggingThisModule, "   VerseDataList: {}".format( verseDataList ) )
-                #dPrint( 'Quiet', debuggingThisModule, "   Context: {}".format( context ) )
+            #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "   VerseDataList: {}".format( verseDataList ) )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "   Context: {}".format( context ) )
         elif isinstance( verseContextData, str ):
             verseDataList, context = verseContextData.split( '\n' ), None
         elif BibleOrgSysGlobals.debugFlag: halt
@@ -379,13 +379,13 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         # if firstFlag:
         #     pass
 
-        #dPrint( 'Quiet', debuggingThisModule, "  Setting mark to {}".format( currentMarkName ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  Setting mark to {}".format( currentMarkName ) )
         self.textBox.mark_set( currentMarkName, tk.INSERT )
         self.textBox.mark_gravity( currentMarkName, tk.LEFT )
 
         if verseDataList is None:
             if C!=0 and V!=0:
-                vPrint( 'Quiet', debuggingThisModule, f"  BibleNotesWindowAddon.displayAppendVerse has no data for {self.moduleID} {verseKey}" )
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  BibleNotesWindowAddon.displayAppendVerse has no data for {self.moduleID} {verseKey}" )
             #self.textBox.insert( tk.END, '--' )
         else:
             #hadVerseText = False
@@ -396,13 +396,13 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
             endMarkers = []
 
             # Pre-process the note(s) to extract them out of the pseudo-USFM
-            dPrint( 'Verbose', debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse preprocessing notes from {len(verseDataList)} entries" )
+            dPrint( 'Verbose', DEBUGGING_THIS_MODULE, f"BibleNotesWindowAddon.displayAppendVerse preprocessing notes from {len(verseDataList)} entries" )
             notes = []
             thisNote = {}
             markerName = None
             for verseDataEntry in verseDataList:
-                # dPrint( 'Info', debuggingThisModule, f"Have {thisNote}")
-                # dPrint( 'Info', debuggingThisModule, f"Got {verseDataEntry}")
+                # dPrint( 'Info', DEBUGGING_THIS_MODULE, f"Have {thisNote}")
+                # dPrint( 'Info', DEBUGGING_THIS_MODULE, f"Got {verseDataEntry}")
                 if isinstance( verseDataEntry, InternalBibleEntry ):
                     marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
                     if marker[0] == '¬' or marker in ('intro',): continue # ignore it
@@ -422,13 +422,13 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
                         else: halt # Shouldn't happen
                         markerName = None
                     else: # Unknown marker
-                        dPrint( 'Quiet', debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse doesn't know {marker=}")
+                        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleNotesWindowAddon.displayAppendVerse doesn't know {marker=}")
                         markerName = marker
                 else: halt # Shouldn't happen
             if thisNote: notes.append( thisNote )
-            # dPrint( 'Info', debuggingThisModule, f"notes ({len(notes)}) {notes}")
+            # dPrint( 'Info', DEBUGGING_THIS_MODULE, f"notes ({len(notes)}) {notes}")
 
-            vPrint( 'Info', debuggingThisModule, f"BibleNotesWindowAddon.displayAppendVerse displaying {len(notes)} notes from {len(verseDataList)} entries" )
+            vPrint( 'Info', DEBUGGING_THIS_MODULE, f"BibleNotesWindowAddon.displayAppendVerse displaying {len(notes)} notes from {len(verseDataList)} entries" )
             for n, note in enumerate( notes, start=1 ):
                 if haveTextFlag: self.textBox.insert ( tk.END, '\n\n' )
                 if len(notes) > 1:
@@ -461,11 +461,11 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
                         haveTextFlag = True
 
             if lastFlag and cVM=='ByVerse' and endMarkers:
-                #dPrint( 'Quiet', debuggingThisModule, "endMarkers", endMarkers )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "endMarkers", endMarkers )
                 insertAtEnd( ' '+ _("End context")+':', 'contextHeader' )
                 contextString, firstMarker = "", True
                 for someMarker in endMarkers:
-                    #dPrint( 'Quiet', debuggingThisModule, "  someMarker", someMarker )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  someMarker", someMarker )
                     contextString += (' ' if firstMarker else ', ') + someMarker
                     firstMarker = False
                 insertAtEnd( contextString+' ', 'context' )
@@ -476,7 +476,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         """
         Pop-up dialog
         """
-        fnPrint( debuggingThisModule, "BibleNotesWindowAddon.doShowInfo( {} )".format( event ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleNotesWindowAddon.doShowInfo( {} )".format( event ) )
 
         infoString = 'BibleNotesWindowAddon:\n' \
                  + '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.getAName() ) \
@@ -491,7 +491,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Prepare to do some of the exports available in BibleOrgSysGlobals.
         """
         logging.info( _("BibleNotesWindowAddon.prepareForExports()…") )
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.prepareForExports()…") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.prepareForExports()…") )
 
         self._prepareInternalBible()
         if self.internalBible is not None:
@@ -500,7 +500,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
                 fp = self.folderpath
                 if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
                 self.exportFolderpath = fp + 'Export/'
-                #dPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderpath) )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "eFolder", repr(self.exportFolderpath) )
                 if not os.path.exists( self.exportFolderpath ):
                     os.mkdir( self.exportFolderpath )
             setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
@@ -512,7 +512,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Do most of the quicker exports available in BibleOrgSysGlobals.
         """
         logging.info( _("BibleNotesWindowAddon.doMostExports()…") )
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.doMostExports()…") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.doMostExports()…") )
 
         self._prepareForExports()
         self.internalBible.doAllExports( self.exportFolderpath )
@@ -524,7 +524,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Do the BibleOrgSys PhotoBible export.
         """
         logging.info( _("BibleNotesWindowAddon.doPhotoBibleExport()…") )
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.doPhotoBibleExport()…") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.doPhotoBibleExport()…") )
 
         self._prepareForExports()
         self.internalBible.toPhotoBible( os.path.join( self.exportFolderpath, 'BOS_PhotoBible_Export/' ) )
@@ -536,7 +536,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Do the BibleOrgSys ODFsExport export.
         """
         logging.info( _("BibleNotesWindowAddon.doODFsExport()…") )
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.doODFsExport()…") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.doODFsExport()…") )
 
         self._prepareForExports()
         self.internalBible.toODF( os.path.join( self.exportFolderpath, 'BOS_ODF_Export/' ) )
@@ -548,7 +548,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Do the BibleOrgSys PDFsExport export.
         """
         logging.info( _("BibleNotesWindowAddon.doPDFsExport()…") )
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.doPDFsExport()…") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.doPDFsExport()…") )
 
         self._prepareForExports()
         self.internalBible.toTeX( os.path.join( self.exportFolderpath, 'BOS_PDF(TeX)_Export/' ) )
@@ -560,7 +560,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Do all exports available in BibleOrgSysGlobals.
         """
         logging.info( _("BibleNotesWindowAddon.doAllExports()…") )
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.doAllExports()…") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.doAllExports()…") )
 
         self._prepareForExports()
         self.internalBible.doAllExports( self.exportFolderpath, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
@@ -583,12 +583,12 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         Run the BibleOrgSys checks on the project.
         """
         logging.info( _("BibleNotesWindowAddon.doCheckProject()…") )
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindowAddon.doCheckProject()…") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.doCheckProject()…") )
 
         self._prepareInternalBible() # Slow but must be called before the dialog
         currentBBB = self.currentVerseKey.getBBB()
         gBBRD = GetBibleBookRangeDialog( self, self.internalBible, currentBBB, None, title=_('Books to be checked') )
-        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "gBBRDResult", repr(gBBRD.result) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "gBBRDResult", repr(gBBRD.result) )
         if gBBRD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
             #if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
@@ -617,11 +617,11 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         #"""
         #Display a help box.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindowAddon._doHelp( {} )").format( event ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
-        #helpInfo = programNameVersion
+        #helpInfo = PROGRAM_NAME_VERSION
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
         #helpInfo += '\n  ' + _("Keyboard shortcuts:")
         #for name,shortcut in self.myKeyboardBindingsList:
@@ -635,11 +635,11 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         #"""
         #Display an about box.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindowAddon._doAbout( {} )").format( event ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
-        #aboutInfo = programNameVersion
+        #aboutInfo = PROGRAM_NAME_VERSION
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
@@ -650,11 +650,11 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
         #"""
         #Called to finally and irreversibly remove this window from our list and close it.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindowAddon.doClose( {} ) for {}").format( event, self.genericWindowType ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindowAddon.doClose( {} ) for {}").format( event, self.genericWindowType ) )
 
         ## Remove ourself from the list of internal Bibles (and their controlling windows)
-        ##dPrint( 'Quiet', debuggingThisModule, 'internalBibles initially', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
+        ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'internalBibles initially', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
         #newBibleList = []
         #for internalBible,windowList in BiblelatorGlobals.theApp.internalBibles:
             #if internalBible is self.internalBible:
@@ -666,7 +666,7 @@ class BibleNotesWindowAddon( BibleResourceWindowAddon ):
             #else: # leave this one unchanged
                 #newBibleList.append( (internalBible,windowList) )
         #theApp.internalBibles = newBibleList
-        ##dPrint( 'Quiet', debuggingThisModule, 'internalBibles now', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
+        ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'internalBibles now', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
 
         #BibleResourceWindow.doClose( self, event )
         #if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Closed BibleNotesWindowAddon" )
@@ -684,7 +684,7 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         Given a folder, try to open an UnknownBible.
         If successful, set self.internalBible to point to the loaded Bible.
         """
-        fnPrint( debuggingThisModule, f"BibleNotesWindow.__init__( pW={parentWindow}, mP={folderpath} )" )
+        fnPrint( DEBUGGING_THIS_MODULE, f"BibleNotesWindow.__init__( pW={parentWindow}, mP={folderpath} )" )
         self.folderpath = folderpath
         ChildWindow.__init__( self, parentWindow, genericWindowType='BibleResource' )
         BibleNotesWindowAddon.__init__( self, folderpath )
@@ -704,14 +704,14 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
             self.getNumChapters = self.internalBible.getNumChapters
             handleInternalBibles( self.internalBible, self )
 
-        vPrint( 'Never', debuggingThisModule, _("BibleNotesWindow.__init__ finished.") )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.__init__ finished.") )
     # end of BibleNotesWindow.__init__
 
 
     #def _createMenuBar( self ):
         #"""
         #"""
-        #dPrint( 'Never', debuggingThisModule, _("BibleNotesWindow._createMenuBar()…") )
+        #dPrint( 'Never', DEBUGGING_THIS_MODULE, _("BibleNotesWindow._createMenuBar()…") )
         #self.menubar = tk.Menu( self )
         ##self['menu'] = self.menubar
         #self.configure( menu=self.menubar ) # alternative
@@ -808,8 +808,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
     #def refreshTitle( self ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.refreshTitle()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.refreshTitle()…") )
 
         #self.title( "[{}] {} (InternalBible){} {} {}:{} [{}]".format( self._groupCode,
                         #self.modulePath if self.internalBible is None else self.internalBible.getAName(),
@@ -823,8 +823,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #"""
         #Can be overriden if necessary.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.createContextMenu()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.createContextMenu()…") )
 
         #self.contextMenu = tk.Menu( self, tearoff=0 )
         #self.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
@@ -848,8 +848,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #"""
         #Fetches and returns the internal Bible data for the given reference.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.getContextVerseData( {} )").format( verseKey ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.getContextVerseData( {} )").format( verseKey ) )
 
         #if self.internalBible is not None:
             #try: return self.internalBible.getContextVerseData( verseKey )
@@ -864,8 +864,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #"""
         #Pop-up dialog
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doShowInfo( {} )").format( event ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doShowInfo( {} )").format( event ) )
 
         #infoString = 'BibleNotesWindow:\n' \
                  #+ '  Name:\t{}\n'.format( self.modulePath if self.internalBible is None else self.internalBible.getAName() ) \
@@ -880,8 +880,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #Prepare to do some of the exports available in BibleOrgSysGlobals.
         #"""
         #logging.info( _("BibleNotesWindow.prepareForExports()…") )
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.prepareForExports()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.prepareForExports()…") )
 
         #self._prepareInternalBible()
         #if self.internalBible is not None:
@@ -890,7 +890,7 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
                 #fp = self.folderpath
                 #if fp and fp[-1] in '/\\': fp = fp[:-1] # Removing trailing slash
                 #self.exportFolderpath = fp + 'Export/'
-                ##dPrint( 'Quiet', debuggingThisModule, "eFolder", repr(self.exportFolderpath) )
+                ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "eFolder", repr(self.exportFolderpath) )
                 #if not os.path.exists( self.exportFolderpath ):
                     #os.mkdir( self.exportFolderpath )
             #setDefaultControlFolderpath( '../BibleOrgSys/ControlFiles/' )
@@ -902,8 +902,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #Do most of the quicker exports available in BibleOrgSysGlobals.
         #"""
         #logging.info( _("BibleNotesWindow.doMostExports()…") )
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doMostExports()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doMostExports()…") )
 
         #self._prepareForExports()
         #self.internalBible.doAllExports( self.exportFolderpath )
@@ -915,8 +915,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #Do the BibleOrgSys PhotoBible export.
         #"""
         #logging.info( _("BibleNotesWindow.doPhotoBibleExport()…") )
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doPhotoBibleExport()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doPhotoBibleExport()…") )
 
         #self._prepareForExports()
         #self.internalBible.toPhotoBible( os.path.join( self.exportFolderpath, 'BOS_PhotoBible_Export/' ) )
@@ -928,8 +928,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #Do the BibleOrgSys ODFsExport export.
         #"""
         #logging.info( _("BibleNotesWindow.doODFsExport()…") )
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doODFsExport()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doODFsExport()…") )
 
         #self._prepareForExports()
         #self.internalBible.toODF( os.path.join( self.exportFolderpath, 'BOS_ODF_Export/' ) )
@@ -941,8 +941,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #Do the BibleOrgSys PDFsExport export.
         #"""
         #logging.info( _("BibleNotesWindow.doPDFsExport()…") )
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doPDFsExport()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doPDFsExport()…") )
 
         #self._prepareForExports()
         #self.internalBible.toTeX( os.path.join( self.exportFolderpath, 'BOS_PDF(TeX)_Export/' ) )
@@ -954,8 +954,8 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #Do all exports available in BibleOrgSysGlobals.
         #"""
         #logging.info( _("BibleNotesWindow.doAllExports()…") )
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doAllExports()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doAllExports()…") )
 
         #self._prepareForExports()
         #self.internalBible.doAllExports( self.exportFolderpath, wantPhotoBible=True, wantODFs=True, wantPDFs=True )
@@ -978,13 +978,13 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #Run the BibleOrgSys checks on the project.
         #"""
         #logging.info( _("BibleNotesWindow.doCheckProject()…") )
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doCheckProject()…") )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doCheckProject()…") )
 
         #self._prepareInternalBible() # Slow but must be called before the dialog
         #currentBBB = self.currentVerseKey.getBBB()
         #gBBRD = GetBibleBookRangeDialog( self, self.internalBible, currentBBB, None, title=_('Books to be checked') )
-        ##if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "gBBRDResult", repr(gBBRD.result) )
+        ##if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "gBBRDResult", repr(gBBRD.result) )
         #if gBBRD.result:
             #if BibleOrgSysGlobals.debugFlag: assert isinstance( gBBRD.result, list )
             ##if len(gBBRD.result)==1 and gBBRD.result[0]==currentBBB:
@@ -1013,11 +1013,11 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #"""
         #Display a help box.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow._doHelp( {} )").format( event ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow._doHelp( {} )").format( event ) )
         #from Biblelator.Dialogs.Help import HelpBox
 
-        #helpInfo = programNameVersion
+        #helpInfo = PROGRAM_NAME_VERSION
         #helpInfo += '\n' + _("Help for {}").format( self.windowType )
         #helpInfo += '\n  ' + _("Keyboard shortcuts:")
         #for name,shortcut in self.myKeyboardBindingsList:
@@ -1031,11 +1031,11 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #"""
         #Display an about box.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow._doAbout( {} )").format( event ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow._doAbout( {} )").format( event ) )
         #from Biblelator.Dialogs.About import AboutBox
 
-        #aboutInfo = programNameVersion
+        #aboutInfo = PROGRAM_NAME_VERSION
         #aboutInfo += "\nInformation about {}".format( self.windowType )
         #ab = AboutBox( self, self.genericWindowType, aboutInfo )
         #return tkBREAK # so we don't do the main window about also
@@ -1046,11 +1046,11 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
         #"""
         #Called to finally and irreversibly remove this window from our list and close it.
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("BibleNotesWindow.doClose( {} ) for {}").format( event, self.genericWindowType ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("BibleNotesWindow.doClose( {} ) for {}").format( event, self.genericWindowType ) )
 
         ## Remove ourself from the list of internal Bibles (and their controlling windows)
-        ##dPrint( 'Quiet', debuggingThisModule, 'internalBibles initially', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
+        ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'internalBibles initially', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
         #newBibleList = []
         #for internalBible,windowList in BiblelatorGlobals.theApp.internalBibles:
             #if internalBible is self.internalBible:
@@ -1062,7 +1062,7 @@ class BibleNotesWindow( ChildWindow, BibleNotesWindowAddon ):
             #else: # leave this one unchanged
                 #newBibleList.append( (internalBible,windowList) )
         #theApp.internalBibles = newBibleList
-        ##dPrint( 'Quiet', debuggingThisModule, 'internalBibles now', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
+        ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'internalBibles now', len(theApp.internalBibles), BiblelatorGlobals.theApp.internalBibles )
 
         #BibleResourceWindow.doClose( self, event )
         #if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "Closed BibleNotesWindow" )
@@ -1077,18 +1077,18 @@ def briefDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, _("Running demo…") )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("Running demo…") )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -1104,18 +1104,18 @@ def fullDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, _("Running demo…") )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("Running demo…") )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown

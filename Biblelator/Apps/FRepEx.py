@@ -88,9 +88,9 @@ LAST_MODIFIED_DATE = '2020-06-01' # by RJH
 SHORT_PROGRAM_NAME = "FRepEx"
 PROGRAM_NAME = "Bible Find/REPlace/EXtract"
 PROGRAM_VERSION = '0.00' # Separate versioning from Biblelator
-programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 MAIN_APP_NAME = 'Biblelator'
@@ -113,7 +113,7 @@ class FRepEx( Frame ):
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
-        fnPrint( debuggingThisModule, "FRepEx.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "FRepEx.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
         self.isStarting = True
 
@@ -134,8 +134,8 @@ class FRepEx( Frame ):
         self.lexiconWord = None
         self.currentProject = None
 
-        dPrint( 'Quiet', debuggingThisModule, "Button default font", Style().lookup('TButton', 'font') )
-        dPrint( 'Quiet', debuggingThisModule, "Label default font", Style().lookup('TLabel', 'font') )
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Button default font", Style().lookup('TButton', 'font') )
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Label default font", Style().lookup('TLabel', 'font') )
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
@@ -166,7 +166,7 @@ class FRepEx( Frame ):
             self.debugTextBox.pack( side=tk.BOTTOM, fill=tk.BOTH )
             #self.debugTextBox.tag_configure( 'emp', background='yellow', font='helvetica 12 bold', relief='tk.RAISED' )
             self.debugTextBox.tag_configure( 'emp', font='helvetica 10 bold' )
-            if debuggingThisModule: self.setDebugText( "Starting up…" )
+            if DEBUGGING_THIS_MODULE: self.setDebugText( "Starting up…" )
 
         self.keyBindingDict = DEFAULT_KEY_BINDING_DICT
         self.myKeyboardBindingsList = []
@@ -175,10 +175,10 @@ class FRepEx( Frame ):
         # Read and apply the saved settings
         if BibleOrgSysGlobals.commandLineArguments.override is None:
             self.INIname = MAIN_APP_NAME # We use the Biblelator settings
-            vPrint( 'Never', debuggingThisModule, "Using default {!r} ini file".format( self.INIname ) )
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "Using default {!r} ini file".format( self.INIname ) )
         else:
             self.INIname = BibleOrgSysGlobals.commandLineArguments.override
-            vPrint( 'Normal', debuggingThisModule, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
+            vPrint( 'Normal', DEBUGGING_THIS_MODULE, _("Using settings from user-specified {!r} ini file").format( self.INIname ) )
         #self.settings = ApplicationSettings( self.homeFolderpath, DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, self.INIname )
         #self.settings.load()
         #parseAndApplySettings( self )
@@ -187,7 +187,7 @@ class FRepEx( Frame ):
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
         if self.touchMode:
-            vPrint( 'Normal', debuggingThisModule, _("Touch mode enabled!") )
+            vPrint( 'Normal', DEBUGGING_THIS_MODULE, _("Touch mode enabled!") )
             self.createTouchMenuBar()
             self.createTouchNavigationBar()
         else: # assume it's regular desktop mode
@@ -202,7 +202,7 @@ class FRepEx( Frame ):
         if self.internetAccessEnabled and self.checkForDeveloperMessagesEnabled:
             self.doCheckForDeveloperMessages()
 
-        self.rootWindow.title( programNameVersion )
+        self.rootWindow.title( PROGRAM_NAME_VERSION )
         self.minimumSize = MINIMUM_MAIN_SIZE
         self.rootWindow.minsize( *parseWindowSize( self.minimumSize ) )
         if BibleOrgSysGlobals.debugFlag: self.setDebugText( "FRepEx.__init__ finished." )
@@ -216,7 +216,7 @@ class FRepEx( Frame ):
         We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
-        fnPrint( debuggingThisModule, "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -234,24 +234,24 @@ class FRepEx( Frame ):
         #self.getBookList = self.genericBibleOrganisationalSystem.getBookList
 
         # Make a bookNumber table with GEN as #1
-        #dPrint( 'Quiet', debuggingThisModule, self.genericBookList )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, self.genericBookList )
         self.offsetGenesis = self.genericBookList.index( 'GEN' )
-        #dPrint( 'Quiet', debuggingThisModule, 'offsetGenesis', self.offsetGenesis )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'offsetGenesis', self.offsetGenesis )
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
             nBBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getReferenceNumber( BBB )
-            #dPrint( 'Quiet', debuggingThisModule, BBB, nBBB )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
-        #dPrint( 'Quiet', debuggingThisModule, self.bookNumberTable )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, self.bookNumberTable )
     # end of FRepEx.setGenericBibleOrganisationalSystem
 
 
     def createNormalMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "createNormalMenuBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createNormalMenuBar()" )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -339,7 +339,7 @@ class FRepEx( Frame ):
     def createTouchMenuBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "createTouchMenuBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createTouchMenuBar()" )
         assert self.touchMode
 
         self.createNormalMenuBar()
@@ -349,7 +349,7 @@ class FRepEx( Frame ):
     def createNormalNavigationBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "createNormalNavigationBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createNormalNavigationBar()" )
 
         return
 
@@ -378,7 +378,7 @@ class FRepEx( Frame ):
         # self.bookNumberVar = tk.StringVar()
         # self.bookNumberVar.set( '1' )
         # self.maxBooks = len( self.genericBookList )
-        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "maxChapters", self.maxChaptersThisBook )
         # self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         # #self.bookNumberSpinbox['width'] = 3
         # self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -400,7 +400,7 @@ class FRepEx( Frame ):
         # self.chapterNumberVar = tk.StringVar()
         # self.chapterNumberVar.set( '1' )
         # self.maxChaptersThisBook = self.getNumChapters( BBB )
-        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "maxChapters", self.maxChaptersThisBook )
         # self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         # #self.chapterSpinbox['width'] = 3
         # self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -417,7 +417,7 @@ class FRepEx( Frame ):
         # self.verseNumberVar.set( '1' )
         # #self.maxVersesThisChapterVar = tk.StringVar()
         # self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        # #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
+        # #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "maxVerses", self.maxVersesThisChapter )
         # #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # # Add 1 to maxVerses to enable them to go to the next chapter
         # self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -458,7 +458,7 @@ class FRepEx( Frame ):
     def createTouchNavigationBar( self ):
         """
         """
-        fnPrint( debuggingThisModule, "createTouchNavigationBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createTouchNavigationBar()" )
         assert self.touchMode
 
         return
@@ -494,7 +494,7 @@ class FRepEx( Frame ):
         # self.bookNumberVar = tk.StringVar()
         # self.bookNumberVar.set( '1' )
         # self.maxBooks = len( self.genericBookList )
-        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "maxChapters", self.maxChaptersThisBook )
         # self.bookNumberSpinbox = tk.Spinbox( navigationBar, width=3, from_=1-self.offsetGenesis, to=self.maxBooks, textvariable=self.bookNumberVar )
         # #self.bookNumberSpinbox['width'] = 3
         # self.bookNumberSpinbox['command'] = self.spinToNewBookNumber
@@ -520,7 +520,7 @@ class FRepEx( Frame ):
         # self.chapterNumberVar = tk.StringVar()
         # self.chapterNumberVar.set( '1' )
         # self.maxChaptersThisBook = self.getNumChapters( BBB )
-        # #dPrint( 'Quiet', debuggingThisModule, "maxChapters", self.maxChaptersThisBook )
+        # #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "maxChapters", self.maxChaptersThisBook )
         # self.chapterSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=self.maxChaptersThisBook, textvariable=self.chapterNumberVar )
         # #self.chapterSpinbox['width'] = 3
         # self.chapterSpinbox['command'] = self.spinToNewChapter
@@ -541,7 +541,7 @@ class FRepEx( Frame ):
         # self.verseNumberVar.set( '1' )
         # #self.maxVersesThisChapterVar = tk.StringVar()
         # self.maxVersesThisChapter = self.getNumVerses( BBB, self.chapterNumberVar.get() )
-        # #dPrint( 'Quiet', debuggingThisModule, "maxVerses", self.maxVersesThisChapter )
+        # #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "maxVerses", self.maxVersesThisChapter )
         # #self.maxVersesThisChapterVar.set( str(self.maxVersesThisChapter) )
         # # Add 1 to maxVerses to enable them to go to the next chapter
         # self.verseSpinbox = tk.Spinbox( navigationBar, width=3, from_=0.0, to=1.0+self.maxVersesThisChapter, textvariable=self.verseNumberVar )
@@ -586,7 +586,7 @@ class FRepEx( Frame ):
         """
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
-        fnPrint( debuggingThisModule, "createToolBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
 
         return
 
@@ -614,14 +614,14 @@ class FRepEx( Frame ):
     def createNotebook( self ):
         """
         """
-        fnPrint( debuggingThisModule, "createToolBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
 
         self.notebook = Notebook( self )
 
         # Adding Frames as pages for the ttk.Notebook
 
         # Bible books codes page
-        vPrint( 'Quiet', debuggingThisModule, "Create codes page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create codes page" )
         self.BibleBooksCodesList = BibleOrgSysGlobals.loadedBibleBooksCodes.getAllReferenceAbbreviations()
         self.codesPage = Frame( self.notebook )
         codesLabel = Label( self.codesPage, text="Books Codes ({})".format( len(self.BibleBooksCodesList) ) )
@@ -655,7 +655,7 @@ class FRepEx( Frame ):
         self.codesSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible punctuations systems page
-        vPrint( 'Quiet', debuggingThisModule, "Create punct page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create punct page" )
         self.BiblePunctuationSystems = BiblePunctuationSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BiblePunctuationsList = sorted( self.BiblePunctuationSystems.getAvailablePunctuationSystemNames() )
         self.punctuationPage = Frame( self.notebook )
@@ -685,7 +685,7 @@ class FRepEx( Frame ):
         self.punctuationsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible versification systems page
-        vPrint( 'Quiet', debuggingThisModule, "Create vers page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create vers page" )
         self.BibleVersificationsSystems = BibleVersificationSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleVersificationsSystemsList = sorted( self.BibleVersificationsSystems.getAvailableVersificationSystemNames() )
         self.versificationsPage = Frame( self.notebook )
@@ -715,7 +715,7 @@ class FRepEx( Frame ):
         self.versificationsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible versification mappings page
-        vPrint( 'Quiet', debuggingThisModule, "Create mappings page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create mappings page" )
         #self.BibleMappingsSystems = BibleMappingSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleMappingsSystemsList = []
         self.mappingsPage = Frame( self.notebook )
@@ -745,7 +745,7 @@ class FRepEx( Frame ):
         self.mappingsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible book order systems page
-        vPrint( 'Quiet', debuggingThisModule, "Create orders page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create orders page" )
         self.BibleOrdersSystems = BibleBookOrderSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleOrdersSystemsList = sorted( self.BibleOrdersSystems.getAvailableBookOrderSystemNames() )
         self.ordersPage = Frame( self.notebook )
@@ -775,7 +775,7 @@ class FRepEx( Frame ):
         self.ordersSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible book name systems page
-        vPrint( 'Quiet', debuggingThisModule, "Create names page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create names page" )
         self.BibleNamesSystems = BibleBooksNamesSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleNamesSystemsList = sorted( self.BibleNamesSystems.getAvailableBooksNamesSystemNames() )
         self.namesPage = Frame( self.notebook )
@@ -805,7 +805,7 @@ class FRepEx( Frame ):
         self.namesSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible organisational systems page
-        vPrint( 'Quiet', debuggingThisModule, "Create Bibles page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create Bibles page" )
         self.BibleOrganisationalSystems = BibleOrganisationalSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleOrganisationalSystemsList = sorted( self.BibleOrganisationalSystems.getAvailableOrganisationalSystemNames() )
         self.organisationsPage = Frame( self.notebook )
@@ -835,7 +835,7 @@ class FRepEx( Frame ):
         self.organisationsSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible reference systems page
-        vPrint( 'Quiet', debuggingThisModule, "Create refs page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create refs page" )
         #self.BibleReferenceSystems = BibleReferenceSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleReferenceSystemsList = []
         self.referencesPage = Frame( self.notebook )
@@ -865,7 +865,7 @@ class FRepEx( Frame ):
         self.referenceSearch.delete( 0, tk.END ) # Clear the search box again
 
         # Bible stylesheet systems page
-        vPrint( 'Quiet', debuggingThisModule, "Create stylesheets page" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create stylesheets page" )
         #self.BibleStylesheetSystems = BibleStylesheetSystems().loadData() # Doesn't reload the XML unnecessarily :)
         self.BibleStylesheetSystemsList = []
         self.stylesheetsPage = Frame( self.notebook )
@@ -894,7 +894,7 @@ class FRepEx( Frame ):
         self.searchOrganisation( None ) # Go to KJV
         self.stylesheetSearch.delete( 0, tk.END ) # Clear the search box again
 
-        vPrint( 'Quiet', debuggingThisModule, "Add all pages" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Add all pages" )
         self.notebook.add( self.codesPage, text=_("Codes") )
         self.notebook.add( self.punctuationPage, text=_("Punctuation") )
         self.notebook.add( self.versificationsPage, text=_("Versifications") )
@@ -922,7 +922,7 @@ class FRepEx( Frame ):
         """
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
-        fnPrint( debuggingThisModule, "createDebugToolBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createDebugToolBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -943,7 +943,7 @@ class FRepEx( Frame ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        fnPrint( debuggingThisModule, "createStatusBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createStatusBar()" )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -962,13 +962,13 @@ class FRepEx( Frame ):
     def createMainKeyboardBindings( self ):
         """
         """
-        fnPrint( debuggingThisModule, "createMainKeyboardBindings()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createMainKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self._doHelp), ('About',self._doAbout), ('Quit',self.doCloseMe) ):
             if name in self.keyBindingDict:
                 for keyCode in self.keyBindingDict[name][1:]:
-                    #dPrint( 'Quiet', debuggingThisModule, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Bind {} for {}".format( repr(keyCode), repr(name) ) )
                     self.rootWindow.bind( keyCode, command )
                 self.myKeyboardBindingsList.append( (name,self.keyBindingDict[name][0],) )
             else: logging.critical( 'No key binding available for {!r}'.format( name ) )
@@ -987,8 +987,8 @@ class FRepEx( Frame ):
         #"""
         #Puts most recent first
         #"""
-        #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("addRecentFile( {} )").format( threeTuple ) )
+        #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("addRecentFile( {} )").format( threeTuple ) )
             #assert len(threeTuple) == 3
 
         #try: self.recentFiles.remove( threeTuple ) # Remove a duplicate if present
@@ -1009,9 +1009,9 @@ class FRepEx( Frame ):
         """
         Set (or clear) the status bar text.
         """
-        fnPrint( debuggingThisModule, "setStatus( {!r} )".format( newStatusText ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "setStatus( {!r} )".format( newStatusText ) )
 
-        #dPrint( 'Quiet', debuggingThisModule, "SB is", repr( self.statusTextVariable.get() ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
             #self.statusBarTextWidget.configure( state=tk.NORMAL )
             #self.statusBarTextWidget.delete( tkSTART, tk.END )
@@ -1028,7 +1028,7 @@ class FRepEx( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        fnPrint( debuggingThisModule, "setErrorStatus( {!r} )".format( newStatusText ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "setErrorStatus( {!r} )".format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1041,7 +1041,7 @@ class FRepEx( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        fnPrint( debuggingThisModule, "setWaitStatus( {!r} )".format( newStatusText ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "setWaitStatus( {!r} )".format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -1069,8 +1069,8 @@ class FRepEx( Frame ):
     def setDebugText( self, newMessage=None ):
         """
         """
-        if debuggingThisModule:
-            #dPrint( 'Quiet', debuggingThisModule, _("setDebugText( {!r} )").format( newMessage ) )
+        if DEBUGGING_THIS_MODULE:
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("setDebugText( {!r} )").format( newMessage ) )
             assert BibleOrgSysGlobals.debugFlag
 
         logging.info( 'Debug: ' + newMessage ) # Not sure why logging.debug isn't going into the file! XXXXXXXXXXXXX
@@ -1108,9 +1108,9 @@ class FRepEx( Frame ):
         Set the window theme to the given scheme.
         """
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, _("doChangeTheme( {!r} )").format( newThemeName ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("doChangeTheme( {!r} )").format( newThemeName ) )
             assert newThemeName
-            if debuggingThisModule: self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
+            if DEBUGGING_THIS_MODULE: self.setDebugText( 'Set theme to {!r}'.format( newThemeName ) )
 
         self.themeName = newThemeName
         try:
@@ -1125,8 +1125,8 @@ class FRepEx( Frame ):
         Search for the given text in the 3-character (uppercase or numeric) book codes.
         """
         enteredText = self.codesSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchBBBCode…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchBBBCode( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchBBBCode…" )
 
         if not enteredText: return
 
@@ -1157,8 +1157,8 @@ class FRepEx( Frame ):
         Search for the given text through all possible book code types.
         """
         enteredText = self.codesSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchCode( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchCode…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchCode( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchCode…" )
 
         if not enteredText: return
 
@@ -1187,11 +1187,11 @@ class FRepEx( Frame ):
     def gotoNewCode( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewCode( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewCode…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewCode( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewCode…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
-        dPrint( 'Never', debuggingThisModule, "code cursel", repr(self.codesListbox.curselection()) )
+        dPrint( 'Never', DEBUGGING_THIS_MODULE, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
         self.BBB = self.codesListbox.get( index )
         codeDict =  BibleOrgSysGlobals.loadedBibleBooksCodes._getFullEntry( self.BBB )
@@ -1211,8 +1211,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.punctuationsSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchPunctuation…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchPunctuation( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchPunctuation…" )
 
         if not enteredText: return
 
@@ -1236,11 +1236,11 @@ class FRepEx( Frame ):
     def gotoNewPunctuation( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewPunctuation( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewPunctuation…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewPunctuation( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewPunctuation…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.punctuationsListbox.get(int(i)) for i in self.punctuationsListbox.curselection()] )
 
-        vPrint( 'Quiet', debuggingThisModule, "punct cursel", repr(self.punctuationsListbox.curselection()) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "punct cursel", repr(self.punctuationsListbox.curselection()) )
         index = int( self.punctuationsListbox.curselection()[0] ) # Top one selected
         self.punctuationSystemName = self.punctuationsListbox.get( index )
         punctuationDict =  self.BiblePunctuationSystems.getPunctuationSystem( self.punctuationSystemName )
@@ -1260,8 +1260,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.versificationsSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchVersification( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchVersification…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchVersification( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchVersification…" )
 
         if not enteredText: return
 
@@ -1285,11 +1285,11 @@ class FRepEx( Frame ):
     def gotoNewVersification( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewVersification( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewVersification…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewVersification( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewVersification…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.versificationsListbox.get(int(i)) for i in self.versificationsListbox.curselection()] )
 
-        vPrint( 'Quiet', debuggingThisModule, "vers cursel", repr(self.versificationsListbox.curselection()) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "vers cursel", repr(self.versificationsListbox.curselection()) )
         index = int( self.versificationsListbox.curselection()[0] ) # Top one selected
         self.versificationSystemName = self.versificationsListbox.get( index )
         versificationSystem =  self.BibleVersificationsSystems.getVersificationSystem( self.versificationSystemName )
@@ -1309,8 +1309,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.mappingsSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchMapping( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchMapping…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchMapping( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchMapping…" )
 
         if not enteredText: return
 
@@ -1334,9 +1334,9 @@ class FRepEx( Frame ):
     def gotoNewMapping( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewMapping( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewMapping…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewMapping( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewMapping…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.mappingsListbox.get(int(i)) for i in self.mappingsListbox.curselection()] )
 
         index = int( self.mappingsListbox.curselection()[0] ) # Top one selected
         self.mappingSystemName = self.mappingsListbox.get( index )
@@ -1357,8 +1357,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.ordersSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchOrder( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchOrder…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchOrder( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchOrder…" )
 
         if not enteredText: return
 
@@ -1382,11 +1382,11 @@ class FRepEx( Frame ):
     def gotoNewOrder( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewOrder( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewOrder…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewOrder( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewOrder…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.ordersListbox.get(int(i)) for i in self.ordersListbox.curselection()] )
 
-        vPrint( 'Quiet', debuggingThisModule, "order cursel", repr(self.ordersListbox.curselection()) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "order cursel", repr(self.ordersListbox.curselection()) )
         index = int( self.ordersListbox.curselection()[0] ) # Top one selected
         self.orderSystemName = self.ordersListbox.get( index )
         orderSystem =  self.BibleOrdersSystems.getBookOrderSystem( self.orderSystemName )
@@ -1406,8 +1406,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.namesSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchName( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchName…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchName( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchName…" )
 
         if not enteredText: return
 
@@ -1431,11 +1431,11 @@ class FRepEx( Frame ):
     def gotoNewName( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewName( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewName…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewName( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewName…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.namesListbox.get(int(i)) for i in self.namesListbox.curselection()] )
 
-        vPrint( 'Quiet', debuggingThisModule, "name cursel", repr(self.namesListbox.curselection()) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "name cursel", repr(self.namesListbox.curselection()) )
         index = int( self.namesListbox.curselection()[0] ) # Top one selected
         self.nameSystemName = self.namesListbox.get( index )
         nameSystem =  self.BibleNamesSystems.getBooksNamesSystem( self.nameSystemName )
@@ -1455,8 +1455,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.organisationsSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchOrganisation…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchOrganisation( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchOrganisation…" )
 
         if not enteredText: return
 
@@ -1480,9 +1480,9 @@ class FRepEx( Frame ):
     def gotoNewOrganisation( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewOrganisation( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewOrganisation…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewOrganisation( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewOrganisation…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.organisationsListbox.get(int(i)) for i in self.organisationsListbox.curselection()] )
 
         index = int( self.organisationsListbox.curselection()[0] ) # Top one selected
         self.organisationSystemName = self.organisationsListbox.get( index )
@@ -1503,8 +1503,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.referenceSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchReference( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchReference…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchReference( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchReference…" )
 
         if not enteredText: return
 
@@ -1528,9 +1528,9 @@ class FRepEx( Frame ):
     def gotoNewReference( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewReference( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewReference…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewReference( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewReference…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.referencesListbox.get(int(i)) for i in self.referencesListbox.curselection()] )
 
         index = int( self.referencesListbox.curselection()[0] ) # Top one selected
         self.referenceSystemName = self.referencesListbox.get( index )
@@ -1551,8 +1551,8 @@ class FRepEx( Frame ):
         """
         """
         enteredText = self.stylesheetsSearch.get()
-        vPrint( 'Never', debuggingThisModule, _("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
-        if debuggingThisModule: self.setDebugText( "searchStylesheet…" )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchStylesheet( {}, {!r} )").format( event, enteredText ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "searchStylesheet…" )
 
         if not enteredText: return
 
@@ -1576,9 +1576,9 @@ class FRepEx( Frame ):
     def gotoNewStylesheet( self, event=None ):
         """
         """
-        fnPrint( debuggingThisModule, "gotoNewStylesheet( {} )".format( event ) )
-        if debuggingThisModule: self.setDebugText( "gotoNewStylesheet…" )
-        #dPrint( 'Quiet', debuggingThisModule, 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
+        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewStylesheet( {} )".format( event ) )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewStylesheet…" )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.stylesheetsListbox.get(int(i)) for i in self.stylesheetsListbox.curselection()] )
 
         index = int( self.stylesheetsListbox.curselection()[0] ) # Top one selected
         self.stylesheetSystemName = self.stylesheetsListbox.get( index )
@@ -1601,7 +1601,7 @@ class FRepEx( Frame ):
         """
         viewSettings( self )
         #if BibleOrgSysGlobals.debugFlag:
-            #dPrint( 'Never', debuggingThisModule, _("_doViewSettings()…") )
+            #dPrint( 'Never', DEBUGGING_THIS_MODULE, _("_doViewSettings()…") )
             #self.setDebugText( "_doViewSettings…" )
         #tEW = TextEditWindow( self )
         ##if windowGeometry: tEW.geometry( windowGeometry )
@@ -1609,10 +1609,10 @@ class FRepEx( Frame ):
         #or not tEW.loadText():
             #tEW.doClose()
             #showError( self, SHORT_PROGRAM_NAME, _("Sorry, unable to open settings file") )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Failed _doViewSettings" )
+            #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE: self.setDebugText( "Failed _doViewSettings" )
         #else:
             #self.childWindows.append( tEW )
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule: self.setDebugText( "Finished _doViewSettings" )
+            #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE: self.setDebugText( "Finished _doViewSettings" )
         #self.setReadyStatus()
     # end of FRepEx._doViewSettings
 
@@ -1621,8 +1621,8 @@ class FRepEx( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        fnPrint( debuggingThisModule, "_doViewLog()" )
-        if debuggingThisModule: self.setDebugText( "_doViewLog…" )
+        fnPrint( DEBUGGING_THIS_MODULE, "_doViewLog()" )
+        if DEBUGGING_THIS_MODULE: self.setDebugText( "_doViewLog…" )
 
         self.setWaitStatus( _("_doViewLog…") )
         filename = f"{makeSafeProgramName(PROGRAM_NAME)}_log.txt"
@@ -1644,7 +1644,7 @@ class FRepEx( Frame ):
         """
         Pop-up dialog giving goto/reference info.
         """
-        fnPrint( debuggingThisModule, "FRepEx.doGotoInfo( {} )".format( event ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "FRepEx.doGotoInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1670,9 +1670,9 @@ class FRepEx( Frame ):
         Display a help box.
         """
         from Biblelator.Dialogs.Help import HelpBox
-        fnPrint( debuggingThisModule, "_doHelp()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "_doHelp()" )
 
-        helpInfo = programNameVersion
+        helpInfo = PROGRAM_NAME_VERSION
         helpInfo += "\n\nBasic instructions:"
         helpInfo += "\n  Click on a tab to view that subset of the Bible Organisational System (BOS)."
         helpInfo += "\n\nKeyboard shortcuts:"
@@ -1694,7 +1694,7 @@ class FRepEx( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        fnPrint( debuggingThisModule, "doSubmitBug()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "doSubmitBug()" )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1702,7 +1702,7 @@ class FRepEx( Frame ):
 
         from Biblelator.Dialogs.About import AboutBox
 
-        submitInfo = programNameVersion
+        submitInfo = PROGRAM_NAME_VERSION
         submitInfo += "\n  This program is not yet finished but we'll add this eventually!"
         ab = AboutBox( self.rootWindow, SHORT_PROGRAM_NAME, submitInfo )
     # end of FRepEx.doSubmitBug
@@ -1713,9 +1713,9 @@ class FRepEx( Frame ):
         Display an about box.
         """
         from Biblelator.Dialogs.About import AboutBox
-        fnPrint( debuggingThisModule, "_doAbout()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "_doAbout()" )
 
-        aboutInfo = programNameVersion
+        aboutInfo = PROGRAM_NAME_VERSION
         aboutInfo += "\nA display manager for the Bible Organisational System (BOS)." \
             + "\n\nThis is still an unfinished alpha test version, but it should allow you to select and display various sets of information from the BOS." \
             + "\n\n{} is written in Python. For more information see our web pages at Freely-Given.org/Software/BibleOrgSys and Freely-Given.org/Software/Biblelator".format( SHORT_PROGRAM_NAME )
@@ -1726,7 +1726,7 @@ class FRepEx( Frame ):
     #def doProjectClose( self ):
         #"""
         #"""
-        #dPrint( 'Never', debuggingThisModule, _("doProjectClose()…") )
+        #dPrint( 'Never', DEBUGGING_THIS_MODULE, _("doProjectClose()…") )
         #self.notWrittenYet()
     ## end of FRepEx.doProjectClose
 
@@ -1743,7 +1743,7 @@ class FRepEx( Frame ):
         """
         Save files first, and then close child windows.
         """
-        fnPrint( debuggingThisModule, "FRepEx.doCloseMyChildWindows()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "FRepEx.doCloseMyChildWindows()" )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():
@@ -1774,8 +1774,8 @@ class FRepEx( Frame ):
         """
         Save files first, and then end the application.
         """
-        fnPrint( debuggingThisModule, "FRepEx.doCloseMe()" )
-        vPrint( 'Quiet', debuggingThisModule, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "FRepEx.doCloseMe()" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -1791,8 +1791,8 @@ def openFRepEx( parent ):
 
     This is used when the BOS Manager is used inside another program.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, _("FRepEx.openFRepEx( {} )").format( parent ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("FRepEx.openFRepEx( {} )").format( parent ) )
 
     myWin = tk.Toplevel( parent )
     application = FRepEx( myWin, parent.homeFolderpath, parent.loggingFolderpath, parent.iconImage, parent.settings )
@@ -1806,17 +1806,17 @@ def briefDemo() -> None:
 
     Which windows open depends on the saved settings from the last use.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( programNameVersion )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Set the window icon and title
     iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
-    tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
+    tkRootWindow.title( PROGRAM_NAME_VERSION + ' ' + _('starting') + '…' )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
     loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
@@ -1825,7 +1825,7 @@ def briefDemo() -> None:
 
     application = FRepEx( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage, settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -1841,17 +1841,17 @@ def fullDemo() -> None:
 
     Which windows open depends on the saved settings from the last use.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( programNameVersion )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Set the window icon and title
     iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
-    tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
+    tkRootWindow.title( PROGRAM_NAME_VERSION + ' ' + _('starting') + '…' )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
     loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
@@ -1860,7 +1860,7 @@ def fullDemo() -> None:
 
     application = FRepEx( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage, settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -1875,57 +1875,57 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
 
-    #dPrint( 'Quiet', debuggingThisModule, 'FP main', repr(homeFolderpath), repr(loggingFolderpath) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'FP main', repr(homeFolderpath), repr(loggingFolderpath) )
 
     numInstancesFound = 0
     if sys.platform == 'linux':
         myProcess = subprocess.Popen( ['ps','xa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #dPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                dPrint( 'Verbose', debuggingThisModule, 'Found in ps xa:', repr(line) )
+                dPrint( 'Verbose', DEBUGGING_THIS_MODULE, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
         myProcess = subprocess.Popen( ['tasklist.exe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         programOutputBytes, programErrorOutputBytes = myProcess.communicate()
-        #dPrint( 'Quiet', debuggingThisModule, 'pob', programOutputBytes, programErrorOutputBytes )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'pob', programOutputBytes, programErrorOutputBytes )
         #returnCode = myProcess.returncode
         programOutputString = programOutputBytes.decode( encoding='utf-8', errors='replace' ) if programOutputBytes else None
         programErrorOutputString = programErrorOutputBytes.decode( encoding='utf-8', errors='replace' ) if programErrorOutputBytes else None
-        #dPrint( 'Quiet', debuggingThisModule, 'processes', repr(programOutputString) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                dPrint( 'Verbose', debuggingThisModule, 'Found in tasklist:', repr(line) )
+                dPrint( 'Verbose', DEBUGGING_THIS_MODULE, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
     if numInstancesFound > 1:
         import easygui
         logging.critical( "Found {} instances of {} running.".format( numInstancesFound, PROGRAM_NAME ) )
-        result = easygui.ynbox('Seems {} might be already running: Continue?'.format( PROGRAM_NAME), programNameVersion, ('Yes', 'No'))
+        result = easygui.ynbox('Seems {} might be already running: Continue?'.format( PROGRAM_NAME), PROGRAM_NAME_VERSION, ('Yes', 'No'))
         if not result:
             logging.info( "Exiting as user requested." )
             sys.exit()
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) ) # e.g., 'x11'
 
     # Set the window icon and title
     iconImage = tk.PhotoImage( file=DATAFILES_FOLDERPATH.joinpath( 'Biblelator.gif' ) )
     tkRootWindow.tk.call( 'wm', 'iconphoto', tkRootWindow._w, iconImage )
-    tkRootWindow.title( programNameVersion + ' ' + _('starting') + '…' )
+    tkRootWindow.title( PROGRAM_NAME_VERSION + ' ' + _('starting') + '…' )
     application = FRepEx( tkRootWindow, homeFolderpath, loggingFolderpath, iconImage, None )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -1945,13 +1945,13 @@ def run() -> None:
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-    #dPrint( 'Quiet', debuggingThisModule, BibleOrgSysGlobals.commandLineArguments ); halt
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, BibleOrgSysGlobals.commandLineArguments ); halt
 
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, _("Platform is"), sys.platform ) # e.g., 'linux,'win32'
-        vPrint( 'Quiet', debuggingThisModule, _("OS name is"), os.name ) # e.g., 'posix','nt'
-        if sys.platform == "linux": vPrint( 'Quiet', debuggingThisModule, _("OS uname is"), os.uname() ) # gives about five fields
-        vPrint( 'Quiet', debuggingThisModule, _("Running main…") )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("Platform is"), sys.platform ) # e.g., 'linux,'win32'
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("OS name is"), os.name ) # e.g., 'posix','nt'
+        if sys.platform == "linux": vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("OS uname is"), os.uname() ) # gives about five fields
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("Running main…") )
 
     main( homeFolderpath, loggingFolderpath )
 

@@ -63,9 +63,9 @@ LAST_MODIFIED_DATE = '2018-03-15' # by RJH
 SHORT_PROGRAM_NAME = "ESFMEditWindow"
 PROGRAM_NAME = "Biblelator ESFM Edit Window"
 PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 class ESFMEditWindow( USFMEditWindow ):
@@ -78,11 +78,11 @@ def briefDemo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     eEW = ESFMEditWindow( tkRootWindow, None )

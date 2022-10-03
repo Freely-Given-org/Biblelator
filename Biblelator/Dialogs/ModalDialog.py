@@ -51,9 +51,9 @@ LAST_MODIFIED_DATE = '2022-07-13' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorModalDialog"
 PROGRAM_NAME = "Biblelator Modal Dialog"
 PROGRAM_VERSION = '0.47'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -63,7 +63,7 @@ class ModalDialog( tk.Toplevel ):
         and intended to be subclassed.
     """
     def __init__(self, parentWindow, title:Optional[str]=None, okText:Optional[str]=None, cancelText:Optional[str]=None, geometry=None) -> None:
-        fnPrint( debuggingThisModule, f"ModalDialog.__init__( {parentWindow}, {title}, {okText}, {cancelText}, {geometry} )" )
+        fnPrint( DEBUGGING_THIS_MODULE, f"ModalDialog.__init__( {parentWindow}, {title}, {okText}, {cancelText}, {geometry} )" )
         tk.Toplevel.__init__( self, parentWindow )
         self.transient( parentWindow )
 
@@ -104,7 +104,7 @@ class ModalDialog( tk.Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        dPrint( 'Normal', debuggingThisModule, "This 'body' method must be overridden!" ); halt
+        dPrint( 'Normal', DEBUGGING_THIS_MODULE, "This 'body' method must be overridden!" ); halt
     # end of ModalDialog.makeBody
 
 
@@ -160,7 +160,7 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        dPrint( 'Info', debuggingThisModule, "This ModalDialog.validate() method can be overridden!" )
+        dPrint( 'Info', DEBUGGING_THIS_MODULE, "This ModalDialog.validate() method can be overridden!" )
         return True # override
     # end of ModalDialog.validate
 
@@ -172,7 +172,7 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        dPrint( 'Quiet', debuggingThisModule, "This ModalDialog.apply() method should have been overridden!" )
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "This ModalDialog.apply() method should have been overridden!" )
         self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog
@@ -208,7 +208,7 @@ class MyTestDialog( ModalDialog ):
         """
         try: int( self.e1.get() ) and int( self.e2.get() )
         except ValueError:
-            vPrint( 'Quiet', debuggingThisModule, "ERROR: We need two valid integers!" )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "ERROR: We need two valid integers!" )
             return False
         return True
     # end of MyTestDialog.validate
@@ -223,7 +223,7 @@ class MyTestDialog( ModalDialog ):
         """
         first = int( self.e1.get() )
         second = int( self.e2.get() )
-        vPrint( 'Quiet', debuggingThisModule, first, second ) # or something
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, first, second ) # or something
         self.result = (first, second,)
     # end of MyTestDialog.apply
 # end of class MyTestDialog
@@ -236,11 +236,11 @@ def briefDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
     tkRootWindow.parentApp = tkRootWindow
 
     # Program a shutdown
@@ -249,7 +249,7 @@ def briefDemo() -> None:
     def ss( a ): pass
     tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
-    dPrint( 'Quiet', debuggingThisModule, "Result is:", repr(md.result) )
+    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Result is:", repr(md.result) )
 
     # Start the program running
     tkRootWindow.mainloop()
@@ -261,11 +261,11 @@ def fullDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
     tkRootWindow.parentApp = tkRootWindow
 
     # Program a shutdown
@@ -274,7 +274,7 @@ def fullDemo() -> None:
     def ss( a ): pass
     tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
-    vPrint( 'Quiet', debuggingThisModule, "Result is:", repr(md.result) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Result is:", repr(md.result) )
 
     # Start the program running
     tkRootWindow.mainloop()

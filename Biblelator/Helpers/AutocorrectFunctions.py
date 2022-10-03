@@ -44,9 +44,9 @@ LAST_MODIFIED_DATE = '2018-03-15' # by RJH
 SHORT_PROGRAM_NAME = "AutocorrectFunctions"
 PROGRAM_NAME = "Biblelator Autocorrect Functions"
 PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -58,9 +58,9 @@ def setAutocorrectEntries( self, autocorrectEntryList, append=False ):
     Note that the original word order is preserved (if the autocorrectEntryList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #dPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setAutocorrectEntries( {} )".format( autocorrectEntryList, append ) )
-        vPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setAutocorrectEntries( {}.., {} )".format( len(autocorrectEntryList), append ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "AutocorrectFunctions.setAutocorrectEntries( {} )".format( autocorrectEntryList, append ) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "AutocorrectFunctions.setAutocorrectEntries( {}.., {} )".format( len(autocorrectEntryList), append ) )
 
     if append: self.autocorrectEntries.extend( autocorrectEntryList )
     else: self.autocorrectEntries = autocorrectEntryList
@@ -70,8 +70,8 @@ def setAutocorrectEntries( self, autocorrectEntryList, append=False ):
     for inChars,outChars in self.autocorrectEntries:
         self.maxAutocorrectLength = max( len(inChars), self.maxAutocorrectLength )
 
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "  autocorrect total entries loaded = {:,}".format( len(self.autocorrectEntries) ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  autocorrect total entries loaded = {:,}".format( len(self.autocorrectEntries) ) )
 # end of AutocorrectFunctions.setAutocorrectEntries
 
 
@@ -83,8 +83,8 @@ def setDefaultAutocorrectEntries( self ):
     Note that the original word order is preserved (if the autocorrectEntryList has an order)
         so that more common/likely words can appear at the top of the list if desired.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "AutocorrectFunctions.setDefaultAutocorrectEntries()" )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "AutocorrectFunctions.setDefaultAutocorrectEntries()" )
 
     ourAutocorrectEntries = []
 
@@ -126,11 +126,11 @@ def briefDemo() -> None:
     """
     import tkinter as tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
     tkRootWindow.textBox = tk.Text( tkRootWindow )
 
     #uEW = AutocorrectFunctions( tkRootWindow, None )

@@ -50,9 +50,9 @@ LAST_MODIFIED_DATE = '2022-07-18' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorGlobals"
 PROGRAM_NAME = "Biblelator Globals"
 PROGRAM_VERSION = '0.47' # This is the version number that will be displayed inside the app
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 # Programme settings
@@ -83,18 +83,18 @@ def setApp( mainApp ):
 #
 # Readable folder paths
 SOURCE_BASE_FOLDERPATH = Path( __file__ ).parent.resolve() # Folder containing this file
-#dPrint( 'Quiet', debuggingThisModule, f"SOURCE_BASE_FOLDERPATH = {SOURCE_BASE_FOLDERPATH}" )
+#dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"SOURCE_BASE_FOLDERPATH = {SOURCE_BASE_FOLDERPATH}" )
 DATAFILES_FOLDERPATH = SOURCE_BASE_FOLDERPATH.joinpath( 'DataFiles/' )
 # DERIVED_DATAFILES_FOLDERPATH = DATAFILES_FOLDERPATH.joinpath( 'DerivedFiles/' )
 
 # LIBRARY_BASE_FOLDERPATH = SOURCE_BASE_FOLDERPATH.parent # Folder above the one containing this file
-# #dPrint( 'Quiet', debuggingThisModule, f"LIBRARY_BASE_FOLDERPATH = {LIBRARY_BASE_FOLDERPATH}" )
+# #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"LIBRARY_BASE_FOLDERPATH = {LIBRARY_BASE_FOLDERPATH}" )
 # TESTS_FOLDERPATH = LIBRARY_BASE_FOLDERPATH.joinpath( 'Tests/' )
 # TEST_DATA_FOLDERPATH = TESTS_FOLDERPATH.joinpath( 'DataFilesForTests/' )
 
 # # Resources like original language lexicons should be based from this folder
 # BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH = LIBRARY_BASE_FOLDERPATH.parent # Two folders above the one containing this file
-# dPrint( 'Quiet', debuggingThisModule, f"BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH = {BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH}" )
+# dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH = {BADBAD_PARALLEL_RESOURCES_BASE_FOLDERPATH}" )
 
 
 # Constants for tkinter
@@ -155,7 +155,7 @@ DEFAULT_KEY_BINDING_DICT = {
     _('About'):('F12','<F12>'),
     _('Close'):('Ctrl+F4','<Control-F4>'),
     _('Quit'):('Alt+F4','<Alt-F4>'), }
-#dPrint( 'Quiet', debuggingThisModule, DEFAULT_KEY_BINDING_DICT ); halt
+#dPrint( 'Quiet', DEBUGGING_THIS_MODULE, DEFAULT_KEY_BINDING_DICT ); halt
 
 
 
@@ -218,7 +218,7 @@ def centreWindow( self, width=400, height=250 ):
 
     x = (screenWidth - width) // 2
     y = (screenHeight - height) // 2
-    #dPrint( 'Quiet', debuggingThisModule, "centreWindow", width, height, screenWidth, screenHeight, x, y )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "centreWindow", width, height, screenWidth, screenHeight, x, y )
 
     self.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
 # end of BiblelatorGlobals.centreWindow
@@ -228,11 +228,11 @@ def centreWindowOnWindow( self, parentWindow, width=400, height=250 ):
     """
     """
     parentWidth, parentHeight, parentXOffset, parentYOffset = parseWindowGeometry( parentWindow.winfo_geometry() )
-    #dPrint( 'Quiet', debuggingThisModule, "centreWindowOnWindow parent is", "w =",parentWidth, "h =",parentHeight, "x =",parentXOffset, "y =",parentYOffset )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "centreWindowOnWindow parent is", "w =",parentWidth, "h =",parentHeight, "x =",parentXOffset, "y =",parentYOffset )
 
     x = parentXOffset + (parentWidth - width) // 2
     y = parentYOffset + (parentHeight - height) // 2
-    #dPrint( 'Quiet', debuggingThisModule, "centreWindowOnWindow", "w =",width, "h =",height, "x =",x, "y =",y )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "centreWindowOnWindow", "w =",width, "h =",height, "x =",x, "y =",y )
 
     self.geometry('{}x{}+{}+{}'.format( width, height, x, y ) )
 # end of BiblelatorGlobals.centreWindowOnWindow
@@ -249,8 +249,8 @@ def makeSafeProgramName( progName:str ) -> str:
 def errorBeep():
     """
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "errorBeep()" )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "errorBeep()" )
 
     # Does nothing yet :-(
 
@@ -258,7 +258,7 @@ def errorBeep():
     #from subprocess import call
     #if sys.platform == 'linux': call(["xdg-open","dialog-error.ogg"])
     #elif sys.platform == 'darwin': call(["afplay","dialog-error.ogg"])
-    #else: vPrint( 'Quiet', debuggingThisModule, "errorBeep: sp", sys.platform )
+    #else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "errorBeep: sp", sys.platform )
 # end of errorBeep
 
 
@@ -268,25 +268,25 @@ def briefDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
-    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
     p1, p2 = parseWindowGeometry( g1 ), parseWindowGeometry( g2 )
-    vPrint( 'Quiet', debuggingThisModule, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
-    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
-    vPrint( 'Quiet', debuggingThisModule, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
-    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
 
     #tkRootWindow = Tk()
-    #tkRootWindow.title( programNameVersion )
+    #tkRootWindow.title( PROGRAM_NAME_VERSION )
     #settings = ApplicationSettings( DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running
@@ -299,25 +299,25 @@ def fullDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
-    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
     p1, p2 = parseWindowGeometry( g1 ), parseWindowGeometry( g2 )
-    vPrint( 'Quiet', debuggingThisModule, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
-    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
-    vPrint( 'Quiet', debuggingThisModule, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
-    vPrint( 'Quiet', debuggingThisModule, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
 
     #tkRootWindow = Tk()
-    #tkRootWindow.title( programNameVersion )
+    #tkRootWindow.title( PROGRAM_NAME_VERSION )
     #settings = ApplicationSettings( DATA_SUBFOLDER_NAME, SETTINGS_SUBFOLDER_NAME, PROGRAM_NAME )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Start the program running

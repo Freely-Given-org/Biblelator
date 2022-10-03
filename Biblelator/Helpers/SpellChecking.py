@@ -48,15 +48,15 @@ LAST_MODIFIED_DATE = '2016-11-03' # by RJH
 SHORT_PROGRAM_NAME = "SpellChecking"
 PROGRAM_NAME = "Spell Checking routines"
 PROGRAM_VERSION = '0.39' # Still just a copy of "About.py"
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
 class SpellCheckingBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None ):
-        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "SpellCheckingBox.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SpellCheckingBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_ABOUT_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
@@ -83,7 +83,7 @@ class SpellCheckingBox( tk.Toplevel ):
 
 class SpellCheckingBox2():
     def __init__( self, parent=None, progName=None, text=None ):
-        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "SpellCheckingBox2.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SpellCheckingBox2.__init__( {} )".format( parent ) )
         ab = tk.Toplevel( parent )
         self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
         ab.minsize( self.minimumXSize, self.minimumYSize )
@@ -113,17 +113,17 @@ def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        #dPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
-            vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
-    tkRootWindow.title( programNameVersion )
-    ab = SpellCheckingBox( tkRootWindow, PROGRAM_NAME, programNameVersion )
-    ab = SpellCheckingBox2( tkRootWindow, PROGRAM_NAME, programNameVersion )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
+    ab = SpellCheckingBox( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION )
+    ab = SpellCheckingBox2( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
@@ -151,8 +151,8 @@ if __name__ == '__main__':
 
     if BibleOrgSysGlobals.debugFlag:
         #from tkinter import TclVersion, TkVersion
-        vPrint( 'Quiet', debuggingThisModule, "TclVersion is", tk.TclVersion )
-        vPrint( 'Quiet', debuggingThisModule, "TkVersion is", tk.TkVersion )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TclVersion is", tk.TclVersion )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TkVersion is", tk.TkVersion )
 
     fullDemo()
 
