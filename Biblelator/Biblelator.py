@@ -3388,8 +3388,8 @@ class Application( Frame ):
         """
         Check that they're typing a valid chapter number.
 
-        actionCode (%d): Type of action: 1 for insert, 0 for delete, or -1 for focus, forced or textvariable validation. 
-        potentialString (%P): The value of the spinbox should edition occur. If you are configuring the spinbox widget to have a new textvariable, this will be the value of that textvariable. 
+        actionCode (%d): Type of action: 1 for insert, 0 for delete, or -1 for focus, forced or textvariable validation.
+        potentialString (%P): The value of the spinbox should edition occur. If you are configuring the spinbox widget to have a new textvariable, this will be the value of that textvariable.
 
         Must return True (allowed) or False (disallowed).
         """

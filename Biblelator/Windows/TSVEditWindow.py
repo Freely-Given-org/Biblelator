@@ -1794,7 +1794,7 @@ class TSVEditWindowAddon:
             + '  Markdown: {}\n'.format( 'unknown' ) \
             + '\nSettings:\n' \
             + '  Autocorrect entries: {:,}\n  Autocomplete mode: {}\n  Autocomplete entries: {:,}\n  Autosave time: {} secs\n  Save changes automatically: {}' \
-                    .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal, 
+                    .format( len(self.autocorrectEntries), self.autocompleteMode, grandtotal,
                     round(self.autosaveTime/1000), self.saveChangesAutomatically )
 
         showInfo( self, _("Window Information"), infoString )

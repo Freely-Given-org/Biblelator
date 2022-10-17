@@ -1222,7 +1222,7 @@ class BibleBoxAddon():
         except ValueError:
             dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.displayAppendVerse found invalid {V=}: changed to 1" )
             V = 1
-            
+
         #C1 = C2 = int(C); V1 = V2 = int(V)
         #if V1 > 0: V1 -= 1
         #elif C1 > 0:
