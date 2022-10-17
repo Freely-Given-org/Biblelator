@@ -66,9 +66,9 @@ SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
 PROGRAM_VERSION = '0.47'
 SettingsVersion = '0.47' # Only need to change this if the settings format has changed
-programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -98,8 +98,8 @@ def parseAndApplySettings() -> None:
     Parse the settings out of the .INI file.
     """
     logging.info( "parseAndApplySettings()" )
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "parseAndApplySettings()" )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseAndApplySettings()" )
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "parseAndApplySettings…" )
 
     def retrieveWindowsSettings( windowsSettingsName:str ):
@@ -112,8 +112,8 @@ def parseAndApplySettings() -> None:
         Called from parseAndApplySettings().
         """
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "retrieveWindowsSettings( {} )".format( repr(windowsSettingsName) ) )
-            if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "retrieveWindowsSettings…" )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "retrieveWindowsSettings( {} )".format( repr(windowsSettingsName) ) )
+            if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "retrieveWindowsSettings…" )
         windowsSettingsFields = BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingsName]
         resultDict = {}
         for j in range( 1, MAX_WINDOWS+1 ):
@@ -122,7 +122,7 @@ def parseAndApplySettings() -> None:
                 if keyName.startswith( winNumber ):
                     if winNumber not in resultDict: resultDict[winNumber] = {}
                     resultDict[winNumber][keyName[len(winNumber):]] = windowsSettingsFields[keyName]
-        #dPrint( 'Quiet', debuggingThisModule, "retrieveWindowsSettings", resultDict )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "retrieveWindowsSettings", resultDict )
         return resultDict
     # end of retrieveWindowsSettings
 
@@ -130,13 +130,13 @@ def parseAndApplySettings() -> None:
     # Main code for parseAndApplySettings()
     # Parse main app stuff
     #try: BiblelatorGlobals.theApp.rootWindow.geometry( BiblelatorGlobals.theApp.settings.data[APP_NAME]['windowGeometry'] )
-    #except KeyError: vPrint( 'Quiet', debuggingThisModule, "KeyError1" ) # we had no geometry set
+    #except KeyError: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "KeyError1" ) # we had no geometry set
     #except tk.TclError: logging.critical( "Application.__init__: Bad window geometry in settings file: {}".format( settings.data[APP_NAME]['windowGeometry'] ) )
     try:
         windowSize = BiblelatorGlobals.theApp.settings.data[APP_NAME]['windowSize'] if 'windowSize' in BiblelatorGlobals.theApp.settings.data[APP_NAME] else None
         windowPosition = BiblelatorGlobals.theApp.settings.data[APP_NAME]['windowPosition'] if 'windowPosition' in BiblelatorGlobals.theApp.settings.data[APP_NAME] else None
-        if 0 and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "main window settings (across/down from ini file) size", repr(windowSize), "pos", repr(windowPosition) )
+        if 0 and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "main window settings (across/down from ini file) size", repr(windowSize), "pos", repr(windowPosition) )
         if windowSize and windowPosition:
             BiblelatorGlobals.theApp.update() # Make sure that the window has finished being created
             BiblelatorGlobals.theApp.rootWindow.geometry( windowSize + '+' + windowPosition )
@@ -149,8 +149,8 @@ def parseAndApplySettings() -> None:
     try: BiblelatorGlobals.theApp.maximumSize = BiblelatorGlobals.theApp.settings.data[APP_NAME]['maximumSize']
     except KeyError: BiblelatorGlobals.theApp.maximumSize = MAXIMUM_MAIN_SIZE
     BiblelatorGlobals.theApp.rootWindow.maxsize( *parseWindowSize( BiblelatorGlobals.theApp.maximumSize ) )
-    if 0 and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "  apply min", repr(BiblelatorGlobals.theApp.minimumSize), repr(parseWindowSize(BiblelatorGlobals.theApp.minimumSize)), "max", repr(BiblelatorGlobals.theApp.maximumSize), repr(parseWindowSize(BiblelatorGlobals.theApp.maximumSize)) )
+    if 0 and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  apply min", repr(BiblelatorGlobals.theApp.minimumSize), repr(parseWindowSize(BiblelatorGlobals.theApp.minimumSize)), "max", repr(BiblelatorGlobals.theApp.maximumSize), repr(parseWindowSize(BiblelatorGlobals.theApp.maximumSize)) )
 
     try: BiblelatorGlobals.theApp.doChangeTheme( BiblelatorGlobals.theApp.settings.data[APP_NAME]['themeName'] )
     except KeyError: logging.warning( "Settings.KeyError: no themeName" )
@@ -302,7 +302,7 @@ def parseAndApplySettings() -> None:
     windowsSettingsNamesList = []
     for name in BiblelatorGlobals.theApp.settings.data:
         if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
-        dPrint( 'Verbose', debuggingThisModule, "Available windows settings are: {}".format( windowsSettingsNamesList ) )
+        dPrint( 'Verbose', DEBUGGING_THIS_MODULE, "Available windows settings are: {}".format( windowsSettingsNamesList ) )
     if windowsSettingsNamesList: assert 'Current' in windowsSettingsNamesList
     BiblelatorGlobals.theApp.windowsSettingsDict = {}
     for windowsSettingsName in windowsSettingsNamesList:
@@ -319,8 +319,8 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
         find the settings in our dictionary
         and then apply it by creating the windows.
     """
-    fnPrint( debuggingThisModule, "applyGivenWindowsSettings( {} )".format( givenWindowsSettingsName ) )
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+    fnPrint( DEBUGGING_THIS_MODULE, "applyGivenWindowsSettings( {} )".format( givenWindowsSettingsName ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "applyGivenWindowsSettings…" )
 
     BiblelatorGlobals.theApp.doCloseMyChildWindows()
@@ -336,7 +336,7 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
             windowSize = thisStuff['Size'] if 'Size' in thisStuff else None
             windowPosition = thisStuff['Position'] if 'Position' in thisStuff else None
             windowGeometry = windowSize+'+'+windowPosition if windowSize and windowPosition else None
-            #dPrint( 'Quiet', debuggingThisModule, "applyGivenWindowsSettings", windowType, windowGeometry )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "applyGivenWindowsSettings", windowType, windowGeometry )
 
             if windowType == 'SwordBibleResourceWindow':
                 try:
@@ -388,11 +388,11 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
                         boxType = boxSource = None
                         for keyname in collectionSettingsFields:
                             if keyname.startswith( boxNumber ):
-                                #dPrint( 'Quiet', debuggingThisModule, "found", keyname, "setting for", collectionName, "collection" )
+                                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "found", keyname, "setting for", collectionName, "collection" )
                                 if keyname == boxNumber+'Type': boxType = collectionSettingsFields[keyname]
                                 elif keyname == boxNumber+'Source': boxSource = collectionSettingsFields[keyname]
                                 else:
-                                    vPrint( 'Quiet', debuggingThisModule, "Unknown {} collection key: {} = {}".format( repr(collectionName), keyname, collectionSettingsFields[keyname] ) )
+                                    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Unknown {} collection key: {} = {}".format( repr(collectionName), keyname, collectionSettingsFields[keyname] ) )
                                     if BibleOrgSysGlobals.debugFlag: halt
                         if boxType and boxSource:
                             #if boxType in ( 'Internal', ):
@@ -513,8 +513,8 @@ def getCurrentChildWindowSettings():
         and save it in BiblelatorGlobals.theApp.windowsSettingsDict['Current'].
     """
     logging.debug( "getCurrentChildWindowSettings()" )
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "getCurrentChildWindowSettings()" )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "getCurrentChildWindowSettings()" )
 
     if 'Current' in BiblelatorGlobals.theApp.windowsSettingsDict: del BiblelatorGlobals.theApp.windowsSettingsDict['Current']
     BiblelatorGlobals.theApp.windowsSettingsDict['Current'] = {}
@@ -526,17 +526,17 @@ def getCurrentChildWindowSettings():
         BiblelatorGlobals.theApp.windowsSettingsDict['Current'][winNumber] = {}
         thisOne = BiblelatorGlobals.theApp.windowsSettingsDict['Current'][winNumber]
         thisOne['Type'] = appWin.windowType #.replace( 'Window', 'Window' )
-        if 0 and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "Child", j, appWin.genericWindowType, appWin.windowType )
-            vPrint( 'Quiet', debuggingThisModule, "  child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
-            #dPrint( 'Quiet', debuggingThisModule, "  child winfo x", appWin.winfo_x(), "child winfo rootx", appWin.winfo_rootx() )
-            #dPrint( 'Quiet', debuggingThisModule, "  child winfo y", appWin.winfo_y(), "child winforooty", appWin.winfo_rooty() )
-            #dPrint( 'Quiet', debuggingThisModule, "  child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
-            #dPrint( 'Quiet', debuggingThisModule, "  child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
+        if 0 and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Child", j, appWin.genericWindowType, appWin.windowType )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  child geometry", appWin.geometry(), "child winfo_geometry", appWin.winfo_geometry() )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  child winfo x", appWin.winfo_x(), "child winfo rootx", appWin.winfo_rootx() )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  child winfo y", appWin.winfo_y(), "child winforooty", appWin.winfo_rooty() )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  child height", appWin.winfo_height(), "child reqheight", appWin.winfo_reqheight() )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  child width", appWin.winfo_width(), "child reqwidth", appWin.winfo_reqwidth() )
         thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
         if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
             thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
-            vPrint( 'Quiet', debuggingThisModule, "Corrected {} window position from '0+0' to {}".format( appWin.windowType, thisOne['Position'] ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Corrected {} window position from '0+0' to {}".format( appWin.windowType, thisOne['Position'] ) )
         thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
         thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
         thisOne['StatusBar'] = 'On' if appWin._showStatusBarVar.get() else 'Off'
@@ -559,7 +559,7 @@ def getCurrentChildWindowSettings():
 
         elif appWin.windowType == 'TranslationManualWindow':
             thisFolderpath = appWin.folderpath # e.g., '/mnt/SSDs/Bibles/unfoldingWordHelps/en_ta/./intro/ta-intro'
-            # dPrint( 'Info', debuggingThisModule, "thisFolderpath", thisFolderpath)
+            # dPrint( 'Info', DEBUGGING_THIS_MODULE, "thisFolderpath", thisFolderpath)
             ix = str(thisFolderpath).find( './' )
             if ix > 0: thisFolderpath = str(thisFolderpath)[:ix] # Remove subpath
             thisOne['TMFolderpath'] = thisFolderpath
@@ -571,7 +571,7 @@ def getCurrentChildWindowSettings():
         elif appWin.windowType == 'BibleResourceCollectionWindow':
             thisOne['CollectionName'] = appWin.moduleID
         elif appWin.windowType == 'BibleReferenceCollectionWindow':
-            vPrint( 'Quiet', debuggingThisModule, "WARNING: Doesn't save BibleReferenceCollectionWindow yet!" )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "WARNING: Doesn't save BibleReferenceCollectionWindow yet!" )
             #thisOne['CollectionName'] = appWin.moduleID # Just copied -- not checked
 
         elif appWin.windowType == 'PlainTextEditWindow':
@@ -617,16 +617,16 @@ def saveNewWindowSetup():
     """
     Gets the name for the new window setup and saves the information.
     """
-    fnPrint( debuggingThisModule, "saveNewWindowSetup()" )
+    fnPrint( DEBUGGING_THIS_MODULE, "saveNewWindowSetup()" )
     if BibleOrgSysGlobals.debugFlag:
-        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "saveNewWindowSetup…" )
+        if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "saveNewWindowSetup…" )
 
     swnd = SaveWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Save window setup') )
-    dPrint( 'Never', debuggingThisModule, "swndResult", repr(swnd.result) )
+    dPrint( 'Never', DEBUGGING_THIS_MODULE, "swndResult", repr(swnd.result) )
     if swnd.result:
         getCurrentChildWindowSettings()
         BiblelatorGlobals.theApp.windowsSettingsDict[swnd.result] = BiblelatorGlobals.theApp.windowsSettingsDict['Current'] # swnd.result is the new window name
-        #dPrint( 'Quiet', debuggingThisModule, "swS", BiblelatorGlobals.theApp.windowsSettingsDict )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "swS", BiblelatorGlobals.theApp.windowsSettingsDict )
         writeSettingsFile() # Save file now in case we crash
         BiblelatorGlobals.theApp._createMenuBar() # refresh
 # end of saveNewWindowSetup
@@ -637,13 +637,13 @@ def deleteExistingWindowSetup():
     """
     Gets the name of an existing window setting and deletes the setting.
     """
-    fnPrint( debuggingThisModule, "deleteExistingWindowSetup()" )
+    fnPrint( DEBUGGING_THIS_MODULE, "deleteExistingWindowSetup()" )
     if BibleOrgSysGlobals.debugFlag:
-        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "deleteExistingWindowSetup" )
+        if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "deleteExistingWindowSetup" )
         assert BiblelatorGlobals.theApp.windowsSettingsDict and (len(BiblelatorGlobals.theApp.windowsSettingsDict)>1 or 'Current' not in BiblelatorGlobals.theApp.windowsSettingsDict)
 
     dwnd = DeleteWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Delete saved window setup') )
-    dPrint( 'Never', debuggingThisModule, "dwndResult", repr(dwnd.result) )
+    dPrint( 'Never', DEBUGGING_THIS_MODULE, "dwndResult", repr(dwnd.result) )
     if dwnd.result:
         if BibleOrgSysGlobals.debugFlag:
             assert dwnd.result in BiblelatorGlobals.theApp.windowsSettingsDict
@@ -658,9 +658,9 @@ def viewSettings():
     """
     Open a pop-up text window with the current settings displayed.
     """
-    fnPrint( debuggingThisModule, "viewSettings()" )
+    fnPrint( DEBUGGING_THIS_MODULE, "viewSettings()" )
     if BibleOrgSysGlobals.debugFlag:
-        if debuggingThisModule: BiblelatorGlobals.theApp.setDebugText( "viewSettings" )
+        if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "viewSettings" )
 
     tEW = TextEditWindow()
     #if windowGeometry: tEW.geometry( windowGeometry )
@@ -681,8 +681,8 @@ def writeSettingsFile():
     Update our program settings and save them.
     """
     logging.info( "writeSettingsFile()" )
-    fnPrint( debuggingThisModule, "writeSettingsFile()" )
-    vPrint( 'Quiet', debuggingThisModule, f"  Saving {APP_NAME_VERSION} settings…" )
+    fnPrint( DEBUGGING_THIS_MODULE, "writeSettingsFile()" )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Saving {APP_NAME_VERSION} settings…" )
 
     def convertToString( thisSetting ):
         """
@@ -709,17 +709,17 @@ def writeSettingsFile():
     mainStuff['settingsVersion'] = SettingsVersion
     mainStuff['PROGRAM_VERSION'] = PROGRAM_VERSION
     mainStuff['themeName'] = BiblelatorGlobals.theApp.themeName
-    if 0 and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, " root geometry", BiblelatorGlobals.theApp.rootWindow.geometry(), "root winfo_geometry", BiblelatorGlobals.theApp.rootWindow.winfo_geometry() )
-        vPrint( 'Quiet', debuggingThisModule, " root winfo x", BiblelatorGlobals.theApp.rootWindow.winfo_x(), "root winfo rootx", BiblelatorGlobals.theApp.rootWindow.winfo_rootx() )
-        vPrint( 'Quiet', debuggingThisModule, " root winfo y", BiblelatorGlobals.theApp.rootWindow.winfo_y(), "root winfo rooty", BiblelatorGlobals.theApp.rootWindow.winfo_rooty() )
+    if 0 and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, " root geometry", BiblelatorGlobals.theApp.rootWindow.geometry(), "root winfo_geometry", BiblelatorGlobals.theApp.rootWindow.winfo_geometry() )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, " root winfo x", BiblelatorGlobals.theApp.rootWindow.winfo_x(), "root winfo rootx", BiblelatorGlobals.theApp.rootWindow.winfo_rootx() )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, " root winfo y", BiblelatorGlobals.theApp.rootWindow.winfo_y(), "root winfo rooty", BiblelatorGlobals.theApp.rootWindow.winfo_rooty() )
     mainStuff['windowSize'], mainStuff['windowPosition'] = BiblelatorGlobals.theApp.rootWindow.geometry().split( '+', 1 )
     # Seems that winfo_geometry doesn't work above (causes root Window to move)
     mainStuff['minimumSize'] = BiblelatorGlobals.theApp.minimumSize
     mainStuff['maximumSize'] = BiblelatorGlobals.theApp.maximumSize
-    if 0 and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, " saved size (across/down) to ini file", repr(mainStuff['windowSize']), "pos", repr(mainStuff['windowPosition']) )
-        vPrint( 'Quiet', debuggingThisModule, "   min", repr(mainStuff['minimumSize']), "max", repr(mainStuff['maximumSize']) )
+    if 0 and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, " saved size (across/down) to ini file", repr(mainStuff['windowSize']), "pos", repr(mainStuff['windowPosition']) )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "   min", repr(mainStuff['minimumSize']), "max", repr(mainStuff['maximumSize']) )
 
     # Save the user interface settings
     BiblelatorGlobals.theApp.settings.data['Interface'] = {}
@@ -802,19 +802,19 @@ def writeSettingsFile():
     if BiblelatorGlobals.theApp.lexiconWord: lexicon['currentWord'] = BiblelatorGlobals.theApp.lexiconWord
 
     # Save any open Bible resource collections
-    vPrint( 'Never', debuggingThisModule, "save collection data…" )
+    vPrint( 'Never', DEBUGGING_THIS_MODULE, "save collection data…" )
     for appWin in BiblelatorGlobals.theApp.childWindows:
-        #dPrint( 'Quiet', debuggingThisModule, "  gT", appWin.genericWindowType )
-        #dPrint( 'Quiet', debuggingThisModule, "  wT", appWin.windowType )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  gT", appWin.genericWindowType )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  wT", appWin.windowType )
         if appWin.windowType == 'BibleResourceCollectionWindow':
             if appWin.resourceBoxesList: # so we don't create just an empty heading for an empty collection
                 BiblelatorGlobals.theApp.settings.data['BibleResourceCollection'+appWin.moduleID] = {}
                 thisOne = BiblelatorGlobals.theApp.settings.data['BibleResourceCollection'+appWin.moduleID]
-                #dPrint( 'Quiet', debuggingThisModule, "  found", appWin.moduleID )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  found", appWin.moduleID )
                 for j, box in enumerate( appWin.resourceBoxesList ):
                     boxNumber = 'box{}'.format( j+1 )
-                    #dPrint( 'Quiet', debuggingThisModule, "    bT", box.boxType )
-                    #dPrint( 'Quiet', debuggingThisModule, "    ID", box.moduleID )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    bT", box.boxType )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    ID", box.moduleID )
                     thisOne[boxNumber+'Type'] = box.boxType.replace( 'BibleResourceBox', '' )
                     thisOne[boxNumber+'Source'] = box.moduleID
 
@@ -822,14 +822,14 @@ def writeSettingsFile():
     getCurrentChildWindowSettings()
     # Save all the various window set-ups including both the named ones and the current one
     for windowsSettingName in sorted( BiblelatorGlobals.theApp.windowsSettingsDict ):
-        vPrint( 'Never', debuggingThisModule, "Saving windows set-up {}".format( repr(windowsSettingName) ) )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, "Saving windows set-up {}".format( repr(windowsSettingName) ) )
         try: # Just in case something goes wrong with characters in a settings name
             BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingName] = {}
             thisOne = BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingName]
             for windowNumber,winDict in sorted( BiblelatorGlobals.theApp.windowsSettingsDict[windowsSettingName].items() ):
-                vPrint( 'Never', debuggingThisModule, f"  {windowNumber} {winDict}" )
+                vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  {windowNumber} {winDict}" )
                 for windowSettingName,value in sorted( winDict.items() ):
-                    vPrint( 'Never', debuggingThisModule, f"  {windowSettingName} {value!r}" )
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  {windowSettingName} {value!r}" )
                     thisOne[windowNumber+windowSettingName] = convertToString( value )
         except UnicodeEncodeError: logging.error( "writeSettingsFile: " + _("unable to write {} windows set-up").format( repr(windowsSettingName) ) )
     BiblelatorGlobals.theApp.settings.saveINI()
@@ -844,11 +844,11 @@ def doSendUsageStatistics():
 
     Note that Biblelator is mostly closed down at this stage.
     """
-    fnPrint( debuggingThisModule, "doSendUsageStatistics()" )
+    fnPrint( DEBUGGING_THIS_MODULE, "doSendUsageStatistics()" )
     if BibleOrgSysGlobals.debugFlag:
         assert BiblelatorGlobals.theApp.internetAccessEnabled
         assert BiblelatorGlobals.theApp.sendUsageStatisticsEnabled
-    vPrint( 'Quiet', debuggingThisModule, _("  Sending program usage info…") )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("  Sending program usage info…") )
 
     adjAppName = APP_NAME.replace('/','-').replace(':','_').replace('\\','_').replace(' ','_')
     adjUserName = BiblelatorGlobals.theApp.currentUserName.replace('/','-').replace(':','_').replace('\\','_')
@@ -857,31 +857,31 @@ def doSendUsageStatistics():
     import tempfile
     import zipfile
     zipFilepath = os.path.join( tempfile.gettempdir(), adjAppName+'.zip' )
-    #dPrint( 'Quiet', debuggingThisModule, "zipF0", repr(zipFilepath) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "zipF0", repr(zipFilepath) )
     zf = zipfile.ZipFile( zipFilepath, 'w', compression=zipfile.ZIP_DEFLATED )
 
     # Add log file(s)
     filename = adjAppName + '_log.txt'
-    #dPrint( 'Quiet', debuggingThisModule, "zipF1", repr(BiblelatorGlobals.theApp.loggingFolderpath) )
-    #dPrint( 'Quiet', debuggingThisModule, "zipF2", repr(filename) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "zipF1", repr(BiblelatorGlobals.theApp.loggingFolderpath) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "zipF2", repr(filename) )
     for extension in BibleOrgSysGlobals.STANDARD_BACKUP_EXTENSIONS:
         filepath = os.path.join( BiblelatorGlobals.theApp.loggingFolderpath, filename+extension )
-        #dPrint( 'Quiet', debuggingThisModule, "  zipF3", repr(filepath) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  zipF3", repr(filepath) )
         if os.path.exists( filepath ):
-            #dPrint( 'Quiet', debuggingThisModule, "  zipF4", repr(filepath) )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  zipF4", repr(filepath) )
             zf.write( filepath, filename+extension )
 
     # Add usage file(s)
     zf.write( BiblelatorGlobals.theApp.usageLogPath, BiblelatorGlobals.theApp.usageFilename )
 
     # Add settings file(s)
-    #dPrint( 'Quiet', debuggingThisModule, "zipF5", repr(BiblelatorGlobals.theApp.settings.settingsFilepath) )
-    #dPrint( 'Quiet', debuggingThisModule, "zipF6", repr(BiblelatorGlobals.theApp.settings.settingsFilename) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "zipF5", repr(BiblelatorGlobals.theApp.settings.settingsFilepath) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "zipF6", repr(BiblelatorGlobals.theApp.settings.settingsFilename) )
     for extension in BibleOrgSysGlobals.STANDARD_BACKUP_EXTENSIONS:
         filepath = BiblelatorGlobals.theApp.settings.settingsFilepath+extension
-        #dPrint( 'Quiet', debuggingThisModule, "  zipF7", repr(filepath) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  zipF7", repr(filepath) )
         if os.path.exists( filepath ):
-            #dPrint( 'Quiet', debuggingThisModule, "  zipF8", repr(filepath) )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  zipF8", repr(filepath) )
             zf.write( filepath, BiblelatorGlobals.theApp.settings.settingsFilename+extension )
     zf.close()
     with open( zipFilepath, 'rb' ) as zFile:
@@ -902,26 +902,26 @@ def doSendUsageStatistics():
                     'Content-Type: application/zip', '', zDataStr ) )
     parameterList.extend( ('--' + MIME_BOUNDARY + '--' , '') )
     parameterString = '\r\n'.join (parameterList)
-    #dPrint( 'Quiet', debuggingThisModule, "\nparameterString", repr(parameterString) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "\nparameterString", repr(parameterString) )
 
     headers = {"Content-type": "multipart/form-data; MIME_BOUNDARY={}".format( MIME_BOUNDARY ) }
-    #dPrint( 'Quiet', debuggingThisModule, "\nheaders", headers )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "\nheaders", headers )
 
     import http.client
     conn = http.client.HTTPConnection( BibleOrgSysGlobals.SUPPORT_SITE_NAME )
     conn.request( 'POST', '/Software/Biblelator/StatusInputs/SubmitAction.phtml', parameterString, headers )
     try: response = conn.getresponse()
     except http.client.RemoteDisconnected:
-        vPrint( 'Quiet', debuggingThisModule, "doSendUsageStatistics remote RemoteDisconnected -- send failed" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics remote RemoteDisconnected -- send failed" )
         conn.close()
         return
     if response.status == 200:
-        vPrint( 'Quiet', debuggingThisModule, "    doSendUsageStatistics accepted by server" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    doSendUsageStatistics accepted by server" )
     else:
-        vPrint( 'Quiet', debuggingThisModule, "doSendUsageStatistics status", repr(response.status) ) # Should be 200
-        vPrint( 'Quiet', debuggingThisModule, "doSendUsageStatistics reason", repr(response.reason) ) # Should be 'OK'
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics status", repr(response.status) ) # Should be 200
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics reason", repr(response.reason) ) # Should be 'OK'
         data = response.read()
-        vPrint( 'Quiet', debuggingThisModule, "doSendUsageStatistics data", repr(data) ) # Web page back from the server
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics data", repr(data) ) # Web page back from the server
     conn.close()
 # end of doSendUsageStatistics
 
@@ -935,18 +935,18 @@ def briefDemo() -> None:
     """
     import sys, tkinter as tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
 
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "Platform is", sys.platform ) # e.g., "win32"
-        vPrint( 'Quiet', debuggingThisModule, "OS name is", os.name ) # e.g., "nt"
-        if sys.platform == "linux": vPrint( 'Quiet', debuggingThisModule, "OS uname is", os.uname() )
-        vPrint( 'Quiet', debuggingThisModule, "Running main…" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Platform is", sys.platform ) # e.g., "win32"
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "OS name is", os.name ) # e.g., "nt"
+        if sys.platform == "linux": vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "OS uname is", os.uname() )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running main…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( programNameVersion )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
     loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
@@ -955,7 +955,7 @@ def briefDemo() -> None:
 
     application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -971,18 +971,18 @@ def fullDemo() -> None:
     """
     import sys, tkinter as tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
 
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, "Platform is", sys.platform ) # e.g., "win32"
-        vPrint( 'Quiet', debuggingThisModule, "OS name is", os.name ) # e.g., "nt"
-        if sys.platform == "linux": vPrint( 'Quiet', debuggingThisModule, "OS uname is", os.uname() )
-        vPrint( 'Quiet', debuggingThisModule, "Running main…" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Platform is", sys.platform ) # e.g., "win32"
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "OS name is", os.name ) # e.g., "nt"
+        if sys.platform == "linux": vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "OS uname is", os.uname() )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running main…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        vPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
-    tkRootWindow.title( programNameVersion )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     homeFolderpath = BibleOrgSysGlobals.findHomeFolderpath()
     loggingFolderpath = os.path.join( homeFolderpath, DATA_SUBFOLDER_NAME, LOGGING_SUBFOLDER_NAME )
@@ -991,7 +991,7 @@ def fullDemo() -> None:
 
     application = Application( tkRootWindow, homeFolderpath, loggingFolderpath, settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown

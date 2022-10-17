@@ -60,9 +60,9 @@ LAST_MODIFIED_DATE = '2020-05-10' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorHelpers"
 PROGRAM_NAME = "Biblelator helpers"
 PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -71,8 +71,8 @@ def createEmptyUSFMBookText( BBB, getNumChapters, getNumVerses ):
     Give it the functions for getting the number of chapters and the number of verses
     Returns a string that is the text of a blank USFM book.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "createEmptyUSFMBookText( {} )".format( BBB ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "createEmptyUSFMBookText( {} )".format( BBB ) )
 
     USFMAbbreviation = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation( BBB )
     USFMNumber = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr( BBB )
@@ -106,23 +106,23 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
     from BibleOrgSys.Internals.InternalBibleInternals import BOS_ALL_ADDED_MARKERS
     from BibleOrgSys.Formats.USFMBible import USFMBible
 
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "createEmptyUSFMBooks( {}, {}, {} )".format( folderpath, currentBBB, requestDict ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "createEmptyUSFMBooks( {}, {}, {} )".format( folderpath, currentBBB, requestDict ) )
 
 
     versificationObject = BibleVersificationSystem( requestDict['Versification'] ) \
                             if requestDict['Fill']=='Versification' else None
-    vPrint( 'Quiet', debuggingThisModule, 'versificationObject', versificationObject )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'versificationObject', versificationObject )
     if versificationObject is not None:
         getNumChapters, getNumVerses = versificationObject.getNumChapters, versificationObject.getNumVerses
 
     if requestDict['Fill'] == 'Version':
         uB = USFMBible( requestDict['Version'] ) # Get the Bible object
-        vPrint( 'Quiet', debuggingThisModule, "Fill Bible1", uB )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Fill Bible1", uB )
         uB.preload()
-        vPrint( 'Quiet', debuggingThisModule, "Fill Bible2", uB )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Fill Bible2", uB )
         #uB.loadBooks()
-        #dPrint( 'Quiet', debuggingThisModule, "Fill Bible3", uB )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Fill Bible3", uB )
 
     if requestDict['Books'] == 'None': booklist = []
     elif requestDict['Books'] == 'Current': booklist = [ currentBBB ]
@@ -166,18 +166,18 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
             bookText = ''
             for verseDataEntry in uBB._processedLines:
                 pseudoMarker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
-                #dPrint( 'Quiet', debuggingThisModule, BBB, pseudoMarker, repr(cleanText) )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, BBB, pseudoMarker, repr(cleanText) )
                 if '¬' in pseudoMarker or pseudoMarker in BOS_ALL_ADDED_MARKERS or pseudoMarker in ('c#','vp#',):
                     continue # Just ignore added markers -- not needed here
                 #if pseudoMarker in ('v','f','fr','x','xo',): # These fields should always end with a space but the processing will have removed them
                     #pseudoMarker += ' ' # Append a space since it didn't have one
                 #if pseudoMarker in USFMAllExpandedCharacterMarkers: # Character markers to be closed
-                    #dPrint( 'Quiet', debuggingThisModule, "CHAR MARKER" )
+                    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "CHAR MARKER" )
                     #pass
                     ##if (USFM[-2]=='\\' or USFM[-3]=='\\') and USFM[-1]!=' ':
                     #if bookText[-1] != ' ':
                         #bookText += ' ' # Separate markers by a space e.g., \p\bk Revelation
-                        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "toUSFM: Added space to {!r} before {!r}".format( bookText[-2], pseudoMarker ) )
+                        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "toUSFM: Added space to {!r} before {!r}".format( bookText[-2], pseudoMarker ) )
                     #adjValue += '\\{}*'.format( pseudoMarker ) # Do a close marker
                 #elif pseudoMarker in ('f','x',): inField = pseudoMarker # Remember these so we can close them later
                 #elif pseudoMarker in ('fr','fq','ft','xo',): USFM += ' ' # These go on the same line just separated by spaces and don't get closed
@@ -186,7 +186,7 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
                 elif pseudoMarker == 'c': bookText += '\\c {}'.format( cleanText )
                 elif pseudoMarker == 'v': bookText += '\\v {} '.format( cleanText )
                 else: bookText += '\\{} '.format( pseudoMarker )
-                #dPrint( 'Quiet', debuggingThisModule, pseudoMarker, USFM[-200:] )
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, pseudoMarker, USFM[-200:] )
         else: halt # programming error
 
         # Write the actual file
@@ -194,8 +194,8 @@ def createEmptyUSFMBooks( folderpath, currentBBB, requestDict ):
         with open( os.path.join( folderpath, filename ), mode='wt', encoding='utf-8' ) as theFile:
             theFile.write( bookText )
         count += 1
-    vPrint( 'Quiet', debuggingThisModule, len(skippedBooklist), "books skipped:", skippedBooklist ) # Should warn the user here
-    vPrint( 'Quiet', debuggingThisModule, count, "books created" )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, len(skippedBooklist), "books skipped:", skippedBooklist ) # Should warn the user here
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, count, "books created" )
 # end of BiblelatorHelpers.createEmptyUSFMBooks
 
 
@@ -205,8 +205,8 @@ def calculateTotalVersesForBook( BBB, getNumChapters, getNumVerses ):
     Give it the functions for getting the number of chapters and number of verses
     Returns the total number of verses in the book
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "calculateTotalVersesForBook( {} )".format( BBB ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "calculateTotalVersesForBook( {} )".format( BBB ) )
     totalVerses = 0
     try:
         for C in range( 1, getNumChapters(BBB)+1 ):
@@ -224,8 +224,8 @@ def mapReferenceVerseKey( mainVerseKey ):
 
     Returns None if we don't have a mapping.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "mapReferenceVerseKey( {} )".format( mainVerseKey.getShortText() ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "mapReferenceVerseKey( {} )".format( mainVerseKey.getShortText() ) )
 
     # A (temporary) dictionary containing NT references to OT
     REFERENCE_VERSE_KEY_DICT = {
@@ -234,7 +234,7 @@ def mapReferenceVerseKey( mainVerseKey ):
         }
 
     if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
-        vPrint( 'Never', debuggingThisModule, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
         return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferenceVerseKey
 
@@ -245,14 +245,14 @@ def mapParallelVerseKey( forGroupCode, mainVerseKey ):
 
     Returns None if we don't have a mapping.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "mapParallelVerseKey( {}, {} )".format( forGroupCode, mainVerseKey.getShortText() ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "mapParallelVerseKey( {}, {} )".format( forGroupCode, mainVerseKey.getShortText() ) )
     groupIndex = BiblelatorGlobals.BIBLE_GROUP_CODES.index( forGroupCode ) - 1
     parallelVerseKeyDict = {
         SimpleVerseKey('MAT','3','13'): (SimpleVerseKey('MRK','1','9'), SimpleVerseKey('LUK','3','21'), SimpleVerseKey('JHN','1','31') )
         }
     if mainVerseKey in parallelVerseKeyDict:
-        vPrint( 'Never', debuggingThisModule, '  returning {}'.format( parallelVerseKeyDict[mainVerseKey][groupIndex].getShortText() ) )
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, '  returning {}'.format( parallelVerseKeyDict[mainVerseKey][groupIndex].getShortText() ) )
         return parallelVerseKeyDict[mainVerseKey][groupIndex]
 # end of BiblelatorHelpers.mapParallelVerseKey
 
@@ -266,8 +266,8 @@ def mapReferencesVerseKey( mainVerseKey ):
     Returns None if we don't have a mapping.
     """
     global loadedReferences
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "mapReferencesVerseKey( {} )".format( mainVerseKey.getShortText() ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "mapReferencesVerseKey( {} )".format( mainVerseKey.getShortText() ) )
     if loadedReferences is None:
         loadedReferences = BibleReferencesLinks()
         loadedReferences.loadData()
@@ -275,8 +275,8 @@ def mapReferencesVerseKey( mainVerseKey ):
     # Returns a list containing 2-tuples:
     #    0: Link type ('QuotedOTReference','AlludedOTReference','PossibleOTReference')
     #    1: Link FlexibleVersesKey object
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "  mapReferencesVerseKey got result:", result )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  mapReferencesVerseKey got result:", result )
     resultList = []
     if result is not None:
         for linkType, link in result:
@@ -288,8 +288,8 @@ def mapReferencesVerseKey( mainVerseKey ):
             #SimpleVerseKey('MAT','3','3'): FlexibleVersesKey( 'ISA_40:3,7,14-15' ),
             #}
         #if mainVerseKey in REFERENCE_VERSE_KEY_DICT:
-            #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-                #dPrint( 'Quiet', debuggingThisModule, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
+            #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+                #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, '  returning {}'.format( REFERENCE_VERSE_KEY_DICT[mainVerseKey].getShortText() ) )
             #return REFERENCE_VERSE_KEY_DICT[mainVerseKey]
 # end of BiblelatorHelpers.mapReferencesVerseKey
 
@@ -307,30 +307,30 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
     If no sections are found, it goes a maximum of one chapter back or one chapter forward.
     """
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "findCurrentSection( {}, … )".format( currentVerseKey.getShortText() ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "findCurrentSection( {}, … )".format( currentVerseKey.getShortText() ) )
 
     def sectionFoundIn( verseData ):
         """
         Given some verse data (a string or an InternalBibleEntryList
             returns True or False whether a section heading is found in it
         """
-        fnPrint( debuggingThisModule, f"sectionFoundIn( {verseData} )" )
+        fnPrint( DEBUGGING_THIS_MODULE, f"sectionFoundIn( {verseData} )" )
 
         if verseData is None: return False
 
         elif isinstance( verseData, str ):
-            #dPrint( 'Quiet', debuggingThisModule, "  It's a string!" )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  It's a string!" )
             if '\\s ' in thisVerseData or '\\s1' in thisVerseData \
             or '\\s2' in thisVerseData or '\\s3' in thisVerseData:
                 return True
 
         elif isinstance( verseData, tuple ):
-            #dPrint( 'Quiet', debuggingThisModule, "  It's an InternalBibleEntryList!" )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  It's an InternalBibleEntryList!" )
             assert len(verseData) == 2
             verseDataList, context = verseData
-            #dPrint( 'Quiet', debuggingThisModule, '   dataList', repr(verseDataList) )
-            #dPrint( 'Quiet', debuggingThisModule, '    context', repr(context) )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, '   dataList', repr(verseDataList) )
+            #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, '    context', repr(context) )
             for verseDataEntry in verseDataList:
                 if isinstance( verseDataEntry, InternalBibleEntry ):
                     marker, cleanText = verseDataEntry.getMarker(), verseDataEntry.getCleanText()
@@ -351,8 +351,8 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
                 if marker in ( 's','s1','s2','s3','s4' ): return True
 
         else:
-            vPrint( 'Quiet', debuggingThisModule, 'Ooops', repr(verseData) )
-            vPrint( 'Quiet', debuggingThisModule, verseData.__type__ )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Ooops', repr(verseData) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, verseData.__type__ )
             halt # Programming error
 
         return False
@@ -361,12 +361,12 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
     # Start of main section of findCurrentSection
     BBB, C, V = currentVerseKey.getBCV()
     intC, intV = currentVerseKey.getChapterNumberInt(), currentVerseKey.getVerseNumberInt()
-    #dPrint( 'Quiet', debuggingThisModule, 'fCS at', BBB, C, intC, V, intV )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'fCS at', BBB, C, intC, V, intV )
 
     # First let's find the beginning of the section
     #  which could be in the current verse/chapter,
     #   or in the previous chapter (at most we assume)
-    #dPrint( 'Quiet', debuggingThisModule, 'fCS finding start…' )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'fCS finding start…' )
     firstC = max( intC-1, 0 )
     found = False
     for thisC in reversed( range( firstC, intC+1 ) ): # Look backwards
@@ -376,7 +376,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         for thisV in reversed( range( startV, endV+1 ) ):
             thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
             thisVerseData = getVerseData( thisVerseKey )
-            if debuggingThisModule: ( ' ', thisC, thisV, repr(thisVerseData) )
+            if DEBUGGING_THIS_MODULE: ( ' ', thisC, thisV, repr(thisVerseData) )
             if sectionFoundIn( thisVerseData ):
                 found = thisC, thisV; break
         if found: break
@@ -385,7 +385,7 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
 
     # Now let's find the end of the section
     #  which could be in the current chapter, or in the next chapter (at most we assume)
-    #dPrint( 'Quiet', debuggingThisModule, 'fCS finding end…' )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'fCS finding end…' )
     lastC = min( intC+1, getNumChapters( BBB ) )
     found = False
     for thisC in range( intC, lastC+1 ):
@@ -395,13 +395,13 @@ def findCurrentSection( currentVerseKey, getNumChapters, getNumVerses, getVerseD
         for thisV in range( startV, endV+1 ):
             thisVerseKey = SimpleVerseKey( BBB, thisC, thisV )
             thisVerseData = getVerseData( thisVerseKey )
-            if debuggingThisModule: ( ' ', thisC, thisV, repr(thisVerseData) )
+            if DEBUGGING_THIS_MODULE: ( ' ', thisC, thisV, repr(thisVerseData) )
             if sectionFoundIn( thisVerseData ):
                 found = thisC, thisV; break
         if found: break
     if not found: found = lastC, numVerses
     endKey = SimpleVerseKey( BBB, found[0], found[1] )
-    #dPrint( 'Quiet', debuggingThisModule, "fCS returning", startKey.getShortText(), endKey.getShortText() )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "fCS returning", startKey.getShortText(), endKey.getShortText() )
     return startKey, endKey
 # end of BiblelatorHelpers.findCurrentSection
 
@@ -418,17 +418,17 @@ def handleInternalBibles( internalBible:Bible, controllingWindow ) -> Bible:
     Returns an internal Bible object.
     """
     debuggingThisFunction = False
-    if debuggingThisFunction or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
-        vPrint( 'Quiet', debuggingThisModule, "handleInternalBibles( {}, {} )".format( internalBible, controllingWindow ) )
+    if debuggingThisFunction or (BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE):
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "handleInternalBibles( {}, {} )".format( internalBible, controllingWindow ) )
         assert isinstance( internalBible, Bible )
         #BiblelatorGlobals.theApp.setDebugText( "handleInternalBibles" )
-        #dPrint( 'Quiet', debuggingThisModule, "hereHIB0", repr(internalBible), len(BiblelatorGlobals.theApp.internalBibles) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "hereHIB0", repr(internalBible), len(BiblelatorGlobals.theApp.internalBibles) )
 
     result = internalBible # Default to returning what we were given
     if debuggingThisFunction and internalBible is None:
-        vPrint( 'Quiet', debuggingThisModule, "  hIB: Got None" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  hIB: Got None" )
     if internalBible is not None:
-        if debuggingThisFunction: vPrint( 'Quiet', debuggingThisModule, "  hIB: Not None" )
+        if debuggingThisFunction: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  hIB: Not None" )
         foundControllingWindowList = None
         for iB,cWs in BiblelatorGlobals.theApp.internalBibles:
             # Some of these variables will be None but they'll still match
@@ -439,32 +439,32 @@ def handleInternalBibles( internalBible:Bible, controllingWindow ) -> Bible:
             and internalBible.sourceFilename and internalBible.sourceFilename == iB.sourceFilename \
             and internalBible.encoding == iB.encoding: # Let's assume they're the same
                 if internalBible.sourceFolder == iB.sourceFolder:
-                    if debuggingThisFunction: vPrint( 'Quiet', debuggingThisModule, "  Got an IB match for {}!".format( iB.name ) )
+                    if debuggingThisFunction: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  Got an IB match for {}!".format( iB.name ) )
                     result, foundControllingWindowList = iB, cWs
                     break
                 else:
                     if debuggingThisFunction:
-                        vPrint( 'Quiet', debuggingThisModule, "handleInternalBibles: Got an almost IB match for {}!".format( iB.name ) )
-                        vPrint( 'Quiet', debuggingThisModule, "    Source folders didn't match: {!r}\n           and {!r}".format( internalBible.sourceFolder, iB.sourceFolder ) )
+                        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "handleInternalBibles: Got an almost IB match for {}!".format( iB.name ) )
+                        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    Source folders didn't match: {!r}\n           and {!r}".format( internalBible.sourceFolder, iB.sourceFolder ) )
                     result, foundControllingWindowList = iB, cWs
                     break
 
         if foundControllingWindowList is None: BiblelatorGlobals.theApp.internalBibles.append( (internalBible,[controllingWindow]) )
         else: foundControllingWindowList.append( controllingWindow )
 
-    if debuggingThisFunction or debuggingThisModule or (BibleOrgSysGlobals.debugFlag and debuggingThisModule):
-        vPrint( 'Quiet', debuggingThisModule, "Internal Bibles ({}) now:".format( len(BiblelatorGlobals.theApp.internalBibles) ) )
+    if debuggingThisFunction or DEBUGGING_THIS_MODULE or (BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE):
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Internal Bibles ({}) now:".format( len(BiblelatorGlobals.theApp.internalBibles) ) )
         for something in BiblelatorGlobals.theApp.internalBibles:
-            vPrint( 'Quiet', debuggingThisModule, "  ", something )
-        vPrint( 'Quiet', debuggingThisModule, BiblelatorGlobals.theApp.internalBibles )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  ", something )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, BiblelatorGlobals.theApp.internalBibles )
         for j,(iB,cWs) in enumerate( BiblelatorGlobals.theApp.internalBibles ):
-            vPrint( 'Quiet', debuggingThisModule, "  {}/ {} in {}".format( j+1, iB.getAName(), cWs ) )
-            vPrint( 'Quiet', debuggingThisModule, "      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation ) )
-            vPrint( 'Quiet', debuggingThisModule, "      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension ) )
-            vPrint( 'Quiet', debuggingThisModule, "      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  {}/ {} in {}".format( j+1, iB.getAName(), cWs ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "      {!r} {!r} {!r} {!r}".format( iB.name, iB.givenName, iB.shortName, iB.abbreviation ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "      {!r} {!r} {!r} {!r}".format( iB.sourceFolder, iB.sourceFilename, iB.sourceFilepath, iB.fileExtension ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "      {!r} {!r} {!r} {!r}".format( iB.status, iB.revision, iB.version, iB.encoding ) )
 
-    if debuggingThisModule or debuggingThisFunction:
-        vPrint( 'Quiet', debuggingThisModule, f"  handleInternalBibles is returning: {result}")
+    if DEBUGGING_THIS_MODULE or debuggingThisFunction:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  handleInternalBibles is returning: {result}")
     return result
 # end of BiblelatorHelpers.handleInternalBibles
 
@@ -481,8 +481,8 @@ def logChangedFile( userName, loggingFolder, projectName, savedBBB, bookText ):
     """
     Just logs some info about the recently changed book to a log file for the project.
     """
-    #if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        #dPrint( 'Quiet', debuggingThisModule, "logChangedFile( {}, {!r}, {}, {} )".format( loggingFolder, projectName, savedBBB, len(bookText) ) )
+    #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "logChangedFile( {}, {!r}, {}, {} )".format( loggingFolder, projectName, savedBBB, len(bookText) ) )
 
     filepath = getChangeLogFilepath( loggingFolder, projectName )
 
@@ -511,54 +511,54 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
     """
     debuggingThisFunction = False
 
-    if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-        vPrint( 'Quiet', debuggingThisModule, "parseEnteredBooknameField( {!r}, {}, {!r}, {!r}, … )" \
+    if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseEnteredBooknameField( {!r}, {}, {!r}, {!r}, … )" \
                                 .format( bookNameEntry, currentBBB, CEntry, VEntry ) )
 
     # Do a bit of preliminary cleaning-up
     bookNameEntry = bookNameEntry.strip().replace( '  ', ' ' )
-    #dPrint( 'Quiet', debuggingThisModule, "parseEnteredBooknameField: pulling apart {!r}".format( bookNameEntry ) )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseEnteredBooknameField: pulling apart {!r}".format( bookNameEntry ) )
 
     # Without the bookname (i.e., stay in current book)
     # Do these first because they are more strict (only digits and use re.fullmatch not re.search or re.match)
     match = re.fullmatch( '(\d{1,3})[:\. ](\d{1,3})', bookNameEntry ) # (Current book) C:V or C.V or C V
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matched CV! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matched CV! {!r} {!r}".format( match.group(1), match.group(2) ) )
         return currentBBB, match.group(1), match.group(2)
     match = re.fullmatch( '(\d{1,3})', bookNameEntry ) # (Current book) C
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matched C or V! {!r} as {!r} from {!r}".format( match.group(0), match.group(1), bookNameEntry ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matched C or V! {!r} as {!r} from {!r}".format( match.group(0), match.group(1), bookNameEntry ) )
         if BibleOrgSysGlobals.loadedBibleBooksCodes.isSingleChapterBook( currentBBB ): # take it as a V (not a C)
             return currentBBB, 1, match.group(1)
         return currentBBB, match.group(1), 1
     match = re.fullmatch( '[Vv:\.](\d{1,3})', bookNameEntry ) # (Current book) V
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matchedV! {!r}".format( match.group(1) ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matchedV! {!r}".format( match.group(1) ) )
         return currentBBB, CEntry, match.group(1)
 
     # With a BBB first on the line
     uppercaseBookNameEntry = bookNameEntry.upper()
     match = re.fullmatch( BBB_RE + '[ ]{0,1}(\d{1,3})[:\. ](\d{1,3})', uppercaseBookNameEntry ) # bookname C:V or C.V or C V
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matchedBBBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matchedBBBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
         newBBB = match.group(1)
         if BibleOrgSysGlobals.loadedBibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             return newBBB, match.group(2), match.group(3)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}[Vv:\.](\d{1,3})', uppercaseBookNameEntry ) # bookname (single chapter book) V
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matchedBBBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matchedBBBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
         newBBB = match.group(1)
         if BibleOrgSysGlobals.loadedBibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             return newBBB, CEntry, match.group(2)
     match = re.fullmatch( BBB_RE + '[ ]{0,1}(\d{1,3})', uppercaseBookNameEntry ) # bookname C (or single chapter book with V)
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matchedBBB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matchedBBB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
         newBBB = match.group(1)
         if BibleOrgSysGlobals.loadedBibleBooksCodes.isValidBBB( newBBB ): # confirm that it's a BBB
             if BibleOrgSysGlobals.loadedBibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
@@ -568,19 +568,19 @@ def parseEnteredBooknameField( bookNameEntry, currentBBB, CEntry, VEntry, BBBfun
     # With a bookname first on the line
     match = re.fullmatch( '([123]{0,1}?\D+?)[ ]{0,1}(\d{1,3})[:\. ](\d{1,3})', bookNameEntry ) # bookname C:V or C.V or C V
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matchedBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matchedBCV! {!r} {!r} {!r}".format( match.group(1), match.group(2), match.group(3) ) )
         return BBBfunction( match.group(1) ), match.group(2), match.group(3)
     match = re.fullmatch( '([123]{0,1}?\D+?)[ ]{0,1}[Vv:\.](\d{1,3})', bookNameEntry ) # bookname (single chapter book) V
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matchedBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matchedBV! {!r} {!r} (for chapter {!r})".format( match.group(1), match.group(2), CEntry ) )
         newBBB = BBBfunction( match.group(1) )
         return newBBB, CEntry, match.group(2)
     match = re.fullmatch( '([123]{0,1}?\D+?)[ ]{0,1}(\d{1,3})', bookNameEntry ) # bookname C (or single chapter book with V)
     if match:
-        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and debuggingThisModule:
-            vPrint( 'Quiet', debuggingThisModule, "  matchedB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
+        if debuggingThisFunction or BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  matchedB C or V! {!r} {!r}".format( match.group(1), match.group(2) ) )
         newBBB = BBBfunction( match.group(1) )
         if BibleOrgSysGlobals.loadedBibleBooksCodes.isSingleChapterBook( newBBB ): # take it as a V (not a C)
             return newBBB, 1, match.group(2)
@@ -601,18 +601,18 @@ def briefDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
-    #dPrint( 'Quiet', debuggingThisModule, "swndResult", swnd.result )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "swndResult", swnd.result )
     #dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
-    #dPrint( 'Quiet', debuggingThisModule, "dwndResult", dwnd.result )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "dwndResult", dwnd.result )
     #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
-    #dPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "srbResult", srb.result )
 
     # Program a shutdown
     tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
@@ -627,18 +627,18 @@ def fullDemo() -> None:
     """
     from tkinter import Tk
 
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     #swnd = SaveWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test SWND" )
-    #dPrint( 'Quiet', debuggingThisModule, "swndResult", swnd.result )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "swndResult", swnd.result )
     #dwnd = DeleteWindowsLayoutNameDialog( tkRootWindow, ["aaa","BBB","CcC"], "Test DWND" )
-    #dPrint( 'Quiet', debuggingThisModule, "dwndResult", dwnd.result )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "dwndResult", dwnd.result )
     #srb = SelectResourceBox( tkRootWindow, [(x,y) for x,y, in {"ESV":"ENGESV","WEB":"ENGWEB","MS":"MBTWBT"}.items()], "Test SRB" )
-    #dPrint( 'Quiet', debuggingThisModule, "srbResult", srb.result )
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "srbResult", srb.result )
 
     # Program a shutdown
     tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds

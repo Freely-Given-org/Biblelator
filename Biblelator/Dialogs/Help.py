@@ -49,9 +49,9 @@ LAST_MODIFIED_DATE = '2020-04-25' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorHelp"
 PROGRAM_NAME = "Biblelator Help Box"
 PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -62,7 +62,7 @@ class HelpBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
         """
         """
-        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "HelpBox.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "HelpBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_HELP_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
@@ -100,7 +100,7 @@ class HelpBox( tk.Toplevel ):
     #def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
         #"""
         #"""
-        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "HelpBox2.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "HelpBox2.__init__( {} )".format( parent ) )
         #hb = tk.Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_HELP_X_SIZE, MINIMUM_HELP_Y_SIZE
         #hb.minsize( self.minimumXSize, self.minimumYSize )
@@ -134,17 +134,17 @@ def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Program a shutdown
     tkRootWindow.after( 2_000, tkRootWindow.destroy ) # Destroy the widget after 2 seconds
 
-    ab = HelpBox( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
-    #ab = HelpBox2( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
+    ab = HelpBox( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
+    #ab = HelpBox2( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
@@ -156,17 +156,17 @@ def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Program a shutdown
     tkRootWindow.after( 30_000, tkRootWindow.destroy ) # Destroy the widget after 30 seconds
 
-    ab = HelpBox( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
-    #ab = HelpBox2( tkRootWindow, PROGRAM_NAME, programNameVersion, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
+    ab = HelpBox( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
+    #ab = HelpBox2( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION, BibleOrgSysGlobals.DATAFILES_FOLDERPATH.joinpath( 'BiblelatorLogoSmall.gif' ) )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 

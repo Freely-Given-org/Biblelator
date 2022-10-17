@@ -47,9 +47,9 @@ LAST_MODIFIED_DATE = '2020-04-25' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorAbout"
 PROGRAM_NAME = "BiblelatorAbout Box"
 PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -60,7 +60,7 @@ class AboutBox( tk.Toplevel ):
     def __init__( self, parent=None, progName=None, text=None, logoPath=None ) -> None:
         """
         """
-        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "AboutBox.__init__( {} )".format( parent ) )
+        #if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "AboutBox.__init__( {} )".format( parent ) )
         tk.Toplevel.__init__( self, parent )
         self.minimumSize = MINIMUM_ABOUT_SIZE
         self.minsize( *parseWindowSize( self.minimumSize ) )
@@ -98,7 +98,7 @@ class AboutBox( tk.Toplevel ):
     #def __init__( self, parent=None, progName=None, text=None, logoPath=None ):
         #"""
         #"""
-        ##if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', debuggingThisModule, "AboutBox2.__init__( {} )".format( parent ) )
+        ##if BibleOrgSysGlobals.debugFlag: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "AboutBox2.__init__( {} )".format( parent ) )
         #ab = tk.Toplevel( parent )
         #self.minimumXSize, self.minimumYSize = MINIMUM_ABOUT_X_SIZE, MINIMUM_ABOUT_Y_SIZE
         #ab.minsize( self.minimumXSize, self.minimumYSize )
@@ -135,17 +135,17 @@ def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        #dPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
-            vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
-    tkRootWindow.title( programNameVersion )
-    ab = AboutBox( tkRootWindow, PROGRAM_NAME, programNameVersion )
-    #ab = AboutBox2( tkRootWindow, PROGRAM_NAME, programNameVersion )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
+    ab = AboutBox( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION )
+    #ab = AboutBox2( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 
@@ -160,17 +160,17 @@ def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     if BibleOrgSysGlobals.debugFlag:
-        #dPrint( 'Quiet', debuggingThisModule, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Windowing system is', repr( tkRootWindow.tk.call('tk', 'windowingsystem') ) )
         for name in ('appname', 'inactive', 'scaling', 'useinputmethods', 'windowingsystem' ): # 'busy', 'caret', 'fontchooser',
-            vPrint( 'Quiet', debuggingThisModule, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
-    tkRootWindow.title( programNameVersion )
-    ab = AboutBox( tkRootWindow, PROGRAM_NAME, programNameVersion )
-    #ab = AboutBox2( tkRootWindow, PROGRAM_NAME, programNameVersion )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Tkinter {} is {}'.format( name, repr( tkRootWindow.tk.call('tk', name) ) ) )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
+    ab = AboutBox( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION )
+    #ab = AboutBox2( tkRootWindow, PROGRAM_NAME, PROGRAM_NAME_VERSION )
     # Calls to the window manager class (wm in Tk)
     #tkRootWindow.minsize( application.minimumXSize, application.minimumYSize )
 

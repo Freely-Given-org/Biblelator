@@ -54,9 +54,9 @@ LAST_MODIFIED_DATE = '2022-07-12' # by RJH
 SHORT_PROGRAM_NAME = "LexiconResourceWindows"
 PROGRAM_NAME = "Biblelator Lexicon Resource Windows"
 PROGRAM_VERSION = '0.46'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -66,7 +66,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     def __init__( self, parentWindow ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, f"BibleLexiconResourceWindow.__init__( {parentWindow} )" )
+        fnPrint( DEBUGGING_THIS_MODULE, f"BibleLexiconResourceWindow.__init__( {parentWindow} )" )
         self.lexiconWord = None
 
         ChildWindow.__init__( self, parentWindow, 'LexiconResource' )
@@ -104,7 +104,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     def _createMenuBar( self ) -> None:
         """
         """
-        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow._createMenuBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -167,7 +167,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Create a tool bar containing some helpful buttons at the top of the main window.
         """
-        fnPrint( debuggingThisModule, "createToolBar()" )
+        fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
 
         xPad, yPad = (6, 8) if BiblelatorGlobals.theApp.touchMode else (4, 4)
 
@@ -191,7 +191,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "doGotoPreviousEntry() from {}".format( repr(self.lexiconWord) ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doGotoPreviousEntry() from {}".format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoPreviousEntry…" )
 
         if self.lexiconWord is None:
@@ -208,7 +208,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         """
         if BibleOrgSysGlobals.debugFlag:
-            vPrint( 'Quiet', debuggingThisModule, "doGotoNextEntry() from {}".format( repr(self.lexiconWord) ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doGotoNextEntry() from {}".format( repr(self.lexiconWord) ) )
             #self.setDebugText( "doGotoNextEntry…" )
 
         if self.lexiconWord is None:
@@ -225,7 +225,7 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Leaves text box in disabled state. (Not user editable.)
         """
-        fnPrint( debuggingThisModule, f"updateLexiconWord( {newLexiconWord} )" )
+        fnPrint( DEBUGGING_THIS_MODULE, f"updateLexiconWord( {newLexiconWord} )" )
 
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
@@ -244,10 +244,10 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Display a help box.
         """
-        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow._doHelp( {} )".format( event ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
-        helpInfo = programNameVersion
+        helpInfo = PROGRAM_NAME_VERSION
         helpInfo += '\n' + _("Help for {}").format( self.windowType )
         helpInfo += '\n  ' + _("Keyboard shortcuts:")
         for name,shortcut in self.myKeyboardBindingsList:
@@ -261,10 +261,10 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Display an about box.
         """
-        fnPrint( debuggingThisModule, "BibleLexiconResourceWindow._doAbout( {} )".format( event ) )
+        fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
-        aboutInfo = programNameVersion
+        aboutInfo = PROGRAM_NAME_VERSION
         aboutInfo += "\nInformation about {}".format( self.windowType )
         ab = AboutBox( self, self.genericWindowType, aboutInfo )
         return BiblelatorGlobals.tkBREAK # so we don't do the main window about also
@@ -277,17 +277,17 @@ def briefDemo() -> None:
     """
     Demo program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
     #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown
@@ -301,17 +301,17 @@ def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
     #settings = ApplicationSettings( 'BiblelatorData/', 'BiblelatorSettings/', PROGRAM_NAME )
     #settings.load()
 
     #application = Application( parent=tkRootWindow, settings=settings )
     # Calls to the window manager class (wm in Tk)
-    #application.master.title( programNameVersion )
+    #application.master.title( PROGRAM_NAME_VERSION )
     #application.master.minsize( application.minimumXSize, application.minimumYSize )
 
     # Program a shutdown

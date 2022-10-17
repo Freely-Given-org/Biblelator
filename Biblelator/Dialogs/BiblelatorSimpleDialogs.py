@@ -47,9 +47,9 @@ LAST_MODIFIED_DATE = '2022-07-18'
 SHORT_PROGRAM_NAME = "BiblelatorSimpleDialogs"
 PROGRAM_NAME = "Biblelator simple dialogs"
 PROGRAM_VERSION = '0.47'
-programNameVersion = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -57,7 +57,7 @@ debuggingThisModule = False
 def showError( parentWindow, title:str, errorText:str ) -> None:
     """
     """
-    fnPrint( debuggingThisModule, f"showError( {parentWindow}, '{title}', '{errorText}' )…" )
+    fnPrint( DEBUGGING_THIS_MODULE, f"showError( {parentWindow}, '{title}', '{errorText}' )…" )
 
     logging.error( f'{title}: {errorText}' )
     BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after error…") )
@@ -69,7 +69,7 @@ def showError( parentWindow, title:str, errorText:str ) -> None:
 def showWarning( parentWindow, title, warningText ):
     """
     """
-    fnPrint( debuggingThisModule, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
+    fnPrint( DEBUGGING_THIS_MODULE, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after warning…") )
@@ -81,16 +81,16 @@ def showWarning( parentWindow, title, warningText ):
 def showInfo( parentWindow, title, infoText ):
     """
     """
-    fnPrint( debuggingThisModule, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
-    if BibleOrgSysGlobals.debugFlag and debuggingThisModule:
+    fnPrint( DEBUGGING_THIS_MODULE, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
+    if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parentWindow.configure().items()): # Append the parentWindow window config info
-            vPrint( 'Quiet', debuggingThisModule, "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "showInfo: {!r}={} ({})".format( configKey, configTuple, len(configTuple) ) )
             if len(configTuple)>2: # don't append alternative names like, bg for background
                 # Don't display the last field if it just duplicates the previous one
                 infoText += '  {}: {!r}{}\n'.format( configTuple[2], configTuple[3],
                                             '' if configTuple[4]==configTuple[3] else ', {!r}'.format( configTuple[4] ) )
-            elif debuggingThisModule: # append alternative names like, bg for background
+            elif DEBUGGING_THIS_MODULE: # append alternative names like, bg for background
                 # Don't display the last field if it just duplicates the previous one
                 infoText += '  {}={!r}\n'.format( configTuple[0], configTuple[1] )
 
@@ -106,11 +106,11 @@ def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Doesn't quite work yet :-(
     tkWindow = tk.Toplevel( tkRootWindow )
@@ -133,11 +133,11 @@ def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', debuggingThisModule, "Running demo…" )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
+    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
-    tkRootWindow.title( programNameVersion )
+    tkRootWindow.title( PROGRAM_NAME_VERSION )
 
     # Doesn't quite work yet :-(
     tkWindow = tk.Toplevel( tkRootWindow )
