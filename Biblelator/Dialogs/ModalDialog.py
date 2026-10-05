@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # ModalDialog.py
 #
@@ -28,7 +29,6 @@
 Framework for modal dialogs for the Biblelator program.
 """
 from gettext import gettext as _
-from typing import Optional
 
 import tkinter as tk
 from tkinter.ttk import Frame, Button
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 from Biblelator import BiblelatorGlobals
 
 
-LAST_MODIFIED_DATE = '2022-07-13' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorModalDialog"
 PROGRAM_NAME = "Biblelator Modal Dialog"
 PROGRAM_VERSION = '0.47'
@@ -62,8 +62,9 @@ class ModalDialog( tk.Toplevel ):
     A Toplevel window that's a modal dialog
         and intended to be subclassed.
     """
-    def __init__(self, parentWindow, title:Optional[str]=None, okText:Optional[str]=None, cancelText:Optional[str]=None, geometry=None) -> None:
-        fnPrint( DEBUGGING_THIS_MODULE, f"ModalDialog.__init__( {parentWindow}, {title}, {okText}, {cancelText}, {geometry} )" )
+    def __init__(self, parentWindow, title:str|None=None, okText:str|None=None, cancelText:str|None=None, geometry=None) -> None:
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"ModalDialog.__init__( {parentWindow}, {title}, {okText}, {cancelText}, {geometry} )" )
         tk.Toplevel.__init__( self, parentWindow )
         self.transient( parentWindow )
 
@@ -104,7 +105,7 @@ class ModalDialog( tk.Toplevel ):
 
         Returns the widget that should have initial focus.
         """
-        dPrint( 'Normal', DEBUGGING_THIS_MODULE, "This 'body' method must be overridden!" ); halt
+        dPrint( 'Normal', DEBUGGING_THIS_MODULE, "This 'body' method must be overridden!" ); assert False, "We want to stop here"
     # end of ModalDialog.makeBody
 
 
@@ -160,7 +161,8 @@ class ModalDialog( tk.Toplevel ):
         This method is designed to be overridden
             and is called to check the entered data before the window is destroyed.
         """
-        dPrint( 'Info', DEBUGGING_THIS_MODULE, "This ModalDialog.validate() method can be overridden!" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 3:
+            dPrint( 'Info', DEBUGGING_THIS_MODULE, "This ModalDialog.validate() method can be overridden!" )
         return True # override
     # end of ModalDialog.validate
 
@@ -172,7 +174,8 @@ class ModalDialog( tk.Toplevel ):
 
         It can optionally put the results into self.result (which otherwise defaults to None).
         """
-        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "This ModalDialog.apply() method should have been overridden!" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "This ModalDialog.apply() method should have been overridden!" )
         self.result = True
     # end of ModalDialog.apply
 # end of class ModalDialog
@@ -208,7 +211,8 @@ class MyTestDialog( ModalDialog ):
         """
         try: int( self.e1.get() ) and int( self.e2.get() )
         except ValueError:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "ERROR: We need two valid integers!" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "ERROR: We need two valid integers!" )
             return False
         return True
     # end of MyTestDialog.validate
@@ -223,7 +227,8 @@ class MyTestDialog( ModalDialog ):
         """
         first = int( self.e1.get() )
         second = int( self.e2.get() )
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, first, second ) # or something
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, first, second ) # or something
         self.result = (first, second,)
     # end of MyTestDialog.apply
 # end of class MyTestDialog
@@ -237,7 +242,8 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -249,7 +255,8 @@ def briefDemo() -> None:
     def ss( a ): pass
     tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
-    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Result is:", repr(md.result) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Result is:", repr(md.result) )
 
     # Start the program running
     tkRootWindow.mainloop()
@@ -262,7 +269,8 @@ def fullDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -274,14 +282,16 @@ def fullDemo() -> None:
     def ss( a ): pass
     tkRootWindow.setStatus = ss
     md = MyTestDialog( tkRootWindow, "Just playing" )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Result is:", repr(md.result) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Result is:", repr(md.result) )
 
     # Start the program running
     tkRootWindow.mainloop()
 # end of ModalDialog.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

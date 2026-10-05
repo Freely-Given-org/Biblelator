@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # BiblelatorSettingsFunctions.py
 #
@@ -61,7 +62,7 @@ from Biblelator.Dialogs.BiblelatorDialogs import SaveWindowsLayoutNameDialog, De
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2022-07-18' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettingsFunctions"
 PROGRAM_NAME = "Biblelator Settings Functions"
 PROGRAM_VERSION = '0.47'
@@ -302,7 +303,8 @@ def parseAndApplySettings() -> None:
     windowsSettingsNamesList = []
     for name in BiblelatorGlobals.theApp.settings.data:
         if name.startswith( 'WindowSetting' ): windowsSettingsNamesList.append( name[13:] )
-        dPrint( 'Verbose', DEBUGGING_THIS_MODULE, "Available windows settings are: {}".format( windowsSettingsNamesList ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 4:
+            dPrint( 'Verbose', DEBUGGING_THIS_MODULE, "Available windows settings are: {}".format( windowsSettingsNamesList ) )
     if windowsSettingsNamesList: assert 'Current' in windowsSettingsNamesList
     BiblelatorGlobals.theApp.windowsSettingsDict = {}
     for windowsSettingsName in windowsSettingsNamesList:
@@ -319,7 +321,8 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
         find the settings in our dictionary
         and then apply it by creating the windows.
     """
-    fnPrint( DEBUGGING_THIS_MODULE, "applyGivenWindowsSettings( {} )".format( givenWindowsSettingsName ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "applyGivenWindowsSettings( {} )".format( givenWindowsSettingsName ) )
     if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
         if BibleOrgSysGlobals.debugFlag: BiblelatorGlobals.theApp.setDebugText( "applyGivenWindowsSettings…" )
 
@@ -392,8 +395,9 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
                                 if keyname == boxNumber+'Type': boxType = collectionSettingsFields[keyname]
                                 elif keyname == boxNumber+'Source': boxSource = collectionSettingsFields[keyname]
                                 else:
-                                    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Unknown {} collection key: {} = {}".format( repr(collectionName), keyname, collectionSettingsFields[keyname] ) )
-                                    if BibleOrgSysGlobals.debugFlag: halt
+                                    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                                        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Unknown {} collection key: {} = {}".format( repr(collectionName), keyname, collectionSettingsFields[keyname] ) )
+                                    if BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
                         if boxType and boxSource:
                             #if boxType in ( 'Internal', ):
                                 #if boxSource[-1] not in '/\\': boxSource += '/' # Are they all folders -- might be wrong
@@ -450,11 +454,11 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
                     rw = BiblelatorGlobals.theApp.openParatext8BibleEditWindow( thisStuff['ProjectFolder'], thisStuff['EditMode'], windowGeometry )
                 except KeyError:
                     logging.critical( f"Unable to read all 'Paratext8USFMBibleEditWindow {j}' settings" )
-            elif windowType == 'Paratext7USFMBibleEditWindow':
-                try:
-                    rw = BiblelatorGlobals.theApp.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
-                except KeyError:
-                    logging.critical( f"Unable to read all 'Paratext7USFMBibleEditWindow {j}' settings" )
+            # elif windowType == 'Paratext7USFMBibleEditWindow':
+            #     try:
+            #         rw = BiblelatorGlobals.theApp.openParatext7BibleEditWindow( thisStuff['SSFFilepath'], thisStuff['EditMode'], windowGeometry )
+            #     except KeyError:
+            #         logging.critical( f"Unable to read all 'Paratext7USFMBibleEditWindow {j}' settings" )
             elif windowType == 'ESFMEditWindow':
                 try:
                     folderpath = thisStuff['ESFMFolder']
@@ -465,7 +469,7 @@ def applyGivenWindowsSettings( givenWindowsSettingsName ):
 
             else:
                 logging.critical( "applyGivenWindowsSettings: " + _("Unknown {} window type").format( repr(windowType) ) )
-                if BibleOrgSysGlobals.debugFlag: halt
+                if BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
             if rw is None:
                 logging.critical( "applyGivenWindowsSettings: " + _("Failed to reopen '{}' window type!!! How did this happen?").format( windowType ) )
@@ -536,7 +540,8 @@ def getCurrentChildWindowSettings():
         thisOne['Size'], thisOne['Position'] = appWin.geometry().split( '+', 1 )
         if thisOne['Position'] == '0+0': # not sure why this occurs for a new window -- pops up top left
             thisOne['Position'] = appWin.winfo_geometry().split( '+', 1 )[1] # Won't be exact but close
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Corrected {} window position from '0+0' to {}".format( appWin.windowType, thisOne['Position'] ) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Corrected {} window position from '0+0' to {}".format( appWin.windowType, thisOne['Position'] ) )
         thisOne['MinimumSize'] = assembleWindowSize( *appWin.minsize() )
         thisOne['MaximumSize'] = assembleWindowSize( *appWin.maxsize() )
         thisOne['StatusBar'] = 'On' if appWin._showStatusBarVar.get() else 'Off'
@@ -558,7 +563,7 @@ def getCurrentChildWindowSettings():
             thisOne['NotesFolderpath'] = appWin.folderpath
 
         elif appWin.windowType == 'TranslationManualWindow':
-            thisFolderpath = appWin.folderpath # e.g., '/mnt/SSDs/Bibles/unfoldingWordHelps/en_ta/./intro/ta-intro'
+            thisFolderpath = appWin.folderpath # e.g., '/srv/Bibles/unfoldingWordHelps/en_ta/./intro/ta-intro'
             # dPrint( 'Info', DEBUGGING_THIS_MODULE, "thisFolderpath", thisFolderpath)
             ix = str(thisFolderpath).find( './' )
             if ix > 0: thisFolderpath = str(thisFolderpath)[:ix] # Remove subpath
@@ -571,7 +576,8 @@ def getCurrentChildWindowSettings():
         elif appWin.windowType == 'BibleResourceCollectionWindow':
             thisOne['CollectionName'] = appWin.moduleID
         elif appWin.windowType == 'BibleReferenceCollectionWindow':
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "WARNING: Doesn't save BibleReferenceCollectionWindow yet!" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "WARNING: Doesn't save BibleReferenceCollectionWindow yet!" )
             #thisOne['CollectionName'] = appWin.moduleID # Just copied -- not checked
 
         elif appWin.windowType == 'PlainTextEditWindow':
@@ -593,7 +599,7 @@ def getCurrentChildWindowSettings():
 
         else:
             logging.critical( "getCurrentChildWindowSettings: " + _("Unknown {} window type").format( repr(appWin.windowType) ) )
-            if BibleOrgSysGlobals.debugFlag: halt
+            if BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
         if 'Bible' in appWin.genericWindowType:
             try: thisOne['GroupCode'] = appWin._groupCode
@@ -617,12 +623,14 @@ def saveNewWindowSetup():
     """
     Gets the name for the new window setup and saves the information.
     """
-    fnPrint( DEBUGGING_THIS_MODULE, "saveNewWindowSetup()" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "saveNewWindowSetup()" )
     if BibleOrgSysGlobals.debugFlag:
         if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "saveNewWindowSetup…" )
 
     swnd = SaveWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Save window setup') )
-    dPrint( 'Never', DEBUGGING_THIS_MODULE, "swndResult", repr(swnd.result) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 5:
+        dPrint( 'Never', DEBUGGING_THIS_MODULE, "swndResult", repr(swnd.result) )
     if swnd.result:
         getCurrentChildWindowSettings()
         BiblelatorGlobals.theApp.windowsSettingsDict[swnd.result] = BiblelatorGlobals.theApp.windowsSettingsDict['Current'] # swnd.result is the new window name
@@ -637,13 +645,15 @@ def deleteExistingWindowSetup():
     """
     Gets the name of an existing window setting and deletes the setting.
     """
-    fnPrint( DEBUGGING_THIS_MODULE, "deleteExistingWindowSetup()" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "deleteExistingWindowSetup()" )
     if BibleOrgSysGlobals.debugFlag:
         if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "deleteExistingWindowSetup" )
         assert BiblelatorGlobals.theApp.windowsSettingsDict and (len(BiblelatorGlobals.theApp.windowsSettingsDict)>1 or 'Current' not in BiblelatorGlobals.theApp.windowsSettingsDict)
 
     dwnd = DeleteWindowsLayoutNameDialog( BiblelatorGlobals.theApp.windowsSettingsDict, title=_('Delete saved window setup') )
-    dPrint( 'Never', DEBUGGING_THIS_MODULE, "dwndResult", repr(dwnd.result) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 5:
+        dPrint( 'Never', DEBUGGING_THIS_MODULE, "dwndResult", repr(dwnd.result) )
     if dwnd.result:
         if BibleOrgSysGlobals.debugFlag:
             assert dwnd.result in BiblelatorGlobals.theApp.windowsSettingsDict
@@ -658,7 +668,8 @@ def viewSettings():
     """
     Open a pop-up text window with the current settings displayed.
     """
-    fnPrint( DEBUGGING_THIS_MODULE, "viewSettings()" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "viewSettings()" )
     if BibleOrgSysGlobals.debugFlag:
         if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "viewSettings" )
 
@@ -681,8 +692,10 @@ def writeSettingsFile():
     Update our program settings and save them.
     """
     logging.info( "writeSettingsFile()" )
-    fnPrint( DEBUGGING_THIS_MODULE, "writeSettingsFile()" )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Saving {APP_NAME_VERSION} settings…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "writeSettingsFile()" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Saving {APP_NAME_VERSION} settings…" )
 
     def convertToString( thisSetting ):
         """
@@ -802,7 +815,8 @@ def writeSettingsFile():
     if BiblelatorGlobals.theApp.lexiconWord: lexicon['currentWord'] = BiblelatorGlobals.theApp.lexiconWord
 
     # Save any open Bible resource collections
-    vPrint( 'Never', DEBUGGING_THIS_MODULE, "save collection data…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, "save collection data…" )
     for appWin in BiblelatorGlobals.theApp.childWindows:
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  gT", appWin.genericWindowType )
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  wT", appWin.windowType )
@@ -822,14 +836,17 @@ def writeSettingsFile():
     getCurrentChildWindowSettings()
     # Save all the various window set-ups including both the named ones and the current one
     for windowsSettingName in sorted( BiblelatorGlobals.theApp.windowsSettingsDict ):
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "Saving windows set-up {}".format( repr(windowsSettingName) ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "Saving windows set-up {}".format( repr(windowsSettingName) ) )
         try: # Just in case something goes wrong with characters in a settings name
             BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingName] = {}
             thisOne = BiblelatorGlobals.theApp.settings.data['WindowSetting'+windowsSettingName]
             for windowNumber,winDict in sorted( BiblelatorGlobals.theApp.windowsSettingsDict[windowsSettingName].items() ):
-                vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  {windowNumber} {winDict}" )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  {windowNumber} {winDict}" )
                 for windowSettingName,value in sorted( winDict.items() ):
-                    vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  {windowSettingName} {value!r}" )
+                    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                        vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  {windowSettingName} {value!r}" )
                     thisOne[windowNumber+windowSettingName] = convertToString( value )
         except UnicodeEncodeError: logging.error( "writeSettingsFile: " + _("unable to write {} windows set-up").format( repr(windowsSettingName) ) )
     BiblelatorGlobals.theApp.settings.saveINI()
@@ -844,11 +861,13 @@ def doSendUsageStatistics():
 
     Note that Biblelator is mostly closed down at this stage.
     """
-    fnPrint( DEBUGGING_THIS_MODULE, "doSendUsageStatistics()" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "doSendUsageStatistics()" )
     if BibleOrgSysGlobals.debugFlag:
         assert BiblelatorGlobals.theApp.internetAccessEnabled
         assert BiblelatorGlobals.theApp.sendUsageStatisticsEnabled
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("  Sending program usage info…") )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("  Sending program usage info…") )
 
     adjAppName = APP_NAME.replace('/','-').replace(':','_').replace('\\','_').replace(' ','_')
     adjUserName = BiblelatorGlobals.theApp.currentUserName.replace('/','-').replace(':','_').replace('\\','_')
@@ -912,16 +931,21 @@ def doSendUsageStatistics():
     conn.request( 'POST', '/Software/Biblelator/StatusInputs/SubmitAction.phtml', parameterString, headers )
     try: response = conn.getresponse()
     except http.client.RemoteDisconnected:
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics remote RemoteDisconnected -- send failed" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics remote RemoteDisconnected -- send failed" )
         conn.close()
         return
     if response.status == 200:
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    doSendUsageStatistics accepted by server" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "    doSendUsageStatistics accepted by server" )
     else:
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics status", repr(response.status) ) # Should be 200
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics reason", repr(response.reason) ) # Should be 'OK'
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics status", repr(response.status) ) # Should be 200
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics reason", repr(response.reason) ) # Should be 'OK'
         data = response.read()
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics data", repr(data) ) # Web page back from the server
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "doSendUsageStatistics data", repr(data) ) # Web page back from the server
     conn.close()
 # end of doSendUsageStatistics
 
@@ -1002,7 +1026,8 @@ def fullDemo() -> None:
 # end of BiblelatorSettingsFunctions.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # USFMEditWindow.py
 #
@@ -26,7 +27,6 @@
 This is a text editor window that knows about the special structure of USFM files.
 """
 from gettext import gettext as _
-from typing import Dict, List, Tuple, Optional
 import os.path
 import logging
 from collections import OrderedDict
@@ -39,6 +39,7 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
 from BibleOrgSys.Formats.USFMBible import findReplaceText
+import bos_books_codes_py
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -63,7 +64,7 @@ from Biblelator.Helpers.AutocompleteFunctions import loadBibleAutocompleteWords,
                                     loadHunspellAutocompleteWords, loadILEXAutocompleteWords
 
 
-LAST_MODIFIED_DATE = '2020-05-01' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorUSFMEditWindow"
 PROGRAM_NAME = "Biblelator USFM Edit Window"
 PROGRAM_VERSION = '0.46'
@@ -105,13 +106,15 @@ class ToolsOptionsDialog( ModalDialog ):
         # Adding Frames as pages for the ttk.Notebook
 
         # General page
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create general page" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create general page" )
         self.generalPage = Frame( self.notebook )
         mcaseCb = tk.Checkbutton( self.generalPage, text=_("Show status bar"), variable=self.parent._showStatusBarVar )
         mcaseCb.grid( row=0, column=0 )
 
         # Autocomplete page
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create autocomplete page" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create autocomplete page" )
         self.autocompletePage = Frame( self.notebook )
 
         Label( self.autocompletePage, text=_("Autocomplete mode: Use words from") ).grid( row=0 )
@@ -129,7 +132,8 @@ class ToolsOptionsDialog( ModalDialog ):
         self.rb1c = Radiobutton( self.autocompletePage, text=_("Dictionary2"), variable=self.selectVariable1, value=5 )
         self.rb1c.grid( row=4, column=1, sticky=tk.W )
 
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Add all pages" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Add all pages" )
         self.notebook.add( self.generalPage, text=_("General") )
         self.notebook.add( self.autocompletePage, text=_("AutoComplete") )
         self.notebook.pack( expand=tk.YES, fill=tk.BOTH )
@@ -146,7 +150,8 @@ class ToolsOptionsDialog( ModalDialog ):
         existingAutocompleteMode = self.parent.autocompleteMode
         self.parent.autocompleteMode = ToolsOptionsDialog.acValues[self.selectVariable1.get()-1]
         if self.parent.autocompleteMode != existingAutocompleteMode:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Switching to {!r} autocomplete mode (from {!r})".format( self.parent.autocompleteMode, existingAutocompleteMode ) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Switching to {!r} autocomplete mode (from {!r})".format( self.parent.autocompleteMode, existingAutocompleteMode ) )
 
         self.result = True
     # end of ToolsOptionsDialog.apply
@@ -168,7 +173,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         UBSourceFolder = USFMBible.sourceFolder if USFMBible else None
         logging.debug( "USFMEditWindow.__init__( {} ) {}".format( USFMBible, UBSourceFolder ) )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.__init__( {} ) {}".format( USFMBible, UBSourceFolder ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.__init__( {} ) {}".format( USFMBible, UBSourceFolder ) )
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'USFMEditWindow __init__ {}'.format( UBSourceFolder ) )
 
         ChildWindow.__init__( self, parentWindow, 'TextEditor' )
@@ -267,7 +273,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
         self.saveChangesAutomatically = True # different from AutoSave (which is in different files in different folders)
 
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.__init__ finished." )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.__init__ finished." )
     # end of USFMEditWindow.__init__
 
 
@@ -311,7 +318,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     def _createEditorKeyboardBindings( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "USFMEditWindow._createEditorKeyboardBindings()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "USFMEditWindow._createEditorKeyboardBindings()" )
 
         for name,command in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -336,7 +344,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     def _createMenuBar( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "USFMEditWindow._createMenuBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "USFMEditWindow._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -435,7 +444,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
         #if   self._formatViewMode == 'Formatted': self._formatViewRadioVar.set( 1 )
         #elif self._formatViewMode == 'Unformatted': self._formatViewRadioVar.set( 2 )
-        #else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, self._formatViewMode ); halt
+        #else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, self._formatViewMode ); assert False, "We want to stop here"
 
         #viewMenu.add_separator()
         #viewMenu.add_radiobutton( label=_('Formatted'), underline=0, value=1, variable=self._formatViewRadioVar, command=self.changeBibleFormatView )
@@ -520,7 +529,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'doAdjustOptions' )
         logging.debug( "doAdjustOptions()" )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "doAdjustOptions()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "doAdjustOptions()" )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag:
             BiblelatorGlobals.theApp.setDebugText( "doAdjustOptions…" )
         #theApp.setWaitStatus( _("Preparing autocomplete words…") )
@@ -535,7 +545,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'prepareAutocomplete' )
         logging.debug( "prepareAutocomplete()" )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "prepareAutocomplete()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "prepareAutocomplete()" )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag:
             BiblelatorGlobals.theApp.setDebugText( "prepareAutocomplete…" )
         BiblelatorGlobals.theApp.setWaitStatus( _("Preparing autocomplete words…") )
@@ -549,7 +560,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             loadHunspellAutocompleteWords( self, '/usr/share/hunspell/en_AU.dic', 'iso8859-15' )
         elif self.autocompleteMode == 'Dictionary2':
             loadILEXAutocompleteWords( self, '../../../MyPrograms/TED_Dictionary/EnglishDict.db', ('ENG','BRI',) )
-        else: dPrint( 'Never', DEBUGGING_THIS_MODULE, repr(self.autocompleteMode) ); halt # Programming error
+        else: dPrint( 'Never', DEBUGGING_THIS_MODULE, repr(self.autocompleteMode) ); assert False, "We want to stop here" # Programming error
     # end of USFMEditWindow.prepareAutocomplete
 
 
@@ -562,7 +573,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             and if so, informs the parent app.
         """
         if self.loading: return # So we don't get called a million times for nothing
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.onTextChange( {}, {} )".format( repr(result), args ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.onTextChange( {}, {} )".format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -584,7 +596,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN4", tagNames4 )
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN5", tagNames5 )
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN6", tagNames6 )
-                #halt
+                #assert False, "We want to stop here"
 
         #if 0: # show various mark strategies
             #mark1 = self.textBox.mark_previous( tk.INSERT )
@@ -606,7 +618,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
         try: TextEditWindowAddon.onTextChange( self, result, *args ) # Handles autocorrect and autocomplete
         except KeyboardInterrupt:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "USFMEditWindow: Got keyboard interrupt (1) -- saving my file…" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "USFMEditWindow: Got keyboard interrupt (1) -- saving my file…" )
             self.doSave() # Sometimes the above seems to lock up
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'gfs', self.onTextNoChangeID )
             if self.onTextNoChangeID:
@@ -620,7 +633,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             # Check the text for USFM errors
             try: self.checkUSFMTextForProblems()
             except KeyboardInterrupt:
-                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "USFMEditWindow: Got keyboard interrupt (2) -- saving my file…" )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "USFMEditWindow: Got keyboard interrupt (2) -- saving my file…" )
                 self.doSave() # Sometimes the above seems to lock up
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'DSDS', self.onTextNoChangeID )
                 if self.onTextNoChangeID:
@@ -659,7 +673,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         # Check the text for formatting errors
         try: self.checkUSFMTextForProblems( includeFormatting=True )
         except KeyboardInterrupt:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "USFMEditWindow: Got keyboard interrupt (3) -- saving my file" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "USFMEditWindow: Got keyboard interrupt (3) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
     # end of USFMEditWindow._onTextNoChange
 
@@ -699,7 +714,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         elif self._contextViewMode == 'ByChapter':
             minChapterMarkers = maxChapterMarkers = 0 if C=='-1' else 1
             minVerseMarkers = maxVerseMarkers = 0 if C=='-1' else self.getNumVerses( BBB, C )
-        else: halt
+        else: assert False, "We want to stop here"
 
         errorMessage = warningMessage = suggestionMessage = None
         if numChaps > maxChapterMarkers:
@@ -731,7 +746,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                     if line[0] == '\\':
                         marker = line.split( None, 1)[0][1:] # First token, but without the first (backslash) character
                         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  Found marker: {!r}".format( marker ) )
-                        if marker not in BibleOrgSysGlobals.loadedUSFMMarkers:
+                        if marker not in usfm_markers_py:
                             errorMessage = _("Not a recognized USFM marker {!r}").format( marker )
                             break
                     else:
@@ -796,7 +811,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'doShowInfo' )
         logging.debug( "USFMEditWindow.doShowInfo( {} )".format( event ) )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.doShowInfo( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.doShowInfo( {} )".format( event ) )
 
         text  = self._getEntireText()
         numChars = len( text )
@@ -835,14 +851,15 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
     # end of USFMEditWindow.modified
 
 
-    def getBookDataFromDisk( self, BBB ) -> Optional[str]:
+    def getBookDataFromDisk( self, BBB ) -> str|None:
         """
         Fetches and returns the internal Bible data for the given book
             by reading the USFM source file completely
             and returning the text.
         """
         logging.debug( "USFMEditWindow.getBookDataFromDisk( {} ) was {} for {}".format( BBB, self.lastBBB, self.projectName ) )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.getBookDataFromDisk( {} ) was {} for {}".format( BBB, self.lastBBB, self.projectName ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.getBookDataFromDisk( {} ) was {} for {}".format( BBB, self.lastBBB, self.projectName ) )
 
         if BBB != self.lastBBB:
             #self.bookText = None
@@ -851,9 +868,10 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         if self.internalBible is not None:
             try: self.bookFilename = self.internalBible.possibleFilenameDict[BBB]
             except (AttributeError,KeyError) as err: # we have no books, or at least, not this book!
-                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  getBookDataFromDisk error: {err}" )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  getBookDataFromDisk error: {err}" )
                 #return None
-                uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr(BBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(BBB)
+                uNumber, uAbbrev = bos_books_codes_py.bos_book_code_to_usfm_num_str_py(BBB), bos_books_codes_py.usfm_abbrev_to_bos_book_code_py(BBB)
                 if uNumber is None or uAbbrev is None: self.bookFilename = None
                 else: self.bookFilename = f'{uNumber}-{uAbbrev}.USFM'
             if self.bookFilename:
@@ -897,7 +915,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             assert isinstance( BBB, str )
 
         if clearFirst:
-            vPrint( 'Never', DEBUGGING_THIS_MODULE, "  Clearing cache first!" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                vPrint( 'Never', DEBUGGING_THIS_MODULE, "  Clearing cache first!" )
             self.verseCache = OrderedDict()
 
         def addCacheEntry( BBB, C, V, data ):
@@ -1178,14 +1197,16 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             3/ Load the appropriate verses into the editor according to the contextViewMode.
         """
         logging.debug( "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey, originator, self.currentVerseKey ), self.moduleID )
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "contextViewMode", self._contextViewMode )
             #assert self._formatViewMode == 'Unformatted' # Only option done so far
 
         if self.autocompleteBox is not None: self.removeAutocompleteBox()
         self.textBox.configure( background=self.defaultBackgroundColour ) # Go back to default background
         if self._formatViewMode != 'Unformatted': # Only option done so far
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Ignoring {!r} mode for USFMEditWindow".format( self._formatViewMode ) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Ignoring {!r} mode for USFMEditWindow".format( self._formatViewMode ) )
             return
 
         oldVerseKey = self.currentVerseKey
@@ -1200,13 +1221,14 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             newBBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
             newVerseKey = SimpleVerseKey( newBBB, C, V, S )
             self.setCurrentVerseKey( newVerseKey )
-            #if newBBB == 'PSA': halt
+            #if newBBB == 'PSA': assert False, "We want to stop here"
             if newBBB != oldBBB: self.numTotalVerses = calculateTotalVersesForBook( newBBB, self.getNumChapters, self.getNumVerses )
             if C != oldC and self.saveChangesAutomatically and self.modified(): self.doSave( 'Auto from chapter change' )
 
         if originator is self: # We initiated this by clicking in our own edit window
             # Don't do everything below because that makes the window contents move around annoyingly when clicked
-            vPrint( 'Never', DEBUGGING_THIS_MODULE, "Seems to be called from self--not much to do here" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                vPrint( 'Never', DEBUGGING_THIS_MODULE, "Seems to be called from self--not much to do here" )
             self.refreshTitle()
             return
 
@@ -1237,7 +1259,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             self.editStatus = 'Editable'
             self.bookText = self.getBookDataFromDisk( newBBB )
             if self.bookText is None:
-                uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr(newBBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(newBBB)
+                uNumber, uAbbrev = bos_books_codes_py.bos_book_code_to_usfm_num_str_py(newBBB), bos_books_codes_py.usfm_abbrev_to_bos_book_code_py(newBBB)
                 if uNumber is None or uAbbrev is None: # no use asking about creating the book
                     # NOTE: I think we've already shown this error in getBookDataFromDisk()
                     #showError( self, APP_NAME, _("Couldn't determine USFM filename for {!r} book").format( newBBB ) )
@@ -1267,7 +1289,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
             startingFlag = True
 
             if self._contextViewMode == 'BeforeAndAfter':
-                vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'BeforeAndAfter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 numChaps = self.getNumChapters( BBB )
@@ -1302,7 +1325,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                             startingFlag = False
 
             elif self._contextViewMode == 'ByVerse':
-                vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'ByVerse2' )
                 savedCursorPosition = '1.end' # Default the cursor to the end of the first line
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
@@ -1341,7 +1365,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                                     savedCursorPosition = '2.end' # Move the cursor to the end of the SECOND line
 
             elif self._contextViewMode == 'BySection':
-                vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'BySection2' )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'BySection2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 sectionStart, sectionEnd = findCurrentSection( newVerseKey, self.getNumChapters, self.getNumVerses, self.getCachedVerseData )
                 intC1, intV1 = sectionStart.getChapterNumberInt(), sectionStart.getVerseNumberInt()
@@ -1363,7 +1388,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                             startingFlag = False
 
             elif self._contextViewMode == 'ByBook':
-                vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'ByBook2' )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'ByBook2' )
                 self.bookTextBefore = self.bookTextAfter = ''
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
@@ -1378,7 +1404,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
                         startingFlag = False
 
             elif self._contextViewMode == 'ByChapter':
-                vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                    vPrint( 'Never', DEBUGGING_THIS_MODULE, 'USFMEditWindow.updateShownBCV', 'ByChapter2' )
                 BBB, intC, intV = newVerseKey.getBBB(), newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
                 self.bookTextBefore = self.bookTextAfter = ''
                 for thisC in range( -1, self.getNumChapters( BBB ) + 1 ):
@@ -1396,7 +1423,7 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
             else:
                 logging.critical( "USFMEditWindow.updateShownBCV: Bad context view mode {}".format( self._contextViewMode ) )
-                if BibleOrgSysGlobals.debugFlag: halt # Unknown context view mode
+                if BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here" # Unknown context view mode
 
         self.textBox.highlightAllPatterns( self.patternsToHighlight )
 
@@ -1449,7 +1476,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'USFMEditWindow doBibleReplace' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.doBibleReplace( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.doBibleReplace( {} )".format( event ) )
 
         if self.internalBible is None:
             logging.critical( _("No Bible to search") )
@@ -1458,7 +1486,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
 
         self.BibleReplaceOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
         gBRTD = GetBibleReplaceTextDialog( self, self.internalBible, self.BibleReplaceOptionsDict, title=_('Replace in Bible') )
-        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "gBRTDResult", repr(gBRTD.result) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "gBRTDResult", repr(gBRTD.result) )
         if gBRTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBRTD.result, dict )
             self.BibleReplaceOptionsDict = gBRTD.result # Update our search options dictionary
@@ -1516,13 +1545,15 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
 
         logging.debug( "USFMEditWindow.doSave( {} )".format( event ) )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.doSave( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.doSave( {} )".format( event ) )
 
         if self.modified():
             if self.folderpath and self.filename:
                 filepath = os.path.join( self.folderpath, self.filename )
                 self.bookText = self._getEntireText()
-                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
                 logging.debug( "Saving {} with {} encoding".format( filepath, self.internalBible.encoding ) )
                 with open( filepath, mode='wt', encoding=self.internalBible.encoding, newline='\r\n' ) as theFile:
                     theFile.write( self.bookText )
@@ -1547,7 +1578,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         logging.info( "USFMEditWindow.startReferenceMode()" )
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'USFMEditWindow.startReferenceMode' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.startReferenceMode()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.startReferenceMode()" )
 
         if self._groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
             ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self._groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
@@ -1578,7 +1610,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         logging.info( "USFMEditWindow.startParallelMode()" )
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'USFMEditWindow.startParallelMode' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.startParallelMode()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.startParallelMode()" )
 
         if self._groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
             ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self._groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
@@ -1610,7 +1643,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         """
         logging.info( "USFMEditWindow.startReferencesMode()" )
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'USFMEditWindow.startReferencesMode' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.startReferencesMode()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "USFMEditWindow.startReferencesMode()" )
 
         if self._groupCode != BIBLE_GROUP_CODES[0]: # Not in first/default BCV group
             ynd = YesNoDialog( self, _('You are in group {}. Ok to change to group {}?').format( self._groupCode, BIBLE_GROUP_CODES[0] ), title=_('Continue?') )
@@ -1665,7 +1699,8 @@ class USFMEditWindow( TextEditWindowAddon, InternalBibleResourceWindowAddon, Chi
         Open a pop-up text window with the current log displayed.
         """
         logging.debug( "_doViewLog()" )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "_doViewLog()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "_doViewLog()" )
         if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "_doViewLog…" )
 
         tEW = TextEditWindow( theApp )
@@ -1734,7 +1769,8 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -1755,7 +1791,8 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -1771,7 +1808,8 @@ def fullDemo() -> None:
 # end of USFMEditWindow.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

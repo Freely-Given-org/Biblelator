@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # TSVEditWindow.py
 #
@@ -29,7 +30,6 @@ A general window with one text box that has full editing functions,
 The add-on can be used to build other editing windows.
 """
 from gettext import gettext as _
-from typing import List, Tuple, Optional
 import os.path
 import logging
 import shutil
@@ -67,7 +67,7 @@ from Biblelator.Helpers.AutocompleteFunctions import getCharactersBeforeCursor, 
                                 getWordBeforeSpace, addNewAutocompleteWord, acceptAutocompleteSelection
 
 
-LAST_MODIFIED_DATE = '2022-07-18' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTSVEditWindow"
 PROGRAM_NAME = "Biblelator TSV Edit Window"
 PROGRAM_VERSION = '0.47'
@@ -114,7 +114,7 @@ class TNRowFrame( Frame ):
     # end of TNRowFrame.__init__ function
 
 
-    def fill( self, rowNumber:int, rowData:Optional[List[str]] ) -> None:
+    def fill( self, rowNumber:int, rowData:list[str]|None ) -> None:
         """
         """
         # fnPrint( DEBUGGING_THIS_MODULE, f"TNRowFrame.fill( {rowNumber}, {str(rowData)[:100]}… )" )
@@ -145,7 +145,8 @@ class TSVEditWindowAddon:
     def __init__( self, windowType:str, folderpath:str ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.__init__( {windowType}, {folderpath} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.__init__( {windowType}, {folderpath} )" )
         self.windowType, self.folderpath = windowType, folderpath
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon __init__ {windowType} {folderpath}" )
 
@@ -165,8 +166,8 @@ class TSVEditWindowAddon:
         self.columnSeparator = None
 
         self.hadBOM = False
-        self.tsvHeaders:List[str] = []
-        self.tsvTable:List[List] = []
+        self.tsvHeaders:list[str] = []
+        self.tsvTable:list[List] = []
 
         self.onTextNoChangeID = None
         self.editStatus = 'Editable'
@@ -249,11 +250,12 @@ class TSVEditWindowAddon:
         self.loading = self.hadTextWarning = False
         #self.lastTextChangeTime = time()
 
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.__init__ finished." )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.__init__ finished." )
     # end of TSVEditWindowAddon.__init__
 
 
-    def updateShownBCV( self, newReferenceVerseKey:SimpleVerseKey, originator:Optional[str]=None ) -> None:
+    def updateShownBCV( self, newReferenceVerseKey:SimpleVerseKey, originator:str|None=None ) -> None:
         """
         The main call from outside this class.
         Updates self.textBox in various ways depending on the contextViewMode held by the enclosing window.
@@ -267,7 +269,8 @@ class TSVEditWindowAddon:
                 load the new book text
             3/ Load the appropriate verses into the editor according to the contextViewMode.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.updateShownBCV( {newReferenceVerseKey.getShortText()}, originator={originator} ) from {self.currentVerseKey.getShortText()} for {self.moduleID}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.updateShownBCV( {newReferenceVerseKey.getShortText()}, originator={originator} ) from {self.currentVerseKey.getShortText()} for {self.moduleID}" )
         # dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.updateShownBCV( {}, {} ) from {} for".format( newReferenceVerseKey.getShortText(), originator, self.currentVerseKey.getShortText() ), self.moduleID )
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "contextViewMode", self._contextViewMode )
             #assert self._formatViewMode == 'Unformatted' # Only option done so far
@@ -347,7 +350,7 @@ class TSVEditWindowAddon:
     #         newBBB, C, V, S = self.BibleOrganisationalSystem.convertFromReferenceVersification( refBBB, refC, refV, refS )
     #         newVerseKey = SimpleVerseKey( newBBB, C, V, S )
     #         self.setCurrentVerseKey( newVerseKey )
-    #         #if newBBB == 'PSA': halt
+    #         #if newBBB == 'PSA': assert False, "We want to stop here"
     #         if newBBB != oldBBB: self.numTotalVerses = calculateTotalVersesForBook( newBBB, self.getNumChapters, self.getNumVerses )
     #         if C != oldC and self.saveChangesAutomatically and self.modified(): self.doSave( 'Auto from chapter change' )
 
@@ -384,7 +387,7 @@ class TSVEditWindowAddon:
     #         self.editStatus = 'Editable'
     #         self.bookText = self.getBookDataFromDisk( newBBB )
     #         if self.bookText is None:
-    #             uNumber, uAbbrev = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr(newBBB), BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation(newBBB)
+    #             uNumber, uAbbrev = bos_books_codes_py.bos_book_code_to_usfm_num_str_py(newBBB), bos_books_codes_py.usfm_abbrev_to_bos_book_code_py(newBBB)
     #             if uNumber is None or uAbbrev is None: # no use asking about creating the book
     #                 # NOTE: I think we've already shown this error in getBookDataFromDisk()
     #                 #showError( self, APP_NAME, _("Couldn't determine USFM filename for {!r} book").format( newBBB ) )
@@ -457,7 +460,8 @@ class TSVEditWindowAddon:
             by reading the TSV source file completely
             and saving the row and columns.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._loadBookDataFromDisk( {} ) was {}".format( BBB, self.BBB ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._loadBookDataFromDisk( {} ) was {}".format( BBB, self.BBB ) )
         logging.debug( f"TSVEditWindowAddon._loadBookDataFromDisk( {BBB} ) was {self.BBB}…" )
 
         # if BBB != self.lastBBB:
@@ -467,8 +471,8 @@ class TSVEditWindowAddon:
         self.BBB = BBB
 
         # Read the entire file contents at the beginning (assumes lots of RAM)
-        self.thisBookUSFMCode = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMAbbreviation( BBB ).upper()
-        USFMnn = BibleOrgSysGlobals.loadedBibleBooksCodes.getUSFMNumStr( BBB )
+        self.thisBookUSFMCode = bos_books_codes_py.bos_book_code_to_usfm_abbrev_py( BBB ).upper()
+        USFMnn = bos_books_codes_py.bos_book_code_to_usfm_num_str_py( BBB )
         foldername = os.path.split( self.folderpath )[1]
         # dPrint( 'Info', DEBUGGING_THIS_MODULE, f"Got foldername='{foldername}'" ) # Something like en_tn or en_tw perhaps
         self.filename = f'{foldername}_{USFMnn}-{self.thisBookUSFMCode}.tsv' # Temp hard-coding XXXXX
@@ -476,14 +480,14 @@ class TSVEditWindowAddon:
         self.filepath = os.path.join( self.folderpath, self.filename )
         try:
             with open( self.filepath, 'rt', encoding='utf-8' ) as input_file:
-                self.originalText = input_file.read()
+                self.original_text = input_file.read()
         except FileNotFoundError:
             showError( self, _('TSV Window'), _("Could not open and read '{}'").format( self.filepath ) )
             return False
-        if not self.originalText:
+        if not self.original_text:
             showError( self, _('TSV Window'), _("Could not read {}").format( self.filepath ) )
             return False
-        fileLines = self.originalText.split( '\n' )
+        fileLines = self.original_text.split( '\n' )
         if fileLines and fileLines[-1] == '':
             # dPrint( 'Info', DEBUGGING_THIS_MODULE, "Deleting final blank line" )
             fileLines = fileLines[:-1]
@@ -491,12 +495,14 @@ class TSVEditWindowAddon:
         else:
             self.hadTrailingNL = False
         self.numOriginalLines = len( fileLines )
-        vPrint( 'Info', DEBUGGING_THIS_MODULE, f"  {len(self.originalText):,} bytes ({self.numOriginalLines:,} lines) read from {self.filepath}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 3:
+            vPrint( 'Info', DEBUGGING_THIS_MODULE, f"  {len(self.original_text):,} bytes ({self.numOriginalLines:,} lines) read from {self.filepath}" )
         if self.numOriginalLines < 2:
             showError( self, APP_NAME, f'Not enough ({self.numOriginalLines}) preexisting lines in file ' + self.filepath )
-        # We keep self.originalText and self.numOriginalLines to determine later if we have any changes
+        # We keep self.original_text and self.numOriginalLines to determine later if we have any changes
 
-        vPrint( 'Verbose', DEBUGGING_THIS_MODULE, "Checking loaded TSV table…" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 4:
+            vPrint( 'Verbose', DEBUGGING_THIS_MODULE, "Checking loaded TSV table…" )
         self.numColumns = None
         self.tsvTable = []
         for j, line in enumerate( fileLines, start=1 ):
@@ -512,9 +518,11 @@ class TSVEditWindowAddon:
                 logging.critical( f"Expected {self.numColumns} columns but found {len(columns)} in row {j} of {self.filepath}" )
             self.tsvTable.append( columns )
         self.tsvHeaders = self.tsvTable[0]
-        dPrint( 'Info', DEBUGGING_THIS_MODULE, f"  Have table headers ({self.numColumns}): {self.tsvHeaders}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 3:
+            dPrint( 'Info', DEBUGGING_THIS_MODULE, f"  Have table headers ({self.numColumns}): {self.tsvHeaders}" )
         self.numDataRows = len(self.tsvTable) - 1
-        dPrint( 'Info', DEBUGGING_THIS_MODULE, f"  Have {self.numDataRows:,} {BBB} rows" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 3:
+            dPrint( 'Info', DEBUGGING_THIS_MODULE, f"  Have {self.numDataRows:,} {BBB} rows" )
         return True
     # end of TSVEditWindowAddon._loadBookDataFromDisk
 
@@ -522,7 +530,8 @@ class TSVEditWindowAddon:
     def _buildWidgets( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._buildWidgets() for {self.BBB}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._buildWidgets() for {self.BBB}" )
 
         # Delete old widgets so we can rebuild without problems (for each new book)
         for widget in self.pack_slaves():
@@ -733,7 +742,8 @@ class TSVEditWindowAddon:
         """
         Handle a new row number from the row spinbox.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_spinToNewRow( {event} ) from {self.currentRowNumber}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_spinToNewRow( {event} ) from {self.currentRowNumber}" )
         if self.currentRowNumber: # The last row might have changed
             self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self._gotoRow()
@@ -743,11 +753,13 @@ class TSVEditWindowAddon:
         """
         Handle a new row number already set in self.rowNumberVar
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_gotoRow( {event}, f={force}, nM={notifyMain} ) from {self.currentRowNumber}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_gotoRow( {event}, f={force}, nM={notifyMain} ) from {self.currentRowNumber}" )
         #dPrint( 'Never', DEBUGGING_THIS_MODULE, dir(event) )
 
         rowNumber = self.rowNumberVar.get()
-        dPrint( 'Info', DEBUGGING_THIS_MODULE, f"  _gotoRow got {rowNumber} (was {self.currentRowNumber})" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 3:
+            dPrint( 'Info', DEBUGGING_THIS_MODULE, f"  _gotoRow got {rowNumber} (was {self.currentRowNumber})" )
         # Check for bad numbers (they must have manually entered them as spinner doesn't allow this)
         if rowNumber < 1:
             self.rowNumberVar.set( 1 ); return
@@ -761,7 +773,7 @@ class TSVEditWindowAddon:
 
         if self.thisBookUSFMCode is None:
             self.thisBookUSFMCode = currentRowData[self.bookColumn]
-            self.BBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getBBBFromUSFMAbbreviation( self.thisBookUSFMCode )
+            self.BBB = bos_books_codes_py.usfm_abbrev_to_bos_book_code_py( self.thisBookUSFMCode )
         elif currentRowData[self.bookColumn] != self.thisBookUSFMCode:
             logging.critical( f"Row {rowNumber} seems to have a different book code '{currentRowData[self.bookColumn]}' from expected '{self.thisBookUSFMCode}'" )
         C, V = currentRowData[self.chapterColumn], currentRowData[self.verseColumnNumber]
@@ -807,7 +819,8 @@ class TSVEditWindowAddon:
 
         Note that newVerseKey can be None.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"setCurrentVerseKey( {newVerseKey.getShortText()} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"setCurrentVerseKey( {newVerseKey.getShortText()} )" )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag:
             BiblelatorGlobals.theApp.setDebugText( "BRW setCurrentVerseKey…" )
 
@@ -829,7 +842,8 @@ class TSVEditWindowAddon:
     def _gotoTop( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_gotoTop( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_gotoTop( {event} )" )
         assert self.currentRowNumber > 1
         self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self.rowNumberVar.set( 1 )
@@ -839,7 +853,8 @@ class TSVEditWindowAddon:
     def _gotoBottom( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_gotoBottom( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_gotoBottom( {event} )" )
         assert self.currentRowNumber < self.numDataRows
         self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         self.rowNumberVar.set( self.numDataRows )
@@ -850,7 +865,8 @@ class TSVEditWindowAddon:
     def _doMoveUp( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_doMoveUp( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_doMoveUp( {event} )" )
         assert self.currentRowNumber > 1
         currentRowData = self._retrieveCurrentRowData( updateTable=False ) # in case current row was edited
         self.tsvTable[self.currentRowNumber-1], self.tsvTable[self.currentRowNumber] = currentRowData, self.tsvTable[self.currentRowNumber-1]
@@ -861,7 +877,8 @@ class TSVEditWindowAddon:
     def _doMoveDown( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_doMoveDown( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_doMoveDown( {event} )" )
         assert self.currentRowNumber < self.numDataRows
         currentRowData = self._retrieveCurrentRowData( updateTable=False ) # in case current row was edited
         self.tsvTable[self.currentRowNumber], self.tsvTable[self.currentRowNumber+1] = self.tsvTable[self.currentRowNumber+1], currentRowData
@@ -872,7 +889,8 @@ class TSVEditWindowAddon:
     def _doAddBefore( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_doAddBefore( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_doAddBefore( {event} )" )
         currentRowData = self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         newRowData = currentRowData.copy()
         newRowData[self.idColumnNumber] = self.generateID()
@@ -888,7 +906,8 @@ class TSVEditWindowAddon:
     def _doAddAfter( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"_doAddAfter( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"_doAddAfter( {event} )" )
         currentRowData = self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
         newRowData = currentRowData.copy()
         newRowData[self.idColumnNumber] = self.generateID()
@@ -905,7 +924,8 @@ class TSVEditWindowAddon:
     def _doDeleteRow( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._doDeleteRow( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._doDeleteRow( {event} )" )
         assert self.numDataRows
         self.deletedRow = self.tsvTable.pop( self.currentRowNumber )
         self.numDataRows -= 1
@@ -914,13 +934,14 @@ class TSVEditWindowAddon:
     # end of TSVEditWindowAddon._doDeleteRow function
 
 
-    def _retrieveCurrentRowData( self, updateTable:bool ) -> List[str]:
+    def _retrieveCurrentRowData( self, updateTable:bool ) -> list[str]:
         """
         Get the data out of the displayed boxes and return it.
 
         If updateTable is True, also put any changed data back into the table.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._retrieveCurrentRowData( uT={updateTable}) for {self.currentRowNumber}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._retrieveCurrentRowData( uT={updateTable}) for {self.currentRowNumber}" )
 
         if not self.currentRowNumber: return # Still setting up -- nothing to do here yet
 
@@ -939,9 +960,11 @@ class TSVEditWindowAddon:
             return retrievedRowData
 
         # Now we can replace that row in the table (if requested)
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  Row {self.currentRowNumber} has changed: {retrievedRowData != self.tsvTable[self.currentRowNumber]}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  Row {self.currentRowNumber} has changed: {retrievedRowData != self.tsvTable[self.currentRowNumber]}" )
         if updateTable and retrievedRowData != self.tsvTable[self.currentRowNumber]:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"\nRow {self.currentRowNumber}: replace {self.tsvTable[self.currentRowNumber]}\n   with {retrievedRowData}" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"\nRow {self.currentRowNumber}: replace {self.tsvTable[self.currentRowNumber]}\n   with {retrievedRowData}" )
             self.tsvTable[self.currentRowNumber] = retrievedRowData
 
         return retrievedRowData
@@ -954,7 +977,8 @@ class TSVEditWindowAddon:
         Theoretically they only have to be unique within a verse,
             but we make them unique within the whole table/file.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "generateID()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "generateID()" )
         while True:
             newID = random.choice( 'abcdefghijklmnopqrstuvwxyz') \
                     + random.choice( 'abcdefghijklmnopqrstuvwxyz0123456789' ) \
@@ -975,7 +999,8 @@ class TSVEditWindowAddon:
 
         Updates widget colours and the status bar to signal to the user.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "_checkCurrentDisplayedRowData()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "_checkCurrentDisplayedRowData()" )
         # if self.loading: return
 
         currentRowData = self._retrieveCurrentRowData( updateTable=False )
@@ -1138,7 +1163,8 @@ class TSVEditWindowAddon:
 
         if errorList:
             if errorList:
-                vPrint( 'Normal', DEBUGGING_THIS_MODULE, f"Found {len(errorList)} errors: {errorList[0]}" )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 2:
+                    vPrint( 'Normal', DEBUGGING_THIS_MODULE, f"Found {len(errorList)} errors: {errorList[0]}" )
             self.setErrorStatus( errorList[0] )
             return True
         self.setStatus() # Clear it
@@ -1152,7 +1178,8 @@ class TSVEditWindowAddon:
 
         Returns the number of errors
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._validateTSVTable() for {self.BBB}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon._validateTSVTable() for {self.BBB}" )
         if 'tsvTable' not in self.__dict__ or not self.tsvTable:
             return 0
 
@@ -1178,7 +1205,8 @@ class TSVEditWindowAddon:
             else:
                 self.allExistingIDs.add( thisID )
         if num_errors > 0:
-            dPrint( 'Normal', DEBUGGING_THIS_MODULE, f"  validateTSV returning {num_errors} errors" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 2:
+                dPrint( 'Normal', DEBUGGING_THIS_MODULE, f"  validateTSV returning {num_errors} errors" )
         return num_errors
     # end of TSVEditWindowAddon._validateTSVTable()
 
@@ -1189,7 +1217,8 @@ class TSVEditWindowAddon:
     def _createEditorKeyboardBindings( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._createEditorKeyboardBindings()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._createEditorKeyboardBindings()" )
 
         for name,commandFunction in ( #('Paste',self.doPaste), ('Cut',self.doCut),
                              #('Undo',self.doUndo), ('Redo',self.doRedo),
@@ -1214,7 +1243,8 @@ class TSVEditWindowAddon:
     def _createMenuBar( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._createMenuBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -1314,7 +1344,8 @@ class TSVEditWindowAddon:
 
         Ideally we wouldn't need this info to be stored in both of these class variables.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, _("BibleWindowAddon.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, _("BibleWindowAddon.setWindowGroup( {} ) for {}").format( newGroup, self.genericWindowType ) )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert newGroup==DEFAULT or newGroup in BIBLE_GROUP_CODES
 
@@ -1326,7 +1357,8 @@ class TSVEditWindowAddon:
     def createContextMenu( self ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.createContextMenu()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.createContextMenu()" )
 
         self.contextMenu = tk.Menu( self, tearoff=False )
         self.contextMenu.add_command( label=_('Cut'), underline=2, command=self.doCut, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Cut')][0] )
@@ -1382,7 +1414,8 @@ class TSVEditWindowAddon:
                 self.after( self.autosaveTime, self._doAutosave ) # Redo it so we can put up the asterisk if the text is changed
                 self.autosaveScheduled = True
         except AttributeError:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Autosave not set-up properly yet" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Autosave not set-up properly yet" )
     # end if TSVEditWindowAddon._refreshTitleContinue
 
 
@@ -1390,7 +1423,8 @@ class TSVEditWindowAddon:
         """
         Make the font one point bigger
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._onFontBigger()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._onFontBigger()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size+1 )
@@ -1400,7 +1434,8 @@ class TSVEditWindowAddon:
         """
         Make the font one point smaller
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._onFontSmaller()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._onFontSmaller()" )
 
         size = self.customFont['size']
         self.customFont.configure( size=size-1 )
@@ -1411,7 +1446,8 @@ class TSVEditWindowAddon:
         """
         Returns all the TextBox text as a string.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.getAllText()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.getAllText()" )
 
         allText = self.textBox.get( tkSTART, tk.END+'-1c' )
         #if self.markMultipleSpacesFlag:
@@ -1419,7 +1455,8 @@ class TSVEditWindowAddon:
         #if self.markTrailingSpacesFlag:
         allText = allText.replace( TRAILING_SPACE_SUBSTITUTE, ' ' )
 
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  TSVEditWindowAddon.getAllText returning ({len(allText)}) {allText!r}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  TSVEditWindowAddon.getAllText returning ({len(allText)}) {allText!r}" )
         return allText
     # end of TSVEditWindowAddon.getAllText
 
@@ -1428,7 +1465,8 @@ class TSVEditWindowAddon:
         """
         Create a pop-up listbox in order to be able to display possible autocomplete words.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._makeAutocompleteBox()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._makeAutocompleteBox()" )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.autocompleteBox is None
 
@@ -1538,7 +1576,8 @@ class TSVEditWindowAddon:
         if self.loading: return # So we don't get called a million times for nothing
         return # temp XXXX ...........................
                 # PRevents extra double spaces being inserted!!! WHY WHY
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.onTextChange( {result!r}, {args} )…" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.onTextChange( {result!r}, {args} )…" )
 
         #if 0: # Get line and column info
             #lineColumn = self.textBox.index( tk.INSERT )
@@ -1560,7 +1599,7 @@ class TSVEditWindowAddon:
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN4", tagNames4 )
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN5", tagNames5 )
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN6", tagNames6 )
-                #halt
+                #assert False, "We want to stop here"
 
         #if 0: # show various mark strategies
             #mark1 = self.textBox.mark_previous( tk.INSERT )
@@ -1735,7 +1774,8 @@ class TSVEditWindowAddon:
         #self.lastTextChangeTime = time()
         try: self.onTextNoChangeID = self.after( NO_TYPE_TIME, self._onTextNoChange ) # Reschedule no change function so we keep checking
         except KeyboardInterrupt:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon: Got keyboard interrupt in onTextChange (A) -- saving my file" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon: Got keyboard interrupt in onTextChange (A) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
             if self.onTextNoChangeID:
                 self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
@@ -1752,7 +1792,8 @@ class TSVEditWindowAddon:
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._onTextNoChange" )
         try: pass
         except KeyboardInterrupt:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon: Got keyboard interrupt in _onTextNoChange (B) -- saving my file" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon: Got keyboard interrupt in _onTextNoChange (B) -- saving my file" )
             self.doSave() # Sometimes the above seems to lock up
             #self.after_cancel( self.onTextNoChangeID ) # Cancel any delayed no change checks which are scheduled
             #self.onTextNoChangeID = None
@@ -1765,7 +1806,8 @@ class TSVEditWindowAddon:
         caveat (2.1): Tk insert position column counts a tab as one
         character: translate to next multiple of 8 to match visual?
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doShowInfo( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doShowInfo( {} )".format( event ) )
 
         # text  = self._getEntireText()
         # numChars = len( text )
@@ -1776,7 +1818,8 @@ class TSVEditWindowAddon:
 
         grandtotal = 0
         for firstLetter in self.autocompleteWords:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "fL", firstLetter )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "fL", firstLetter )
             grandtotal += len( self.autocompleteWords[firstLetter] )
 
         infoString = 'Current location:\n' \
@@ -1802,7 +1845,8 @@ class TSVEditWindowAddon:
 
 
     def doUndo( self, event=None ):
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doUndo( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doUndo( {} )".format( event ) )
 
         try: self.textBox.edit_undo()
         except tk.TclError: showInfo( self, APP_NAME, _("Nothing to undo") )
@@ -1811,7 +1855,8 @@ class TSVEditWindowAddon:
 
 
     def doRedo( self, event=None ):
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doRedo( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doRedo( {} )".format( event ) )
 
         try: self.textBox.edit_redo()
         except tk.TclError: showInfo( self, APP_NAME, _("Nothing to redo") )
@@ -1820,7 +1865,8 @@ class TSVEditWindowAddon:
 
 
     def doDelete( self, event=None ):                         # delete selected text, no save
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doDelete( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doDelete( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showError( self, APP_NAME, _("No text selected") )
@@ -1832,7 +1878,8 @@ class TSVEditWindowAddon:
     def doCut( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doCut( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doCut( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):
             showError( self, APP_NAME, _("No text selected") )
@@ -1845,8 +1892,10 @@ class TSVEditWindowAddon:
     def doPaste( self, event=None ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doPaste( {} )".format( event ) )
-        dPrint( 'Never', DEBUGGING_THIS_MODULE, "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon.doPaste( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 5:
+            dPrint( 'Never', DEBUGGING_THIS_MODULE, "  doPaste: {!r} {!r}".format( event.char, event.keysym ) )
 
         try:
             text = self.selection_get( selection='CLIPBOARD')
@@ -2025,7 +2074,8 @@ class TSVEditWindowAddon:
 
         Returns True/False success flag.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._checkFilepath()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._checkFilepath()" )
 
         if not os.path.isfile( self.filepath ):
             showError( self, APP_NAME, _("No such filepath: {!r}").format( self.filepath ) )
@@ -2051,7 +2101,8 @@ class TSVEditWindowAddon:
         """
         self.lastFiletime = os.stat( self.filepath ).st_mtime
         self.lastFilesize = os.stat( self.filepath ).st_size
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, " _rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, " _rememberFileTimeAndSize: {} {}".format( self.lastFiletime, self.lastFilesize ) )
     # end of TSVEditWindowAddon._rememberFileTimeAndSize
 
 
@@ -2063,7 +2114,8 @@ class TSVEditWindowAddon:
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TextEditWindowAddon.setAllText( ({len(newText)}) {newText!r} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TextEditWindowAddon.setAllText( ({len(newText)}) {newText!r} )" )
 
         self.textBox.configure( state=tk.NORMAL ) # In case it was disabled
         self.textBox.delete( tkSTART, tk.END ) # Delete everything that's existing
@@ -2106,7 +2158,8 @@ class TSVEditWindowAddon:
         This function can be overloaded in super classes
             (where the edit window might not display the entire text).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._getEntireText()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._getEntireText()" )
 
         self._doReassembleFile()
         return self.newText
@@ -2144,23 +2197,26 @@ class TSVEditWindowAddon:
     def _doReassembleFile( self ) -> None:
         """
         Undoes this:
-            fileLines = self.originalText.split( '\n' )
+            fileLines = self.original_text.split( '\n' )
             if fileLines and fileLines[-1] == '':
                 print( "Deleting final blank line" )
                 fileLines = fileLines[:-1]
                 self.hadTrailingNL = True
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doReassembleFile()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doReassembleFile()" )
         if 'tsvTable' not in self.__dict__ or not self.tsvTable:
             return
 
         self._retrieveCurrentRowData( updateTable=True ) # in case current row was edited
 
         fileLines = [self.columnSeparator.join( rowData ) for rowData in self.tsvTable]
-        vPrint( 'Info', DEBUGGING_THIS_MODULE, f"  Reassembled {len(fileLines):,} table lines (incl. header) cf. {self.numOriginalLines:,} lines read" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 3:
+            vPrint( 'Info', DEBUGGING_THIS_MODULE, f"  Reassembled {len(fileLines):,} table lines (incl. header) cf. {self.numOriginalLines:,} lines read" )
         self.newText = '\n'.join( fileLines )
         if self.hadTrailingNL: self.newText = f'{self.newText}\n'
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  New text is {len(self.newText):,} characters cf. {len(self.originalText):,} characters read" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, f"  New text is {len(self.newText):,} characters cf. {len(self.original_text):,} characters read" )
     # end of TSVEditWindowAddon._doReassembleFile
 
 
@@ -2170,7 +2226,7 @@ class TSVEditWindowAddon:
         """
         self._doReassembleFile()
         if 'newText' not in self.__dict__: return False
-        return self.newText != self.originalText
+        return self.newText != self.original_text
     # end of TSVEditWindowAddon.modified
 
 
@@ -2178,7 +2234,8 @@ class TSVEditWindowAddon:
         """
         Called if the user requests a saveAs from the GUI.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.doSaveAs( {event} ) with {self.modified()}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.doSaveAs( {event} ) with {self.modified()}" )
 
         if self.modified():
             saveAsFilepath = asksaveasfilename( parent=self )
@@ -2192,14 +2249,16 @@ class TSVEditWindowAddon:
         """
         Called if the user requests a save from the GUI.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.doSave( {event} ) with {self.modified()}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.doSave( {event} ) with {self.modified()}" )
 
         if self.modified():
             if self.folderpath and self.filename:
                 filepath = os.path.join( self.folderpath, self.filename )
                 BibleOrgSysGlobals.backupAnyExistingFile( filepath, numBackups=4 )
                 allText = self._getEntireText() # from the displayed edit window
-                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"Writing {len(allText):,} characters to {filepath}" )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"Writing {len(allText):,} characters to {filepath}" )
                 with open( filepath, mode='wt', encoding='utf-8' ) as theFile:
                     theFile.write( allText )
                 self._rememberFileTimeAndSize()
@@ -2224,7 +2283,8 @@ class TSVEditWindowAddon:
             if not, the AutoSave folder is created in the home folder.
                 (Yes, this can result in old AutoSave files in the home folder.)
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doAutosave()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doAutosave()" )
 
         if self.modified():
             partialAutosaveFolderpath = self.folderpath if self.folderpath else BiblelatorGlobals.theApp.homeFolderpath
@@ -2246,7 +2306,8 @@ class TSVEditWindowAddon:
             and ( not os.path.isfile( lastDayFilepath ) \
             or datetime.fromtimestamp( os.stat( lastDayFilepath ).st_mtime ).date() != datetime.today().date() ):
             #or not self.filepath \
-                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "_doAutosave: saving daily file", lastDayFilepath )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "_doAutosave: saving daily file", lastDayFilepath )
                 shutil.copyfile( autosaveFilepath, lastDayFilepath ) # We save a copy of the PREVIOUS autosaved file
 
             # Now save this updated file
@@ -2284,7 +2345,8 @@ class TSVEditWindowAddon:
         """
         Open a pop-up text window with the current log displayed.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "_doViewLog()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "_doViewLog()" )
         if DEBUGGING_THIS_MODULE: BiblelatorGlobals.theApp.setDebugText( "doViewLog…" )
 
         filename = f"{makeSafeProgramName(PROGRAM_NAME)}_log.txt"
@@ -2306,7 +2368,8 @@ class TSVEditWindowAddon:
         """
         Display a help box.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doHelp( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = PROGRAM_NAME_VERSION
@@ -2323,7 +2386,8 @@ class TSVEditWindowAddon:
         """
         Display an about box.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doAbout( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "TSVEditWindowAddon._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = PROGRAM_NAME_VERSION
@@ -2339,7 +2403,8 @@ class TSVEditWindowAddon:
 
         Determines if we want/need to save any changes.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.doClose( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindowAddon.doClose( {event} )" )
 
         if self.modified():
             saveWork = False
@@ -2385,7 +2450,8 @@ class TSVEditWindow( TSVEditWindowAddon, ChildWindow ):
     def __init__( self, parentWindow, folderpath:str ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindow.__init__( pW={parentWindow}, fp={folderpath} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"TSVEditWindow.__init__( pW={parentWindow}, fp={folderpath} )" )
         self.folderpath = folderpath
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, f"TSVEditWindow __init__ {folderpath}" )
 
@@ -2477,7 +2543,8 @@ class TSVEditWindow( TSVEditWindowAddon, ChildWindow ):
         #self.loading = self.hadTextWarning = False
         ##self.lastTextChangeTime = time()
 
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindow.__init__ finished." )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "TSVEditWindow.__init__ finished." )
     # end of TSVEditWindow.__init__
 # end of TSVEditWindow class
 
@@ -2488,7 +2555,8 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -2508,7 +2576,8 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -2524,7 +2593,8 @@ def fullDemo() -> None:
 # end of TSVEditWindow.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

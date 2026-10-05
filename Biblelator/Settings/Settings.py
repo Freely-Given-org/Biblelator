@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # Settings.py
 #
@@ -49,7 +50,7 @@ uWProjectSettings class (Settings)
     loadUSFMMetadataInto( theUSFMBible )
 """
 from gettext import gettext as _
-from typing import Dict, Any
+from typing import Any
 import os.path
 import logging
 import configparser
@@ -69,7 +70,7 @@ from Biblelator.BiblelatorGlobals import APP_NAME
 from Biblelator.Settings.BiblelatorSettingsFunctions import SettingsVersion
 
 
-LAST_MODIFIED_DATE = '2020-05-08' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorSettings"
 PROGRAM_NAME = "Biblelator Settings"
 PROGRAM_VERSION = '0.46'
@@ -125,7 +126,8 @@ class Settings:
         """
         Load the settings file (if we found it).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "Settings.loadINI() from {!r}".format( self.settingsFilepath ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "Settings.loadINI() from {!r}".format( self.settingsFilepath ) )
 
         self.reset() # Creates self.data
         assert self.data
@@ -142,7 +144,8 @@ class Settings:
         Save all of the program settings to disk.
             They must have already been saved into self.data.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "Settings.saveINI() in {!r}".format( self.settingsFilepath ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "Settings.saveINI() in {!r}".format( self.settingsFilepath ) )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.data
             assert self.settingsFilepath
@@ -168,7 +171,8 @@ class Settings:
         """
         from BibleOrgSys.Formats.uWNotesBible import loadYAML
 
-        fnPrint( DEBUGGING_THIS_MODULE, f"Settings.loadYAML( {yamlFilepath} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"Settings.loadYAML( {yamlFilepath} )" )
         if yamlFilepath is None: yamlFilepath = self.settingsFilepath
 
         self.data = loadYAML( yamlFilepath )
@@ -190,7 +194,8 @@ class ApplicationSettings( Settings ):
 
         Try to find where the main settings file might be (if anywhere).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )".format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "ApplicationSettings.__init__( {!r}, {!r}, {!r}, {!r} )".format( homeFolderName, dataFolderName, settingsFolderName, settingsFilename ) )
         self.dataFolderName, self.settingsFolderName, self.settingsFilename = dataFolderName, settingsFolderName, settingsFilename
         # NOTE: Settings.__init__ is NOT called -- not needed
         self.objectNameString = 'Application Settings object'
@@ -203,11 +208,13 @@ class ApplicationSettings( Settings ):
         ourFolderpath1 = os.path.join( homeFolderName, dataFolderName )
         if os.path.isdir( ourFolderpath1 ) and os.access( ourFolderpath1, os.W_OK ):
             self.dataFolderpath = ourFolderpath1
-            dPrint( 'Info', DEBUGGING_THIS_MODULE, "ApplicationSettings.__init__: Found dataFolderpath = ", self.dataFolderpath )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 3:
+                dPrint( 'Info', DEBUGGING_THIS_MODULE, "ApplicationSettings.__init__: Found dataFolderpath = ", self.dataFolderpath )
             ourFolderpath2 = os.path.join( self.dataFolderpath, settingsFolderName )
             if os.path.isdir( ourFolderpath2 ) and os.access( ourFolderpath2, os.W_OK ):
                 self.settingsFolder = ourFolderpath2
-                dPrint( 'Info', DEBUGGING_THIS_MODULE, "ApplicationSettings.__init__: Found settingsFolder = ", self.settingsFolder )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 3:
+                    dPrint( 'Info', DEBUGGING_THIS_MODULE, "ApplicationSettings.__init__: Found settingsFolder = ", self.settingsFolder )
                 ourFilepath = os.path.join( ourFolderpath2, self.settingsFilename )
                 if os.path.isfile( ourFilepath ) and os.access( ourFilepath, os.W_OK ):
                     self.settingsFilepath = ourFilepath
@@ -243,7 +250,8 @@ class BiblelatorProjectSettings( Settings ):
         """
         Try to find where the settings file might be (if anywhere).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
         self.projectFolderpath = projectFolderpath
         self.objectNameString = 'Biblelator Project Settings object'
         self.objectTypeString = 'BiblelatorProjectSettings'
@@ -264,7 +272,8 @@ class BiblelatorProjectSettings( Settings ):
 
         Used when starting a new project.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )".format( projectName, projectAbbreviation ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.saveNameAndAbbreviation( {!r}, {!r} )".format( projectName, projectAbbreviation ) )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.data is None
 
@@ -277,10 +286,11 @@ class BiblelatorProjectSettings( Settings ):
     # end of BiblelatorProjectSettings.saveNameAndAbbreviation
 
 
-    def saveNewBookSettings( self, detailsDict:Dict[str,Any] ) -> None:
+    def saveNewBookSettings( self, detailsDict:dict[str,Any] ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.saveNewBookSettings( {} )".format( detailsDict ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.saveNewBookSettings( {} )".format( detailsDict ) )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.data is not None
 
@@ -297,7 +307,8 @@ class BiblelatorProjectSettings( Settings ):
         Using metadata from the project settings file,
             load the information into the given USFMBible object.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.loadUSFMMetadataInto( {} )".format( theUSFMBible ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BiblelatorProjectSettings.loadUSFMMetadataInto( {} )".format( theUSFMBible ) )
 
         self.loadINI() # Load the project settings into self.data
 
@@ -319,7 +330,8 @@ class uWProjectSettings( Settings ):
         """
         Try to find where the settings file might be (if anywhere).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "uWProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "uWProjectSettings.__init__( {!r} )".format( projectFolderpath ) )
         self.projectFolderpath = projectFolderpath
         self.objectNameString = 'uW Project Settings object'
         self.objectTypeString = 'uWProjectSettings'
@@ -370,7 +382,8 @@ class uWProjectSettings( Settings ):
         Using metadata from the manifest.yaml project settings file,
             load the information into the given USFMBible object.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"uWProjectSettings.loadUWMetadataInto( {theUSFMBible} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"uWProjectSettings.loadUWMetadataInto( {theUSFMBible} )" )
 
         self.loadYAML() # Load the project settings into self.data
         # dPrint( 'Info', DEBUGGING_THIS_MODULE, "Got", self.data.keys() )
@@ -400,7 +413,7 @@ def briefDemo() -> None:
     s = Settings()
     print( "New s", s )
 
-    s.settingsFilepath = '/mnt/SSDs/Bibles/English translations/unfoldingWordVersions/en_ust/manifest.yaml'
+    s.settingsFilepath = '/srv/Bibles/English translations/unfoldingWordVersions/en_ust/manifest.yaml'
     s.loadYAML()
     print( "Filled s", s )
 # end of Settings.briefDemo
@@ -414,8 +427,8 @@ def fullDemo() -> None:
     s = Settings()
     print( "New s", s )
 
-    for filepath in ( '/mnt/SSDs/Bibles/English translations/unfoldingWordVersions/en_ust/manifest.yaml',
-                      '/mnt/SSDs/Bibles/unfoldingWordHelps/en_ta/intro/toc.yaml',
+    for filepath in ( '/srv/Bibles/English translations/unfoldingWordVersions/en_ust/manifest.yaml',
+                      '/srv/Bibles/unfoldingWordHelps/en_ta/intro/toc.yaml',
                     ):
         s.settingsFilepath = filepath
         s.loadYAML()
@@ -423,7 +436,8 @@ def fullDemo() -> None:
 # end of Settings.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

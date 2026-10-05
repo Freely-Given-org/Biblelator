@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # LexiconResourceWindows.py
 #
@@ -50,7 +51,7 @@ from Biblelator.Windows.ChildWindows import ChildWindow
 
 
 
-LAST_MODIFIED_DATE = '2022-07-12' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "LexiconResourceWindows"
 PROGRAM_NAME = "Biblelator Lexicon Resource Windows"
 PROGRAM_VERSION = '0.46'
@@ -66,7 +67,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     def __init__( self, parentWindow ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"BibleLexiconResourceWindow.__init__( {parentWindow} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"BibleLexiconResourceWindow.__init__( {parentWindow} )" )
         self.lexiconWord = None
 
         ChildWindow.__init__( self, parentWindow, 'LexiconResource' )
@@ -104,7 +106,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
     def _createMenuBar( self ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._createMenuBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._createMenuBar()" )
 
         self.menubar = tk.Menu( self )
         #self['menu'] = self.menubar
@@ -167,7 +170,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Create a tool bar containing some helpful buttons at the top of the main window.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
 
         xPad, yPad = (6, 8) if BiblelatorGlobals.theApp.touchMode else (4, 4)
 
@@ -225,7 +229,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Leaves text box in disabled state. (Not user editable.)
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"updateLexiconWord( {newLexiconWord} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"updateLexiconWord( {newLexiconWord} )" )
 
         self.lexiconWord = newLexiconWord
         self.clearText() # Leaves the text box enabled
@@ -244,7 +249,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Display a help box.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._doHelp( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._doHelp( {} )".format( event ) )
         from Biblelator.Dialogs.Help import HelpBox
 
         helpInfo = PROGRAM_NAME_VERSION
@@ -261,7 +267,8 @@ class BibleLexiconResourceWindow( ChildWindow, ChildBoxAddon ):
         """
         Display an about box.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._doAbout( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleLexiconResourceWindow._doAbout( {} )".format( event ) )
         from Biblelator.Dialogs.About import AboutBox
 
         aboutInfo = PROGRAM_NAME_VERSION
@@ -278,7 +285,8 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -302,7 +310,8 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -322,7 +331,8 @@ def fullDemo() -> None:
 # end of fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # AutocompleteFunctions.py
 #
@@ -51,10 +52,10 @@ from Biblelator.Windows.TextBoxes import TRAILING_SPACE_SUBSTITUTE, MULTIPLE_SPA
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint, LARGE_DUMMY_VALUE
 #from BibleOrgSys.Internals.InternalBibleInternals import BOS_PRINTABLE_MARKERS, BOS_EXTRA_TYPES
-from BibleOrgSys.Reference.USFM3Markers import USFM_PRINTABLE_MARKERS
+# from BibleOrgSys.Reference.USFM3Markers import USFM_PRINTABLE_MARKERS
+from usfm_markers_py import USFM_PRINTABLE_MARKERS
 
-
-LAST_MODIFIED_DATE = '2022-07-03' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "AutocompleteFunctions"
 PROGRAM_NAME = "Biblelator Autocomplete Functions"
 PROGRAM_VERSION = '0.46'
@@ -295,7 +296,8 @@ def countBookWords( BBB, internalBible, filename, isCurrentBook, internalMarkers
                 lastMarker = marker
 
         except UnicodeError as err:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Unicode error:", sys.exc_info()[0], err )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Unicode error:", sys.exc_info()[0], err )
             logging.critical( "countBookWords: Invalid line in {} -- line ignored at #{}".format( USFMFilepath, lineCount) )
             if lineCount > 1: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'Previous line was: ', lastLine )
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, line )
@@ -360,7 +362,8 @@ def loadBibleBookAutocompleteWords( editWindowObject ):
                     autocompleteWords.append( word )
                 #else: vPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'loadBibleBookAutocompleteWords discarding', repr(word) )
     except KeyError:
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Why did {} have no words???".format( currentBBB ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Why did {} have no words???".format( currentBBB ) )
         #pass # Nothing for this book
     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'autocompleteWords', len(autocompleteWords) )
     setAutocompleteWords( editWindowObject, autocompleteWords )
@@ -387,21 +390,24 @@ def loadBibleAutocompleteWords( editWindowObject ):
 
     global internalMarkers
     if internalMarkers is None: # Get our list of markers -- note that the more common note markers are first
-        internalMarkers = BibleOrgSysGlobals.loadedUSFMMarkers.getNoteMarkersList() \
-            + BibleOrgSysGlobals.loadedUSFMMarkers.getCharacterMarkersList( includeBackslash=False, includeEndMarkers=False, includeNestedMarkers=True, expandNumberableMarkers=True )
+        internalMarkers = usfm_markers_py.getNoteMarkersList() \
+            + usfm_markers_py.getCharacterMarkersList( include_backslash=False, include_end_markers=False, include_nested_markers=True, expand_numberable_markers=True )
         internalMarkers = ['\\'+marker for marker in internalMarkers]
 
     BiblelatorGlobals.theApp.setWaitStatus( _("Loading {} Bible words…").format( editWindowObject.projectName ) )
     currentBBB = editWindowObject.currentVerseKey.getBBB()
-    vPrint( 'Never', DEBUGGING_THIS_MODULE, "  got current BBB", repr(currentBBB) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, "  got current BBB", repr(currentBBB) )
 
     if not editWindowObject.internalBible.preloadDone: editWindowObject.internalBible.preload()
     bookWordCounts = {}
     if editWindowObject.internalBible.maximumPossibleFilenameTuples:
         if BibleOrgSysGlobals.maxProcesses > 1: # Load all the books as quickly as possible
             parameters = [(BBB,editWindowObject.internalBible,filename,BBB==currentBBB,internalMarkers) for BBB,filename in editWindowObject.internalBible.maximumPossibleFilenameTuples] # Can only pass a single parameter to map
-            vPrint( 'Normal', DEBUGGING_THIS_MODULE, "Autocomplete: loading up to {} USFM books using {} processes…".format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
-            vPrint( 'Normal', DEBUGGING_THIS_MODULE, "  NOTE: Outputs (including error & warning messages) from loading words from BibleOrgSys.Bible books may be interspersed." )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 2:
+                vPrint( 'Normal', DEBUGGING_THIS_MODULE, "Autocomplete: loading up to {} USFM books using {} processes…".format( len(editWindowObject.internalBible.maximumPossibleFilenameTuples), BibleOrgSysGlobals.maxProcesses ) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 2:
+                vPrint( 'Normal', DEBUGGING_THIS_MODULE, "  NOTE: Outputs (including error & warning messages) from loading words from BibleOrgSys.Bible books may be interspersed." )
             BibleOrgSysGlobals.alreadyMultiprocessing = True
             with multiprocessing.Pool( processes=BibleOrgSysGlobals.maxProcesses ) as pool: # start worker processes
                 results = pool.map( countBookWordsHelper, parameters ) # have the pool do our loads
@@ -440,7 +446,7 @@ def loadBibleAutocompleteWords( editWindowObject ):
             autocompleteWords.append( word )
         #else:
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'loadBibleAutocompleteWords discarding', repr(word) )
-            #if ' ' not in word: halt
+            #if ' ' not in word: assert False, "We want to stop here"
     #dPrint( 'Never', DEBUGGING_THIS_MODULE, 'acW', autocompleteWords )
 
     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'autocompleteWords', len(autocompleteWords) )
@@ -630,8 +636,9 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
                 elif code == '7': generatedWords.append( word + 'able' )
                 elif BibleOrgSysGlobals.debugFlag:
                     vPrint( 'Quiet', DEBUGGING_THIS_MODULE, lineCount, "code", code, "for", repr(word), repr(codes) )
-                    halt
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  generated", generatedWords, 'from', repr(word), repr(codes) )
+                    assert False, "We want to stop here"
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  generated", generatedWords, 'from', repr(word), repr(codes) )
             autocompleteWords.extend( generatedWords )
 
             #lastLine = line
@@ -639,7 +646,8 @@ def loadHunspellAutocompleteWords( editWindowObject, dictionaryFilepath, encodin
     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'acW', len(autocompleteWords), autocompleteWords )
 
     if editWindowObject.autocompleteMinLength < 4:
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
     editWindowObject.addAllNewWords = False
@@ -700,7 +708,8 @@ def loadILEXAutocompleteWords( editWindowObject, dictionaryFilepath, lgCodes=Non
     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'acW', len(autocompleteWords), autocompleteWords )
 
     if editWindowObject.autocompleteMinLength < 4:
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "NOTE: Lengthened autocompleteMinLength from {} to {}".format( editWindowObject.autocompleteMinLength, 4 ) )
         editWindowObject.autocompleteMinLength = 4 # Show the window after this many characters have been typed
     setAutocompleteWords( editWindowObject, autocompleteWords )
     editWindowObject.addAllNewWords = False
@@ -887,7 +896,8 @@ def briefDemo() -> None:
     Demo program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -907,7 +917,8 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -923,7 +934,8 @@ def fullDemo() -> None:
 # end of AutocompleteFunctions.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

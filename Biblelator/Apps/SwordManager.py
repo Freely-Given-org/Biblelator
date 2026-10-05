@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # SwordManager.py
 #
@@ -41,7 +42,7 @@ from tkinter.ttk import Style, Frame, Button, Scrollbar, Label, Notebook
 from tkinter.scrolledtext import ScrolledText
 
 # BibleOrgSys imports
-sys.path.append( '../BibleOrgSys/' )
+# sys.path.append( '../BibleOrgSys/' )
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisationalSystem
@@ -50,6 +51,7 @@ from BibleOrgSys.Reference.BibleOrganisationalSystems import BibleOrganisational
 from BibleOrgSys.Reference.BibleStylesheets import BibleStylesheet
 from BibleOrgSys.Formats.SwordResources import SwordType, SwordInterface
 from BibleOrgSys.Online.SwordInstallManager import SwordInstallManager
+import bos_books_codes_py
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -76,7 +78,7 @@ from Biblelator.Windows.ChildWindows import ChildWindows
 from Biblelator.Windows.TextEditWindow import TextEditWindow
 
 
-LAST_MODIFIED_DATE = '2020-05-01' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "SwordManager"
 PROGRAM_NAME = "Sword Manager"
 PROGRAM_VERSION = '0.06' # Separate versioning from Biblelator
@@ -105,7 +107,8 @@ class SwordManager( Frame ):
 
         Creates the main menu and toolbar which includes the main BCV (book/chapter/verse) selector.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.__init__( {}, {}, {}, … )".format( rootWindow, homeFolderpath, loggingFolderpath ) )
         self.rootWindow, self.homeFolderpath, self.loggingFolderpath, self.iconImage, self.settings = rootWindow, homeFolderpath, loggingFolderpath, iconImage, settings
         self.isStarting = True
 
@@ -126,8 +129,10 @@ class SwordManager( Frame ):
         self.lexiconWord = None
         self.currentProject = None
 
-        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Button default font", Style().lookup('TButton', 'font') )
-        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Label default font", Style().lookup('TLabel', 'font') )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Button default font", Style().lookup('TButton', 'font') )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Label default font", Style().lookup('TLabel', 'font') )
 
         # We rely on the parseAndApplySettings() call below to do this
         ## Set-up our Bible system and our callables
@@ -173,7 +178,8 @@ class SwordManager( Frame ):
             centreWindow( self.rootWindow, *initialMainSize.split( 'x', 1 ) )
 
         if self.touchMode:
-            vPrint( 'Normal', DEBUGGING_THIS_MODULE, _("Touch mode enabled!") )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 2:
+                vPrint( 'Normal', DEBUGGING_THIS_MODULE, _("Touch mode enabled!") )
             self.createTouchMenuBar()
             self.createTouchNavigationBar()
         else: # assume it's regular desktop mode
@@ -204,7 +210,8 @@ class SwordManager( Frame ):
         We usually use a fairly generic BibleOrganisationalSystem (BOS) to ensure
             that it contains all the books that we might ever want to navigate to.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "setGenericBibleOrganisationalSystem( {} )".format( BOSname ) )
 
         # Set-up our Bible system and our callables
         self.genericBibleOrganisationalSystem = BibleOrganisationalSystem( self.genericBibleOrganisationalSystemName )
@@ -228,7 +235,7 @@ class SwordManager( Frame ):
         self.bookNumberTable = {}
         for j,BBB in enumerate(self.genericBookList):
             k = j + 1 - self.offsetGenesis
-            nBBB = BibleOrgSysGlobals.loadedBibleBooksCodes.getReferenceNumber( BBB )
+            nBBB = bos_books_codes_py.get_reference_number_py( BBB )
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, BBB, nBBB )
             self.bookNumberTable[k] = BBB
             self.bookNumberTable[BBB] = k
@@ -239,7 +246,8 @@ class SwordManager( Frame ):
     def createNormalMenuBar( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createNormalMenuBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createNormalMenuBar()" )
 
         #self.win = Toplevel( self )
         self.menubar = tk.Menu( self.rootWindow )
@@ -290,7 +298,8 @@ class SwordManager( Frame ):
     def createTouchMenuBar( self ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createTouchMenuBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createTouchMenuBar()" )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.touchMode
 
@@ -301,7 +310,8 @@ class SwordManager( Frame ):
     def createNormalNavigationBar( self ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createNormalNavigationBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createNormalNavigationBar()" )
 
         return
 
@@ -410,7 +420,8 @@ class SwordManager( Frame ):
     def createTouchNavigationBar( self ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createTouchNavigationBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createTouchNavigationBar()" )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert self.touchMode
 
@@ -539,7 +550,8 @@ class SwordManager( Frame ):
         """
         Create a tool bar containing several helpful buttons at the top of the main window.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
 
         return
 
@@ -567,14 +579,16 @@ class SwordManager( Frame ):
     def createNotebook( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createToolBar()" )
 
         self.notebook = Notebook( self )
 
         # Adding Frames as pages for the ttk.Notebook
 
         # Sources page
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create sources page" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create sources page" )
         if self.repoDict is None:
             self.repoDict = {}
             for repoName,repoData in self.SwIM.downloadSources.items():
@@ -614,7 +628,8 @@ class SwordManager( Frame ):
             e2.grid( row=j+1, column=7, sticky=tk.W )
 
         # Folders page
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create folders page" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create folders page" )
         self.foldersPage = Frame( self.notebook )
         foldersLabel = Label( self.foldersPage, text="Install folder(s)" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
@@ -649,24 +664,28 @@ class SwordManager( Frame ):
 
 
         # Folders page
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create install page" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create install page" )
         self.installPage = Frame( self.notebook )
         foldersLabel = Label( self.installPage, text="Install new module(s)" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
 
         # Folders page
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create update page" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create update page" )
         self.updatePage = Frame( self.notebook )
         foldersLabel = Label( self.updatePage, text="Update module(s)" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
 
         # Folders page
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create modules page" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Create modules page" )
         self.modulesPage = Frame( self.notebook )
         foldersLabel = Label( self.modulesPage, text="View modules" )
         foldersLabel.grid( row=0, column=0, columnspan=2 )
 
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Add all pages" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Add all pages" )
         self.notebook.add( self.sourcesPage, text=_("Sources") )
         self.notebook.add( self.foldersPage, text=_("Folders") )
         self.notebook.add( self.installPage, text=_("Install new") )
@@ -690,7 +709,8 @@ class SwordManager( Frame ):
         """
         Create a debug tool bar containing several additional buttons at the top of the main window.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createDebugToolBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createDebugToolBar()" )
 
         xPad, yPad = (6, 8) if self.touchMode else (2, 2)
 
@@ -711,7 +731,8 @@ class SwordManager( Frame ):
         """
         Create a status bar containing only one text label at the bottom of the main window.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createStatusBar()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createStatusBar()" )
 
         #Style().configure( 'StatusBar.TLabel', background='pink' )
         #Style().configure( 'StatusBar.TLabel', background='DarkOrange1' )
@@ -730,7 +751,8 @@ class SwordManager( Frame ):
     def createMainKeyboardBindings( self ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "createMainKeyboardBindings()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "createMainKeyboardBindings()" )
 
         self.myKeyboardBindingsList = []
         for name,command in ( ('Help',self._doHelp),
@@ -780,7 +802,8 @@ class SwordManager( Frame ):
         """
         Set (or clear) the status bar text.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "setStatus( {!r} )".format( newStatusText ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "setStatus( {!r} )".format( newStatusText ) )
 
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "SB is", repr( self.statusTextVariable.get() ) )
         if newStatusText != self.statusTextVariable.get(): # it's changed
@@ -799,7 +822,8 @@ class SwordManager( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "setErrorStatus( {!r} )".format( newStatusText ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "setErrorStatus( {!r} )".format( newStatusText ) )
 
         #self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -812,7 +836,8 @@ class SwordManager( Frame ):
         """
         Set the status bar text and change the cursor to the wait/hourglass cursor.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "setWaitStatus( {!r} )".format( newStatusText ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "setWaitStatus( {!r} )".format( newStatusText ) )
 
         self.rootWindow.configure( cursor='watch' ) # 'wait' can only be used on Windows
         #self.statusTextLabel.configure( style='StatusBar.TLabelWait' )
@@ -895,7 +920,8 @@ class SwordManager( Frame ):
         """
         """
         enteredText = self.foldersSearch.get()
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchCode( {}, {!r} )").format( event, enteredText ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, _("searchCode( {}, {!r} )").format( event, enteredText ) )
         if DEBUGGING_THIS_MODULE: self.setDebugText( "searchCode…" )
 
         if not enteredText: return
@@ -922,14 +948,16 @@ class SwordManager( Frame ):
     def gotoNewCode( self, event=None ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "gotoNewCode( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "gotoNewCode( {} )".format( event ) )
         if DEBUGGING_THIS_MODULE: self.setDebugText( "gotoNewCode…" )
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'You selected items: %s'%[self.codesListbox.get(int(i)) for i in self.codesListbox.curselection()] )
 
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "code cursel", repr(self.codesListbox.curselection()) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "code cursel", repr(self.codesListbox.curselection()) )
         index = int( self.codesListbox.curselection()[0] ) # Top one selected
         self.BBB = self.codesListbox.get( index )
-        codeDict =  BibleOrgSysGlobals.loadedBibleBooksCodes._getFullEntry( self.BBB )
+        codeDict =  bos_books_codes_py.get_full_entry( self.BBB )
 
         # Clear the text box
         self.codeTextBox.configure( state=tk.NORMAL )
@@ -968,7 +996,8 @@ class SwordManager( Frame ):
         """
         Open a pop-up text window with the current log displayed.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "_doViewLog()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "_doViewLog()" )
         if DEBUGGING_THIS_MODULE: self.setDebugText( "_doViewLog…" )
 
         self.setWaitStatus( _("_doViewLog…") )
@@ -991,7 +1020,8 @@ class SwordManager( Frame ):
         """
         Pop-up dialog giving goto/reference info.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.doGotoInfo( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.doGotoInfo( {} )".format( event ) )
 
         infoString = 'Current location:\n' \
                  + '\nBible Organisational System (BOS):\n' \
@@ -1017,7 +1047,8 @@ class SwordManager( Frame ):
         Display a help box.
         """
         from Biblelator.Dialogs.Help import HelpBox
-        fnPrint( DEBUGGING_THIS_MODULE, "_doHelp()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "_doHelp()" )
 
         helpInfo = PROGRAM_NAME_VERSION
         helpInfo += "\n\nBasic instructions:"
@@ -1041,7 +1072,8 @@ class SwordManager( Frame ):
             collect other useful settings, etc.,
             and then send it all somewhere.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "doSubmitBug()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "doSubmitBug()" )
 
         if not self.internetAccessEnabled: # we need to warn
             showError( self, SHORT_PROGRAM_NAME, 'You need to allow Internet access first!' )
@@ -1060,7 +1092,8 @@ class SwordManager( Frame ):
         Display an about box.
         """
         from Biblelator.Dialogs.About import AboutBox
-        fnPrint( DEBUGGING_THIS_MODULE, "_doAbout()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "_doAbout()" )
 
         aboutInfo = PROGRAM_NAME_VERSION
         aboutInfo += "\nA display manager for Sword (from CrossWire) Bible modules." \
@@ -1092,7 +1125,8 @@ class SwordManager( Frame ):
         """
         Save files first, and then close child windows.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.doCloseMyChildWindows()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.doCloseMyChildWindows()" )
 
         # Try to close edit windows first coz they might have work to save
         for appWin in self.childWindows.copy():
@@ -1123,8 +1157,10 @@ class SwordManager( Frame ):
         """
         Save files first, and then end the application.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.doCloseMe()" )
-        vPrint( 'Verbose', DEBUGGING_THIS_MODULE, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "SwordManager.doCloseMe()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 4:
+            vPrint( 'Verbose', DEBUGGING_THIS_MODULE, _("{} is closing down…").format( SHORT_PROGRAM_NAME ) )
 
         #writeSettingsFile( self )
         if self.doCloseMyChildWindows():
@@ -1140,7 +1176,8 @@ def openSwordManager( parent ) -> None:
 
     This is used when the Sword Manager is used inside another program.
     """
-    vPrint( 'Never', DEBUGGING_THIS_MODULE, _("SwordManager.openSwordManager( {} )").format( parent ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+        vPrint( 'Never', DEBUGGING_THIS_MODULE, _("SwordManager.openSwordManager( {} )").format( parent ) )
 
     myWin = tk.Toplevel( parent )
     application = SwordManager( myWin, parent.homeFolderpath, parent.loggingFolderpath, parent.iconImage, parent.settings )
@@ -1238,7 +1275,8 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if 'python' in line and PROGRAM_NAME+'.py' in line:
-                dPrint( 'Verbose', DEBUGGING_THIS_MODULE, 'Found in ps xa:', repr(line) )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 4:
+                    dPrint( 'Verbose', DEBUGGING_THIS_MODULE, 'Found in ps xa:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "ps xa got error: {}".format( programErrorOutputString ) )
     elif sys.platform in ( 'win32', 'win64', ):
@@ -1251,7 +1289,8 @@ def main( homeFolderpath, loggingFolderpath ) -> None:
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, 'processes', repr(programOutputString) )
         for line in programOutputString.split( '\n' ):
             if PROGRAM_NAME+'.py' in line:
-                dPrint( 'Verbose', DEBUGGING_THIS_MODULE, 'Found in tasklist:', repr(line) )
+                if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 4:
+                    dPrint( 'Verbose', DEBUGGING_THIS_MODULE, 'Found in tasklist:', repr(line) )
                 numInstancesFound += 1
         if programErrorOutputString: logging.critical( "tasklist got error: {}".format( programErrorOutputString ) )
     else: logging.critical( "Don't know how to check for already running instances in {}/{}.".format( sys.platform, os.name ) )
@@ -1293,7 +1332,7 @@ def run() -> None:
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, loggingFolderpath=loggingFolderpath )
     parser.add_argument( '-o', '--override', type=str, metavar='INIFilename', dest='override', help="override use of Biblelator.ini set-up" )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
-    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, BibleOrgSysGlobals.commandLineArguments ); halt
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, BibleOrgSysGlobals.commandLineArguments ); assert False, "We want to stop here"
 
     if BibleOrgSysGlobals.debugFlag:
         vPrint( 'Quiet', DEBUGGING_THIS_MODULE, _("Platform is"), sys.platform ) # e.g., 'linux,'win32'

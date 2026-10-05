@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # BiblelatorGlobals.py
 #
@@ -46,7 +47,7 @@ from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
-LAST_MODIFIED_DATE = '2022-07-18' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorGlobals"
 PROGRAM_NAME = "Biblelator Globals"
 PROGRAM_VERSION = '0.47' # This is the version number that will be displayed inside the app
@@ -155,7 +156,7 @@ DEFAULT_KEY_BINDING_DICT = {
     _('About'):('F12','<F12>'),
     _('Close'):('Ctrl+F4','<Control-F4>'),
     _('Quit'):('Alt+F4','<Alt-F4>'), }
-#dPrint( 'Quiet', DEBUGGING_THIS_MODULE, DEFAULT_KEY_BINDING_DICT ); halt
+#dPrint( 'Quiet', DEBUGGING_THIS_MODULE, DEFAULT_KEY_BINDING_DICT ); assert False, "We want to stop here"
 
 
 
@@ -187,7 +188,7 @@ def parseWindowGeometry( geometry ):
         being width, height, xOffset, yOffset
     return a list containing the four integer values.
     """
-    m = re.match("(\d+)x(\d+)\+(-?\d+)\+(-?\d+)", geometry)
+    m = re.match("(\\d+)x(\\d+)\+(-?\d+)\+(-?\d+)", geometry)
     if not m:
         raise ValueError( "parseWindowGeometry: failed to parse geometry string {!r}".format( geometry ) )
     return [int(digits) for digits in m.groups()]
@@ -199,7 +200,7 @@ def parseWindowSize( geometry ):
     Given a TKinter geometry string, e,g., 493x152 (being width, height)
     return a list containing the two integer values.
     """
-    m = re.match("(\d+)x(\d+)", geometry)
+    m = re.match("(\\d+)x(\\d+)", geometry)
     if not m:
         raise ValueError( "parseWindowSize: failed to parse geometry string {!r}".format( geometry ) )
     return [int(digits) for digits in m.groups()]
@@ -269,15 +270,21 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
     p1, p2 = parseWindowGeometry( g1 ), parseWindowGeometry( g2 )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
 
     #tkRootWindow = Tk()
     #tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -300,15 +307,21 @@ def fullDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometry( 123, 234, 345, 456 ) = {}".format( assembleWindowGeometry( 123, 234, 345, 456 ) ) )
     g1, g2 = "493x152+820+491", "493x123+-119+9"
     p1, p2 = parseWindowGeometry( g1 ), parseWindowGeometry( g2 )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
-    vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g1, p1 ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p1, assembleWindowGeometryFromList( p1 ) ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "parseWindowGeometry( {} ) = {}".format( g2, p2 ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "assembleWindowGeometryFromList( {} ) = {}".format( p2, assembleWindowGeometryFromList( p2 ) ) )
 
     #tkRootWindow = Tk()
     #tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -325,7 +338,8 @@ def fullDemo() -> None:
 # end of BiblelatorGlobals.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

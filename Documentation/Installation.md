@@ -1,7 +1,7 @@
 Biblelator Installation
 =======================
 
-Last updated: 2018-02-16 RJH
+Last updated: 2022-10-17 RJH
 
 
 Please see the document DevelopmentPrinciples.md for information about the design decisions
@@ -16,8 +16,9 @@ follow my own instructions on a different computer.
 
 1. Install Python3
 
-    Biblelator uses Python3 (it's currently being developed on Python 3.6
-        but will probably run on most relatively recent versions of Python3.
+    Biblelator uses Python3 -- it's currently being developed on Python 3.10
+        (and tested on the forthcoming Python 3.11)
+        but will probably run on most relatively recent versions of Python3.9.
 
     To see if Python3 is installed on your computer,
         open a terminal or command prompt window on your system and enter:

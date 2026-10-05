@@ -117,7 +117,7 @@ and change `internetAccess` to `Enabled`.
 While there, you might as well update the `currentUserName` and other entries
 under `[Users]`.
 
-The other auxilliary apps included are `BiblelatorSettingsEditor`,
+The other auxiliary apps included are `BiblelatorSettingsEditor`,
 `BOSManager` (for inspecting Bible Organisational Systems), and
 `SwordManager` for viewing
 and downloading [Sword](https://crosswire.org/sword/index.jsp) modules.

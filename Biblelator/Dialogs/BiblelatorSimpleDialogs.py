@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # BiblelatorSimpleDialogs.py
 #
@@ -43,7 +44,7 @@ from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 from Biblelator import BiblelatorGlobals
 
 
-LAST_MODIFIED_DATE = '2022-07-18'
+LAST_MODIFIED_DATE = '2026-10-06'
 SHORT_PROGRAM_NAME = "BiblelatorSimpleDialogs"
 PROGRAM_NAME = "Biblelator simple dialogs"
 PROGRAM_VERSION = '0.47'
@@ -57,7 +58,8 @@ DEBUGGING_THIS_MODULE = False
 def showError( parentWindow, title:str, errorText:str ) -> None:
     """
     """
-    fnPrint( DEBUGGING_THIS_MODULE, f"showError( {parentWindow}, '{title}', '{errorText}' )…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, f"showError( {parentWindow}, '{title}', '{errorText}' )…" )
 
     logging.error( f'{title}: {errorText}' )
     BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after error…") )
@@ -69,7 +71,8 @@ def showError( parentWindow, title:str, errorText:str ) -> None:
 def showWarning( parentWindow, title, warningText ):
     """
     """
-    fnPrint( DEBUGGING_THIS_MODULE, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "showWarning( {}, {!r}, {!r} )".format( parentWindow, title, warningText ) )
 
     logging.warning( '{}: {}'.format( title, warningText ) )
     BiblelatorGlobals.theApp.setStatus( _("Waiting for user input after warning…") )
@@ -81,7 +84,8 @@ def showWarning( parentWindow, title, warningText ):
 def showInfo( parentWindow, title, infoText ):
     """
     """
-    fnPrint( DEBUGGING_THIS_MODULE, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+        fnPrint( DEBUGGING_THIS_MODULE, "showInfo( {}, {!r}, {!r} )".format( parentWindow, title, infoText ) )
     if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
         infoText += '\n\nWindow parameters:\n'
         for configKey, configTuple  in sorted(parentWindow.configure().items()): # Append the parentWindow window config info
@@ -107,7 +111,8 @@ def briefDemo() -> None:
     Main program to handle command line parameters and then run what they want.
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -134,7 +139,8 @@ def fullDemo() -> None:
     Full demo to check class is working
     """
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = tk.Tk()
     tkRootWindow.title( PROGRAM_NAME_VERSION )
@@ -157,7 +163,8 @@ def fullDemo() -> None:
 # end of BiblelatorSimpleDialogs.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

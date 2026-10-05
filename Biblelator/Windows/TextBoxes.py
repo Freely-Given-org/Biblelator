@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# -\*- coding: utf-8 -\*-
+# SPDX-License-Identifier: MPL-2.0
 #
 # TextBoxes.py
 #
@@ -105,7 +106,6 @@ Base widgets to allow display and manipulation of
     fullDemo()
 """
 from gettext import gettext as _
-from typing import Optional
 import logging
 
 import tkinter as tk
@@ -119,10 +119,11 @@ from markdown import markdown
 # BibleOrgSys imports
 from BibleOrgSys import BibleOrgSysGlobals
 from BibleOrgSys.BibleOrgSysGlobals import fnPrint, vPrint, dPrint
-from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntry
+# from BibleOrgSys.Internals.InternalBibleInternals import InternalBibleEntry
 from BibleOrgSys.Reference.VerseReferences import SimpleVerseKey
 from BibleOrgSys.Reference.BibleStylesheets import DEFAULT_FONTNAME, DEFAULT_FONTSIZE
 from BibleOrgSys.OriginalLanguages.HebrewWLCBible import ORIGINAL_MORPHEME_BREAK_CHAR, OUR_MORPHEME_BREAK_CHAR
+from bible_organisational_system import InternalBibleEntry
 
 # Biblelator imports
 if __name__ == '__main__':
@@ -136,7 +137,7 @@ from Biblelator.BiblelatorGlobals import APP_NAME, tkSTART, DEFAULT, errorBeep, 
 from Biblelator.Dialogs.BiblelatorSimpleDialogs import showError, showInfo
 
 
-LAST_MODIFIED_DATE = '2022-07-17' # by RJH
+LAST_MODIFIED_DATE = '2026-10-06' # by RJH
 SHORT_PROGRAM_NAME = "BiblelatorTextBoxes"
 PROGRAM_NAME = "Biblelator specialised text widgets"
 PROGRAM_VERSION = '0.47'
@@ -233,7 +234,8 @@ class HTMLTextBox( BText ):
     def __init__( self, *args, **kwargs ):
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox.__init__( {args}, {kwargs} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox.__init__( {args}, {kwargs} )" )
         super().__init__( *args, **kwargs ) # initialise the base class
 
         standardFont = DEFAULT_FONTNAME + ' 12'
@@ -316,7 +318,8 @@ class HTMLTextBox( BText ):
     def insert( self, point, iText ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox.insert( {point}, {len(iText)} chars )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox.insert( {point}, {len(iText)} chars )" )
 
         if point != tk.END:
             logging.critical( "HTMLTextBox.insert " + _("doesn't know how to insert at {}").format( repr(point) ) )
@@ -361,7 +364,8 @@ class HTMLTextBox( BText ):
                                 lastTag = tag
                         # dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"{combinedFormats=}" )
                         if combinedFormats and combinedFormats not in self.styleDict:
-                            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Missing HTML format: {combinedFormats=} {currentFormatTags=} {currentHTMLTags=}" )
+                            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+                                dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Missing HTML format: {combinedFormats=} {currentFormatTags=} {currentHTMLTags=}" )
                             #try: dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "   on", repr(remainingText[:ix]) )
                             #except UnicodeEncodeError: pass
                         insertText = remainingText[:ix]
@@ -477,7 +481,8 @@ class HTMLTextBox( BText ):
         """
         Give a mouse event, get the URL underneath it.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox._getURL( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox._getURL( {event} )" )
 
         # get the index of the mouse cursor from the event.x and y attributes
         xy = '@{0},{1}'.format( event.x, event.y )
@@ -499,7 +504,8 @@ class HTMLTextBox( BText ):
         """
         Handle a click on a hyperlink.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox.openHyperlink( {event} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"HTMLTextBox.openHyperlink( {event} )" )
         URL = self._getURL( event )
 
         #if BibleOrgSysGlobals.debugFlag: # Find the range of the tag nearest the index
@@ -646,7 +652,8 @@ class CallbackAddon():
         Called (set-up as a call-back function) whenever the entry cursor changes
             either with a mouse click or arrow keys.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "CallbackAddon.onTextChange( {}, {} )".format( repr(result), args ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "CallbackAddon.onTextChange( {}, {} )".format( repr(result), args ) )
 
         #if 0: # Get line and column info
             #lineColumn = self.index( tk.INSERT )
@@ -668,7 +675,7 @@ class CallbackAddon():
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN4", tagNames4 )
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN5", tagNames5 )
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "tN6", tagNames6 )
-                #halt
+                #assert False, "We want to stop here"
 
         #if 0: # show various mark strategies
             #mark1 = self.mark_previous( tk.INSERT )
@@ -769,7 +776,8 @@ class CustomText( CallbackAddon, BText ):
 
         # Adapted from http://stackoverflow.com/questions/4028446/python-tkinter-help-menu
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "CustomText.highlightPattern( {}, {}, start={}, end={}, regexp={} )".format( pattern, styleTag, startAt, endAt, regexpFlag ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "CustomText.highlightPattern( {}, {}, start={}, end={}, regexp={} )".format( pattern, styleTag, startAt, endAt, regexpFlag ) )
 
         countVar = tk.IntVar()
         matchEnd = startAt
@@ -794,7 +802,8 @@ class CustomText( CallbackAddon, BText ):
             tagName
             tagDict, e.g, {"background":"red"}
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "CustomText.highlightAllPatterns( {} )".format( patternCollection ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "CustomText.highlightAllPatterns( {} )".format( patternCollection ) )
 
         for regexpFlag, pattern, tagName, tagDict in patternCollection:
             self.tag_configure( tagName, **tagDict )
@@ -811,7 +820,8 @@ class ChildBoxAddon():
     def __init__( self, parentWindow ) -> None:
         """
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.__init__( {} )".format( parentWindow ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.__init__( {} )".format( parentWindow ) )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert parentWindow
         self.parentWindow = parentWindow
@@ -819,7 +829,8 @@ class ChildBoxAddon():
         self.myKeyboardBindingsList = []
         if BibleOrgSysGlobals.debugFlag: self.myKeyboardShortcutsList = [] # Just for catching setting of duplicates
 
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.__init__ finished." )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.__init__ finished." )
     # end of ChildBoxAddon.__init__
 
 
@@ -850,7 +861,8 @@ class ChildBoxAddon():
         """
         Create keyboard bindings for this widget.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
@@ -877,14 +889,16 @@ class ChildBoxAddon():
         """
         Copy the selected text onto the clipboard.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.doCopy( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.doCopy( {} )".format( event ) )
 
         if not self.textBox.tag_ranges( tk.SEL ):       # save in cross-app clipboard
             errorBeep()
             showError( self, APP_NAME, _("No text selected") )
         else:
             copyText = self.textBox.get( tk.SEL_FIRST, tk.SEL_LAST)
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  copied text", repr(copyText) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  copied text", repr(copyText) )
             self.clipboard_clear()
             self.clipboard_append( copyText )
     # end of ChildBoxAddon.doCopy
@@ -894,7 +908,8 @@ class ChildBoxAddon():
         """
         Select all the text in the text box.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.doSelectAll( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.doSelectAll( {} )".format( event ) )
 
         self.textBox.tag_add( tk.SEL, tkSTART, tk.END+'-1c' )   # select entire text
         self.textBox.mark_set( tk.INSERT, tkSTART )          # move insert point to top
@@ -906,7 +921,8 @@ class ChildBoxAddon():
         """
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'ChildBoxAddon doGotoWindowLine {}'.format( forceline ) )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doGotoWindowLine( {}, {} )".format( event, forceline ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doGotoWindowLine( {}, {} )".format( event, forceline ) )
 
         line = forceline or askinteger( APP_NAME, _("Enter line number") )
         self.textBox.update()
@@ -929,7 +945,8 @@ class ChildBoxAddon():
         """
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'ChildBoxAddon doBoxFind {!r}'.format( lastkey ) )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doBoxFind( {}, {!r} )".format( event, lastkey ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doBoxFind( {}, {!r} )".format( event, lastkey ) )
 
         key = lastkey or askstring( APP_NAME, _("Enter search string"), parent=self )
         self.textBox.update()
@@ -955,7 +972,8 @@ class ChildBoxAddon():
         """
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'ChildBoxAddon doBoxRefind' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doBoxRefind( {} ) for {!r}".format( event, self.lastfind ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doBoxRefind( {} ) for {!r}".format( event, self.lastfind ) )
 
         self.doBoxFind( lastkey=self.lastfind )
     # end of ChildBoxAddon.doBoxRefind
@@ -968,7 +986,8 @@ class ChildBoxAddon():
         character: translate to next multiple of 8 to match visual?
         """
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'ChildBoxAddon doShowInfo' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doShowInfo( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "ChildBoxAddon.doShowInfo( {} )".format( event ) )
 
         text  = self.getAllText()
         numChars = len( text )
@@ -1019,7 +1038,7 @@ class ChildBoxAddon():
     # end of ChildBoxAddon.getAllText
 
 
-    def setAllText( self, newText:str, textType:Optional[str]=None ) -> None:
+    def setAllText( self, newText:str, textType:str|None=None ) -> None:
         """
         Sets the textBox (assumed to be enabled) to the given text
             then positions the insert cursor at the BEGINNING of the text.
@@ -1027,7 +1046,8 @@ class ChildBoxAddon():
         caller: call self.update() first if just packed, else the
         initial position may be at line 2, not line 1 (2.1; Tk bug?)
         """
-        fnPrint( DEBUGGING_THIS_MODULE, f"ChildBoxAddon.setAllText( {len(newText)} chars, {textType} )" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, f"ChildBoxAddon.setAllText( {len(newText)} chars, {textType} )" )
         assert textType in ( None, 'Markdown', 'YAML' )
         self.textType = textType
         if textType == 'Markdown':
@@ -1067,7 +1087,8 @@ class ChildBoxAddon():
 
         Can be overridden if an edit box needs to save files first.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.doClose( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "ChildBoxAddon.doClose( {} )".format( event ) )
 
         self.destroy()
     # end of ChildBoxAddon.doClose
@@ -1084,7 +1105,8 @@ class BibleBoxAddon():
         """
         This function does absolutely nothing.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.__init__( {}, {} )".format( parentWindow, BibleBoxType ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.__init__( {}, {} )".format( parentWindow, BibleBoxType ) )
         self.doExtraChecking = DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag
         if self.doExtraChecking: assert parentWindow
         self.parentWindow, self.BibleBoxType = parentWindow, BibleBoxType
@@ -1109,7 +1131,8 @@ class BibleBoxAddon():
             ##"tabs", "tabstyle", "underline", and "wrap".
 
 
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon.__init__ finished." )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon.__init__ finished." )
     # end of BibleBoxAddon.__init__
 
 
@@ -1117,7 +1140,8 @@ class BibleBoxAddon():
         """
         Create keyboard bindings for this widget.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.createStandardBoxKeyboardBindings( {} )".format( reset ) )
 
         if reset:
             self.myKeyboardBindingsList = []
@@ -1135,7 +1159,8 @@ class BibleBoxAddon():
         """
         Can be overriden if necessary.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.createContextMenu()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.createContextMenu()" )
 
         self.textBox.contextMenu = tk.Menu( self, tearoff=0 )
         self.textBox.contextMenu.add_command( label=_('Copy'), underline=0, command=self.doCopy, accelerator=BiblelatorGlobals.theApp.keyBindingDict[_('Copy')][0] )
@@ -1169,7 +1194,8 @@ class BibleBoxAddon():
         Usually called from updateShownBCV from the subclass.
         Note that it's used in both formatted and unformatted (even edit) windows.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.displayAppendVerse( {}, {}, {}, {}, {}, {}, {} )".format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, substituteTrailingSpaces, substituteMultipleSpaces ) )
         if self.doExtraChecking:
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
@@ -1184,7 +1210,8 @@ class BibleBoxAddon():
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
-            fnPrint( DEBUGGING_THIS_MODULE, f"BibleBoxAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+                fnPrint( DEBUGGING_THIS_MODULE, f"BibleBoxAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
             if self.doExtraChecking:
                 assert isinstance( ieText, str )
                 assert isinstance( ieTags, (str,tuple) )
@@ -1206,7 +1233,8 @@ class BibleBoxAddon():
         try: cVM, fVM = self._contextViewMode, self._formatViewMode
         except AttributeError: # Must be called from a box, not a window so get settings from parent
             cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
 
         #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "BibleBoxAddon.displayAppendVerse( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
@@ -1216,11 +1244,13 @@ class BibleBoxAddon():
         BBB, C, V = verseKey.getBCV()
         try: C = int(C)
         except ValueError:
-            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.displayAppendVerse found invalid {C=}: changed to 1" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+                dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.displayAppendVerse found invalid {C=}: changed to 1" )
             C = 1
         try: V = int(V)
         except ValueError:
-            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.displayAppendVerse found invalid {V=}: changed to 1" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+                dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.displayAppendVerse found invalid {V=}: changed to 1" )
             V = 1
 
         #C1 = C2 = int(C); V1 = V2 = int(V)
@@ -1251,7 +1281,7 @@ class BibleBoxAddon():
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "   Context: {}".format( context ) )
         elif isinstance( verseContextData, str ):
             verseDataList, context = verseContextData.split( '\n' ), None
-        elif BibleOrgSysGlobals.debugFlag: halt
+        elif BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
         # Display the context preceding the first verse
         if firstFlag:
@@ -1324,7 +1354,7 @@ class BibleBoxAddon():
                         cleanText = verseDataEntry[len(marker)+1:].lstrip()
                     else:
                         marker, cleanText = None, verseDataEntry
-                elif BibleOrgSysGlobals.debugFlag: halt
+                elif BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
                 if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
                     vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
 
@@ -1439,7 +1469,7 @@ class BibleBoxAddon():
                             insertAtEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
                             insertAtEnd( '\u2009', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
                             lastCharWasSpace = haveTextFlag = True
-                    elif marker in ('v~','p~'):
+                    elif marker in ('v~','XXXp~'):
                         insertAtEnd( cleanText, '*'+lastParagraphMarker if currentVerseFlag else lastParagraphMarker )
                         haveTextFlag = True
                     else:
@@ -1450,7 +1480,7 @@ class BibleBoxAddon():
                             logger( f"BibleBoxAddon.displayAppendVerse (formatted): Unknown marker {self.moduleID} {marker}={cleanText}" )
                 else:
                     logging.critical( _("BibleBoxAddon.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
-                    if BibleOrgSysGlobals.debugFlag: halt
+                    if BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
             if lastFlag and cVM=='ByVerse' and endMarkers:
                 #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "endMarkers", endMarkers )
@@ -1468,16 +1498,20 @@ class BibleBoxAddon():
         """
         Returns the requested verse, the previous verse, and the next n verses.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.getBeforeAndAfterBibleData( {} )".format( newVerseKey ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "BibleBoxAddon.getBeforeAndAfterBibleData( {} )".format( newVerseKey ) )
         if BibleOrgSysGlobals.debugFlag:
             assert isinstance( newVerseKey, SimpleVerseKey )
 
         BBB, C, V = newVerseKey.getBCV()
-        dPrint( 'Verbose', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.getBeforeAndAfterBibleData1 {BBB=} {C=} {V=}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 4:
+            dPrint( 'Verbose', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.getBeforeAndAfterBibleData1 {BBB=} {C=} {V=}" )
         intC, intV = newVerseKey.getChapterNumberInt(), newVerseKey.getVerseNumberInt()
-        dPrint( 'Verbose', DEBUGGING_THIS_MODULE, f"  BibleBoxAddon.getBeforeAndAfterBibleData2 {BBB=} {intC=} {intV=}" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 4:
+            dPrint( 'Verbose', DEBUGGING_THIS_MODULE, f"  BibleBoxAddon.getBeforeAndAfterBibleData2 {BBB=} {intC=} {intV=}" )
         if intV is None:
-            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.getBeforeAndAfterBibleData: fixing intV from None ({V=})" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+                dPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"BibleBoxAddon.getBeforeAndAfterBibleData: fixing intV from None ({V=})" )
             V, intV = '1', 1
 
         # Determine the PREVIOUS valid verse numbers
@@ -1485,7 +1519,8 @@ class BibleBoxAddon():
         previousVersesData = []
         for n in range( -BiblelatorGlobals.theApp.viewVersesBefore, 0 ):
             failed = False
-            dPrint( 'Never', DEBUGGING_THIS_MODULE, "  BibleBoxAddon.getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 5:
+                dPrint( 'Never', DEBUGGING_THIS_MODULE, "  BibleBoxAddon.getBeforeAndAfterBibleData here with", repr(n), repr(prevIntC), repr(prevIntV) )
             if prevIntV is not None and prevIntV > 0: prevIntV -= 1
             elif prevIntC > 0:
                 prevIntC -= 1
@@ -1547,7 +1582,8 @@ class BibleBoxAddon():
         from BiblelatorDialogs import GetBibleFindTextDialog
 
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'BibleBoxAddon doBibleFind' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon.doBibleFind( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon.doBibleFind( {} )".format( event ) )
 
         try: haveInternalBible = self.internalBible is not None
         except AttributeError: haveInternalBible = False
@@ -1558,7 +1594,8 @@ class BibleBoxAddon():
 
         self.BibleFindOptionsDict['currentBCV'] = self.currentVerseKey.getBCV()
         gBSTD = GetBibleFindTextDialog( self, self.internalBible, self.BibleFindOptionsDict, title=_('Find in Bible') )
-        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "gBSTDResult", repr(gBSTD.result) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+            dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "gBSTDResult", repr(gBSTD.result) )
         if gBSTD.result:
             if BibleOrgSysGlobals.debugFlag: assert isinstance( gBSTD.result, dict )
             self.BibleFindOptionsDict = gBSTD.result # Update our search options dictionary
@@ -1578,7 +1615,8 @@ class BibleBoxAddon():
         from ChildWindows import FindResultWindow
 
         BiblelatorGlobals.theApp.logUsage( PROGRAM_NAME, DEBUGGING_THIS_MODULE, 'BibleBoxAddon doActualBibleFind' )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon.doActualBibleFind( {} )".format( extendTo ) )
 
         BiblelatorGlobals.theApp.setWaitStatus( _("Searching…") )
         #self.textBox.update()
@@ -1621,7 +1659,8 @@ class BibleBoxAddon():
         Leaves the wait cursor displayed.
         """
         logging.debug( "BibleBoxAddon._prepareInternalBible()" )
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon._prepareInternalBible()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "BibleBoxAddon._prepareInternalBible()" )
         if givenBible is None: givenBible = self.internalBible
 
         if self.modified(): self.doSave() # NOTE: Read-only boxes/windows don't even have a doSave() function
@@ -1792,7 +1831,7 @@ class BibleBoxAddon():
                 ###dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "   Context: {}".format( context ) )
         ##elif isinstance( verseContextData, str ):
             ##verseDataList, context = verseContextData.split( '\n' ), None
-        ##elif BibleOrgSysGlobals.debugFlag: halt
+        ##elif BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
         ### Display the context preceding the first verse
         ##if firstFlag:
@@ -1865,7 +1904,7 @@ class BibleBoxAddon():
                         ##cleanText = verseDataEntry[len(marker)+1:].lstrip()
                     ##else:
                         ##marker, cleanText = None, verseDataEntry
-                ##elif BibleOrgSysGlobals.debugFlag: halt
+                ##elif BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
                 ##if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
                     ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
 
@@ -1977,7 +2016,7 @@ class BibleBoxAddon():
                             ##insertAtEnd( cleanText, (lastParagraphMarker,marker,) if lastParagraphMarker else (marker,) )
                             ##insertAtEnd( '\u2009', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
                             ##lastCharWasSpace = haveTextFlag = True
-                    ##elif marker in ('v~','p~'):
+                    ##elif marker in ('v~','XXXp~'):
                         ##insertAtEnd( cleanText, '*'+lastParagraphMarker if currentVerseFlag else lastParagraphMarker )
                         ##haveTextFlag = True
                     ##else:
@@ -1987,7 +2026,7 @@ class BibleBoxAddon():
                             ##logging.critical( _("BibleBox.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
                 ##else:
                     ##logging.critical( _("BibleBox.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
-                    ##if BibleOrgSysGlobals.debugFlag: halt
+                    ##if BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
             ##if lastFlag and cVM=='ByVerse' and endMarkers:
                 ###dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "endMarkers", endMarkers )
@@ -2186,7 +2225,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         """
         This function is not needed at all, except for debug tracing of __init__ functions (when used).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.__init__( {}, nIL={} )".format( parentWindow, numInterlinearLines ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.__init__( {}, nIL={} )".format( parentWindow, numInterlinearLines ) )
         if DEBUGGING_THIS_MODULE or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.strictCheckingFlag:
             assert parentWindow
             assert 0 < numInterlinearLines <= 5
@@ -2216,7 +2256,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
         self.glossWindowGeometry = None
         self.requestMissingGlosses = BibleOrgSysGlobals.commandLineArguments.export
 
-        vPrint( 'Never', DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.__init__ finished." )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+            vPrint( 'Never', DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.__init__ finished." )
     # end of HebrewInterlinearBibleBoxAddon.__init__
 
 
@@ -2232,10 +2273,12 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         command can be 'E' for edit, i.e., if a bundle has been double-clicked
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
-                .format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, command, substituteTrailingSpaces, substituteMultipleSpaces ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.displayAppendVerse( fF={}, {}, {}, lF={}, cVF={}, cWN={}, c={}, sTS={}, sMS={} )" \
+                    .format( firstFlag, verseKey, verseContextData, lastFlag, currentVerseFlag, currentWordNumber, command, substituteTrailingSpaces, substituteMultipleSpaces ) )
         if self.doExtraChecking:
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  {}".format( verseContextData[0] ) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  {}".format( verseContextData[0] ) )
             assert isinstance( firstFlag, bool )
             assert isinstance( verseKey, SimpleVerseKey )
             if verseContextData:
@@ -2257,7 +2300,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
-            fnPrint( DEBUGGING_THIS_MODULE, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+                fnPrint( DEBUGGING_THIS_MODULE, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEnd( {ieText=}, {ieTags=} )" )
             if BibleOrgSysGlobals.debugFlag:
                 assert isinstance( ieText, str )
                 assert ieTags is None or isinstance( ieTags, (str,tuple) )
@@ -2281,7 +2325,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
             The function mostly exists so we can print the parameters if necessary for debugging.
             """
-            fnPrint( DEBUGGING_THIS_MODULE, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine( {ieLineNumber}, {ieText=}, {ieTags=} )" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+                fnPrint( DEBUGGING_THIS_MODULE, f"HebrewInterlinearBibleBoxAddon.displayAppendVerse.insertAtEndLine( {ieLineNumber}, {ieText=}, {ieTags=} )" )
             if BibleOrgSysGlobals.debugFlag:
                 assert isinstance( ieLineNumber, int )
                 assert isinstance( ieText, str )
@@ -2311,7 +2356,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             Returns True if the display needs updating/refreshing
             """
             from Biblelator.Dialogs.BiblelatorDialogs import GetHebrewGlossWordDialog, GetHebrewGlossWordsDialog
-            vPrint( 'Info', DEBUGGING_THIS_MODULE, "displayAppendVerse.appendVerseText( {}, {}, cVF={}, cWN={}, c={} )".format( verseDataEntry, currentVerseKey, currentVerseFlag, currentWordNumber, command ) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 3:
+                vPrint( 'Info', DEBUGGING_THIS_MODULE, "displayAppendVerse.appendVerseText( {}, {}, cVF={}, cWN={}, c={} )".format( verseDataEntry, currentVerseKey, currentVerseFlag, currentWordNumber, command ) )
 
             verseDictList = self.internalBible.getVerseDictList( verseDataEntry, currentVerseKey )
             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, verseKey.getShortText(), "verseDictList", verseDictList )
@@ -2384,7 +2430,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                 except KeyError: command = None
                                 needToRequestMissingGlosses = False
                                 needToUpdate = True
-                            else: halt # programming error
+                            else: assert False, "We want to stop here" # programming error
                         elif not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
                             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "No generic gloss found for ({}) {}{}".format( len(word), word, \
                                 #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
@@ -2409,7 +2455,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                     except KeyError: command = None
                                     needToRequestMissingGlosses = False
                                     needToUpdate = True
-                                else: halt # programming error
+                                else: assert False, "We want to stop here" # programming error
                             else: needToRequestMissingGlosses = True
                         bundle = word, strongsNumber, morphology, genericGloss
                     elif self.numInterlinearLines == 5:
@@ -2449,7 +2495,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                 except KeyError: command = None
                                 needToRequestMissingGlosses = False
                                 needToUpdate = True
-                            else: halt # programming error
+                            else: assert False, "We want to stop here" # programming error
                         elif not genericGloss and BibleOrgSysGlobals.verbosityLevel > 0:
                             #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "No generic gloss found for ({}) {}{}".format( len(word), word, \
                                 #' to ({}) {}'.format( len(normalizedWord), normalizedWord ) if normalizedWord!=word else '' ) )
@@ -2477,10 +2523,10 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                     except KeyError: command = None
                                     needToRequestMissingGlosses = False
                                     needToUpdate = True
-                                else: halt # programming error
+                                else: assert False, "We want to stop here" # programming error
                             else: needToRequestMissingGlosses = True
                         bundle = word, strongsNumber, morphology, genericGloss, specificGloss
-                    else: halt # Programming error for numInterlinearLines
+                    else: assert False, "We want to stop here" # Programming error for numInterlinearLines
                     if passNumber == 1:
                         appendBundle( bundle, j, j==currentWordNumber, haveTextFlag )
                     haveTextFlag = True
@@ -2581,7 +2627,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             try: cVM, fVM = self._contextViewMode, self._formatViewMode
             except AttributeError: # Must be called from a box, not a window so get settings from parent
                 cVM, fVM = self.parentWindow._contextViewMode, self.parentWindow._formatViewMode
-            vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 1:
+                vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "displayAppendVerse2( {}, {}, …, {}, {} ) for {}/{}".format( firstFlag, verseKey, lastFlag, currentVerseFlag, fVM, cVM ) )
             assert cVM == 'ByVerse'
 
             #if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
@@ -2619,7 +2666,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "   Context: {}".format( context ) )
             elif isinstance( verseContextData, str ):
                 verseDataList, context = verseContextData.split( '\n' ), None
-            elif BibleOrgSysGlobals.debugFlag: halt
+            elif BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
             # Display the context preceding the first verse
             if firstFlag:
@@ -2681,13 +2728,13 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                     # This loop is used for several types of data
                     assert isinstance( verseDataEntry, InternalBibleEntry )
                     marker, cleanText, extras = verseDataEntry.getMarker(), verseDataEntry.getCleanText(), verseDataEntry.getExtras()
-                    adjustedText, originalText = verseDataEntry.getAdjustedText(), verseDataEntry.getOriginalText()
+                    adjustedText, original_text = verseDataEntry.getAdjustedText(), verseDataEntry.getOriginalText()
                     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "marker={} cleanText={!r}{}".format( marker, cleanText, " extras={}".format( extras ) if extras else '' ) )
                     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "marker={} cleanText={!r} extras={}".format( marker, cleanText, extras ) )
                     #if adjustedText and adjustedText!=cleanText:
                         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, ' '*(len(marker)+4), "adjustedText={!r}".format( adjustedText ) )
-                    #if originalText and originalText!=cleanText:
-                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, ' '*(len(marker)+4), "originalText={!r}".format( originalText ) )
+                    #if original_text and original_text!=cleanText:
+                        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, ' '*(len(marker)+4), "original_text={!r}".format( original_text ) )
                     #elif isinstance( verseDataEntry, tuple ):
                         #marker, cleanText = verseDataEntry[0], verseDataEntry[3]
                     #elif isinstance( verseDataEntry, str ): # from a Bible text editor window
@@ -2701,7 +2748,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             #cleanText = verseDataEntry[len(marker)+1:].lstrip()
                         #else:
                             #marker, cleanText = None, verseDataEntry
-                    #elif BibleOrgSysGlobals.debugFlag: halt
+                    #elif BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
                     if BibleOrgSysGlobals.debugFlag and DEBUGGING_THIS_MODULE:
                         vPrint( 'Quiet', DEBUGGING_THIS_MODULE, "  displayAppendVerse", lastParagraphMarker, haveTextFlag, marker, repr(cleanText) )
 
@@ -2815,7 +2862,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                             insertAtEnd( '\n', (lastParagraphMarker,'v+',) if lastParagraphMarker else ('v+',) ) # narrow space
                             haveTextFlag = True
                             self.lineNumber += 1
-                        elif marker in ('v~','p~'):
+                        elif marker in ('v~','XXXp~'):
                             needsRefreshing = appendVerseText( verseDataEntry, verseKey, currentVerseFlag, currentWordNumber=currentWordNumber, command=command )
                             command = None # So we don't repeat it
                             haveTextFlag = True
@@ -2826,7 +2873,7 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
                                 logging.critical( _("HebrewInterlinearBibleBoxAddon.displayAppendVerse (formatted): Unknown marker {!r} {!r}").format( marker, cleanText ) )
                     else:
                         logging.critical( _("HebrewInterlinearBibleBoxAddon.displayAppendVerse: Unknown {!r} format view mode").format( fVM ) )
-                        if BibleOrgSysGlobals.debugFlag: halt
+                        if BibleOrgSysGlobals.debugFlag: assert False, "We want to stop here"
 
                 if lastFlag and cVM=='ByVerse' and endMarkers:
                     #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "endMarkers", endMarkers )
@@ -2869,7 +2916,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             word number (e.g., first word is word 1) and
             line number (e.g., first line in bundle is line 0).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.selectBundle()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.selectBundle()" )
 
         bundleNumber = self._getBundleNumber( event )
 
@@ -2899,7 +2947,8 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
             word number (e.g., first word is word 1) and
             line number (e.g., first line in bundle is line 0).
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.editBundle()" )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.editBundle()" )
 
         bundleNumber = self._getBundleNumber( event )
 
@@ -2928,11 +2977,13 @@ class HebrewInterlinearBibleBoxAddon( BibleBoxAddon ):
 
         Can be overridden if an edit box needs to save files first.
         """
-        fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.doClose( {} )".format( event ) )
+        if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag:
+            fnPrint( DEBUGGING_THIS_MODULE, "HebrewInterlinearBibleBoxAddon.doClose( {} )".format( event ) )
 
         try: self.internalBible.saveAnyChangedGlosses()
         except AttributeError: # if self.internalBible is None
-            vPrint( 'Never', DEBUGGING_THIS_MODULE, "Why is Hebrew internalBible None?" )
+            if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.verbosityLevel >= 5:
+                vPrint( 'Never', DEBUGGING_THIS_MODULE, "Why is Hebrew internalBible None?" )
 
         self.destroy()
     # end of HebrewInterlinearBibleBoxAddon.doClose
@@ -3118,7 +3169,8 @@ def briefDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( f'{PROGRAM_NAME_VERSION} {_("last modified")} {LAST_MODIFIED_DATE}' if BibleOrgSysGlobals.debugFlag else PROGRAM_NAME_VERSION )
@@ -3145,7 +3197,8 @@ def fullDemo() -> None:
     from tkinter import Tk
 
     BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
-    dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
+    if (DEBUGGING_THIS_MODULE) or BibleOrgSysGlobals.debugFlag or BibleOrgSysGlobals.verbosityLevel >= 1:
+        dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "Running demo…" )
 
     tkRootWindow = Tk()
     tkRootWindow.title( f'{PROGRAM_NAME_VERSION} {_("last modified")} {LAST_MODIFIED_DATE}' if BibleOrgSysGlobals.debugFlag else PROGRAM_NAME_VERSION )
@@ -3166,7 +3219,8 @@ def fullDemo() -> None:
 # end of TextBoxes.fullDemo
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    from multiprocessing import set_start_method, freeze_support
+    set_start_method('fork') # The default was changed on POSIX systems from 'fork' to 'forkserver' in Python3.14
     freeze_support() # Multiprocessing support for frozen Windows executables
 
     # Configure basic set-up

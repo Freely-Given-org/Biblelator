@@ -1,0 +1,17 @@
+[project]
+name = "biblelator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+
+dependencies = [
+    "markdown>=3.10.2",
+    "bibleorgsys",
+    "bos_books_codes_py",
+]
+
+[tool.uv.sources]
+bibleorgsys = { path = "../BibleOrgSys", editable = true }
+bos_books_codes_py = { path = "../BibleOrgSys/Rust/bos_books_codes_py", editable = true }
+
